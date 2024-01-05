@@ -1,12 +1,12 @@
 # go-zero-admin
 
 ## 接口请求: 欢迎一起开发一起学习冲冲冲： 
-## go__zero 在 Apifox 中邀请你加入团队 go-zero-admin https://app.apifox.com/invite?token=IRQ9GQqcYr88i3b0pJao-
-## 微信：qq1013055366  欢迎打扰
+### go__zero 在 Apifox 中邀请你加入团队 go-zero-admin https://app.apifox.com/invite?token=IRQ9GQqcYr88i3b0pJao-
+### 微信：qq1013055366  欢迎打扰
 
 #### 介绍
 
-### 启动项目： (先运行sql语句 文件在)
+### 启动项目： (先运行sql语句 文件在 db/go-zero-admin.sql)
 #### 1-1启动rpc： cd .\application\applet\rpc\
 #### 1-2启动rpc：  go run .\applet.go
 
