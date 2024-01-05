@@ -1,0 +1,406 @@
+syntax = "proto3";
+
+option go_package = "./pb";
+
+package pb;
+
+message GetUserInfoRequest {
+  string UserName = 1;
+  string Password = 2;
+}
+
+message GetUserInfoResponse {
+  UserInfo UserInfo = 1;
+}
+
+message UserInfo{
+  string UUID = 1;
+  string Username = 2;
+  string Password = 3;
+  string NickName = 4;
+  string SideMode = 5;
+  string HeaderImg = 6;
+  string BaseColor = 7;
+  string ActiveColor = 8;
+  int64 AuthorityId = 9;
+  SysAuthority Authority = 10;
+  repeated SysAuthority Authorities = 11;
+  string Phone = 12;
+  string Email = 13;
+  int64 Enable = 14;
+
+  int64  ID = 15;
+  string CreatedAt = 16;
+  string UpdatedAt = 17;
+  string DeletedAt = 18;
+
+}
+
+message SysAuthority{
+  int64 AuthorityId = 1;
+  string AuthorityName = 2;
+  int64 ParentId = 3;
+  string DefaultRouter = 4;
+  repeated SysAuthority DataAuthorityId = 5;
+  repeated SysAuthority children = 6;
+  repeated SysBaseMenu SysBaseMenus = 7;
+  string showMenuIds = 8;
+
+  string CreatedAt = 9;
+  string UpdatedAt = 10;
+  string DeletedAt = 11;
+}
+
+
+message SysBaseMenuParameter {
+  int64 SysBaseMenuID = 1;
+  string Type = 2;
+  string Key = 3;
+  string Value = 4;
+
+  int64  ID = 5;
+  string CreatedAt = 6;
+  string UpdatedAt = 7;
+  string DeletedAt = 8;
+}
+
+message SysBaseMenuBtn{
+  string Name = 1;
+  string Desc = 2;
+  int64 SysBaseMenuID = 3;
+
+  int64  ID = 4;
+  string CreatedAt = 5;
+  string UpdatedAt = 6;
+  string DeletedAt = 7;
+}
+
+message GetUserTokeRequest {
+  int64 ID = 1;
+  string UUID = 2;
+  int64 AuthorityId = 3;
+  string Username = 4;
+  string NickName = 5;
+}
+
+message GetUserTokeResponse {
+  string Token = 1;
+  int64  ExpiresAt = 2;
+}
+
+message GetMenuTreeRequest{
+    int64 AuthorityId = 1;
+}
+
+
+message SysBaseMenu{
+  int64 MenuLevel = 1;
+  string ParentId = 2;
+  string Path = 3;
+  string Name = 4;
+  bool Hidden = 5;
+  string Component = 6;
+  int64 Sort = 7;
+  Meta Meta = 8;
+  repeated SysAuthority SysAuthoritys = 9;
+  repeated SysBaseMenu Children = 10;
+  repeated SysBaseMenuParameter Parameters = 11;
+  repeated SysBaseMenuBtn MenuBtn = 12;
+
+
+
+  int64  ID = 13;
+  string CreatedAt = 14;
+  string UpdatedAt = 15;
+  string DeletedAt = 16;
+}
+
+//  SysMenu struct
+message SysMenu {
+  //  SysBaseMenu struct
+  SysBaseMenu SysBaseMenu = 1;
+//  int64 MenuLevel = 1;
+//  string ParentId = 2;
+//  string Path = 3;
+//  string Name = 4;
+//  bool Hidden = 5;
+//  string Component = 6;
+//  int64 Sort = 7;
+//  Meta Meta = 8;
+//  repeated SysAuthority SysAuthoritys = 9;
+//  repeated SysBaseMenu Children = 10;
+//  repeated SysBaseMenuParameter Parameters = 11;
+//  repeated SysBaseMenuBtn MenuBtn = 12;
+
+
+
+
+  string MenuId = 13;
+  int64 AuthorityId = 14;
+  repeated SysMenu Children = 15;
+  repeated SysBaseMenuParameter Parameters = 16;
+  map<string, int64> Btns = 17;
+
+  int64  ID = 18;
+  string CreatedAt = 19;
+  string UpdatedAt = 20;
+  string DeletedAt = 21;
+}
+
+// Meta struct
+message Meta {
+  string ActiveName = 1;
+  bool KeepAlive = 2;
+  bool DefaultMenu = 3;
+  string Title = 4;
+  string Icon = 5;
+  bool CloseTab = 6;
+}
+
+message GetMenuTreeResponse {
+  repeated SysMenu SysMenu = 1;
+}
+
+message GetMenuBaseInfoListRequest{}
+message GetMenuBaseInfoListResponse {
+  repeated SysBaseMenu SysBaseMenu = 1;
+  int64 total = 2;
+}
+
+message AddMenuBaseRequest{
+  SysBaseMenu SysBaseMenu = 1;
+}
+message AddMenuBaseResponse{}
+
+message PageRequest {
+  int64 pageNo  = 1;
+  int64 PageSize  = 2;
+  string Keyword  = 3;
+}
+
+
+message GetAuthorityListRequest {
+    PageRequest Page = 1;
+}
+
+message GetAuthorityListResponse {
+  repeated SysAuthority SysAuthority = 1;
+  int64 total = 2;
+}
+
+message SysApi {
+  string Path = 1;
+  string Description = 2;
+  string ApiGroup = 3;
+  string Method = 4;
+
+  int64  ID = 5;
+  string CreatedAt = 6;
+  string UpdatedAt = 7;
+  string DeletedAt = 8;
+}
+
+message GetApiListRequest {
+    SysApi SysApi = 1;
+    PageRequest PageRequest = 2;
+    string OrderKey = 3;
+    bool Desc = 4;
+}
+
+message GetApiListResponse {
+  repeated SysApi SysApi = 1;
+  int64 total = 2;
+}
+
+message CreateApiRequest {
+  SysApi SysApi = 1;
+}
+
+message CreateApiResponse {}
+
+message DeleteApiRequest {
+  SysApi SysApi = 1;
+}
+
+message DeleteApiResponse {}
+
+message GetAllApiListRequest{}
+
+message GetAllApiListResponse{
+  repeated SysApi ApiList = 1;
+}
+
+message CasbinInfo {
+    string  Path = 1;
+    string  Method = 2;
+}
+
+message GetPathByAuthorityIdRequest {
+    int64 AuthorityId = 1;
+}
+
+message GetPathByAuthorityIdResponse {
+  repeated CasbinInfo CasbinInfoList = 1;
+}
+
+message GetBaseMenuTreeRequest {}
+
+message GetBaseMenuTreeResponse {
+  repeated SysBaseMenu SysBaseMenuList = 1;
+}
+
+message GetMenuAuthorityRequest {
+  int64 AuthorityId = 1;
+}
+
+message GetMenuAuthorityResponse {
+  repeated SysMenu SysMenuList = 1;
+}
+
+//message AuthorityMenu {
+//    int64 MenuId = 1;
+//    int64 AuthorityId = 2;
+//}
+
+message AddAuthorityMenuRequest {
+  int64 AuthorityId = 1;
+  string MenuIds = 2;
+}
+
+message AddAuthorityMenuResponse {}
+
+message UpdateCasbinDataRequest {
+  int64 AuthorityId = 1;
+  repeated CasbinInfo CasbinInfoList = 2;
+}
+
+message UpdateCasbinDataResponse {}
+
+message UpdateAuthorityRequest {
+  SysAuthority SysAuthority = 1;
+}
+
+message UpdateAuthorityResponse {
+  SysAuthority SysAuthority = 1;
+}
+
+message GetBaseMenuByIdRequest {
+  int64 ID = 1;
+}
+
+message GetBaseMenuByIdResponse {
+    SysBaseMenu SysBaseMenu = 1;
+}
+
+message UpdateBaseMenuRequest {
+  SysBaseMenu SysBaseMenu = 1;
+}
+
+message UpdateBaseMenuResponse {}
+
+message CreateAuthorityRequest {
+    SysAuthority SysAuthority = 1;
+}
+
+message CreateAuthorityResponse {
+  SysAuthority SysAuthority = 1;
+}
+
+message GetUserListRequest {
+  PageRequest PageRequest = 1;
+}
+
+message GetUserListResponse {
+  repeated UserInfo UserInfoList = 1;
+  int64 Total = 2;
+}
+
+message RegisterRequest {
+  UserInfo UserInfo = 1;
+  repeated int64 AuthorityIds = 2;
+}
+
+message RegisterResponse {
+  UserInfo UserInfo = 1;
+}
+
+message UpdateUserInfoRequest {
+  UserInfo UserInfo = 1;
+}
+
+message UpdateUserInfoResponse {}
+
+message UpdateUserAuthoritiesRequest {
+  int64 ID = 1;
+  repeated int64 AuthorityIds = 2;
+}
+
+message UpdateUserAuthoritiesResponse {}
+
+service User {
+  //  获取用户信息
+  rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
+  // 获取Token
+  rpc GetUserToke (GetUserTokeRequest) returns(GetUserTokeResponse);
+  // 分页获取用户列表
+  rpc GetUserList (GetUserListRequest) returns(GetUserListResponse);
+  // 新增（注册）用户 - 管理员
+  rpc Register (RegisterRequest) returns(RegisterResponse);
+  // 修改用户信息
+  rpc UpdateUserInfo (UpdateUserInfoRequest) returns(UpdateUserInfoResponse);
+  // 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
+  rpc UpdateUserAuthorities (UpdateUserAuthoritiesRequest) returns(UpdateUserAuthoritiesResponse);
+
+}
+
+
+service Menu {
+  // 获取菜单-路由
+  rpc GetMenuTree (GetMenuTreeRequest) returns (GetMenuTreeResponse);
+  // 获取系统基础菜单列表
+  rpc GetMenuBaseInfoList (GetMenuBaseInfoListRequest) returns (GetMenuBaseInfoListResponse);
+  // 添加系统基础菜单列表
+  rpc AddMenuBase (AddMenuBaseRequest) returns (AddMenuBaseResponse);
+  // 获取用户动态路由树  -- 用于角色管理的设置权限
+  rpc GetBaseMenuTree (GetBaseMenuTreeRequest) returns (GetBaseMenuTreeResponse);
+  // 获取指定角色menu  -- 用于角色管理的设置权限
+  rpc GetMenuAuthority (GetMenuAuthorityRequest) returns (GetMenuAuthorityResponse);
+  // 根据id获取菜单
+  rpc GetBaseMenuById (GetBaseMenuByIdRequest) returns (GetBaseMenuByIdResponse);
+  // 根据id获取菜单
+  rpc UpdateBaseMenu (UpdateBaseMenuRequest) returns (UpdateBaseMenuResponse);
+
+}
+
+
+service Authority {
+  // 获取角色列表
+  rpc GetAuthorityList (GetAuthorityListRequest) returns (GetAuthorityListResponse);
+  // 增加base_menu和角色关联关系 -- 用于角色管理的设置权限
+  rpc AddAuthorityMenu (AddAuthorityMenuRequest) returns (AddAuthorityMenuResponse);
+  // 更新角色 -- 设为首页
+  rpc UpdateAuthority (UpdateAuthorityRequest) returns (UpdateAuthorityResponse);
+  // 创建角色
+  rpc CreateAuthority (CreateAuthorityRequest) returns (CreateAuthorityResponse);
+
+}
+
+service API {
+  // 获取API列表
+  rpc GetApiList (GetApiListRequest) returns (GetApiListResponse);
+  // 创建/添加 API列表
+  rpc CreateApi (CreateApiRequest) returns (CreateApiResponse);
+  // 删除API列表
+  rpc DeleteApi (DeleteApiRequest) returns (DeleteApiResponse);
+  // 获取全部API列表
+  rpc GetAllApiList (GetAllApiListRequest) returns (GetAllApiListResponse);
+
+}
+
+service Casbin {
+  // 根据角色id获取对应的casbin数据
+  rpc GetPathByAuthorityId (GetPathByAuthorityIdRequest) returns (GetPathByAuthorityIdResponse);
+  // 更新一个角色的对应的casbin数据
+  rpc UpdateCasbinData (UpdateCasbinDataRequest) returns (UpdateCasbinDataResponse);
+
+}

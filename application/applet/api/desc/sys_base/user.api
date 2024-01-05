@@ -1,0 +1,142 @@
+syntax = "v1"
+
+import (
+	"user_struct.api"
+)
+
+@server(
+	prefix: /v1/sys
+	group: usernocasbin
+)
+service applet-api {
+	@doc "用户登录"
+	@handler Login
+	post /login (LoginRequest) returns (LoginResponse)
+
+	@doc "生成验证码"
+	@handler RandomImage
+	get /randomImage (RandomImageRequest)   returns (RandomImageResponse)
+
+}
+
+@server(
+	prefix: /v1/sys
+	group: user
+	middleware: Authority
+)
+service applet-api {
+	@doc "分页获取用户列表"
+	@handler GetUserList
+	get /getUserList (GetUserListRequest)  returns (GetUserListResponse)
+
+	@doc "新增（注册）用户 - 管理员"
+	@handler Register
+	post /register (RegisterRequest)  returns (RegisterResponse)
+
+	@doc "修改用户信息"
+	@handler UpdateUserInfo
+	put /updateUserInfo (UpdateUserInfoRequest)  returns (UpdateUserInfoResponse)
+
+}
+
+@server(
+	prefix: /v1/sys/menu
+	group: menu
+	jwt: JwtAuth
+	middleware: Authority
+)
+service applet-api {
+	@doc "获取菜单"
+	@handler GetMenu
+	get /getMenu (GetMenuRequest) returns (GetMenuResponse)
+
+	@doc "分页获取base_menu列表"
+	@handler GetMenuList
+	get /getMenuList (GetMenuListRequest) returns (GetMenuListResponse)
+
+	@doc "新增 base_menu"
+	@handler AddBaseMenu
+	post /addBaseMenu (AddBaseMenuRequest) returns (AddBaseMenuResponse)
+
+	@doc "获取用户动态路由树  -- 用于角色管理的设置权限"
+	@handler GetBaseMenuTree
+	get /getBaseMenuTree (GetBaseMenuTreeRequest) returns (GetBaseMenuTreeResponse)
+
+	@doc "获取指定角色menu  -- 用于角色管理的设置权限"
+	@handler GetMenuAuthority
+	get /getMenuAuthority (GetMenuAuthorityRequest) returns (GetMenuAuthorityResponse)
+
+	@doc "根据id获取菜单"
+	@handler GetBaseMenuById
+	get /getBaseMenuById (GetBaseMenuByIdRequest) returns (GetBaseMenuByIdResponse)
+
+	@doc "更新系统菜单"
+	@handler UpdateBaseMenu
+	put /updateBaseMenu (UpdateBaseMenuRequest) returns (UpdateBaseMenuResponse)
+
+}
+
+@server(
+	prefix: /v1/sys/authority
+	group: authority
+	jwt: JwtAuth
+	middleware: Authority
+)
+service applet-api {
+	@doc "获取角色列表"
+	@handler GetAuthorityList
+	get /getAuthorityList (GetAuthorityListRequest) returns (GetAuthorityListResponse)
+
+	@doc "增加角色和base_menu关联关系"
+	@handler AddAuthorityMenu
+	post /addAuthorityMenu (AddAuthorityMenuRequest) returns (AddAuthorityMenuResponse)
+
+	@doc "更新角色 -- 设为首页"
+	@handler UpdateAuthority
+	put /updateAuthority (UpdateAuthorityRequest) returns (UpdateAuthorityResponse)
+
+	@doc "创建角色"
+	@handler CreateAuthority
+	post /createAuthority (CreateAuthorityRequest) returns (CreateAuthorityResponse)
+}
+
+@server(
+	prefix: /v1/sys/api
+	group: api
+	jwt: JwtAuth
+	middleware: Authority
+)
+service applet-api {
+	@doc "获取api列表"
+	@handler GetApiList
+	get /getApiList (GetApiListRequest) returns (GetApiListResponse)
+
+	@doc "创建/增加 api列表"
+	@handler CreateApi
+	post /createApi (CreateApiRequest) returns (CreateApiResponse)
+
+	@doc "删除 api列表"
+	@handler DeleteApi
+	delete /deleteApi (DeleteApiRequest) returns (DeleteApiResponse)
+
+	@doc "获取 所有api"
+	@handler GetAllApiList
+	get /getAllApiList (GetAllApiListRequest) returns (GetAllApiListResponse)
+}
+
+@server(
+	prefix: /v1/sys/casbin
+	group: casbin
+	jwt: JwtAuth
+	middleware: Authority
+)
+service applet-api {
+	@doc "根据角色id获取对应的casbin数据"
+	@handler GetPathByAuthorityId
+	post /getPathByAuthorityId (GetPathByAuthorityIdRequest) returns (GetPathByAuthorityIdResponse)
+
+	@doc "更新一个角色的对应的casbin数据"
+	@handler UpdateCasbinData
+	post /updateCasbinData (UpdateCasbinDataRequest) returns (UpdateCasbinDataResponse)
+
+}

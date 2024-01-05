@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+option go_package = "./pb";
+
+package pb;
+
+service User {
+  rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
+}
+
+message GetUserInfoRequest {
+  string UserName = 1;
+  string Password = 2;
+}
+
+message GetUserInfoResponse {
+  UserInfo UserInfo = 1;
+}
+
+message UserInfo{
+  string UUID = 1;
+  string Username = 2;
+  string Password = 3;
+  string NickName = 4;
+  string SideMode = 5;
+  string HeaderImg = 6;
+  string BaseColor = 7;
+  string ActiveColor = 8;
+  int64 AuthorityId = 9;
+  SysAuthority Authority = 10;
+  repeated SysAuthority Authorities = 11;
+  string Phone = 12;
+  string Email = 13;
+  int64 Enable = 14;
+
+  int64  ID = 15;
+  string CreatedAt = 16;
+  string UpdatedAt = 17;
+  string DeletedAt = 18;
+
+}
+
+message SysAuthority{
+  int64 AuthorityId = 1;
+  string AuthorityName = 2;
+  repeated SysAuthority children = 3;
+  repeated SysAuthority DataAuthorityId = 4;
+  string DefaultRouter = 5;
+  repeated SysBaseMenu Menus = 6;
+
+  int64  ID = 7;
+  string CreatedAt = 8;
+  string UpdatedAt = 9;
+  string DeletedAt = 10;
+}
+
+message SysBaseMenu{
+  int64 MenuLevel = 1;
+  string ParentId = 2;
+  string Path = 3;
+  string Name = 4;
+  bool Hidden = 5;
+  string Component = 6;
+  int64 Sort = 7;
+  repeated SysAuthority SysAuthoritys = 8;
+  repeated SysBaseMenu Children = 9;
+  repeated SysBaseMenuParameter Parameters = 10;
+  repeated SysBaseMenuBtn MenuBtn = 11;
+
+  int64  ID = 12;
+  string CreatedAt = 13;
+  string UpdatedAt = 14;
+  string DeletedAt = 15;
+}
+
+message SysBaseMenuParameter {
+  int64 SysBaseMenuID = 1;
+  string Type = 2;
+  string Key = 3;
+  string Value = 4;
+
+  int64  ID = 5;
+  string CreatedAt = 6;
+  string UpdatedAt = 7;
+  string DeletedAt = 8;
+}
+
+message SysBaseMenuBtn{
+  string Name = 1;
+  string Desc = 2;
+  int64 SysBaseMenuID = 3;
+
+  int64  ID = 4;
+  string CreatedAt = 5;
+  string UpdatedAt = 6;
+  string DeletedAt = 7;
+}

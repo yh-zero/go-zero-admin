@@ -1,0 +1,327 @@
+syntax = "v1"
+
+type Model {
+	ID        int64    `json:"ID,optional"`
+	CreatedAt string `json:"CreatedAt,optional"`
+	UpdatedAt string `json:"UpdatedAt,optional"`
+	DeletedAt string `json:"DeletedAt,optional"`
+}
+
+type UserInfo {
+	UUID        string         `json:"uuid"`        // 用户UUID
+	Username    string         `json:"userName"`    // 用户登录名
+	Password    string         `json:"-"`           // 用户登录密码
+	NickName    string         `json:"nickName"`    // 用户昵称
+	SideMode    string         `json:"sideMode"`    // 用户侧边主题
+	HeaderImg   string         `json:"headerImg"`   // 用户头像
+	BaseColor   string         `json:"baseColor"`   // 基础颜色
+	ActiveColor string         `json:"activeColor"` // 活跃颜色
+	AuthorityId int64           `json:"authorityId"` // 用户角色ID
+	Authority   SysAuthority   `json:"authority"`
+	Authorities []SysAuthority `json:"authorities"`
+	Phone       string         `json:"phone"`  // 用户手机号
+	Email       string         `json:"email"`  // 用户邮箱
+	Enable      int64            `json:"enable"` //用户是否被冻结 1正常 2冻结
+
+	Model
+}
+
+type SysAuthority {
+	AuthorityId     int64            `json:"authorityId"`   // 角色ID
+	AuthorityName   string          `json:"authorityName"` // 角色名
+	ParentId        *int64           `json:"parentId"`      // 父角色ID
+	DataAuthorityId []*SysAuthority `json:"dataAuthorityId,optional"`
+	Children        []SysAuthority  `json:"children,optional"`
+	SysBaseMenus    []SysBaseMenu   `json:"menus,optional"`
+	DefaultRouter   string          `json:"defaultRouter,optional"` // 默认菜单(默认dashboard)
+	// showMenuIds string `json:"showMenuIds,omitempty"`
+	ShowMenuIds string `json:"showMenuIds,optional"`
+
+	CreatedAt string `json:"CreatedAt,optional"` // 创建时间
+	UpdatedAt string `json:"UpdatedAt,optional"` // 更新时间
+	DeletedAt string `json:"DeletedAt,optional"`
+	// DeletedAt       string      `sql:"index"`
+}
+
+type SysBaseMenu {
+	MenuLevel     int64                   `json:"-"`
+	ParentId      string                 `json:"parentId"`      // 父菜单ID
+	Path          string                 `json:"path"`          // 路由path
+	Name          string                 `json:"name"`          // 路由name
+	Hidden        bool                   `json:"hidden"`        // 是否在列表隐藏
+	Component     string                 `json:"component"`     // 对应前端文件路径
+	Sort          int64                    `json:"sort,optional"` // 排序标记
+	SysAuthoritys []SysAuthority         `json:"authoritys,optional"`
+	Children      []SysBaseMenu          `json:"children,optional"`
+	Parameters    []SysBaseMenuParameter `json:"parameters"`
+	MenuBtn       []SysBaseMenuBtn       `json:"menuBtn"`
+
+	Meta Meta `json:"meta"`
+	Model
+}
+
+type SysBaseMenuParameter {
+	SysBaseMenuID int64   `json:"sysBaseMenuId,optional"`
+	Type          string `json:"type"`  // 地址栏携带参数为params还是query
+	Key           string `json:"key"`   // 地址栏携带参数的key
+	Value         string `json:"value"` // 地址栏携带参数的值
+
+	Model
+}
+
+type SysBaseMenuBtn {
+	Name          string `json:"name"`
+	Desc          string `json:"desc"`
+	SysBaseMenuID int64   `json:"sysBaseMenuID,optional"`
+
+	Model
+}
+
+type LoginRequest {
+	UserName string `json:"username"`
+	Password string `json:"password"`
+	Captcha  string `json:"captcha"`
+}
+
+type LoginResponse {
+	AccessExpire int64    `json:"accessExpire"`
+	AccessToken  string   `json:"accessToken"`
+	UserInfo     UserInfo `json:"userInfo"`
+}
+
+type RandomImageRequest {}
+
+type RandomImageResponse {
+	CaptchaImg string `json:"captchaImg"`
+}
+
+type GetMenuRequest {
+}
+
+type GetMenuResponse {
+	Menus []SysMenu `json:"menus"`
+}
+
+type SysMenu {
+	SysBaseMenu
+
+	MenuId      string                 `json:"menuId"`
+	AuthorityId int64                   `json:"-" gorm:"comment:角色ID"`
+	Children    []SysMenu              `json:"children"`
+	Parameters  []SysBaseMenuParameter `json:"parameters"`
+	Btns        map[string]int64        `json:"btns"`
+}
+
+type Meta {
+	ActiveName  string `json:"activeName,optional"`
+	KeepAlive   bool   `json:"keepAlive,optional"`   // 是否缓存
+	DefaultMenu bool   `json:"defaultMenu,optional"` // 是否是基础路由（开发中）
+	Title       string `json:"title"`                // 菜单名
+	Icon        string `json:"icon"`                 // 菜单图标
+	CloseTab    bool   `json:"closeTab"`             // 自动关闭tab
+}
+
+type PageRequest {
+	//	pageNo int64 `json:"pageNo,optional"`
+	//	PageSize int64 `json:"pageSize,optional"`
+	//	Keyword string `json:"keyword,optional"`
+
+	PageNo   int64  `form:"pageNo,optional"`
+	PageSize int64  `form:"pageSize,optional"`
+	Keyword  string `form:"keyword,optional"`
+}
+type PageResponse {
+	Total    int64 `json:"total"`
+	PageNo   int64 `json:"page"`
+	PageSize int64 `json:"pageSize"`
+}
+
+type GetMenuListRequest {
+	PageRequest
+}
+
+type GetMenuListResponse {
+	List []SysBaseMenu `json:"list"`
+	PageResponse
+}
+
+type AddBaseMenuRequest {
+	SysBaseMenu
+}
+type AddBaseMenuResponse {}
+
+type GetAuthorityListRequest {
+	PageRequest
+}
+
+type GetAuthorityListResponse {
+	List []SysAuthority `json:"list"`
+	PageResponse
+}
+
+type SysApi {
+	Path        string `json:"path,optional"`        // api路径
+	Description string `json:"description,optional"` // api中文描述
+	ApiGroup    string `json:"apiGroup,optional"`    // api组
+	Method      string `json:"method,optional"`      // 方法:创建POST(默认)|查看GET|更新PUT|删除DELETE
+
+	Model
+}
+
+type GetApiListRequest {
+	OrderKey string `json:"orderKey,optional"`
+	Desc     bool   `json:"desc,optional"` // 排序方式:升序false(默认) | 降序true
+
+	SysApi
+	PageRequest
+}
+
+type GetApiListResponse {
+	List []SysApi `json:"list"`
+	PageResponse
+}
+
+type CreateApiRequest {
+	SysApi
+}
+
+type CreateApiResponse {
+	Message string `json:"message"`
+}
+
+type DeleteApiRequest {
+	SysApi
+}
+
+type DeleteApiResponse {
+	Message string `json:"message"`
+}
+
+type GetAllApiListRequest {}
+
+type GetAllApiListResponse {
+	ApiList []SysApi `json:"apiList"`
+}
+
+type CasbinInfo {
+	Path   string `json:"path"`   // 路径
+	Method string `json:"method"` // 方法
+}
+
+type GetPathByAuthorityIdRequest {
+	AuthorityId int64 `json:"authorityId"`
+}
+
+type GetPathByAuthorityIdResponse {
+	List []CasbinInfo `json:"list"`
+}
+
+type GetBaseMenuTreeRequest {}
+
+type GetBaseMenuTreeResponse {
+	SysBaseMenuList []SysBaseMenu `json:"list"`
+}
+
+type GetMenuAuthorityRequest {
+	AuthorityId int64 `json:"authorityId"`
+}
+
+type GetMenuAuthorityResponse {
+	SysMenuList []SysMenu `json:"list"`
+}
+
+//type AuthorityMenu {
+//	MenuId int64 `json:"menuId"`
+//	AuthorityId int64 `json:"authorityId"`
+//}
+
+type AddAuthorityMenuRequest {
+	AuthorityId int64  `json:"authorityId"`
+	MenuIds     string `json:"menuIds"`
+}
+
+type AddAuthorityMenuResponse {
+	Message string `json:"message"`
+}
+
+type UpdateCasbinDataRequest {
+	AuthorityId    int64        `json:"authorityId"`
+	CasbinInfoList []CasbinInfo `json:"casbinInfoList"`
+}
+
+type UpdateCasbinDataResponse {
+	Message string `json:"message"`
+}
+
+type UpdateAuthorityRequest {
+	SysAuthority
+}
+
+type UpdateAuthorityResponse {
+	SysAuthority SysAuthority `json:"sysAuthority"`
+	Message      string       `json:"message"`
+}
+
+type GetBaseMenuByIdRequest {
+	Id int64 `json:"id"`
+}
+
+type GetBaseMenuByIdResponse {
+	SysBaseMenu SysBaseMenu `json:"sysBaseMenu"`
+}
+
+type UpdateBaseMenuRequest {
+	SysBaseMenu
+}
+
+type UpdateBaseMenuResponse {
+	Message string `json:"message"`
+}
+
+type CreateAuthorityRequest {
+	SysAuthority
+}
+
+type CreateAuthorityResponse {
+	SysAuthority SysAuthority `json:"sysAuthority"`
+}
+
+type GetUserListRequest {
+	PageRequest
+}
+
+type GetUserListResponse {
+	List []UserInfo `json:"list"`
+	PageResponse
+}
+
+type RegisterRequest {
+	Username     string  `json:"userName"`           // 用户名
+	Password     string  `json:"passWord"`           // 密码
+	NickName     string  `json:"nickName"`           // 昵称
+	HeaderImg    string  `json:"headerImg,optional"` // 头像链接
+	AuthorityId  int64   `json:"authorityId"`        // 角色id int64
+	Enable       int64   `json:"enable,optional"`    // 是否启用
+	AuthorityIds []int64 `json:"authorityIds"`       // 角色id []int64
+	Phone        string  `json:"phone,optional"`     // 电话号码
+	Email        string  `json:"email,optional"`     // 电子邮箱
+}
+
+type RegisterResponse {
+	UserInfo
+}
+
+type UpdateUserInfoRequest {
+	ID           int64   `json:"ID"`           // 主键ID
+	NickName     string  `json:"nickName,optional"`     // 用户昵称
+	Phone        string  `json:"phone,optional"`        // 用户手机号
+	AuthorityIds []int64 `json:"authorityIds,optional"` // 角色ID
+	Email        string  `json:"email,optional"`        // 用户邮箱
+	HeaderImg    string  `json:"headerImg,optional"`    // 用户头像
+	SideMode     string  `json:"sideMode,optional"`     // 用户侧边主题
+	Enable       int64   `json:"enable,optional"`       //冻结用户
+}
+
+type UpdateUserInfoResponse {
+	Message      string       `json:"message"`
+}

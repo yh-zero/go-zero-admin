@@ -1,0 +1,30 @@
+Name: applet.rpc
+ListenOn: 0.0.0.0:6001
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: applet.rpc
+DB:
+  DataSource: root:123456@tcp(150.158.181.149:3308)/go-zero-admin?parseTime=true&loc=Local
+  MaxIdleConns: 10
+  MaxOpenConns: 100
+  ConnMaxLifetime: 3600
+BizRedis:
+  Host: 127.0.0.1:6379
+  Pass:
+  Type: node
+JwtAuth:
+  AccessSecret: 3fG7-go-zero-admin_p2hE
+  AccessExpire: 31536000
+CasbinConf:
+  ModelText: |
+    [request_definition]
+    r = sub, obj, act
+    [policy_definition]
+    p = sub, obj, act
+    [role_definition]
+    g = _, _
+    [policy_effect]
+    e = some(where (p.eft == allow))
+    [matchers]
+    m = r.sub == p.sub && keyMatch2(r.obj,p.obj) && r.act == p.act
