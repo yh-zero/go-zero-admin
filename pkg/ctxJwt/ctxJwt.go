@@ -11,8 +11,8 @@ import (
 var CtxKeyJwtData = "jwtData"
 
 type JWTData struct {
-	AuthorityId int    `map:"AuthorityId"`
-	ID          int    `map:"ID"`
+	AuthorityId int64  `map:"AuthorityId"`
+	ID          int64  `map:"ID"`
 	NickName    string `map:"NickName"`
 	UUID        string `map:"UUID"`
 	Username    string `map:"Username"`
@@ -21,7 +21,6 @@ type JWTData struct {
 func GetJwtData(ctx context.Context) JWTData {
 	ctxKeyJwtData := ctx.Value(CtxKeyJwtData)
 	var jwtData JWTData
-
 	if ctxKeyJwtDataClaim, ok := ctxKeyJwtData.(map[string]interface{}); ok {
 		jwtData = mapToJWTData(ctxKeyJwtDataClaim)
 	}
@@ -38,23 +37,26 @@ func mapToJWTData(data map[string]interface{}) JWTData {
 
 		if mapTag != "" {
 			if value, ok := data[mapTag]; ok {
-				// 检查当前字段的类型是否为 int
-				if v.Field(i).Kind() == reflect.Int {
-					// 检查值的类型是否为 json.Number
+				switch v.Field(i).Kind() {
+				case reflect.Int:
 					if num, ok := value.(json.Number); ok {
-						// 将 json.Number 转换为 int
 						intValue, err := strconv.Atoi(num.String())
 						if err != nil {
-							// 处理转换错误
 							fmt.Println("转换失败:", err)
-							// 可以返回默认值或其他适当操作
 						} else {
-							// 设置字段的 int 值
 							v.Field(i).SetInt(int64(intValue))
 						}
 					}
-				} else {
-					// 非 int 类型的字段直接赋值（假设类型匹配）
+				case reflect.Int64:
+					if num, ok := value.(json.Number); ok {
+						intValue, err := strconv.ParseInt(num.String(), 10, 64)
+						if err != nil {
+							fmt.Println("转换失败:", err)
+						} else {
+							v.Field(i).SetInt(intValue)
+						}
+					}
+				default:
 					if reflect.ValueOf(value).Type().AssignableTo(v.Field(i).Type()) {
 						v.Field(i).Set(reflect.ValueOf(value))
 					}
@@ -66,11 +68,11 @@ func mapToJWTData(data map[string]interface{}) JWTData {
 	return jwtData
 }
 
-func GetJwtDataID(ctx context.Context) int {
+func GetJwtDataID(ctx context.Context) int64 {
 	return GetJwtData(ctx).ID
 }
 
-func GetJwtDataAuthorityId(ctx context.Context) int {
+func GetJwtDataAuthorityId(ctx context.Context) int64 {
 	return GetJwtData(ctx).AuthorityId
 }
 func GetJwtDataUUID(ctx context.Context) string {

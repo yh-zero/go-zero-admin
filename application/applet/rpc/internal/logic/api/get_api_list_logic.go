@@ -81,6 +81,7 @@ func (l *GetApiListLogic) GetApiList(in *pb.GetApiListRequest) (*pb.GetApiListRe
 	fmt.Println("=========== apiList", apiList)
 	var pbSysApi []*pb.SysApi
 	_ = copier.Copy(&pbSysApi, apiList)
+	fmt.Println("=========== pbSysApi", pbSysApi)
 
 	return &pb.GetApiListResponse{
 		SysApi: pbSysApi,

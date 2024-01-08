@@ -36,7 +36,7 @@ func (l *CreateAuthorityLogic) CreateAuthority(req *types.CreateAuthorityRequest
 	}
 
 	var typesSysAuthority types.SysAuthority
-	_ = copier.Copy(&typesSysAuthority, createAuthority)
+	_ = copier.Copy(&typesSysAuthority, createAuthority.SysAuthority)
 
 	return &types.CreateAuthorityResponse{SysAuthority: typesSysAuthority}, nil
 }

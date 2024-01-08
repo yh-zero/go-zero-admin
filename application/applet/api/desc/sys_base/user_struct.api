@@ -159,22 +159,33 @@ type GetAuthorityListResponse {
 	PageResponse
 }
 
-type SysApi {
-	Path        string `json:"path,optional"`        // api路径
-	Description string `json:"description,optional"` // api中文描述
-	ApiGroup    string `json:"apiGroup,optional"`    // api组
-	Method      string `json:"method,optional"`      // 方法:创建POST(默认)|查看GET|更新PUT|删除DELETE
+type SysApi struct {
+	Path        string `json:"path,optional" form:"path,optional"`                // api路径
+	Description string `json:"description,optional" form:"description,optional"`  // api中文描述
+	ApiGroup    string `json:"apiGroup,optional" form:"apiGroup,optional"`        // api组
+	Method      string `json:"method,optional" form:"method,optional"`            // 方法:创建POST(默认)|查看GET|更新PUT|删除DELETE
 
 	Model
 }
 
-type GetApiListRequest {
-	OrderKey string `json:"orderKey,optional"`
-	Desc     bool   `json:"desc,optional"` // 排序方式:升序false(默认) | 降序true
+type GetApiListRequest struct {
+	OrderKey string `form:"orderKey,optional"` // 排序的字段
+	Desc     bool   `form:"desc,optional"`        // 排序方式:升序false(默认) | 降序true
 
 	SysApi
 	PageRequest
 }
+
+
+//type GetApiListRequest struct {
+//	OrderKey string `json:"orderKey,omitempty" form:"orderKey,required"` // 排序的字段
+//	Desc     bool   `json:"desc,omitempty" form:"desc,required"`        // 排序方式:升序false(默认) | 降序true
+//
+//	SysApi
+//	PageRequest
+//}
+
+
 
 type GetApiListResponse {
 	List []SysApi `json:"list"`
@@ -331,5 +342,13 @@ type ResetUserPasswordRequest {
 }
 
 type ResetUserPasswordResponse {
+	Message string `json:"message"`
+}
+
+type DeleteUserRequest {
+	UserID int64 `json:"userId"`
+}
+
+type DeleteUserResponse {
 	Message string `json:"message"`
 }

@@ -56,8 +56,14 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/resetUserPassword",
 					Handler: user.ResetUserPasswordHandler(serverCtx),
 				},
+				{
+					Method:  http.MethodDelete,
+					Path:    "/deleteUser",
+					Handler: user.DeleteUserHandler(serverCtx),
+				},
 			}...,
 		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
 		rest.WithPrefix("/v1/sys"),
 	)
 

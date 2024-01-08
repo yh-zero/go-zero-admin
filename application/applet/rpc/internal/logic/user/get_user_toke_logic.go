@@ -34,10 +34,10 @@ func (l *GetUserTokeLogic) GetUserToke(in *pb.GetUserTokeRequest) (*pb.GetUserTo
 	accessExpire := l.svcCtx.Config.JwtAuth.AccessExpire
 	accessToken, err := l.getJwtToken(l.svcCtx.Config.JwtAuth.AccessSecret, now, accessExpire, ctxJwt.JWTData{
 		UUID:        in.UUID,
-		ID:          int(in.ID),
+		ID:          in.ID,
 		NickName:    in.NickName,
 		Username:    in.Username,
-		AuthorityId: int(in.AuthorityId),
+		AuthorityId: in.AuthorityId,
 	})
 
 	return &pb.GetUserTokeResponse{
@@ -47,6 +47,7 @@ func (l *GetUserTokeLogic) GetUserToke(in *pb.GetUserTokeRequest) (*pb.GetUserTo
 }
 
 func (l *GetUserTokeLogic) getJwtToken(secretKey string, iat, seconds int64, jwtData ctxJwt.JWTData) (string, error) {
+	fmt.Println("======== getJwtToken jwtData", jwtData)
 	claims := make(jwt.MapClaims)
 	claims["exp"] = iat + seconds
 	claims["iat"] = iat

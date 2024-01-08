@@ -153,16 +153,16 @@ type GetAuthorityListResponse struct {
 }
 
 type SysApi struct {
-	Path        string `json:"path,optional"`        // api路径
-	Description string `json:"description,optional"` // api中文描述
-	ApiGroup    string `json:"apiGroup,optional"`    // api组
-	Method      string `json:"method,optional"`      // 方法:创建POST(默认)|查看GET|更新PUT|删除DELETE
+	Path        string `json:"path,optional" form:"path,optional"`               // api路径
+	Description string `json:"description,optional" form:"description,optional"` // api中文描述
+	ApiGroup    string `json:"apiGroup,optional" form:"apiGroup,optional"`       // api组
+	Method      string `json:"method,optional" form:"method,optional"`           // 方法:创建POST(默认)|查看GET|更新PUT|删除DELETE
 	Model
 }
 
 type GetApiListRequest struct {
-	OrderKey string `json:"orderKey,optional"`
-	Desc     bool   `json:"desc,optional"` // 排序方式:升序false(默认) | 降序true
+	OrderKey string `form:"orderKey,optional"` // 排序的字段
+	Desc     bool   `form:"desc,optional"`     // 排序方式:升序false(默认) | 降序true
 	SysApi
 	PageRequest
 }
@@ -319,5 +319,13 @@ type ResetUserPasswordRequest struct {
 }
 
 type ResetUserPasswordResponse struct {
+	Message string `json:"message"`
+}
+
+type DeleteUserRequest struct {
+	UserID int64 `json:"userId"`
+}
+
+type DeleteUserResponse struct {
 	Message string `json:"message"`
 }

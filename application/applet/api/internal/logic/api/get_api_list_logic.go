@@ -37,6 +37,7 @@ func (l *GetApiListLogic) GetApiList(req *types.GetApiListRequest) (resp *types.
 	}
 
 	fmt.Println("======== GetApiList req=", req)
+	fmt.Println("======== GetApiList req.orderKey=", req.OrderKey)
 
 	var pbPageRequest pb.PageRequest
 	_ = copier.Copy(&pbPageRequest, req.PageRequest)

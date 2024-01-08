@@ -40,8 +40,7 @@ func (l *CreateAuthorityLogic) CreateAuthority(in *pb.CreateAuthorityRequest) (*
 	}
 
 	txErr := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
-
-		if err = tx.Create(&auth).Error; err != nil {
+		if err = tx.Omit("deleted_at").Create(&auth).Error; err != nil {
 			return err
 		}
 

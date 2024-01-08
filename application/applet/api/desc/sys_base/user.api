@@ -22,6 +22,7 @@ service applet-api {
 @server(
 	prefix: /v1/sys
 	group: user
+	jwt: JwtAuth
 	middleware: Authority
 )
 service applet-api {
@@ -40,6 +41,10 @@ service applet-api {
 	@doc "重置用户密码 默认密码：goZero"
 	@handler ResetUserPassword
 	put /resetUserPassword (ResetUserPasswordRequest)  returns (ResetUserPasswordResponse)
+
+	@doc "删除用户"
+	@handler DeleteUser
+	delete /deleteUser (DeleteUserRequest)  returns (DeleteUserResponse)
 
 }
 

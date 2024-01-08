@@ -32,7 +32,7 @@ func (m *AuthorityMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 		method := r.Method
 		authorityId := ctxJwt.GetJwtDataAuthorityId(r.Context())
 		fmt.Println("authorityId", authorityId)
-		result := batchCheck(m.CasB, strconv.Itoa(authorityId), path, method)
+		result := batchCheck(m.CasB, strconv.FormatInt(authorityId, 10), path, method)
 		if !result {
 			logx.Errorf("---------- batchCheck: 不通过 ------------")
 			//fmt.Println("---------- batchCheck: 不通过 ------------")

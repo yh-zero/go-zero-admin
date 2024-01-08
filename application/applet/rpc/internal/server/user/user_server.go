@@ -63,3 +63,9 @@ func (s *UserServer) ResetUserPassword(ctx context.Context, in *pb.ResetUserPass
 	l := userlogic.NewResetUserPasswordLogic(ctx, s.svcCtx)
 	return l.ResetUserPassword(in)
 }
+
+// 删除用户
+func (s *UserServer) DeleteUser(ctx context.Context, in *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+	l := userlogic.NewDeleteUserLogic(ctx, s.svcCtx)
+	return l.DeleteUser(in)
+}

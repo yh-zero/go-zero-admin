@@ -52,6 +52,8 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	}
 	var resUserInfo types.LoginResponse
 	_ = copier.Copy(&resUserInfo.UserInfo, &userInfoRPC.UserInfo)
+	fmt.Println("======= resUserInfo.UserInfo", resUserInfo.UserInfo)
+	fmt.Println("======= userInfoRPC.UserInfo", userInfoRPC.UserInfo)
 
 	// 获取token
 	var tokenReq = pb.GetUserTokeRequest{}

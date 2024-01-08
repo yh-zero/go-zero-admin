@@ -24,6 +24,8 @@ type (
 	CreateAuthorityResponse       = pb.CreateAuthorityResponse
 	DeleteApiRequest              = pb.DeleteApiRequest
 	DeleteApiResponse             = pb.DeleteApiResponse
+	DeleteUserRequest             = pb.DeleteUserRequest
+	DeleteUserResponse            = pb.DeleteUserResponse
 	GetAllApiListRequest          = pb.GetAllApiListRequest
 	GetAllApiListResponse         = pb.GetAllApiListResponse
 	GetApiListRequest             = pb.GetApiListRequest
@@ -87,6 +89,8 @@ type (
 		UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*UpdateUserAuthoritiesResponse, error)
 		// 重置用户密码 默认密码：goZero
 		ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error)
+		// 删除用户
+		DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 	}
 
 	defaultUser struct {
@@ -140,4 +144,10 @@ func (m *defaultUser) UpdateUserAuthorities(ctx context.Context, in *UpdateUserA
 func (m *defaultUser) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error) {
 	client := pb.NewUserClient(m.cli.Conn())
 	return client.ResetUserPassword(ctx, in, opts...)
+}
+
+// 删除用户
+func (m *defaultUser) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+	client := pb.NewUserClient(m.cli.Conn())
+	return client.DeleteUser(ctx, in, opts...)
 }

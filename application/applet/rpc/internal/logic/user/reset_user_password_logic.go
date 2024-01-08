@@ -2,7 +2,6 @@ package userlogic
 
 import (
 	"context"
-	"fmt"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/pkg/hash"
 
@@ -28,8 +27,8 @@ func NewResetUserPasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 
 // 重置用户密码 默认密码：goZero
 func (l *ResetUserPasswordLogic) ResetUserPassword(in *pb.ResetUserPasswordRequest) (*pb.ResetUserPasswordResponse, error) {
-	fmt.Println("UserPassword:", l.svcCtx.Config.Default.UserPassword)
-	err := l.svcCtx.DB.Model(&model.SysUser{}).Where("id = ?", in.UserID).Update("password", hash.BcryptHash(l.svcCtx.Config.Default.UserPassword)).Error
+	hashedPassword := hash.BcryptHash(l.svcCtx.Config.Default.UserPassword)
 
+	err := l.svcCtx.DB.Model(&model.SysUser{}).Where("id = ?", in.UserID).Update("password", hashedPassword).Error
 	return &pb.ResetUserPasswordResponse{}, err
 }
