@@ -343,6 +343,12 @@ message ResetUserPasswordRequest {
 
 message ResetUserPasswordResponse {}
 
+message DeleteUserRequest {
+  int64 UserID = 1;
+}
+
+message DeleteUserResponse {}
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -358,6 +364,8 @@ service User {
   rpc UpdateUserAuthorities (UpdateUserAuthoritiesRequest) returns(UpdateUserAuthoritiesResponse);
   // 重置用户密码 默认密码：goZero
   rpc ResetUserPassword (ResetUserPasswordRequest) returns(ResetUserPasswordResponse);
+  // 删除用户
+  rpc DeleteUser (DeleteUserRequest) returns(DeleteUserResponse);
 
 }
 
