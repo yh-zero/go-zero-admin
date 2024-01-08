@@ -51,6 +51,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/updateUserInfo",
 					Handler: user.UpdateUserInfoHandler(serverCtx),
 				},
+				{
+					Method:  http.MethodPut,
+					Path:    "/resetUserPassword",
+					Handler: user.ResetUserPasswordHandler(serverCtx),
+				},
 			}...,
 		),
 		rest.WithPrefix("/v1/sys"),

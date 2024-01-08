@@ -28,3 +28,5 @@ CasbinConf:
     e = some(where (p.eft == allow))
     [matchers]
     m = r.sub == p.sub && keyMatch2(r.obj,p.obj) && r.act == p.act
+Default: # 默认值
+  UserPassword: goZero   # 默认user重置密码

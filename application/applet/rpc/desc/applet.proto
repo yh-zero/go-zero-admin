@@ -337,6 +337,12 @@ message UpdateUserAuthoritiesRequest {
 
 message UpdateUserAuthoritiesResponse {}
 
+message ResetUserPasswordRequest {
+  int64 UserID = 1;
+}
+
+message ResetUserPasswordResponse {}
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -350,6 +356,8 @@ service User {
   rpc UpdateUserInfo (UpdateUserInfoRequest) returns(UpdateUserInfoResponse);
   // 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
   rpc UpdateUserAuthorities (UpdateUserAuthoritiesRequest) returns(UpdateUserAuthoritiesResponse);
+  // 重置用户密码 默认密码：goZero
+  rpc ResetUserPassword (ResetUserPasswordRequest) returns(ResetUserPasswordResponse);
 
 }
 

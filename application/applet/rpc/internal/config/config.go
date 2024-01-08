@@ -20,4 +20,7 @@ type Config struct {
 		AccessExpire int64
 	}
 	CasbinConf middlecasbin.CasbinConf
+	Default    struct {
+		UserPassword string
+	}
 }

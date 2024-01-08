@@ -1,7 +1,7 @@
 syntax = "v1"
 
 type Model {
-	ID        int64    `json:"ID,optional"`
+	ID        int64  `json:"ID,optional"`
 	CreatedAt string `json:"CreatedAt,optional"`
 	UpdatedAt string `json:"UpdatedAt,optional"`
 	DeletedAt string `json:"DeletedAt,optional"`
@@ -16,20 +16,20 @@ type UserInfo {
 	HeaderImg   string         `json:"headerImg"`   // 用户头像
 	BaseColor   string         `json:"baseColor"`   // 基础颜色
 	ActiveColor string         `json:"activeColor"` // 活跃颜色
-	AuthorityId int64           `json:"authorityId"` // 用户角色ID
+	AuthorityId int64          `json:"authorityId"` // 用户角色ID
 	Authority   SysAuthority   `json:"authority"`
 	Authorities []SysAuthority `json:"authorities"`
 	Phone       string         `json:"phone"`  // 用户手机号
 	Email       string         `json:"email"`  // 用户邮箱
-	Enable      int64            `json:"enable"` //用户是否被冻结 1正常 2冻结
+	Enable      int64          `json:"enable"` //用户是否被冻结 1正常 2冻结
 
 	Model
 }
 
 type SysAuthority {
-	AuthorityId     int64            `json:"authorityId"`   // 角色ID
+	AuthorityId     int64           `json:"authorityId"`   // 角色ID
 	AuthorityName   string          `json:"authorityName"` // 角色名
-	ParentId        *int64           `json:"parentId"`      // 父角色ID
+	ParentId        *int64          `json:"parentId"`      // 父角色ID
 	DataAuthorityId []*SysAuthority `json:"dataAuthorityId,optional"`
 	Children        []SysAuthority  `json:"children,optional"`
 	SysBaseMenus    []SysBaseMenu   `json:"menus,optional"`
@@ -44,13 +44,13 @@ type SysAuthority {
 }
 
 type SysBaseMenu {
-	MenuLevel     int64                   `json:"-"`
+	MenuLevel     int64                  `json:"-"`
 	ParentId      string                 `json:"parentId"`      // 父菜单ID
 	Path          string                 `json:"path"`          // 路由path
 	Name          string                 `json:"name"`          // 路由name
 	Hidden        bool                   `json:"hidden"`        // 是否在列表隐藏
 	Component     string                 `json:"component"`     // 对应前端文件路径
-	Sort          int64                    `json:"sort,optional"` // 排序标记
+	Sort          int64                  `json:"sort,optional"` // 排序标记
 	SysAuthoritys []SysAuthority         `json:"authoritys,optional"`
 	Children      []SysBaseMenu          `json:"children,optional"`
 	Parameters    []SysBaseMenuParameter `json:"parameters"`
@@ -61,7 +61,7 @@ type SysBaseMenu {
 }
 
 type SysBaseMenuParameter {
-	SysBaseMenuID int64   `json:"sysBaseMenuId,optional"`
+	SysBaseMenuID int64  `json:"sysBaseMenuId,optional"`
 	Type          string `json:"type"`  // 地址栏携带参数为params还是query
 	Key           string `json:"key"`   // 地址栏携带参数的key
 	Value         string `json:"value"` // 地址栏携带参数的值
@@ -72,7 +72,7 @@ type SysBaseMenuParameter {
 type SysBaseMenuBtn {
 	Name          string `json:"name"`
 	Desc          string `json:"desc"`
-	SysBaseMenuID int64   `json:"sysBaseMenuID,optional"`
+	SysBaseMenuID int64  `json:"sysBaseMenuID,optional"`
 
 	Model
 }
@@ -106,10 +106,10 @@ type SysMenu {
 	SysBaseMenu
 
 	MenuId      string                 `json:"menuId"`
-	AuthorityId int64                   `json:"-" gorm:"comment:角色ID"`
+	AuthorityId int64                  `json:"-" gorm:"comment:角色ID"`
 	Children    []SysMenu              `json:"children"`
 	Parameters  []SysBaseMenuParameter `json:"parameters"`
-	Btns        map[string]int64        `json:"btns"`
+	Btns        map[string]int64       `json:"btns"`
 }
 
 type Meta {
@@ -312,7 +312,7 @@ type RegisterResponse {
 }
 
 type UpdateUserInfoRequest {
-	ID           int64   `json:"ID"`           // 主键ID
+	ID           int64   `json:"ID"`                    // 主键ID
 	NickName     string  `json:"nickName,optional"`     // 用户昵称
 	Phone        string  `json:"phone,optional"`        // 用户手机号
 	AuthorityIds []int64 `json:"authorityIds,optional"` // 角色ID
@@ -323,5 +323,13 @@ type UpdateUserInfoRequest {
 }
 
 type UpdateUserInfoResponse {
-	Message      string       `json:"message"`
+	Message string `json:"message"`
+}
+
+type ResetUserPasswordRequest {
+	UserID int64 `json:"userId"`
+}
+
+type ResetUserPasswordResponse {
+	Message string `json:"message"`
 }

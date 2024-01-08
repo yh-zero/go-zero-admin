@@ -52,6 +52,8 @@ type (
 	PageRequest                   = pb.PageRequest
 	RegisterRequest               = pb.RegisterRequest
 	RegisterResponse              = pb.RegisterResponse
+	ResetUserPasswordRequest      = pb.ResetUserPasswordRequest
+	ResetUserPasswordResponse     = pb.ResetUserPasswordResponse
 	SysApi                        = pb.SysApi
 	SysAuthority                  = pb.SysAuthority
 	SysBaseMenu                   = pb.SysBaseMenu
@@ -83,6 +85,8 @@ type (
 		UpdateUserInfo(ctx context.Context, in *UpdateUserInfoRequest, opts ...grpc.CallOption) (*UpdateUserInfoResponse, error)
 		// 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
 		UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*UpdateUserAuthoritiesResponse, error)
+		// 重置用户密码 默认密码：goZero
+		ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error)
 	}
 
 	defaultUser struct {
@@ -130,4 +134,10 @@ func (m *defaultUser) UpdateUserInfo(ctx context.Context, in *UpdateUserInfoRequ
 func (m *defaultUser) UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*UpdateUserAuthoritiesResponse, error) {
 	client := pb.NewUserClient(m.cli.Conn())
 	return client.UpdateUserAuthorities(ctx, in, opts...)
+}
+
+// 重置用户密码 默认密码：goZero
+func (m *defaultUser) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error) {
+	client := pb.NewUserClient(m.cli.Conn())
+	return client.ResetUserPassword(ctx, in, opts...)
 }

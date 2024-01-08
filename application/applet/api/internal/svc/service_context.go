@@ -21,7 +21,7 @@ type ServiceContext struct {
 	AppletUserRPC      user.User
 	AppletMenuRPC      menu.Menu
 	AppletAuthorityRPC authority.Authority
-	AppletAPIRPC       api.API
+	AppletAPIRPC       api.Api
 	AppletCasbinRPC    casbinRPC.Casbin
 	Casbin             *casbin.SyncedCachedEnforcer
 	BanRoleData        map[string]bool // ban role means the role status is not normal
@@ -38,7 +38,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		AppletUserRPC:      user.NewUser(zrpc.MustNewClient(c.AppletRPC)),
 		AppletMenuRPC:      menu.NewMenu(zrpc.MustNewClient(c.AppletRPC)),
 		AppletAuthorityRPC: authority.NewAuthority(zrpc.MustNewClient(c.AppletRPC)),
-		AppletAPIRPC:       api.NewAPI(zrpc.MustNewClient(c.AppletRPC)),
+		AppletAPIRPC:       api.NewApi(zrpc.MustNewClient(c.AppletRPC)),
 		AppletCasbinRPC:    casbinRPC.NewCasbin(zrpc.MustNewClient(c.AppletRPC)),
 		Casbin:             casB,
 	}

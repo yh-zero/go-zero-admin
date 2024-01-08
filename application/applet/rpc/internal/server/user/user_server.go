@@ -57,3 +57,9 @@ func (s *UserServer) UpdateUserAuthorities(ctx context.Context, in *pb.UpdateUse
 	l := userlogic.NewUpdateUserAuthoritiesLogic(ctx, s.svcCtx)
 	return l.UpdateUserAuthorities(in)
 }
+
+// 重置用户密码 默认密码：goZero
+func (s *UserServer) ResetUserPassword(ctx context.Context, in *pb.ResetUserPasswordRequest) (*pb.ResetUserPasswordResponse, error) {
+	l := userlogic.NewResetUserPasswordLogic(ctx, s.svcCtx)
+	return l.ResetUserPassword(in)
+}

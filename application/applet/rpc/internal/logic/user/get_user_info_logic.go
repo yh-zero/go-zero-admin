@@ -5,8 +5,8 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 	"go-zero-admin/application/applet/rpc/internal/model"
+	"go-zero-admin/pkg/hash"
 	"go-zero-admin/pkg/result/xerr"
-	"go-zero-admin/pkg/utils/hash"
 	"gorm.io/gorm"
 
 	"go-zero-admin/application/applet/rpc/internal/svc"

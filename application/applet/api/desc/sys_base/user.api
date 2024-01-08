@@ -37,6 +37,10 @@ service applet-api {
 	@handler UpdateUserInfo
 	put /updateUserInfo (UpdateUserInfoRequest)  returns (UpdateUserInfoResponse)
 
+	@doc "重置用户密码 默认密码：goZero"
+	@handler ResetUserPassword
+	put /resetUserPassword (ResetUserPasswordRequest)  returns (ResetUserPasswordResponse)
+
 }
 
 @server(

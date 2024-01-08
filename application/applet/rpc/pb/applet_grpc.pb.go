@@ -34,6 +34,8 @@ type UserClient interface {
 	UpdateUserInfo(ctx context.Context, in *UpdateUserInfoRequest, opts ...grpc.CallOption) (*UpdateUserInfoResponse, error)
 	// 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
 	UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*UpdateUserAuthoritiesResponse, error)
+	// 重置用户密码 默认密码：goZero
+	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error)
 }
 
 type userClient struct {
@@ -98,6 +100,15 @@ func (c *userClient) UpdateUserAuthorities(ctx context.Context, in *UpdateUserAu
 	return out, nil
 }
 
+func (c *userClient) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error) {
+	out := new(ResetUserPasswordResponse)
+	err := c.cc.Invoke(ctx, "/pb.User/ResetUserPassword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
@@ -114,6 +125,8 @@ type UserServer interface {
 	UpdateUserInfo(context.Context, *UpdateUserInfoRequest) (*UpdateUserInfoResponse, error)
 	// 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
 	UpdateUserAuthorities(context.Context, *UpdateUserAuthoritiesRequest) (*UpdateUserAuthoritiesResponse, error)
+	// 重置用户密码 默认密码：goZero
+	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -138,6 +151,9 @@ func (UnimplementedUserServer) UpdateUserInfo(context.Context, *UpdateUserInfoRe
 }
 func (UnimplementedUserServer) UpdateUserAuthorities(context.Context, *UpdateUserAuthoritiesRequest) (*UpdateUserAuthoritiesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserAuthorities not implemented")
+}
+func (UnimplementedUserServer) ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResetUserPassword not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
@@ -260,6 +276,24 @@ func _User_UpdateUserAuthorities_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_ResetUserPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetUserPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).ResetUserPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.User/ResetUserPassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).ResetUserPassword(ctx, req.(*ResetUserPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -290,6 +324,10 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUserAuthorities",
 			Handler:    _User_UpdateUserAuthorities_Handler,
+		},
+		{
+			MethodName: "ResetUserPassword",
+			Handler:    _User_ResetUserPassword_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

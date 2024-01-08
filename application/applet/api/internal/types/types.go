@@ -313,3 +313,11 @@ type UpdateUserInfoRequest struct {
 type UpdateUserInfoResponse struct {
 	Message string `json:"message"`
 }
+
+type ResetUserPasswordRequest struct {
+	UserID int64 `json:"userId"`
+}
+
+type ResetUserPasswordResponse struct {
+	Message string `json:"message"`
+}

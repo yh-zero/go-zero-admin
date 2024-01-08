@@ -52,6 +52,8 @@ type (
 	PageRequest                   = pb.PageRequest
 	RegisterRequest               = pb.RegisterRequest
 	RegisterResponse              = pb.RegisterResponse
+	ResetUserPasswordRequest      = pb.ResetUserPasswordRequest
+	ResetUserPasswordResponse     = pb.ResetUserPasswordResponse
 	SysApi                        = pb.SysApi
 	SysAuthority                  = pb.SysAuthority
 	SysBaseMenu                   = pb.SysBaseMenu
