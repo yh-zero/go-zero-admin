@@ -3,12 +3,12 @@ package casbin
 import (
 	"context"
 	"fmt"
+	"github.com/jinzhu/copier"
+	"go-zero-admin/application/applet/rpc/pb"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
-	"go-zero-admin/application/applet/rpc/pb"
 
-	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -27,7 +27,6 @@ func NewUpdateCasbinDataLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 func (l *UpdateCasbinDataLogic) UpdateCasbinData(req *types.UpdateCasbinDataRequest) (resp *types.UpdateCasbinDataResponse, err error) {
-
 	var pbUpdateCasbinData pb.UpdateCasbinDataRequest
 	_ = copier.Copy(&pbUpdateCasbinData.CasbinInfoList, req.CasbinInfoList)
 	fmt.Println("--------- pbUpdateCasbinData", pbUpdateCasbinData.CasbinInfoList)

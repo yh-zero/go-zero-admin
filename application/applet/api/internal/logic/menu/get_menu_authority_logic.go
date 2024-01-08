@@ -3,13 +3,13 @@ package menu
 import (
 	"context"
 	"fmt"
-
-	"go-zero-admin/application/applet/api/internal/svc"
-	"go-zero-admin/application/applet/api/internal/types"
+	"github.com/jinzhu/copier"
 	"go-zero-admin/application/applet/rpc/pb"
 	"go-zero-admin/pkg/ctxJwt"
 
-	"github.com/jinzhu/copier"
+	"go-zero-admin/application/applet/api/internal/svc"
+	"go-zero-admin/application/applet/api/internal/types"
+
 	"github.com/zeromicro/go-zero/core/logx"
 )
 

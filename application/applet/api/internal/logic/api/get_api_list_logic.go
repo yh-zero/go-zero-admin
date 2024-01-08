@@ -3,12 +3,12 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/jinzhu/copier"
+	"go-zero-admin/application/applet/rpc/pb"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
-	"go-zero-admin/application/applet/rpc/pb"
 
-	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -26,7 +26,6 @@ func NewGetApiListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetApi
 	}
 }
 
-// 前端请求 /v1/sys/api/getApiList?pageNo=11111&=222222
 func (l *GetApiListLogic) GetApiList(req *types.GetApiListRequest) (resp *types.GetApiListResponse, err error) {
 	fmt.Println("req.PageNo = ", req.PageNo)     // req.PageNo =  0
 	fmt.Println("req.PageSize = ", req.PageSize) // req.PageSize =  0

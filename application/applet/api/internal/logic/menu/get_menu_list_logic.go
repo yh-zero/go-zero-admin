@@ -2,13 +2,13 @@ package menu
 
 import (
 	"context"
+	"github.com/jinzhu/copier"
+	"go-zero-admin/application/applet/rpc/pb"
 
-	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
 
-	"github.com/jinzhu/copier"
-	"go-zero-admin/application/applet/rpc/pb"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type GetMenuListLogic struct {
@@ -25,7 +25,6 @@ func NewGetMenuListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMe
 	}
 }
 
-// 获取base_menu基础菜单  所有菜单
 func (l *GetMenuListLogic) GetMenuList(req *types.GetMenuListRequest) (resp *types.GetMenuListResponse, err error) {
 	//csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher("mysql", l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
 	//csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)

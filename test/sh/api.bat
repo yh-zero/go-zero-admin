@@ -4,7 +4,7 @@
 
 set name=%1
 
-goctl api go -api application\%name%\api\desc\%name%.api -dir application\%name%\api\ -home test\goctl\
+goctl api go -api application\%name%\api\desc\%name%.api -dir application\%name%\api\ -home test\goctl\ -style=go_zero
 
 
 @REM if "%api%" == "api" (

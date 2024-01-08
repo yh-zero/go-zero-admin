@@ -5,7 +5,7 @@ Etcd:
     - 127.0.0.1:2379
   Key: applet.rpc
 DB:
-  DataSource: root:123456@tcp(150.158.181.149:3308)/go-zero-admin?parseTime=true&loc=Local
+  DataSource: root:123456@tcp(127.0.0.1:3306)/go-zero-admin?parseTime=true&loc=Local
   MaxIdleConns: 10
   MaxOpenConns: 100
   ConnMaxLifetime: 3600
