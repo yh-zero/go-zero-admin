@@ -3786,7 +3786,7 @@ var file_application_applet_rpc_desc_applet_proto_rawDesc = []byte{
 	0x72, 0x65, 0x61, 0x74, 0x65, 0x41, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x52, 0x65,
 	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x70, 0x62, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74,
 	0x65, 0x41, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x32, 0xfc, 0x01, 0x0a, 0x03, 0x41, 0x50, 0x49, 0x12, 0x3b, 0x0a, 0x0a, 0x47, 0x65,
+	0x73, 0x65, 0x32, 0xfc, 0x01, 0x0a, 0x03, 0x41, 0x70, 0x69, 0x12, 0x3b, 0x0a, 0x0a, 0x47, 0x65,
 	0x74, 0x41, 0x70, 0x69, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x47, 0x65,
 	0x74, 0x41, 0x70, 0x69, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
 	0x16, 0x2e, 0x70, 0x62, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x70, 0x69, 0x4c, 0x69, 0x73, 0x74, 0x52,
@@ -3948,10 +3948,10 @@ var file_application_applet_rpc_desc_applet_proto_depIdxs = []int32{
 	36, // 55: pb.Authority.AddAuthorityMenu:input_type -> pb.AddAuthorityMenuRequest
 	40, // 56: pb.Authority.UpdateAuthority:input_type -> pb.UpdateAuthorityRequest
 	46, // 57: pb.Authority.CreateAuthority:input_type -> pb.CreateAuthorityRequest
-	21, // 58: pb.API.GetApiList:input_type -> pb.GetApiListRequest
-	23, // 59: pb.API.CreateApi:input_type -> pb.CreateApiRequest
-	25, // 60: pb.API.DeleteApi:input_type -> pb.DeleteApiRequest
-	27, // 61: pb.API.GetAllApiList:input_type -> pb.GetAllApiListRequest
+	21, // 58: pb.Api.GetApiList:input_type -> pb.GetApiListRequest
+	23, // 59: pb.Api.CreateApi:input_type -> pb.CreateApiRequest
+	25, // 60: pb.Api.DeleteApi:input_type -> pb.DeleteApiRequest
+	27, // 61: pb.Api.GetAllApiList:input_type -> pb.GetAllApiListRequest
 	30, // 62: pb.Casbin.GetPathByAuthorityId:input_type -> pb.GetPathByAuthorityIdRequest
 	38, // 63: pb.Casbin.UpdateCasbinData:input_type -> pb.UpdateCasbinDataRequest
 	1,  // 64: pb.User.GetUserInfo:output_type -> pb.GetUserInfoResponse
@@ -3971,10 +3971,10 @@ var file_application_applet_rpc_desc_applet_proto_depIdxs = []int32{
 	37, // 78: pb.Authority.AddAuthorityMenu:output_type -> pb.AddAuthorityMenuResponse
 	41, // 79: pb.Authority.UpdateAuthority:output_type -> pb.UpdateAuthorityResponse
 	47, // 80: pb.Authority.CreateAuthority:output_type -> pb.CreateAuthorityResponse
-	22, // 81: pb.API.GetApiList:output_type -> pb.GetApiListResponse
-	24, // 82: pb.API.CreateApi:output_type -> pb.CreateApiResponse
-	26, // 83: pb.API.DeleteApi:output_type -> pb.DeleteApiResponse
-	28, // 84: pb.API.GetAllApiList:output_type -> pb.GetAllApiListResponse
+	22, // 81: pb.Api.GetApiList:output_type -> pb.GetApiListResponse
+	24, // 82: pb.Api.CreateApi:output_type -> pb.CreateApiResponse
+	26, // 83: pb.Api.DeleteApi:output_type -> pb.DeleteApiResponse
+	28, // 84: pb.Api.GetAllApiList:output_type -> pb.GetAllApiListResponse
 	31, // 85: pb.Casbin.GetPathByAuthorityId:output_type -> pb.GetPathByAuthorityIdResponse
 	39, // 86: pb.Casbin.UpdateCasbinData:output_type -> pb.UpdateCasbinDataResponse
 	64, // [64:87] is the sub-list for method output_type

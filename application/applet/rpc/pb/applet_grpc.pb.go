@@ -814,10 +814,10 @@ var Authority_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "application/applet/rpc/desc/applet.proto",
 }
 
-// APIClient is the client API for API service.
+// ApiClient is the client API for Api service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type APIClient interface {
+type ApiClient interface {
 	// 获取API列表
 	GetApiList(ctx context.Context, in *GetApiListRequest, opts ...grpc.CallOption) (*GetApiListResponse, error)
 	// 创建/添加 API列表
@@ -828,54 +828,54 @@ type APIClient interface {
 	GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error)
 }
 
-type aPIClient struct {
+type apiClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAPIClient(cc grpc.ClientConnInterface) APIClient {
-	return &aPIClient{cc}
+func NewApiClient(cc grpc.ClientConnInterface) ApiClient {
+	return &apiClient{cc}
 }
 
-func (c *aPIClient) GetApiList(ctx context.Context, in *GetApiListRequest, opts ...grpc.CallOption) (*GetApiListResponse, error) {
+func (c *apiClient) GetApiList(ctx context.Context, in *GetApiListRequest, opts ...grpc.CallOption) (*GetApiListResponse, error) {
 	out := new(GetApiListResponse)
-	err := c.cc.Invoke(ctx, "/pb.API/GetApiList", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.Api/GetApiList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aPIClient) CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*CreateApiResponse, error) {
+func (c *apiClient) CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*CreateApiResponse, error) {
 	out := new(CreateApiResponse)
-	err := c.cc.Invoke(ctx, "/pb.API/CreateApi", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.Api/CreateApi", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aPIClient) DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*DeleteApiResponse, error) {
+func (c *apiClient) DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*DeleteApiResponse, error) {
 	out := new(DeleteApiResponse)
-	err := c.cc.Invoke(ctx, "/pb.API/DeleteApi", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.Api/DeleteApi", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aPIClient) GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error) {
+func (c *apiClient) GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error) {
 	out := new(GetAllApiListResponse)
-	err := c.cc.Invoke(ctx, "/pb.API/GetAllApiList", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.Api/GetAllApiList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// APIServer is the server API for API service.
-// All implementations must embed UnimplementedAPIServer
+// ApiServer is the server API for Api service.
+// All implementations must embed UnimplementedApiServer
 // for forward compatibility
-type APIServer interface {
+type ApiServer interface {
 	// 获取API列表
 	GetApiList(context.Context, *GetApiListRequest) (*GetApiListResponse, error)
 	// 创建/添加 API列表
@@ -884,132 +884,132 @@ type APIServer interface {
 	DeleteApi(context.Context, *DeleteApiRequest) (*DeleteApiResponse, error)
 	// 获取全部API列表
 	GetAllApiList(context.Context, *GetAllApiListRequest) (*GetAllApiListResponse, error)
-	mustEmbedUnimplementedAPIServer()
+	mustEmbedUnimplementedApiServer()
 }
 
-// UnimplementedAPIServer must be embedded to have forward compatible implementations.
-type UnimplementedAPIServer struct {
+// UnimplementedApiServer must be embedded to have forward compatible implementations.
+type UnimplementedApiServer struct {
 }
 
-func (UnimplementedAPIServer) GetApiList(context.Context, *GetApiListRequest) (*GetApiListResponse, error) {
+func (UnimplementedApiServer) GetApiList(context.Context, *GetApiListRequest) (*GetApiListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetApiList not implemented")
 }
-func (UnimplementedAPIServer) CreateApi(context.Context, *CreateApiRequest) (*CreateApiResponse, error) {
+func (UnimplementedApiServer) CreateApi(context.Context, *CreateApiRequest) (*CreateApiResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateApi not implemented")
 }
-func (UnimplementedAPIServer) DeleteApi(context.Context, *DeleteApiRequest) (*DeleteApiResponse, error) {
+func (UnimplementedApiServer) DeleteApi(context.Context, *DeleteApiRequest) (*DeleteApiResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteApi not implemented")
 }
-func (UnimplementedAPIServer) GetAllApiList(context.Context, *GetAllApiListRequest) (*GetAllApiListResponse, error) {
+func (UnimplementedApiServer) GetAllApiList(context.Context, *GetAllApiListRequest) (*GetAllApiListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllApiList not implemented")
 }
-func (UnimplementedAPIServer) mustEmbedUnimplementedAPIServer() {}
+func (UnimplementedApiServer) mustEmbedUnimplementedApiServer() {}
 
-// UnsafeAPIServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to APIServer will
+// UnsafeApiServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ApiServer will
 // result in compilation errors.
-type UnsafeAPIServer interface {
-	mustEmbedUnimplementedAPIServer()
+type UnsafeApiServer interface {
+	mustEmbedUnimplementedApiServer()
 }
 
-func RegisterAPIServer(s grpc.ServiceRegistrar, srv APIServer) {
-	s.RegisterService(&API_ServiceDesc, srv)
+func RegisterApiServer(s grpc.ServiceRegistrar, srv ApiServer) {
+	s.RegisterService(&Api_ServiceDesc, srv)
 }
 
-func _API_GetApiList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Api_GetApiList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetApiListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APIServer).GetApiList(ctx, in)
+		return srv.(ApiServer).GetApiList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.API/GetApiList",
+		FullMethod: "/pb.Api/GetApiList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIServer).GetApiList(ctx, req.(*GetApiListRequest))
+		return srv.(ApiServer).GetApiList(ctx, req.(*GetApiListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _API_CreateApi_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Api_CreateApi_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateApiRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APIServer).CreateApi(ctx, in)
+		return srv.(ApiServer).CreateApi(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.API/CreateApi",
+		FullMethod: "/pb.Api/CreateApi",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIServer).CreateApi(ctx, req.(*CreateApiRequest))
+		return srv.(ApiServer).CreateApi(ctx, req.(*CreateApiRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _API_DeleteApi_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Api_DeleteApi_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteApiRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APIServer).DeleteApi(ctx, in)
+		return srv.(ApiServer).DeleteApi(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.API/DeleteApi",
+		FullMethod: "/pb.Api/DeleteApi",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIServer).DeleteApi(ctx, req.(*DeleteApiRequest))
+		return srv.(ApiServer).DeleteApi(ctx, req.(*DeleteApiRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _API_GetAllApiList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Api_GetAllApiList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAllApiListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APIServer).GetAllApiList(ctx, in)
+		return srv.(ApiServer).GetAllApiList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.API/GetAllApiList",
+		FullMethod: "/pb.Api/GetAllApiList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIServer).GetAllApiList(ctx, req.(*GetAllApiListRequest))
+		return srv.(ApiServer).GetAllApiList(ctx, req.(*GetAllApiListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// API_ServiceDesc is the grpc.ServiceDesc for API service.
+// Api_ServiceDesc is the grpc.ServiceDesc for Api service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var API_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "pb.API",
-	HandlerType: (*APIServer)(nil),
+var Api_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.Api",
+	HandlerType: (*ApiServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "GetApiList",
-			Handler:    _API_GetApiList_Handler,
+			Handler:    _Api_GetApiList_Handler,
 		},
 		{
 			MethodName: "CreateApi",
-			Handler:    _API_CreateApi_Handler,
+			Handler:    _Api_CreateApi_Handler,
 		},
 		{
 			MethodName: "DeleteApi",
-			Handler:    _API_DeleteApi_Handler,
+			Handler:    _Api_DeleteApi_Handler,
 		},
 		{
 			MethodName: "GetAllApiList",
-			Handler:    _API_GetAllApiList_Handler,
+			Handler:    _Api_GetAllApiList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

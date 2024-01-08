@@ -2,12 +2,12 @@ package casbinlogic
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"strconv"
 
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 
-	"github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 

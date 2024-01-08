@@ -70,7 +70,7 @@ type (
 	UpdateUserInfoResponse        = pb.UpdateUserInfoResponse
 	UserInfo                      = pb.UserInfo
 
-	API interface {
+	Api interface {
 		// 获取API列表
 		GetApiList(ctx context.Context, in *GetApiListRequest, opts ...grpc.CallOption) (*GetApiListResponse, error)
 		// 创建/添加 API列表
@@ -81,37 +81,37 @@ type (
 		GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error)
 	}
 
-	defaultAPI struct {
+	defaultApi struct {
 		cli zrpc.Client
 	}
 )
 
-func NewAPI(cli zrpc.Client) API {
-	return &defaultAPI{
+func NewApi(cli zrpc.Client) Api {
+	return &defaultApi{
 		cli: cli,
 	}
 }
 
 // 获取API列表
-func (m *defaultAPI) GetApiList(ctx context.Context, in *GetApiListRequest, opts ...grpc.CallOption) (*GetApiListResponse, error) {
-	client := pb.NewAPIClient(m.cli.Conn())
+func (m *defaultApi) GetApiList(ctx context.Context, in *GetApiListRequest, opts ...grpc.CallOption) (*GetApiListResponse, error) {
+	client := pb.NewApiClient(m.cli.Conn())
 	return client.GetApiList(ctx, in, opts...)
 }
 
 // 创建/添加 API列表
-func (m *defaultAPI) CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*CreateApiResponse, error) {
-	client := pb.NewAPIClient(m.cli.Conn())
+func (m *defaultApi) CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*CreateApiResponse, error) {
+	client := pb.NewApiClient(m.cli.Conn())
 	return client.CreateApi(ctx, in, opts...)
 }
 
 // 删除API列表
-func (m *defaultAPI) DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*DeleteApiResponse, error) {
-	client := pb.NewAPIClient(m.cli.Conn())
+func (m *defaultApi) DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*DeleteApiResponse, error) {
+	client := pb.NewApiClient(m.cli.Conn())
 	return client.DeleteApi(ctx, in, opts...)
 }
 
 // 获取全部API列表
-func (m *defaultAPI) GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error) {
-	client := pb.NewAPIClient(m.cli.Conn())
+func (m *defaultApi) GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error) {
+	client := pb.NewApiClient(m.cli.Conn())
 	return client.GetAllApiList(ctx, in, opts...)
 }

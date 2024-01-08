@@ -33,7 +33,7 @@ func main() {
 		pb.RegisterUserServer(grpcServer, userServer.NewUserServer(ctx))
 		pb.RegisterMenuServer(grpcServer, menuServer.NewMenuServer(ctx))
 		pb.RegisterAuthorityServer(grpcServer, authorityServer.NewAuthorityServer(ctx))
-		pb.RegisterAPIServer(grpcServer, apiServer.NewAPIServer(ctx))
+		pb.RegisterApiServer(grpcServer, apiServer.NewApiServer(ctx))
 		pb.RegisterCasbinServer(grpcServer, casbinServer.NewCasbinServer(ctx))
 
 		if c.Mode == service.DevMode || c.Mode == service.TestMode {

@@ -385,7 +385,7 @@ service Authority {
 
 }
 
-service API {
+service Api {
   // 获取API列表
   rpc GetApiList (GetApiListRequest) returns (GetApiListResponse);
   // 创建/添加 API列表

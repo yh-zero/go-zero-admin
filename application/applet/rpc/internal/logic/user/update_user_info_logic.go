@@ -2,12 +2,14 @@ package userlogic
 
 import (
 	"context"
-	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/model"
-	"go-zero-admin/application/applet/rpc/internal/svc"
-	"go-zero-admin/application/applet/rpc/pb"
 	"reflect"
 	"time"
+
+	"go-zero-admin/application/applet/rpc/internal/svc"
+	"go-zero-admin/application/applet/rpc/pb"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type UpdateUserInfoLogic struct {

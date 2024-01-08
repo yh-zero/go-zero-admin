@@ -2,11 +2,13 @@ package userlogic
 
 import (
 	"context"
-	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/model"
+	"gorm.io/gorm"
+
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-	"gorm.io/gorm"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type UpdateUserAuthoritiesLogic struct {

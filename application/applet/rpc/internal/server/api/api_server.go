@@ -11,37 +11,37 @@ import (
 	"go-zero-admin/application/applet/rpc/pb"
 )
 
-type APIServer struct {
+type ApiServer struct {
 	svcCtx *svc.ServiceContext
-	pb.UnimplementedAPIServer
+	pb.UnimplementedApiServer
 }
 
-func NewAPIServer(svcCtx *svc.ServiceContext) *APIServer {
-	return &APIServer{
+func NewApiServer(svcCtx *svc.ServiceContext) *ApiServer {
+	return &ApiServer{
 		svcCtx: svcCtx,
 	}
 }
 
 // 获取API列表
-func (s *APIServer) GetApiList(ctx context.Context, in *pb.GetApiListRequest) (*pb.GetApiListResponse, error) {
+func (s *ApiServer) GetApiList(ctx context.Context, in *pb.GetApiListRequest) (*pb.GetApiListResponse, error) {
 	l := apilogic.NewGetApiListLogic(ctx, s.svcCtx)
 	return l.GetApiList(in)
 }
 
 // 创建/添加 API列表
-func (s *APIServer) CreateApi(ctx context.Context, in *pb.CreateApiRequest) (*pb.CreateApiResponse, error) {
+func (s *ApiServer) CreateApi(ctx context.Context, in *pb.CreateApiRequest) (*pb.CreateApiResponse, error) {
 	l := apilogic.NewCreateApiLogic(ctx, s.svcCtx)
 	return l.CreateApi(in)
 }
 
 // 删除API列表
-func (s *APIServer) DeleteApi(ctx context.Context, in *pb.DeleteApiRequest) (*pb.DeleteApiResponse, error) {
+func (s *ApiServer) DeleteApi(ctx context.Context, in *pb.DeleteApiRequest) (*pb.DeleteApiResponse, error) {
 	l := apilogic.NewDeleteApiLogic(ctx, s.svcCtx)
 	return l.DeleteApi(in)
 }
 
 // 获取全部API列表
-func (s *APIServer) GetAllApiList(ctx context.Context, in *pb.GetAllApiListRequest) (*pb.GetAllApiListResponse, error) {
+func (s *ApiServer) GetAllApiList(ctx context.Context, in *pb.GetAllApiListRequest) (*pb.GetAllApiListResponse, error) {
 	l := apilogic.NewGetAllApiListLogic(ctx, s.svcCtx)
 	return l.GetAllApiList(in)
 }
