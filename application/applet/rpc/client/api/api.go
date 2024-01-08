@@ -24,6 +24,8 @@ type (
 	CreateAuthorityResponse       = pb.CreateAuthorityResponse
 	DeleteApiRequest              = pb.DeleteApiRequest
 	DeleteApiResponse             = pb.DeleteApiResponse
+	DeleteApisByIdsRequest        = pb.DeleteApisByIdsRequest
+	DeleteApisByIdsResponse       = pb.DeleteApisByIdsResponse
 	DeleteUserRequest             = pb.DeleteUserRequest
 	DeleteUserResponse            = pb.DeleteUserResponse
 	GetAllApiListRequest          = pb.GetAllApiListRequest
@@ -83,6 +85,8 @@ type (
 		DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*DeleteApiResponse, error)
 		// 获取全部API列表
 		GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error)
+		// 删除多条api
+		DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*DeleteApisByIdsResponse, error)
 	}
 
 	defaultApi struct {
@@ -118,4 +122,10 @@ func (m *defaultApi) DeleteApi(ctx context.Context, in *DeleteApiRequest, opts .
 func (m *defaultApi) GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error) {
 	client := pb.NewApiClient(m.cli.Conn())
 	return client.GetAllApiList(ctx, in, opts...)
+}
+
+// 删除多条api
+func (m *defaultApi) DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*DeleteApisByIdsResponse, error) {
+	client := pb.NewApiClient(m.cli.Conn())
+	return client.DeleteApisByIds(ctx, in, opts...)
 }

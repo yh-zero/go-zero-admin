@@ -24,6 +24,8 @@ type (
 	CreateAuthorityResponse       = pb.CreateAuthorityResponse
 	DeleteApiRequest              = pb.DeleteApiRequest
 	DeleteApiResponse             = pb.DeleteApiResponse
+	DeleteApisByIdsRequest        = pb.DeleteApisByIdsRequest
+	DeleteApisByIdsResponse       = pb.DeleteApisByIdsResponse
 	DeleteUserRequest             = pb.DeleteUserRequest
 	DeleteUserResponse            = pb.DeleteUserResponse
 	GetAllApiListRequest          = pb.GetAllApiListRequest

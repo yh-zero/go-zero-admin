@@ -349,6 +349,12 @@ message DeleteUserRequest {
 
 message DeleteUserResponse {}
 
+message DeleteApisByIdsRequest {
+  repeated int64 Ids = 1;
+}
+
+message DeleteApisByIdsResponse {}
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -410,6 +416,8 @@ service Api {
   rpc DeleteApi (DeleteApiRequest) returns (DeleteApiResponse);
   // 获取全部API列表
   rpc GetAllApiList (GetAllApiListRequest) returns (GetAllApiListResponse);
+  // 删除多条api
+  rpc DeleteApisByIds (DeleteApisByIdsRequest) returns (DeleteApisByIdsResponse);
 
 }
 

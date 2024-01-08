@@ -176,17 +176,6 @@ type GetApiListRequest struct {
 	PageRequest
 }
 
-
-//type GetApiListRequest struct {
-//	OrderKey string `json:"orderKey,omitempty" form:"orderKey,required"` // 排序的字段
-//	Desc     bool   `json:"desc,omitempty" form:"desc,required"`        // 排序方式:升序false(默认) | 降序true
-//
-//	SysApi
-//	PageRequest
-//}
-
-
-
 type GetApiListResponse {
 	List []SysApi `json:"list"`
 	PageResponse
@@ -350,5 +339,12 @@ type DeleteUserRequest {
 }
 
 type DeleteUserResponse {
+	Message string `json:"message"`
+}
+
+type DeleteApisByIdsRequest{
+	ids []int64 `json:"ids,optional" form:"ids,optional"`
+}
+type DeleteApisByIdsResponse{
 	Message string `json:"message"`
 }

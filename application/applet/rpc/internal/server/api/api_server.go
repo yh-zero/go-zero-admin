@@ -45,3 +45,9 @@ func (s *ApiServer) GetAllApiList(ctx context.Context, in *pb.GetAllApiListReque
 	l := apilogic.NewGetAllApiListLogic(ctx, s.svcCtx)
 	return l.GetAllApiList(in)
 }
+
+// 删除多条api
+func (s *ApiServer) DeleteApisByIds(ctx context.Context, in *pb.DeleteApisByIdsRequest) (*pb.DeleteApisByIdsResponse, error) {
+	l := apilogic.NewDeleteApisByIdsLogic(ctx, s.svcCtx)
+	return l.DeleteApisByIds(in)
+}

@@ -902,6 +902,8 @@ type ApiClient interface {
 	DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*DeleteApiResponse, error)
 	// 获取全部API列表
 	GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error)
+	// 删除多条api
+	DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*DeleteApisByIdsResponse, error)
 }
 
 type apiClient struct {
@@ -948,6 +950,15 @@ func (c *apiClient) GetAllApiList(ctx context.Context, in *GetAllApiListRequest,
 	return out, nil
 }
 
+func (c *apiClient) DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*DeleteApisByIdsResponse, error) {
+	out := new(DeleteApisByIdsResponse)
+	err := c.cc.Invoke(ctx, "/pb.Api/DeleteApisByIds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApiServer is the server API for Api service.
 // All implementations must embed UnimplementedApiServer
 // for forward compatibility
@@ -960,6 +971,8 @@ type ApiServer interface {
 	DeleteApi(context.Context, *DeleteApiRequest) (*DeleteApiResponse, error)
 	// 获取全部API列表
 	GetAllApiList(context.Context, *GetAllApiListRequest) (*GetAllApiListResponse, error)
+	// 删除多条api
+	DeleteApisByIds(context.Context, *DeleteApisByIdsRequest) (*DeleteApisByIdsResponse, error)
 	mustEmbedUnimplementedApiServer()
 }
 
@@ -978,6 +991,9 @@ func (UnimplementedApiServer) DeleteApi(context.Context, *DeleteApiRequest) (*De
 }
 func (UnimplementedApiServer) GetAllApiList(context.Context, *GetAllApiListRequest) (*GetAllApiListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllApiList not implemented")
+}
+func (UnimplementedApiServer) DeleteApisByIds(context.Context, *DeleteApisByIdsRequest) (*DeleteApisByIdsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteApisByIds not implemented")
 }
 func (UnimplementedApiServer) mustEmbedUnimplementedApiServer() {}
 
@@ -1064,6 +1080,24 @@ func _Api_GetAllApiList_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Api_DeleteApisByIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteApisByIdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServer).DeleteApisByIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Api/DeleteApisByIds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServer).DeleteApisByIds(ctx, req.(*DeleteApisByIdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Api_ServiceDesc is the grpc.ServiceDesc for Api service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1086,6 +1120,10 @@ var Api_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllApiList",
 			Handler:    _Api_GetAllApiList_Handler,
+		},
+		{
+			MethodName: "DeleteApisByIds",
+			Handler:    _Api_DeleteApisByIds_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

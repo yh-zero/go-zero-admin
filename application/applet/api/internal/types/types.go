@@ -329,3 +329,11 @@ type DeleteUserRequest struct {
 type DeleteUserResponse struct {
 	Message string `json:"message"`
 }
+
+type DeleteApisByIdsRequest struct {
+	Ids []int64 `json:"ids,optional" form:"ids,optional"`
+}
+
+type DeleteApisByIdsResponse struct {
+	Message string `json:"message"`
+}

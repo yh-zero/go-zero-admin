@@ -131,6 +131,10 @@ service applet-api {
 	@doc "获取 所有api"
 	@handler GetAllApiList
 	get /getAllApiList (GetAllApiListRequest) returns (GetAllApiListResponse)
+
+	@doc "删除多条api"
+	@handler DeleteApisByIds
+	delete /deleteApisByIds (DeleteApisByIdsRequest) returns (DeleteApisByIdsResponse)
 }
 
 @server(
