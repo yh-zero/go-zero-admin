@@ -26,7 +26,7 @@ func NewUpdateUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Up
 	}
 }
 
-func (l *UpdateUserInfoLogic) UpdateUserInfo(req *types.UpdateUserInfoRequest) (resp *types.UpdateUserInfoResponse, err error) {
+func (l *UpdateUserInfoLogic) UpdateUserInfo(req *types.UpdateUserInfoRequest) (resp *types.MessageResponse, err error) {
 	fmt.Println("-------  req.SideMode", req.SideMode)
 
 	if len(req.AuthorityIds) != 0 {
@@ -51,5 +51,5 @@ func (l *UpdateUserInfoLogic) UpdateUserInfo(req *types.UpdateUserInfoRequest) (
 		return nil, err
 	}
 
-	return &types.UpdateUserInfoResponse{Message: "更新数据成功！"}, nil
+	return &types.MessageResponse{Message: "更新数据成功！"}, nil
 }

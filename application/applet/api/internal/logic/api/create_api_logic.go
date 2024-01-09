@@ -26,7 +26,7 @@ func NewCreateApiLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateA
 	}
 }
 
-func (l *CreateApiLogic) CreateApi(req *types.CreateApiRequest) (resp *types.CreateApiResponse, err error) {
+func (l *CreateApiLogic) CreateApi(req *types.CreateApiRequest) (resp *types.MessageResponse, err error) {
 	var sysApi pb.SysApi
 	_ = copier.Copy(&sysApi, req.SysApi)
 	_, err = l.svcCtx.AppletAPIRPC.CreateApi(l.ctx, &pb.CreateApiRequest{SysApi: &sysApi})
@@ -35,5 +35,5 @@ func (l *CreateApiLogic) CreateApi(req *types.CreateApiRequest) (resp *types.Cre
 		return nil, xerr.NewErrMsg("创建失败不能拥有同样的属性")
 	}
 
-	return &types.CreateApiResponse{Message: "创建成功"}, nil
+	return &types.MessageResponse{Message: "创建成功"}, nil
 }

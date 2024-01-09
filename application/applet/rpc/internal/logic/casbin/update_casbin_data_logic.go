@@ -27,7 +27,7 @@ func NewUpdateCasbinDataLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 // 更新一个角色的对应的casbin数据
-func (l *UpdateCasbinDataLogic) UpdateCasbinData(in *pb.UpdateCasbinDataRequest) (*pb.UpdateCasbinDataResponse, error) {
+func (l *UpdateCasbinDataLogic) UpdateCasbinData(in *pb.UpdateCasbinDataRequest) (*pb.NoDataResponse, error) {
 	authorityId := strconv.FormatInt(in.AuthorityId, 10)
 	fmt.Println("authorityId", authorityId)
 	_, err := l.ClearCasbin(0, authorityId)
@@ -50,7 +50,7 @@ func (l *UpdateCasbinDataLogic) UpdateCasbinData(in *pb.UpdateCasbinDataRequest)
 		return nil, errors.New("存在相同api,添加失败,请联系管理员")
 	}
 
-	return &pb.UpdateCasbinDataResponse{}, err
+	return &pb.NoDataResponse{}, err
 }
 
 func (l *UpdateCasbinDataLogic) ClearCasbin(v int, p ...string) (bool, error) {

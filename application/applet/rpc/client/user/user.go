@@ -14,21 +14,14 @@ import (
 
 type (
 	AddAuthorityMenuRequest         = pb.AddAuthorityMenuRequest
-	AddAuthorityMenuResponse        = pb.AddAuthorityMenuResponse
 	AddMenuBaseRequest              = pb.AddMenuBaseRequest
-	AddMenuBaseResponse             = pb.AddMenuBaseResponse
 	CasbinInfo                      = pb.CasbinInfo
 	CreateApiRequest                = pb.CreateApiRequest
-	CreateApiResponse               = pb.CreateApiResponse
 	CreateAuthorityRequest          = pb.CreateAuthorityRequest
 	CreateAuthorityResponse         = pb.CreateAuthorityResponse
 	DeleteApiRequest                = pb.DeleteApiRequest
-	DeleteApiResponse               = pb.DeleteApiResponse
 	DeleteApisByIdsRequest          = pb.DeleteApisByIdsRequest
-	DeleteApisByIdsResponse         = pb.DeleteApisByIdsResponse
 	DeleteUserRequest               = pb.DeleteUserRequest
-	DeleteUserResponse              = pb.DeleteUserResponse
-	GetAllApiListRequest            = pb.GetAllApiListRequest
 	GetAllApiListResponse           = pb.GetAllApiListResponse
 	GetApiListRequest               = pb.GetApiListRequest
 	GetApiListResponse              = pb.GetApiListResponse
@@ -36,11 +29,9 @@ type (
 	GetAuthorityListResponse        = pb.GetAuthorityListResponse
 	GetBaseMenuByIdRequest          = pb.GetBaseMenuByIdRequest
 	GetBaseMenuByIdResponse         = pb.GetBaseMenuByIdResponse
-	GetBaseMenuTreeRequest          = pb.GetBaseMenuTreeRequest
 	GetBaseMenuTreeResponse         = pb.GetBaseMenuTreeResponse
 	GetMenuAuthorityRequest         = pb.GetMenuAuthorityRequest
 	GetMenuAuthorityResponse        = pb.GetMenuAuthorityResponse
-	GetMenuBaseInfoListRequest      = pb.GetMenuBaseInfoListRequest
 	GetMenuBaseInfoListResponse     = pb.GetMenuBaseInfoListResponse
 	GetMenuTreeRequest              = pb.GetMenuTreeRequest
 	GetMenuTreeResponse             = pb.GetMenuTreeResponse
@@ -58,24 +49,20 @@ type (
 	RegisterRequest                 = pb.RegisterRequest
 	RegisterResponse                = pb.RegisterResponse
 	ResetUserPasswordRequest        = pb.ResetUserPasswordRequest
-	ResetUserPasswordResponse       = pb.ResetUserPasswordResponse
 	SysApi                          = pb.SysApi
 	SysAuthority                    = pb.SysAuthority
 	SysBaseMenu                     = pb.SysBaseMenu
 	SysBaseMenuBtn                  = pb.SysBaseMenuBtn
 	SysBaseMenuParameter            = pb.SysBaseMenuParameter
 	SysMenu                         = pb.SysMenu
+	UpdateApiRequest                = pb.UpdateApiRequest
 	UpdateAuthorityRequest          = pb.UpdateAuthorityRequest
 	UpdateAuthorityResponse         = pb.UpdateAuthorityResponse
 	UpdateBaseMenuRequest           = pb.UpdateBaseMenuRequest
-	UpdateBaseMenuResponse          = pb.UpdateBaseMenuResponse
 	UpdateCasbinDataByApiIdsRequest = pb.UpdateCasbinDataByApiIdsRequest
 	UpdateCasbinDataRequest         = pb.UpdateCasbinDataRequest
-	UpdateCasbinDataResponse        = pb.UpdateCasbinDataResponse
 	UpdateUserAuthoritiesRequest    = pb.UpdateUserAuthoritiesRequest
-	UpdateUserAuthoritiesResponse   = pb.UpdateUserAuthoritiesResponse
 	UpdateUserInfoRequest           = pb.UpdateUserInfoRequest
-	UpdateUserInfoResponse          = pb.UpdateUserInfoResponse
 	UserInfo                        = pb.UserInfo
 
 	User interface {
@@ -88,13 +75,13 @@ type (
 		// 新增（注册）用户 - 管理员
 		Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 		// 修改用户信息
-		UpdateUserInfo(ctx context.Context, in *UpdateUserInfoRequest, opts ...grpc.CallOption) (*UpdateUserInfoResponse, error)
+		UpdateUserInfo(ctx context.Context, in *UpdateUserInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
-		UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*UpdateUserAuthoritiesResponse, error)
+		UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 重置用户密码 默认密码：goZero
-		ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error)
+		ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 删除用户
-		DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
+		DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	}
 
 	defaultUser struct {
@@ -133,25 +120,25 @@ func (m *defaultUser) Register(ctx context.Context, in *RegisterRequest, opts ..
 }
 
 // 修改用户信息
-func (m *defaultUser) UpdateUserInfo(ctx context.Context, in *UpdateUserInfoRequest, opts ...grpc.CallOption) (*UpdateUserInfoResponse, error) {
+func (m *defaultUser) UpdateUserInfo(ctx context.Context, in *UpdateUserInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewUserClient(m.cli.Conn())
 	return client.UpdateUserInfo(ctx, in, opts...)
 }
 
 // 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
-func (m *defaultUser) UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*UpdateUserAuthoritiesResponse, error) {
+func (m *defaultUser) UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewUserClient(m.cli.Conn())
 	return client.UpdateUserAuthorities(ctx, in, opts...)
 }
 
 // 重置用户密码 默认密码：goZero
-func (m *defaultUser) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error) {
+func (m *defaultUser) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewUserClient(m.cli.Conn())
 	return client.ResetUserPassword(ctx, in, opts...)
 }
 
 // 删除用户
-func (m *defaultUser) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+func (m *defaultUser) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewUserClient(m.cli.Conn())
 	return client.DeleteUser(ctx, in, opts...)
 }

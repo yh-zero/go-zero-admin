@@ -14,21 +14,14 @@ import (
 
 type (
 	AddAuthorityMenuRequest         = pb.AddAuthorityMenuRequest
-	AddAuthorityMenuResponse        = pb.AddAuthorityMenuResponse
 	AddMenuBaseRequest              = pb.AddMenuBaseRequest
-	AddMenuBaseResponse             = pb.AddMenuBaseResponse
 	CasbinInfo                      = pb.CasbinInfo
 	CreateApiRequest                = pb.CreateApiRequest
-	CreateApiResponse               = pb.CreateApiResponse
 	CreateAuthorityRequest          = pb.CreateAuthorityRequest
 	CreateAuthorityResponse         = pb.CreateAuthorityResponse
 	DeleteApiRequest                = pb.DeleteApiRequest
-	DeleteApiResponse               = pb.DeleteApiResponse
 	DeleteApisByIdsRequest          = pb.DeleteApisByIdsRequest
-	DeleteApisByIdsResponse         = pb.DeleteApisByIdsResponse
 	DeleteUserRequest               = pb.DeleteUserRequest
-	DeleteUserResponse              = pb.DeleteUserResponse
-	GetAllApiListRequest            = pb.GetAllApiListRequest
 	GetAllApiListResponse           = pb.GetAllApiListResponse
 	GetApiListRequest               = pb.GetApiListRequest
 	GetApiListResponse              = pb.GetApiListResponse
@@ -36,11 +29,9 @@ type (
 	GetAuthorityListResponse        = pb.GetAuthorityListResponse
 	GetBaseMenuByIdRequest          = pb.GetBaseMenuByIdRequest
 	GetBaseMenuByIdResponse         = pb.GetBaseMenuByIdResponse
-	GetBaseMenuTreeRequest          = pb.GetBaseMenuTreeRequest
 	GetBaseMenuTreeResponse         = pb.GetBaseMenuTreeResponse
 	GetMenuAuthorityRequest         = pb.GetMenuAuthorityRequest
 	GetMenuAuthorityResponse        = pb.GetMenuAuthorityResponse
-	GetMenuBaseInfoListRequest      = pb.GetMenuBaseInfoListRequest
 	GetMenuBaseInfoListResponse     = pb.GetMenuBaseInfoListResponse
 	GetMenuTreeRequest              = pb.GetMenuTreeRequest
 	GetMenuTreeResponse             = pb.GetMenuTreeResponse
@@ -58,31 +49,27 @@ type (
 	RegisterRequest                 = pb.RegisterRequest
 	RegisterResponse                = pb.RegisterResponse
 	ResetUserPasswordRequest        = pb.ResetUserPasswordRequest
-	ResetUserPasswordResponse       = pb.ResetUserPasswordResponse
 	SysApi                          = pb.SysApi
 	SysAuthority                    = pb.SysAuthority
 	SysBaseMenu                     = pb.SysBaseMenu
 	SysBaseMenuBtn                  = pb.SysBaseMenuBtn
 	SysBaseMenuParameter            = pb.SysBaseMenuParameter
 	SysMenu                         = pb.SysMenu
+	UpdateApiRequest                = pb.UpdateApiRequest
 	UpdateAuthorityRequest          = pb.UpdateAuthorityRequest
 	UpdateAuthorityResponse         = pb.UpdateAuthorityResponse
 	UpdateBaseMenuRequest           = pb.UpdateBaseMenuRequest
-	UpdateBaseMenuResponse          = pb.UpdateBaseMenuResponse
 	UpdateCasbinDataByApiIdsRequest = pb.UpdateCasbinDataByApiIdsRequest
 	UpdateCasbinDataRequest         = pb.UpdateCasbinDataRequest
-	UpdateCasbinDataResponse        = pb.UpdateCasbinDataResponse
 	UpdateUserAuthoritiesRequest    = pb.UpdateUserAuthoritiesRequest
-	UpdateUserAuthoritiesResponse   = pb.UpdateUserAuthoritiesResponse
 	UpdateUserInfoRequest           = pb.UpdateUserInfoRequest
-	UpdateUserInfoResponse          = pb.UpdateUserInfoResponse
 	UserInfo                        = pb.UserInfo
 
 	Authority interface {
 		// 获取角色列表
 		GetAuthorityList(ctx context.Context, in *GetAuthorityListRequest, opts ...grpc.CallOption) (*GetAuthorityListResponse, error)
 		// 增加base_menu和角色关联关系 -- 用于角色管理的设置权限
-		AddAuthorityMenu(ctx context.Context, in *AddAuthorityMenuRequest, opts ...grpc.CallOption) (*AddAuthorityMenuResponse, error)
+		AddAuthorityMenu(ctx context.Context, in *AddAuthorityMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 更新角色 -- 设为首页
 		UpdateAuthority(ctx context.Context, in *UpdateAuthorityRequest, opts ...grpc.CallOption) (*UpdateAuthorityResponse, error)
 		// 创建角色
@@ -107,7 +94,7 @@ func (m *defaultAuthority) GetAuthorityList(ctx context.Context, in *GetAuthorit
 }
 
 // 增加base_menu和角色关联关系 -- 用于角色管理的设置权限
-func (m *defaultAuthority) AddAuthorityMenu(ctx context.Context, in *AddAuthorityMenuRequest, opts ...grpc.CallOption) (*AddAuthorityMenuResponse, error) {
+func (m *defaultAuthority) AddAuthorityMenu(ctx context.Context, in *AddAuthorityMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewAuthorityClient(m.cli.Conn())
 	return client.AddAuthorityMenu(ctx, in, opts...)
 }

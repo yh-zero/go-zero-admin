@@ -27,7 +27,7 @@ func NewUpdateBaseMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Up
 }
 
 // 根据id获取菜单
-func (l *UpdateBaseMenuLogic) UpdateBaseMenu(in *pb.UpdateBaseMenuRequest) (*pb.UpdateBaseMenuResponse, error) {
+func (l *UpdateBaseMenuLogic) UpdateBaseMenu(in *pb.UpdateBaseMenuRequest) (*pb.NoDataResponse, error) {
 	var oldBaseMenu model.SysBaseMenu
 	upDateMap := make(map[string]interface{})
 	upDateMap["keep_alive"] = in.SysBaseMenu.Meta.KeepAlive
@@ -90,5 +90,5 @@ func (l *UpdateBaseMenuLogic) UpdateBaseMenu(in *pb.UpdateBaseMenuRequest) (*pb.
 		return nil
 	})
 
-	return &pb.UpdateBaseMenuResponse{}, err
+	return &pb.NoDataResponse{}, err
 }

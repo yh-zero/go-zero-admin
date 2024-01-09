@@ -28,7 +28,7 @@ func NewAddAuthorityMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 // 增加base_menu和角色关联关系 -- 用于角色管理的设置权限
-func (l *AddAuthorityMenuLogic) AddAuthorityMenu(in *pb.AddAuthorityMenuRequest) (*pb.AddAuthorityMenuResponse, error) {
+func (l *AddAuthorityMenuLogic) AddAuthorityMenu(in *pb.AddAuthorityMenuRequest) (*pb.NoDataResponse, error) {
 	// 开启数据库事务
 	tx := l.svcCtx.DB.Begin()
 
@@ -73,7 +73,7 @@ func (l *AddAuthorityMenuLogic) AddAuthorityMenu(in *pb.AddAuthorityMenuRequest)
 	// 提交事务
 	tx.Commit()
 
-	return &pb.AddAuthorityMenuResponse{}, nil
+	return &pb.NoDataResponse{}, nil
 }
 
 // 判断切片中是否包含某个元素

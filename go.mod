@@ -14,6 +14,7 @@ require (
 	github.com/mojocn/base64Captcha v1.3.6
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.0.3
+	github.com/sashabaranov/go-openai v1.17.10
 	github.com/zeromicro/go-zero v1.6.0
 	go.opentelemetry.io/otel v1.19.0
 	go.opentelemetry.io/otel/trace v1.19.0

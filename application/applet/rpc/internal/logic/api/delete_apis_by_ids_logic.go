@@ -27,7 +27,7 @@ func NewDeleteApisByIdsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *D
 }
 
 // 删除多条api
-func (l *DeleteApisByIdsLogic) DeleteApisByIds(in *pb.DeleteApisByIdsRequest) (*pb.DeleteApisByIdsResponse, error) {
+func (l *DeleteApisByIdsLogic) DeleteApisByIds(in *pb.DeleteApisByIdsRequest) (*pb.NoDataResponse, error) {
 	csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
 
 	var apis []model.SysApi
@@ -43,5 +43,5 @@ func (l *DeleteApisByIdsLogic) DeleteApisByIds(in *pb.DeleteApisByIdsRequest) (*
 			}
 		}
 	}
-	return &pb.DeleteApisByIdsResponse{}, nil
+	return &pb.NoDataResponse{}, nil
 }

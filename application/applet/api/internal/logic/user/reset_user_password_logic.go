@@ -23,12 +23,12 @@ func NewResetUserPasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 	}
 }
 
-func (l *ResetUserPasswordLogic) ResetUserPassword(req *types.ResetUserPasswordRequest) (resp *types.ResetUserPasswordResponse, err error) {
+func (l *ResetUserPasswordLogic) ResetUserPassword(req *types.ResetUserPasswordRequest) (resp *types.MessageResponse, err error) {
 	_, err = l.svcCtx.AppletUserRPC.ResetUserPassword(l.ctx, &pb.ResetUserPasswordRequest{UserID: req.UserID})
 	if err != nil {
 		logx.Errorf("l.svcCtx.AppletUserRPC.ResetUserPassword err: %v", err)
 		return nil, err
 	}
 
-	return &types.ResetUserPasswordResponse{Message: "重置成功！"}, err
+	return &types.MessageResponse{Message: "重置成功！"}, err
 }

@@ -14,21 +14,14 @@ import (
 
 type (
 	AddAuthorityMenuRequest         = pb.AddAuthorityMenuRequest
-	AddAuthorityMenuResponse        = pb.AddAuthorityMenuResponse
 	AddMenuBaseRequest              = pb.AddMenuBaseRequest
-	AddMenuBaseResponse             = pb.AddMenuBaseResponse
 	CasbinInfo                      = pb.CasbinInfo
 	CreateApiRequest                = pb.CreateApiRequest
-	CreateApiResponse               = pb.CreateApiResponse
 	CreateAuthorityRequest          = pb.CreateAuthorityRequest
 	CreateAuthorityResponse         = pb.CreateAuthorityResponse
 	DeleteApiRequest                = pb.DeleteApiRequest
-	DeleteApiResponse               = pb.DeleteApiResponse
 	DeleteApisByIdsRequest          = pb.DeleteApisByIdsRequest
-	DeleteApisByIdsResponse         = pb.DeleteApisByIdsResponse
 	DeleteUserRequest               = pb.DeleteUserRequest
-	DeleteUserResponse              = pb.DeleteUserResponse
-	GetAllApiListRequest            = pb.GetAllApiListRequest
 	GetAllApiListResponse           = pb.GetAllApiListResponse
 	GetApiListRequest               = pb.GetApiListRequest
 	GetApiListResponse              = pb.GetApiListResponse
@@ -36,11 +29,9 @@ type (
 	GetAuthorityListResponse        = pb.GetAuthorityListResponse
 	GetBaseMenuByIdRequest          = pb.GetBaseMenuByIdRequest
 	GetBaseMenuByIdResponse         = pb.GetBaseMenuByIdResponse
-	GetBaseMenuTreeRequest          = pb.GetBaseMenuTreeRequest
 	GetBaseMenuTreeResponse         = pb.GetBaseMenuTreeResponse
 	GetMenuAuthorityRequest         = pb.GetMenuAuthorityRequest
 	GetMenuAuthorityResponse        = pb.GetMenuAuthorityResponse
-	GetMenuBaseInfoListRequest      = pb.GetMenuBaseInfoListRequest
 	GetMenuBaseInfoListResponse     = pb.GetMenuBaseInfoListResponse
 	GetMenuTreeRequest              = pb.GetMenuTreeRequest
 	GetMenuTreeResponse             = pb.GetMenuTreeResponse
@@ -58,31 +49,27 @@ type (
 	RegisterRequest                 = pb.RegisterRequest
 	RegisterResponse                = pb.RegisterResponse
 	ResetUserPasswordRequest        = pb.ResetUserPasswordRequest
-	ResetUserPasswordResponse       = pb.ResetUserPasswordResponse
 	SysApi                          = pb.SysApi
 	SysAuthority                    = pb.SysAuthority
 	SysBaseMenu                     = pb.SysBaseMenu
 	SysBaseMenuBtn                  = pb.SysBaseMenuBtn
 	SysBaseMenuParameter            = pb.SysBaseMenuParameter
 	SysMenu                         = pb.SysMenu
+	UpdateApiRequest                = pb.UpdateApiRequest
 	UpdateAuthorityRequest          = pb.UpdateAuthorityRequest
 	UpdateAuthorityResponse         = pb.UpdateAuthorityResponse
 	UpdateBaseMenuRequest           = pb.UpdateBaseMenuRequest
-	UpdateBaseMenuResponse          = pb.UpdateBaseMenuResponse
 	UpdateCasbinDataByApiIdsRequest = pb.UpdateCasbinDataByApiIdsRequest
 	UpdateCasbinDataRequest         = pb.UpdateCasbinDataRequest
-	UpdateCasbinDataResponse        = pb.UpdateCasbinDataResponse
 	UpdateUserAuthoritiesRequest    = pb.UpdateUserAuthoritiesRequest
-	UpdateUserAuthoritiesResponse   = pb.UpdateUserAuthoritiesResponse
 	UpdateUserInfoRequest           = pb.UpdateUserInfoRequest
-	UpdateUserInfoResponse          = pb.UpdateUserInfoResponse
 	UserInfo                        = pb.UserInfo
 
 	Casbin interface {
 		// 根据角色id获取对应的casbin数据
 		GetPathByAuthorityId(ctx context.Context, in *GetPathByAuthorityIdRequest, opts ...grpc.CallOption) (*GetPathByAuthorityIdResponse, error)
 		// 更新一个角色的对应的casbin数据
-		UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*UpdateCasbinDataResponse, error)
+		UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 更新一个角色的对应的casbin数据 用api的ids 查数据
 		UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	}
@@ -105,7 +92,7 @@ func (m *defaultCasbin) GetPathByAuthorityId(ctx context.Context, in *GetPathByA
 }
 
 // 更新一个角色的对应的casbin数据
-func (m *defaultCasbin) UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*UpdateCasbinDataResponse, error) {
+func (m *defaultCasbin) UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewCasbinClient(m.cli.Conn())
 	return client.UpdateCasbinData(ctx, in, opts...)
 }

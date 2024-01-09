@@ -25,7 +25,7 @@ func NewDeleteApisByIdsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *D
 	}
 }
 
-func (l *DeleteApisByIdsLogic) DeleteApisByIds(req *types.DeleteApisByIdsRequest) (resp *types.DeleteApisByIdsResponse, err error) {
+func (l *DeleteApisByIdsLogic) DeleteApisByIds(req *types.DeleteApisByIdsRequest) (resp *types.MessageResponse, err error) {
 	fmt.Println("========== DeleteApisByIds", req)
 	fmt.Println("========== DeleteApisByIds", req.Ids)
 
@@ -35,5 +35,5 @@ func (l *DeleteApisByIdsLogic) DeleteApisByIds(req *types.DeleteApisByIdsRequest
 		return nil, err
 	}
 
-	return &types.DeleteApisByIdsResponse{Message: "删除成功！"}, nil
+	return &types.MessageResponse{Message: "删除成功！"}, nil
 }

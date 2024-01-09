@@ -29,25 +29,31 @@ func (s *ApiServer) GetApiList(ctx context.Context, in *pb.GetApiListRequest) (*
 }
 
 // 创建/添加 API列表
-func (s *ApiServer) CreateApi(ctx context.Context, in *pb.CreateApiRequest) (*pb.CreateApiResponse, error) {
+func (s *ApiServer) CreateApi(ctx context.Context, in *pb.CreateApiRequest) (*pb.NoDataResponse, error) {
 	l := apilogic.NewCreateApiLogic(ctx, s.svcCtx)
 	return l.CreateApi(in)
 }
 
 // 删除API列表
-func (s *ApiServer) DeleteApi(ctx context.Context, in *pb.DeleteApiRequest) (*pb.DeleteApiResponse, error) {
+func (s *ApiServer) DeleteApi(ctx context.Context, in *pb.DeleteApiRequest) (*pb.NoDataResponse, error) {
 	l := apilogic.NewDeleteApiLogic(ctx, s.svcCtx)
 	return l.DeleteApi(in)
 }
 
 // 获取全部API列表
-func (s *ApiServer) GetAllApiList(ctx context.Context, in *pb.GetAllApiListRequest) (*pb.GetAllApiListResponse, error) {
+func (s *ApiServer) GetAllApiList(ctx context.Context, in *pb.NoDataResponse) (*pb.GetAllApiListResponse, error) {
 	l := apilogic.NewGetAllApiListLogic(ctx, s.svcCtx)
 	return l.GetAllApiList(in)
 }
 
 // 删除多条api
-func (s *ApiServer) DeleteApisByIds(ctx context.Context, in *pb.DeleteApisByIdsRequest) (*pb.DeleteApisByIdsResponse, error) {
+func (s *ApiServer) DeleteApisByIds(ctx context.Context, in *pb.DeleteApisByIdsRequest) (*pb.NoDataResponse, error) {
 	l := apilogic.NewDeleteApisByIdsLogic(ctx, s.svcCtx)
 	return l.DeleteApisByIds(in)
+}
+
+// 更新api
+func (s *ApiServer) UpdateApi(ctx context.Context, in *pb.UpdateApiRequest) (*pb.NoDataResponse, error) {
+	l := apilogic.NewUpdateApiLogic(ctx, s.svcCtx)
+	return l.UpdateApi(in)
 }

@@ -26,7 +26,7 @@ func NewUpdateUserAuthoritiesLogic(ctx context.Context, svcCtx *svc.ServiceConte
 }
 
 // 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
-func (l *UpdateUserAuthoritiesLogic) UpdateUserAuthorities(in *pb.UpdateUserAuthoritiesRequest) (*pb.UpdateUserAuthoritiesResponse, error) {
+func (l *UpdateUserAuthoritiesLogic) UpdateUserAuthorities(in *pb.UpdateUserAuthoritiesRequest) (*pb.NoDataResponse, error) {
 	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
 		// 删除当前用户的所有权限
 		if txErr := tx.Where("sys_user_id = ?", in.ID).Delete(&model.SysUserAuthority{}).Error; txErr != nil {
@@ -50,7 +50,7 @@ func (l *UpdateUserAuthoritiesLogic) UpdateUserAuthorities(in *pb.UpdateUserAuth
 		return nil // 返回 nil 提交事务
 	})
 
-	return &pb.UpdateUserAuthoritiesResponse{}, err
+	return &pb.NoDataResponse{}, err
 }
 
 //func (l *UpdateUserAuthoritiesLogic) UpdateUserAuthorities(in *pb.UpdateUserAuthoritiesRequest) (*pb.UpdateUserAuthoritiesResponse, error) {

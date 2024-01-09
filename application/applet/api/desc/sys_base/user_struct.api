@@ -7,6 +7,10 @@ type Model {
 	DeletedAt string `json:"DeletedAt,optional"`
 }
 
+type MessageResponse {
+	Message string `json:"message"`
+}
+
 type UserInfo {
 	UUID        string         `json:"uuid"`        // 用户UUID
 	Username    string         `json:"userName"`    // 用户登录名
@@ -185,16 +189,8 @@ type CreateApiRequest {
 	SysApi
 }
 
-type CreateApiResponse {
-	Message string `json:"message"`
-}
-
 type DeleteApiRequest {
 	SysApi
-}
-
-type DeleteApiResponse {
-	Message string `json:"message"`
 }
 
 type GetAllApiListRequest {}
@@ -240,17 +236,9 @@ type AddAuthorityMenuRequest {
 	MenuIds     string `json:"menuIds"`
 }
 
-type AddAuthorityMenuResponse {
-	Message string `json:"message"`
-}
-
 type UpdateCasbinDataRequest {
 	AuthorityId    int64        `json:"authorityId"`
 	CasbinInfoList []CasbinInfo `json:"casbinInfoList"`
-}
-
-type UpdateCasbinDataResponse {
-	Message string `json:"message"`
 }
 
 type UpdateAuthorityRequest {
@@ -272,10 +260,6 @@ type GetBaseMenuByIdResponse {
 
 type UpdateBaseMenuRequest {
 	SysBaseMenu
-}
-
-type UpdateBaseMenuResponse {
-	Message string `json:"message"`
 }
 
 type CreateAuthorityRequest {
@@ -322,32 +306,16 @@ type UpdateUserInfoRequest {
 	Enable       int64   `json:"enable,optional"`       //冻结用户
 }
 
-type UpdateUserInfoResponse {
-	Message string `json:"message"`
-}
-
 type ResetUserPasswordRequest {
 	UserID int64 `json:"userId"`
-}
-
-type ResetUserPasswordResponse {
-	Message string `json:"message"`
 }
 
 type DeleteUserRequest {
 	UserID int64 `json:"userId"`
 }
 
-type DeleteUserResponse {
-	Message string `json:"message"`
-}
-
 type DeleteApisByIdsRequest{
 	ids []int64 `json:"ids,optional" form:"ids,optional"`
-}
-
-type DeleteApisByIdsResponse{
-	Message string `json:"message"`
 }
 
 type UploadFileImgRequest{}
@@ -361,6 +329,6 @@ type UpdateCasbinDataByApiIdsRequest {
 	ApiIds []int64 `json:"apiIds"`
 }
 
-type MessageResponse {
-	Message string `json:"message"`
+type UpdateApiRequest {
+	SysApi
 }

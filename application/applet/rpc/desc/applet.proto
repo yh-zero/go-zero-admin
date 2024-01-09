@@ -4,6 +4,8 @@ option go_package = "./pb";
 
 package pb;
 
+message NoDataResponse {}
+
 message GetUserInfoRequest {
   string UserName = 1;
   string Password = 2;
@@ -161,7 +163,6 @@ message GetMenuTreeResponse {
   repeated SysMenu SysMenu = 1;
 }
 
-message GetMenuBaseInfoListRequest{}
 message GetMenuBaseInfoListResponse {
   repeated SysBaseMenu SysBaseMenu = 1;
   int64 total = 2;
@@ -170,14 +171,12 @@ message GetMenuBaseInfoListResponse {
 message AddMenuBaseRequest{
   SysBaseMenu SysBaseMenu = 1;
 }
-message AddMenuBaseResponse{}
 
 message PageRequest {
   int64 pageNo  = 1;
   int64 PageSize  = 2;
   string Keyword  = 3;
 }
-
 
 message GetAuthorityListRequest {
     PageRequest Page = 1;
@@ -216,15 +215,9 @@ message CreateApiRequest {
   SysApi SysApi = 1;
 }
 
-message CreateApiResponse {}
-
 message DeleteApiRequest {
   SysApi SysApi = 1;
 }
-
-message DeleteApiResponse {}
-
-message GetAllApiListRequest{}
 
 message GetAllApiListResponse{
   repeated SysApi ApiList = 1;
@@ -242,8 +235,6 @@ message GetPathByAuthorityIdRequest {
 message GetPathByAuthorityIdResponse {
   repeated CasbinInfo CasbinInfoList = 1;
 }
-
-message GetBaseMenuTreeRequest {}
 
 message GetBaseMenuTreeResponse {
   repeated SysBaseMenu SysBaseMenuList = 1;
@@ -267,14 +258,10 @@ message AddAuthorityMenuRequest {
   string MenuIds = 2;
 }
 
-message AddAuthorityMenuResponse {}
-
 message UpdateCasbinDataRequest {
   int64 AuthorityId = 1;
   repeated CasbinInfo CasbinInfoList = 2;
 }
-
-message UpdateCasbinDataResponse {}
 
 message UpdateAuthorityRequest {
   SysAuthority SysAuthority = 1;
@@ -295,8 +282,6 @@ message GetBaseMenuByIdResponse {
 message UpdateBaseMenuRequest {
   SysBaseMenu SysBaseMenu = 1;
 }
-
-message UpdateBaseMenuResponse {}
 
 message CreateAuthorityRequest {
     SysAuthority SysAuthority = 1;
@@ -328,39 +313,31 @@ message UpdateUserInfoRequest {
   UserInfo UserInfo = 1;
 }
 
-message UpdateUserInfoResponse {}
-
 message UpdateUserAuthoritiesRequest {
   int64 ID = 1;
   repeated int64 AuthorityIds = 2;
 }
 
-message UpdateUserAuthoritiesResponse {}
-
 message ResetUserPasswordRequest {
   int64 UserID = 1;
 }
-
-message ResetUserPasswordResponse {}
 
 message DeleteUserRequest {
   int64 UserID = 1;
 }
 
-message DeleteUserResponse {}
-
 message DeleteApisByIdsRequest {
   repeated int64 Ids = 1;
 }
-
-message DeleteApisByIdsResponse {}
 
 message UpdateCasbinDataByApiIdsRequest {
   int64 AuthorityId = 1;
   repeated int64 ApiIds = 2;
 }
 
-message NoDataResponse {}
+message UpdateApiRequest {
+  SysApi SysApi = 1;
+}
 
 service User {
   //  获取用户信息
@@ -372,13 +349,13 @@ service User {
   // 新增（注册）用户 - 管理员
   rpc Register (RegisterRequest) returns(RegisterResponse);
   // 修改用户信息
-  rpc UpdateUserInfo (UpdateUserInfoRequest) returns(UpdateUserInfoResponse);
+  rpc UpdateUserInfo (UpdateUserInfoRequest) returns(NoDataResponse);
   // 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
-  rpc UpdateUserAuthorities (UpdateUserAuthoritiesRequest) returns(UpdateUserAuthoritiesResponse);
+  rpc UpdateUserAuthorities (UpdateUserAuthoritiesRequest) returns(NoDataResponse);
   // 重置用户密码 默认密码：goZero
-  rpc ResetUserPassword (ResetUserPasswordRequest) returns(ResetUserPasswordResponse);
+  rpc ResetUserPassword (ResetUserPasswordRequest) returns(NoDataResponse);
   // 删除用户
-  rpc DeleteUser (DeleteUserRequest) returns(DeleteUserResponse);
+  rpc DeleteUser (DeleteUserRequest) returns(NoDataResponse);
 
 }
 
@@ -387,17 +364,17 @@ service Menu {
   // 获取菜单-路由
   rpc GetMenuTree (GetMenuTreeRequest) returns (GetMenuTreeResponse);
   // 获取系统基础菜单列表
-  rpc GetMenuBaseInfoList (GetMenuBaseInfoListRequest) returns (GetMenuBaseInfoListResponse);
+  rpc GetMenuBaseInfoList (NoDataResponse) returns (GetMenuBaseInfoListResponse);
   // 添加系统基础菜单列表
-  rpc AddMenuBase (AddMenuBaseRequest) returns (AddMenuBaseResponse);
+  rpc AddMenuBase (AddMenuBaseRequest) returns (NoDataResponse);
   // 获取用户动态路由树  -- 用于角色管理的设置权限
-  rpc GetBaseMenuTree (GetBaseMenuTreeRequest) returns (GetBaseMenuTreeResponse);
+  rpc GetBaseMenuTree (NoDataResponse) returns (GetBaseMenuTreeResponse);
   // 获取指定角色menu  -- 用于角色管理的设置权限
   rpc GetMenuAuthority (GetMenuAuthorityRequest) returns (GetMenuAuthorityResponse);
   // 根据id获取菜单
   rpc GetBaseMenuById (GetBaseMenuByIdRequest) returns (GetBaseMenuByIdResponse);
   // 根据id获取菜单
-  rpc UpdateBaseMenu (UpdateBaseMenuRequest) returns (UpdateBaseMenuResponse);
+  rpc UpdateBaseMenu (UpdateBaseMenuRequest) returns (NoDataResponse);
 
 }
 
@@ -406,7 +383,7 @@ service Authority {
   // 获取角色列表
   rpc GetAuthorityList (GetAuthorityListRequest) returns (GetAuthorityListResponse);
   // 增加base_menu和角色关联关系 -- 用于角色管理的设置权限
-  rpc AddAuthorityMenu (AddAuthorityMenuRequest) returns (AddAuthorityMenuResponse);
+  rpc AddAuthorityMenu (AddAuthorityMenuRequest) returns (NoDataResponse);
   // 更新角色 -- 设为首页
   rpc UpdateAuthority (UpdateAuthorityRequest) returns (UpdateAuthorityResponse);
   // 创建角色
@@ -418,13 +395,15 @@ service Api {
   // 获取API列表
   rpc GetApiList (GetApiListRequest) returns (GetApiListResponse);
   // 创建/添加 API列表
-  rpc CreateApi (CreateApiRequest) returns (CreateApiResponse);
+  rpc CreateApi (CreateApiRequest) returns (NoDataResponse);
   // 删除API列表
-  rpc DeleteApi (DeleteApiRequest) returns (DeleteApiResponse);
+  rpc DeleteApi (DeleteApiRequest) returns (NoDataResponse);
   // 获取全部API列表
-  rpc GetAllApiList (GetAllApiListRequest) returns (GetAllApiListResponse);
+  rpc GetAllApiList (NoDataResponse) returns (GetAllApiListResponse);
   // 删除多条api
-  rpc DeleteApisByIds (DeleteApisByIdsRequest) returns (DeleteApisByIdsResponse);
+  rpc DeleteApisByIds (DeleteApisByIdsRequest) returns (NoDataResponse);
+  // 更新api
+  rpc UpdateApi (UpdateApiRequest) returns (NoDataResponse);
 
 }
 
@@ -432,7 +411,7 @@ service Casbin {
   // 根据角色id获取对应的casbin数据
   rpc GetPathByAuthorityId (GetPathByAuthorityIdRequest) returns (GetPathByAuthorityIdResponse);
   // 更新一个角色的对应的casbin数据
-  rpc UpdateCasbinData (UpdateCasbinDataRequest) returns (UpdateCasbinDataResponse);
+  rpc UpdateCasbinData (UpdateCasbinDataRequest) returns (NoDataResponse);
   // 更新一个角色的对应的casbin数据 用api的ids 查数据
   rpc UpdateCasbinDataByApiIds (UpdateCasbinDataByApiIdsRequest) returns (NoDataResponse);
 

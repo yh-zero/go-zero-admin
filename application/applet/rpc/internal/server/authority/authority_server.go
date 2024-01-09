@@ -29,7 +29,7 @@ func (s *AuthorityServer) GetAuthorityList(ctx context.Context, in *pb.GetAuthor
 }
 
 // 增加base_menu和角色关联关系 -- 用于角色管理的设置权限
-func (s *AuthorityServer) AddAuthorityMenu(ctx context.Context, in *pb.AddAuthorityMenuRequest) (*pb.AddAuthorityMenuResponse, error) {
+func (s *AuthorityServer) AddAuthorityMenu(ctx context.Context, in *pb.AddAuthorityMenuRequest) (*pb.NoDataResponse, error) {
 	l := authoritylogic.NewAddAuthorityMenuLogic(ctx, s.svcCtx)
 	return l.AddAuthorityMenu(in)
 }

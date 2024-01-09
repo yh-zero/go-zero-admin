@@ -29,7 +29,7 @@ func (l *GetMenuListLogic) GetMenuList(req *types.GetMenuListRequest) (resp *typ
 	//csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher("mysql", l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
 	//csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
 	//_, err = csb.UpdatePolicy([]string{"100001", "/v1/sys/menu/getMenuList", "GET"}, []string{"100001", "/v1/sys/menu/getMenuList1111", "GET"})
-	menuInfoListGet, err := l.svcCtx.AppletMenuRPC.GetMenuBaseInfoList(l.ctx, &pb.GetMenuBaseInfoListRequest{})
+	menuInfoListGet, err := l.svcCtx.AppletMenuRPC.GetMenuBaseInfoList(l.ctx, &pb.NoDataResponse{})
 	if err != nil {
 		logx.Errorf("l.svcCtx.AppletRPC.MenuInfoListGet err:%v", err)
 		return nil, err

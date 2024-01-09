@@ -26,7 +26,7 @@ func NewDeleteUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 // 删除用户
-func (l *DeleteUserLogic) DeleteUser(in *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+func (l *DeleteUserLogic) DeleteUser(in *pb.DeleteUserRequest) (*pb.NoDataResponse, error) {
 	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("id = ?", in.UserID).Delete(&model.SysUser{}).Error; err != nil {
 			return err
@@ -37,5 +37,5 @@ func (l *DeleteUserLogic) DeleteUser(in *pb.DeleteUserRequest) (*pb.DeleteUserRe
 		return nil
 	})
 
-	return &pb.DeleteUserResponse{}, err
+	return &pb.NoDataResponse{}, err
 }

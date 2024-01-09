@@ -26,9 +26,9 @@ func NewResetUserPasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 }
 
 // 重置用户密码 默认密码：goZero
-func (l *ResetUserPasswordLogic) ResetUserPassword(in *pb.ResetUserPasswordRequest) (*pb.ResetUserPasswordResponse, error) {
+func (l *ResetUserPasswordLogic) ResetUserPassword(in *pb.ResetUserPasswordRequest) (*pb.NoDataResponse, error) {
 	hashedPassword := hash.BcryptHash(l.svcCtx.Config.Default.UserPassword)
 
 	err := l.svcCtx.DB.Model(&model.SysUser{}).Where("id = ?", in.UserID).Update("password", hashedPassword).Error
-	return &pb.ResetUserPasswordResponse{}, err
+	return &pb.NoDataResponse{}, err
 }

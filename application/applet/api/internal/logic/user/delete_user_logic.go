@@ -26,7 +26,7 @@ func NewDeleteUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 	}
 }
 
-func (l *DeleteUserLogic) DeleteUser(req *types.DeleteUserRequest) (resp *types.DeleteUserResponse, err error) {
+func (l *DeleteUserLogic) DeleteUser(req *types.DeleteUserRequest) (resp *types.MessageResponse, err error) {
 	jwtUserId := ctxJwt.GetJwtDataID(l.ctx)
 	if jwtUserId == req.UserID {
 		logx.Errorf("不能自己删除自己")
@@ -38,5 +38,5 @@ func (l *DeleteUserLogic) DeleteUser(req *types.DeleteUserRequest) (resp *types.
 		return nil, err
 	}
 
-	return &types.DeleteUserResponse{Message: "删除成功"}, nil
+	return &types.MessageResponse{Message: "删除成功"}, nil
 }

@@ -27,7 +27,7 @@ func NewGetAllApiListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get
 }
 
 // 获取全部API列表
-func (l *GetAllApiListLogic) GetAllApiList(in *pb.GetAllApiListRequest) (*pb.GetAllApiListResponse, error) {
+func (l *GetAllApiListLogic) GetAllApiList(in *pb.NoDataResponse) (*pb.GetAllApiListResponse, error) {
 	fmt.Println("========= GetAllApiList ======= ")
 	var apiList []model.SysApi
 	err := l.svcCtx.DB.Find(&apiList).Error

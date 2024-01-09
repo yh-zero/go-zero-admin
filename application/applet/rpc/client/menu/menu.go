@@ -14,21 +14,14 @@ import (
 
 type (
 	AddAuthorityMenuRequest         = pb.AddAuthorityMenuRequest
-	AddAuthorityMenuResponse        = pb.AddAuthorityMenuResponse
 	AddMenuBaseRequest              = pb.AddMenuBaseRequest
-	AddMenuBaseResponse             = pb.AddMenuBaseResponse
 	CasbinInfo                      = pb.CasbinInfo
 	CreateApiRequest                = pb.CreateApiRequest
-	CreateApiResponse               = pb.CreateApiResponse
 	CreateAuthorityRequest          = pb.CreateAuthorityRequest
 	CreateAuthorityResponse         = pb.CreateAuthorityResponse
 	DeleteApiRequest                = pb.DeleteApiRequest
-	DeleteApiResponse               = pb.DeleteApiResponse
 	DeleteApisByIdsRequest          = pb.DeleteApisByIdsRequest
-	DeleteApisByIdsResponse         = pb.DeleteApisByIdsResponse
 	DeleteUserRequest               = pb.DeleteUserRequest
-	DeleteUserResponse              = pb.DeleteUserResponse
-	GetAllApiListRequest            = pb.GetAllApiListRequest
 	GetAllApiListResponse           = pb.GetAllApiListResponse
 	GetApiListRequest               = pb.GetApiListRequest
 	GetApiListResponse              = pb.GetApiListResponse
@@ -36,11 +29,9 @@ type (
 	GetAuthorityListResponse        = pb.GetAuthorityListResponse
 	GetBaseMenuByIdRequest          = pb.GetBaseMenuByIdRequest
 	GetBaseMenuByIdResponse         = pb.GetBaseMenuByIdResponse
-	GetBaseMenuTreeRequest          = pb.GetBaseMenuTreeRequest
 	GetBaseMenuTreeResponse         = pb.GetBaseMenuTreeResponse
 	GetMenuAuthorityRequest         = pb.GetMenuAuthorityRequest
 	GetMenuAuthorityResponse        = pb.GetMenuAuthorityResponse
-	GetMenuBaseInfoListRequest      = pb.GetMenuBaseInfoListRequest
 	GetMenuBaseInfoListResponse     = pb.GetMenuBaseInfoListResponse
 	GetMenuTreeRequest              = pb.GetMenuTreeRequest
 	GetMenuTreeResponse             = pb.GetMenuTreeResponse
@@ -58,41 +49,37 @@ type (
 	RegisterRequest                 = pb.RegisterRequest
 	RegisterResponse                = pb.RegisterResponse
 	ResetUserPasswordRequest        = pb.ResetUserPasswordRequest
-	ResetUserPasswordResponse       = pb.ResetUserPasswordResponse
 	SysApi                          = pb.SysApi
 	SysAuthority                    = pb.SysAuthority
 	SysBaseMenu                     = pb.SysBaseMenu
 	SysBaseMenuBtn                  = pb.SysBaseMenuBtn
 	SysBaseMenuParameter            = pb.SysBaseMenuParameter
 	SysMenu                         = pb.SysMenu
+	UpdateApiRequest                = pb.UpdateApiRequest
 	UpdateAuthorityRequest          = pb.UpdateAuthorityRequest
 	UpdateAuthorityResponse         = pb.UpdateAuthorityResponse
 	UpdateBaseMenuRequest           = pb.UpdateBaseMenuRequest
-	UpdateBaseMenuResponse          = pb.UpdateBaseMenuResponse
 	UpdateCasbinDataByApiIdsRequest = pb.UpdateCasbinDataByApiIdsRequest
 	UpdateCasbinDataRequest         = pb.UpdateCasbinDataRequest
-	UpdateCasbinDataResponse        = pb.UpdateCasbinDataResponse
 	UpdateUserAuthoritiesRequest    = pb.UpdateUserAuthoritiesRequest
-	UpdateUserAuthoritiesResponse   = pb.UpdateUserAuthoritiesResponse
 	UpdateUserInfoRequest           = pb.UpdateUserInfoRequest
-	UpdateUserInfoResponse          = pb.UpdateUserInfoResponse
 	UserInfo                        = pb.UserInfo
 
 	Menu interface {
 		// 获取菜单-路由
 		GetMenuTree(ctx context.Context, in *GetMenuTreeRequest, opts ...grpc.CallOption) (*GetMenuTreeResponse, error)
 		// 获取系统基础菜单列表
-		GetMenuBaseInfoList(ctx context.Context, in *GetMenuBaseInfoListRequest, opts ...grpc.CallOption) (*GetMenuBaseInfoListResponse, error)
+		GetMenuBaseInfoList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetMenuBaseInfoListResponse, error)
 		// 添加系统基础菜单列表
-		AddMenuBase(ctx context.Context, in *AddMenuBaseRequest, opts ...grpc.CallOption) (*AddMenuBaseResponse, error)
+		AddMenuBase(ctx context.Context, in *AddMenuBaseRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 获取用户动态路由树  -- 用于角色管理的设置权限
-		GetBaseMenuTree(ctx context.Context, in *GetBaseMenuTreeRequest, opts ...grpc.CallOption) (*GetBaseMenuTreeResponse, error)
+		GetBaseMenuTree(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetBaseMenuTreeResponse, error)
 		// 获取指定角色menu  -- 用于角色管理的设置权限
 		GetMenuAuthority(ctx context.Context, in *GetMenuAuthorityRequest, opts ...grpc.CallOption) (*GetMenuAuthorityResponse, error)
 		// 根据id获取菜单
 		GetBaseMenuById(ctx context.Context, in *GetBaseMenuByIdRequest, opts ...grpc.CallOption) (*GetBaseMenuByIdResponse, error)
 		// 根据id获取菜单
-		UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuRequest, opts ...grpc.CallOption) (*UpdateBaseMenuResponse, error)
+		UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	}
 
 	defaultMenu struct {
@@ -113,19 +100,19 @@ func (m *defaultMenu) GetMenuTree(ctx context.Context, in *GetMenuTreeRequest, o
 }
 
 // 获取系统基础菜单列表
-func (m *defaultMenu) GetMenuBaseInfoList(ctx context.Context, in *GetMenuBaseInfoListRequest, opts ...grpc.CallOption) (*GetMenuBaseInfoListResponse, error) {
+func (m *defaultMenu) GetMenuBaseInfoList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetMenuBaseInfoListResponse, error) {
 	client := pb.NewMenuClient(m.cli.Conn())
 	return client.GetMenuBaseInfoList(ctx, in, opts...)
 }
 
 // 添加系统基础菜单列表
-func (m *defaultMenu) AddMenuBase(ctx context.Context, in *AddMenuBaseRequest, opts ...grpc.CallOption) (*AddMenuBaseResponse, error) {
+func (m *defaultMenu) AddMenuBase(ctx context.Context, in *AddMenuBaseRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewMenuClient(m.cli.Conn())
 	return client.AddMenuBase(ctx, in, opts...)
 }
 
 // 获取用户动态路由树  -- 用于角色管理的设置权限
-func (m *defaultMenu) GetBaseMenuTree(ctx context.Context, in *GetBaseMenuTreeRequest, opts ...grpc.CallOption) (*GetBaseMenuTreeResponse, error) {
+func (m *defaultMenu) GetBaseMenuTree(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetBaseMenuTreeResponse, error) {
 	client := pb.NewMenuClient(m.cli.Conn())
 	return client.GetBaseMenuTree(ctx, in, opts...)
 }
@@ -143,7 +130,7 @@ func (m *defaultMenu) GetBaseMenuById(ctx context.Context, in *GetBaseMenuByIdRe
 }
 
 // 根据id获取菜单
-func (m *defaultMenu) UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuRequest, opts ...grpc.CallOption) (*UpdateBaseMenuResponse, error) {
+func (m *defaultMenu) UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewMenuClient(m.cli.Conn())
 	return client.UpdateBaseMenu(ctx, in, opts...)
 }

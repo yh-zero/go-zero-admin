@@ -50,7 +50,7 @@ func (l *UploadFileImgLogic) UploadFileImg(req *types.UploadFileImgRequest, r *h
 	}
 
 	return &types.UploadFileImgResponse{
-		FileImgUrl: genFileURL(l.svcCtx.Config.Oss.Endpoint, objectKey),
+		FileImgUrl: genFileURL(l.svcCtx.Config.Oss.BucketName, l.svcCtx.Config.Oss.Endpoint, objectKey),
 	}, nil
 }
 
@@ -59,7 +59,7 @@ func genFilename(filename, directory string) string {
 	return fmt.Sprintf("%s/%d_%s", directory, time.Now().UnixMilli(), filename)
 }
 
-func genFileURL(bucketName, objectKey string) string {
+func genFileURL(bucketName, Endpoint, objectKey string) string {
 	// 返回文件的 URL，注意 OSS 对象键中的目录名称
-	return fmt.Sprintf("https://%s/%s", bucketName, objectKey)
+	return fmt.Sprintf("https://%s.%s/%s", bucketName, Endpoint, objectKey)
 }

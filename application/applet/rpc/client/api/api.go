@@ -14,21 +14,14 @@ import (
 
 type (
 	AddAuthorityMenuRequest         = pb.AddAuthorityMenuRequest
-	AddAuthorityMenuResponse        = pb.AddAuthorityMenuResponse
 	AddMenuBaseRequest              = pb.AddMenuBaseRequest
-	AddMenuBaseResponse             = pb.AddMenuBaseResponse
 	CasbinInfo                      = pb.CasbinInfo
 	CreateApiRequest                = pb.CreateApiRequest
-	CreateApiResponse               = pb.CreateApiResponse
 	CreateAuthorityRequest          = pb.CreateAuthorityRequest
 	CreateAuthorityResponse         = pb.CreateAuthorityResponse
 	DeleteApiRequest                = pb.DeleteApiRequest
-	DeleteApiResponse               = pb.DeleteApiResponse
 	DeleteApisByIdsRequest          = pb.DeleteApisByIdsRequest
-	DeleteApisByIdsResponse         = pb.DeleteApisByIdsResponse
 	DeleteUserRequest               = pb.DeleteUserRequest
-	DeleteUserResponse              = pb.DeleteUserResponse
-	GetAllApiListRequest            = pb.GetAllApiListRequest
 	GetAllApiListResponse           = pb.GetAllApiListResponse
 	GetApiListRequest               = pb.GetApiListRequest
 	GetApiListResponse              = pb.GetApiListResponse
@@ -36,11 +29,9 @@ type (
 	GetAuthorityListResponse        = pb.GetAuthorityListResponse
 	GetBaseMenuByIdRequest          = pb.GetBaseMenuByIdRequest
 	GetBaseMenuByIdResponse         = pb.GetBaseMenuByIdResponse
-	GetBaseMenuTreeRequest          = pb.GetBaseMenuTreeRequest
 	GetBaseMenuTreeResponse         = pb.GetBaseMenuTreeResponse
 	GetMenuAuthorityRequest         = pb.GetMenuAuthorityRequest
 	GetMenuAuthorityResponse        = pb.GetMenuAuthorityResponse
-	GetMenuBaseInfoListRequest      = pb.GetMenuBaseInfoListRequest
 	GetMenuBaseInfoListResponse     = pb.GetMenuBaseInfoListResponse
 	GetMenuTreeRequest              = pb.GetMenuTreeRequest
 	GetMenuTreeResponse             = pb.GetMenuTreeResponse
@@ -58,37 +49,35 @@ type (
 	RegisterRequest                 = pb.RegisterRequest
 	RegisterResponse                = pb.RegisterResponse
 	ResetUserPasswordRequest        = pb.ResetUserPasswordRequest
-	ResetUserPasswordResponse       = pb.ResetUserPasswordResponse
 	SysApi                          = pb.SysApi
 	SysAuthority                    = pb.SysAuthority
 	SysBaseMenu                     = pb.SysBaseMenu
 	SysBaseMenuBtn                  = pb.SysBaseMenuBtn
 	SysBaseMenuParameter            = pb.SysBaseMenuParameter
 	SysMenu                         = pb.SysMenu
+	UpdateApiRequest                = pb.UpdateApiRequest
 	UpdateAuthorityRequest          = pb.UpdateAuthorityRequest
 	UpdateAuthorityResponse         = pb.UpdateAuthorityResponse
 	UpdateBaseMenuRequest           = pb.UpdateBaseMenuRequest
-	UpdateBaseMenuResponse          = pb.UpdateBaseMenuResponse
 	UpdateCasbinDataByApiIdsRequest = pb.UpdateCasbinDataByApiIdsRequest
 	UpdateCasbinDataRequest         = pb.UpdateCasbinDataRequest
-	UpdateCasbinDataResponse        = pb.UpdateCasbinDataResponse
 	UpdateUserAuthoritiesRequest    = pb.UpdateUserAuthoritiesRequest
-	UpdateUserAuthoritiesResponse   = pb.UpdateUserAuthoritiesResponse
 	UpdateUserInfoRequest           = pb.UpdateUserInfoRequest
-	UpdateUserInfoResponse          = pb.UpdateUserInfoResponse
 	UserInfo                        = pb.UserInfo
 
 	Api interface {
 		// 获取API列表
 		GetApiList(ctx context.Context, in *GetApiListRequest, opts ...grpc.CallOption) (*GetApiListResponse, error)
 		// 创建/添加 API列表
-		CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*CreateApiResponse, error)
+		CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 删除API列表
-		DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*DeleteApiResponse, error)
+		DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 获取全部API列表
-		GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error)
+		GetAllApiList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetAllApiListResponse, error)
 		// 删除多条api
-		DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*DeleteApisByIdsResponse, error)
+		DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		// 更新api
+		UpdateApi(ctx context.Context, in *UpdateApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	}
 
 	defaultApi struct {
@@ -109,25 +98,31 @@ func (m *defaultApi) GetApiList(ctx context.Context, in *GetApiListRequest, opts
 }
 
 // 创建/添加 API列表
-func (m *defaultApi) CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*CreateApiResponse, error) {
+func (m *defaultApi) CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewApiClient(m.cli.Conn())
 	return client.CreateApi(ctx, in, opts...)
 }
 
 // 删除API列表
-func (m *defaultApi) DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*DeleteApiResponse, error) {
+func (m *defaultApi) DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewApiClient(m.cli.Conn())
 	return client.DeleteApi(ctx, in, opts...)
 }
 
 // 获取全部API列表
-func (m *defaultApi) GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error) {
+func (m *defaultApi) GetAllApiList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetAllApiListResponse, error) {
 	client := pb.NewApiClient(m.cli.Conn())
 	return client.GetAllApiList(ctx, in, opts...)
 }
 
 // 删除多条api
-func (m *defaultApi) DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*DeleteApisByIdsResponse, error) {
+func (m *defaultApi) DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewApiClient(m.cli.Conn())
 	return client.DeleteApisByIds(ctx, in, opts...)
+}
+
+// 更新api
+func (m *defaultApi) UpdateApi(ctx context.Context, in *UpdateApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := pb.NewApiClient(m.cli.Conn())
+	return client.UpdateApi(ctx, in, opts...)
 }

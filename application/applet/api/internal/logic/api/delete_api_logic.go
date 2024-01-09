@@ -25,7 +25,7 @@ func NewDeleteApiLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteA
 	}
 }
 
-func (l *DeleteApiLogic) DeleteApi(req *types.DeleteApiRequest) (resp *types.DeleteApiResponse, err error) {
+func (l *DeleteApiLogic) DeleteApi(req *types.DeleteApiRequest) (resp *types.MessageResponse, err error) {
 	var sysApi pb.SysApi
 	_ = copier.Copy(&sysApi, req.SysApi)
 	_, err = l.svcCtx.AppletAPIRPC.DeleteApi(l.ctx, &pb.DeleteApiRequest{SysApi: &sysApi})
@@ -34,5 +34,5 @@ func (l *DeleteApiLogic) DeleteApi(req *types.DeleteApiRequest) (resp *types.Del
 		return nil, err
 	}
 
-	return &types.DeleteApiResponse{Message: "删除成功"}, nil
+	return &types.MessageResponse{Message: "删除成功"}, nil
 }

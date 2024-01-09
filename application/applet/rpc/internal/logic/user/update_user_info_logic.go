@@ -27,7 +27,7 @@ func NewUpdateUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Up
 }
 
 // 修改用户信息
-func (l *UpdateUserInfoLogic) UpdateUserInfo(in *pb.UpdateUserInfoRequest) (*pb.UpdateUserInfoResponse, error) {
+func (l *UpdateUserInfoLogic) UpdateUserInfo(in *pb.UpdateUserInfoRequest) (*pb.NoDataResponse, error) {
 	updates := map[string]interface{}{
 		"updated_at": time.Now(),
 	}
@@ -68,7 +68,7 @@ func (l *UpdateUserInfoLogic) UpdateUserInfo(in *pb.UpdateUserInfoRequest) (*pb.
 		Where("id = ?", in.UserInfo.ID).
 		Updates(updates).Error
 
-	return &pb.UpdateUserInfoResponse{}, err
+	return &pb.NoDataResponse{}, err
 }
 
 //if in.UserInfo.NickName != "" {

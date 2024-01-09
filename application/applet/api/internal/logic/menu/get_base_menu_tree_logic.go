@@ -26,7 +26,7 @@ func NewGetBaseMenuTreeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *G
 }
 
 func (l *GetBaseMenuTreeLogic) GetBaseMenuTree(req *types.GetBaseMenuTreeRequest) (resp *types.GetBaseMenuTreeResponse, err error) {
-	baseMenuTree, err := l.svcCtx.AppletMenuRPC.GetBaseMenuTree(l.ctx, &pb.GetBaseMenuTreeRequest{})
+	baseMenuTree, err := l.svcCtx.AppletMenuRPC.GetBaseMenuTree(l.ctx, &pb.NoDataResponse{})
 	if err != nil {
 		logx.Errorf("l.svcCtx.AppletMenuRPC.GetBaseMenuTree err: %v", err)
 		return nil, err

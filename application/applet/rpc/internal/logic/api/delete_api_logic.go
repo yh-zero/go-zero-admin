@@ -27,7 +27,7 @@ func NewDeleteApiLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteA
 }
 
 // 删除API列表
-func (l *DeleteApiLogic) DeleteApi(in *pb.DeleteApiRequest) (*pb.DeleteApiResponse, error) {
+func (l *DeleteApiLogic) DeleteApi(in *pb.DeleteApiRequest) (*pb.NoDataResponse, error) {
 	var sysApi model.SysApi
 	if errors.Is(l.svcCtx.DB.Where("id = ?", in.SysApi.ID).First(&sysApi).Error, gorm.ErrRecordNotFound) {
 		return nil, errors.New("api记录不存在")
@@ -42,5 +42,5 @@ func (l *DeleteApiLogic) DeleteApi(in *pb.DeleteApiRequest) (*pb.DeleteApiRespon
 
 	// 这里要做删除功能  casbin 删除对应的策略 RemoveNamedPolicy()
 
-	return &pb.DeleteApiResponse{}, nil
+	return &pb.NoDataResponse{}, nil
 }

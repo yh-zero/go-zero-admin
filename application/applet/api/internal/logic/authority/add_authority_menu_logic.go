@@ -25,7 +25,7 @@ func NewAddAuthorityMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 	}
 }
 
-func (l *AddAuthorityMenuLogic) AddAuthorityMenu(req *types.AddAuthorityMenuRequest) (resp *types.AddAuthorityMenuResponse, err error) {
+func (l *AddAuthorityMenuLogic) AddAuthorityMenu(req *types.AddAuthorityMenuRequest) (resp *types.MessageResponse, err error) {
 	fmt.Println("======== AddAuthorityMenu")
 	var authorityMenu pb.AddAuthorityMenuRequest
 	authorityMenu.AuthorityId = req.AuthorityId
@@ -36,5 +36,5 @@ func (l *AddAuthorityMenuLogic) AddAuthorityMenu(req *types.AddAuthorityMenuRequ
 		return nil, err
 	}
 
-	return &types.AddAuthorityMenuResponse{Message: "添加成功"}, nil
+	return &types.MessageResponse{Message: "添加成功"}, nil
 }

@@ -26,7 +26,7 @@ func NewGetAllApiListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get
 }
 
 func (l *GetAllApiListLogic) GetAllApiList(req *types.GetAllApiListRequest) (resp *types.GetAllApiListResponse, err error) {
-	apiList, err := l.svcCtx.AppletAPIRPC.GetAllApiList(l.ctx, &pb.GetAllApiListRequest{})
+	apiList, err := l.svcCtx.AppletAPIRPC.GetAllApiList(l.ctx, &pb.NoDataResponse{})
 	if err != nil {
 		logx.Errorf("----------- 获取失败! err:%v", err)
 		return nil, err

@@ -47,25 +47,25 @@ func (s *UserServer) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.
 }
 
 // 修改用户信息
-func (s *UserServer) UpdateUserInfo(ctx context.Context, in *pb.UpdateUserInfoRequest) (*pb.UpdateUserInfoResponse, error) {
+func (s *UserServer) UpdateUserInfo(ctx context.Context, in *pb.UpdateUserInfoRequest) (*pb.NoDataResponse, error) {
 	l := userlogic.NewUpdateUserInfoLogic(ctx, s.svcCtx)
 	return l.UpdateUserInfo(in)
 }
 
 // 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
-func (s *UserServer) UpdateUserAuthorities(ctx context.Context, in *pb.UpdateUserAuthoritiesRequest) (*pb.UpdateUserAuthoritiesResponse, error) {
+func (s *UserServer) UpdateUserAuthorities(ctx context.Context, in *pb.UpdateUserAuthoritiesRequest) (*pb.NoDataResponse, error) {
 	l := userlogic.NewUpdateUserAuthoritiesLogic(ctx, s.svcCtx)
 	return l.UpdateUserAuthorities(in)
 }
 
 // 重置用户密码 默认密码：goZero
-func (s *UserServer) ResetUserPassword(ctx context.Context, in *pb.ResetUserPasswordRequest) (*pb.ResetUserPasswordResponse, error) {
+func (s *UserServer) ResetUserPassword(ctx context.Context, in *pb.ResetUserPasswordRequest) (*pb.NoDataResponse, error) {
 	l := userlogic.NewResetUserPasswordLogic(ctx, s.svcCtx)
 	return l.ResetUserPassword(in)
 }
 
 // 删除用户
-func (s *UserServer) DeleteUser(ctx context.Context, in *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+func (s *UserServer) DeleteUser(ctx context.Context, in *pb.DeleteUserRequest) (*pb.NoDataResponse, error) {
 	l := userlogic.NewDeleteUserLogic(ctx, s.svcCtx)
 	return l.DeleteUser(in)
 }

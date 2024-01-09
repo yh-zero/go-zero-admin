@@ -8,6 +8,10 @@ type Model struct {
 	DeletedAt string `json:"DeletedAt,optional"`
 }
 
+type MessageResponse struct {
+	Message string `json:"message"`
+}
+
 type UserInfo struct {
 	UUID        string         `json:"uuid"`        // 用户UUID
 	Username    string         `json:"userName"`    // 用户登录名
@@ -176,16 +180,8 @@ type CreateApiRequest struct {
 	SysApi
 }
 
-type CreateApiResponse struct {
-	Message string `json:"message"`
-}
-
 type DeleteApiRequest struct {
 	SysApi
-}
-
-type DeleteApiResponse struct {
-	Message string `json:"message"`
 }
 
 type GetAllApiListRequest struct {
@@ -228,17 +224,9 @@ type AddAuthorityMenuRequest struct {
 	MenuIds     string `json:"menuIds"`
 }
 
-type AddAuthorityMenuResponse struct {
-	Message string `json:"message"`
-}
-
 type UpdateCasbinDataRequest struct {
 	AuthorityId    int64        `json:"authorityId"`
 	CasbinInfoList []CasbinInfo `json:"casbinInfoList"`
-}
-
-type UpdateCasbinDataResponse struct {
-	Message string `json:"message"`
 }
 
 type UpdateAuthorityRequest struct {
@@ -260,10 +248,6 @@ type GetBaseMenuByIdResponse struct {
 
 type UpdateBaseMenuRequest struct {
 	SysBaseMenu
-}
-
-type UpdateBaseMenuResponse struct {
-	Message string `json:"message"`
 }
 
 type CreateAuthorityRequest struct {
@@ -310,32 +294,16 @@ type UpdateUserInfoRequest struct {
 	Enable       int64   `json:"enable,optional"`       //冻结用户
 }
 
-type UpdateUserInfoResponse struct {
-	Message string `json:"message"`
-}
-
 type ResetUserPasswordRequest struct {
 	UserID int64 `json:"userId"`
-}
-
-type ResetUserPasswordResponse struct {
-	Message string `json:"message"`
 }
 
 type DeleteUserRequest struct {
 	UserID int64 `json:"userId"`
 }
 
-type DeleteUserResponse struct {
-	Message string `json:"message"`
-}
-
 type DeleteApisByIdsRequest struct {
 	Ids []int64 `json:"ids,optional" form:"ids,optional"`
-}
-
-type DeleteApisByIdsResponse struct {
-	Message string `json:"message"`
 }
 
 type UploadFileImgRequest struct {
@@ -350,6 +318,6 @@ type UpdateCasbinDataByApiIdsRequest struct {
 	ApiIds      []int64 `json:"apiIds"`
 }
 
-type MessageResponse struct {
-	Message string `json:"message"`
+type UpdateApiRequest struct {
+	SysApi
 }

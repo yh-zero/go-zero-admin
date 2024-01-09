@@ -172,6 +172,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/deleteApisByIds",
 					Handler: api.DeleteApisByIdsHandler(serverCtx),
 				},
+				{
+					Method:  http.MethodPut,
+					Path:    "/updateApi",
+					Handler: api.UpdateApiHandler(serverCtx),
+				},
 			}...,
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),

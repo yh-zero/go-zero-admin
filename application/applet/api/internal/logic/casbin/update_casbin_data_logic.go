@@ -25,7 +25,7 @@ func NewUpdateCasbinDataLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 	}
 }
 
-func (l *UpdateCasbinDataLogic) UpdateCasbinData(req *types.UpdateCasbinDataRequest) (resp *types.UpdateCasbinDataResponse, err error) {
+func (l *UpdateCasbinDataLogic) UpdateCasbinData(req *types.UpdateCasbinDataRequest) (resp *types.MessageResponse, err error) {
 	var pbUpdateCasbinData pb.UpdateCasbinDataRequest
 	_ = copier.Copy(&pbUpdateCasbinData.CasbinInfoList, req.CasbinInfoList)
 	pbUpdateCasbinData.AuthorityId = req.AuthorityId
@@ -34,7 +34,7 @@ func (l *UpdateCasbinDataLogic) UpdateCasbinData(req *types.UpdateCasbinDataRequ
 		return nil, err
 	}
 
-	return &types.UpdateCasbinDataResponse{
+	return &types.MessageResponse{
 		Message: "修改成功！",
 	}, nil
 }

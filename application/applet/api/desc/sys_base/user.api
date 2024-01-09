@@ -36,15 +36,15 @@ service applet-api {
 
 	@doc "修改用户信息"
 	@handler UpdateUserInfo
-	put /updateUserInfo (UpdateUserInfoRequest)  returns (UpdateUserInfoResponse)
+	put /updateUserInfo (UpdateUserInfoRequest)  returns (MessageResponse)
 
 	@doc "重置用户密码 默认密码：goZero"
 	@handler ResetUserPassword
-	put /resetUserPassword (ResetUserPasswordRequest)  returns (ResetUserPasswordResponse)
+	put /resetUserPassword (ResetUserPasswordRequest)  returns (MessageResponse)
 
 	@doc "删除用户"
 	@handler DeleteUser
-	delete /deleteUser (DeleteUserRequest)  returns (DeleteUserResponse)
+	delete /deleteUser (DeleteUserRequest)  returns (MessageResponse)
 
 }
 
@@ -81,7 +81,7 @@ service applet-api {
 
 	@doc "更新系统菜单"
 	@handler UpdateBaseMenu
-	put /updateBaseMenu (UpdateBaseMenuRequest) returns (UpdateBaseMenuResponse)
+	put /updateBaseMenu (UpdateBaseMenuRequest) returns (MessageResponse)
 
 }
 
@@ -98,7 +98,7 @@ service applet-api {
 
 	@doc "增加角色和base_menu关联关系"
 	@handler AddAuthorityMenu
-	post /addAuthorityMenu (AddAuthorityMenuRequest) returns (AddAuthorityMenuResponse)
+	post /addAuthorityMenu (AddAuthorityMenuRequest) returns (MessageResponse)
 
 	@doc "更新角色 -- 设为首页"
 	@handler UpdateAuthority
@@ -122,11 +122,11 @@ service applet-api {
 
 	@doc "创建/增加 api列表"
 	@handler CreateApi
-	post /createApi (CreateApiRequest) returns (CreateApiResponse)
+	post /createApi (CreateApiRequest) returns (MessageResponse)
 
 	@doc "删除 api列表"
 	@handler DeleteApi
-	delete /deleteApi (DeleteApiRequest) returns (DeleteApiResponse)
+	delete /deleteApi (DeleteApiRequest) returns (MessageResponse)
 
 	@doc "获取 所有api"
 	@handler GetAllApiList
@@ -134,7 +134,11 @@ service applet-api {
 
 	@doc "删除多条api"
 	@handler DeleteApisByIds
-	delete /deleteApisByIds (DeleteApisByIdsRequest) returns (DeleteApisByIdsResponse)
+	delete /deleteApisByIds (DeleteApisByIdsRequest) returns (MessageResponse)
+
+	@doc "更新api"
+	@handler UpdateApi
+	put /updateApi (UpdateApiRequest) returns (MessageResponse)
 }
 
 @server(
@@ -150,7 +154,7 @@ service applet-api {
 
 	@doc "更新一个角色的对应的casbin数据"
 	@handler UpdateCasbinData
-	post /updateCasbinData (UpdateCasbinDataRequest) returns (UpdateCasbinDataResponse)
+	post /updateCasbinData (UpdateCasbinDataRequest) returns (MessageResponse)
 
 	@doc "更新一个角色的对应的casbin数据 用api的ids 查数据"
 	@handler UpdateCasbinDataByApiIds

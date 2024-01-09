@@ -25,7 +25,7 @@ func NewUpdateBaseMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Up
 	}
 }
 
-func (l *UpdateBaseMenuLogic) UpdateBaseMenu(req *types.UpdateBaseMenuRequest) (resp *types.UpdateBaseMenuResponse, err error) {
+func (l *UpdateBaseMenuLogic) UpdateBaseMenu(req *types.UpdateBaseMenuRequest) (resp *types.MessageResponse, err error) {
 	var pbSysBaseMenu pb.SysBaseMenu
 	_ = copier.Copy(&pbSysBaseMenu, req)
 	_, err = l.svcCtx.AppletMenuRPC.UpdateBaseMenu(l.ctx, &pb.UpdateBaseMenuRequest{SysBaseMenu: &pbSysBaseMenu})
@@ -35,5 +35,5 @@ func (l *UpdateBaseMenuLogic) UpdateBaseMenu(req *types.UpdateBaseMenuRequest) (
 
 	}
 
-	return &types.UpdateBaseMenuResponse{Message: "更新成功！"}, nil
+	return &types.MessageResponse{Message: "更新成功！"}, nil
 }

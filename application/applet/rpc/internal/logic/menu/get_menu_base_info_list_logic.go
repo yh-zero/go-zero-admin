@@ -28,7 +28,7 @@ func NewGetMenuBaseInfoListLogic(ctx context.Context, svcCtx *svc.ServiceContext
 }
 
 // 获取系统基础菜单列表
-func (l *GetMenuBaseInfoListLogic) GetMenuBaseInfoList(in *pb.GetMenuBaseInfoListRequest) (*pb.GetMenuBaseInfoListResponse, error) {
+func (l *GetMenuBaseInfoListLogic) GetMenuBaseInfoList(in *pb.NoDataResponse) (*pb.GetMenuBaseInfoListResponse, error) {
 	var baseMenuList []model.SysBaseMenu
 	treeMap, err := l.getBaseMenuTreeMap()
 	baseMenuList = treeMap["0"]

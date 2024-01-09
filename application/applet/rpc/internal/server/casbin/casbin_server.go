@@ -29,7 +29,7 @@ func (s *CasbinServer) GetPathByAuthorityId(ctx context.Context, in *pb.GetPathB
 }
 
 // 更新一个角色的对应的casbin数据
-func (s *CasbinServer) UpdateCasbinData(ctx context.Context, in *pb.UpdateCasbinDataRequest) (*pb.UpdateCasbinDataResponse, error) {
+func (s *CasbinServer) UpdateCasbinData(ctx context.Context, in *pb.UpdateCasbinDataRequest) (*pb.NoDataResponse, error) {
 	l := casbinlogic.NewUpdateCasbinDataLogic(ctx, s.svcCtx)
 	return l.UpdateCasbinData(in)
 }

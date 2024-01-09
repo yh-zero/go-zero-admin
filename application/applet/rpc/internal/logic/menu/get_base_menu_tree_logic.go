@@ -28,7 +28,7 @@ func NewGetBaseMenuTreeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *G
 }
 
 // 获取用户动态路由树  -- 用于角色管理的设置权限
-func (l *GetBaseMenuTreeLogic) GetBaseMenuTree(in *pb.GetBaseMenuTreeRequest) (*pb.GetBaseMenuTreeResponse, error) {
+func (l *GetBaseMenuTreeLogic) GetBaseMenuTree(in *pb.NoDataResponse) (*pb.GetBaseMenuTreeResponse, error) {
 	treeMap, err := l.getBaseMenuTreeMap()
 
 	var menus []model.SysBaseMenu

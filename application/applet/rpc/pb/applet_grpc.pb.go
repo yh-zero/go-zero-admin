@@ -31,13 +31,13 @@ type UserClient interface {
 	// 新增（注册）用户 - 管理员
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	// 修改用户信息
-	UpdateUserInfo(ctx context.Context, in *UpdateUserInfoRequest, opts ...grpc.CallOption) (*UpdateUserInfoResponse, error)
+	UpdateUserInfo(ctx context.Context, in *UpdateUserInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
-	UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*UpdateUserAuthoritiesResponse, error)
+	UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 重置用户密码 默认密码：goZero
-	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error)
+	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 删除用户
-	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
 
 type userClient struct {
@@ -84,8 +84,8 @@ func (c *userClient) Register(ctx context.Context, in *RegisterRequest, opts ...
 	return out, nil
 }
 
-func (c *userClient) UpdateUserInfo(ctx context.Context, in *UpdateUserInfoRequest, opts ...grpc.CallOption) (*UpdateUserInfoResponse, error) {
-	out := new(UpdateUserInfoResponse)
+func (c *userClient) UpdateUserInfo(ctx context.Context, in *UpdateUserInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.User/UpdateUserInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -93,8 +93,8 @@ func (c *userClient) UpdateUserInfo(ctx context.Context, in *UpdateUserInfoReque
 	return out, nil
 }
 
-func (c *userClient) UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*UpdateUserAuthoritiesResponse, error) {
-	out := new(UpdateUserAuthoritiesResponse)
+func (c *userClient) UpdateUserAuthorities(ctx context.Context, in *UpdateUserAuthoritiesRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.User/UpdateUserAuthorities", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -102,8 +102,8 @@ func (c *userClient) UpdateUserAuthorities(ctx context.Context, in *UpdateUserAu
 	return out, nil
 }
 
-func (c *userClient) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error) {
-	out := new(ResetUserPasswordResponse)
+func (c *userClient) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.User/ResetUserPassword", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -111,8 +111,8 @@ func (c *userClient) ResetUserPassword(ctx context.Context, in *ResetUserPasswor
 	return out, nil
 }
 
-func (c *userClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
-	out := new(DeleteUserResponse)
+func (c *userClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.User/DeleteUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -133,13 +133,13 @@ type UserServer interface {
 	// 新增（注册）用户 - 管理员
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	// 修改用户信息
-	UpdateUserInfo(context.Context, *UpdateUserInfoRequest) (*UpdateUserInfoResponse, error)
+	UpdateUserInfo(context.Context, *UpdateUserInfoRequest) (*NoDataResponse, error)
 	// 修改用户和角色的关系信息 -- 和上  在修改用户信息的时候请求
-	UpdateUserAuthorities(context.Context, *UpdateUserAuthoritiesRequest) (*UpdateUserAuthoritiesResponse, error)
+	UpdateUserAuthorities(context.Context, *UpdateUserAuthoritiesRequest) (*NoDataResponse, error)
 	// 重置用户密码 默认密码：goZero
-	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
+	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*NoDataResponse, error)
 	// 删除用户
-	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
+	DeleteUser(context.Context, *DeleteUserRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -159,16 +159,16 @@ func (UnimplementedUserServer) GetUserList(context.Context, *GetUserListRequest)
 func (UnimplementedUserServer) Register(context.Context, *RegisterRequest) (*RegisterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
-func (UnimplementedUserServer) UpdateUserInfo(context.Context, *UpdateUserInfoRequest) (*UpdateUserInfoResponse, error) {
+func (UnimplementedUserServer) UpdateUserInfo(context.Context, *UpdateUserInfoRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserInfo not implemented")
 }
-func (UnimplementedUserServer) UpdateUserAuthorities(context.Context, *UpdateUserAuthoritiesRequest) (*UpdateUserAuthoritiesResponse, error) {
+func (UnimplementedUserServer) UpdateUserAuthorities(context.Context, *UpdateUserAuthoritiesRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserAuthorities not implemented")
 }
-func (UnimplementedUserServer) ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error) {
+func (UnimplementedUserServer) ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetUserPassword not implemented")
 }
-func (UnimplementedUserServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
+func (UnimplementedUserServer) DeleteUser(context.Context, *DeleteUserRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
@@ -379,17 +379,17 @@ type MenuClient interface {
 	// 获取菜单-路由
 	GetMenuTree(ctx context.Context, in *GetMenuTreeRequest, opts ...grpc.CallOption) (*GetMenuTreeResponse, error)
 	// 获取系统基础菜单列表
-	GetMenuBaseInfoList(ctx context.Context, in *GetMenuBaseInfoListRequest, opts ...grpc.CallOption) (*GetMenuBaseInfoListResponse, error)
+	GetMenuBaseInfoList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetMenuBaseInfoListResponse, error)
 	// 添加系统基础菜单列表
-	AddMenuBase(ctx context.Context, in *AddMenuBaseRequest, opts ...grpc.CallOption) (*AddMenuBaseResponse, error)
+	AddMenuBase(ctx context.Context, in *AddMenuBaseRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 获取用户动态路由树  -- 用于角色管理的设置权限
-	GetBaseMenuTree(ctx context.Context, in *GetBaseMenuTreeRequest, opts ...grpc.CallOption) (*GetBaseMenuTreeResponse, error)
+	GetBaseMenuTree(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetBaseMenuTreeResponse, error)
 	// 获取指定角色menu  -- 用于角色管理的设置权限
 	GetMenuAuthority(ctx context.Context, in *GetMenuAuthorityRequest, opts ...grpc.CallOption) (*GetMenuAuthorityResponse, error)
 	// 根据id获取菜单
 	GetBaseMenuById(ctx context.Context, in *GetBaseMenuByIdRequest, opts ...grpc.CallOption) (*GetBaseMenuByIdResponse, error)
 	// 根据id获取菜单
-	UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuRequest, opts ...grpc.CallOption) (*UpdateBaseMenuResponse, error)
+	UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
 
 type menuClient struct {
@@ -409,7 +409,7 @@ func (c *menuClient) GetMenuTree(ctx context.Context, in *GetMenuTreeRequest, op
 	return out, nil
 }
 
-func (c *menuClient) GetMenuBaseInfoList(ctx context.Context, in *GetMenuBaseInfoListRequest, opts ...grpc.CallOption) (*GetMenuBaseInfoListResponse, error) {
+func (c *menuClient) GetMenuBaseInfoList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetMenuBaseInfoListResponse, error) {
 	out := new(GetMenuBaseInfoListResponse)
 	err := c.cc.Invoke(ctx, "/pb.Menu/GetMenuBaseInfoList", in, out, opts...)
 	if err != nil {
@@ -418,8 +418,8 @@ func (c *menuClient) GetMenuBaseInfoList(ctx context.Context, in *GetMenuBaseInf
 	return out, nil
 }
 
-func (c *menuClient) AddMenuBase(ctx context.Context, in *AddMenuBaseRequest, opts ...grpc.CallOption) (*AddMenuBaseResponse, error) {
-	out := new(AddMenuBaseResponse)
+func (c *menuClient) AddMenuBase(ctx context.Context, in *AddMenuBaseRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.Menu/AddMenuBase", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -427,7 +427,7 @@ func (c *menuClient) AddMenuBase(ctx context.Context, in *AddMenuBaseRequest, op
 	return out, nil
 }
 
-func (c *menuClient) GetBaseMenuTree(ctx context.Context, in *GetBaseMenuTreeRequest, opts ...grpc.CallOption) (*GetBaseMenuTreeResponse, error) {
+func (c *menuClient) GetBaseMenuTree(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetBaseMenuTreeResponse, error) {
 	out := new(GetBaseMenuTreeResponse)
 	err := c.cc.Invoke(ctx, "/pb.Menu/GetBaseMenuTree", in, out, opts...)
 	if err != nil {
@@ -454,8 +454,8 @@ func (c *menuClient) GetBaseMenuById(ctx context.Context, in *GetBaseMenuByIdReq
 	return out, nil
 }
 
-func (c *menuClient) UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuRequest, opts ...grpc.CallOption) (*UpdateBaseMenuResponse, error) {
-	out := new(UpdateBaseMenuResponse)
+func (c *menuClient) UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.Menu/UpdateBaseMenu", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -470,17 +470,17 @@ type MenuServer interface {
 	// 获取菜单-路由
 	GetMenuTree(context.Context, *GetMenuTreeRequest) (*GetMenuTreeResponse, error)
 	// 获取系统基础菜单列表
-	GetMenuBaseInfoList(context.Context, *GetMenuBaseInfoListRequest) (*GetMenuBaseInfoListResponse, error)
+	GetMenuBaseInfoList(context.Context, *NoDataResponse) (*GetMenuBaseInfoListResponse, error)
 	// 添加系统基础菜单列表
-	AddMenuBase(context.Context, *AddMenuBaseRequest) (*AddMenuBaseResponse, error)
+	AddMenuBase(context.Context, *AddMenuBaseRequest) (*NoDataResponse, error)
 	// 获取用户动态路由树  -- 用于角色管理的设置权限
-	GetBaseMenuTree(context.Context, *GetBaseMenuTreeRequest) (*GetBaseMenuTreeResponse, error)
+	GetBaseMenuTree(context.Context, *NoDataResponse) (*GetBaseMenuTreeResponse, error)
 	// 获取指定角色menu  -- 用于角色管理的设置权限
 	GetMenuAuthority(context.Context, *GetMenuAuthorityRequest) (*GetMenuAuthorityResponse, error)
 	// 根据id获取菜单
 	GetBaseMenuById(context.Context, *GetBaseMenuByIdRequest) (*GetBaseMenuByIdResponse, error)
 	// 根据id获取菜单
-	UpdateBaseMenu(context.Context, *UpdateBaseMenuRequest) (*UpdateBaseMenuResponse, error)
+	UpdateBaseMenu(context.Context, *UpdateBaseMenuRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedMenuServer()
 }
 
@@ -491,13 +491,13 @@ type UnimplementedMenuServer struct {
 func (UnimplementedMenuServer) GetMenuTree(context.Context, *GetMenuTreeRequest) (*GetMenuTreeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMenuTree not implemented")
 }
-func (UnimplementedMenuServer) GetMenuBaseInfoList(context.Context, *GetMenuBaseInfoListRequest) (*GetMenuBaseInfoListResponse, error) {
+func (UnimplementedMenuServer) GetMenuBaseInfoList(context.Context, *NoDataResponse) (*GetMenuBaseInfoListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMenuBaseInfoList not implemented")
 }
-func (UnimplementedMenuServer) AddMenuBase(context.Context, *AddMenuBaseRequest) (*AddMenuBaseResponse, error) {
+func (UnimplementedMenuServer) AddMenuBase(context.Context, *AddMenuBaseRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddMenuBase not implemented")
 }
-func (UnimplementedMenuServer) GetBaseMenuTree(context.Context, *GetBaseMenuTreeRequest) (*GetBaseMenuTreeResponse, error) {
+func (UnimplementedMenuServer) GetBaseMenuTree(context.Context, *NoDataResponse) (*GetBaseMenuTreeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBaseMenuTree not implemented")
 }
 func (UnimplementedMenuServer) GetMenuAuthority(context.Context, *GetMenuAuthorityRequest) (*GetMenuAuthorityResponse, error) {
@@ -506,7 +506,7 @@ func (UnimplementedMenuServer) GetMenuAuthority(context.Context, *GetMenuAuthori
 func (UnimplementedMenuServer) GetBaseMenuById(context.Context, *GetBaseMenuByIdRequest) (*GetBaseMenuByIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBaseMenuById not implemented")
 }
-func (UnimplementedMenuServer) UpdateBaseMenu(context.Context, *UpdateBaseMenuRequest) (*UpdateBaseMenuResponse, error) {
+func (UnimplementedMenuServer) UpdateBaseMenu(context.Context, *UpdateBaseMenuRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBaseMenu not implemented")
 }
 func (UnimplementedMenuServer) mustEmbedUnimplementedMenuServer() {}
@@ -541,7 +541,7 @@ func _Menu_GetMenuTree_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _Menu_GetMenuBaseInfoList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetMenuBaseInfoListRequest)
+	in := new(NoDataResponse)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -553,7 +553,7 @@ func _Menu_GetMenuBaseInfoList_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/pb.Menu/GetMenuBaseInfoList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MenuServer).GetMenuBaseInfoList(ctx, req.(*GetMenuBaseInfoListRequest))
+		return srv.(MenuServer).GetMenuBaseInfoList(ctx, req.(*NoDataResponse))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -577,7 +577,7 @@ func _Menu_AddMenuBase_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _Menu_GetBaseMenuTree_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetBaseMenuTreeRequest)
+	in := new(NoDataResponse)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -589,7 +589,7 @@ func _Menu_GetBaseMenuTree_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: "/pb.Menu/GetBaseMenuTree",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MenuServer).GetBaseMenuTree(ctx, req.(*GetBaseMenuTreeRequest))
+		return srv.(MenuServer).GetBaseMenuTree(ctx, req.(*NoDataResponse))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -695,7 +695,7 @@ type AuthorityClient interface {
 	// 获取角色列表
 	GetAuthorityList(ctx context.Context, in *GetAuthorityListRequest, opts ...grpc.CallOption) (*GetAuthorityListResponse, error)
 	// 增加base_menu和角色关联关系 -- 用于角色管理的设置权限
-	AddAuthorityMenu(ctx context.Context, in *AddAuthorityMenuRequest, opts ...grpc.CallOption) (*AddAuthorityMenuResponse, error)
+	AddAuthorityMenu(ctx context.Context, in *AddAuthorityMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 更新角色 -- 设为首页
 	UpdateAuthority(ctx context.Context, in *UpdateAuthorityRequest, opts ...grpc.CallOption) (*UpdateAuthorityResponse, error)
 	// 创建角色
@@ -719,8 +719,8 @@ func (c *authorityClient) GetAuthorityList(ctx context.Context, in *GetAuthority
 	return out, nil
 }
 
-func (c *authorityClient) AddAuthorityMenu(ctx context.Context, in *AddAuthorityMenuRequest, opts ...grpc.CallOption) (*AddAuthorityMenuResponse, error) {
-	out := new(AddAuthorityMenuResponse)
+func (c *authorityClient) AddAuthorityMenu(ctx context.Context, in *AddAuthorityMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.Authority/AddAuthorityMenu", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -753,7 +753,7 @@ type AuthorityServer interface {
 	// 获取角色列表
 	GetAuthorityList(context.Context, *GetAuthorityListRequest) (*GetAuthorityListResponse, error)
 	// 增加base_menu和角色关联关系 -- 用于角色管理的设置权限
-	AddAuthorityMenu(context.Context, *AddAuthorityMenuRequest) (*AddAuthorityMenuResponse, error)
+	AddAuthorityMenu(context.Context, *AddAuthorityMenuRequest) (*NoDataResponse, error)
 	// 更新角色 -- 设为首页
 	UpdateAuthority(context.Context, *UpdateAuthorityRequest) (*UpdateAuthorityResponse, error)
 	// 创建角色
@@ -768,7 +768,7 @@ type UnimplementedAuthorityServer struct {
 func (UnimplementedAuthorityServer) GetAuthorityList(context.Context, *GetAuthorityListRequest) (*GetAuthorityListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAuthorityList not implemented")
 }
-func (UnimplementedAuthorityServer) AddAuthorityMenu(context.Context, *AddAuthorityMenuRequest) (*AddAuthorityMenuResponse, error) {
+func (UnimplementedAuthorityServer) AddAuthorityMenu(context.Context, *AddAuthorityMenuRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddAuthorityMenu not implemented")
 }
 func (UnimplementedAuthorityServer) UpdateAuthority(context.Context, *UpdateAuthorityRequest) (*UpdateAuthorityResponse, error) {
@@ -897,13 +897,15 @@ type ApiClient interface {
 	// 获取API列表
 	GetApiList(ctx context.Context, in *GetApiListRequest, opts ...grpc.CallOption) (*GetApiListResponse, error)
 	// 创建/添加 API列表
-	CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*CreateApiResponse, error)
+	CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 删除API列表
-	DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*DeleteApiResponse, error)
+	DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 获取全部API列表
-	GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error)
+	GetAllApiList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetAllApiListResponse, error)
 	// 删除多条api
-	DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*DeleteApisByIdsResponse, error)
+	DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	// 更新api
+	UpdateApi(ctx context.Context, in *UpdateApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
 
 type apiClient struct {
@@ -923,8 +925,8 @@ func (c *apiClient) GetApiList(ctx context.Context, in *GetApiListRequest, opts 
 	return out, nil
 }
 
-func (c *apiClient) CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*CreateApiResponse, error) {
-	out := new(CreateApiResponse)
+func (c *apiClient) CreateApi(ctx context.Context, in *CreateApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.Api/CreateApi", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -932,8 +934,8 @@ func (c *apiClient) CreateApi(ctx context.Context, in *CreateApiRequest, opts ..
 	return out, nil
 }
 
-func (c *apiClient) DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*DeleteApiResponse, error) {
-	out := new(DeleteApiResponse)
+func (c *apiClient) DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.Api/DeleteApi", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -941,7 +943,7 @@ func (c *apiClient) DeleteApi(ctx context.Context, in *DeleteApiRequest, opts ..
 	return out, nil
 }
 
-func (c *apiClient) GetAllApiList(ctx context.Context, in *GetAllApiListRequest, opts ...grpc.CallOption) (*GetAllApiListResponse, error) {
+func (c *apiClient) GetAllApiList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetAllApiListResponse, error) {
 	out := new(GetAllApiListResponse)
 	err := c.cc.Invoke(ctx, "/pb.Api/GetAllApiList", in, out, opts...)
 	if err != nil {
@@ -950,9 +952,18 @@ func (c *apiClient) GetAllApiList(ctx context.Context, in *GetAllApiListRequest,
 	return out, nil
 }
 
-func (c *apiClient) DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*DeleteApisByIdsResponse, error) {
-	out := new(DeleteApisByIdsResponse)
+func (c *apiClient) DeleteApisByIds(ctx context.Context, in *DeleteApisByIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.Api/DeleteApisByIds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *apiClient) UpdateApi(ctx context.Context, in *UpdateApiRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, "/pb.Api/UpdateApi", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -966,13 +977,15 @@ type ApiServer interface {
 	// 获取API列表
 	GetApiList(context.Context, *GetApiListRequest) (*GetApiListResponse, error)
 	// 创建/添加 API列表
-	CreateApi(context.Context, *CreateApiRequest) (*CreateApiResponse, error)
+	CreateApi(context.Context, *CreateApiRequest) (*NoDataResponse, error)
 	// 删除API列表
-	DeleteApi(context.Context, *DeleteApiRequest) (*DeleteApiResponse, error)
+	DeleteApi(context.Context, *DeleteApiRequest) (*NoDataResponse, error)
 	// 获取全部API列表
-	GetAllApiList(context.Context, *GetAllApiListRequest) (*GetAllApiListResponse, error)
+	GetAllApiList(context.Context, *NoDataResponse) (*GetAllApiListResponse, error)
 	// 删除多条api
-	DeleteApisByIds(context.Context, *DeleteApisByIdsRequest) (*DeleteApisByIdsResponse, error)
+	DeleteApisByIds(context.Context, *DeleteApisByIdsRequest) (*NoDataResponse, error)
+	// 更新api
+	UpdateApi(context.Context, *UpdateApiRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedApiServer()
 }
 
@@ -983,17 +996,20 @@ type UnimplementedApiServer struct {
 func (UnimplementedApiServer) GetApiList(context.Context, *GetApiListRequest) (*GetApiListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetApiList not implemented")
 }
-func (UnimplementedApiServer) CreateApi(context.Context, *CreateApiRequest) (*CreateApiResponse, error) {
+func (UnimplementedApiServer) CreateApi(context.Context, *CreateApiRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateApi not implemented")
 }
-func (UnimplementedApiServer) DeleteApi(context.Context, *DeleteApiRequest) (*DeleteApiResponse, error) {
+func (UnimplementedApiServer) DeleteApi(context.Context, *DeleteApiRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteApi not implemented")
 }
-func (UnimplementedApiServer) GetAllApiList(context.Context, *GetAllApiListRequest) (*GetAllApiListResponse, error) {
+func (UnimplementedApiServer) GetAllApiList(context.Context, *NoDataResponse) (*GetAllApiListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllApiList not implemented")
 }
-func (UnimplementedApiServer) DeleteApisByIds(context.Context, *DeleteApisByIdsRequest) (*DeleteApisByIdsResponse, error) {
+func (UnimplementedApiServer) DeleteApisByIds(context.Context, *DeleteApisByIdsRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteApisByIds not implemented")
+}
+func (UnimplementedApiServer) UpdateApi(context.Context, *UpdateApiRequest) (*NoDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateApi not implemented")
 }
 func (UnimplementedApiServer) mustEmbedUnimplementedApiServer() {}
 
@@ -1063,7 +1079,7 @@ func _Api_DeleteApi_Handler(srv interface{}, ctx context.Context, dec func(inter
 }
 
 func _Api_GetAllApiList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAllApiListRequest)
+	in := new(NoDataResponse)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1075,7 +1091,7 @@ func _Api_GetAllApiList_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/pb.Api/GetAllApiList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApiServer).GetAllApiList(ctx, req.(*GetAllApiListRequest))
+		return srv.(ApiServer).GetAllApiList(ctx, req.(*NoDataResponse))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1094,6 +1110,24 @@ func _Api_DeleteApisByIds_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApiServer).DeleteApisByIds(ctx, req.(*DeleteApisByIdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Api_UpdateApi_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateApiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServer).UpdateApi(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Api/UpdateApi",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServer).UpdateApi(ctx, req.(*UpdateApiRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1125,6 +1159,10 @@ var Api_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "DeleteApisByIds",
 			Handler:    _Api_DeleteApisByIds_Handler,
 		},
+		{
+			MethodName: "UpdateApi",
+			Handler:    _Api_UpdateApi_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "application/applet/rpc/desc/applet.proto",
@@ -1137,7 +1175,7 @@ type CasbinClient interface {
 	// 根据角色id获取对应的casbin数据
 	GetPathByAuthorityId(ctx context.Context, in *GetPathByAuthorityIdRequest, opts ...grpc.CallOption) (*GetPathByAuthorityIdResponse, error)
 	// 更新一个角色的对应的casbin数据
-	UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*UpdateCasbinDataResponse, error)
+	UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 更新一个角色的对应的casbin数据 用api的ids 查数据
 	UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
@@ -1159,8 +1197,8 @@ func (c *casbinClient) GetPathByAuthorityId(ctx context.Context, in *GetPathByAu
 	return out, nil
 }
 
-func (c *casbinClient) UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*UpdateCasbinDataResponse, error) {
-	out := new(UpdateCasbinDataResponse)
+func (c *casbinClient) UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.Casbin/UpdateCasbinData", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1184,7 +1222,7 @@ type CasbinServer interface {
 	// 根据角色id获取对应的casbin数据
 	GetPathByAuthorityId(context.Context, *GetPathByAuthorityIdRequest) (*GetPathByAuthorityIdResponse, error)
 	// 更新一个角色的对应的casbin数据
-	UpdateCasbinData(context.Context, *UpdateCasbinDataRequest) (*UpdateCasbinDataResponse, error)
+	UpdateCasbinData(context.Context, *UpdateCasbinDataRequest) (*NoDataResponse, error)
 	// 更新一个角色的对应的casbin数据 用api的ids 查数据
 	UpdateCasbinDataByApiIds(context.Context, *UpdateCasbinDataByApiIdsRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedCasbinServer()
@@ -1197,7 +1235,7 @@ type UnimplementedCasbinServer struct {
 func (UnimplementedCasbinServer) GetPathByAuthorityId(context.Context, *GetPathByAuthorityIdRequest) (*GetPathByAuthorityIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPathByAuthorityId not implemented")
 }
-func (UnimplementedCasbinServer) UpdateCasbinData(context.Context, *UpdateCasbinDataRequest) (*UpdateCasbinDataResponse, error) {
+func (UnimplementedCasbinServer) UpdateCasbinData(context.Context, *UpdateCasbinDataRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCasbinData not implemented")
 }
 func (UnimplementedCasbinServer) UpdateCasbinDataByApiIds(context.Context, *UpdateCasbinDataByApiIdsRequest) (*NoDataResponse, error) {

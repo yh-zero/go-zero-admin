@@ -28,7 +28,7 @@ func NewCreateApiLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateA
 }
 
 // 创建/添加 API列表
-func (l *CreateApiLogic) CreateApi(in *pb.CreateApiRequest) (*pb.CreateApiResponse, error) {
+func (l *CreateApiLogic) CreateApi(in *pb.CreateApiRequest) (*pb.NoDataResponse, error) {
 	if !errors.Is(l.svcCtx.DB.Where("path = ? AND method = ?", in.SysApi.Path, in.SysApi.Method).First(&model.SysApi{}).Error, gorm.ErrRecordNotFound) {
 		return nil, errors.New("存在相同api")
 	}
@@ -37,5 +37,5 @@ func (l *CreateApiLogic) CreateApi(in *pb.CreateApiRequest) (*pb.CreateApiRespon
 	//err := l.svcCtx.DB.Omit("deleted_at").Create(&in.SysApi).Error
 	err := l.svcCtx.DB.Omit("deleted_at").Create(&sysApi).Error
 
-	return &pb.CreateApiResponse{}, err
+	return &pb.NoDataResponse{}, err
 }
