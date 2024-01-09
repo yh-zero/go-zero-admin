@@ -16,6 +16,10 @@ func init() {
 	message[USER_PASSWORD_ERROR] = "账号或者密码错误"
 
 	message[REPEAT_NAME_ERROR] = "添加失败,不能添加同样的name"
+
+	// sys_base 模块
+	message[REPEAT_OSS_GET_BUCKET_ERROR] = "获取oss_bucket实例失败"
+	message[REPEAT_OSS_PUT_BUCKET_ERROR] = "上传oss_bucket失败"
 }
 
 func MapErrMsg(errcode uint32) string {

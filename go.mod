@@ -3,6 +3,7 @@ module go-zero-admin
 go 1.21
 
 require (
+	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/casbin/casbin/v2 v2.77.1
 	github.com/casbin/gorm-adapter/v3 v3.20.0
 	github.com/casbin/redis-watcher/v2 v2.5.0
@@ -19,7 +20,6 @@ require (
 	golang.org/x/crypto v0.14.0
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
-	gorm.io/datatypes v1.2.0
 	gorm.io/driver/mysql v1.5.2
 	gorm.io/gorm v1.25.5
 )

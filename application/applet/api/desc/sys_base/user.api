@@ -153,3 +153,17 @@ service applet-api {
 	post /updateCasbinData (UpdateCasbinDataRequest) returns (UpdateCasbinDataResponse)
 
 }
+
+@server(
+	prefix: /v1/sys/base
+	group: base
+	jwt: JwtAuth
+	middleware: Authority
+)
+service applet-api {
+	@doc "根据角色id获取对应的casbin数据"
+	@handler UploadFileImg
+	post /uploadFileImg (UploadFileImgRequest) returns (UploadFileImgResponse)
+
+
+}

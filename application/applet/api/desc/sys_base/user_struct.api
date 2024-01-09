@@ -345,6 +345,13 @@ type DeleteUserResponse {
 type DeleteApisByIdsRequest{
 	ids []int64 `json:"ids,optional" form:"ids,optional"`
 }
+
 type DeleteApisByIdsResponse{
 	Message string `json:"message"`
+}
+
+type UploadFileImgRequest{}
+
+type UploadFileImgResponse{
+	FileImgUrl string `json:"fileImgUrl"`
 }

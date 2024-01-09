@@ -26,4 +26,12 @@ type Config struct {
 		MaxIdleConns int `json:",default=100"`
 		MaxLifetime  int `json:",default=3600"`
 	}
+	Oss struct {
+		Endpoint         string
+		AccessKeyId      string
+		AccessKeySecret  string
+		BucketName       string
+		ConnectTimeout   int64 `json:",optional"`
+		ReadWriteTimeout int64 `json:",optional"`
+	}
 }

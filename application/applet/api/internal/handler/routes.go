@@ -6,6 +6,7 @@ import (
 
 	api "go-zero-admin/application/applet/api/internal/handler/api"
 	authority "go-zero-admin/application/applet/api/internal/handler/authority"
+	base "go-zero-admin/application/applet/api/internal/handler/base"
 	casbin "go-zero-admin/application/applet/api/internal/handler/casbin"
 	menu "go-zero-admin/application/applet/api/internal/handler/menu"
 	user "go-zero-admin/application/applet/api/internal/handler/user"
@@ -195,5 +196,20 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
 		rest.WithPrefix("/v1/sys/casbin"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					Method:  http.MethodPost,
+					Path:    "/uploadFileImg",
+					Handler: base.UploadFileImgHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/base"),
 	)
 }

@@ -337,3 +337,10 @@ type DeleteApisByIdsRequest struct {
 type DeleteApisByIdsResponse struct {
 	Message string `json:"message"`
 }
+
+type UploadFileImgRequest struct {
+}
+
+type UploadFileImgResponse struct {
+	FileImgUrl string `json:"fileImgUrl"`
+}

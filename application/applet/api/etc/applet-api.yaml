@@ -34,3 +34,8 @@ CasbinConf:
     e = some(where (p.eft == allow))
     [matchers]
     m = r.sub == p.sub && keyMatch2(r.obj,p.obj) && r.act == p.act
+Oss: # oss相关数据 安全问题 存到本地环境中了
+  Endpoint:
+  AccessKeyId:
+  AccessKeySecret:
+  BucketName:

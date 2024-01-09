@@ -1,10 +1,6 @@
 package svc
 
 import (
-	"github.com/casbin/casbin/v2"
-	"github.com/zeromicro/go-zero/core/stores/redis"
-	"github.com/zeromicro/go-zero/rest"
-	"github.com/zeromicro/go-zero/zrpc"
 	"go-zero-admin/application/applet/api/internal/config"
 	"go-zero-admin/application/applet/api/internal/middleware"
 	"go-zero-admin/application/applet/rpc/client/api"
@@ -12,6 +8,17 @@ import (
 	casbinRPC "go-zero-admin/application/applet/rpc/client/casbin"
 	"go-zero-admin/application/applet/rpc/client/menu"
 	"go-zero-admin/application/applet/rpc/client/user"
+
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/casbin/casbin/v2"
+	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/rest"
+	"github.com/zeromicro/go-zero/zrpc"
+)
+
+const (
+	defaultOssConnectTimeout   = 1
+	defaultOssReadWriteTimeout = 3
 )
 
 type ServiceContext struct {
@@ -25,15 +32,28 @@ type ServiceContext struct {
 	AppletCasbinRPC    casbinRPC.Casbin
 	Casbin             *casbin.SyncedCachedEnforcer
 	BanRoleData        map[string]bool // ban role means the role status is not normal
+	OssClient          *oss.Client
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
+	if c.Oss.ConnectTimeout == 0 {
+		c.Oss.ConnectTimeout = defaultOssConnectTimeout
+	}
+	if c.Oss.ReadWriteTimeout == 0 {
+		c.Oss.ReadWriteTimeout = defaultOssReadWriteTimeout
+	}
+	oc, err := oss.New(c.Oss.Endpoint, c.Oss.AccessKeyId, c.Oss.AccessKeySecret, oss.Timeout(c.Oss.ConnectTimeout, c.Oss.ReadWriteTimeout))
+	if err != nil {
+		panic(err)
+	}
+
 	rds := redis.New(c.BizRedis.Host, redis.WithPass(c.BizRedis.Pass))
 
 	casB := c.CasbinConf.MustNewCasbinWithRedisWatcher(c.DB.DataSource, c.BizRedis)
 
 	svc := &ServiceContext{
 		Config:             c,
+		OssClient:          oc,
 		BizRedis:           redis.New(c.BizRedis.Host, redis.WithPass(c.BizRedis.Pass)),
 		AppletUserRPC:      user.NewUser(zrpc.MustNewClient(c.AppletRPC)),
 		AppletMenuRPC:      menu.NewMenu(zrpc.MustNewClient(c.AppletRPC)),
