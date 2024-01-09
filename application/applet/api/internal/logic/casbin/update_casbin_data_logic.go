@@ -2,7 +2,6 @@ package casbin
 
 import (
 	"context"
-	"fmt"
 	"github.com/jinzhu/copier"
 	"go-zero-admin/application/applet/rpc/pb"
 
@@ -29,8 +28,7 @@ func NewUpdateCasbinDataLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 func (l *UpdateCasbinDataLogic) UpdateCasbinData(req *types.UpdateCasbinDataRequest) (resp *types.UpdateCasbinDataResponse, err error) {
 	var pbUpdateCasbinData pb.UpdateCasbinDataRequest
 	_ = copier.Copy(&pbUpdateCasbinData.CasbinInfoList, req.CasbinInfoList)
-	fmt.Println("--------- pbUpdateCasbinData", pbUpdateCasbinData.CasbinInfoList)
-	fmt.Println("---------  req.CasbinInfoList", req.CasbinInfoList)
+	pbUpdateCasbinData.AuthorityId = req.AuthorityId
 	_, err = l.svcCtx.AppletCasbinRPC.UpdateCasbinData(l.ctx, &pbUpdateCasbinData)
 	if err != nil {
 		return nil, err

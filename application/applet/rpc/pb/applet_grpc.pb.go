@@ -1138,6 +1138,8 @@ type CasbinClient interface {
 	GetPathByAuthorityId(ctx context.Context, in *GetPathByAuthorityIdRequest, opts ...grpc.CallOption) (*GetPathByAuthorityIdResponse, error)
 	// 更新一个角色的对应的casbin数据
 	UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*UpdateCasbinDataResponse, error)
+	// 更新一个角色的对应的casbin数据 用api的ids 查数据
+	UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
 
 type casbinClient struct {
@@ -1166,6 +1168,15 @@ func (c *casbinClient) UpdateCasbinData(ctx context.Context, in *UpdateCasbinDat
 	return out, nil
 }
 
+func (c *casbinClient) UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, "/pb.Casbin/UpdateCasbinDataByApiIds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CasbinServer is the server API for Casbin service.
 // All implementations must embed UnimplementedCasbinServer
 // for forward compatibility
@@ -1174,6 +1185,8 @@ type CasbinServer interface {
 	GetPathByAuthorityId(context.Context, *GetPathByAuthorityIdRequest) (*GetPathByAuthorityIdResponse, error)
 	// 更新一个角色的对应的casbin数据
 	UpdateCasbinData(context.Context, *UpdateCasbinDataRequest) (*UpdateCasbinDataResponse, error)
+	// 更新一个角色的对应的casbin数据 用api的ids 查数据
+	UpdateCasbinDataByApiIds(context.Context, *UpdateCasbinDataByApiIdsRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedCasbinServer()
 }
 
@@ -1186,6 +1199,9 @@ func (UnimplementedCasbinServer) GetPathByAuthorityId(context.Context, *GetPathB
 }
 func (UnimplementedCasbinServer) UpdateCasbinData(context.Context, *UpdateCasbinDataRequest) (*UpdateCasbinDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCasbinData not implemented")
+}
+func (UnimplementedCasbinServer) UpdateCasbinDataByApiIds(context.Context, *UpdateCasbinDataByApiIdsRequest) (*NoDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateCasbinDataByApiIds not implemented")
 }
 func (UnimplementedCasbinServer) mustEmbedUnimplementedCasbinServer() {}
 
@@ -1236,6 +1252,24 @@ func _Casbin_UpdateCasbinData_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Casbin_UpdateCasbinDataByApiIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCasbinDataByApiIdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CasbinServer).UpdateCasbinDataByApiIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Casbin/UpdateCasbinDataByApiIds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CasbinServer).UpdateCasbinDataByApiIds(ctx, req.(*UpdateCasbinDataByApiIdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Casbin_ServiceDesc is the grpc.ServiceDesc for Casbin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1250,6 +1284,10 @@ var Casbin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateCasbinData",
 			Handler:    _Casbin_UpdateCasbinData_Handler,
+		},
+		{
+			MethodName: "UpdateCasbinDataByApiIds",
+			Handler:    _Casbin_UpdateCasbinDataByApiIds_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

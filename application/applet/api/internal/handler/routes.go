@@ -192,6 +192,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/updateCasbinData",
 					Handler: casbin.UpdateCasbinDataHandler(serverCtx),
 				},
+				{
+					Method:  http.MethodPut,
+					Path:    "/updateCasbinDataByApiIds",
+					Handler: casbin.UpdateCasbinDataByApiIdsHandler(serverCtx),
+				},
 			}...,
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),

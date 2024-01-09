@@ -355,3 +355,12 @@ type UploadFileImgRequest{}
 type UploadFileImgResponse{
 	FileImgUrl string `json:"fileImgUrl"`
 }
+
+type UpdateCasbinDataByApiIdsRequest {
+	AuthorityId    int64        `json:"authorityId"`
+	ApiIds []int64 `json:"apiIds"`
+}
+
+type MessageResponse {
+	Message string `json:"message"`
+}

@@ -355,6 +355,13 @@ message DeleteApisByIdsRequest {
 
 message DeleteApisByIdsResponse {}
 
+message UpdateCasbinDataByApiIdsRequest {
+  int64 AuthorityId = 1;
+  repeated int64 ApiIds = 2;
+}
+
+message NoDataResponse {}
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -426,5 +433,8 @@ service Casbin {
   rpc GetPathByAuthorityId (GetPathByAuthorityIdRequest) returns (GetPathByAuthorityIdResponse);
   // 更新一个角色的对应的casbin数据
   rpc UpdateCasbinData (UpdateCasbinDataRequest) returns (UpdateCasbinDataResponse);
+  // 更新一个角色的对应的casbin数据 用api的ids 查数据
+  rpc UpdateCasbinDataByApiIds (UpdateCasbinDataByApiIdsRequest) returns (NoDataResponse);
+
 
 }

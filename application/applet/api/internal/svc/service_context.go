@@ -56,7 +56,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config:    c,
 		OssClient: oc,
 		//BizRedis:           redis.New(c.BizRedis.Host, redis.WithPass(c.BizRedis.Pass)),
-		BizRedis:           redis.MustNewRedis(c.BizRedis, redis.WithPass(c.BizRedis.Pass)),
+		BizRedis:           rds,
 		AppletUserRPC:      user.NewUser(zrpc.MustNewClient(c.AppletRPC)),
 		AppletMenuRPC:      menu.NewMenu(zrpc.MustNewClient(c.AppletRPC)),
 		AppletAuthorityRPC: authority.NewAuthority(zrpc.MustNewClient(c.AppletRPC)),

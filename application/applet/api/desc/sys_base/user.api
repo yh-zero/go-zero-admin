@@ -152,6 +152,10 @@ service applet-api {
 	@handler UpdateCasbinData
 	post /updateCasbinData (UpdateCasbinDataRequest) returns (UpdateCasbinDataResponse)
 
+	@doc "更新一个角色的对应的casbin数据 用api的ids 查数据"
+	@handler UpdateCasbinDataByApiIds
+	put /updateCasbinDataByApiIds (UpdateCasbinDataByApiIdsRequest) returns (MessageResponse)
+
 }
 
 @server(

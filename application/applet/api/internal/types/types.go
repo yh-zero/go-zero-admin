@@ -344,3 +344,12 @@ type UploadFileImgRequest struct {
 type UploadFileImgResponse struct {
 	FileImgUrl string `json:"fileImgUrl"`
 }
+
+type UpdateCasbinDataByApiIdsRequest struct {
+	AuthorityId int64   `json:"authorityId"`
+	ApiIds      []int64 `json:"apiIds"`
+}
+
+type MessageResponse struct {
+	Message string `json:"message"`
+}
