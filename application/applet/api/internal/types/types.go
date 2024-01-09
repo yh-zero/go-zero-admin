@@ -325,3 +325,7 @@ type UpdateApiRequest struct {
 type DeleteBaseMenuRequest struct {
 	ID int64 `json:"id"`
 }
+
+type DeleteAuthorityRequest struct {
+	ID int64 `json:"id"`
+}

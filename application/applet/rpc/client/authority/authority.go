@@ -21,6 +21,7 @@ type (
 	CreateAuthorityResponse         = pb.CreateAuthorityResponse
 	DeleteApiRequest                = pb.DeleteApiRequest
 	DeleteApisByIdsRequest          = pb.DeleteApisByIdsRequest
+	DeleteAuthorityRequest          = pb.DeleteAuthorityRequest
 	DeleteBaseMenuRequest           = pb.DeleteBaseMenuRequest
 	DeleteUserRequest               = pb.DeleteUserRequest
 	GetAllApiListResponse           = pb.GetAllApiListResponse
@@ -75,6 +76,8 @@ type (
 		UpdateAuthority(ctx context.Context, in *UpdateAuthorityRequest, opts ...grpc.CallOption) (*UpdateAuthorityResponse, error)
 		// 创建角色
 		CreateAuthority(ctx context.Context, in *CreateAuthorityRequest, opts ...grpc.CallOption) (*CreateAuthorityResponse, error)
+		// 删除角色
+		DeleteAuthority(ctx context.Context, in *DeleteAuthorityRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	}
 
 	defaultAuthority struct {
@@ -110,4 +113,10 @@ func (m *defaultAuthority) UpdateAuthority(ctx context.Context, in *UpdateAuthor
 func (m *defaultAuthority) CreateAuthority(ctx context.Context, in *CreateAuthorityRequest, opts ...grpc.CallOption) (*CreateAuthorityResponse, error) {
 	client := pb.NewAuthorityClient(m.cli.Conn())
 	return client.CreateAuthority(ctx, in, opts...)
+}
+
+// 删除角色
+func (m *defaultAuthority) DeleteAuthority(ctx context.Context, in *DeleteAuthorityRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := pb.NewAuthorityClient(m.cli.Conn())
+	return client.DeleteAuthority(ctx, in, opts...)
 }

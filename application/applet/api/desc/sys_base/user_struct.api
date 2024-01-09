@@ -336,3 +336,7 @@ type UpdateApiRequest {
 type DeleteBaseMenuRequest {
 	ID int64 `json:"id"`
 }
+
+type DeleteAuthorityRequest {
+	ID int64 `json:"id"`
+}

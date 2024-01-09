@@ -142,6 +142,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/createAuthority",
 					Handler: authority.CreateAuthorityHandler(serverCtx),
 				},
+				{
+					Method:  http.MethodDelete,
+					Path:    "/deleteAuthority",
+					Handler: authority.DeleteAuthorityHandler(serverCtx),
+				},
 			}...,
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),

@@ -45,3 +45,9 @@ func (s *AuthorityServer) CreateAuthority(ctx context.Context, in *pb.CreateAuth
 	l := authoritylogic.NewCreateAuthorityLogic(ctx, s.svcCtx)
 	return l.CreateAuthority(in)
 }
+
+// 删除角色
+func (s *AuthorityServer) DeleteAuthority(ctx context.Context, in *pb.DeleteAuthorityRequest) (*pb.NoDataResponse, error) {
+	l := authoritylogic.NewDeleteAuthorityLogic(ctx, s.svcCtx)
+	return l.DeleteAuthority(in)
+}

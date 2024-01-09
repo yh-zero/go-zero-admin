@@ -111,6 +111,10 @@ service applet-api {
 	@doc "创建角色"
 	@handler CreateAuthority
 	post /createAuthority (CreateAuthorityRequest) returns (CreateAuthorityResponse)
+
+	@doc "删除角色"
+	@handler DeleteAuthority
+	delete /deleteAuthority (DeleteAuthorityRequest) returns (MessageResponse)
 }
 
 @server(

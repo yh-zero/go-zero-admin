@@ -343,6 +343,10 @@ message DeleteBaseMenuRequest {
   int64 ID = 1;
 }
 
+message DeleteAuthorityRequest {
+  int64 ID = 1;
+}
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -394,6 +398,9 @@ service Authority {
   rpc UpdateAuthority (UpdateAuthorityRequest) returns (UpdateAuthorityResponse);
   // 创建角色
   rpc CreateAuthority (CreateAuthorityRequest) returns (CreateAuthorityResponse);
+  // 删除角色
+  rpc DeleteAuthority (DeleteAuthorityRequest) returns (NoDataResponse);
+
 
 }
 

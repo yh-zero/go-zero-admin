@@ -738,6 +738,8 @@ type AuthorityClient interface {
 	UpdateAuthority(ctx context.Context, in *UpdateAuthorityRequest, opts ...grpc.CallOption) (*UpdateAuthorityResponse, error)
 	// 创建角色
 	CreateAuthority(ctx context.Context, in *CreateAuthorityRequest, opts ...grpc.CallOption) (*CreateAuthorityResponse, error)
+	// 删除角色
+	DeleteAuthority(ctx context.Context, in *DeleteAuthorityRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
 
 type authorityClient struct {
@@ -784,6 +786,15 @@ func (c *authorityClient) CreateAuthority(ctx context.Context, in *CreateAuthori
 	return out, nil
 }
 
+func (c *authorityClient) DeleteAuthority(ctx context.Context, in *DeleteAuthorityRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, "/pb.Authority/DeleteAuthority", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthorityServer is the server API for Authority service.
 // All implementations must embed UnimplementedAuthorityServer
 // for forward compatibility
@@ -796,6 +807,8 @@ type AuthorityServer interface {
 	UpdateAuthority(context.Context, *UpdateAuthorityRequest) (*UpdateAuthorityResponse, error)
 	// 创建角色
 	CreateAuthority(context.Context, *CreateAuthorityRequest) (*CreateAuthorityResponse, error)
+	// 删除角色
+	DeleteAuthority(context.Context, *DeleteAuthorityRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedAuthorityServer()
 }
 
@@ -814,6 +827,9 @@ func (UnimplementedAuthorityServer) UpdateAuthority(context.Context, *UpdateAuth
 }
 func (UnimplementedAuthorityServer) CreateAuthority(context.Context, *CreateAuthorityRequest) (*CreateAuthorityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAuthority not implemented")
+}
+func (UnimplementedAuthorityServer) DeleteAuthority(context.Context, *DeleteAuthorityRequest) (*NoDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAuthority not implemented")
 }
 func (UnimplementedAuthorityServer) mustEmbedUnimplementedAuthorityServer() {}
 
@@ -900,6 +916,24 @@ func _Authority_CreateAuthority_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Authority_DeleteAuthority_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAuthorityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthorityServer).DeleteAuthority(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Authority/DeleteAuthority",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthorityServer).DeleteAuthority(ctx, req.(*DeleteAuthorityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Authority_ServiceDesc is the grpc.ServiceDesc for Authority service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -922,6 +956,10 @@ var Authority_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateAuthority",
 			Handler:    _Authority_CreateAuthority_Handler,
+		},
+		{
+			MethodName: "DeleteAuthority",
+			Handler:    _Authority_DeleteAuthority_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
