@@ -24,6 +24,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Type: c.BizRedis.Type,
 		Pass: c.BizRedis.Pass,
 	})
+
 	return &ServiceContext{
 		Config:   c,
 		DB:       db,

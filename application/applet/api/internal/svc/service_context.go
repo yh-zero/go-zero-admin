@@ -47,7 +47,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		panic(err)
 	}
 
-	rds := redis.New(c.BizRedis.Host, redis.WithPass(c.BizRedis.Pass))
+	//rds := redis.New(c.BizRedis.Host, redis.WithPass(c.BizRedis.Pass))
+	rds := redis.MustNewRedis(c.BizRedis, redis.WithPass(c.BizRedis.Pass)) // jsonMark:骑着毛驴背单词
 
 	casB := c.CasbinConf.MustNewCasbinWithRedisWatcher(c.DB.DataSource, c.BizRedis)
 
