@@ -52,14 +52,20 @@ func (s *MenuServer) GetMenuAuthority(ctx context.Context, in *pb.GetMenuAuthori
 	return l.GetMenuAuthority(in)
 }
 
-// 根据id获取菜单
+// 根据id获取系统菜单
 func (s *MenuServer) GetBaseMenuById(ctx context.Context, in *pb.GetBaseMenuByIdRequest) (*pb.GetBaseMenuByIdResponse, error) {
 	l := menulogic.NewGetBaseMenuByIdLogic(ctx, s.svcCtx)
 	return l.GetBaseMenuById(in)
 }
 
-// 根据id获取菜单
+// 更新系统菜单
 func (s *MenuServer) UpdateBaseMenu(ctx context.Context, in *pb.UpdateBaseMenuRequest) (*pb.NoDataResponse, error) {
 	l := menulogic.NewUpdateBaseMenuLogic(ctx, s.svcCtx)
 	return l.UpdateBaseMenu(in)
+}
+
+// 删除系统菜单
+func (s *MenuServer) DeleteBaseMenu(ctx context.Context, in *pb.DeleteBaseMenuRequest) (*pb.NoDataResponse, error) {
+	l := menulogic.NewDeleteBaseMenuLogic(ctx, s.svcCtx)
+	return l.DeleteBaseMenu(in)
 }

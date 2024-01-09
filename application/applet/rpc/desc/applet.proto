@@ -339,6 +339,10 @@ message UpdateApiRequest {
   SysApi SysApi = 1;
 }
 
+message DeleteBaseMenuRequest {
+  int64 ID = 1;
+}
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -371,10 +375,12 @@ service Menu {
   rpc GetBaseMenuTree (NoDataResponse) returns (GetBaseMenuTreeResponse);
   // 获取指定角色menu  -- 用于角色管理的设置权限
   rpc GetMenuAuthority (GetMenuAuthorityRequest) returns (GetMenuAuthorityResponse);
-  // 根据id获取菜单
+  // 根据id获取系统菜单
   rpc GetBaseMenuById (GetBaseMenuByIdRequest) returns (GetBaseMenuByIdResponse);
-  // 根据id获取菜单
+  // 更新系统菜单
   rpc UpdateBaseMenu (UpdateBaseMenuRequest) returns (NoDataResponse);
+  // 删除系统菜单
+  rpc DeleteBaseMenu (DeleteBaseMenuRequest) returns (NoDataResponse);
 
 }
 

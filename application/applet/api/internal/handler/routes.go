@@ -107,6 +107,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/updateBaseMenu",
 					Handler: menu.UpdateBaseMenuHandler(serverCtx),
 				},
+				{
+					Method:  http.MethodDelete,
+					Path:    "/deleteBaseMenu",
+					Handler: menu.DeleteBaseMenuHandler(serverCtx),
+				},
 			}...,
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),

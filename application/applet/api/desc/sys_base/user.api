@@ -83,6 +83,10 @@ service applet-api {
 	@handler UpdateBaseMenu
 	put /updateBaseMenu (UpdateBaseMenuRequest) returns (MessageResponse)
 
+	@doc "删除系统菜单"
+	@handler DeleteBaseMenu
+	delete /deleteBaseMenu (DeleteBaseMenuRequest) returns (MessageResponse)
+
 }
 
 @server(

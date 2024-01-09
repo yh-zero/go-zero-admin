@@ -321,3 +321,7 @@ type UpdateCasbinDataByApiIdsRequest struct {
 type UpdateApiRequest struct {
 	SysApi
 }
+
+type DeleteBaseMenuRequest struct {
+	ID int64 `json:"id"`
+}

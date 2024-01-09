@@ -21,6 +21,7 @@ type (
 	CreateAuthorityResponse         = pb.CreateAuthorityResponse
 	DeleteApiRequest                = pb.DeleteApiRequest
 	DeleteApisByIdsRequest          = pb.DeleteApisByIdsRequest
+	DeleteBaseMenuRequest           = pb.DeleteBaseMenuRequest
 	DeleteUserRequest               = pb.DeleteUserRequest
 	GetAllApiListResponse           = pb.GetAllApiListResponse
 	GetApiListRequest               = pb.GetApiListRequest
@@ -76,10 +77,12 @@ type (
 		GetBaseMenuTree(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetBaseMenuTreeResponse, error)
 		// 获取指定角色menu  -- 用于角色管理的设置权限
 		GetMenuAuthority(ctx context.Context, in *GetMenuAuthorityRequest, opts ...grpc.CallOption) (*GetMenuAuthorityResponse, error)
-		// 根据id获取菜单
+		// 根据id获取系统菜单
 		GetBaseMenuById(ctx context.Context, in *GetBaseMenuByIdRequest, opts ...grpc.CallOption) (*GetBaseMenuByIdResponse, error)
-		// 根据id获取菜单
+		// 更新系统菜单
 		UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		// 删除系统菜单
+		DeleteBaseMenu(ctx context.Context, in *DeleteBaseMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	}
 
 	defaultMenu struct {
@@ -123,14 +126,20 @@ func (m *defaultMenu) GetMenuAuthority(ctx context.Context, in *GetMenuAuthority
 	return client.GetMenuAuthority(ctx, in, opts...)
 }
 
-// 根据id获取菜单
+// 根据id获取系统菜单
 func (m *defaultMenu) GetBaseMenuById(ctx context.Context, in *GetBaseMenuByIdRequest, opts ...grpc.CallOption) (*GetBaseMenuByIdResponse, error) {
 	client := pb.NewMenuClient(m.cli.Conn())
 	return client.GetBaseMenuById(ctx, in, opts...)
 }
 
-// 根据id获取菜单
+// 更新系统菜单
 func (m *defaultMenu) UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewMenuClient(m.cli.Conn())
 	return client.UpdateBaseMenu(ctx, in, opts...)
+}
+
+// 删除系统菜单
+func (m *defaultMenu) DeleteBaseMenu(ctx context.Context, in *DeleteBaseMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := pb.NewMenuClient(m.cli.Conn())
+	return client.DeleteBaseMenu(ctx, in, opts...)
 }

@@ -332,3 +332,7 @@ type UpdateCasbinDataByApiIdsRequest {
 type UpdateApiRequest {
 	SysApi
 }
+
+type DeleteBaseMenuRequest {
+	ID int64 `json:"id"`
+}

@@ -386,10 +386,12 @@ type MenuClient interface {
 	GetBaseMenuTree(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GetBaseMenuTreeResponse, error)
 	// 获取指定角色menu  -- 用于角色管理的设置权限
 	GetMenuAuthority(ctx context.Context, in *GetMenuAuthorityRequest, opts ...grpc.CallOption) (*GetMenuAuthorityResponse, error)
-	// 根据id获取菜单
+	// 根据id获取系统菜单
 	GetBaseMenuById(ctx context.Context, in *GetBaseMenuByIdRequest, opts ...grpc.CallOption) (*GetBaseMenuByIdResponse, error)
-	// 根据id获取菜单
+	// 更新系统菜单
 	UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	// 删除系统菜单
+	DeleteBaseMenu(ctx context.Context, in *DeleteBaseMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
 
 type menuClient struct {
@@ -463,6 +465,15 @@ func (c *menuClient) UpdateBaseMenu(ctx context.Context, in *UpdateBaseMenuReque
 	return out, nil
 }
 
+func (c *menuClient) DeleteBaseMenu(ctx context.Context, in *DeleteBaseMenuRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, "/pb.Menu/DeleteBaseMenu", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MenuServer is the server API for Menu service.
 // All implementations must embed UnimplementedMenuServer
 // for forward compatibility
@@ -477,10 +488,12 @@ type MenuServer interface {
 	GetBaseMenuTree(context.Context, *NoDataResponse) (*GetBaseMenuTreeResponse, error)
 	// 获取指定角色menu  -- 用于角色管理的设置权限
 	GetMenuAuthority(context.Context, *GetMenuAuthorityRequest) (*GetMenuAuthorityResponse, error)
-	// 根据id获取菜单
+	// 根据id获取系统菜单
 	GetBaseMenuById(context.Context, *GetBaseMenuByIdRequest) (*GetBaseMenuByIdResponse, error)
-	// 根据id获取菜单
+	// 更新系统菜单
 	UpdateBaseMenu(context.Context, *UpdateBaseMenuRequest) (*NoDataResponse, error)
+	// 删除系统菜单
+	DeleteBaseMenu(context.Context, *DeleteBaseMenuRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedMenuServer()
 }
 
@@ -508,6 +521,9 @@ func (UnimplementedMenuServer) GetBaseMenuById(context.Context, *GetBaseMenuById
 }
 func (UnimplementedMenuServer) UpdateBaseMenu(context.Context, *UpdateBaseMenuRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBaseMenu not implemented")
+}
+func (UnimplementedMenuServer) DeleteBaseMenu(context.Context, *DeleteBaseMenuRequest) (*NoDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteBaseMenu not implemented")
 }
 func (UnimplementedMenuServer) mustEmbedUnimplementedMenuServer() {}
 
@@ -648,6 +664,24 @@ func _Menu_UpdateBaseMenu_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Menu_DeleteBaseMenu_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteBaseMenuRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MenuServer).DeleteBaseMenu(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Menu/DeleteBaseMenu",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MenuServer).DeleteBaseMenu(ctx, req.(*DeleteBaseMenuRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Menu_ServiceDesc is the grpc.ServiceDesc for Menu service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -682,6 +716,10 @@ var Menu_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBaseMenu",
 			Handler:    _Menu_UpdateBaseMenu_Handler,
+		},
+		{
+			MethodName: "DeleteBaseMenu",
+			Handler:    _Menu_DeleteBaseMenu_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
