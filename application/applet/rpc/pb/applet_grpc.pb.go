@@ -1414,6 +1414,10 @@ var Casbin_ServiceDesc = grpc.ServiceDesc{
 type DictionaryClient interface {
 	// 获取SysDictionary列表 -- all
 	GetSysDictionaryList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*DictionaryListResponse, error)
+	// 新建SysDictionary
+	CreateSysDictionary(ctx context.Context, in *CreateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	// 更新SysDictionary
+	UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 获取SysDictionaryInfo列表 -- 分页带搜索
 	GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error)
 }
@@ -1435,6 +1439,24 @@ func (c *dictionaryClient) GetSysDictionaryList(ctx context.Context, in *NoDataR
 	return out, nil
 }
 
+func (c *dictionaryClient) CreateSysDictionary(ctx context.Context, in *CreateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, "/pb.Dictionary/CreateSysDictionary", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dictionaryClient) UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, "/pb.Dictionary/UpdateSysDictionary", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *dictionaryClient) GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error) {
 	out := new(GetSysDictionaryInfoListResponse)
 	err := c.cc.Invoke(ctx, "/pb.Dictionary/GetSysDictionaryInfoList", in, out, opts...)
@@ -1450,6 +1472,10 @@ func (c *dictionaryClient) GetSysDictionaryInfoList(ctx context.Context, in *Get
 type DictionaryServer interface {
 	// 获取SysDictionary列表 -- all
 	GetSysDictionaryList(context.Context, *NoDataResponse) (*DictionaryListResponse, error)
+	// 新建SysDictionary
+	CreateSysDictionary(context.Context, *CreateSysDictionaryRequest) (*NoDataResponse, error)
+	// 更新SysDictionary
+	UpdateSysDictionary(context.Context, *UpdateSysDictionaryRequest) (*NoDataResponse, error)
 	// 获取SysDictionaryInfo列表 -- 分页带搜索
 	GetSysDictionaryInfoList(context.Context, *GetSysDictionaryInfoListRequest) (*GetSysDictionaryInfoListResponse, error)
 	mustEmbedUnimplementedDictionaryServer()
@@ -1461,6 +1487,12 @@ type UnimplementedDictionaryServer struct {
 
 func (UnimplementedDictionaryServer) GetSysDictionaryList(context.Context, *NoDataResponse) (*DictionaryListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSysDictionaryList not implemented")
+}
+func (UnimplementedDictionaryServer) CreateSysDictionary(context.Context, *CreateSysDictionaryRequest) (*NoDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSysDictionary not implemented")
+}
+func (UnimplementedDictionaryServer) UpdateSysDictionary(context.Context, *UpdateSysDictionaryRequest) (*NoDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSysDictionary not implemented")
 }
 func (UnimplementedDictionaryServer) GetSysDictionaryInfoList(context.Context, *GetSysDictionaryInfoListRequest) (*GetSysDictionaryInfoListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSysDictionaryInfoList not implemented")
@@ -1496,6 +1528,42 @@ func _Dictionary_GetSysDictionaryList_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Dictionary_CreateSysDictionary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSysDictionaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DictionaryServer).CreateSysDictionary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Dictionary/CreateSysDictionary",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DictionaryServer).CreateSysDictionary(ctx, req.(*CreateSysDictionaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Dictionary_UpdateSysDictionary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSysDictionaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DictionaryServer).UpdateSysDictionary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Dictionary/UpdateSysDictionary",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DictionaryServer).UpdateSysDictionary(ctx, req.(*UpdateSysDictionaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Dictionary_GetSysDictionaryInfoList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSysDictionaryInfoListRequest)
 	if err := dec(in); err != nil {
@@ -1524,6 +1592,14 @@ var Dictionary_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSysDictionaryList",
 			Handler:    _Dictionary_GetSysDictionaryList_Handler,
+		},
+		{
+			MethodName: "CreateSysDictionary",
+			Handler:    _Dictionary_CreateSysDictionary_Handler,
+		},
+		{
+			MethodName: "UpdateSysDictionary",
+			Handler:    _Dictionary_UpdateSysDictionary_Handler,
 		},
 		{
 			MethodName: "GetSysDictionaryInfoList",

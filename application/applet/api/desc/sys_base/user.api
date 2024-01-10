@@ -189,11 +189,24 @@ service applet-api {
 	middleware: Authority
 )
 service applet-api {
+	// =================  SysDictionary ==============
+
 	@doc "获取SysDictionary列表"
 	@handler GetSysDictionaryList
 	get /getSysDictionaryList (GetSysDictionaryListRequest) returns (GetSysDictionaryListResponse)
 
+	@doc "新建SysDictionary"
+	@handler CreateSysDictionary
+	post /createSysDictionary (CreateSysDictionaryRequest) returns (MessageResponse)
+
+	@doc "更新SysDictionary"
+	@handler UpdateSysDictionary
+	put /updateSysDictionary (UpdateSysDictionaryRequest) returns (MessageResponse)
+
+	// =================  SysDictionaryInfo ==============
+
 	@doc "获取SysDictionaryInfo列表"
 	@handler GetSysDictionaryInfoList
 	get /getSysDictionaryInfoList (GetSysDictionaryInfoListRequest) returns (GetSysDictionaryInfoListResponse)
+
 }

@@ -244,6 +244,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: dictionary.GetSysDictionaryListHandler(serverCtx),
 				},
 				{
+					Method:  http.MethodPost,
+					Path:    "/createSysDictionary",
+					Handler: dictionary.CreateSysDictionaryHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPut,
+					Path:    "/updateSysDictionary",
+					Handler: dictionary.UpdateSysDictionaryHandler(serverCtx),
+				},
+				{
 					Method:  http.MethodGet,
 					Path:    "/getSysDictionaryInfoList",
 					Handler: dictionary.GetSysDictionaryInfoListHandler(serverCtx),

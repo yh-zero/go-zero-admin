@@ -334,9 +334,9 @@ type SysDictionary struct {
 	Model
 	Name                  string              `json:"name"`   // 字典名（中）
 	Type                  string              `json:"type"`   // 字典名（英）
-	Status                *bool               `json:"status"` // 状态
+	Status                int64               `json:"status"` // 状态 1开启 0关闭
 	Desc                  string              `json:"desc"`   // 描述
-	SysDictionaryInfoList []SysDictionaryInfo `json:"sysDictionaryInfoList"`
+	SysDictionaryInfoList []SysDictionaryInfo `json:"sysDictionaryInfoList,optional"`
 }
 
 type SysDictionaryInfo struct {
@@ -344,7 +344,7 @@ type SysDictionaryInfo struct {
 	Label           string `json:"label,optional" form:"label,optional"`            // 展示值
 	Value           int64  `json:"value,optional" form:"value,optional"`            // 字典值
 	Extend          string `json:"extend,optional" form:"extend,optional"`          // 扩展值
-	Status          int64  `json:"status,optional" form:"status,optional"`          // 启用状态
+	Status          int64  `json:"status,optional" form:"status,optional"`          // 启用状态 1开启 0关闭
 	Sort            int64  `json:"sort,optional" form:"sort,optional"`              // 排序标记
 	SysDictionaryID int64  `json:"sysDictionaryID,optional" form:"sysDictionaryID"` // 关联标记
 }
@@ -364,4 +364,12 @@ type GetSysDictionaryInfoListRequest struct {
 type GetSysDictionaryInfoListResponse struct {
 	List []SysDictionaryInfo `json:"list"`
 	PageResponse
+}
+
+type CreateSysDictionaryRequest struct {
+	SysDictionary
+}
+
+type UpdateSysDictionaryRequest struct {
+	SysDictionary
 }

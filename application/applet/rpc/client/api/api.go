@@ -19,6 +19,7 @@ type (
 	CreateApiRequest                 = pb.CreateApiRequest
 	CreateAuthorityRequest           = pb.CreateAuthorityRequest
 	CreateAuthorityResponse          = pb.CreateAuthorityResponse
+	CreateSysDictionaryRequest       = pb.CreateSysDictionaryRequest
 	DeleteApiRequest                 = pb.DeleteApiRequest
 	DeleteApisByIdsRequest           = pb.DeleteApisByIdsRequest
 	DeleteAuthorityRequest           = pb.DeleteAuthorityRequest
@@ -68,6 +69,7 @@ type (
 	UpdateBaseMenuRequest            = pb.UpdateBaseMenuRequest
 	UpdateCasbinDataByApiIdsRequest  = pb.UpdateCasbinDataByApiIdsRequest
 	UpdateCasbinDataRequest          = pb.UpdateCasbinDataRequest
+	UpdateSysDictionaryRequest       = pb.UpdateSysDictionaryRequest
 	UpdateUserAuthoritiesRequest     = pb.UpdateUserAuthoritiesRequest
 	UpdateUserInfoRequest            = pb.UpdateUserInfoRequest
 	UserInfo                         = pb.UserInfo

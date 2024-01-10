@@ -19,6 +19,7 @@ type (
 	CreateApiRequest                 = pb.CreateApiRequest
 	CreateAuthorityRequest           = pb.CreateAuthorityRequest
 	CreateAuthorityResponse          = pb.CreateAuthorityResponse
+	CreateSysDictionaryRequest       = pb.CreateSysDictionaryRequest
 	DeleteApiRequest                 = pb.DeleteApiRequest
 	DeleteApisByIdsRequest           = pb.DeleteApisByIdsRequest
 	DeleteAuthorityRequest           = pb.DeleteAuthorityRequest
@@ -68,6 +69,7 @@ type (
 	UpdateBaseMenuRequest            = pb.UpdateBaseMenuRequest
 	UpdateCasbinDataByApiIdsRequest  = pb.UpdateCasbinDataByApiIdsRequest
 	UpdateCasbinDataRequest          = pb.UpdateCasbinDataRequest
+	UpdateSysDictionaryRequest       = pb.UpdateSysDictionaryRequest
 	UpdateUserAuthoritiesRequest     = pb.UpdateUserAuthoritiesRequest
 	UpdateUserInfoRequest            = pb.UpdateUserInfoRequest
 	UserInfo                         = pb.UserInfo
@@ -75,6 +77,10 @@ type (
 	Dictionary interface {
 		// 获取SysDictionary列表 -- all
 		GetSysDictionaryList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*DictionaryListResponse, error)
+		// 新建SysDictionary
+		CreateSysDictionary(ctx context.Context, in *CreateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		// 更新SysDictionary
+		UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 获取SysDictionaryInfo列表 -- 分页带搜索
 		GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error)
 	}
@@ -94,6 +100,18 @@ func NewDictionary(cli zrpc.Client) Dictionary {
 func (m *defaultDictionary) GetSysDictionaryList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*DictionaryListResponse, error) {
 	client := pb.NewDictionaryClient(m.cli.Conn())
 	return client.GetSysDictionaryList(ctx, in, opts...)
+}
+
+// 新建SysDictionary
+func (m *defaultDictionary) CreateSysDictionary(ctx context.Context, in *CreateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := pb.NewDictionaryClient(m.cli.Conn())
+	return client.CreateSysDictionary(ctx, in, opts...)
+}
+
+// 更新SysDictionary
+func (m *defaultDictionary) UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := pb.NewDictionaryClient(m.cli.Conn())
+	return client.UpdateSysDictionary(ctx, in, opts...)
 }
 
 // 获取SysDictionaryInfo列表 -- 分页带搜索

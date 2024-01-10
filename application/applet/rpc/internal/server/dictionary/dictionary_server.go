@@ -28,6 +28,18 @@ func (s *DictionaryServer) GetSysDictionaryList(ctx context.Context, in *pb.NoDa
 	return l.GetSysDictionaryList(in)
 }
 
+// 新建SysDictionary
+func (s *DictionaryServer) CreateSysDictionary(ctx context.Context, in *pb.CreateSysDictionaryRequest) (*pb.NoDataResponse, error) {
+	l := dictionarylogic.NewCreateSysDictionaryLogic(ctx, s.svcCtx)
+	return l.CreateSysDictionary(in)
+}
+
+// 更新SysDictionary
+func (s *DictionaryServer) UpdateSysDictionary(ctx context.Context, in *pb.UpdateSysDictionaryRequest) (*pb.NoDataResponse, error) {
+	l := dictionarylogic.NewUpdateSysDictionaryLogic(ctx, s.svcCtx)
+	return l.UpdateSysDictionary(in)
+}
+
 // 获取SysDictionaryInfo列表 -- 分页带搜索
 func (s *DictionaryServer) GetSysDictionaryInfoList(ctx context.Context, in *pb.GetSysDictionaryInfoListRequest) (*pb.GetSysDictionaryInfoListResponse, error) {
 	l := dictionarylogic.NewGetSysDictionaryInfoListLogic(ctx, s.svcCtx)
