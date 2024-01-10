@@ -13,66 +13,70 @@ import (
 )
 
 type (
-	AddAuthorityMenuRequest         = pb.AddAuthorityMenuRequest
-	AddMenuBaseRequest              = pb.AddMenuBaseRequest
-	CasbinInfo                      = pb.CasbinInfo
-	CreateApiRequest                = pb.CreateApiRequest
-	CreateAuthorityRequest          = pb.CreateAuthorityRequest
-	CreateAuthorityResponse         = pb.CreateAuthorityResponse
-	DeleteApiRequest                = pb.DeleteApiRequest
-	DeleteApisByIdsRequest          = pb.DeleteApisByIdsRequest
-	DeleteAuthorityRequest          = pb.DeleteAuthorityRequest
-	DeleteBaseMenuRequest           = pb.DeleteBaseMenuRequest
-	DeleteUserRequest               = pb.DeleteUserRequest
-	DictionaryListResponse          = pb.DictionaryListResponse
-	GetAllApiListResponse           = pb.GetAllApiListResponse
-	GetApiListRequest               = pb.GetApiListRequest
-	GetApiListResponse              = pb.GetApiListResponse
-	GetAuthorityListRequest         = pb.GetAuthorityListRequest
-	GetAuthorityListResponse        = pb.GetAuthorityListResponse
-	GetBaseMenuByIdRequest          = pb.GetBaseMenuByIdRequest
-	GetBaseMenuByIdResponse         = pb.GetBaseMenuByIdResponse
-	GetBaseMenuTreeResponse         = pb.GetBaseMenuTreeResponse
-	GetMenuAuthorityRequest         = pb.GetMenuAuthorityRequest
-	GetMenuAuthorityResponse        = pb.GetMenuAuthorityResponse
-	GetMenuBaseInfoListResponse     = pb.GetMenuBaseInfoListResponse
-	GetMenuTreeRequest              = pb.GetMenuTreeRequest
-	GetMenuTreeResponse             = pb.GetMenuTreeResponse
-	GetPathByAuthorityIdRequest     = pb.GetPathByAuthorityIdRequest
-	GetPathByAuthorityIdResponse    = pb.GetPathByAuthorityIdResponse
-	GetUserInfoRequest              = pb.GetUserInfoRequest
-	GetUserInfoResponse             = pb.GetUserInfoResponse
-	GetUserListRequest              = pb.GetUserListRequest
-	GetUserListResponse             = pb.GetUserListResponse
-	GetUserTokeRequest              = pb.GetUserTokeRequest
-	GetUserTokeResponse             = pb.GetUserTokeResponse
-	Meta                            = pb.Meta
-	NoDataResponse                  = pb.NoDataResponse
-	PageRequest                     = pb.PageRequest
-	RegisterRequest                 = pb.RegisterRequest
-	RegisterResponse                = pb.RegisterResponse
-	ResetUserPasswordRequest        = pb.ResetUserPasswordRequest
-	SysApi                          = pb.SysApi
-	SysAuthority                    = pb.SysAuthority
-	SysBaseMenu                     = pb.SysBaseMenu
-	SysBaseMenuBtn                  = pb.SysBaseMenuBtn
-	SysBaseMenuParameter            = pb.SysBaseMenuParameter
-	SysDictionary                   = pb.SysDictionary
-	SysDictionaryInfo               = pb.SysDictionaryInfo
-	SysMenu                         = pb.SysMenu
-	UpdateApiRequest                = pb.UpdateApiRequest
-	UpdateAuthorityRequest          = pb.UpdateAuthorityRequest
-	UpdateAuthorityResponse         = pb.UpdateAuthorityResponse
-	UpdateBaseMenuRequest           = pb.UpdateBaseMenuRequest
-	UpdateCasbinDataByApiIdsRequest = pb.UpdateCasbinDataByApiIdsRequest
-	UpdateCasbinDataRequest         = pb.UpdateCasbinDataRequest
-	UpdateUserAuthoritiesRequest    = pb.UpdateUserAuthoritiesRequest
-	UpdateUserInfoRequest           = pb.UpdateUserInfoRequest
-	UserInfo                        = pb.UserInfo
+	AddAuthorityMenuRequest          = pb.AddAuthorityMenuRequest
+	AddMenuBaseRequest               = pb.AddMenuBaseRequest
+	CasbinInfo                       = pb.CasbinInfo
+	CreateApiRequest                 = pb.CreateApiRequest
+	CreateAuthorityRequest           = pb.CreateAuthorityRequest
+	CreateAuthorityResponse          = pb.CreateAuthorityResponse
+	DeleteApiRequest                 = pb.DeleteApiRequest
+	DeleteApisByIdsRequest           = pb.DeleteApisByIdsRequest
+	DeleteAuthorityRequest           = pb.DeleteAuthorityRequest
+	DeleteBaseMenuRequest            = pb.DeleteBaseMenuRequest
+	DeleteUserRequest                = pb.DeleteUserRequest
+	DictionaryListResponse           = pb.DictionaryListResponse
+	GetAllApiListResponse            = pb.GetAllApiListResponse
+	GetApiListRequest                = pb.GetApiListRequest
+	GetApiListResponse               = pb.GetApiListResponse
+	GetAuthorityListRequest          = pb.GetAuthorityListRequest
+	GetAuthorityListResponse         = pb.GetAuthorityListResponse
+	GetBaseMenuByIdRequest           = pb.GetBaseMenuByIdRequest
+	GetBaseMenuByIdResponse          = pb.GetBaseMenuByIdResponse
+	GetBaseMenuTreeResponse          = pb.GetBaseMenuTreeResponse
+	GetMenuAuthorityRequest          = pb.GetMenuAuthorityRequest
+	GetMenuAuthorityResponse         = pb.GetMenuAuthorityResponse
+	GetMenuBaseInfoListResponse      = pb.GetMenuBaseInfoListResponse
+	GetMenuTreeRequest               = pb.GetMenuTreeRequest
+	GetMenuTreeResponse              = pb.GetMenuTreeResponse
+	GetPathByAuthorityIdRequest      = pb.GetPathByAuthorityIdRequest
+	GetPathByAuthorityIdResponse     = pb.GetPathByAuthorityIdResponse
+	GetSysDictionaryInfoListRequest  = pb.GetSysDictionaryInfoListRequest
+	GetSysDictionaryInfoListResponse = pb.GetSysDictionaryInfoListResponse
+	GetUserInfoRequest               = pb.GetUserInfoRequest
+	GetUserInfoResponse              = pb.GetUserInfoResponse
+	GetUserListRequest               = pb.GetUserListRequest
+	GetUserListResponse              = pb.GetUserListResponse
+	GetUserTokeRequest               = pb.GetUserTokeRequest
+	GetUserTokeResponse              = pb.GetUserTokeResponse
+	Meta                             = pb.Meta
+	NoDataResponse                   = pb.NoDataResponse
+	PageRequest                      = pb.PageRequest
+	RegisterRequest                  = pb.RegisterRequest
+	RegisterResponse                 = pb.RegisterResponse
+	ResetUserPasswordRequest         = pb.ResetUserPasswordRequest
+	SysApi                           = pb.SysApi
+	SysAuthority                     = pb.SysAuthority
+	SysBaseMenu                      = pb.SysBaseMenu
+	SysBaseMenuBtn                   = pb.SysBaseMenuBtn
+	SysBaseMenuParameter             = pb.SysBaseMenuParameter
+	SysDictionary                    = pb.SysDictionary
+	SysDictionaryInfo                = pb.SysDictionaryInfo
+	SysMenu                          = pb.SysMenu
+	UpdateApiRequest                 = pb.UpdateApiRequest
+	UpdateAuthorityRequest           = pb.UpdateAuthorityRequest
+	UpdateAuthorityResponse          = pb.UpdateAuthorityResponse
+	UpdateBaseMenuRequest            = pb.UpdateBaseMenuRequest
+	UpdateCasbinDataByApiIdsRequest  = pb.UpdateCasbinDataByApiIdsRequest
+	UpdateCasbinDataRequest          = pb.UpdateCasbinDataRequest
+	UpdateUserAuthoritiesRequest     = pb.UpdateUserAuthoritiesRequest
+	UpdateUserInfoRequest            = pb.UpdateUserInfoRequest
+	UserInfo                         = pb.UserInfo
 
 	Dictionary interface {
-		// 获取SysDictionary列表
+		// 获取SysDictionary列表 -- all
 		GetSysDictionaryList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*DictionaryListResponse, error)
+		// 获取SysDictionaryInfo列表 -- 分页带搜索
+		GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error)
 	}
 
 	defaultDictionary struct {
@@ -86,8 +90,14 @@ func NewDictionary(cli zrpc.Client) Dictionary {
 	}
 }
 
-// 获取SysDictionary列表
+// 获取SysDictionary列表 -- all
 func (m *defaultDictionary) GetSysDictionaryList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*DictionaryListResponse, error) {
 	client := pb.NewDictionaryClient(m.cli.Conn())
 	return client.GetSysDictionaryList(ctx, in, opts...)
+}
+
+// 获取SysDictionaryInfo列表 -- 分页带搜索
+func (m *defaultDictionary) GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error) {
+	client := pb.NewDictionaryClient(m.cli.Conn())
+	return client.GetSysDictionaryInfoList(ctx, in, opts...)
 }

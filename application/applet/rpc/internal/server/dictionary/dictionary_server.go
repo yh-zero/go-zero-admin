@@ -22,8 +22,14 @@ func NewDictionaryServer(svcCtx *svc.ServiceContext) *DictionaryServer {
 	}
 }
 
-// 获取SysDictionary列表
+// 获取SysDictionary列表 -- all
 func (s *DictionaryServer) GetSysDictionaryList(ctx context.Context, in *pb.NoDataResponse) (*pb.DictionaryListResponse, error) {
 	l := dictionarylogic.NewGetSysDictionaryListLogic(ctx, s.svcCtx)
 	return l.GetSysDictionaryList(in)
+}
+
+// 获取SysDictionaryInfo列表 -- 分页带搜索
+func (s *DictionaryServer) GetSysDictionaryInfoList(ctx context.Context, in *pb.GetSysDictionaryInfoListRequest) (*pb.GetSysDictionaryInfoListResponse, error) {
+	l := dictionarylogic.NewGetSysDictionaryInfoListLogic(ctx, s.svcCtx)
+	return l.GetSysDictionaryInfoList(in)
 }

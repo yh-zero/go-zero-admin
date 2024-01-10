@@ -1412,8 +1412,10 @@ var Casbin_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DictionaryClient interface {
-	// 获取SysDictionary列表
+	// 获取SysDictionary列表 -- all
 	GetSysDictionaryList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*DictionaryListResponse, error)
+	// 获取SysDictionaryInfo列表 -- 分页带搜索
+	GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error)
 }
 
 type dictionaryClient struct {
@@ -1433,12 +1435,23 @@ func (c *dictionaryClient) GetSysDictionaryList(ctx context.Context, in *NoDataR
 	return out, nil
 }
 
+func (c *dictionaryClient) GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error) {
+	out := new(GetSysDictionaryInfoListResponse)
+	err := c.cc.Invoke(ctx, "/pb.Dictionary/GetSysDictionaryInfoList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DictionaryServer is the server API for Dictionary service.
 // All implementations must embed UnimplementedDictionaryServer
 // for forward compatibility
 type DictionaryServer interface {
-	// 获取SysDictionary列表
+	// 获取SysDictionary列表 -- all
 	GetSysDictionaryList(context.Context, *NoDataResponse) (*DictionaryListResponse, error)
+	// 获取SysDictionaryInfo列表 -- 分页带搜索
+	GetSysDictionaryInfoList(context.Context, *GetSysDictionaryInfoListRequest) (*GetSysDictionaryInfoListResponse, error)
 	mustEmbedUnimplementedDictionaryServer()
 }
 
@@ -1448,6 +1461,9 @@ type UnimplementedDictionaryServer struct {
 
 func (UnimplementedDictionaryServer) GetSysDictionaryList(context.Context, *NoDataResponse) (*DictionaryListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSysDictionaryList not implemented")
+}
+func (UnimplementedDictionaryServer) GetSysDictionaryInfoList(context.Context, *GetSysDictionaryInfoListRequest) (*GetSysDictionaryInfoListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSysDictionaryInfoList not implemented")
 }
 func (UnimplementedDictionaryServer) mustEmbedUnimplementedDictionaryServer() {}
 
@@ -1480,6 +1496,24 @@ func _Dictionary_GetSysDictionaryList_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Dictionary_GetSysDictionaryInfoList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSysDictionaryInfoListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DictionaryServer).GetSysDictionaryInfoList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Dictionary/GetSysDictionaryInfoList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DictionaryServer).GetSysDictionaryInfoList(ctx, req.(*GetSysDictionaryInfoListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Dictionary_ServiceDesc is the grpc.ServiceDesc for Dictionary service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1490,6 +1524,10 @@ var Dictionary_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSysDictionaryList",
 			Handler:    _Dictionary_GetSysDictionaryList_Handler,
+		},
+		{
+			MethodName: "GetSysDictionaryInfoList",
+			Handler:    _Dictionary_GetSysDictionaryInfoList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -49,7 +49,7 @@ type SysAuthority {
 
 type SysBaseMenu {
 	MenuLevel     int64                  `json:"-"`
-	ParentId      int64                 `json:"parentId"`      // 父菜单ID
+	ParentId      int64                  `json:"parentId"`      // 父菜单ID
 	Path          string                 `json:"path"`          // 路由path
 	Name          string                 `json:"name"`          // 路由name
 	Hidden        bool                   `json:"hidden"`        // 是否在列表隐藏
@@ -163,18 +163,18 @@ type GetAuthorityListResponse {
 	PageResponse
 }
 
-type SysApi struct {
-	Path        string `json:"path,optional" form:"path,optional"`                // api路径
-	Description string `json:"description,optional" form:"description,optional"`  // api中文描述
-	ApiGroup    string `json:"apiGroup,optional" form:"apiGroup,optional"`        // api组
-	Method      string `json:"method,optional" form:"method,optional"`            // 方法:创建POST(默认)|查看GET|更新PUT|删除DELETE
+type SysApi {
+	Path        string `json:"path,optional" form:"path,optional"`               // api路径
+	Description string `json:"description,optional" form:"description,optional"` // api中文描述
+	ApiGroup    string `json:"apiGroup,optional" form:"apiGroup,optional"`       // api组
+	Method      string `json:"method,optional" form:"method,optional"`           // 方法:创建POST(默认)|查看GET|更新PUT|删除DELETE
 
 	Model
 }
 
-type GetApiListRequest struct {
+type GetApiListRequest {
 	OrderKey string `form:"orderKey,optional"` // 排序的字段
-	Desc     bool   `form:"desc,optional"`        // 排序方式:升序false(默认) | 降序true
+	Desc     bool   `form:"desc,optional"`     // 排序方式:升序false(默认) | 降序true
 
 	SysApi
 	PageRequest
@@ -314,19 +314,19 @@ type DeleteUserRequest {
 	UserID int64 `json:"userId"`
 }
 
-type DeleteApisByIdsRequest{
-	ids []int64 `json:"ids,optional" form:"ids,optional"`
+type DeleteApisByIdsRequest {
+	Ids []int64 `json:"ids,optional" form:"ids,optional"`
 }
 
 type UploadFileImgRequest{}
 
-type UploadFileImgResponse{
+type UploadFileImgResponse {
 	FileImgUrl string `json:"fileImgUrl"`
 }
 
 type UpdateCasbinDataByApiIdsRequest {
-	AuthorityId    int64        `json:"authorityId"`
-	ApiIds []int64 `json:"apiIds"`
+	AuthorityId int64   `json:"authorityId"`
+	ApiIds      []int64 `json:"apiIds"`
 }
 
 type UpdateApiRequest {
@@ -346,22 +346,32 @@ type SysDictionary {
 	Name                  string              `json:"name"`   // 字典名（中）
 	Type                  string              `json:"type"`   // 字典名（英）
 	Status                *bool               `json:"status"` // 状态
-	Desc                  string              `json:"desc"`       // 描述
+	Desc                  string              `json:"desc"`   // 描述
 	SysDictionaryInfoList []SysDictionaryInfo `json:"sysDictionaryInfoList"`
 }
 
-type SysDictionaryInfo struct {
+type SysDictionaryInfo {
 	Model
-	Label           string `json:"label"`                                  // 展示值
-	Value           int64  `json:"value"`                                  // 字典值
-	Extend          string `json:"extend"`                               // 扩展值
-	Status          *bool  `json:"status"`                              // 启用状态
-	Sort            int64  `json:"sort"`                                    // 排序标记
-	SysDictionaryID int64  `json:"sysDictionaryID"` // 关联标记
+	Label           string `json:"label,optional" form:"label,optional"`   // 展示值
+	Value           int64  `json:"value,optional" form:"value,optional"`   // 字典值
+	Extend          string `json:"extend,optional" form:"extend,optional"` // 扩展值
+	Status          int64  `json:"status,optional" form:"status,optional"` // 启用状态
+	Sort            int64  `json:"sort,optional" form:"sort,optional"`     // 排序标记
+	SysDictionaryID int64  `json:"sysDictionaryID,optional" form:"sysDictionaryID"` // 关联标记
 }
 
 type GetSysDictionaryListRequest {}
 
 type GetSysDictionaryListResponse {
-	list []SysDictionary `json:"list"`
+	List []SysDictionary `json:"list"`
+}
+
+type GetSysDictionaryInfoListRequest {
+	SysDictionaryInfo
+	PageRequest
+}
+
+type GetSysDictionaryInfoListResponse {
+	List []SysDictionaryInfo `json:"list"`
+	PageResponse
 }

@@ -364,7 +364,7 @@ message SysDictionaryInfo {
   string Label = 1;
   int64 Value = 2;
   string Extend = 3;
-  bool Status = 4;
+  int64 Status = 4;
   int64 Sort = 5;
   int64 SysDictionaryID = 6;
 
@@ -376,8 +376,17 @@ message SysDictionaryInfo {
 
 message DictionaryListResponse {
   repeated SysDictionary SysDictionaryList = 1;
-
 }
+
+message GetSysDictionaryInfoListRequest {
+  SysDictionaryInfo SysDictionaryInfo = 1;
+  PageRequest PageRequest = 2;
+}
+message GetSysDictionaryInfoListResponse {
+  repeated SysDictionaryInfo SysDictionaryInfoList = 1;
+  int64 Total = 2;
+}
+
 
 service User {
   //  获取用户信息
@@ -462,8 +471,12 @@ service Casbin {
 }
 
 service Dictionary {
-  // 获取SysDictionary列表
+  // 获取SysDictionary列表 -- all
   rpc GetSysDictionaryList (NoDataResponse) returns (DictionaryListResponse);
 
+
+
+  // 获取SysDictionaryInfo列表 -- 分页带搜索
+  rpc GetSysDictionaryInfoList (GetSysDictionaryInfoListRequest) returns (GetSysDictionaryInfoListResponse);
 
 }

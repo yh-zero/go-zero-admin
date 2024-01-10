@@ -192,4 +192,8 @@ service applet-api {
 	@doc "获取SysDictionary列表"
 	@handler GetSysDictionaryList
 	get /getSysDictionaryList (GetSysDictionaryListRequest) returns (GetSysDictionaryListResponse)
+
+	@doc "获取SysDictionaryInfo列表"
+	@handler GetSysDictionaryInfoList
+	get /getSysDictionaryInfoList (GetSysDictionaryInfoListRequest) returns (GetSysDictionaryInfoListResponse)
 }
