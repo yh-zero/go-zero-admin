@@ -1,8 +1,6 @@
 package model
 
-import (
-	"go-zero-admin/pkg/model"
-)
+import "go-zero-admin/pkg/model"
 
 type SysApi struct {
 	model.MODEL_BASE

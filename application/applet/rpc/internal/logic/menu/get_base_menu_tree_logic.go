@@ -51,7 +51,7 @@ func (l *GetBaseMenuTreeLogic) getBaseMenuTreeMap() (treeMap map[string][]model.
 	treeMap = make(map[string][]model.SysBaseMenu)
 	err = l.svcCtx.DB.Order("sort").Preload("MenuBtn").Preload("Parameters").Find(&sysBaseMenuList).Error
 	for _, v := range sysBaseMenuList {
-		treeMap[v.ParentId] = append(treeMap[v.ParentId], v)
+		treeMap[strconv.FormatInt(v.ParentId, 10)] = append(treeMap[strconv.FormatInt(v.ParentId, 10)], v)
 	}
 	return treeMap, err
 }

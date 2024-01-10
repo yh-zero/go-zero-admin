@@ -46,7 +46,7 @@ type SysAuthority struct {
 
 type SysBaseMenu struct {
 	MenuLevel     int64                  `json:"-"`
-	ParentId      string                 `json:"parentId"`      // 父菜单ID
+	ParentId      int64                  `json:"parentId"`      // 父菜单ID
 	Path          string                 `json:"path"`          // 路由path
 	Name          string                 `json:"name"`          // 路由name
 	Hidden        bool                   `json:"hidden"`        // 是否在列表隐藏
@@ -328,4 +328,30 @@ type DeleteBaseMenuRequest struct {
 
 type DeleteAuthorityRequest struct {
 	ID int64 `json:"id"`
+}
+
+type SysDictionary struct {
+	Model
+	Name                  string              `json:"name"`   // 字典名（中）
+	Type                  string              `json:"type"`   // 字典名（英）
+	Status                *bool               `json:"status"` // 状态
+	Desc                  string              `json:"desc"`   // 描述
+	SysDictionaryInfoList []SysDictionaryInfo `json:"sysDictionaryInfoList"`
+}
+
+type SysDictionaryInfo struct {
+	Model
+	Label           string `json:"label"`           // 展示值
+	Value           int64  `json:"value"`           // 字典值
+	Extend          string `json:"extend"`          // 扩展值
+	Status          *bool  `json:"status"`          // 启用状态
+	Sort            int64  `json:"sort"`            // 排序标记
+	SysDictionaryID int64  `json:"sysDictionaryID"` // 关联标记
+}
+
+type GetSysDictionaryListRequest struct {
+}
+
+type GetSysDictionaryListResponse struct {
+	List []SysDictionary `json:"list"`
 }

@@ -24,6 +24,7 @@ type (
 	DeleteAuthorityRequest          = pb.DeleteAuthorityRequest
 	DeleteBaseMenuRequest           = pb.DeleteBaseMenuRequest
 	DeleteUserRequest               = pb.DeleteUserRequest
+	DictionaryListResponse          = pb.DictionaryListResponse
 	GetAllApiListResponse           = pb.GetAllApiListResponse
 	GetApiListRequest               = pb.GetApiListRequest
 	GetApiListResponse              = pb.GetApiListResponse
@@ -56,6 +57,8 @@ type (
 	SysBaseMenu                     = pb.SysBaseMenu
 	SysBaseMenuBtn                  = pb.SysBaseMenuBtn
 	SysBaseMenuParameter            = pb.SysBaseMenuParameter
+	SysDictionary                   = pb.SysDictionary
+	SysDictionaryInfo               = pb.SysDictionaryInfo
 	SysMenu                         = pb.SysMenu
 	UpdateApiRequest                = pb.UpdateApiRequest
 	UpdateAuthorityRequest          = pb.UpdateAuthorityRequest

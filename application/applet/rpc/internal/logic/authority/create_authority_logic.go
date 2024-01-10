@@ -66,7 +66,7 @@ func (l *CreateAuthorityLogic) CreateAuthority(in *pb.CreateAuthorityRequest) (*
 func (l *CreateAuthorityLogic) DefaultMenu() []model.SysBaseMenu {
 	return []model.SysBaseMenu{{
 		MODEL_BASE: modelBase.MODEL_BASE{ID: 1},
-		ParentId:   "0",
+		ParentId:   0,
 		Path:       "routerHolder",
 		Name:       "routerHolder",
 		Component:  "views/routerHolder.vue",

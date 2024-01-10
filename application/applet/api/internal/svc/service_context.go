@@ -6,6 +6,7 @@ import (
 	"go-zero-admin/application/applet/rpc/client/api"
 	"go-zero-admin/application/applet/rpc/client/authority"
 	casbinRPC "go-zero-admin/application/applet/rpc/client/casbin"
+	dictionaryRPC "go-zero-admin/application/applet/rpc/client/dictionary"
 	"go-zero-admin/application/applet/rpc/client/menu"
 	"go-zero-admin/application/applet/rpc/client/user"
 
@@ -22,17 +23,18 @@ const (
 )
 
 type ServiceContext struct {
-	Config             config.Config
-	Authority          rest.Middleware
-	BizRedis           *redis.Redis
-	AppletUserRPC      user.User
-	AppletMenuRPC      menu.Menu
-	AppletAuthorityRPC authority.Authority
-	AppletAPIRPC       api.Api
-	AppletCasbinRPC    casbinRPC.Casbin
-	Casbin             *casbin.SyncedCachedEnforcer
-	BanRoleData        map[string]bool // ban role means the role status is not normal
-	OssClient          *oss.Client
+	Config              config.Config
+	Authority           rest.Middleware
+	BizRedis            *redis.Redis
+	AppletUserRPC       user.User
+	AppletMenuRPC       menu.Menu
+	AppletAuthorityRPC  authority.Authority
+	AppletAPIRPC        api.Api
+	AppletCasbinRPC     casbinRPC.Casbin
+	AppletDictionaryRPC dictionaryRPC.Dictionary
+	Casbin              *casbin.SyncedCachedEnforcer
+	BanRoleData         map[string]bool // ban role means the role status is not normal
+	OssClient           *oss.Client
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -56,13 +58,14 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config:    c,
 		OssClient: oc,
 		//BizRedis:           redis.New(c.BizRedis.Host, redis.WithPass(c.BizRedis.Pass)),
-		BizRedis:           rds,
-		AppletUserRPC:      user.NewUser(zrpc.MustNewClient(c.AppletRPC)),
-		AppletMenuRPC:      menu.NewMenu(zrpc.MustNewClient(c.AppletRPC)),
-		AppletAuthorityRPC: authority.NewAuthority(zrpc.MustNewClient(c.AppletRPC)),
-		AppletAPIRPC:       api.NewApi(zrpc.MustNewClient(c.AppletRPC)),
-		AppletCasbinRPC:    casbinRPC.NewCasbin(zrpc.MustNewClient(c.AppletRPC)),
-		Casbin:             casB,
+		BizRedis:            rds,
+		AppletUserRPC:       user.NewUser(zrpc.MustNewClient(c.AppletRPC)),
+		AppletMenuRPC:       menu.NewMenu(zrpc.MustNewClient(c.AppletRPC)),
+		AppletAuthorityRPC:  authority.NewAuthority(zrpc.MustNewClient(c.AppletRPC)),
+		AppletAPIRPC:        api.NewApi(zrpc.MustNewClient(c.AppletRPC)),
+		AppletCasbinRPC:     casbinRPC.NewCasbin(zrpc.MustNewClient(c.AppletRPC)),
+		AppletDictionaryRPC: dictionaryRPC.NewDictionary(zrpc.MustNewClient(c.AppletRPC)),
+		Casbin:              casB,
 	}
 
 	svc.Authority = middleware.NewAuthorityMiddleware(casB, rds, svc.BanRoleData).Handle

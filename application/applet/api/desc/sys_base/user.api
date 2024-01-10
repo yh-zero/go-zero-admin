@@ -180,6 +180,16 @@ service applet-api {
 	@doc "根据角色id获取对应的casbin数据"
 	@handler UploadFileImg
 	post /uploadFileImg (UploadFileImgRequest) returns (UploadFileImgResponse)
+}
 
-
+@server(
+	prefix: /v1/sys/dictionary
+	group: dictionary
+	jwt: JwtAuth
+	middleware: Authority
+)
+service applet-api {
+	@doc "获取SysDictionary列表"
+	@handler GetSysDictionaryList
+	get /getSysDictionaryList (GetSysDictionaryListRequest) returns (GetSysDictionaryListResponse)
 }

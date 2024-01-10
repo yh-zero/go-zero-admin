@@ -6,7 +6,7 @@ type SysBaseMenu struct {
 	model.MODEL_BASE
 
 	MenuLevel     int64                                      `json:"-"`
-	ParentId      string                                     `json:"parentId" gorm:"comment:父菜单ID"`     // 父菜单ID
+	ParentId      int64                                      `json:"parentId" gorm:"comment:父菜单ID"`     // 父菜单ID
 	Path          string                                     `json:"path" gorm:"comment:路由path"`        // 路由path
 	Name          string                                     `json:"name" gorm:"comment:路由name"`        // 路由name
 	Hidden        bool                                       `json:"hidden" gorm:"comment:是否在列表隐藏"`     // 是否在列表隐藏

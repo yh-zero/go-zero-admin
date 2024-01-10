@@ -8,6 +8,7 @@ import (
 	apiServer "go-zero-admin/application/applet/rpc/internal/server/api"
 	authorityServer "go-zero-admin/application/applet/rpc/internal/server/authority"
 	casbinServer "go-zero-admin/application/applet/rpc/internal/server/casbin"
+	dictionaryServer "go-zero-admin/application/applet/rpc/internal/server/dictionary"
 	menuServer "go-zero-admin/application/applet/rpc/internal/server/menu"
 	userServer "go-zero-admin/application/applet/rpc/internal/server/user"
 	"go-zero-admin/application/applet/rpc/internal/svc"
@@ -35,6 +36,7 @@ func main() {
 		pb.RegisterAuthorityServer(grpcServer, authorityServer.NewAuthorityServer(ctx))
 		pb.RegisterApiServer(grpcServer, apiServer.NewApiServer(ctx))
 		pb.RegisterCasbinServer(grpcServer, casbinServer.NewCasbinServer(ctx))
+		pb.RegisterDictionaryServer(grpcServer, dictionaryServer.NewDictionaryServer(ctx))
 
 		if c.Mode == service.DevMode || c.Mode == service.TestMode {
 			reflection.Register(grpcServer)

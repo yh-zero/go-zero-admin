@@ -26,10 +26,10 @@ func NewAddBaseMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *AddBa
 }
 
 func (l *AddBaseMenuLogic) AddBaseMenu(req *types.AddBaseMenuRequest) (resp *types.AddBaseMenuResponse, err error) {
-	var typesAddBaseMenu types.AddBaseMenuRequest
-	typesAddBaseMenu = *req
-	var pbMenuBaseAdd pb.AddMenuBaseRequest
-	_ = copier.Copy(&pbMenuBaseAdd, typesAddBaseMenu)
-	_, err = l.svcCtx.AppletMenuRPC.AddMenuBase(l.ctx, &pbMenuBaseAdd)
+
+	var pbSysBaseMenu pb.SysBaseMenu
+	_ = copier.Copy(&pbSysBaseMenu, req)
+
+	_, err = l.svcCtx.AppletMenuRPC.AddMenuBase(l.ctx, &pb.AddMenuBaseRequest{SysBaseMenu: &pbSysBaseMenu})
 	return &types.AddBaseMenuResponse{}, err
 }

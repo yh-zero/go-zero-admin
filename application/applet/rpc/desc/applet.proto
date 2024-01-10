@@ -97,7 +97,7 @@ message GetMenuTreeRequest{
 
 message SysBaseMenu{
   int64 MenuLevel = 1;
-  string ParentId = 2;
+  int64 ParentId = 2;
   string Path = 3;
   string Name = 4;
   bool Hidden = 5;
@@ -347,6 +347,38 @@ message DeleteAuthorityRequest {
   int64 ID = 1;
 }
 
+message SysDictionary {
+  string Name = 1;
+  string Type = 2;
+  bool Status = 3;
+  string Desc = 4;
+  repeated SysDictionaryInfo SysDictionaryInfoList = 5;
+
+  int64  ID = 6;
+  string CreatedAt = 7;
+  string UpdatedAt = 8;
+  string DeletedAt = 9;
+}
+
+message SysDictionaryInfo {
+  string Label = 1;
+  int64 Value = 2;
+  string Extend = 3;
+  bool Status = 4;
+  int64 Sort = 5;
+  int64 SysDictionaryID = 6;
+
+  int64  ID = 7;
+  string CreatedAt = 8;
+  string UpdatedAt = 9;
+  string DeletedAt = 10;
+}
+
+message DictionaryListResponse {
+  repeated SysDictionary SysDictionaryList = 1;
+
+}
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -427,6 +459,11 @@ service Casbin {
   rpc UpdateCasbinData (UpdateCasbinDataRequest) returns (NoDataResponse);
   // 更新一个角色的对应的casbin数据 用api的ids 查数据
   rpc UpdateCasbinDataByApiIds (UpdateCasbinDataByApiIdsRequest) returns (NoDataResponse);
+}
+
+service Dictionary {
+  // 获取SysDictionary列表
+  rpc GetSysDictionaryList (NoDataResponse) returns (DictionaryListResponse);
 
 
 }

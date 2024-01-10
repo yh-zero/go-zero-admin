@@ -1407,3 +1407,91 @@ var Casbin_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "application/applet/rpc/desc/applet.proto",
 }
+
+// DictionaryClient is the client API for Dictionary service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type DictionaryClient interface {
+	// 获取SysDictionary列表
+	GetSysDictionaryList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*DictionaryListResponse, error)
+}
+
+type dictionaryClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewDictionaryClient(cc grpc.ClientConnInterface) DictionaryClient {
+	return &dictionaryClient{cc}
+}
+
+func (c *dictionaryClient) GetSysDictionaryList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*DictionaryListResponse, error) {
+	out := new(DictionaryListResponse)
+	err := c.cc.Invoke(ctx, "/pb.Dictionary/GetSysDictionaryList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// DictionaryServer is the server API for Dictionary service.
+// All implementations must embed UnimplementedDictionaryServer
+// for forward compatibility
+type DictionaryServer interface {
+	// 获取SysDictionary列表
+	GetSysDictionaryList(context.Context, *NoDataResponse) (*DictionaryListResponse, error)
+	mustEmbedUnimplementedDictionaryServer()
+}
+
+// UnimplementedDictionaryServer must be embedded to have forward compatible implementations.
+type UnimplementedDictionaryServer struct {
+}
+
+func (UnimplementedDictionaryServer) GetSysDictionaryList(context.Context, *NoDataResponse) (*DictionaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSysDictionaryList not implemented")
+}
+func (UnimplementedDictionaryServer) mustEmbedUnimplementedDictionaryServer() {}
+
+// UnsafeDictionaryServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to DictionaryServer will
+// result in compilation errors.
+type UnsafeDictionaryServer interface {
+	mustEmbedUnimplementedDictionaryServer()
+}
+
+func RegisterDictionaryServer(s grpc.ServiceRegistrar, srv DictionaryServer) {
+	s.RegisterService(&Dictionary_ServiceDesc, srv)
+}
+
+func _Dictionary_GetSysDictionaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NoDataResponse)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DictionaryServer).GetSysDictionaryList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Dictionary/GetSysDictionaryList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DictionaryServer).GetSysDictionaryList(ctx, req.(*NoDataResponse))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Dictionary_ServiceDesc is the grpc.ServiceDesc for Dictionary service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Dictionary_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.Dictionary",
+	HandlerType: (*DictionaryServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetSysDictionaryList",
+			Handler:    _Dictionary_GetSysDictionaryList_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "application/applet/rpc/desc/applet.proto",
+}

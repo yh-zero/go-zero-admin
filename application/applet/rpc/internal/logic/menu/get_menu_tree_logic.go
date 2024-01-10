@@ -86,7 +86,7 @@ func (l *GetMenuTreeLogic) getMenuTreeMap(authorityId int64) (treeMap map[string
 	}
 	for _, v := range allMenus {
 		v.Btns = btnMap[v.ID]
-		treeMap[v.ParentId] = append(treeMap[v.ParentId], v)
+		treeMap[strconv.FormatInt(v.ParentId, 10)] = append(treeMap[strconv.FormatInt(v.ParentId, 10)], v)
 	}
 
 	return treeMap, err

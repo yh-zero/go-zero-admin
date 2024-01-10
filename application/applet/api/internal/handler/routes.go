@@ -8,6 +8,7 @@ import (
 	authority "go-zero-admin/application/applet/api/internal/handler/authority"
 	base "go-zero-admin/application/applet/api/internal/handler/base"
 	casbin "go-zero-admin/application/applet/api/internal/handler/casbin"
+	dictionary "go-zero-admin/application/applet/api/internal/handler/dictionary"
 	menu "go-zero-admin/application/applet/api/internal/handler/menu"
 	user "go-zero-admin/application/applet/api/internal/handler/user"
 	usernocasbin "go-zero-admin/application/applet/api/internal/handler/usernocasbin"
@@ -231,5 +232,20 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
 		rest.WithPrefix("/v1/sys/base"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					Method:  http.MethodGet,
+					Path:    "/getSysDictionaryList",
+					Handler: dictionary.GetSysDictionaryListHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/dictionary"),
 	)
 }

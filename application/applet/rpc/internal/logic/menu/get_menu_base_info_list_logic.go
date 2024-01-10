@@ -52,7 +52,7 @@ func (l *GetMenuBaseInfoListLogic) getBaseMenuTreeMap() (treeMap map[string][]mo
 	}
 	fmt.Println("======= allMenus", allMenus)
 	for _, v := range allMenus {
-		treeMap[v.ParentId] = append(treeMap[v.ParentId], v)
+		treeMap[strconv.FormatInt(v.ParentId, 10)] = append(treeMap[strconv.FormatInt(v.ParentId, 10)], v)
 	}
 	return treeMap, err
 }
