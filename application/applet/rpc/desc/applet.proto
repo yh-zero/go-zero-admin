@@ -396,6 +396,17 @@ message UpdateSysDictionaryRequest {
   SysDictionary SysDictionary = 1;
 }
 
+message GetSysDictionaryDetailsRequest {
+  int64 ID = 1;
+  string Type = 2;  // 字典名（英）
+  int64 Status = 3; // 状态 1开启 2关闭
+}
+
+message GetSysDictionaryDetailsResponse {
+    SysDictionary SysDictionary = 1;
+}
+
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -485,6 +496,8 @@ service Dictionary {
   rpc CreateSysDictionary (CreateSysDictionaryRequest) returns (NoDataResponse);
   // 更新SysDictionary
   rpc UpdateSysDictionary (UpdateSysDictionaryRequest) returns (NoDataResponse);
+  // 根据ID或者type获取SysDictionary
+  rpc GetSysDictionaryDetails (GetSysDictionaryDetailsRequest) returns (GetSysDictionaryDetailsResponse);
 
 
 

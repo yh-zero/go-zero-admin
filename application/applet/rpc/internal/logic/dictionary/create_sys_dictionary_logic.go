@@ -31,6 +31,9 @@ func NewCreateSysDictionaryLogic(ctx context.Context, svcCtx *svc.ServiceContext
 // 新建SysDictionary
 func (l *CreateSysDictionaryLogic) CreateSysDictionary(in *pb.CreateSysDictionaryRequest) (*pb.NoDataResponse, error) {
 	fmt.Println("============ in", in.SysDictionary.Status)
+	if in.SysDictionary.Status == 0 {
+		in.SysDictionary.Status = 1
+	}
 	err := l.svcCtx.DB.First(&model.SysDictionary{}, "type = ?", in.SysDictionary.Type).Error
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.New("错误： 存在相同的type")

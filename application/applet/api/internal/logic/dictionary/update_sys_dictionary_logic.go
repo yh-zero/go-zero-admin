@@ -2,6 +2,8 @@ package dictionary
 
 import (
 	"context"
+	"github.com/jinzhu/copier"
+	"go-zero-admin/application/applet/rpc/pb"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
@@ -24,7 +26,13 @@ func NewUpdateSysDictionaryLogic(ctx context.Context, svcCtx *svc.ServiceContext
 }
 
 func (l *UpdateSysDictionaryLogic) UpdateSysDictionary(req *types.UpdateSysDictionaryRequest) (resp *types.MessageResponse, err error) {
-	// todo: add your logic here and delete this line
+	var pbSysDictionary pb.SysDictionary
+	_ = copier.Copy(&pbSysDictionary, req)
+	_, err = l.svcCtx.AppletDictionaryRPC.UpdateSysDictionary(l.ctx, &pb.UpdateSysDictionaryRequest{SysDictionary: &pbSysDictionary})
+	if err != nil {
+		logx.Errorf("l.svcCtx.AppletDictionaryRPC.UpdateSysDictionary err:%v", err)
+		return nil, err
+	}
 
-	return
+	return &types.MessageResponse{Message: "修改成功！"}, nil
 }

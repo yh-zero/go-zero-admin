@@ -41,6 +41,8 @@ type (
 	GetMenuTreeResponse              = pb.GetMenuTreeResponse
 	GetPathByAuthorityIdRequest      = pb.GetPathByAuthorityIdRequest
 	GetPathByAuthorityIdResponse     = pb.GetPathByAuthorityIdResponse
+	GetSysDictionaryDetailsRequest   = pb.GetSysDictionaryDetailsRequest
+	GetSysDictionaryDetailsResponse  = pb.GetSysDictionaryDetailsResponse
 	GetSysDictionaryInfoListRequest  = pb.GetSysDictionaryInfoListRequest
 	GetSysDictionaryInfoListResponse = pb.GetSysDictionaryInfoListResponse
 	GetUserInfoRequest               = pb.GetUserInfoRequest

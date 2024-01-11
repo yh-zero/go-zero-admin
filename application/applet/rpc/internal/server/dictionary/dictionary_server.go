@@ -40,6 +40,12 @@ func (s *DictionaryServer) UpdateSysDictionary(ctx context.Context, in *pb.Updat
 	return l.UpdateSysDictionary(in)
 }
 
+// 根据ID或者type获取SysDictionary
+func (s *DictionaryServer) GetSysDictionaryDetails(ctx context.Context, in *pb.GetSysDictionaryDetailsRequest) (*pb.GetSysDictionaryDetailsResponse, error) {
+	l := dictionarylogic.NewGetSysDictionaryDetailsLogic(ctx, s.svcCtx)
+	return l.GetSysDictionaryDetails(in)
+}
+
 // 获取SysDictionaryInfo列表 -- 分页带搜索
 func (s *DictionaryServer) GetSysDictionaryInfoList(ctx context.Context, in *pb.GetSysDictionaryInfoListRequest) (*pb.GetSysDictionaryInfoListResponse, error) {
 	l := dictionarylogic.NewGetSysDictionaryInfoListLogic(ctx, s.svcCtx)

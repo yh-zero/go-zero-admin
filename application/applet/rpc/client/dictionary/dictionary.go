@@ -41,6 +41,8 @@ type (
 	GetMenuTreeResponse              = pb.GetMenuTreeResponse
 	GetPathByAuthorityIdRequest      = pb.GetPathByAuthorityIdRequest
 	GetPathByAuthorityIdResponse     = pb.GetPathByAuthorityIdResponse
+	GetSysDictionaryDetailsRequest   = pb.GetSysDictionaryDetailsRequest
+	GetSysDictionaryDetailsResponse  = pb.GetSysDictionaryDetailsResponse
 	GetSysDictionaryInfoListRequest  = pb.GetSysDictionaryInfoListRequest
 	GetSysDictionaryInfoListResponse = pb.GetSysDictionaryInfoListResponse
 	GetUserInfoRequest               = pb.GetUserInfoRequest
@@ -81,6 +83,8 @@ type (
 		CreateSysDictionary(ctx context.Context, in *CreateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 更新SysDictionary
 		UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		// 根据ID或者type获取SysDictionary
+		GetSysDictionaryDetails(ctx context.Context, in *GetSysDictionaryDetailsRequest, opts ...grpc.CallOption) (*GetSysDictionaryDetailsResponse, error)
 		// 获取SysDictionaryInfo列表 -- 分页带搜索
 		GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error)
 	}
@@ -112,6 +116,12 @@ func (m *defaultDictionary) CreateSysDictionary(ctx context.Context, in *CreateS
 func (m *defaultDictionary) UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewDictionaryClient(m.cli.Conn())
 	return client.UpdateSysDictionary(ctx, in, opts...)
+}
+
+// 根据ID或者type获取SysDictionary
+func (m *defaultDictionary) GetSysDictionaryDetails(ctx context.Context, in *GetSysDictionaryDetailsRequest, opts ...grpc.CallOption) (*GetSysDictionaryDetailsResponse, error) {
+	client := pb.NewDictionaryClient(m.cli.Conn())
+	return client.GetSysDictionaryDetails(ctx, in, opts...)
 }
 
 // 获取SysDictionaryInfo列表 -- 分页带搜索

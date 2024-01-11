@@ -199,6 +199,10 @@ service applet-api {
 	@handler CreateSysDictionary
 	post /createSysDictionary (CreateSysDictionaryRequest) returns (MessageResponse)
 
+	@doc "根据ID或者type获取SysDictionary"
+	@handler GetSysDictionaryDetails
+	get /getSysDictionaryDetails (GetSysDictionaryDetailsRequest) returns (GetSysDictionaryDetailsResponse)
+
 	@doc "更新SysDictionary"
 	@handler UpdateSysDictionary
 	put /updateSysDictionary (UpdateSysDictionaryRequest) returns (MessageResponse)
