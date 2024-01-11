@@ -221,4 +221,8 @@ service applet-api {
 	@handler GetSysDictionaryInfoListDetailsById
 	get /getSysDictionaryInfoListDetailsById (GetSysDictionaryInfoListDetailsByIdRequest) returns (GetSysDictionaryInfoListDetailsByIdResponse)
 
+	@doc "更新SysDictionaryInfo"
+	@handler UpdateSysDictionaryInfo
+	put /updateSysDictionaryInfo (UpdateSysDictionaryInfoRequest) returns (MessageResponse)
+
 }

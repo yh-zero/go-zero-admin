@@ -273,6 +273,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/getSysDictionaryInfoListDetailsById",
 					Handler: dictionary.GetSysDictionaryInfoListDetailsByIdHandler(serverCtx),
 				},
+				{
+					Method:  http.MethodPut,
+					Path:    "/updateSysDictionaryInfo",
+					Handler: dictionary.UpdateSysDictionaryInfoHandler(serverCtx),
+				},
 			}...,
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),

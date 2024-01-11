@@ -63,3 +63,9 @@ func (s *DictionaryServer) GetSysDictionaryInfoListDetailsById(ctx context.Conte
 	l := dictionarylogic.NewGetSysDictionaryInfoListDetailsByIdLogic(ctx, s.svcCtx)
 	return l.GetSysDictionaryInfoListDetailsById(in)
 }
+
+// 更新SysDictionaryInfo
+func (s *DictionaryServer) UpdateSysDictionaryInfo(ctx context.Context, in *pb.UpdateSysDictionaryInfoRequest) (*pb.NoDataResponse, error) {
+	l := dictionarylogic.NewUpdateSysDictionaryInfoLogic(ctx, s.svcCtx)
+	return l.UpdateSysDictionaryInfo(in)
+}

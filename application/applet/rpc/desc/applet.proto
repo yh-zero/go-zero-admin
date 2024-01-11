@@ -418,6 +418,10 @@ message GetSysDictionaryInfoListDetailsByIdResponse {
   SysDictionaryInfo SysDictionaryInfo = 1;
 }
 
+message UpdateSysDictionaryInfoRequest {
+  SysDictionaryInfo SysDictionaryInfo = 1;
+}
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -520,5 +524,8 @@ service Dictionary {
   rpc GetSysDictionaryInfoList (GetSysDictionaryInfoListRequest) returns (GetSysDictionaryInfoListResponse);
   // 根据id获取SysDictionaryInfo详情
   rpc GetSysDictionaryInfoListDetailsById (GetSysDictionaryInfoListDetailsByIdRequest) returns (GetSysDictionaryInfoListDetailsByIdResponse);
+  // 更新SysDictionaryInfo
+  rpc UpdateSysDictionaryInfo (UpdateSysDictionaryInfoRequest) returns (NoDataResponse);
+
 
 }

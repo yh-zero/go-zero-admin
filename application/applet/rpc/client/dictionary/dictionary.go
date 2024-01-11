@@ -74,6 +74,7 @@ type (
 	UpdateBaseMenuRequest                       = pb.UpdateBaseMenuRequest
 	UpdateCasbinDataByApiIdsRequest             = pb.UpdateCasbinDataByApiIdsRequest
 	UpdateCasbinDataRequest                     = pb.UpdateCasbinDataRequest
+	UpdateSysDictionaryInfoRequest              = pb.UpdateSysDictionaryInfoRequest
 	UpdateSysDictionaryRequest                  = pb.UpdateSysDictionaryRequest
 	UpdateUserAuthoritiesRequest                = pb.UpdateUserAuthoritiesRequest
 	UpdateUserInfoRequest                       = pb.UpdateUserInfoRequest
@@ -94,6 +95,8 @@ type (
 		GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error)
 		// 根据id获取SysDictionaryInfo详情
 		GetSysDictionaryInfoListDetailsById(ctx context.Context, in *GetSysDictionaryInfoListDetailsByIdRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListDetailsByIdResponse, error)
+		// 更新SysDictionaryInfo
+		UpdateSysDictionaryInfo(ctx context.Context, in *UpdateSysDictionaryInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	}
 
 	defaultDictionary struct {
@@ -147,4 +150,10 @@ func (m *defaultDictionary) GetSysDictionaryInfoList(ctx context.Context, in *Ge
 func (m *defaultDictionary) GetSysDictionaryInfoListDetailsById(ctx context.Context, in *GetSysDictionaryInfoListDetailsByIdRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListDetailsByIdResponse, error) {
 	client := pb.NewDictionaryClient(m.cli.Conn())
 	return client.GetSysDictionaryInfoListDetailsById(ctx, in, opts...)
+}
+
+// 更新SysDictionaryInfo
+func (m *defaultDictionary) UpdateSysDictionaryInfo(ctx context.Context, in *UpdateSysDictionaryInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := pb.NewDictionaryClient(m.cli.Conn())
+	return client.UpdateSysDictionaryInfo(ctx, in, opts...)
 }
