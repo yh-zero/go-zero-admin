@@ -398,3 +398,10 @@ type DeleteSysDictionaryRequest {
 	ID int64 `json:"id"`
 }
 
+type GetSysDictionaryInfoListDetailsByIdRequest {
+	ID int64 `form:"id":"id"`
+}
+
+type GetSysDictionaryInfoListDetailsByIdResponse {
+	SysDictionaryInfo
+}

@@ -1424,6 +1424,8 @@ type DictionaryClient interface {
 	DeleteSysDictionary(ctx context.Context, in *DeleteSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 获取SysDictionaryInfo列表 -- 分页带搜索
 	GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error)
+	// 根据id获取SysDictionaryInfo详情
+	GetSysDictionaryInfoListDetailsById(ctx context.Context, in *GetSysDictionaryInfoListDetailsByIdRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListDetailsByIdResponse, error)
 }
 
 type dictionaryClient struct {
@@ -1488,6 +1490,15 @@ func (c *dictionaryClient) GetSysDictionaryInfoList(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *dictionaryClient) GetSysDictionaryInfoListDetailsById(ctx context.Context, in *GetSysDictionaryInfoListDetailsByIdRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListDetailsByIdResponse, error) {
+	out := new(GetSysDictionaryInfoListDetailsByIdResponse)
+	err := c.cc.Invoke(ctx, "/pb.Dictionary/GetSysDictionaryInfoListDetailsById", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DictionaryServer is the server API for Dictionary service.
 // All implementations must embed UnimplementedDictionaryServer
 // for forward compatibility
@@ -1504,6 +1515,8 @@ type DictionaryServer interface {
 	DeleteSysDictionary(context.Context, *DeleteSysDictionaryRequest) (*NoDataResponse, error)
 	// 获取SysDictionaryInfo列表 -- 分页带搜索
 	GetSysDictionaryInfoList(context.Context, *GetSysDictionaryInfoListRequest) (*GetSysDictionaryInfoListResponse, error)
+	// 根据id获取SysDictionaryInfo详情
+	GetSysDictionaryInfoListDetailsById(context.Context, *GetSysDictionaryInfoListDetailsByIdRequest) (*GetSysDictionaryInfoListDetailsByIdResponse, error)
 	mustEmbedUnimplementedDictionaryServer()
 }
 
@@ -1528,6 +1541,9 @@ func (UnimplementedDictionaryServer) DeleteSysDictionary(context.Context, *Delet
 }
 func (UnimplementedDictionaryServer) GetSysDictionaryInfoList(context.Context, *GetSysDictionaryInfoListRequest) (*GetSysDictionaryInfoListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSysDictionaryInfoList not implemented")
+}
+func (UnimplementedDictionaryServer) GetSysDictionaryInfoListDetailsById(context.Context, *GetSysDictionaryInfoListDetailsByIdRequest) (*GetSysDictionaryInfoListDetailsByIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSysDictionaryInfoListDetailsById not implemented")
 }
 func (UnimplementedDictionaryServer) mustEmbedUnimplementedDictionaryServer() {}
 
@@ -1650,6 +1666,24 @@ func _Dictionary_GetSysDictionaryInfoList_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Dictionary_GetSysDictionaryInfoListDetailsById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSysDictionaryInfoListDetailsByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DictionaryServer).GetSysDictionaryInfoListDetailsById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Dictionary/GetSysDictionaryInfoListDetailsById",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DictionaryServer).GetSysDictionaryInfoListDetailsById(ctx, req.(*GetSysDictionaryInfoListDetailsByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Dictionary_ServiceDesc is the grpc.ServiceDesc for Dictionary service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1680,6 +1714,10 @@ var Dictionary_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSysDictionaryInfoList",
 			Handler:    _Dictionary_GetSysDictionaryInfoList_Handler,
+		},
+		{
+			MethodName: "GetSysDictionaryInfoListDetailsById",
+			Handler:    _Dictionary_GetSysDictionaryInfoListDetailsById_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

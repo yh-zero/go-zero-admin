@@ -57,3 +57,9 @@ func (s *DictionaryServer) GetSysDictionaryInfoList(ctx context.Context, in *pb.
 	l := dictionarylogic.NewGetSysDictionaryInfoListLogic(ctx, s.svcCtx)
 	return l.GetSysDictionaryInfoList(in)
 }
+
+// 根据id获取SysDictionaryInfo详情
+func (s *DictionaryServer) GetSysDictionaryInfoListDetailsById(ctx context.Context, in *pb.GetSysDictionaryInfoListDetailsByIdRequest) (*pb.GetSysDictionaryInfoListDetailsByIdResponse, error) {
+	l := dictionarylogic.NewGetSysDictionaryInfoListDetailsByIdLogic(ctx, s.svcCtx)
+	return l.GetSysDictionaryInfoListDetailsById(in)
+}

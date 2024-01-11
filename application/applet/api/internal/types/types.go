@@ -387,3 +387,11 @@ type GetSysDictionaryDetailsResponse struct {
 type DeleteSysDictionaryRequest struct {
 	ID int64 `json:"id"`
 }
+
+type GetSysDictionaryInfoListDetailsByIdRequest struct {
+	ID int64 `form:"id":"id"`
+}
+
+type GetSysDictionaryInfoListDetailsByIdResponse struct {
+	SysDictionaryInfo
+}

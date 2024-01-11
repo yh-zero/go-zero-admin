@@ -410,6 +410,14 @@ message DeleteSysDictionaryRequest {
   int64 ID = 1;
 }
 
+message GetSysDictionaryInfoListDetailsByIdRequest {
+  int64 ID = 1;
+}
+
+message GetSysDictionaryInfoListDetailsByIdResponse {
+  SysDictionaryInfo SysDictionaryInfo = 1;
+}
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -493,6 +501,8 @@ service Casbin {
 }
 
 service Dictionary {
+  // =================  SysDictionary ==============
+
   // 获取SysDictionary列表 -- all
   rpc GetSysDictionaryList (NoDataResponse) returns (DictionaryListResponse);
   // 新建SysDictionary
@@ -504,10 +514,11 @@ service Dictionary {
   // 更新SysDictionary
   rpc DeleteSysDictionary (DeleteSysDictionaryRequest) returns (NoDataResponse);
 
-
-
+  // =================  SysDictionaryInfo ==============
 
   // 获取SysDictionaryInfo列表 -- 分页带搜索
   rpc GetSysDictionaryInfoList (GetSysDictionaryInfoListRequest) returns (GetSysDictionaryInfoListResponse);
+  // 根据id获取SysDictionaryInfo详情
+  rpc GetSysDictionaryInfoListDetailsById (GetSysDictionaryInfoListDetailsByIdRequest) returns (GetSysDictionaryInfoListDetailsByIdResponse);
 
 }
