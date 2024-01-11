@@ -383,3 +383,7 @@ type GetSysDictionaryDetailsRequest struct {
 type GetSysDictionaryDetailsResponse struct {
 	SysDictionary
 }
+
+type DeleteSysDictionaryRequest struct {
+	ID int64 `json:"id"`
+}

@@ -259,6 +259,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: dictionary.UpdateSysDictionaryHandler(serverCtx),
 				},
 				{
+					Method:  http.MethodDelete,
+					Path:    "/deleteSysDictionary",
+					Handler: dictionary.DeleteSysDictionaryHandler(serverCtx),
+				},
+				{
 					Method:  http.MethodGet,
 					Path:    "/getSysDictionaryInfoList",
 					Handler: dictionary.GetSysDictionaryInfoListHandler(serverCtx),

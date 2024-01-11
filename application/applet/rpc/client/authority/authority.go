@@ -24,6 +24,7 @@ type (
 	DeleteApisByIdsRequest           = pb.DeleteApisByIdsRequest
 	DeleteAuthorityRequest           = pb.DeleteAuthorityRequest
 	DeleteBaseMenuRequest            = pb.DeleteBaseMenuRequest
+	DeleteSysDictionaryRequest       = pb.DeleteSysDictionaryRequest
 	DeleteUserRequest                = pb.DeleteUserRequest
 	DictionaryListResponse           = pb.DictionaryListResponse
 	GetAllApiListResponse            = pb.GetAllApiListResponse

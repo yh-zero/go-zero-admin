@@ -1416,10 +1416,12 @@ type DictionaryClient interface {
 	GetSysDictionaryList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*DictionaryListResponse, error)
 	// 新建SysDictionary
 	CreateSysDictionary(ctx context.Context, in *CreateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
-	// 更新SysDictionary
-	UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 根据ID或者type获取SysDictionary
 	GetSysDictionaryDetails(ctx context.Context, in *GetSysDictionaryDetailsRequest, opts ...grpc.CallOption) (*GetSysDictionaryDetailsResponse, error)
+	// 更新SysDictionary
+	UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	// 更新SysDictionary
+	DeleteSysDictionary(ctx context.Context, in *DeleteSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 获取SysDictionaryInfo列表 -- 分页带搜索
 	GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error)
 }
@@ -1450,6 +1452,15 @@ func (c *dictionaryClient) CreateSysDictionary(ctx context.Context, in *CreateSy
 	return out, nil
 }
 
+func (c *dictionaryClient) GetSysDictionaryDetails(ctx context.Context, in *GetSysDictionaryDetailsRequest, opts ...grpc.CallOption) (*GetSysDictionaryDetailsResponse, error) {
+	out := new(GetSysDictionaryDetailsResponse)
+	err := c.cc.Invoke(ctx, "/pb.Dictionary/GetSysDictionaryDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *dictionaryClient) UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, "/pb.Dictionary/UpdateSysDictionary", in, out, opts...)
@@ -1459,9 +1470,9 @@ func (c *dictionaryClient) UpdateSysDictionary(ctx context.Context, in *UpdateSy
 	return out, nil
 }
 
-func (c *dictionaryClient) GetSysDictionaryDetails(ctx context.Context, in *GetSysDictionaryDetailsRequest, opts ...grpc.CallOption) (*GetSysDictionaryDetailsResponse, error) {
-	out := new(GetSysDictionaryDetailsResponse)
-	err := c.cc.Invoke(ctx, "/pb.Dictionary/GetSysDictionaryDetails", in, out, opts...)
+func (c *dictionaryClient) DeleteSysDictionary(ctx context.Context, in *DeleteSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, "/pb.Dictionary/DeleteSysDictionary", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1485,10 +1496,12 @@ type DictionaryServer interface {
 	GetSysDictionaryList(context.Context, *NoDataResponse) (*DictionaryListResponse, error)
 	// 新建SysDictionary
 	CreateSysDictionary(context.Context, *CreateSysDictionaryRequest) (*NoDataResponse, error)
-	// 更新SysDictionary
-	UpdateSysDictionary(context.Context, *UpdateSysDictionaryRequest) (*NoDataResponse, error)
 	// 根据ID或者type获取SysDictionary
 	GetSysDictionaryDetails(context.Context, *GetSysDictionaryDetailsRequest) (*GetSysDictionaryDetailsResponse, error)
+	// 更新SysDictionary
+	UpdateSysDictionary(context.Context, *UpdateSysDictionaryRequest) (*NoDataResponse, error)
+	// 更新SysDictionary
+	DeleteSysDictionary(context.Context, *DeleteSysDictionaryRequest) (*NoDataResponse, error)
 	// 获取SysDictionaryInfo列表 -- 分页带搜索
 	GetSysDictionaryInfoList(context.Context, *GetSysDictionaryInfoListRequest) (*GetSysDictionaryInfoListResponse, error)
 	mustEmbedUnimplementedDictionaryServer()
@@ -1504,11 +1517,14 @@ func (UnimplementedDictionaryServer) GetSysDictionaryList(context.Context, *NoDa
 func (UnimplementedDictionaryServer) CreateSysDictionary(context.Context, *CreateSysDictionaryRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSysDictionary not implemented")
 }
+func (UnimplementedDictionaryServer) GetSysDictionaryDetails(context.Context, *GetSysDictionaryDetailsRequest) (*GetSysDictionaryDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSysDictionaryDetails not implemented")
+}
 func (UnimplementedDictionaryServer) UpdateSysDictionary(context.Context, *UpdateSysDictionaryRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSysDictionary not implemented")
 }
-func (UnimplementedDictionaryServer) GetSysDictionaryDetails(context.Context, *GetSysDictionaryDetailsRequest) (*GetSysDictionaryDetailsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSysDictionaryDetails not implemented")
+func (UnimplementedDictionaryServer) DeleteSysDictionary(context.Context, *DeleteSysDictionaryRequest) (*NoDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSysDictionary not implemented")
 }
 func (UnimplementedDictionaryServer) GetSysDictionaryInfoList(context.Context, *GetSysDictionaryInfoListRequest) (*GetSysDictionaryInfoListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSysDictionaryInfoList not implemented")
@@ -1562,6 +1578,24 @@ func _Dictionary_CreateSysDictionary_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Dictionary_GetSysDictionaryDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSysDictionaryDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DictionaryServer).GetSysDictionaryDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Dictionary/GetSysDictionaryDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DictionaryServer).GetSysDictionaryDetails(ctx, req.(*GetSysDictionaryDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Dictionary_UpdateSysDictionary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateSysDictionaryRequest)
 	if err := dec(in); err != nil {
@@ -1580,20 +1614,20 @@ func _Dictionary_UpdateSysDictionary_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Dictionary_GetSysDictionaryDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetSysDictionaryDetailsRequest)
+func _Dictionary_DeleteSysDictionary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSysDictionaryRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DictionaryServer).GetSysDictionaryDetails(ctx, in)
+		return srv.(DictionaryServer).DeleteSysDictionary(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.Dictionary/GetSysDictionaryDetails",
+		FullMethod: "/pb.Dictionary/DeleteSysDictionary",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DictionaryServer).GetSysDictionaryDetails(ctx, req.(*GetSysDictionaryDetailsRequest))
+		return srv.(DictionaryServer).DeleteSysDictionary(ctx, req.(*DeleteSysDictionaryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1632,12 +1666,16 @@ var Dictionary_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Dictionary_CreateSysDictionary_Handler,
 		},
 		{
+			MethodName: "GetSysDictionaryDetails",
+			Handler:    _Dictionary_GetSysDictionaryDetails_Handler,
+		},
+		{
 			MethodName: "UpdateSysDictionary",
 			Handler:    _Dictionary_UpdateSysDictionary_Handler,
 		},
 		{
-			MethodName: "GetSysDictionaryDetails",
-			Handler:    _Dictionary_GetSysDictionaryDetails_Handler,
+			MethodName: "DeleteSysDictionary",
+			Handler:    _Dictionary_DeleteSysDictionary_Handler,
 		},
 		{
 			MethodName: "GetSysDictionaryInfoList",

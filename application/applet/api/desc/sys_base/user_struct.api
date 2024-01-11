@@ -393,3 +393,8 @@ type GetSysDictionaryDetailsRequest {
 type GetSysDictionaryDetailsResponse {
 	SysDictionary
 }
+
+type DeleteSysDictionaryRequest {
+	ID int64 `json:"id"`
+}
+

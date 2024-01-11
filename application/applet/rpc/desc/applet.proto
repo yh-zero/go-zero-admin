@@ -406,6 +406,9 @@ message GetSysDictionaryDetailsResponse {
     SysDictionary SysDictionary = 1;
 }
 
+message DeleteSysDictionaryRequest {
+  int64 ID = 1;
+}
 
 service User {
   //  获取用户信息
@@ -494,10 +497,13 @@ service Dictionary {
   rpc GetSysDictionaryList (NoDataResponse) returns (DictionaryListResponse);
   // 新建SysDictionary
   rpc CreateSysDictionary (CreateSysDictionaryRequest) returns (NoDataResponse);
-  // 更新SysDictionary
-  rpc UpdateSysDictionary (UpdateSysDictionaryRequest) returns (NoDataResponse);
   // 根据ID或者type获取SysDictionary
   rpc GetSysDictionaryDetails (GetSysDictionaryDetailsRequest) returns (GetSysDictionaryDetailsResponse);
+  // 更新SysDictionary
+  rpc UpdateSysDictionary (UpdateSysDictionaryRequest) returns (NoDataResponse);
+  // 更新SysDictionary
+  rpc DeleteSysDictionary (DeleteSysDictionaryRequest) returns (NoDataResponse);
+
 
 
 

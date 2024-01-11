@@ -207,6 +207,10 @@ service applet-api {
 	@handler UpdateSysDictionary
 	put /updateSysDictionary (UpdateSysDictionaryRequest) returns (MessageResponse)
 
+	@doc "删除SysDictionary"
+	@handler DeleteSysDictionary
+	delete /deleteSysDictionary (DeleteSysDictionaryRequest) returns (MessageResponse)
+
 	// =================  SysDictionaryInfo ==============
 
 	@doc "获取SysDictionaryInfo列表"

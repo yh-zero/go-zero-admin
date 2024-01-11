@@ -24,6 +24,7 @@ type (
 	DeleteApisByIdsRequest           = pb.DeleteApisByIdsRequest
 	DeleteAuthorityRequest           = pb.DeleteAuthorityRequest
 	DeleteBaseMenuRequest            = pb.DeleteBaseMenuRequest
+	DeleteSysDictionaryRequest       = pb.DeleteSysDictionaryRequest
 	DeleteUserRequest                = pb.DeleteUserRequest
 	DictionaryListResponse           = pb.DictionaryListResponse
 	GetAllApiListResponse            = pb.GetAllApiListResponse
@@ -81,10 +82,12 @@ type (
 		GetSysDictionaryList(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*DictionaryListResponse, error)
 		// 新建SysDictionary
 		CreateSysDictionary(ctx context.Context, in *CreateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
-		// 更新SysDictionary
-		UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 根据ID或者type获取SysDictionary
 		GetSysDictionaryDetails(ctx context.Context, in *GetSysDictionaryDetailsRequest, opts ...grpc.CallOption) (*GetSysDictionaryDetailsResponse, error)
+		// 更新SysDictionary
+		UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		// 更新SysDictionary
+		DeleteSysDictionary(ctx context.Context, in *DeleteSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 获取SysDictionaryInfo列表 -- 分页带搜索
 		GetSysDictionaryInfoList(ctx context.Context, in *GetSysDictionaryInfoListRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListResponse, error)
 	}
@@ -112,16 +115,22 @@ func (m *defaultDictionary) CreateSysDictionary(ctx context.Context, in *CreateS
 	return client.CreateSysDictionary(ctx, in, opts...)
 }
 
+// 根据ID或者type获取SysDictionary
+func (m *defaultDictionary) GetSysDictionaryDetails(ctx context.Context, in *GetSysDictionaryDetailsRequest, opts ...grpc.CallOption) (*GetSysDictionaryDetailsResponse, error) {
+	client := pb.NewDictionaryClient(m.cli.Conn())
+	return client.GetSysDictionaryDetails(ctx, in, opts...)
+}
+
 // 更新SysDictionary
 func (m *defaultDictionary) UpdateSysDictionary(ctx context.Context, in *UpdateSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewDictionaryClient(m.cli.Conn())
 	return client.UpdateSysDictionary(ctx, in, opts...)
 }
 
-// 根据ID或者type获取SysDictionary
-func (m *defaultDictionary) GetSysDictionaryDetails(ctx context.Context, in *GetSysDictionaryDetailsRequest, opts ...grpc.CallOption) (*GetSysDictionaryDetailsResponse, error) {
+// 更新SysDictionary
+func (m *defaultDictionary) DeleteSysDictionary(ctx context.Context, in *DeleteSysDictionaryRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewDictionaryClient(m.cli.Conn())
-	return client.GetSysDictionaryDetails(ctx, in, opts...)
+	return client.DeleteSysDictionary(ctx, in, opts...)
 }
 
 // 获取SysDictionaryInfo列表 -- 分页带搜索
