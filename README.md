@@ -2,7 +2,7 @@
 
 ## 接口请求: 欢迎一起开发一起学习冲冲冲： 
 ### go__zero 在 Apifox 中邀请你加入团队 go-zero-admin https://app.apifox.com/invite?token=IRQ9GQqcYr88i3b0pJao-
-### 微信：qq1013055366  欢迎打扰
+### 微信：qq1013055366  欢迎打扰(备注：go-zero-admin)
 
 #### 介绍
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/jinzhu/copier"
 	"go-zero-admin/application/applet/rpc/internal/model"
+	"time"
 
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
@@ -30,6 +31,12 @@ func (l *GetSysDictionaryInfoListDetailsByIdLogic) GetSysDictionaryInfoListDetai
 	var modelSysDictionaryInfo model.SysDictionaryInfo
 	err := l.svcCtx.DB.Where("id = ?", in.ID).First(&modelSysDictionaryInfo).Error
 	var pbSysDictionaryInfo pb.SysDictionaryInfo
+	_ = copier.Copy(&pbSysDictionaryInfo, modelSysDictionaryInfo)
+	pbSysDictionaryInfo.CreatedAt = modelSysDictionaryInfo.CreatedAt.Format(time.RFC3339)
+	pbSysDictionaryInfo.UpdatedAt = modelSysDictionaryInfo.UpdatedAt.Format(time.RFC3339)
+	if modelSysDictionaryInfo.DeletedAt.Valid {
+		pbSysDictionaryInfo.DeletedAt = modelSysDictionaryInfo.DeletedAt.Time.Format(time.RFC3339)
+	}
 	_ = copier.Copy(&pbSysDictionaryInfo, modelSysDictionaryInfo)
 
 	return &pb.GetSysDictionaryInfoListDetailsByIdResponse{
