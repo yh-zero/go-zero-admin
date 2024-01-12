@@ -399,3 +399,7 @@ type GetSysDictionaryInfoListDetailsByIdResponse struct {
 type UpdateSysDictionaryInfoRequest struct {
 	SysDictionaryInfo
 }
+
+type CreateSysDictionaryInfoRequest struct {
+	SysDictionaryInfo
+}

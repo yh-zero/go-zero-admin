@@ -409,3 +409,7 @@ type GetSysDictionaryInfoListDetailsByIdResponse {
 type UpdateSysDictionaryInfoRequest {
 	SysDictionaryInfo
 }
+
+type CreateSysDictionaryInfoRequest {
+	SysDictionaryInfo
+}

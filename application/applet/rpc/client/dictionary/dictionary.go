@@ -19,6 +19,7 @@ type (
 	CreateApiRequest                            = pb.CreateApiRequest
 	CreateAuthorityRequest                      = pb.CreateAuthorityRequest
 	CreateAuthorityResponse                     = pb.CreateAuthorityResponse
+	CreateSysDictionaryInfoRequest              = pb.CreateSysDictionaryInfoRequest
 	CreateSysDictionaryRequest                  = pb.CreateSysDictionaryRequest
 	DeleteApiRequest                            = pb.DeleteApiRequest
 	DeleteApisByIdsRequest                      = pb.DeleteApisByIdsRequest
@@ -97,6 +98,8 @@ type (
 		GetSysDictionaryInfoListDetailsById(ctx context.Context, in *GetSysDictionaryInfoListDetailsByIdRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListDetailsByIdResponse, error)
 		// 更新SysDictionaryInfo
 		UpdateSysDictionaryInfo(ctx context.Context, in *UpdateSysDictionaryInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		// 创建SysDictionaryInfo
+		CreateSysDictionaryInfo(ctx context.Context, in *CreateSysDictionaryInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	}
 
 	defaultDictionary struct {
@@ -156,4 +159,10 @@ func (m *defaultDictionary) GetSysDictionaryInfoListDetailsById(ctx context.Cont
 func (m *defaultDictionary) UpdateSysDictionaryInfo(ctx context.Context, in *UpdateSysDictionaryInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewDictionaryClient(m.cli.Conn())
 	return client.UpdateSysDictionaryInfo(ctx, in, opts...)
+}
+
+// 创建SysDictionaryInfo
+func (m *defaultDictionary) CreateSysDictionaryInfo(ctx context.Context, in *CreateSysDictionaryInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := pb.NewDictionaryClient(m.cli.Conn())
+	return client.CreateSysDictionaryInfo(ctx, in, opts...)
 }

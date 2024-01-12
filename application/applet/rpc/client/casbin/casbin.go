@@ -19,6 +19,7 @@ type (
 	CreateApiRequest                            = pb.CreateApiRequest
 	CreateAuthorityRequest                      = pb.CreateAuthorityRequest
 	CreateAuthorityResponse                     = pb.CreateAuthorityResponse
+	CreateSysDictionaryInfoRequest              = pb.CreateSysDictionaryInfoRequest
 	CreateSysDictionaryRequest                  = pb.CreateSysDictionaryRequest
 	DeleteApiRequest                            = pb.DeleteApiRequest
 	DeleteApisByIdsRequest                      = pb.DeleteApisByIdsRequest

@@ -1428,6 +1428,8 @@ type DictionaryClient interface {
 	GetSysDictionaryInfoListDetailsById(ctx context.Context, in *GetSysDictionaryInfoListDetailsByIdRequest, opts ...grpc.CallOption) (*GetSysDictionaryInfoListDetailsByIdResponse, error)
 	// 更新SysDictionaryInfo
 	UpdateSysDictionaryInfo(ctx context.Context, in *UpdateSysDictionaryInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	// 创建SysDictionaryInfo
+	CreateSysDictionaryInfo(ctx context.Context, in *CreateSysDictionaryInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
 
 type dictionaryClient struct {
@@ -1510,6 +1512,15 @@ func (c *dictionaryClient) UpdateSysDictionaryInfo(ctx context.Context, in *Upda
 	return out, nil
 }
 
+func (c *dictionaryClient) CreateSysDictionaryInfo(ctx context.Context, in *CreateSysDictionaryInfoRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, "/pb.Dictionary/CreateSysDictionaryInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DictionaryServer is the server API for Dictionary service.
 // All implementations must embed UnimplementedDictionaryServer
 // for forward compatibility
@@ -1530,6 +1541,8 @@ type DictionaryServer interface {
 	GetSysDictionaryInfoListDetailsById(context.Context, *GetSysDictionaryInfoListDetailsByIdRequest) (*GetSysDictionaryInfoListDetailsByIdResponse, error)
 	// 更新SysDictionaryInfo
 	UpdateSysDictionaryInfo(context.Context, *UpdateSysDictionaryInfoRequest) (*NoDataResponse, error)
+	// 创建SysDictionaryInfo
+	CreateSysDictionaryInfo(context.Context, *CreateSysDictionaryInfoRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedDictionaryServer()
 }
 
@@ -1560,6 +1573,9 @@ func (UnimplementedDictionaryServer) GetSysDictionaryInfoListDetailsById(context
 }
 func (UnimplementedDictionaryServer) UpdateSysDictionaryInfo(context.Context, *UpdateSysDictionaryInfoRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSysDictionaryInfo not implemented")
+}
+func (UnimplementedDictionaryServer) CreateSysDictionaryInfo(context.Context, *CreateSysDictionaryInfoRequest) (*NoDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSysDictionaryInfo not implemented")
 }
 func (UnimplementedDictionaryServer) mustEmbedUnimplementedDictionaryServer() {}
 
@@ -1718,6 +1734,24 @@ func _Dictionary_UpdateSysDictionaryInfo_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Dictionary_CreateSysDictionaryInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSysDictionaryInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DictionaryServer).CreateSysDictionaryInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Dictionary/CreateSysDictionaryInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DictionaryServer).CreateSysDictionaryInfo(ctx, req.(*CreateSysDictionaryInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Dictionary_ServiceDesc is the grpc.ServiceDesc for Dictionary service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1756,6 +1790,10 @@ var Dictionary_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateSysDictionaryInfo",
 			Handler:    _Dictionary_UpdateSysDictionaryInfo_Handler,
+		},
+		{
+			MethodName: "CreateSysDictionaryInfo",
+			Handler:    _Dictionary_CreateSysDictionaryInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

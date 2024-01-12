@@ -225,4 +225,10 @@ service applet-api {
 	@handler UpdateSysDictionaryInfo
 	put /updateSysDictionaryInfo (UpdateSysDictionaryInfoRequest) returns (MessageResponse)
 
+	@doc "创建SysDictionaryInfo"
+	@handler CreateSysDictionaryInfo
+	post /createSysDictionaryInfo (CreateSysDictionaryInfoRequest) returns (MessageResponse)
+
+
+
 }

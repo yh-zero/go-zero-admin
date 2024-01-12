@@ -69,3 +69,9 @@ func (s *DictionaryServer) UpdateSysDictionaryInfo(ctx context.Context, in *pb.U
 	l := dictionarylogic.NewUpdateSysDictionaryInfoLogic(ctx, s.svcCtx)
 	return l.UpdateSysDictionaryInfo(in)
 }
+
+// 创建SysDictionaryInfo
+func (s *DictionaryServer) CreateSysDictionaryInfo(ctx context.Context, in *pb.CreateSysDictionaryInfoRequest) (*pb.NoDataResponse, error) {
+	l := dictionarylogic.NewCreateSysDictionaryInfoLogic(ctx, s.svcCtx)
+	return l.CreateSysDictionaryInfo(in)
+}
