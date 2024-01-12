@@ -413,3 +413,7 @@ type UpdateSysDictionaryInfoRequest {
 type CreateSysDictionaryInfoRequest {
 	SysDictionaryInfo
 }
+
+type DeleteSysDictionaryInfoRequest {
+	ID int64 `json:"id"`
+}

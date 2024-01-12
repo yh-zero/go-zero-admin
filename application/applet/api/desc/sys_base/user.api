@@ -229,6 +229,10 @@ service applet-api {
 	@handler CreateSysDictionaryInfo
 	post /createSysDictionaryInfo (CreateSysDictionaryInfoRequest) returns (MessageResponse)
 
+	@doc "删除SysDictionaryInfo"
+	@handler DeleteSysDictionaryInfo
+	delete /deleteSysDictionaryInfo (DeleteSysDictionaryInfoRequest) returns (MessageResponse)
+
 
 
 }

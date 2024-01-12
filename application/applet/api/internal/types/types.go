@@ -403,3 +403,7 @@ type UpdateSysDictionaryInfoRequest struct {
 type CreateSysDictionaryInfoRequest struct {
 	SysDictionaryInfo
 }
+
+type DeleteSysDictionaryInfoRequest struct {
+	ID int64 `json:"id"`
+}

@@ -426,6 +426,10 @@ message CreateSysDictionaryInfoRequest {
   SysDictionaryInfo SysDictionaryInfo = 1;
 }
 
+message DeleteSysDictionaryInfoRequest {
+  int64 ID = 1;
+}
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -532,6 +536,6 @@ service Dictionary {
   rpc UpdateSysDictionaryInfo (UpdateSysDictionaryInfoRequest) returns (NoDataResponse);
   // 创建SysDictionaryInfo
   rpc CreateSysDictionaryInfo (CreateSysDictionaryInfoRequest) returns (NoDataResponse);
-
-
+  // 删除SysDictionaryInfo
+  rpc DeleteSysDictionaryInfo (DeleteSysDictionaryInfoRequest) returns (NoDataResponse);
 }

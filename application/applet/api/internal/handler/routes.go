@@ -283,6 +283,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/createSysDictionaryInfo",
 					Handler: dictionary.CreateSysDictionaryInfoHandler(serverCtx),
 				},
+				{
+					Method:  http.MethodDelete,
+					Path:    "/deleteSysDictionaryInfo",
+					Handler: dictionary.DeleteSysDictionaryInfoHandler(serverCtx),
+				},
 			}...,
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),

@@ -75,3 +75,9 @@ func (s *DictionaryServer) CreateSysDictionaryInfo(ctx context.Context, in *pb.C
 	l := dictionarylogic.NewCreateSysDictionaryInfoLogic(ctx, s.svcCtx)
 	return l.CreateSysDictionaryInfo(in)
 }
+
+// 删除SysDictionaryInfo
+func (s *DictionaryServer) DeleteSysDictionaryInfo(ctx context.Context, in *pb.DeleteSysDictionaryInfoRequest) (*pb.NoDataResponse, error) {
+	l := dictionarylogic.NewDeleteSysDictionaryInfoLogic(ctx, s.svcCtx)
+	return l.DeleteSysDictionaryInfo(in)
+}
