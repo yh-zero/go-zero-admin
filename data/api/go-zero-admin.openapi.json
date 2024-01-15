@@ -1231,7 +1231,7 @@
       }
     },
     "/v1/sys/casbin/getPathByAuthorityId": {
-      "post": {
+      "get": {
         "summary": "根据角色id获取casbin数据",
         "x-apifox-folder": "applet/casbin",
         "x-apifox-status": "developing",
@@ -1262,7 +1262,7 @@
                 "x-apifox-ignore-properties": []
               },
               "example": {
-                "authorityId": 100001
+                "authorityId": 1
               }
             }
           }
@@ -1286,7 +1286,7 @@
       }
     },
     "/v1/sys/casbin/updateCasbinData": {
-      "post": {
+      "put": {
         "summary": "更新一个角色的对应的casbin数据",
         "x-apifox-folder": "applet/casbin",
         "x-apifox-status": "developing",
@@ -2463,10 +2463,5 @@
   "components": {
     "schemas": {}
   },
-  "servers": [
-    {
-      "url": "http://localhost:7001/",
-      "description": "开发环境"
-    }
-  ]
+  "servers": []
 }

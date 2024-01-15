@@ -158,11 +158,11 @@ service applet-api {
 service applet-api {
 	@doc "根据角色id获取对应的casbin数据"
 	@handler GetPathByAuthorityId
-	post /getPathByAuthorityId (GetPathByAuthorityIdRequest) returns (GetPathByAuthorityIdResponse)
+	get /getPathByAuthorityId (GetPathByAuthorityIdRequest) returns (GetPathByAuthorityIdResponse)
 
 	@doc "更新一个角色的对应的casbin数据"
 	@handler UpdateCasbinData
-	post /updateCasbinData (UpdateCasbinDataRequest) returns (MessageResponse)
+	put /updateCasbinData (UpdateCasbinDataRequest) returns (MessageResponse)
 
 	@doc "更新一个角色的对应的casbin数据 用api的ids 查数据"
 	@handler UpdateCasbinDataByApiIds

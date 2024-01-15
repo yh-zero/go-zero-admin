@@ -199,12 +199,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			[]rest.Middleware{serverCtx.Authority},
 			[]rest.Route{
 				{
-					Method:  http.MethodPost,
+					Method:  http.MethodGet,
 					Path:    "/getPathByAuthorityId",
 					Handler: casbin.GetPathByAuthorityIdHandler(serverCtx),
 				},
 				{
-					Method:  http.MethodPost,
+					Method:  http.MethodPut,
 					Path:    "/updateCasbinData",
 					Handler: casbin.UpdateCasbinDataHandler(serverCtx),
 				},

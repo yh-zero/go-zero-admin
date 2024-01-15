@@ -197,7 +197,7 @@ type CasbinInfo struct {
 }
 
 type GetPathByAuthorityIdRequest struct {
-	AuthorityId int64 `json:"authorityId"`
+	AuthorityId int64 `form:"authorityId"`
 }
 
 type GetPathByAuthorityIdResponse struct {
