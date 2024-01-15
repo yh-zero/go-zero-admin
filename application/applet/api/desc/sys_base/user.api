@@ -177,7 +177,7 @@ service applet-api {
 	middleware: Authority
 )
 service applet-api {
-	@doc "根据角色id获取对应的casbin数据"
+	@doc "上传图片"
 	@handler UploadFileImg
 	post /uploadFileImg (UploadFileImgRequest) returns (UploadFileImgResponse)
 }

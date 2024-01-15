@@ -44,10 +44,13 @@ func (l *GetApiListLogic) GetApiList(req *types.GetApiListRequest) (resp *types.
 
 	var pbSysApi pb.SysApi
 	_ = copier.Copy(&pbSysApi, req.SysApi)
+	fmt.Println("======== pbSysApi111=", req.SysApi)
 
 	var pbGetApiListReq pb.GetApiListRequest
 	pbGetApiListReq.PageRequest = &pbPageRequest
 	pbGetApiListReq.SysApi = &pbSysApi
+	pbGetApiListReq.OrderKey = req.OrderKey
+	pbGetApiListReq.Desc = req.Desc
 
 	getApiList, err := l.svcCtx.AppletAPIRPC.GetApiList(l.ctx, &pbGetApiListReq)
 	if err != nil {
