@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/zeromicro/go-zero/core/logx"
 	"net/http"
 	"os"
 
@@ -15,6 +14,7 @@ import (
 	"go-zero-admin/pkg/result/xerr"
 
 	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest"
 )
 
@@ -43,14 +43,16 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 
-	// 把阿里云的值存到本地环境中
-	var aliYunOssEnv AliYunOss
-	err := json.Unmarshal([]byte(OssEnv), &aliYunOssEnv)
-	if err != nil {
-		logx.Errorf("Obtain local environment Err: %v", err)
-		panic(err)
+	if OssEnv != "" {
+		// 把阿里云的值存到本地环境中
+		var aliYunOssEnv AliYunOss
+		err := json.Unmarshal([]byte(OssEnv), &aliYunOssEnv)
+		if err != nil {
+			logx.Errorf("Obtain local environment Err: %v", err)
+			panic(err)
+		}
+		getEnv(&c, &aliYunOssEnv)
 	}
-	getEnv(&c, &aliYunOssEnv)
 
 	server := rest.MustNewServer(c.RestConf, rest.WithUnauthorizedCallback(func(w http.ResponseWriter, r *http.Request, err error) {
 		result.HttpResult(r, w, "", xerr.NewErrCode(xerr.TOKEN_EXPIRE_ERROR))
