@@ -2,11 +2,9 @@ package api
 
 import (
 	"context"
-	"fmt"
-	"go-zero-admin/application/applet/rpc/pb"
-
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/application/applet/rpc/pb"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -26,9 +24,6 @@ func NewDeleteApisByIdsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *D
 }
 
 func (l *DeleteApisByIdsLogic) DeleteApisByIds(req *types.DeleteApisByIdsRequest) (resp *types.MessageResponse, err error) {
-	fmt.Println("========== DeleteApisByIds", req)
-	fmt.Println("========== DeleteApisByIds", req.Ids)
-
 	_, err = l.svcCtx.AppletAPIRPC.DeleteApisByIds(l.ctx, &pb.DeleteApisByIdsRequest{Ids: req.Ids})
 	if err != nil {
 		logx.Errorf("l.svcCtx.AppletAPIRPC.DeleteApisByIds err:%v", err)

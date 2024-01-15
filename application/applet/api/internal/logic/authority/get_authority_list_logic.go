@@ -2,13 +2,12 @@ package authority
 
 import (
 	"context"
-	"fmt"
-	"github.com/jinzhu/copier"
-	"go-zero-admin/application/applet/rpc/pb"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/application/applet/rpc/pb"
 
+	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -42,7 +41,6 @@ func (l *GetAuthorityListLogic) GetAuthorityList(req *types.GetAuthorityListRequ
 		logx.Errorf("AuthorityListGet 错误 error: %v", err)
 		return nil, err
 	}
-	fmt.Println("--------- authorityListGet", authorityListGet)
 
 	var typesGetAuthorityListRes types.GetAuthorityListResponse
 

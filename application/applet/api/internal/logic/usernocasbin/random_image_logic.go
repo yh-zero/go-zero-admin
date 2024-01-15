@@ -3,14 +3,14 @@ package usernocasbin
 import (
 	"context"
 	"fmt"
-	"github.com/mojocn/base64Captcha"
-	"github.com/zeromicro/go-zero/core/stores/redis"
 	"strings"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
 
+	"github.com/mojocn/base64Captcha"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
 var store = base64Captcha.DefaultMemStore

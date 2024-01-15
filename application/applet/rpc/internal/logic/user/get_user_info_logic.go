@@ -2,16 +2,16 @@ package userlogic
 
 import (
 	"context"
-	"github.com/jinzhu/copier"
-	"github.com/pkg/errors"
-	"go-zero-admin/application/applet/rpc/internal/model"
-	"go-zero-admin/pkg/hash"
-	"go-zero-admin/pkg/result/xerr"
 	"gorm.io/gorm"
 
+	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/hash"
+	"go-zero-admin/pkg/result/xerr"
 
+	"github.com/jinzhu/copier"
+	"github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 

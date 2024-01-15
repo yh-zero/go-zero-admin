@@ -3,12 +3,12 @@ package authoritylogic
 import (
 	"context"
 	"fmt"
-	"github.com/jinzhu/copier"
-	"go-zero-admin/application/applet/rpc/internal/model"
 
+	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 
+	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 

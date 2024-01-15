@@ -2,12 +2,14 @@ package middleware
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
+	"go-zero-admin/pkg/ctxJwt"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
-	"go-zero-admin/pkg/ctxJwt"
-	"net/http"
-	"strconv"
 )
 
 // all  *casbin.Enforcer --> *casbin.SyncedCachedEnforce

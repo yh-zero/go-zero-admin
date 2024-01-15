@@ -2,11 +2,10 @@ package authority
 
 import (
 	"context"
-	"fmt"
-	"go-zero-admin/application/applet/rpc/pb"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/application/applet/rpc/pb"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -26,7 +25,6 @@ func NewAddAuthorityMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 func (l *AddAuthorityMenuLogic) AddAuthorityMenu(req *types.AddAuthorityMenuRequest) (resp *types.MessageResponse, err error) {
-	fmt.Println("======== AddAuthorityMenu")
 	var authorityMenu pb.AddAuthorityMenuRequest
 	authorityMenu.AuthorityId = req.AuthorityId
 	authorityMenu.MenuIds = req.MenuIds

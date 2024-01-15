@@ -67,9 +67,9 @@ func (l *CreateAuthorityLogic) DefaultMenu() []model.SysBaseMenu {
 	return []model.SysBaseMenu{{
 		MODEL_BASE: modelBase.MODEL_BASE{ID: 1},
 		ParentId:   0,
-		Path:       "routerHolder",
-		Name:       "routerHolder",
-		Component:  "views/routerHolder.vue",
+		Path:       "index",
+		Name:       "index",
+		Component:  "views/index.vue",
 		Sort:       1,
 		Meta: model.Meta{
 			Title: "默认页",
@@ -80,15 +80,8 @@ func (l *CreateAuthorityLogic) DefaultMenu() []model.SysBaseMenu {
 
 func (l *CreateAuthorityLogic) DefaultCasbin() []*pb.CasbinInfo {
 	return []*pb.CasbinInfo{
-		{Path: "/v1/sys/login", Method: "POST"},        // 登录
+		//{Path: "/v1/sys/login", Method: "POST"},        // 登录
 		{Path: "/v1/sys/menu/getMenu", Method: "POST"}, // 获取页面菜单 - 路由
-
-		{Path: "/user/admin_register", Method: "POST"},
-		{Path: "/user/changePassword", Method: "POST"},
-		{Path: "/user/setUserAuthority", Method: "POST"},
-		{Path: "/user/setUserInfo", Method: "PUT"},
-		{Path: "/user/getUserInfo", Method: "GET"},
-		//{Path: "/jwt/jsonInBlacklist", Method: "POST"},
 	}
 }
 

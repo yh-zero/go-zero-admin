@@ -2,15 +2,14 @@ package usernocasbin
 
 import (
 	"context"
-	"fmt"
-	"github.com/jinzhu/copier"
-	"go-zero-admin/application/applet/rpc/pb"
-	"go-zero-admin/pkg/result/xerr"
 	"strconv"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/result/xerr"
 
+	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -32,9 +31,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	remoteAddrIp := l.ctx.Value("RemoteAddr") // 获取id 存redis
 	IsDev := l.ctx.Value("Isdev")
 	if IsDev != strconv.Itoa(1) {
-		fmt.Println("GetIP(remoteAddrIp)", GetIP(remoteAddrIp))
 		cacheCode, err := GetActivationCache(GetIP(remoteAddrIp), l.svcCtx.BizRedis)
-		fmt.Println("cacheCode", cacheCode)
 		if err != nil {
 			logx.Errorf("getActivationCache：获取redis中的验证码错误 error: %v", err)
 			return nil, err
@@ -52,8 +49,6 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	}
 	var resUserInfo types.LoginResponse
 	_ = copier.Copy(&resUserInfo.UserInfo, &userInfoRPC.UserInfo)
-	fmt.Println("======= resUserInfo.UserInfo", resUserInfo.UserInfo)
-	fmt.Println("======= userInfoRPC.UserInfo", userInfoRPC.UserInfo)
 
 	// 获取token
 	var tokenReq = pb.GetUserTokeRequest{}

@@ -2,8 +2,8 @@ package dictionarylogic
 
 import (
 	"context"
-	"go-zero-admin/application/applet/rpc/internal/model"
 
+	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 

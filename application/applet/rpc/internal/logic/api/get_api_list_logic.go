@@ -2,13 +2,12 @@ package apilogic
 
 import (
 	"context"
-	"fmt"
-	"github.com/jinzhu/copier"
-	"go-zero-admin/application/applet/rpc/internal/model"
 
+	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 
+	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -28,7 +27,6 @@ func NewGetApiListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetApi
 
 // 获取API列表
 func (l *GetApiListLogic) GetApiList(in *pb.GetApiListRequest) (*pb.GetApiListResponse, error) {
-	fmt.Println("============ GetApiList in", in)
 	offset := in.PageRequest.PageSize * (in.PageRequest.PageNo - 1)
 	db := l.svcCtx.DB.Model(&model.SysApi{})
 	var apiList []model.SysApi
@@ -78,10 +76,8 @@ func (l *GetApiListLogic) GetApiList(in *pb.GetApiListRequest) (*pb.GetApiListRe
 		}
 	}
 
-	fmt.Println("=========== apiList", apiList)
 	var pbSysApi []*pb.SysApi
 	_ = copier.Copy(&pbSysApi, apiList)
-	fmt.Println("=========== pbSysApi", pbSysApi)
 
 	return &pb.GetApiListResponse{
 		SysApi: pbSysApi,

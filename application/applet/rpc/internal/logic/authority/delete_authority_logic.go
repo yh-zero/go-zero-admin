@@ -3,14 +3,15 @@ package authoritylogic
 import (
 	"context"
 	"fmt"
-	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/pkg/errors"
-	"go-zero-admin/application/applet/rpc/internal/model"
-	"go-zero-admin/application/applet/rpc/internal/svc"
-	"go-zero-admin/application/applet/rpc/pb"
 	"gorm.io/gorm"
 	"strconv"
 
+	"go-zero-admin/application/applet/rpc/internal/model"
+	"go-zero-admin/application/applet/rpc/internal/svc"
+	"go-zero-admin/application/applet/rpc/pb"
+
+	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 

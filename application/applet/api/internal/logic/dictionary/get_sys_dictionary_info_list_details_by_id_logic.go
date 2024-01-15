@@ -2,13 +2,11 @@ package dictionary
 
 import (
 	"context"
-	"fmt"
-	"github.com/jinzhu/copier"
-	"go-zero-admin/application/applet/rpc/pb"
-
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/application/applet/rpc/pb"
 
+	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -30,7 +28,6 @@ func (l *GetSysDictionaryInfoListDetailsByIdLogic) GetSysDictionaryInfoListDetai
 	sysDictionaryInfoListDetailsById, err := l.svcCtx.AppletDictionaryRPC.GetSysDictionaryInfoListDetailsById(l.ctx, &pb.GetSysDictionaryInfoListDetailsByIdRequest{
 		ID: req.ID,
 	})
-	fmt.Println("sysDictionaryInfoListDetailsById==============", sysDictionaryInfoListDetailsById.SysDictionaryInfo.CreatedAt)
 	if err != nil {
 		logx.Errorf("l.svcCtx.AppletDictionaryRPC.GetSysDictionaryInfoListDetailsById err:%v", err)
 		return nil, err

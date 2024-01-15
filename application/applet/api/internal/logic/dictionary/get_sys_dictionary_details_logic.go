@@ -2,13 +2,11 @@ package dictionary
 
 import (
 	"context"
-	"fmt"
-	"github.com/jinzhu/copier"
-	"go-zero-admin/application/applet/rpc/pb"
-
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/application/applet/rpc/pb"
 
+	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -27,7 +25,6 @@ func NewGetSysDictionaryDetailsLogic(ctx context.Context, svcCtx *svc.ServiceCon
 }
 
 func (l *GetSysDictionaryDetailsLogic) GetSysDictionaryDetails(req *types.GetSysDictionaryDetailsRequest) (resp *types.GetSysDictionaryDetailsResponse, err error) {
-	fmt.Println("req=", req)
 	if req.Status == 0 {
 		req.Status = 1
 	}
@@ -42,8 +39,6 @@ func (l *GetSysDictionaryDetailsLogic) GetSysDictionaryDetails(req *types.GetSys
 	}
 	var typesSysDictionary types.SysDictionary
 	_ = copier.Copy(&typesSysDictionary, sysDictionaryDetails.SysDictionary)
-	fmt.Println("typesSysDictionary", typesSysDictionary)
-	fmt.Println("sysDictionaryDetails", sysDictionaryDetails)
 
 	return &types.GetSysDictionaryDetailsResponse{SysDictionary: typesSysDictionary}, nil
 }

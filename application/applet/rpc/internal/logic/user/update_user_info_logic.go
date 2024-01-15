@@ -2,10 +2,11 @@ package userlogic
 
 import (
 	"context"
-	"go-zero-admin/application/applet/rpc/internal/model"
+	"fmt"
 	"reflect"
 	"time"
 
+	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 
@@ -28,6 +29,7 @@ func NewUpdateUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Up
 
 // 修改用户信息
 func (l *UpdateUserInfoLogic) UpdateUserInfo(in *pb.UpdateUserInfoRequest) (*pb.NoDataResponse, error) {
+	fmt.Println("========== in", in.UserInfo.Enable)
 	updates := map[string]interface{}{
 		"updated_at": time.Now(),
 	}

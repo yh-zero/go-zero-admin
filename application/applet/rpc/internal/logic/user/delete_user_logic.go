@@ -2,9 +2,9 @@ package userlogic
 
 import (
 	"context"
-	"go-zero-admin/application/applet/rpc/internal/model"
 	"gorm.io/gorm"
 
+	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 

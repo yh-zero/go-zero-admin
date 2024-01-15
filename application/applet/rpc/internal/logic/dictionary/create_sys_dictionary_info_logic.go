@@ -2,13 +2,13 @@ package dictionarylogic
 
 import (
 	"context"
-	"github.com/jinzhu/copier"
-	"github.com/pkg/errors"
-	"go-zero-admin/application/applet/rpc/internal/model"
 
+	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 
+	"github.com/jinzhu/copier"
+	"github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 

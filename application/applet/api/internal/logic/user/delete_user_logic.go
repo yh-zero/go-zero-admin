@@ -2,12 +2,12 @@ package user
 
 import (
 	"context"
-	"go-zero-admin/application/applet/rpc/pb"
-	"go-zero-admin/pkg/ctxJwt"
-	"go-zero-admin/pkg/result/xerr"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/ctxJwt"
+	"go-zero-admin/pkg/result/xerr"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )

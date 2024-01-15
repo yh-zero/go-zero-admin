@@ -2,10 +2,10 @@ package authority
 
 import (
 	"context"
-	"go-zero-admin/application/applet/rpc/pb"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/application/applet/rpc/pb"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )

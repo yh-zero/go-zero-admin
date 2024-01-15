@@ -2,13 +2,11 @@ package api
 
 import (
 	"context"
-	"fmt"
-	"github.com/jinzhu/copier"
-	"go-zero-admin/application/applet/rpc/pb"
-
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/application/applet/rpc/pb"
 
+	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -27,8 +25,6 @@ func NewGetApiListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetApi
 }
 
 func (l *GetApiListLogic) GetApiList(req *types.GetApiListRequest) (resp *types.GetApiListResponse, err error) {
-	fmt.Println("req.PageNo = ", req.PageNo)     // req.PageNo =  0
-	fmt.Println("req.PageSize = ", req.PageSize) // req.PageSize =  0
 	if req.PageNo == 0 {
 		req.PageNo = l.svcCtx.Config.Page.PageNo
 	}
@@ -36,15 +32,11 @@ func (l *GetApiListLogic) GetApiList(req *types.GetApiListRequest) (resp *types.
 		req.PageSize = l.svcCtx.Config.Page.PageSize
 	}
 
-	fmt.Println("======== GetApiList req=", req)
-	fmt.Println("======== GetApiList req.orderKey=", req.OrderKey)
-
 	var pbPageRequest pb.PageRequest
 	_ = copier.Copy(&pbPageRequest, req.PageRequest)
 
 	var pbSysApi pb.SysApi
 	_ = copier.Copy(&pbSysApi, req.SysApi)
-	fmt.Println("======== pbSysApi111=", req.SysApi)
 
 	var pbGetApiListReq pb.GetApiListRequest
 	pbGetApiListReq.PageRequest = &pbPageRequest

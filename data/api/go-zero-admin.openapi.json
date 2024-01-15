@@ -1,0 +1,2472 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "go-zero-admin",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "applet"
+    },
+    {
+      "name": "applet/user"
+    },
+    {
+      "name": "applet/user_noCasbin"
+    },
+    {
+      "name": "applet/menu"
+    },
+    {
+      "name": "applet/authority"
+    },
+    {
+      "name": "applet/api"
+    },
+    {
+      "name": "applet/casbin"
+    },
+    {
+      "name": "applet/base"
+    },
+    {
+      "name": "applet/dictionary"
+    },
+    {
+      "name": "applet/gpt3.5"
+    }
+  ],
+  "paths": {
+    "/v1/sys/getUserList": {
+      "get": {
+        "summary": "分页获取用户列表",
+        "x-apifox-folder": "applet/user",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/user"
+        ],
+        "parameters": [
+          {
+            "name": "_t",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "1702467671",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283754-run"
+      }
+    },
+    "/v1/sys/updateUserInfo": {
+      "put": {
+        "summary": "修改用户信息 - 直接更新角色",
+        "x-apifox-folder": "applet/user",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/user"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "ID": 3,
+                "authorityIds": [
+                  100001,
+                  100002,
+                  100003,
+                  100004,
+                  100005
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283757-run"
+      }
+    },
+    "/v1/sys/register": {
+      "post": {
+        "summary": "注册用户",
+        "x-apifox-folder": "applet/user",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/user"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "userName": "test004",
+                "passWord": "test001",
+                "nickName": "test001",
+                "authorityId": 1,
+                "authorityIds": [
+                  10,
+                  20
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283758-run"
+      }
+    },
+    "/v1/sys/login": {
+      "post": {
+        "summary": "nan/sys/login",
+        "x-apifox-folder": "applet/user_noCasbin",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/user_noCasbin"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "username": "yanghao",
+                "password": "123456",
+                "captcha": "997965"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283759-run"
+      }
+    },
+    "/v1/sys/randomImage": {
+      "get": {
+        "summary": "获取验证码",
+        "x-apifox-folder": "applet/user_noCasbin",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/user_noCasbin"
+        ],
+        "parameters": [
+          {
+            "name": "_t",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "1702467671",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283760-run"
+      }
+    },
+    "/v1/sys/menu/getMenu": {
+      "get": {
+        "summary": "获取页面菜单-路由",
+        "x-apifox-folder": "applet/menu",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/menu"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283761-run"
+      }
+    },
+    "/v1/sys/menu/getBaseMenuTree": {
+      "get": {
+        "summary": "获取用户动态路由树  -- 用于角色管理的设置权限",
+        "x-apifox-folder": "applet/menu",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/menu"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283762-run"
+      }
+    },
+    "/v1/sys/menu/getMenuAuthority": {
+      "get": {
+        "summary": "获取角色菜单  -- 用于角色管理的设置权限",
+        "x-apifox-folder": "applet/menu",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/menu"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "authorityId": 100001
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283763-run"
+      }
+    },
+    "/v1/sys/menu/getBaseMenuById": {
+      "get": {
+        "summary": "根据id获取系统菜单",
+        "x-apifox-folder": "applet/menu",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/menu"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "id": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283764-run"
+      }
+    },
+    "/v1/sys/menu/updateBaseMenu": {
+      "put": {
+        "summary": "更新系统菜单",
+        "x-apifox-folder": "applet/menu",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/menu"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "ID": 29,
+                "parentId": "0",
+                "path": "admin",
+                "name": "superAdmin-test",
+                "hidden": false,
+                "component": "view/superAdmin/index.vue",
+                "sort": 3,
+                "meta": {
+                  "activeName": "",
+                  "keepAlive": false,
+                  "defaultMenu": false,
+                  "title": "超级管理员-test",
+                  "icon": "user",
+                  "closeTab": false
+                },
+                "authoritys": null,
+                "children": null,
+                "parameters": [],
+                "menuBtn": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283765-run"
+      }
+    },
+    "/v1/sys/menu/getMenuList": {
+      "get": {
+        "summary": "获取系统基础菜单",
+        "x-apifox-folder": "applet/menu",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/menu"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283766-run"
+      }
+    },
+    "/v1/sys/menu/addBaseMenu": {
+      "post": {
+        "summary": "添加系统基础菜单",
+        "x-apifox-folder": "applet/menu",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/menu"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": "{\r\n    \"parentId\": \"0\",\r\n    \"path\": \"test\",\r\n    \"name\": \"test11\",\r\n    \"hidden\": false,\r\n    \"component\": \"view/test/index.vue\",\r\n    // \"sort\": 12,\r\n    \"authoritys\": [],\r\n    \"children\": null,\r\n    \"parameters\": [\r\n        {\r\n            \"type\": \"query\",\r\n            \"key\": \"111\",\r\n            \"value\": \"111\"\r\n        }\r\n    ],\r\n    \"menuBtn\": [\r\n        {\r\n            \"name\": \"222\",\r\n            \"desc\": \"222\"\r\n        }\r\n    ],\r\n    \"meta\": {\r\n        \"activeName\": \"\",\r\n        \"keepAlive\": false,\r\n        \"defaultMenu\": true,\r\n        \"title\": \"test11\",\r\n        \"icon\": \"jack\",\r\n        \"closeTab\": false\r\n    },\r\n    \"ID\": 0,\r\n    \"createdAt\": \"\",\r\n    \"UpdatedAt\": \"\",\r\n    \"DeletedAt\": \"\"\r\n}"
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283767-run"
+      }
+    },
+    "/v1/sys/authority/getAuthorityList": {
+      "get": {
+        "summary": "获取角色列表",
+        "x-apifox-folder": "applet/authority",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/authority"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "pageNo": 1,
+                "pageSize": 999
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283768-run"
+      }
+    },
+    "/v1/sys/authority/updateAuthority": {
+      "put": {
+        "summary": "更新角色信息 -- 设为首页",
+        "x-apifox-folder": "applet/authority",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/authority"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": "{\r\n  \"authorityName\": \"超级用户\",\r\n  \"authorityId\": 100001,  // 必须\r\n  \"parentId\": 0,\r\n  \"defaultRouter\": \"authority-test\" //设置首页 \r\n}"
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283769-run"
+      }
+    },
+    "/v1/sys/authority/addAuthorityMenu": {
+      "post": {
+        "summary": "增加base_menu和角色关联关系",
+        "x-apifox-folder": "applet/authority",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/authority"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzQ1OTA5MjksImlhdCI6MTcwMzA1NDkyOSwiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6MywiTmlja05hbWUiOiJNci7mnajmtakiLCJVVUlEIjoiZTJhYjg2YjEtOGUzZC00ODY0LTgwYWQtZTgzMTMxMzUzNjg2IiwiVXNlcm5hbWUiOiJ5YW5naGFvIn19.dn8yu0BQ9MxhwS77dRNEzbK6K4w7RTmHPyVp1cBo0ro",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "authorityId": 100001,
+                "menuIds": "1,2,3,4,5,6,7,8,9,10"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283770-run"
+      }
+    },
+    "/v1/sys/authority/createAuthority": {
+      "post": {
+        "summary": "创建角色",
+        "x-apifox-folder": "applet/authority",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/authority"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "authorityId": 1000092,
+                "authorityName": "t092",
+                "parentId": 0
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283771-run"
+      }
+    },
+    "/v1/sys/api/getApiList": {
+      "get": {
+        "summary": "获取api列表",
+        "x-apifox-folder": "applet/api",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/api"
+        ],
+        "parameters": [
+          {
+            "name": "pageNo",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "1",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "3",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orderKey",
+            "in": "query",
+            "description": " 排序的字段,为空则没有其他条件",
+            "required": false,
+            "example": "id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desc",
+            "in": "query",
+            "description": "排序方式:升序false(默认) | 降序true",
+            "required": false,
+            "example": "false",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "description": "请求路径",
+            "required": false,
+            "example": "api",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "method",
+            "in": "query",
+            "description": "请求方法",
+            "required": false,
+            "example": "get",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "apiGroup",
+            "in": "query",
+            "description": "api组",
+            "required": false,
+            "example": "用户",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "description": "说明、简介",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283772-run"
+      }
+    },
+    "/v1/sys/api/getAllApiList": {
+      "get": {
+        "summary": "获取全部api列表",
+        "x-apifox-folder": "applet/api",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/api"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "pageNo": 1111,
+                "pageSize": 222,
+                "path": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283773-run"
+      }
+    },
+    "/v1/sys/api/createApi": {
+      "post": {
+        "summary": "添加api列表",
+        "x-apifox-folder": "applet/api",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/api"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "path": "test1",
+                "apiGroup": "test",
+                "method": "GET",
+                "description": "1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283774-run"
+      }
+    },
+    "/v1/sys/api/deleteApi": {
+      "post": {
+        "summary": "删除api列表",
+        "x-apifox-folder": "applet/api",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/api"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "id": 702
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283775-run"
+      }
+    },
+    "/v1/sys/casbin/getPathByAuthorityId": {
+      "post": {
+        "summary": "根据角色id获取casbin数据",
+        "x-apifox-folder": "applet/casbin",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/casbin"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "authorityId": 100001
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283776-run"
+      }
+    },
+    "/v1/sys/casbin/updateCasbinData": {
+      "post": {
+        "summary": "更新一个角色的对应的casbin数据",
+        "x-apifox-folder": "applet/casbin",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/casbin"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "authorityId": 100002,
+                "casbinInfoList": [
+                  {
+                    "path": "/base/login1111",
+                    "method": "POST"
+                  },
+                  {
+                    "path": "/jwt/jsonInBlacklist1222",
+                    "method": "POST"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139283777-run"
+      }
+    },
+    "/v1/sys/resetUserPassword": {
+      "put": {
+        "summary": "重置用户密码 默认密码：goZero",
+        "x-apifox-folder": "applet/user",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/user"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "userId": 61
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139648164-run"
+      }
+    },
+    "/v1/sys/deleteUser": {
+      "delete": {
+        "summary": "删除用户",
+        "x-apifox-folder": "applet/user",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/user"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego{{token}}{{'111111111'}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Accept",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "{{token}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "userId": 60
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139714549-run"
+      }
+    },
+    "/v1/sys/api/deleteApisByIds": {
+      "delete": {
+        "summary": "删除多条api",
+        "x-apifox-folder": "applet/api",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/api"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "ids": [
+                  736,
+                  742,
+                  741
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139803524-run"
+      }
+    },
+    "/v1/sys/base/uploadFileImg": {
+      "post": {
+        "summary": "上传文件",
+        "x-apifox-folder": "applet/base",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/base"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file_img": {
+                    "type": "string",
+                    "example": "file://C:\\Users\\admin\\Pictures\\9a0396747299d6787c5514607a64384f.jpeg",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-139845965-run"
+      }
+    },
+    "/v1/sys/casbin/updateCasbinDataByApiIds": {
+      "put": {
+        "summary": "更新一个角色的对应的casbin数据 用api的ids 查数据",
+        "x-apifox-folder": "applet/casbin",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/casbin"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "authorityId": 100003,
+                "apiIds": [
+                  1,
+                  2,
+                  20,
+                  21
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-140051581-run"
+      }
+    },
+    "/v1/sys/api/updateApi": {
+      "put": {
+        "summary": "更新api",
+        "x-apifox-folder": "applet/api",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/api"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "ID": 742,
+                "path": "/api/updateApi1",
+                "description": "更新Api",
+                "apiGroup": "api11",
+                "method": "POST"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-140272206-run"
+      }
+    },
+    "/v1/sys/menu/deleteBaseMenu": {
+      "delete": {
+        "summary": "删除系统基础菜单",
+        "x-apifox-folder": "applet/menu",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/menu"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "id": 28
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-140281662-run"
+      }
+    },
+    "/v1/sys/authority/deleteAuthority": {
+      "delete": {
+        "summary": "删除角色",
+        "x-apifox-folder": "applet/authority",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/authority"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              },
+              "example": {
+                "id": 21312321
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "记录不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-orders": [],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-140285521-run"
+      }
+    },
+    "/v1/sys/dictionary/getSysDictionaryList": {
+      "get": {
+        "summary": "获取SysDictionary列表 -- 全部",
+        "x-apifox-folder": "applet/dictionary",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/dictionary"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-140395274-run"
+      }
+    },
+    "/v1/sys/dictionary/getSysDictionaryInfoList": {
+      "get": {
+        "summary": "获取SysDictionaryInfo列表",
+        "x-apifox-folder": "applet/dictionary",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/dictionary"
+        ],
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "10",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "1",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sysDictionaryID",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "1",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-ignore-properties": [],
+                "x-apifox-orders": []
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-140443040-run"
+      }
+    },
+    "/v1/sys/dictionary/createSysDictionary": {
+      "post": {
+        "summary": "新建SysDictionary",
+        "x-apifox-folder": "applet/dictionary",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/dictionary"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-ignore-properties": [],
+                "x-apifox-orders": []
+              },
+              "example": "{\r\n    \"name\": \"字典名（中）\",\r\n    \"type\": \"zidia1n\",\r\n    // \"status\": 1, // 状态 1开启 2关闭 为空时默认1\r\n    \"desc\": \"字典-描述\"\r\n}"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-140512605-run"
+      }
+    },
+    "/v1/sys/dictionary/updateSysDictionary": {
+      "put": {
+        "summary": "更新SysDictionary",
+        "x-apifox-folder": "applet/dictionary",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/dictionary"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-ignore-properties": [],
+                "x-apifox-orders": []
+              },
+              "example": "{\r\n    \"ID\": 12,\r\n    \"name\": \"数据库浮点型1\",\r\n    \"type\": \"float641\",\r\n    \"status\": 1,// 状态 1开启 0关闭\r\n    \"desc\": \"数据库浮点型\"\r\n\r\n}"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-140513151-run"
+      }
+    },
+    "/v1/sys/dictionary/getSysDictionaryDetails": {
+      "get": {
+        "summary": "根据ID或者type获取SysDictionary",
+        "x-apifox-folder": "applet/dictionary",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/dictionary"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "id 和type 填一个即可",
+            "required": false,
+            "example": "1",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Type",
+            "in": "query",
+            "description": "id 和type 填一个即可",
+            "required": false,
+            "example": "float64",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "description": "// 状态 1开启 2关闭   不填非必要",
+            "required": false,
+            "example": "1",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-140958447-run"
+      }
+    },
+    "/v1/sys/dictionary/deleteSysDictionary": {
+      "delete": {
+        "summary": "删除SysDictionary",
+        "x-apifox-folder": "applet/dictionary",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/dictionary"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-ignore-properties": [],
+                "x-apifox-orders": []
+              },
+              "example": {
+                "id": 6
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-140984516-run"
+      }
+    },
+    "/v1/sys/dictionary/getSysDictionaryInfoListDetailsById": {
+      "get": {
+        "summary": "根据id获取SysDictionaryInfo详情",
+        "x-apifox-folder": "applet/dictionary",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/dictionary"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "1",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-ignore-properties": [],
+                "x-apifox-orders": []
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-141004209-run"
+      }
+    },
+    "/v1/sys/dictionary/updateSysDictionaryInfo": {
+      "put": {
+        "summary": "更新SysDictionaryInfo",
+        "x-apifox-folder": "applet/dictionary",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/dictionary"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-ignore-properties": [],
+                "x-apifox-orders": []
+              },
+              "example": "{\r\n    \"ID\": 29,\r\n    \"label\": \"展示值\", //展示值\r\n    \"value\": 2, //字典值\r\n    \"extend\": \"扩展值\", //扩展值\r\n    \"status\": 1, //启用状态 状态 1开启 2关闭\r\n    \"sort\": 1, //排序标记 数字小往前\r\n}"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-141015497-run"
+      }
+    },
+    "/v1/sys/dictionary/createSysDictionaryInfo": {
+      "post": {
+        "summary": "创建SysDictionaryInfo",
+        "x-apifox-folder": "applet/dictionary",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/dictionary"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-ignore-properties": [],
+                "x-apifox-orders": []
+              },
+              "example": "{\r\n    \"label\": \"展示值\",\r\n    \"value\": 2,\r\n    \"status\": 1, // 状态 1开启 2关闭\r\n    \"sort\": 1, // 排序\r\n    \"sysDictionaryID\": 1, // 父级Id\r\n    \"extend\": \"扩展值\" // 非必填   其他必填\r\n}"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-141154411-run"
+      }
+    },
+    "/v1/sys/dictionary/deleteSysDictionaryInfo": {
+      "delete": {
+        "summary": "删除SysDictionaryInfo",
+        "x-apifox-folder": "applet/dictionary",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/dictionary"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzYyMzIyOTMsImlhdCI6MTcwNDY5NjI5Mywiand0RGF0YSI6eyJBdXRob3JpdHlJZCI6MTAwMDAxLCJJRCI6NjEsIk5pY2tOYW1lIjoiTXIu5p2o5rWpIiwiVVVJRCI6ImUyYWI4NmIxLThlM2QtNDg2NC04MGFkLWU4MzEzMTM1MzY4NiIsIlVzZXJuYW1lIjoieWFuZ2hhby10ZXN0In19.MYphh1pwPBpqruByHhyEYNKGmVFLXQ73I6_55mslego'}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-ignore-properties": [],
+                "x-apifox-orders": []
+              },
+              "example": {
+                "id": 33
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-141160788-run"
+      }
+    },
+    "/v1/engines/davinci-codex/completions": {
+      "post": {
+        "summary": "gpt-test",
+        "x-apifox-folder": "applet/gpt3.5",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "applet/gpt3.5"
+        ],
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "application/json",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "Bearer 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",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-ignore-properties": [],
+                "x-apifox-orders": []
+              },
+              "example": {
+                "prompt": "Translate the following English text to French: '{{text}}'",
+                "max_tokens": 100
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/3866356/apis/api-141368277-run"
+      }
+    }
+  },
+  "components": {
+    "schemas": {}
+  },
+  "servers": [
+    {
+      "url": "http://localhost:7001/",
+      "description": "开发环境"
+    }
+  ]
+}
