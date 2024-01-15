@@ -31,9 +31,9 @@ type UserInfo struct {
 }
 
 type SysAuthority struct {
-	AuthorityId     int64           `json:"authorityId"`   // 角色ID
-	AuthorityName   string          `json:"authorityName"` // 角色名
-	ParentId        *int64          `json:"parentId"`      // 父角色ID
+	AuthorityId     int64           `json:"authorityId,optional"` // 角色ID
+	AuthorityName   string          `json:"authorityName"`        // 角色名
+	ParentId        *int64          `json:"parentId"`             // 父角色ID
 	DataAuthorityId []*SysAuthority `json:"dataAuthorityId,optional"`
 	Children        []SysAuthority  `json:"children,optional"`
 	SysBaseMenus    []SysBaseMenu   `json:"menus,optional"`
