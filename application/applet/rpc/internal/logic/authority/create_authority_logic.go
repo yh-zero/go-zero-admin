@@ -2,6 +2,7 @@ package authoritylogic
 
 import (
 	"context"
+	"fmt"
 	"gorm.io/gorm"
 	"strconv"
 
@@ -40,6 +41,8 @@ func (l *CreateAuthorityLogic) CreateAuthority(in *pb.CreateAuthorityRequest) (*
 	}
 
 	txErr := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+		auth.DefaultRouter = "index"
+		fmt.Println("---------- auth", auth.AuthorityId)
 		if err = tx.Omit("deleted_at").Create(&auth).Error; err != nil {
 			return err
 		}

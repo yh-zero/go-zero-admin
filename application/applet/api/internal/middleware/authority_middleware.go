@@ -43,12 +43,9 @@ func (m *AuthorityMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func batchCheck(CasB *casbin.SyncedCachedEnforcer, authorityId, path, method string) bool {
-	//fmt.Println("==== authorityId", authorityId)
-	//fmt.Println("==== path", path)
-	//fmt.Println("==== method", method)
 	ok, _ := CasB.Enforce(authorityId, path, method)
 	if !ok {
-		//_, _ = CasB.AddPolicy(authorityId, path, method) // 临时添加保存通过  方便开发
+		//_, _ = CasB.AddPolicy(authorityId, path, method) // 如果权限数据不小心清了 把这个开启  然后api请求两次就会有权限  最后重新设置权限即可
 
 		logx.Errorf("---------- 权限不足 ------------")
 		//fmt.Println("---------- 权限不足 ------------")

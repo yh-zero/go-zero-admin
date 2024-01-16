@@ -75,6 +75,7 @@ type (
 	UpdateAuthorityResponse                     = pb.UpdateAuthorityResponse
 	UpdateBaseMenuRequest                       = pb.UpdateBaseMenuRequest
 	UpdateCasbinDataByApiIdsRequest             = pb.UpdateCasbinDataByApiIdsRequest
+	UpdateCasbinDataByApiIdsResponse            = pb.UpdateCasbinDataByApiIdsResponse
 	UpdateCasbinDataRequest                     = pb.UpdateCasbinDataRequest
 	UpdateSysDictionaryInfoRequest              = pb.UpdateSysDictionaryInfoRequest
 	UpdateSysDictionaryRequest                  = pb.UpdateSysDictionaryRequest
@@ -88,7 +89,7 @@ type (
 		// 更新一个角色的对应的casbin数据
 		UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 更新一个角色的对应的casbin数据 用api的ids 查数据
-		UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*UpdateCasbinDataByApiIdsResponse, error)
 	}
 
 	defaultCasbin struct {
@@ -115,7 +116,7 @@ func (m *defaultCasbin) UpdateCasbinData(ctx context.Context, in *UpdateCasbinDa
 }
 
 // 更新一个角色的对应的casbin数据 用api的ids 查数据
-func (m *defaultCasbin) UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+func (m *defaultCasbin) UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*UpdateCasbinDataByApiIdsResponse, error) {
 	client := pb.NewCasbinClient(m.cli.Conn())
 	return client.UpdateCasbinDataByApiIds(ctx, in, opts...)
 }

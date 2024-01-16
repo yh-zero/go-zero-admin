@@ -35,7 +35,7 @@ func (s *CasbinServer) UpdateCasbinData(ctx context.Context, in *pb.UpdateCasbin
 }
 
 // 更新一个角色的对应的casbin数据 用api的ids 查数据
-func (s *CasbinServer) UpdateCasbinDataByApiIds(ctx context.Context, in *pb.UpdateCasbinDataByApiIdsRequest) (*pb.NoDataResponse, error) {
+func (s *CasbinServer) UpdateCasbinDataByApiIds(ctx context.Context, in *pb.UpdateCasbinDataByApiIdsRequest) (*pb.UpdateCasbinDataByApiIdsResponse, error) {
 	l := casbinlogic.NewUpdateCasbinDataByApiIdsLogic(ctx, s.svcCtx)
 	return l.UpdateCasbinDataByApiIds(in)
 }

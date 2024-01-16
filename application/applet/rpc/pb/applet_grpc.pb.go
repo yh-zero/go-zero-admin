@@ -1253,7 +1253,8 @@ type CasbinClient interface {
 	// 更新一个角色的对应的casbin数据
 	UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 更新一个角色的对应的casbin数据 用api的ids 查数据
-	UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	//  rpc UpdateCasbinDataByApiIds (UpdateCasbinDataByApiIdsRequest) returns (NoDataResponse);
+	UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*UpdateCasbinDataByApiIdsResponse, error)
 }
 
 type casbinClient struct {
@@ -1282,8 +1283,8 @@ func (c *casbinClient) UpdateCasbinData(ctx context.Context, in *UpdateCasbinDat
 	return out, nil
 }
 
-func (c *casbinClient) UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
-	out := new(NoDataResponse)
+func (c *casbinClient) UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*UpdateCasbinDataByApiIdsResponse, error) {
+	out := new(UpdateCasbinDataByApiIdsResponse)
 	err := c.cc.Invoke(ctx, "/pb.Casbin/UpdateCasbinDataByApiIds", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1300,7 +1301,8 @@ type CasbinServer interface {
 	// 更新一个角色的对应的casbin数据
 	UpdateCasbinData(context.Context, *UpdateCasbinDataRequest) (*NoDataResponse, error)
 	// 更新一个角色的对应的casbin数据 用api的ids 查数据
-	UpdateCasbinDataByApiIds(context.Context, *UpdateCasbinDataByApiIdsRequest) (*NoDataResponse, error)
+	//  rpc UpdateCasbinDataByApiIds (UpdateCasbinDataByApiIdsRequest) returns (NoDataResponse);
+	UpdateCasbinDataByApiIds(context.Context, *UpdateCasbinDataByApiIdsRequest) (*UpdateCasbinDataByApiIdsResponse, error)
 	mustEmbedUnimplementedCasbinServer()
 }
 
@@ -1314,7 +1316,7 @@ func (UnimplementedCasbinServer) GetPathByAuthorityId(context.Context, *GetPathB
 func (UnimplementedCasbinServer) UpdateCasbinData(context.Context, *UpdateCasbinDataRequest) (*NoDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCasbinData not implemented")
 }
-func (UnimplementedCasbinServer) UpdateCasbinDataByApiIds(context.Context, *UpdateCasbinDataByApiIdsRequest) (*NoDataResponse, error) {
+func (UnimplementedCasbinServer) UpdateCasbinDataByApiIds(context.Context, *UpdateCasbinDataByApiIdsRequest) (*UpdateCasbinDataByApiIdsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCasbinDataByApiIds not implemented")
 }
 func (UnimplementedCasbinServer) mustEmbedUnimplementedCasbinServer() {}

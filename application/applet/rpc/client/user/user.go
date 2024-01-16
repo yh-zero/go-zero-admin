@@ -75,6 +75,7 @@ type (
 	UpdateAuthorityResponse                     = pb.UpdateAuthorityResponse
 	UpdateBaseMenuRequest                       = pb.UpdateBaseMenuRequest
 	UpdateCasbinDataByApiIdsRequest             = pb.UpdateCasbinDataByApiIdsRequest
+	UpdateCasbinDataByApiIdsResponse            = pb.UpdateCasbinDataByApiIdsResponse
 	UpdateCasbinDataRequest                     = pb.UpdateCasbinDataRequest
 	UpdateSysDictionaryInfoRequest              = pb.UpdateSysDictionaryInfoRequest
 	UpdateSysDictionaryRequest                  = pb.UpdateSysDictionaryRequest

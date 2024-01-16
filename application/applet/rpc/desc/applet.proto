@@ -335,6 +335,10 @@ message UpdateCasbinDataByApiIdsRequest {
   repeated int64 ApiIds = 2;
 }
 
+message UpdateCasbinDataByApiIdsResponse {
+  repeated SysApi SysApis = 1;
+}
+
 message UpdateApiRequest {
   SysApi SysApi = 1;
 }
@@ -509,7 +513,9 @@ service Casbin {
   // 更新一个角色的对应的casbin数据
   rpc UpdateCasbinData (UpdateCasbinDataRequest) returns (NoDataResponse);
   // 更新一个角色的对应的casbin数据 用api的ids 查数据
-  rpc UpdateCasbinDataByApiIds (UpdateCasbinDataByApiIdsRequest) returns (NoDataResponse);
+//  rpc UpdateCasbinDataByApiIds (UpdateCasbinDataByApiIdsRequest) returns (NoDataResponse);
+  rpc UpdateCasbinDataByApiIds (UpdateCasbinDataByApiIdsRequest) returns (UpdateCasbinDataByApiIdsResponse);
+
 }
 
 service Dictionary {
