@@ -33,7 +33,6 @@ type ServiceContext struct {
 	AppletCasbinRPC     casbinRPC.Casbin
 	AppletDictionaryRPC dictionaryRPC.Dictionary
 	Casbin              *casbin.SyncedCachedEnforcer
-	BanRoleData         map[string]bool // ban role means the role status is not normal
 	OssClient           *oss.Client
 }
 
@@ -49,15 +48,13 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		panic(err)
 	}
 
-	//rds := redis.New(c.BizRedis.Host, redis.WithPass(c.BizRedis.Pass))
 	rds := redis.MustNewRedis(c.BizRedis, redis.WithPass(c.BizRedis.Pass)) // jsonMark:骑着毛驴背单词
 
 	casB := c.CasbinConf.MustNewCasbinWithRedisWatcher(c.DB.DataSource, c.BizRedis)
 
 	svc := &ServiceContext{
-		Config:    c,
-		OssClient: oc,
-		//BizRedis:           redis.New(c.BizRedis.Host, redis.WithPass(c.BizRedis.Pass)),
+		Config:              c,
+		OssClient:           oc,
 		BizRedis:            rds,
 		AppletUserRPC:       user.NewUser(zrpc.MustNewClient(c.AppletRPC)),
 		AppletMenuRPC:       menu.NewMenu(zrpc.MustNewClient(c.AppletRPC)),
@@ -68,7 +65,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Casbin:              casB,
 	}
 
-	svc.Authority = middleware.NewAuthorityMiddleware(casB, rds, svc.BanRoleData).Handle
+	svc.Authority = middleware.NewAuthorityMiddleware(casB, rds).Handle
 
 	return svc
 }

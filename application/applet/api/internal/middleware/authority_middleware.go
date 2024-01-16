@@ -14,16 +14,14 @@ import (
 
 // all  *casbin.Enforcer --> *casbin.SyncedCachedEnforce
 type AuthorityMiddleware struct {
-	CasB        *casbin.SyncedCachedEnforcer
-	Rds         *redis.Redis
-	BanRoleData map[string]bool
+	CasB *casbin.SyncedCachedEnforcer
+	Rds  *redis.Redis
 }
 
-func NewAuthorityMiddleware(CasB *casbin.SyncedCachedEnforcer, rds *redis.Redis, banRoleData map[string]bool) *AuthorityMiddleware {
+func NewAuthorityMiddleware(CasB *casbin.SyncedCachedEnforcer, rds *redis.Redis) *AuthorityMiddleware {
 	return &AuthorityMiddleware{
-		CasB:        CasB,
-		Rds:         rds,
-		BanRoleData: banRoleData,
+		CasB: CasB,
+		Rds:  rds,
 	}
 }
 
@@ -50,7 +48,7 @@ func batchCheck(CasB *casbin.SyncedCachedEnforcer, authorityId, path, method str
 	//fmt.Println("==== method", method)
 	ok, _ := CasB.Enforce(authorityId, path, method)
 	if !ok {
-		_, _ = CasB.AddPolicy(authorityId, path, method) // 临时添加保存通过  方便开发
+		//_, _ = CasB.AddPolicy(authorityId, path, method) // 临时添加保存通过  方便开发
 
 		logx.Errorf("---------- 权限不足 ------------")
 		//fmt.Println("---------- 权限不足 ------------")

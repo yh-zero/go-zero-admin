@@ -38,7 +38,10 @@ func (l *UpdateCasbinDataByApiIdsLogic) UpdateCasbinDataByApiIds(in *pb.UpdateCa
 	}
 
 	authorityId := strconv.FormatInt(in.AuthorityId, 10)
-	_, err = l.ClearCasbin(0, authorityId)
+
+	csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
+	_, err = csb.RemoveFilteredPolicy(0, authorityId)
+
 	if err != nil {
 		return nil, err
 	}
@@ -52,8 +55,9 @@ func (l *UpdateCasbinDataByApiIdsLogic) UpdateCasbinDataByApiIds(in *pb.UpdateCa
 			rules = append(rules, []string{authorityId, v.Path, v.Method})
 		}
 	}
-	csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
+
 	success, err := csb.AddPolicies(rules)
+
 	if !success {
 		return nil, errors.New("存在相同api,添加失败,请联系管理员")
 	}
@@ -61,8 +65,8 @@ func (l *UpdateCasbinDataByApiIdsLogic) UpdateCasbinDataByApiIds(in *pb.UpdateCa
 	return &pb.NoDataResponse{}, err
 }
 
-func (l *UpdateCasbinDataByApiIdsLogic) ClearCasbin(v int, p ...string) (bool, error) {
-	csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
-	success, err := csb.RemoveFilteredPolicy(v, p...)
-	return success, err
-}
+//func (l *UpdateCasbinDataByApiIdsLogic) ClearCasbin(v int, p ...string) (bool, error) {
+//	csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
+//	success, err := csb.RemoveFilteredPolicy(v, p...)
+//	return success, err
+//}
