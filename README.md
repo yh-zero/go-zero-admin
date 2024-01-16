@@ -10,7 +10,7 @@
 
 ##### 接口请求: 欢迎一起开发一起学习冲冲冲： （接口文件：data/api/go-zero-admin.openapi.json   可以使用apifox软件导入运行）
 
-```http
+```sh
 #go__zero 在 Apifox 中邀请你加入团队 go-zero-admin 可以加入项目一起测试开发
 https://app.apifox.com/invite?token=TMOproaI5ycYALoINDuOI
 ```
