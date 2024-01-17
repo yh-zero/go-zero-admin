@@ -66,6 +66,7 @@ func (l *GetAuthorityListLogic) findChildrenAuthority(authority *model.SysAuthor
 func (l *GetAuthorityListLogic) findAuthorityMenusIds(sysAuthority *pb.SysAuthority) (err error) {
 	var MenuIds []int
 	err = l.svcCtx.DB.Model(&model.SysAuthorityMenu{}).Where("sys_authority_authority_id = ?", sysAuthority.AuthorityId).Pluck("sys_base_menu_id", &MenuIds).Error
+	//err = l.svcCtx.DB.Model(&model.SysBaseMenu{}).Where("parent_id != 0 and id in (?)", MenuIds).Pluck("id", &MenuIds).Error
 	// 将 []int 转换为字符串
 	var strSlice []string
 	for _, v := range MenuIds {
