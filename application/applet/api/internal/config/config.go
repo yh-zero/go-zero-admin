@@ -34,4 +34,5 @@ type Config struct {
 		ConnectTimeout   int64 `json:",optional"`
 		ReadWriteTimeout int64 `json:",optional"`
 	}
+	Isdev bool
 }

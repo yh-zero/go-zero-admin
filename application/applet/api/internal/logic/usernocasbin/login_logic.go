@@ -30,7 +30,7 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
 	remoteAddrIp := l.ctx.Value("RemoteAddr") // 获取id 存redis
 	IsDev := l.ctx.Value("Isdev")
-	if IsDev != strconv.Itoa(1) {
+	if l.svcCtx.Config.Isdev && IsDev != strconv.Itoa(1) {
 		cacheCode, err := GetActivationCache(GetIP(remoteAddrIp), l.svcCtx.BizRedis)
 		if err != nil {
 			logx.Errorf("getActivationCache：获取redis中的验证码错误 error: %v", err)
@@ -41,6 +41,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 			return nil, xerr.NewErrCode(xerr.CAPTCHA_ERROR)
 		}
 	}
+
 	// 获取用户信息
 	userInfoRPC, err := l.svcCtx.AppletUserRPC.GetUserInfo(l.ctx, &pb.GetUserInfoRequest{UserName: req.UserName, Password: req.Password})
 	if err != nil {

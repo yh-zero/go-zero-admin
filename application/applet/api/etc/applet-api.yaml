@@ -39,3 +39,4 @@ Oss: # oss相关数据 安全问题 存到本地环境中了
   AccessKeyId:
   AccessKeySecret:
   BucketName:
+Isdev: true # true的时候不验证 验证码
