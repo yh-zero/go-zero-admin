@@ -234,5 +234,4 @@ service applet-api {
 	delete /deleteSysDictionaryInfo (DeleteSysDictionaryInfoRequest) returns (MessageResponse)
 
 
-
 }

@@ -16,7 +16,7 @@ type SysUser struct {
 	HeaderImg   string         `json:"headerImg" gorm:"default:'https://go-zero-admin.oss-cn-beijing.aliyuncs.com/go-zero-admin/1705302257128_4d5477fec18994d0adb839d47fa30937_1.jpg';comment:用户头像"` // 用户头像
 	BaseColor   string         `json:"baseColor" gorm:"default:#fff;comment:基础颜色"`                                                                                                                   // 基础颜色
 	ActiveColor string         `json:"activeColor" gorm:"default:#1890ff;comment:活跃颜色"`                                                                                                              // 活跃颜色
-	AuthorityId int64          `json:"authorityId" gorm:"default:888;comment:用户角色ID"`                                                                                                                // 用户角色ID
+	AuthorityId int64          `json:"authorityId" gorm:"default:101;comment:用户角色ID"`                                                                                                                // 用户角色ID
 	Authority   SysAuthority   `json:"authority" gorm:"foreignKey:AuthorityId;references:AuthorityId;comment:用户角色"`
 	Authorities []SysAuthority `json:"authorities" gorm:"many2many:sys_user_authority;"`
 	Phone       string         `json:"phone"  gorm:"comment:用户手机号"`                     // 用户手机号
