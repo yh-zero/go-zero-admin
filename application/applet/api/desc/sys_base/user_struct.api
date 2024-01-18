@@ -417,3 +417,9 @@ type CreateSysDictionaryInfoRequest {
 type DeleteSysDictionaryInfoRequest {
 	ID int64 `json:"id"`
 }
+
+type SendEmailCodeRequest {
+	Email string `json:"email"`
+	IsForce bool `json:"isForce,optional"`
+
+}

@@ -20,6 +20,8 @@ func init() {
 	// sys_base 模块
 	message[REPEAT_OSS_GET_BUCKET_ERROR] = "获取oss_bucket实例失败"
 	message[REPEAT_OSS_PUT_BUCKET_ERROR] = "上传oss_bucket失败"
+	message[EMAIL_CANNOT_BE_EMPTY_ERROR] = "邮箱不能为空错误"
+	message[ALREADY_EXISTS_ERROR] = "邮箱已发送"
 }
 
 func MapErrMsg(errcode uint32) string {

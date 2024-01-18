@@ -407,3 +407,8 @@ type CreateSysDictionaryInfoRequest struct {
 type DeleteSysDictionaryInfoRequest struct {
 	ID int64 `json:"id"`
 }
+
+type SendEmailCodeRequest struct {
+	Email   string `json:"email"`
+	IsForce bool   `json:"isForce,optional"`
+}

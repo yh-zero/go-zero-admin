@@ -180,6 +180,10 @@ service applet-api {
 	@doc "上传图片"
 	@handler UploadFileImg
 	post /uploadFileImg (UploadFileImgRequest) returns (UploadFileImgResponse)
+
+	@doc "邮箱发送验证码 - 暂时用于注册账号"
+	@handler SendEmailCode
+	post /sendEmailCode (SendEmailCodeRequest) returns (MessageResponse)
 }
 
 @server(
@@ -232,6 +236,4 @@ service applet-api {
 	@doc "删除SysDictionaryInfo"
 	@handler DeleteSysDictionaryInfo
 	delete /deleteSysDictionaryInfo (DeleteSysDictionaryInfoRequest) returns (MessageResponse)
-
-
 }

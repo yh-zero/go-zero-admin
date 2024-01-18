@@ -228,6 +228,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/uploadFileImg",
 					Handler: base.UploadFileImgHandler(serverCtx),
 				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/sendEmailCode",
+					Handler: base.SendEmailCodeHandler(serverCtx),
+				},
 			}...,
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
