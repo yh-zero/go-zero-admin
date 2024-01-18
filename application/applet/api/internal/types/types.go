@@ -165,8 +165,9 @@ type SysApi struct {
 }
 
 type GetApiListRequest struct {
-	OrderKey string `form:"orderKey,optional"` // 排序的字段
-	Desc     bool   `form:"desc,optional"`     // 排序方式:升序false(默认) | 降序true
+	OrderKey     string `form:"orderKey,optional"`     // 排序的字段
+	Desc         bool   `form:"desc,optional"`         // 排序方式:升序false(默认) | 降序true
+	DictIdMethod int64  `form:"dictIdMethod,optional"` // 字典info 的id
 	SysApi
 	PageRequest
 }

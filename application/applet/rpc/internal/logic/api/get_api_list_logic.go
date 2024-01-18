@@ -42,8 +42,9 @@ func (l *GetApiListLogic) GetApiList(in *pb.GetApiListRequest) (*pb.GetApiListRe
 	if in.SysApi.Method != "" {
 		db = db.Where("method = ?", in.SysApi.Method)
 	}
-	if in.SysApi.ApiGroup != "" {
-		db = db.Where("api_group = ?", in.SysApi.ApiGroup)
+	if in.SysApi.ApiGroup != "" { // 改包含
+		db = db.Where("api_group LIKE ?", "%"+in.SysApi.ApiGroup+"%")
+		//db = db.Where("api_group = ?", in.SysApi.ApiGroup)
 	}
 	err := db.Count(&total).Error
 	if err != nil {
