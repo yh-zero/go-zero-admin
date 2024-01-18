@@ -11,7 +11,7 @@
  Target Server Version : 80034
  File Encoding         : 65001
 
- Date: 18/01/2024 17:38:38
+ Date: 18/01/2024 17:51:40
 */
 
 SET NAMES utf8mb4;
@@ -198,7 +198,7 @@ CREATE TABLE `sys_authorities`  (
   `default_router` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'dashboard' COMMENT '默认菜单',
   PRIMARY KEY (`authority_id`) USING BTREE,
   UNIQUE INDEX `authority_id`(`authority_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12321321327 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 101 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_authorities
