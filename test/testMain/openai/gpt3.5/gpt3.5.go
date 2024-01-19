@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const openaiAPIURL = "https://api.openai.com/v1/engines/davinci-codex/completions"
+const openaiAPIURL = ""
 const apiKey = "sk-"
 
 func main() {
