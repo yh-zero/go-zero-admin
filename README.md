@@ -88,4 +88,30 @@ l.svcCtx.DB.Omit("deleted_at").Create(&baseMenu)
 _, _ = CasB.AddPolicy(authorityId, path, method) // 如果权限数据不小心清了 把这个开启  然后api连续请求两次就会有权限  最后重新设置权限即可
 ```
 
+
+##### 角色管理：
+
+<img src="./data/doc/authority.png" alt="角色管理"  />
+
+##### 菜单管理：
+
+<img src="./data/doc/menu.png" alt="菜单管理"  />
+
+##### API管理：
+
+<img src="./data/doc/api.png" alt="api管理"  />
+
+##### 用户管理：
+
+<img src="./data/doc/user.png" alt="用户管理"  />
+
+##### 字典管理：
+
+<img src="./data/doc/dictionary.png" alt="字典管理"  />
+
+##### 字典使用例子：
+
+<img src="./data/doc/dictionary-usage.png" alt="字典使用例子"  />
+
+
 # 微信：qq1013055366  欢迎打扰(备注：go-zero-admin)
