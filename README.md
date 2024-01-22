@@ -1,5 +1,8 @@
 # go-zero-admin 
 
+#### 后端：[https://github.com/yh-zero/go-zero-admin](https://github.com/yh-zero/go-zero-admin)
+#### 前端：[https://github.com/yh-zero/go-zero-admin-vue3](https://github.com/yh-zero/go-zero-admin-vue3)
+
 ####  求兄弟们点一下 右上角的星星 star 谢谢 ~
 ####  求兄弟们点一下 右上角的星星 star 谢谢 ~
 ####  求兄弟们点一下 右上角的星星 star 谢谢 ~
