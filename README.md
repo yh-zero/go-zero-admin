@@ -20,7 +20,7 @@ https://app.apifox.com/invite?token=TMOproaI5ycYALoINDuOI
 
 #### 项目相关：
 
-##### 启动项目： (先运行sql文件 文件在 data/db/gozero-admin-20240116.sql 运行时间最新的文件) 
+##### 启动项目： (先运行sql文件 文件在 data/db/gozero-admin-20240116.sql 运行时间最新的文件)  mysql版本：8.0.34 引擎：InnoDB
 
 ##### 启动流程：（先启动redis,etcd）
 
