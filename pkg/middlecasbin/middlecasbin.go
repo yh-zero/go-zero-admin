@@ -1,6 +1,7 @@
 package middlecasbin
 
 import (
+	"fmt"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	"github.com/casbin/casbin/v2/persist"
@@ -38,6 +39,7 @@ func (l CasbinConf) NewCasbin(dsn string) (*casbin.SyncedCachedEnforcer, error) 
 		logx.Must(err)
 
 		var text string
+		fmt.Println("---------- l.ModelText ", l.ModelText)
 		if l.ModelText == "" {
 			text = `
 		[request_definition]
@@ -53,7 +55,7 @@ func (l CasbinConf) NewCasbin(dsn string) (*casbin.SyncedCachedEnforcer, error) 
 		e = some(where (p.eft == allow))
 		
 		[matchers]
-		m = r.sub == p.sub && keyMatch2(r.obj,p.obj) && r.act == p.act
+		m = r.sub == p.sub && myFun(r.obj,p.obj) && r.act == p.act
 		`
 		} else {
 			text = l.ModelText
@@ -70,6 +72,8 @@ func (l CasbinConf) NewCasbin(dsn string) (*casbin.SyncedCachedEnforcer, error) 
 
 		syncedCachedEnforcer, err = casbin.NewSyncedCachedEnforcer(m, adapter)
 		syncedCachedEnforcer.SetExpireTime(60 * 60)
+
+		syncedCachedEnforcer.AddFunction("myFun", KeyMatchFunc) // 自定义方法
 
 		err = syncedCachedEnforcer.LoadPolicy()
 		if err != nil {
@@ -109,4 +113,23 @@ func (l CasbinConf) MustNewRedisWatcher(c redis.RedisConf, f func(string2 string
 	logx.Must(err)
 
 	return w
+}
+
+func KeyMatchFunc(args ...interface{}) (interface{}, error) {
+	fmt.Println("------------------ KeyMatchFunc ------------")
+	name1 := args[0].(string)
+	name2 := args[1].(string)
+	fmt.Println("------------------ name1:", name1)
+	fmt.Println("------------------ name2:", name2)
+
+	return (bool)(KeyMatch(name1, name2)), nil
+}
+
+func KeyMatch(key1 string, key2 string) bool {
+	//fmt.Println("key1 :", key1)
+	//fmt.Println("key2 :", key2)
+	//return key1 != key2
+	return key1 == key2
+
+	//return key1 != "data1" && key1 == key2
 }
