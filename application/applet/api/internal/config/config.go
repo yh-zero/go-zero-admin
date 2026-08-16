@@ -4,7 +4,6 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
-	"go-zero-admin/pkg/middlecasbin"
 )
 
 type Config struct {
@@ -18,15 +17,8 @@ type Config struct {
 		PageNo   int64
 		PageSize int64
 	}
-	AppletRPC  zrpc.RpcClientConf
-	CasbinConf middlecasbin.CasbinConf
-	DB         struct {
-		DataSource   string
-		MaxOpenConns int `json:",default=10"`
-		MaxIdleConns int `json:",default=100"`
-		MaxLifetime  int `json:",default=3600"`
-	}
-	Oss struct {
+	AppletRPC zrpc.RpcClientConf
+	Oss       struct {
 		Endpoint         string
 		AccessKeyId      string
 		AccessKeySecret  string

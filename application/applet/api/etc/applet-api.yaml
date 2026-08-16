@@ -17,24 +17,6 @@ AppletRPC:
 JwtAuth:
   AccessSecret: 3fG7-go-zero-admin_p2hE
   AccessExpire: 31536000
-DB:
-  DataSource: root:123456@tcp(127.0.0.1:3306)/goZero-admin?parseTime=true&loc=Local
-  MaxIdleConns: 10
-  MaxOpenConns: 100
-  ConnMaxLifetime: 3600
-CasbinConf:
-  ModelText: |
-    [request_definition]
-    r = sub, obj, act
-    [policy_definition]
-    p = sub, obj, act
-    [role_definition]
-    g = _, _
-    [policy_effect]
-    e = some(where (p.eft == allow))
-    [matchers]
-    m = r.sub == p.sub && myFun(r.obj,p.obj) && r.act == p.act
-#    m = r.sub == p.sub && r.obj == p.obj && r.act == p.act
 Oss: # oss相关数据 安全问题 存到本地环境中了
   Endpoint:
   AccessKeyId:

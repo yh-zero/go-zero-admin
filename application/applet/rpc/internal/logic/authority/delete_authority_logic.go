@@ -2,9 +2,9 @@ package authoritylogic
 
 import (
 	"context"
-	"fmt"
-	"gorm.io/gorm"
 	"strconv"
+
+	"gorm.io/gorm"
 
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
@@ -63,10 +63,6 @@ func (l *DeleteAuthorityLogic) DeleteAuthority(in *pb.DeleteAuthorityRequest) (*
 		if err = tx.Unscoped().Delete(&modelSysAuthority).Error; err != nil {
 			return err
 		}
-		for _, menu := range modelSysAuthority.SysBaseMenus {
-			fmt.Println("menu=", menu)
-
-		}
 
 		if len(modelSysAuthority.SysBaseMenus) > 0 {
 			//f err := tx.Model(&modelSysAuthority).Association("SysBaseMenus").Delete(modelSysAuthority.SysBaseMenus); err != nil {
@@ -95,6 +91,14 @@ func (l *DeleteAuthorityLogic) DeleteAuthority(in *pb.DeleteAuthorityRequest) (*
 
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
 
-	return &pb.NoDataResponse{}, err
+	// 事务提交后重载内存策略 确保已删角色的策略不从内存残留
+	if err = l.svcCtx.Casbin.LoadPolicy(); err != nil {
+		logx.WithContext(l.ctx).Errorf("DeleteAuthority LoadPolicy err: %v", err)
+	}
+
+	return &pb.NoDataResponse{}, nil
 }

@@ -28,19 +28,16 @@ func NewDeleteApisByIdsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *D
 
 // 删除多条api
 func (l *DeleteApisByIdsLogic) DeleteApisByIds(in *pb.DeleteApisByIdsRequest) (*pb.NoDataResponse, error) {
-	csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
-
 	var apis []model.SysApi
 	err := l.svcCtx.DB.Find(&apis, "id in ?", in.Ids).Delete(&apis).Error
 	if err != nil {
 		return nil, err
-	} else {
-		for _, sysApi := range apis {
-			_, err = csb.RemoveFilteredPolicy(1, sysApi.Path, sysApi.Method)
-			//_, err = casbin.ClearCasbin(1, sysApi.Path, sysApi.Method)
-			if err != nil {
-				return nil, err
-			}
+	}
+	// 同步删除casbin对应策略 避免死策略残留
+	for _, sysApi := range apis {
+		if _, err = l.svcCtx.Casbin.RemoveFilteredPolicy(1, sysApi.Path, sysApi.Method); err != nil {
+			logx.WithContext(l.ctx).Errorf("DeleteApisByIds RemoveFilteredPolicy err: %v path: %s method: %s", err, sysApi.Path, sysApi.Method)
+			return nil, err
 		}
 	}
 	return &pb.NoDataResponse{}, nil

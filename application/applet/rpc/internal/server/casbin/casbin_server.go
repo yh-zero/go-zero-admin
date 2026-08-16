@@ -39,3 +39,9 @@ func (s *CasbinServer) UpdateCasbinDataByApiIds(ctx context.Context, in *pb.Upda
 	l := casbinlogic.NewUpdateCasbinDataByApiIdsLogic(ctx, s.svcCtx)
 	return l.UpdateCasbinDataByApiIds(in)
 }
+
+// casbin 鉴权 供api网关/中间件调用
+func (s *CasbinServer) Enforce(ctx context.Context, in *pb.EnforceRequest) (*pb.EnforceResponse, error) {
+	l := casbinlogic.NewEnforceLogic(ctx, s.svcCtx)
+	return l.Enforce(in)
+}

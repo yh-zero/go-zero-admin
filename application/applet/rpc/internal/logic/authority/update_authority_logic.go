@@ -2,7 +2,6 @@ package authoritylogic
 
 import (
 	"context"
-	"fmt"
 
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
@@ -32,11 +31,9 @@ func (l *UpdateAuthorityLogic) UpdateAuthority(in *pb.UpdateAuthorityRequest) (*
 
 	_ = copier.Copy(&sysAuthority, in.SysAuthority)
 	err := l.svcCtx.DB.Where("authority_id = ?", sysAuthority.AuthorityId).First(&model.SysAuthority{}).Omit("deleted_at").Updates(&sysAuthority).Error
-	fmt.Println("---------- sysAuthority", sysAuthority)
 
 	var pbSysAuthority pb.SysAuthority
 	_ = copier.Copy(&pbSysAuthority, sysAuthority)
-	fmt.Println("---------- pbSysAuthority", pbSysAuthority)
 
 	return &pb.UpdateAuthorityResponse{SysAuthority: &pbSysAuthority}, err
 }

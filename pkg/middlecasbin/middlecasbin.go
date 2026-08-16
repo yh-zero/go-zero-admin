@@ -1,7 +1,9 @@
 package middlecasbin
 
 import (
-	"fmt"
+	"errors"
+	"sync"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	"github.com/casbin/casbin/v2/persist"
@@ -10,81 +12,96 @@ import (
 	redis2 "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
-	"sync"
 )
 
 type CasbinConf struct {
 	ModelText string `json:"ModelText,optional,env=CASBIN_MODEL_TEXT"`
 }
 
+// defaultModelText 默认模型 与各服务yaml中的CasbinConf.ModelText保持一致
+// 路径匹配统一使用casbin内置keyMatch2 支持 /api/:id 风格的通配符
+const defaultModelText = `
+[request_definition]
+r = sub, obj, act
+
+[policy_definition]
+p = sub, obj, act
+
+[role_definition]
+g = _, _
+
+[policy_effect]
+e = some(where (p.eft == allow))
+
+[matchers]
+m = r.sub == p.sub && keyMatch2(r.obj, p.obj) && r.act == p.act
+`
+
+// enforcerCacheSecond SyncedCachedEnforcer 鉴权结果缓存时间(秒)
+const enforcerCacheSecond = 60 * 60
+
 var (
 	syncedCachedEnforcer *casbin.SyncedCachedEnforcer
-	once                 sync.Once
+	once                 sync.Once // 进程内单例 同一进程只创建一个enforcer
 )
 
-// all  *casbin.Enforcer --> *casbin.SyncedCachedEnforcer
+// MustNewCasbin 创建enforcer 失败直接panic快速失败 避免服务带着nil enforcer启动后请求panic
 func (l CasbinConf) MustNewCasbin(dsn string) *casbin.SyncedCachedEnforcer {
 	csb, err := l.NewCasbin(dsn)
 	if err != nil {
 		logx.Errorw("initialize Casbin failed", logx.Field("detail", err.Error()))
-		return nil
+		panic(err)
 	}
 
 	return csb
 }
 
+// NewCasbin 创建SyncedCachedEnforcer 在NewEnforcer的基础上增加了同步缓存的功能
 func (l CasbinConf) NewCasbin(dsn string) (*casbin.SyncedCachedEnforcer, error) {
+	var initErr error
 	once.Do(func() {
 		adapter, err := gormadapter.NewAdapter("mysql", dsn, true)
-		logx.Must(err)
+		if err != nil {
+			initErr = err
+			return
+		}
 
-		var text string
-		fmt.Println("---------- l.ModelText ", l.ModelText)
-		if l.ModelText == "" {
-			text = `
-		[request_definition]
-		r = sub, obj, act
-		
-		[policy_definition]
-		p = sub, obj, act
-		
-		[role_definition]
-		g = _, _
-		
-		[policy_effect]
-		e = some(where (p.eft == allow))
-		
-		[matchers]
-		m = r.sub == p.sub && myFun(r.obj,p.obj) && r.act == p.act
-		`
-		} else {
-			text = l.ModelText
+		text := l.ModelText
+		if text == "" {
+			text = defaultModelText
 		}
 
 		m, err := model.NewModelFromString(text)
 		if err != nil {
-			logx.Errorf("字符串加载模型失败! err:%v", err)
-			logx.Must(err)
+			initErr = err
+			return
 		}
 
-		// NewSyncedCachedEnforcer 在 NewEnforcer 的基础上增加了同步缓存的功能，提供了更好的性能和并发安全性，适用于对性能要求较高的场景
-		//enforcer, err := casbin.NewEnforcer(m, adapter)
-
-		syncedCachedEnforcer, err = casbin.NewSyncedCachedEnforcer(m, adapter)
-		syncedCachedEnforcer.SetExpireTime(60 * 60)
-
-		syncedCachedEnforcer.AddFunction("myFun", KeyMatchFunc) // 自定义方法
-
-		err = syncedCachedEnforcer.LoadPolicy()
+		enforcer, err := casbin.NewSyncedCachedEnforcer(m, adapter)
 		if err != nil {
-			logx.Errorf("创建 Enforcer（访问控制器）的函数 失败! err:%v", err)
-			logx.Must(err)
+			initErr = err
+			return
 		}
+		enforcer.SetExpireTime(enforcerCacheSecond)
+
+		if err = enforcer.LoadPolicy(); err != nil {
+			initErr = err
+			return
+		}
+		syncedCachedEnforcer = enforcer
 	})
 
-	return syncedCachedEnforcer, nil
+	// once已消耗但enforcer仍为nil 说明此前初始化失败过(initErr是局部变量此时为nil)
+	// 补充错误 避免调用方拿到(nil, nil)后在运行时panic
+	if syncedCachedEnforcer == nil && initErr == nil {
+		initErr = errors.New("casbin enforcer not initialized, previous init failed")
+	}
+
+	return syncedCachedEnforcer, initErr
 }
 
+// MustNewCasbinWithRedisWatcher 创建带redis watcher的enforcer 用于多实例间策略同步
+// 注意: EnableAutoSave后写操作会自动落库并广播 不要调用SavePolicy全量写回(有清空线上策略表的风险)
 func (l CasbinConf) MustNewCasbinWithRedisWatcher(dsn string, c redis.RedisConf) *casbin.SyncedCachedEnforcer {
 	cbn := l.MustNewCasbin(dsn)
 	w := l.MustNewRedisWatcher(c, func(data string) {
@@ -92,12 +109,11 @@ func (l CasbinConf) MustNewCasbinWithRedisWatcher(dsn string, c redis.RedisConf)
 	})
 	err := cbn.SetWatcher(w)
 	logx.Must(err)
-	err = cbn.SavePolicy()
-	logx.Must(err)
 	cbn.EnableAutoSave(true)
 	return cbn
 }
 
+// MustNewRedisWatcher 创建redis watcher IgnoreSelf=true 过滤自己发出的通知 避免重复LoadPolicy
 func (l CasbinConf) MustNewRedisWatcher(c redis.RedisConf, f func(string2 string)) persist.Watcher {
 	w, err := rediswatcher.NewWatcher(c.Host, rediswatcher.WatcherOptions{
 		Options: redis2.Options{
@@ -105,7 +121,7 @@ func (l CasbinConf) MustNewRedisWatcher(c redis.RedisConf, f func(string2 string
 			Password: c.Pass,
 		},
 		Channel:    "/casbin",
-		IgnoreSelf: false,
+		IgnoreSelf: true,
 	})
 	logx.Must(err)
 
@@ -113,23 +129,4 @@ func (l CasbinConf) MustNewRedisWatcher(c redis.RedisConf, f func(string2 string
 	logx.Must(err)
 
 	return w
-}
-
-func KeyMatchFunc(args ...interface{}) (interface{}, error) {
-	fmt.Println("------------------ KeyMatchFunc ------------")
-	name1 := args[0].(string)
-	name2 := args[1].(string)
-	fmt.Println("------------------ name1:", name1)
-	fmt.Println("------------------ name2:", name2)
-
-	return (bool)(KeyMatch(name1, name2)), nil
-}
-
-func KeyMatch(key1 string, key2 string) bool {
-	//fmt.Println("key1 :", key1)
-	//fmt.Println("key2 :", key2)
-	//return key1 != key2
-	return key1 == key2
-
-	//return key1 != "data1" && key1 == key2
 }

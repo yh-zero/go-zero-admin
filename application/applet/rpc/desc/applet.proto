@@ -339,6 +339,16 @@ message UpdateCasbinDataByApiIdsResponse {
   repeated SysApi SysApis = 1;
 }
 
+message EnforceRequest {
+  string AuthorityId = 1; // 角色
+  string Path = 2; // 路径
+  string Method = 3; // 方法
+}
+
+message EnforceResponse {
+  bool Pass = 1; // 是否通过
+}
+
 message UpdateApiRequest {
   SysApi SysApi = 1;
 }
@@ -515,6 +525,8 @@ service Casbin {
   // 更新一个角色的对应的casbin数据 用api的ids 查数据
 //  rpc UpdateCasbinDataByApiIds (UpdateCasbinDataByApiIdsRequest) returns (NoDataResponse);
   rpc UpdateCasbinDataByApiIds (UpdateCasbinDataByApiIdsRequest) returns (UpdateCasbinDataByApiIdsResponse);
+  // casbin 鉴权 供api网关/中间件调用
+  rpc Enforce (EnforceRequest) returns (EnforceResponse);
 
 }
 

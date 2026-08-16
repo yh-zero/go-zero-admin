@@ -26,7 +26,7 @@ func NewGetPathByAuthorityIdLogic(ctx context.Context, svcCtx *svc.ServiceContex
 
 // 根据角色id获取对应的casbin数据
 func (l *GetPathByAuthorityIdLogic) GetPathByAuthorityId(in *pb.GetPathByAuthorityIdRequest) (*pb.GetPathByAuthorityIdResponse, error) {
-	csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
+	csb := l.svcCtx.Casbin
 
 	authorityId := strconv.Itoa(int(in.AuthorityId))
 	list := csb.GetFilteredPolicy(0, authorityId)

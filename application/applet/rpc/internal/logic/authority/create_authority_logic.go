@@ -2,9 +2,9 @@ package authoritylogic
 
 import (
 	"context"
-	"fmt"
-	"gorm.io/gorm"
 	"strconv"
+
+	"gorm.io/gorm"
 
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
@@ -42,7 +42,6 @@ func (l *CreateAuthorityLogic) CreateAuthority(in *pb.CreateAuthorityRequest) (*
 
 	txErr := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
 		auth.DefaultRouter = "index"
-		fmt.Println("---------- auth", auth.AuthorityId)
 		if err = tx.Omit("deleted_at").Create(&auth).Error; err != nil {
 			return err
 		}
@@ -59,11 +58,19 @@ func (l *CreateAuthorityLogic) CreateAuthority(in *pb.CreateAuthorityRequest) (*
 		}
 		return l.AddPolicies(tx, rules)
 	})
+	if txErr != nil {
+		return nil, txErr
+	}
+
+	// 事务提交后重载内存策略 保证新角色默认权限立即生效(不重载则要到重启后才生效)
+	if err = l.svcCtx.Casbin.LoadPolicy(); err != nil {
+		logx.WithContext(l.ctx).Errorf("CreateAuthority LoadPolicy err: %v", err)
+	}
 
 	var pbSysAuthority pb.SysAuthority
 	_ = copier.Copy(&pbSysAuthority, auth)
 
-	return &pb.CreateAuthorityResponse{SysAuthority: &pbSysAuthority}, txErr
+	return &pb.CreateAuthorityResponse{SysAuthority: &pbSysAuthority}, nil
 }
 
 func (l *CreateAuthorityLogic) DefaultMenu() []model.SysBaseMenu {

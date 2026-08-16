@@ -11,7 +11,6 @@ import (
 	"go-zero-admin/application/applet/rpc/client/user"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/casbin/casbin/v2"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
@@ -32,7 +31,6 @@ type ServiceContext struct {
 	AppletAPIRPC        api.Api
 	AppletCasbinRPC     casbinRPC.Casbin
 	AppletDictionaryRPC dictionaryRPC.Dictionary
-	Casbin              *casbin.SyncedCachedEnforcer
 	OssClient           *oss.Client
 }
 
@@ -50,22 +48,23 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 	rds := redis.MustNewRedis(c.BizRedis, redis.WithPass(c.BizRedis.Pass)) // jsonMark:骑着毛驴背单词
 
-	casB := c.CasbinConf.MustNewCasbinWithRedisWatcher(c.DB.DataSource, c.BizRedis)
+	appletRPC := zrpc.MustNewClient(c.AppletRPC)
+	casbinCli := casbinRPC.NewCasbin(appletRPC)
 
 	svc := &ServiceContext{
 		Config:              c,
 		OssClient:           oc,
 		BizRedis:            rds,
-		AppletUserRPC:       user.NewUser(zrpc.MustNewClient(c.AppletRPC)),
-		AppletMenuRPC:       menu.NewMenu(zrpc.MustNewClient(c.AppletRPC)),
-		AppletAuthorityRPC:  authority.NewAuthority(zrpc.MustNewClient(c.AppletRPC)),
-		AppletAPIRPC:        api.NewApi(zrpc.MustNewClient(c.AppletRPC)),
-		AppletCasbinRPC:     casbinRPC.NewCasbin(zrpc.MustNewClient(c.AppletRPC)),
-		AppletDictionaryRPC: dictionaryRPC.NewDictionary(zrpc.MustNewClient(c.AppletRPC)),
-		Casbin:              casB,
+		AppletUserRPC:       user.NewUser(appletRPC),
+		AppletMenuRPC:       menu.NewMenu(appletRPC),
+		AppletAuthorityRPC:  authority.NewAuthority(appletRPC),
+		AppletAPIRPC:        api.NewApi(appletRPC),
+		AppletCasbinRPC:     casbinCli,
+		AppletDictionaryRPC: dictionaryRPC.NewDictionary(appletRPC),
 	}
 
-	svc.Authority = middleware.NewAuthorityMiddleware(casB, rds).Handle
+	// 权限鉴权走RPC casbin api层不直连数据库
+	svc.Authority = middleware.NewAuthorityMiddleware(casbinCli).Handle
 
 	return svc
 }

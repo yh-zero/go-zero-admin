@@ -2,13 +2,13 @@ package apilogic
 
 import (
 	"context"
+
 	"gorm.io/gorm"
 
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 
-	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -53,15 +53,18 @@ func (l *UpdateApiLogic) UpdateApi(in *pb.UpdateApiRequest) (*pb.NoDataResponse,
 	return &pb.NoDataResponse{}, nil
 }
 
+// UpdateCasbinApi 更新api后同步更新casbin策略 走enforcer写操作 自动落库并通过watcher广播
 func (l *UpdateApiLogic) UpdateCasbinApi(oldPath string, newPath string, oldMethod string, newMethod string) error {
-	err := l.svcCtx.DB.Model(&gormadapter.CasbinRule{}).Where("v1 = ? AND v2 = ?", oldPath, oldMethod).Updates(map[string]interface{}{
-		"v1": newPath,
-		"v2": newMethod,
-	}).Error
-	csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
-	err = csb.LoadPolicy()
-	if err != nil {
-		return err
+	oldRules := l.svcCtx.Casbin.GetFilteredPolicy(1, oldPath, oldMethod)
+	if len(oldRules) == 0 {
+		return nil
 	}
+
+	newRules := make([][]string, len(oldRules))
+	for i, rule := range oldRules {
+		newRules[i] = []string{rule[0], newPath, newMethod}
+	}
+
+	_, err := l.svcCtx.Casbin.UpdatePolicies(oldRules, newRules)
 	return err
 }

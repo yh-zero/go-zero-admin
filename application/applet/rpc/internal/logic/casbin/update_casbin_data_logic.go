@@ -2,7 +2,6 @@ package casbinlogic
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"go-zero-admin/application/applet/rpc/internal/svc"
@@ -29,14 +28,10 @@ func NewUpdateCasbinDataLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 // 更新一个角色的对应的casbin数据
 func (l *UpdateCasbinDataLogic) UpdateCasbinData(in *pb.UpdateCasbinDataRequest) (*pb.NoDataResponse, error) {
 	authorityId := strconv.FormatInt(in.AuthorityId, 10)
-	fmt.Println("authorityId", authorityId)
-	_, err := l.ClearCasbin(0, authorityId)
-	if err != nil {
-		return nil, err
-	}
-	//做权限去重处理
-	rules := [][]string{}
+
+	// 做权限去重处理
 	deduplicateMap := make(map[string]bool)
+	rules := [][]string{}
 	for _, v := range in.CasbinInfoList {
 		key := authorityId + v.Path + v.Method
 		if _, ok := deduplicateMap[key]; !ok {
@@ -44,17 +39,27 @@ func (l *UpdateCasbinDataLogic) UpdateCasbinData(in *pb.UpdateCasbinDataRequest)
 			rules = append(rules, []string{authorityId, v.Path, v.Method})
 		}
 	}
-	csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
-	success, err := csb.AddPolicies(rules)
-	if !success {
-		return nil, errors.New("存在相同api,添加失败,请联系管理员")
+
+	// 记录旧策略 更新失败时回滚 避免该角色权限全丢
+	oldRules := l.svcCtx.Casbin.GetFilteredPolicy(0, authorityId)
+	if _, err := l.svcCtx.Casbin.RemoveFilteredPolicy(0, authorityId); err != nil {
+		return nil, err
 	}
 
-	return &pb.NoDataResponse{}, err
-}
+	// 传空列表表示清空该角色全部权限
+	if len(rules) > 0 {
+		success, err := l.svcCtx.Casbin.AddPolicies(rules)
+		if err != nil || !success {
+			logx.WithContext(l.ctx).Errorf("UpdateCasbinData AddPolicies err: %v authorityId: %s", err, authorityId)
+			// 回滚旧策略
+			if len(oldRules) > 0 {
+				if _, rbErr := l.svcCtx.Casbin.AddPolicies(oldRules); rbErr != nil {
+					logx.WithContext(l.ctx).Errorf("UpdateCasbinData rollback err: %v authorityId: %s", rbErr, authorityId)
+				}
+			}
+			return nil, errors.New("添加策略失败,请联系管理员")
+		}
+	}
 
-func (l *UpdateCasbinDataLogic) ClearCasbin(v int, p ...string) (bool, error) {
-	csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
-	success, err := csb.RemoveFilteredPolicy(v, p...)
-	return success, err
+	return &pb.NoDataResponse{}, nil
 }

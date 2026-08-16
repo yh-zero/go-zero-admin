@@ -40,7 +40,11 @@ func (l *DeleteApiLogic) DeleteApi(in *pb.DeleteApiRequest) (*pb.NoDataResponse,
 		return nil, err
 	}
 
-	// 这里要做删除功能  casbin 删除对应的策略 RemoveNamedPolicy()
+	// 同步删除casbin对应策略 避免死策略残留 重建同路径api时旧角色自动获得权限
+	if _, err = l.svcCtx.Casbin.RemoveFilteredPolicy(1, sysApi.Path, sysApi.Method); err != nil {
+		logx.WithContext(l.ctx).Errorf("DeleteApi RemoveFilteredPolicy err: %v path: %s method: %s", err, sysApi.Path, sysApi.Method)
+		return nil, err
+	}
 
 	return &pb.NoDataResponse{}, nil
 }

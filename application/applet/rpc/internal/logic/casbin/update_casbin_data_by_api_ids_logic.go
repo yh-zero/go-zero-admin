@@ -2,6 +2,8 @@ package casbinlogic
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/jinzhu/copier"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
@@ -37,44 +39,29 @@ func (l *UpdateCasbinDataByApiIdsLogic) UpdateCasbinDataByApiIds(in *pb.UpdateCa
 	var pbSysApis []*pb.SysApi
 	_ = copier.Copy(&pbSysApis, modelSysApis)
 
-	return &pb.UpdateCasbinDataByApiIdsResponse{SysApis: pbSysApis}, err
+	authorityId := strconv.FormatInt(in.AuthorityId, 10)
 
+	if _, err = l.svcCtx.Casbin.RemoveFilteredPolicy(0, authorityId); err != nil {
+		return nil, errors.Wrap(err, "删除策略失败")
+	}
+
+	// 做权限去重处理
+	deduplicateMap := make(map[string]bool)
+	rules := make([][]string, 0, len(modelSysApis))
+	for _, v := range modelSysApis {
+		key := authorityId + v.Path + v.Method
+		if _, ok := deduplicateMap[key]; !ok {
+			deduplicateMap[key] = true
+			rules = append(rules, []string{authorityId, v.Path, v.Method})
+		}
+	}
+
+	if len(rules) > 0 {
+		success, err := l.svcCtx.Casbin.AddPolicies(rules)
+		if err != nil || !success {
+			return nil, errors.New("存在相同api,添加失败,请联系管理员")
+		}
+	}
+
+	return &pb.UpdateCasbinDataByApiIdsResponse{SysApis: pbSysApis}, nil
 }
-
-//
-//func (l *UpdateCasbinDataByApiIdsLogic) UpdateCasbinDataByApiIds(in *pb.UpdateCasbinDataByApiIdsRequest) (*pb.NoDataResponse, error) {
-//	// 根据 ApiIds 获取对应的数据
-//	var modelSysApis []model.SysApi
-//	err := l.svcCtx.DB.Where("id in ?", in.ApiIds).Find(&modelSysApis).Error
-//	fmt.Println("========= modelSysApis", modelSysApis)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	authorityId := strconv.FormatInt(in.AuthorityId, 10)
-//
-//	csb := l.svcCtx.Config.CasbinConf.MustNewCasbinWithRedisWatcher(l.svcCtx.Config.DB.DataSource, l.svcCtx.Config.BizRedis)
-//	_, err = csb.RemoveFilteredPolicy(0, authorityId)
-//
-//	if err != nil {
-//		return nil, err
-//	}
-//	//做权限去重处理
-//	rules := [][]string{}
-//	deduplicateMap := make(map[string]bool)
-//	for _, v := range modelSysApis {
-//		key := authorityId + v.Path + v.Method
-//		if _, ok := deduplicateMap[key]; !ok {
-//			deduplicateMap[key] = true
-//			rules = append(rules, []string{authorityId, v.Path, v.Method})
-//		}
-//	}
-//
-//	success, err := csb.AddPolicies(rules)
-//
-//	if !success {
-//		return nil, errors.New("存在相同api,添加失败,请联系管理员")
-//	}
-//
-//	return &pb.NoDataResponse{}, err
-//}

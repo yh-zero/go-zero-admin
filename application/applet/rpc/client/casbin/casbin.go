@@ -29,6 +29,8 @@ type (
 	DeleteSysDictionaryRequest                  = pb.DeleteSysDictionaryRequest
 	DeleteUserRequest                           = pb.DeleteUserRequest
 	DictionaryListResponse                      = pb.DictionaryListResponse
+	EnforceRequest                              = pb.EnforceRequest
+	EnforceResponse                             = pb.EnforceResponse
 	GetAllApiListResponse                       = pb.GetAllApiListResponse
 	GetApiListRequest                           = pb.GetApiListRequest
 	GetApiListResponse                          = pb.GetApiListResponse
@@ -90,6 +92,8 @@ type (
 		UpdateCasbinData(ctx context.Context, in *UpdateCasbinDataRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 更新一个角色的对应的casbin数据 用api的ids 查数据
 		UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*UpdateCasbinDataByApiIdsResponse, error)
+		// casbin 鉴权 供api网关/中间件调用
+		Enforce(ctx context.Context, in *EnforceRequest, opts ...grpc.CallOption) (*EnforceResponse, error)
 	}
 
 	defaultCasbin struct {
@@ -119,4 +123,10 @@ func (m *defaultCasbin) UpdateCasbinData(ctx context.Context, in *UpdateCasbinDa
 func (m *defaultCasbin) UpdateCasbinDataByApiIds(ctx context.Context, in *UpdateCasbinDataByApiIdsRequest, opts ...grpc.CallOption) (*UpdateCasbinDataByApiIdsResponse, error) {
 	client := pb.NewCasbinClient(m.cli.Conn())
 	return client.UpdateCasbinDataByApiIds(ctx, in, opts...)
+}
+
+// casbin 鉴权 供api网关/中间件调用
+func (m *defaultCasbin) Enforce(ctx context.Context, in *EnforceRequest, opts ...grpc.CallOption) (*EnforceResponse, error) {
+	client := pb.NewCasbinClient(m.cli.Conn())
+	return client.Enforce(ctx, in, opts...)
 }
