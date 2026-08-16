@@ -114,4 +114,18 @@ _, _ = CasB.AddPolicy(authorityId, path, method) // 如果权限数据不小心�
 <img src="./data/doc/dictionary-usage.png" alt="字典使用例子"  />
 
 
+#### goctl 模板说明（test/goctl/）
+
+模板目录中仅以下 2 个文件做了自定义改动，其余均为 goctl 原生模板：
+
+| 文件 | 自定义内容 |
+| --- | --- |
+| test/goctl/1.10.3/api/handler.tpl | 统一响应封装：`result.HttpResult(r, w, resp, err)` 替换默认的 httpx.ErrorCtx/OkJsonCtx 分支 |
+| test/goctl/1.10.3/api/main.tpl | JWT 过期统一响应：`rest.WithUnauthorizedCallback` 返回 `xerr.TOKEN_EXPIRE_ERROR` |
+
+```sh
+###### 生成代码时指定模板（test/sh/api.bat、rpc.bat 里的 --home 同步修改即可）：
+goctl api go -api xxx.api -dir . --home test/goctl/1.10.3
+```
+
 # 微信：qq1013055366  欢迎打扰(备注：go-zero-admin)
