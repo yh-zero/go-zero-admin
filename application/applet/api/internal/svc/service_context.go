@@ -41,9 +41,13 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	if c.Oss.ReadWriteTimeout == 0 {
 		c.Oss.ReadWriteTimeout = defaultOssReadWriteTimeout
 	}
-	oc, err := oss.New(c.Oss.Endpoint, c.Oss.AccessKeyId, c.Oss.AccessKeySecret, oss.Timeout(c.Oss.ConnectTimeout, c.Oss.ReadWriteTimeout))
-	if err != nil {
-		panic(err)
+	var oc *oss.Client
+	if c.Oss.Endpoint != "" && c.Oss.AccessKeyId != "" && c.Oss.AccessKeySecret != "" && c.Oss.BucketName != "" {
+		var err error
+		oc, err = oss.New(c.Oss.Endpoint, c.Oss.AccessKeyId, c.Oss.AccessKeySecret, oss.Timeout(c.Oss.ConnectTimeout, c.Oss.ReadWriteTimeout))
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	rds := redis.MustNewRedis(c.BizRedis, redis.WithPass(c.BizRedis.Pass)) // jsonMark:骑着毛驴背单词

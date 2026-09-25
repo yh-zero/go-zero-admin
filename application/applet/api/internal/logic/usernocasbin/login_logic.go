@@ -2,7 +2,6 @@ package usernocasbin
 
 import (
 	"context"
-	"strconv"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
@@ -28,25 +27,15 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 }
 
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
-	remoteAddrIp := l.ctx.Value("RemoteAddr") // 获取id 存redis
-	IsDev := l.ctx.Value("Isdev")
-	if l.svcCtx.Config.Isdev && IsDev != strconv.Itoa(1) {
-		cacheCode, err := GetActivationCache(GetIP(remoteAddrIp), l.svcCtx.BizRedis)
-		if err != nil {
-			logx.Errorf("getActivationCache：获取redis中的验证码错误 error: %v", err)
-			return nil, err
-		}
-		if cacheCode != req.Captcha {
-			logx.Errorf("验证码错误 cacheCode: %s != reqCaptcha: %s", cacheCode, req.Captcha)
-			return nil, xerr.NewErrCode(xerr.CAPTCHA_ERROR)
-		}
+	if err := consumeCaptcha(l.ctx, req.CaptchaId, req.Captcha, l.svcCtx.BizRedis); err != nil {
+		return nil, err
 	}
 
 	// 获取用户信息
 	userInfoRPC, err := l.svcCtx.AppletUserRPC.GetUserInfo(l.ctx, &pb.GetUserInfoRequest{UserName: req.UserName, Password: req.Password})
 	if err != nil {
 		logx.Errorf("GetUserInfo err: %v", err)
-		return nil, xerr.NewErrCode(xerr.USER_PASSWORD_ERROR)
+		return nil, err
 	}
 	var resUserInfo types.LoginResponse
 	_ = copier.Copy(&resUserInfo.UserInfo, &userInfoRPC.UserInfo)

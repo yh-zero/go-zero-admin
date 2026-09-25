@@ -2,15 +2,15 @@ package authoritylogic
 
 import (
 	"context"
-	"fmt"
-	"strings"
-
+	"github.com/jinzhu/copier"
+	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/jinzhu/copier"
-	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/pkg/result/xerr"
+	"strconv"
+	"strings"
 )
 
 type GetAuthorityListLogic struct {
@@ -20,66 +20,63 @@ type GetAuthorityListLogic struct {
 }
 
 func NewGetAuthorityListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetAuthorityListLogic {
-	return &GetAuthorityListLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &GetAuthorityListLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 获取角色列表
 func (l *GetAuthorityListLogic) GetAuthorityList(in *pb.GetAuthorityListRequest) (*pb.GetAuthorityListResponse, error) {
-	offset := int(in.Page.PageSize * (in.Page.PageNo - 1))
-	db := l.svcCtx.DB.Model(&model.SysAuthority{})
-	var total int64
-	if err := db.Where("parent_id = ?", "0").Count(&total).Error; total == 0 || err != nil {
+	if in.Page == nil {
+		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "分页参数不能为空")
+	}
+	offset, size, err := accessutil.Page(in.Page.PageNo, in.Page.PageSize)
+	if err != nil {
 		return nil, err
 	}
-
-	var authority []model.SysAuthority
-	err := db.Limit(int(in.Page.PageSize)).Offset(offset).Preload("DataAuthorityId").Where("parent_id = ?", "0").Find(&authority).Error
-	for i := range authority {
-		err = l.findChildrenAuthority(&authority[i])
+	var all []model.SysAuthority
+	if err := l.svcCtx.DB.Where("deleted_at IS NULL").Order("authority_id").Find(&all).Error; err != nil {
+		return nil, err
 	}
-	var authorityList pb.GetAuthorityListResponse
-	authorityList.Total = total
-	_ = copier.Copy(&authorityList.SysAuthority, authority)
-	for i := range authorityList.SysAuthority {
-		err = l.findAuthorityMenusIds(authorityList.SysAuthority[i])
+	var grants []model.SysAuthorityMenu
+	if err := l.svcCtx.DB.Order("sys_base_menu_id").Find(&grants).Error; err != nil {
+		return nil, err
 	}
-
-	return &authorityList, err
-}
-
-// 查询子角色
-func (l *GetAuthorityListLogic) findChildrenAuthority(authority *model.SysAuthority) (err error) {
-	err = l.svcCtx.DB.Preload("DataAuthorityId").Where("parent_id = ?", authority.AuthorityId).Find(&authority.Children).Error
-	if len(authority.Children) > 0 {
-		for k := range authority.Children {
-			err = l.findChildrenAuthority(&authority.Children[k])
+	menus := map[string][]string{}
+	for _, grant := range grants {
+		menus[grant.AuthorityId] = append(menus[grant.AuthorityId], grant.MenuId)
+	}
+	roots := authorityTree(all, 0)
+	result := &pb.GetAuthorityListResponse{Total: int64(len(roots)), SysAuthority: make([]*pb.SysAuthority, 0)}
+	if offset >= len(roots) {
+		return result, nil
+	}
+	end := offset + size
+	if end > len(roots) {
+		end = len(roots)
+	}
+	if err := copier.Copy(&result.SysAuthority, roots[offset:end]); err != nil {
+		return nil, err
+	}
+	var fill func([]*pb.SysAuthority)
+	fill = func(roles []*pb.SysAuthority) {
+		for _, role := range roles {
+			role.ShowMenuIds = strings.Join(menus[strconv.FormatInt(role.AuthorityId, 10)], ",")
+			fill(role.Children)
 		}
 	}
-	return err
+	fill(result.SysAuthority)
+	return result, nil
 }
 
-// 查询角色菜单ids
-func (l *GetAuthorityListLogic) findAuthorityMenusIds(sysAuthority *pb.SysAuthority) (err error) {
-	var MenuIds []int
-	err = l.svcCtx.DB.Model(&model.SysAuthorityMenu{}).Where("sys_authority_authority_id = ?", sysAuthority.AuthorityId).Pluck("sys_base_menu_id", &MenuIds).Error
-	//err = l.svcCtx.DB.Model(&model.SysBaseMenu{}).Where("parent_id != 0 and id in (?)", MenuIds).Pluck("id", &MenuIds).Error
-	// 将 []int 转换为字符串
-	var strSlice []string
-	for _, v := range MenuIds {
-		strSlice = append(strSlice, fmt.Sprintf("%d", v))
-	}
-	sysAuthority.ShowMenuIds = strings.Join(strSlice, ",")
-	fmt.Println("---------- MenuIds", MenuIds)
-	fmt.Println("---------- sysAuthority.ShowMenuIds", sysAuthority.ShowMenuIds)
-	if len(sysAuthority.Children) > 0 {
-		for i := range sysAuthority.Children {
-			err = l.findAuthorityMenusIds(sysAuthority.Children[i])
+func authorityTree(all []model.SysAuthority, parent int64) []model.SysAuthority {
+	result := make([]model.SysAuthority, 0)
+	for _, role := range all {
+		p := int64(0)
+		if role.ParentId != nil {
+			p = *role.ParentId
+		}
+		if p == parent {
+			role.Children = authorityTree(all, role.AuthorityId)
+			result = append(result, role)
 		}
 	}
-
-	return err
+	return result
 }

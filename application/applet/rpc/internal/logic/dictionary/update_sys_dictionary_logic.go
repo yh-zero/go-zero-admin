@@ -2,14 +2,13 @@ package dictionarylogic
 
 import (
 	"context"
-	"gorm.io/gorm"
-
+	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/pkg/errors"
-	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/pkg/result/xerr"
+	"gorm.io/gorm"
 )
 
 type UpdateSysDictionaryLogic struct {
@@ -19,29 +18,23 @@ type UpdateSysDictionaryLogic struct {
 }
 
 func NewUpdateSysDictionaryLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateSysDictionaryLogic {
-	return &UpdateSysDictionaryLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &UpdateSysDictionaryLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 更新SysDictionary
 func (l *UpdateSysDictionaryLogic) UpdateSysDictionary(in *pb.UpdateSysDictionaryRequest) (*pb.NoDataResponse, error) {
-	var modelSysDictionary model.SysDictionary
-	sysDictionaryMap := map[string]interface{}{
-		"Name":   in.SysDictionary.Name,
-		"Type":   in.SysDictionary.Type,
-		"Status": in.SysDictionary.Status,
-		"Desc":   in.SysDictionary.Desc,
+	if in.SysDictionary == nil {
+		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "字典不能为空")
 	}
-	db := l.svcCtx.DB.Where("id = ?", in.SysDictionary.ID).First(&modelSysDictionary)
-	if modelSysDictionary.Type != in.SysDictionary.Type {
-		if !errors.Is(l.svcCtx.DB.First(&model.SysDictionary{}, "type = ?", in.SysDictionary.Type).Error, gorm.ErrRecordNotFound) {
-			return nil, errors.New("错误： 存在相同的type，不允许修改")
+	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+		var old model.SysDictionary
+		if err := accessutil.RequireID(tx, &old, in.SysDictionary.ID); err != nil {
+			return err
 		}
-	}
-	err := db.Updates(sysDictionaryMap).Error
-
+		if err := validateDictionary(tx, in.SysDictionary); err != nil {
+			return err
+		}
+		value := in.SysDictionary
+		return tx.Model(&old).Updates(map[string]interface{}{"name": value.Name, "type": value.Type, "status": value.Status, "desc": value.Desc}).Error
+	})
 	return &pb.NoDataResponse{}, err
 }

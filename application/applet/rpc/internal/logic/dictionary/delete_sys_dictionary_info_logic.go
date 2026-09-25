@@ -2,12 +2,11 @@ package dictionarylogic
 
 import (
 	"context"
-
+	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type DeleteSysDictionaryInfoLogic struct {
@@ -17,16 +16,13 @@ type DeleteSysDictionaryInfoLogic struct {
 }
 
 func NewDeleteSysDictionaryInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteSysDictionaryInfoLogic {
-	return &DeleteSysDictionaryInfoLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &DeleteSysDictionaryInfoLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 删除SysDictionaryInfo
 func (l *DeleteSysDictionaryInfoLogic) DeleteSysDictionaryInfo(in *pb.DeleteSysDictionaryInfoRequest) (*pb.NoDataResponse, error) {
-	err := l.svcCtx.DB.Where("id = ?", in.ID).Delete(&model.SysDictionaryInfo{}).Error
-
-	return &pb.NoDataResponse{}, err
+	var value model.SysDictionaryInfo
+	if err := accessutil.RequireID(l.svcCtx.DB.DB, &value, in.ID); err != nil {
+		return nil, err
+	}
+	return &pb.NoDataResponse{}, l.svcCtx.DB.Delete(&value).Error
 }

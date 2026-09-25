@@ -2,15 +2,13 @@ package userlogic
 
 import (
 	"context"
-	"fmt"
-	"reflect"
-	"time"
-
+	"errors"
+	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/zeromicro/go-zero/core/logx"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UpdateUserInfoLogic struct {
@@ -20,74 +18,82 @@ type UpdateUserInfoLogic struct {
 }
 
 func NewUpdateUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateUserInfoLogic {
-	return &UpdateUserInfoLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &UpdateUserInfoLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
-
-// 修改用户信息
 func (l *UpdateUserInfoLogic) UpdateUserInfo(in *pb.UpdateUserInfoRequest) (*pb.NoDataResponse, error) {
-	fmt.Println("========== in", in.UserInfo.Enable)
-	updates := map[string]interface{}{
-		"updated_at": time.Now(),
+	if in.GetUserInfo() == nil || in.UserInfo.ID <= 0 {
+		return nil, userError("用户ID无效")
 	}
-
-	// 字段名称与数据库列名的映射关系
-	fieldToColumn := map[string]string{
-		"NickName":  "nick_name",
-		"HeaderImg": "header_img",
-		"Phone":     "phone",
-		"Email":     "email",
-		"SideMode":  "side_mode",
-		"Enable":    "enable",
+	updates, err := userUpdates(in)
+	if err != nil {
+		return nil, err
 	}
-
-	userInfoValue := reflect.ValueOf(in.UserInfo)
-	if userInfoValue.Kind() == reflect.Ptr {
-		userInfoValue = userInfoValue.Elem()
-	}
-
-	for fieldName, columnName := range fieldToColumn {
-		fieldValue := userInfoValue.FieldByName(fieldName)
-		if fieldValue.IsValid() {
-			switch fieldValue.Kind() {
-			case reflect.String:
-				if fieldValue.String() != "" {
-					updates[columnName] = fieldValue.Interface()
+	err = l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
+		var user model.SysUser
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&user, in.UserInfo.ID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return userError("用户不存在")
+			}
+			return err
+		}
+		if in.UpdateAuthorities || updates["authority_id"] != nil {
+			ids := in.AuthorityIds
+			if !in.UpdateAuthorities {
+				if err := tx.Model(&model.SysUserAuthority{}).Where("sys_user_id = ?", user.ID).Pluck("sys_authority_authority_id", &ids).Error; err != nil {
+					return err
 				}
-			case reflect.Int, reflect.Int64, reflect.Uint, reflect.Uint64:
-				if fieldValue.Int() != 0 {
-					updates[columnName] = fieldValue.Interface()
+			}
+			defaultID := user.AuthorityId
+			if value, ok := updates["authority_id"]; ok {
+				defaultID = value.(int64)
+			}
+			ids, err = validateUserAuthorities(tx, ids, defaultID)
+			if err != nil {
+				return err
+			}
+			if in.UpdateAuthorities {
+				if err := replaceUserAuthorities(tx, user.ID, ids); err != nil {
+					return err
 				}
 			}
 		}
+		if len(updates) == 0 {
+			return nil
+		}
+		return tx.Model(&user).Updates(updates).Error
+	})
+	if err != nil {
+		return nil, err
 	}
-
-	err := l.svcCtx.DB.Model(&model.SysUser{}).
-		Select("updated_at", "nick_name", "header_img", "phone", "email", "side_mode", "enable").
-		Where("id = ?", in.UserInfo.ID).
-		Updates(updates).Error
-
-	return &pb.NoDataResponse{}, err
+	return &pb.NoDataResponse{}, nil
 }
-
-//if in.UserInfo.NickName != "" {
-//	updates["nick_name"] = in.UserInfo.NickName
-//}
-//if in.UserInfo.HeaderImg != "" {
-//	updates["header_img"] = in.UserInfo.HeaderImg
-//}
-//if in.UserInfo.Phone != "" {
-//	updates["phone"] = in.UserInfo.Phone
-//}
-//if in.UserInfo.Email != "" {
-//	updates["email"] = in.UserInfo.Email
-//}
-//if in.UserInfo.SideMode != "" {
-//	updates["side_mode"] = in.UserInfo.SideMode
-//}
-//if in.UserInfo.Enable != 0 {
-//	updates["enable"] = in.UserInfo.Enable
-//}
+func userUpdates(in *pb.UpdateUserInfoRequest) (map[string]any, error) {
+	values := map[string]any{}
+	for _, field := range in.UpdateFields {
+		switch field {
+		case "nickName":
+			values["nick_name"] = in.UserInfo.NickName
+		case "phone":
+			values["phone"] = in.UserInfo.Phone
+		case "email":
+			values["email"] = in.UserInfo.Email
+		case "headerImg":
+			values["header_img"] = in.UserInfo.HeaderImg
+		case "sideMode":
+			values["side_mode"] = in.UserInfo.SideMode
+		case "authorityId":
+			if in.UserInfo.AuthorityId <= 0 {
+				return nil, userError("默认角色ID无效")
+			}
+			values["authority_id"] = in.UserInfo.AuthorityId
+		case "enable":
+			if in.UserInfo.Enable != 1 && in.UserInfo.Enable != 2 {
+				return nil, userError("用户状态只能为1或2")
+			}
+			values["enable"] = in.UserInfo.Enable
+		default:
+			return nil, userError("不支持更新该用户字段")
+		}
+	}
+	return values, nil
+}

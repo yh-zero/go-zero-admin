@@ -30,7 +30,7 @@ func (l *DeleteUserLogic) DeleteUser(req *types.DeleteUserRequest) (resp *types.
 	jwtUserId := ctxJwt.GetJwtDataID(l.ctx)
 	if jwtUserId == req.UserID {
 		logx.Errorf("不能自己删除自己")
-		return nil, xerr.NewErrCodeMsg(900000, "不能自己删除自己")
+		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "不能自己删除自己")
 	}
 	_, err = l.svcCtx.AppletUserRPC.DeleteUser(l.ctx, &pb.DeleteUserRequest{UserID: req.UserID})
 	if err != nil {

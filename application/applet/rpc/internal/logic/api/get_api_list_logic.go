@@ -2,13 +2,14 @@ package apilogic
 
 import (
 	"context"
-
+	"github.com/jinzhu/copier"
+	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/jinzhu/copier"
-	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/pkg/result/xerr"
+	"strings"
 )
 
 type GetApiListLogic struct {
@@ -18,70 +19,54 @@ type GetApiListLogic struct {
 }
 
 func NewGetApiListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetApiListLogic {
-	return &GetApiListLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &GetApiListLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 获取API列表
 func (l *GetApiListLogic) GetApiList(in *pb.GetApiListRequest) (*pb.GetApiListResponse, error) {
-	offset := in.PageRequest.PageSize * (in.PageRequest.PageNo - 1)
-	db := l.svcCtx.DB.Model(&model.SysApi{})
-	var apiList []model.SysApi
-	var total int64
-
-	// 处理参数
-	if in.SysApi.Path != "" {
-		db = db.Where("path LIKE ?", "%"+in.SysApi.Path+"%")
+	if in.PageRequest == nil {
+		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "分页参数不能为空")
 	}
-	if in.SysApi.Description != "" {
-		db = db.Where("description LIKE ?", "%"+in.SysApi.Description+"%")
-	}
-	if in.SysApi.Method != "" {
-		db = db.Where("method = ?", in.SysApi.Method)
-	}
-	if in.SysApi.ApiGroup != "" { // 改包含
-		db = db.Where("api_group LIKE ?", "%"+in.SysApi.ApiGroup+"%")
-		//db = db.Where("api_group = ?", in.SysApi.ApiGroup)
-	}
-	err := db.Count(&total).Error
+	offset, size, err := accessutil.Page(in.PageRequest.PageNo, in.PageRequest.PageSize)
 	if err != nil {
 		return nil, err
-	} else {
-		db = db.Limit(int(in.PageRequest.PageSize)).Offset(int(offset))
-		if in.OrderKey != "" {
-			// 设置有效排序key 防止sql注入
-			var OrderStr string
-			orderMap := make(map[string]bool, 5)
-			orderMap["id"] = true
-			orderMap["path"] = true
-			orderMap["api_group"] = true
-			orderMap["description"] = true
-			orderMap["method"] = true
-			if orderMap[in.OrderKey] {
-				if in.Desc {
-					OrderStr = in.OrderKey + " desc"
-				} else {
-					OrderStr = in.OrderKey
-				}
-			} else {
-				//与orderMap中的任何订单键都不匹配 则为非法字段
-				return nil, err
-			}
-			err = db.Order(OrderStr).Find(&apiList).Error
-		} else {
-			//err = db.Order("api_group").Find(&apiList).Error
-			err = db.Order("api_group").Find(&apiList).Error
+	}
+	order := in.OrderKey
+	if order == "" {
+		order = "id"
+	}
+	allowed := map[string]bool{"id": true, "path": true, "api_group": true, "description": true, "method": true}
+	if !allowed[order] {
+		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "不支持的排序字段")
+	}
+	if in.Desc {
+		order += " desc"
+	}
+	db := l.svcCtx.DB.Model(&model.SysApi{})
+	if api := in.SysApi; api != nil {
+		if api.Path != "" {
+			db = db.Where("path LIKE ?", "%"+api.Path+"%")
+		}
+		if api.Description != "" {
+			db = db.Where("description LIKE ?", "%"+api.Description+"%")
+		}
+		if api.ApiGroup != "" {
+			db = db.Where("api_group LIKE ?", "%"+api.ApiGroup+"%")
+		}
+		if api.Method != "" {
+			db = db.Where("method = ?", strings.ToUpper(api.Method))
 		}
 	}
-
-	var pbSysApi []*pb.SysApi
-	_ = copier.Copy(&pbSysApi, apiList)
-
-	return &pb.GetApiListResponse{
-		SysApi: pbSysApi,
-		Total:  total,
-	}, nil
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, err
+	}
+	var records []model.SysApi
+	if err := db.Order(order).Limit(size).Offset(offset).Find(&records).Error; err != nil {
+		return nil, err
+	}
+	result := &pb.GetApiListResponse{Total: total}
+	if err := copier.Copy(&result.SysApi, records); err != nil {
+		return nil, err
+	}
+	return result, nil
 }

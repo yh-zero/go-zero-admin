@@ -2,14 +2,11 @@ package dictionarylogic
 
 import (
 	"context"
-
+	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/jinzhu/copier"
-	"github.com/pkg/errors"
-	"github.com/zeromicro/go-zero/core/logx"
+	"gorm.io/gorm"
 )
 
 type CreateSysDictionaryInfoLogic struct {
@@ -19,23 +16,22 @@ type CreateSysDictionaryInfoLogic struct {
 }
 
 func NewCreateSysDictionaryInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateSysDictionaryInfoLogic {
-	return &CreateSysDictionaryInfoLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &CreateSysDictionaryInfoLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 创建SysDictionaryInfo
 func (l *CreateSysDictionaryInfoLogic) CreateSysDictionaryInfo(in *pb.CreateSysDictionaryInfoRequest) (*pb.NoDataResponse, error) {
-	if in.SysDictionaryInfo.SysDictionaryID == 0 {
-		return &pb.NoDataResponse{}, errors.New("错误： 父级id不能为空")
-	}
-
-	var modelSysDictionaryInfo model.SysDictionaryInfo
-	_ = copier.Copy(&modelSysDictionaryInfo, in.SysDictionaryInfo)
-	modelSysDictionaryInfo.DeletedAt.Valid = false
-	err := l.svcCtx.DB.Create(&modelSysDictionaryInfo).Error
-
+	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+		if in.SysDictionaryInfo != nil {
+			in.SysDictionaryInfo.ID = 0
+			if in.SysDictionaryInfo.Status == 0 {
+				in.SysDictionaryInfo.Status = 1
+			}
+		}
+		if err := validateItem(tx, in.SysDictionaryInfo); err != nil {
+			return err
+		}
+		value := in.SysDictionaryInfo
+		return tx.Create(&model.SysDictionaryInfo{Label: value.Label, Value: value.Value, Extend: value.Extend, Status: value.Status, Sort: value.Sort, SysDictionaryID: value.SysDictionaryID}).Error
+	})
 	return &pb.NoDataResponse{}, err
 }

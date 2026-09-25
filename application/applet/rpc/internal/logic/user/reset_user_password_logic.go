@@ -2,13 +2,11 @@ package userlogic
 
 import (
 	"context"
-
+	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 	"go-zero-admin/pkg/hash"
-
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type ResetUserPasswordLogic struct {
@@ -18,17 +16,18 @@ type ResetUserPasswordLogic struct {
 }
 
 func NewResetUserPasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ResetUserPasswordLogic {
-	return &ResetUserPasswordLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &ResetUserPasswordLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
-
-// 重置用户密码 默认密码：goZero
 func (l *ResetUserPasswordLogic) ResetUserPassword(in *pb.ResetUserPasswordRequest) (*pb.NoDataResponse, error) {
-	hashedPassword := hash.BcryptHash(l.svcCtx.Config.Default.UserPassword)
-
-	err := l.svcCtx.DB.Model(&model.SysUser{}).Where("id = ?", in.UserID).Update("password", hashedPassword).Error
-	return &pb.NoDataResponse{}, err
+	if in.UserID <= 0 {
+		return nil, userError("用户ID无效")
+	}
+	result := l.svcCtx.DB.WithContext(l.ctx).Model(&model.SysUser{}).Where("id = ?", in.UserID).Update("password", hash.BcryptHash(l.svcCtx.Config.Default.UserPassword))
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, userError("用户不存在")
+	}
+	return &pb.NoDataResponse{}, nil
 }

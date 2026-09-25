@@ -7,6 +7,14 @@ bin-release/
 # Other files and folders
 .settings/
 
+# 忽略各目录中的本地环境配置，保留示例和模板
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.template
+!.env.*.template
+
 # Executables
 *.swf
 *.air

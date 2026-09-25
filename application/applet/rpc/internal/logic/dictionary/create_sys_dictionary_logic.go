@@ -2,16 +2,11 @@ package dictionarylogic
 
 import (
 	"context"
-	"fmt"
-	"gorm.io/gorm"
-
+	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/jinzhu/copier"
-	"github.com/pkg/errors"
-	"github.com/zeromicro/go-zero/core/logx"
+	"gorm.io/gorm"
 )
 
 type CreateSysDictionaryLogic struct {
@@ -21,27 +16,22 @@ type CreateSysDictionaryLogic struct {
 }
 
 func NewCreateSysDictionaryLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateSysDictionaryLogic {
-	return &CreateSysDictionaryLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &CreateSysDictionaryLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 新建SysDictionary
 func (l *CreateSysDictionaryLogic) CreateSysDictionary(in *pb.CreateSysDictionaryRequest) (*pb.NoDataResponse, error) {
-	fmt.Println("============ in", in.SysDictionary.Status)
-	if in.SysDictionary.Status == 0 {
-		in.SysDictionary.Status = 1
-	}
-	err := l.svcCtx.DB.First(&model.SysDictionary{}, "type = ?", in.SysDictionary.Type).Error
-	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, errors.New("错误： 存在相同的type")
-	}
-	var modelSysDictionary model.SysDictionary
-	_ = copier.Copy(&modelSysDictionary, in.SysDictionary)
-	modelSysDictionary.DeletedAt.Valid = false
-	err = l.svcCtx.DB.Create(&modelSysDictionary).Error
-
+	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+		if in.SysDictionary != nil {
+			in.SysDictionary.ID = 0
+			if in.SysDictionary.Status == 0 {
+				in.SysDictionary.Status = 1
+			}
+		}
+		if err := validateDictionary(tx, in.SysDictionary); err != nil {
+			return err
+		}
+		value := in.SysDictionary
+		return tx.Create(&model.SysDictionary{Name: value.Name, Type: value.Type, Status: value.Status, Desc: value.Desc}).Error
+	})
 	return &pb.NoDataResponse{}, err
 }

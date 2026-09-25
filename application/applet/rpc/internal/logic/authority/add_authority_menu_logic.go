@@ -2,15 +2,15 @@ package authoritylogic
 
 import (
 	"context"
-	"fmt"
-	"strconv"
-	"strings"
-
+	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/pkg/result/xerr"
+	"gorm.io/gorm"
+	"strconv"
+	"strings"
 )
 
 type AddAuthorityMenuLogic struct {
@@ -20,110 +20,80 @@ type AddAuthorityMenuLogic struct {
 }
 
 func NewAddAuthorityMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *AddAuthorityMenuLogic {
-	return &AddAuthorityMenuLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &AddAuthorityMenuLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 增加base_menu和角色关联关系 -- 用于角色管理的设置权限
 func (l *AddAuthorityMenuLogic) AddAuthorityMenu(in *pb.AddAuthorityMenuRequest) (*pb.NoDataResponse, error) {
-	// 开启数据库事务
-	tx := l.svcCtx.DB.Begin()
-
-	// 删除特定权限ID（AuthorityId）相关的所有 SysAuthorityMenu 数据
-	if err := tx.Where("sys_authority_authority_id = ?", in.AuthorityId).Delete(&model.SysAuthorityMenu{}).Error; err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	// 查询所有 model.SysBaseMenu{} 表中的 MenuIds
-	var allMenuIds []string
-	if err := tx.Model(&model.SysBaseMenu{}).Pluck("id", &allMenuIds).Error; err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	fmt.Println("---------------- allMenuIds", allMenuIds)
-
-	// 如果存在新的 MenuIds，则检查并插入对应的数据
-	if len(in.MenuIds) > 0 {
-		menuIds := strings.Split(in.MenuIds, ",")
-		var sysAuthorityMenuList []model.SysAuthorityMenu
-
-		for _, v := range menuIds {
-			// 检查 MenuId 是否存在于 allMenuIds 中
-			if contains(allMenuIds, v) {
-				sysAuthorityMenuList = append(sysAuthorityMenuList, model.SysAuthorityMenu{
-					MenuId:      v,
-					AuthorityId: strconv.FormatInt(in.AuthorityId, 10),
-				})
+	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+		if err := accessutil.RequireRole(tx, in.AuthorityId); err != nil {
+			return err
+		}
+		var all []model.SysBaseMenu
+		if err := tx.Find(&all).Error; err != nil {
+			return err
+		}
+		byID := map[int64]model.SysBaseMenu{}
+		for _, menu := range all {
+			byID[menu.ID] = menu
+		}
+		chosen := map[int64]bool{}
+		if strings.TrimSpace(in.MenuIds) != "" {
+			for _, raw := range strings.Split(in.MenuIds, ",") {
+				id, err := strconv.ParseInt(strings.TrimSpace(raw), 10, 64)
+				if err != nil || id <= 0 {
+					return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "菜单ID列表无效")
+				}
+				ancestors := map[int64]bool{}
+				for id != 0 {
+					menu, ok := byID[id]
+					if !ok {
+						return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "菜单不存在")
+					}
+					if ancestors[id] {
+						return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "菜单存在循环，请先修复菜单层级")
+					}
+					ancestors[id] = true
+					chosen[id] = true
+					id = menu.ParentId
+				}
 			}
 		}
-
-		// 如果有符合条件的数据则批量插入
-		if len(sysAuthorityMenuList) > 0 {
-			if err := tx.Create(&sysAuthorityMenuList).Error; err != nil {
-				tx.Rollback()
-				return nil, err
+		if err := tx.Where("sys_authority_authority_id = ?", in.AuthorityId).Delete(&model.SysAuthorityMenu{}).Error; err != nil {
+			return err
+		}
+		rows := make([]model.SysAuthorityMenu, 0, len(chosen))
+		ids := make([]int64, 0, len(chosen))
+		for id := range chosen {
+			rows = append(rows, model.SysAuthorityMenu{AuthorityId: strconv.FormatInt(in.AuthorityId, 10), MenuId: strconv.FormatInt(id, 10)})
+			ids = append(ids, id)
+		}
+		if len(rows) > 0 {
+			if err := tx.Create(&rows).Error; err != nil {
+				return err
 			}
 		}
-	}
-
-	// 提交事务
-	tx.Commit()
-
-	return &pb.NoDataResponse{}, nil
-}
-
-// 判断切片中是否包含某个元素
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
+		buttons := tx.Where("authority_id = ?", in.AuthorityId)
+		if len(ids) > 0 {
+			buttons = buttons.Where("sys_menu_id NOT IN ?", ids)
 		}
-	}
-	return false
+		if err := buttons.Delete(&model.SysAuthorityBtn{}).Error; err != nil {
+			return err
+		}
+		// A removed homepage has deterministic frontend fallback; do not keep a stale name.
+		var role model.SysAuthority
+		if err := tx.First(&role, "authority_id = ?", in.AuthorityId).Error; err != nil {
+			return err
+		}
+		keepHome := false
+		for id := range chosen {
+			if byID[id].Name == role.DefaultRouter {
+				keepHome = true
+			}
+		}
+		if !keepHome {
+			return tx.Model(&role).Update("default_router", "").Error
+		}
+		return nil
+	})
+	return &pb.NoDataResponse{}, err
 }
-
-//func (l *AddAuthorityMenuLogic) AddAuthorityMenu(in *pb.AddAuthorityMenuRequest) (*pb.AddAuthorityMenuResponse, error) {
-//	// 开启数据库事务
-//	tx := l.svcCtx.DB.Begin()
-//
-//	// 删除特定权限ID（AuthorityId）相关的所有 SysAuthorityMenu 数据
-//	if err := tx.Where("sys_authority_authority_id = ?", in.AuthorityId).Delete(&model.SysAuthorityMenu{}).Error; err != nil {
-//		tx.Rollback()
-//		return nil, err
-//	}
-//
-//	// 如果存在新的 MenuIds，则插入对应的数据
-//	if len(in.MenuIds) > 0 {
-//		menuIds := strings.Split(in.MenuIds, ",")
-//		var sysAuthorityMenuList []model.SysAuthorityMenu
-//
-//		for _, v := range menuIds {
-//			sysAuthorityMenuList = append(sysAuthorityMenuList, model.SysAuthorityMenu{
-//				MenuId:      v,
-//				AuthorityId: strconv.FormatInt(in.AuthorityId, 10),
-//			})
-//		}
-//
-//		// 批量插入数据
-//		if err := tx.Create(&sysAuthorityMenuList).Error; err != nil {
-//			tx.Rollback()
-//			return nil, err
-//		}
-//	}
-//
-//	// 提交事务
-//	tx.Commit()
-//
-//	return &pb.AddAuthorityMenuResponse{}, nil
-//}
-
-//func (l *AddAuthorityMenuLogic) SetMenuAuthority(sysAuthorityauth *model.SysAuthority) error {
-//	var s model.SysAuthority
-//	l.svcCtx.DB.Preload("SysBaseMenus").First(&s, "authority_id = ?", sysAuthorityauth.AuthorityId)
-//	err := l.svcCtx.DB.Model(&s).Association("SysBaseMenus").Replace(&sysAuthorityauth.SysBaseMenus)
-//	return err
-//}

@@ -35,6 +35,7 @@ func (l *GetUserListLogic) GetUserList(req *types.GetUserListRequest) (resp *typ
 	}
 	page.PageNo = req.PageNo
 	page.PageSize = req.PageSize
+	page.Keyword = req.Keyword
 
 	getUserList, err := l.svcCtx.AppletUserRPC.GetUserList(l.ctx, &pb.GetUserListRequest{PageRequest: &page})
 	if err != nil {

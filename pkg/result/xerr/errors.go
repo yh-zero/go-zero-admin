@@ -2,6 +2,8 @@ package xerr
 
 import (
 	"fmt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 /**
@@ -25,6 +27,11 @@ func (e *CodeError) GetErrMsg() string {
 
 func (e *CodeError) Error() string {
 	return fmt.Sprintf("ErrCode:%d，ErrMsg:%s", e.errCode, e.errMsg)
+}
+
+// GRPCStatus 保留业务错误码，API 只向客户端公开这些经过定义的错误。
+func (e *CodeError) GRPCStatus() *status.Status {
+	return status.New(codes.Code(e.errCode), e.errMsg)
 }
 
 func NewErrCode(errCode uint32) *CodeError {

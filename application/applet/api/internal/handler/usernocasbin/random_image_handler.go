@@ -1,7 +1,6 @@
 package usernocasbin
 
 import (
-	"context"
 	"net/http"
 
 	"go-zero-admin/application/applet/api/internal/logic/usernocasbin"
@@ -19,10 +18,6 @@ func RandomImageHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
-
-		ctx := context.WithValue(r.Context(), "RemoteAddr", r.RemoteAddr)
-		ctx = context.WithValue(ctx, "Isdev", r.Header.Get("Isdev"))
-		r = r.WithContext(ctx)
 
 		l := usernocasbin.NewRandomImageLogic(r.Context(), svcCtx)
 		resp, err := l.RandomImage(&req)

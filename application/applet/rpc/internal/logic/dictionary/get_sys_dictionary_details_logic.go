@@ -2,14 +2,15 @@ package dictionarylogic
 
 import (
 	"context"
-	"gorm.io/gorm"
-
+	"errors"
+	"github.com/jinzhu/copier"
+	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/jinzhu/copier"
-	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/pkg/result/xerr"
+	"gorm.io/gorm"
 )
 
 type GetSysDictionaryDetailsLogic struct {
@@ -19,24 +20,36 @@ type GetSysDictionaryDetailsLogic struct {
 }
 
 func NewGetSysDictionaryDetailsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetSysDictionaryDetailsLogic {
-	return &GetSysDictionaryDetailsLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &GetSysDictionaryDetailsLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 根据ID或者type获取SysDictionary
 func (l *GetSysDictionaryDetailsLogic) GetSysDictionaryDetails(in *pb.GetSysDictionaryDetailsRequest) (*pb.GetSysDictionaryDetailsResponse, error) {
-	var modelSysDictionary model.SysDictionary
-	err := l.svcCtx.DB.Where("(type = ? OR id = ?) and status = ?", in.Type, in.ID, in.Status).Preload("SysDictionaryInfoList", func(db *gorm.DB) *gorm.DB {
-		return db.Where("status = ?", 1).Order("sort")
-	}).First(&modelSysDictionary).Error
-	if err != nil {
+	if in.ID <= 0 && in.Type == "" {
+		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "请提供字典ID或type")
+	}
+	status := in.Status
+	if status == 0 {
+		status = 1
+	}
+	if err := accessutil.Status(status); err != nil {
 		return nil, err
 	}
-	var pbSysDictionary pb.SysDictionary
-	_ = copier.Copy(&pbSysDictionary, modelSysDictionary)
-
-	return &pb.GetSysDictionaryDetailsResponse{SysDictionary: &pbSysDictionary}, err
+	db := l.svcCtx.DB.Where("status = ?", status)
+	if in.ID > 0 {
+		db = db.Where("id = ?", in.ID)
+	} else {
+		db = db.Where("type = ?", in.Type)
+	}
+	var record model.SysDictionary
+	if err := db.Preload("SysDictionaryInfoList", func(tx *gorm.DB) *gorm.DB { return tx.Where("status = ?", 1).Order("sort,id") }).First(&record).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "字典不存在或状态不匹配")
+		}
+		return nil, err
+	}
+	result := &pb.SysDictionary{}
+	if err := copier.Copy(result, record); err != nil {
+		return nil, err
+	}
+	return &pb.GetSysDictionaryDetailsResponse{SysDictionary: result}, nil
 }

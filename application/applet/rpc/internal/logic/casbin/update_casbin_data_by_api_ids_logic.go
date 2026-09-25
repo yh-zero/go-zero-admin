@@ -2,15 +2,14 @@ package casbinlogic
 
 import (
 	"context"
-	"strconv"
-
 	"github.com/jinzhu/copier"
+	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/pkg/errors"
-	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/pkg/result/xerr"
+	"gorm.io/gorm"
 )
 
 type UpdateCasbinDataByApiIdsLogic struct {
@@ -20,48 +19,36 @@ type UpdateCasbinDataByApiIdsLogic struct {
 }
 
 func NewUpdateCasbinDataByApiIdsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateCasbinDataByApiIdsLogic {
-	return &UpdateCasbinDataByApiIdsLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &UpdateCasbinDataByApiIdsLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 更新一个角色的对应的casbin数据 用api的ids 查数据
 func (l *UpdateCasbinDataByApiIdsLogic) UpdateCasbinDataByApiIds(in *pb.UpdateCasbinDataByApiIdsRequest) (*pb.UpdateCasbinDataByApiIdsResponse, error) {
-	// 根据 ApiIds 获取对应的数据
-	var modelSysApis []model.SysApi
-	err := l.svcCtx.DB.Where("id in ?", in.ApiIds).Find(&modelSysApis).Error
+	ids, err := accessutil.UniqueIDs(in.ApiIds)
 	if err != nil {
-		return nil, errors.Wrap(err, "获取数据失败")
+		return nil, err
 	}
-
-	var pbSysApis []*pb.SysApi
-	_ = copier.Copy(&pbSysApis, modelSysApis)
-
-	authorityId := strconv.FormatInt(in.AuthorityId, 10)
-
-	if _, err = l.svcCtx.Casbin.RemoveFilteredPolicy(0, authorityId); err != nil {
-		return nil, errors.Wrap(err, "删除策略失败")
-	}
-
-	// 做权限去重处理
-	deduplicateMap := make(map[string]bool)
-	rules := make([][]string, 0, len(modelSysApis))
-	for _, v := range modelSysApis {
-		key := authorityId + v.Path + v.Method
-		if _, ok := deduplicateMap[key]; !ok {
-			deduplicateMap[key] = true
-			rules = append(rules, []string{authorityId, v.Path, v.Method})
+	var apis []model.SysApi
+	err = accessutil.PolicyTransaction(l.svcCtx, func(tx *gorm.DB) error {
+		if len(ids) > 0 {
+			if err := tx.Where("id IN ?", ids).Find(&apis).Error; err != nil {
+				return err
+			}
 		}
-	}
-
-	if len(rules) > 0 {
-		success, err := l.svcCtx.Casbin.AddPolicies(rules)
-		if err != nil || !success {
-			return nil, errors.New("存在相同api,添加失败,请联系管理员")
+		if len(apis) != len(ids) {
+			return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "部分API ID不存在，授权未修改")
 		}
+		entries := make([]*pb.CasbinInfo, 0, len(apis))
+		for _, api := range apis {
+			entries = append(entries, &pb.CasbinInfo{Path: api.Path, Method: api.Method})
+		}
+		return replaceRolePolicies(tx, in.AuthorityId, entries)
+	})
+	if err != nil {
+		return nil, err
 	}
-
-	return &pb.UpdateCasbinDataByApiIdsResponse{SysApis: pbSysApis}, nil
+	result := &pb.UpdateCasbinDataByApiIdsResponse{}
+	if err := copier.Copy(&result.SysApis, apis); err != nil {
+		return nil, err
+	}
+	return result, nil
 }

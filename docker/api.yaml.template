@@ -1,0 +1,25 @@
+Name: applet-api
+Host: 0.0.0.0
+Port: 7001
+BizRedis:
+  Host: ${REDIS_ADDR}
+  Pass: ${REDIS_PASSWORD}
+  Type: node
+Page:
+  PageNo: 1
+  PageSize: 10
+AppletRPC:
+  Etcd:
+    Hosts:
+      - ${ETCD_ADDR}
+    Key: applet.rpc
+  NonBlock: true
+JwtAuth:
+  AccessSecret: ${JWT_ACCESS_SECRET}
+  AccessExpire: ${JWT_ACCESS_EXPIRE}
+Oss:
+  Endpoint: ${OSS_ENDPOINT}
+  AccessKeyId: ${OSS_ACCESS_KEY_ID}
+  AccessKeySecret: ${OSS_ACCESS_KEY_SECRET}
+  BucketName: ${OSS_BUCKET_NAME}
+Isdev: false

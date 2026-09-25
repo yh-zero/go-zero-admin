@@ -311,6 +311,9 @@ message RegisterResponse {
 
 message UpdateUserInfoRequest {
   UserInfo UserInfo = 1;
+  repeated string UpdateFields = 2;
+  repeated int64 AuthorityIds = 3;
+  bool UpdateAuthorities = 4;
 }
 
 message UpdateUserAuthoritiesRequest {
@@ -395,6 +398,7 @@ message DictionaryListResponse {
 message GetSysDictionaryInfoListRequest {
   SysDictionaryInfo SysDictionaryInfo = 1;
   PageRequest PageRequest = 2;
+  bool HasValue = 3;
 }
 
 message GetSysDictionaryInfoListResponse {
@@ -444,6 +448,17 @@ message DeleteSysDictionaryInfoRequest {
   int64 ID = 1;
 }
 
+message GetAuthorityButtonsRequest {
+  int64 AuthorityId = 1;
+}
+message GetAuthorityButtonsResponse {
+  repeated int64 MenuBtnIds = 1;
+}
+message UpdateAuthorityButtonsRequest {
+  int64 AuthorityId = 1;
+  repeated int64 MenuBtnIds = 2;
+}
+
 service User {
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
@@ -466,6 +481,8 @@ service User {
 
 
 service Menu {
+  rpc GetAuthorityButtons (GetAuthorityButtonsRequest) returns (GetAuthorityButtonsResponse);
+  rpc UpdateAuthorityButtons (UpdateAuthorityButtonsRequest) returns (NoDataResponse);
   // 获取菜单-路由
   rpc GetMenuTree (GetMenuTreeRequest) returns (GetMenuTreeResponse);
   // 获取系统基础菜单列表

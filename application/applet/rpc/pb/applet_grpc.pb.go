@@ -403,20 +403,24 @@ var User_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	Menu_GetMenuTree_FullMethodName         = "/pb.Menu/GetMenuTree"
-	Menu_GetMenuBaseInfoList_FullMethodName = "/pb.Menu/GetMenuBaseInfoList"
-	Menu_AddMenuBase_FullMethodName         = "/pb.Menu/AddMenuBase"
-	Menu_GetBaseMenuTree_FullMethodName     = "/pb.Menu/GetBaseMenuTree"
-	Menu_GetMenuAuthority_FullMethodName    = "/pb.Menu/GetMenuAuthority"
-	Menu_GetBaseMenuById_FullMethodName     = "/pb.Menu/GetBaseMenuById"
-	Menu_UpdateBaseMenu_FullMethodName      = "/pb.Menu/UpdateBaseMenu"
-	Menu_DeleteBaseMenu_FullMethodName      = "/pb.Menu/DeleteBaseMenu"
+	Menu_GetAuthorityButtons_FullMethodName    = "/pb.Menu/GetAuthorityButtons"
+	Menu_UpdateAuthorityButtons_FullMethodName = "/pb.Menu/UpdateAuthorityButtons"
+	Menu_GetMenuTree_FullMethodName            = "/pb.Menu/GetMenuTree"
+	Menu_GetMenuBaseInfoList_FullMethodName    = "/pb.Menu/GetMenuBaseInfoList"
+	Menu_AddMenuBase_FullMethodName            = "/pb.Menu/AddMenuBase"
+	Menu_GetBaseMenuTree_FullMethodName        = "/pb.Menu/GetBaseMenuTree"
+	Menu_GetMenuAuthority_FullMethodName       = "/pb.Menu/GetMenuAuthority"
+	Menu_GetBaseMenuById_FullMethodName        = "/pb.Menu/GetBaseMenuById"
+	Menu_UpdateBaseMenu_FullMethodName         = "/pb.Menu/UpdateBaseMenu"
+	Menu_DeleteBaseMenu_FullMethodName         = "/pb.Menu/DeleteBaseMenu"
 )
 
 // MenuClient is the client API for Menu service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MenuClient interface {
+	GetAuthorityButtons(ctx context.Context, in *GetAuthorityButtonsRequest, opts ...grpc.CallOption) (*GetAuthorityButtonsResponse, error)
+	UpdateAuthorityButtons(ctx context.Context, in *UpdateAuthorityButtonsRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 获取菜单-路由
 	GetMenuTree(ctx context.Context, in *GetMenuTreeRequest, opts ...grpc.CallOption) (*GetMenuTreeResponse, error)
 	// 获取系统基础菜单列表
@@ -441,6 +445,26 @@ type menuClient struct {
 
 func NewMenuClient(cc grpc.ClientConnInterface) MenuClient {
 	return &menuClient{cc}
+}
+
+func (c *menuClient) GetAuthorityButtons(ctx context.Context, in *GetAuthorityButtonsRequest, opts ...grpc.CallOption) (*GetAuthorityButtonsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAuthorityButtonsResponse)
+	err := c.cc.Invoke(ctx, Menu_GetAuthorityButtons_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *menuClient) UpdateAuthorityButtons(ctx context.Context, in *UpdateAuthorityButtonsRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, Menu_UpdateAuthorityButtons_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *menuClient) GetMenuTree(ctx context.Context, in *GetMenuTreeRequest, opts ...grpc.CallOption) (*GetMenuTreeResponse, error) {
@@ -527,6 +551,8 @@ func (c *menuClient) DeleteBaseMenu(ctx context.Context, in *DeleteBaseMenuReque
 // All implementations must embed UnimplementedMenuServer
 // for forward compatibility.
 type MenuServer interface {
+	GetAuthorityButtons(context.Context, *GetAuthorityButtonsRequest) (*GetAuthorityButtonsResponse, error)
+	UpdateAuthorityButtons(context.Context, *UpdateAuthorityButtonsRequest) (*NoDataResponse, error)
 	// 获取菜单-路由
 	GetMenuTree(context.Context, *GetMenuTreeRequest) (*GetMenuTreeResponse, error)
 	// 获取系统基础菜单列表
@@ -553,6 +579,12 @@ type MenuServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMenuServer struct{}
 
+func (UnimplementedMenuServer) GetAuthorityButtons(context.Context, *GetAuthorityButtonsRequest) (*GetAuthorityButtonsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAuthorityButtons not implemented")
+}
+func (UnimplementedMenuServer) UpdateAuthorityButtons(context.Context, *UpdateAuthorityButtonsRequest) (*NoDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAuthorityButtons not implemented")
+}
 func (UnimplementedMenuServer) GetMenuTree(context.Context, *GetMenuTreeRequest) (*GetMenuTreeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMenuTree not implemented")
 }
@@ -596,6 +628,42 @@ func RegisterMenuServer(s grpc.ServiceRegistrar, srv MenuServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&Menu_ServiceDesc, srv)
+}
+
+func _Menu_GetAuthorityButtons_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAuthorityButtonsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MenuServer).GetAuthorityButtons(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Menu_GetAuthorityButtons_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MenuServer).GetAuthorityButtons(ctx, req.(*GetAuthorityButtonsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Menu_UpdateAuthorityButtons_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAuthorityButtonsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MenuServer).UpdateAuthorityButtons(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Menu_UpdateAuthorityButtons_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MenuServer).UpdateAuthorityButtons(ctx, req.(*UpdateAuthorityButtonsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Menu_GetMenuTree_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -749,6 +817,14 @@ var Menu_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "pb.Menu",
 	HandlerType: (*MenuServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetAuthorityButtons",
+			Handler:    _Menu_GetAuthorityButtons_Handler,
+		},
+		{
+			MethodName: "UpdateAuthorityButtons",
+			Handler:    _Menu_UpdateAuthorityButtons_Handler,
+		},
 		{
 			MethodName: "GetMenuTree",
 			Handler:    _Menu_GetMenuTree_Handler,

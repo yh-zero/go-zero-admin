@@ -34,12 +34,15 @@ func (l *GetSysDictionaryInfoListLogic) GetSysDictionaryInfoList(req *types.GetS
 	}
 	var pbSysDictionaryInfo pb.SysDictionaryInfo
 	var pbPageRequest pb.PageRequest
-	_ = copier.Copy(&pbSysDictionaryInfo, req.SysDictionaryInfo)
+	pbSysDictionaryInfo = pb.SysDictionaryInfo{Label: req.Label, Status: req.Status, SysDictionaryID: req.SysDictionaryID}
+	if req.Value != nil {
+		pbSysDictionaryInfo.Value = *req.Value
+	}
 	_ = copier.Copy(&pbPageRequest, req.PageRequest)
 
 	sysDictionaryInfoList, err := l.svcCtx.AppletDictionaryRPC.GetSysDictionaryInfoList(l.ctx, &pb.GetSysDictionaryInfoListRequest{
-		SysDictionaryInfo: &pbSysDictionaryInfo,
-		PageRequest:       &pbPageRequest,
+		SysDictionaryInfo: &pbSysDictionaryInfo, HasValue: req.Value != nil,
+		PageRequest: &pbPageRequest,
 	})
 	if err != nil {
 		logx.Errorf("l.svcCtx.AppletDictionaryRPC.GetSysDictionaryInfoList err:%v", err)

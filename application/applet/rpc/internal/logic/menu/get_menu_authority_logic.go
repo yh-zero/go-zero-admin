@@ -2,15 +2,13 @@ package menulogic
 
 import (
 	"context"
-	"fmt"
-	"strconv"
-
+	"github.com/jinzhu/copier"
+	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/jinzhu/copier"
-	"github.com/zeromicro/go-zero/core/logx"
+	"strconv"
 )
 
 type GetMenuAuthorityLogic struct {
@@ -20,47 +18,32 @@ type GetMenuAuthorityLogic struct {
 }
 
 func NewGetMenuAuthorityLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMenuAuthorityLogic {
-	return &GetMenuAuthorityLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &GetMenuAuthorityLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 获取指定角色menu  -- 用于角色管理的设置权限
 func (l *GetMenuAuthorityLogic) GetMenuAuthority(in *pb.GetMenuAuthorityRequest) (*pb.GetMenuAuthorityResponse, error) {
-	var baseMenuList []model.SysBaseMenu
-	var SysAuthorityMenus []model.SysAuthorityMenu
-	err := l.svcCtx.DB.Where("sys_authority_authority_id = ?", in.AuthorityId).Find(&SysAuthorityMenus).Error
-	if err != nil {
+	if err := accessutil.RequireRole(l.svcCtx.DB.DB, in.AuthorityId); err != nil {
 		return nil, err
 	}
-
-	var MenuIds []string
-	for i := range SysAuthorityMenus {
-		MenuIds = append(MenuIds, SysAuthorityMenus[i].MenuId)
+	var ids []string
+	if err := l.svcCtx.DB.Model(&model.SysAuthorityMenu{}).Where("sys_authority_authority_id = ?", in.AuthorityId).Pluck("sys_base_menu_id", &ids).Error; err != nil {
+		return nil, err
 	}
-
-	err = l.svcCtx.DB.Where("id in (?) ", MenuIds).Order("sort").Find(&baseMenuList).Error
-
-	var menus []model.SysMenu
-	for i := range baseMenuList {
-		menus = append(menus, model.SysMenu{
-			SysBaseMenu: baseMenuList[i],
-			AuthorityId: in.AuthorityId,
-			MenuId:      strconv.FormatInt(baseMenuList[i].ID, 10),
-			Parameters:  baseMenuList[i].Parameters,
-		})
+	var records []model.SysBaseMenu
+	if len(ids) > 0 {
+		if err := l.svcCtx.DB.Where("id IN ?", ids).Order("sort,id").Preload("Parameters").Preload("MenuBtn").Find(&records).Error; err != nil {
+			return nil, err
+		}
 	}
-
-	var pbGetMenuAuthorityRes pb.GetMenuAuthorityResponse
-	var pbSysMenuList []pb.SysMenu
-	_ = copier.Copy(&pbSysMenuList, menus)
-	_ = copier.Copy(&pbGetMenuAuthorityRes.SysMenuList, pbSysMenuList)
-
-	fmt.Println("----------- menus", menus)
-	fmt.Println("----------- pbSysMenuList", pbSysMenuList)
-	fmt.Println("----------- pbGetMenuAuthorityRes", pbGetMenuAuthorityRes)
-
-	return &pbGetMenuAuthorityRes, nil
+	result := &pb.GetMenuAuthorityResponse{SysMenuList: make([]*pb.SysMenu, 0, len(records))}
+	for _, record := range records {
+		item := &pb.SysMenu{SysBaseMenu: &pb.SysBaseMenu{}, ID: record.ID}
+		if err := copier.Copy(item.SysBaseMenu, record); err != nil {
+			return nil, err
+		}
+		item.MenuId = strconv.FormatInt(record.ID, 10)
+		item.AuthorityId = in.AuthorityId
+		result.SysMenuList = append(result.SysMenuList, item)
+	}
+	return result, nil
 }

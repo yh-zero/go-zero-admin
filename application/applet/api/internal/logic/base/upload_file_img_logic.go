@@ -1,19 +1,23 @@
 package base
 
 import (
+	"bytes"
 	"context"
-	"fmt"
+	"io"
 	"net/http"
-	"time"
+	"net/url"
+	"strings"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
 	"go-zero-admin/pkg/result/xerr"
 
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/gofrs/uuid/v5"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-const maxFileSize = 10 << 20 // 10MB
+const maxFileSize = 10 << 20
 
 type UploadFileImgLogic struct {
 	logx.Logger
@@ -22,44 +26,68 @@ type UploadFileImgLogic struct {
 }
 
 func NewUploadFileImgLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UploadFileImgLogic {
-	return &UploadFileImgLogic{
-		Logger: logx.WithContext(ctx),
-		ctx:    ctx,
-		svcCtx: svcCtx,
-	}
+	return &UploadFileImgLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
-func (l *UploadFileImgLogic) UploadFileImg(req *types.UploadFileImgRequest, r *http.Request) (resp *types.UploadFileImgResponse, err error) {
-	_ = r.ParseMultipartForm(maxFileSize)
-	file, handler, err := r.FormFile("file_img")
+
+func readImage(r *http.Request) ([]byte, string, error) {
+	if err := r.ParseMultipartForm(1 << 20); err != nil {
+		return nil, "", xerr.NewErrCodeMsg(300002, "图片请求无效或超过10MB")
+	}
+	if r.MultipartForm != nil {
+		defer r.MultipartForm.RemoveAll()
+	}
+	file, _, err := r.FormFile("file_img")
+	if err != nil {
+		return nil, "", xerr.NewErrCodeMsg(300002, "请选择图片，上传字段为file_img")
+	}
+	defer file.Close()
+	data, err := io.ReadAll(io.LimitReader(file, maxFileSize+1))
+	if err != nil || len(data) == 0 || len(data) > maxFileSize {
+		return nil, "", xerr.NewErrCodeMsg(300002, "图片不能为空且不能超过10MB")
+	}
+	mime := http.DetectContentType(data)
+	if imageExtension(mime) == "" {
+		return nil, "", xerr.NewErrCodeMsg(300002, "仅支持PNG、JPEG、GIF、WebP图片")
+	}
+	return data, mime, nil
+}
+func imageExtension(mime string) string {
+	switch mime {
+	case "image/png":
+		return ".png"
+	case "image/jpeg":
+		return ".jpg"
+	case "image/gif":
+		return ".gif"
+	case "image/webp":
+		return ".webp"
+	}
+	return ""
+}
+func (l *UploadFileImgLogic) UploadFileImg(_ *types.UploadFileImgRequest, r *http.Request) (*types.UploadFileImgResponse, error) {
+	data, mime, err := readImage(r)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
-
+	if l.svcCtx.OssClient == nil {
+		return nil, xerr.NewErrCodeMsg(300002, "文件存储服务未配置")
+	}
 	bucket, err := l.svcCtx.OssClient.Bucket(l.svcCtx.Config.Oss.BucketName)
 	if err != nil {
-		logx.Errorf("get bucket failed, err: %v", err)
-		return nil, xerr.NewErrCode(300001)
+		return nil, xerr.NewErrCodeMsg(300002, "文件存储服务配置无效")
 	}
-
-	objectKey := genFilename(handler.Filename, "go-zero-admin") // 指定目录为 go-zero-admin
-	err = bucket.PutObject(objectKey, file)
+	id, err := uuid.NewV4()
 	if err != nil {
-		logx.Errorf("put object failed, err: %v", err)
-		return nil, xerr.NewErrCode(300002)
+		return nil, err
 	}
-
-	return &types.UploadFileImgResponse{
-		FileImgUrl: genFileURL(l.svcCtx.Config.Oss.BucketName, l.svcCtx.Config.Oss.Endpoint, objectKey),
-	}, nil
+	key := "go-zero-admin/" + id.String() + imageExtension(mime)
+	if err = bucket.PutObject(key, bytes.NewReader(data), oss.ContentType(mime), oss.WithContext(l.ctx)); err != nil {
+		l.Error("图片上传失败")
+		return nil, xerr.NewErrCodeMsg(300002, "图片上传失败，请检查文件存储服务")
+	}
+	return &types.UploadFileImgResponse{FileImgUrl: genFileURL(l.svcCtx.Config.Oss.BucketName, l.svcCtx.Config.Oss.Endpoint, key)}, nil
 }
-
-func genFilename(filename, directory string) string {
-	// 将文件名拼接到指定目录中
-	return fmt.Sprintf("%s/%d_%s", directory, time.Now().UnixMilli(), filename)
-}
-
-func genFileURL(bucketName, Endpoint, objectKey string) string {
-	// 返回文件的 URL，注意 OSS 对象键中的目录名称
-	return fmt.Sprintf("https://%s.%s/%s", bucketName, Endpoint, objectKey)
+func genFileURL(bucketName, endpoint, key string) string {
+	endpoint = strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(endpoint, "https://"), "http://"), "/")
+	return (&url.URL{Scheme: "https", Host: bucketName + "." + endpoint, Path: "/" + key}).String()
 }

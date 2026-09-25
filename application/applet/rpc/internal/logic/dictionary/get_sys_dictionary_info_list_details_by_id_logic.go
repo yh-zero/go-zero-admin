@@ -2,6 +2,7 @@ package dictionarylogic
 
 import (
 	"context"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"time"
 
 	"go-zero-admin/application/applet/rpc/internal/model"
@@ -29,7 +30,7 @@ func NewGetSysDictionaryInfoListDetailsByIdLogic(ctx context.Context, svcCtx *sv
 // 根据id获取SysDictionaryInfo详情
 func (l *GetSysDictionaryInfoListDetailsByIdLogic) GetSysDictionaryInfoListDetailsById(in *pb.GetSysDictionaryInfoListDetailsByIdRequest) (*pb.GetSysDictionaryInfoListDetailsByIdResponse, error) {
 	var modelSysDictionaryInfo model.SysDictionaryInfo
-	err := l.svcCtx.DB.Where("id = ?", in.ID).First(&modelSysDictionaryInfo).Error
+	err := accessutil.RequireID(l.svcCtx.DB.DB, &modelSysDictionaryInfo, in.ID)
 	var pbSysDictionaryInfo pb.SysDictionaryInfo
 	_ = copier.Copy(&pbSysDictionaryInfo, modelSysDictionaryInfo)
 	pbSysDictionaryInfo.CreatedAt = modelSysDictionaryInfo.CreatedAt.Format(time.RFC3339)

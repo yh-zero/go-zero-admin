@@ -2,7 +2,6 @@ package menulogic
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"go-zero-admin/application/applet/rpc/internal/model"
@@ -30,6 +29,9 @@ func NewGetMenuTreeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMe
 // 获取菜单-路由
 func (l *GetMenuTreeLogic) GetMenuTree(in *pb.GetMenuTreeRequest) (*pb.GetMenuTreeResponse, error) {
 	menuTree, err := l.getMenuTreeMap(in.AuthorityId)
+	if err != nil {
+		return nil, err
+	}
 	var menus []model.SysMenu
 	menus = menuTree["0"]
 	for i := 0; i < len(menus); i++ {
@@ -73,9 +75,6 @@ func (l *GetMenuTreeLogic) getMenuTreeMap(authorityId int64) (treeMap map[string
 	if err = l.svcCtx.DB.Where("authority_id = ?", authorityId).Preload("SysBaseMenuBtn").Find(&btns).Error; err != nil {
 		return nil, err
 	}
-	fmt.Println("btns:", btns)
-	fmt.Println("btns:", &btns)
-	fmt.Printf("\nbtns:%s", &btns)
 
 	var btnMap = make(map[int64]map[string]int64)
 	for _, v := range btns {

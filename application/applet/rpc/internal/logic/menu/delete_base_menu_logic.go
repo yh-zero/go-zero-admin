@@ -2,13 +2,13 @@ package menulogic
 
 import (
 	"context"
-
+	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/pkg/errors"
-	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/pkg/result/xerr"
+	"gorm.io/gorm"
 )
 
 type DeleteBaseMenuLogic struct {
@@ -18,35 +18,38 @@ type DeleteBaseMenuLogic struct {
 }
 
 func NewDeleteBaseMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteBaseMenuLogic {
-	return &DeleteBaseMenuLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &DeleteBaseMenuLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 删除系统菜单
 func (l *DeleteBaseMenuLogic) DeleteBaseMenu(in *pb.DeleteBaseMenuRequest) (*pb.NoDataResponse, error) {
-	err := l.svcCtx.DB.Preload("MenuBtn").Preload("Parameters").Where("parent_id = ?", in.ID).First(&model.SysBaseMenu{}).Error
-	if err != nil {
+	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
 		var menu model.SysBaseMenu
-		db := l.svcCtx.DB.Preload("SysAuthoritys").Where("id = ?", in.ID).First(&menu).Delete(&menu)
-		err = l.svcCtx.DB.Delete(&model.SysBaseMenuParameter{}, "sys_base_menu_id = ?", in.ID).Error
-		err = l.svcCtx.DB.Delete(&model.SysBaseMenuBtn{}, "sys_base_menu_id = ?", in.ID).Error
-		err = l.svcCtx.DB.Delete(&model.SysAuthorityBtn{}, "sys_menu_id = ?", in.ID).Error
-		if err != nil {
-			return nil, err
+		if err := accessutil.RequireID(tx, &menu, in.ID); err != nil {
+			return err
 		}
-		if len(menu.SysAuthoritys) > 0 {
-			err = l.svcCtx.DB.Model(&menu).Association("SysAuthoritys").Delete(&menu.SysAuthoritys)
-		} else {
-			err = db.Error
-			if err != nil {
-				return nil, err
-			}
+		var count int64
+		if err := tx.Model(&model.SysBaseMenu{}).Where("parent_id = ?", in.ID).Count(&count).Error; err != nil {
+			return err
 		}
-	} else {
-		return nil, errors.New("此菜单存在子菜单不可删除")
-	}
+		if count > 0 {
+			return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "此菜单存在子菜单，请先删除子菜单")
+		}
+		if err := tx.Model(&model.SysAuthorityMenu{}).Where("sys_base_menu_id = ?", in.ID).Count(&count).Error; err != nil {
+			return err
+		}
+		if count > 0 {
+			return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "此菜单已分配给角色，请先取消菜单授权")
+		}
+		if err := tx.Where("sys_menu_id = ?", in.ID).Delete(&model.SysAuthorityBtn{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Unscoped().Where("sys_base_menu_id = ?", in.ID).Delete(&model.SysBaseMenuParameter{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Unscoped().Where("sys_base_menu_id = ?", in.ID).Delete(&model.SysBaseMenuBtn{}).Error; err != nil {
+			return err
+		}
+		return tx.Delete(&menu).Error
+	})
 	return &pb.NoDataResponse{}, err
 }

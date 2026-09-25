@@ -59,7 +59,7 @@ service applet-api {
 	@handler GetMenu
 	get /getMenu (GetMenuRequest) returns (GetMenuResponse)
 
-	@doc "分页获取base_menu列表"
+	@doc "获取完整base_menu树，分页参数仅兼容保留，不参与分页"
 	@handler GetMenuList
 	get /getMenuList (GetMenuListRequest) returns (GetMenuListResponse)
 
@@ -86,6 +86,14 @@ service applet-api {
 	@doc "删除系统菜单"
 	@handler DeleteBaseMenu
 	delete /deleteBaseMenu (DeleteBaseMenuRequest) returns (MessageResponse)
+
+	@doc "读取指定角色按钮授权"
+	@handler GetAuthorityButtons
+	get /getAuthorityButtons (GetAuthorityButtonsRequest) returns (GetAuthorityButtonsResponse)
+
+	@doc "保存指定角色按钮授权"
+	@handler UpdateAuthorityButtons
+	put /updateAuthorityButtons (UpdateAuthorityButtonsRequest) returns (MessageResponse)
 
 }
 
@@ -175,12 +183,23 @@ service applet-api {
 	group: base
 	jwt: JwtAuth
 	middleware: Authority
+	maxBytes: 11534336
+	timeout: 30s
 )
 service applet-api {
 	@doc "上传图片"
 	@handler UploadFileImg
 	post /uploadFileImg (UploadFileImgRequest) returns (UploadFileImgResponse)
+}
 
+@server(
+	prefix: /v1/sys/base
+	group: base
+	jwt: JwtAuth
+	middleware: Authority
+	timeout: 30s
+)
+service applet-api {
 	@doc "邮箱发送验证码 - 暂时用于注册账号"
 	@handler SendEmailCode
 	post /sendEmailCode (SendEmailCodeRequest) returns (MessageResponse)

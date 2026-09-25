@@ -2,12 +2,10 @@ package menu
 
 import (
 	"context"
-	"fmt"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
 	"go-zero-admin/application/applet/rpc/pb"
-	"go-zero-admin/pkg/ctxJwt"
 
 	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -28,9 +26,8 @@ func NewGetMenuAuthorityLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 func (l *GetMenuAuthorityLogic) GetMenuAuthority(req *types.GetMenuAuthorityRequest) (resp *types.GetMenuAuthorityResponse, err error) {
-	authorityId := ctxJwt.GetJwtDataAuthorityId(l.ctx)
+	authorityId := req.AuthorityId
 	authority, err := l.svcCtx.AppletMenuRPC.GetMenuAuthority(l.ctx, &pb.GetMenuAuthorityRequest{AuthorityId: int64(authorityId)})
-	fmt.Println("------------ authority", authority)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +40,6 @@ func (l *GetMenuAuthorityLogic) GetMenuAuthority(req *types.GetMenuAuthorityRequ
 	var typesGetMenuAuthorityResponse types.GetMenuAuthorityResponse
 	var sysMenus []types.SysMenu
 	_ = copier.Copy(&sysMenus, authority.SysMenuList)
-	fmt.Println("------------ sysMenus", sysMenus)
 	typesGetMenuAuthorityResponse.SysMenuList = sysMenus
 
 	return &typesGetMenuAuthorityResponse, err

@@ -7,17 +7,13 @@ import (
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
 	"go-zero-admin/pkg/result"
-
-	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 func UploadFileImgHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.UploadFileImgRequest
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
+		// Bound the whole request before parsing multipart data, including its overhead.
+		r.Body = http.MaxBytesReader(w, r.Body, 11<<20)
 
 		l := base.NewUploadFileImgLogic(r.Context(), svcCtx)
 		resp, err := l.UploadFileImg(&req, r)

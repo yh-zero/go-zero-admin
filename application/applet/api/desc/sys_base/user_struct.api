@@ -85,6 +85,7 @@ type LoginRequest {
 	UserName string `json:"username"`
 	Password string `json:"password"`
 	Captcha  string `json:"captcha"`
+	CaptchaId string `json:"captchaId"`
 }
 
 type LoginResponse {
@@ -97,6 +98,7 @@ type RandomImageRequest {}
 
 type RandomImageResponse {
 	CaptchaImg string `json:"captchaImg"`
+	CaptchaId string `json:"captchaId"`
 }
 
 type GetMenuRequest {
@@ -177,7 +179,10 @@ type GetApiListRequest {
 	Desc     bool   `form:"desc,optional"`     // 排序方式:升序false(默认) | 降序true
 	DictIdMethod int64 `form:"dictIdMethod,optional"` // 字典info 的id
 
-	SysApi
+	Path string `form:"path,optional"`
+	Description string `form:"description,optional"`
+	ApiGroup string `form:"apiGroup,optional"`
+	Method string `form:"method,optional"`
 	PageRequest
 }
 
@@ -220,7 +225,7 @@ type GetBaseMenuTreeResponse {
 }
 
 type GetMenuAuthorityRequest {
-	AuthorityId int64 `json:"authorityId"`
+	AuthorityId int64 `form:"authorityId"`
 }
 
 type GetMenuAuthorityResponse {
@@ -252,7 +257,7 @@ type UpdateAuthorityResponse {
 }
 
 type GetBaseMenuByIdRequest {
-	Id int64 `json:"id"`
+	Id int64 `form:"id"`
 }
 
 type GetBaseMenuByIdResponse {
@@ -292,19 +297,18 @@ type RegisterRequest {
 	Email        string  `json:"email,optional"`     // 电子邮箱
 }
 
-type RegisterResponse {
-	UserInfo
-}
+type RegisterResponse {}
 
 type UpdateUserInfoRequest {
 	ID           int64   `json:"ID"`                    // 主键ID
-	NickName     string  `json:"nickName,optional"`     // 用户昵称
-	Phone        string  `json:"phone,optional"`        // 用户手机号
+	NickName     *string  `json:"nickName,optional"`     // 用户昵称
+	Phone        *string  `json:"phone,optional"`        // 用户手机号
+	AuthorityId  *int64 `json:"authorityId,optional"` // 默认角色，必须属于关联角色
 	AuthorityIds []int64 `json:"authorityIds,optional"` // 角色ID
-	Email        string  `json:"email,optional"`        // 用户邮箱
-	HeaderImg    string  `json:"headerImg,optional"`    // 用户头像
-	SideMode     string  `json:"sideMode,optional"`     // 用户侧边主题
-	Enable       int64   `json:"enable,optional"`       //冻结用户
+	Email        *string  `json:"email,optional"`        // 用户邮箱
+	HeaderImg    *string  `json:"headerImg,optional"`    // 用户头像
+	SideMode     *string  `json:"sideMode,optional"`     // 用户侧边主题
+	Enable       *int64   `json:"enable,optional"`       //冻结用户
 }
 
 type ResetUserPasswordRequest {
@@ -368,7 +372,10 @@ type GetSysDictionaryListResponse {
 }
 
 type GetSysDictionaryInfoListRequest {
-	SysDictionaryInfo
+	Label string `form:"label,optional"`
+	Value *int64 `form:"value,optional"`
+	Status int64 `form:"status,optional"`
+	SysDictionaryID int64 `form:"sysDictionaryID"`
 	PageRequest
 }
 
@@ -400,7 +407,7 @@ type DeleteSysDictionaryRequest {
 }
 
 type GetSysDictionaryInfoListDetailsByIdRequest {
-	ID int64 `form:"id":"id"`
+	ID int64 `form:"id"`
 }
 
 type GetSysDictionaryInfoListDetailsByIdResponse {
@@ -423,4 +430,15 @@ type SendEmailCodeRequest {
 	Email string `json:"email"`
 	IsForce bool `json:"isForce,optional"`
 
+}
+
+type GetAuthorityButtonsRequest {
+	AuthorityId int64 `form:"authorityId"`
+}
+type GetAuthorityButtonsResponse {
+	MenuBtnIds []int64 `json:"menuBtnIds"`
+}
+type UpdateAuthorityButtonsRequest {
+	AuthorityId int64 `json:"authorityId"`
+	MenuBtnIds []int64 `json:"menuBtnIds"`
 }

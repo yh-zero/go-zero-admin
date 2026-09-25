@@ -1,0 +1,15 @@
+.git
+.idea
+.vscode
+bin-debug
+bin-release
+*.exe
+*.test
+*.out
+*.log
+.env
+.env.*
+**/.env
+**/.env.*
+data/doc
+test

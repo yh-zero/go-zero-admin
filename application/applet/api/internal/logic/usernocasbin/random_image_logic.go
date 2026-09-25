@@ -3,25 +3,24 @@ package usernocasbin
 import (
 	"context"
 	"fmt"
-	"strings"
-
-	"go-zero-admin/application/applet/api/internal/svc"
-	"go-zero-admin/application/applet/api/internal/types"
-
 	"github.com/mojocn/base64Captcha"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
+	"go-zero-admin/application/applet/api/internal/svc"
+	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/pkg/result/xerr"
+	"regexp"
 )
 
-var store = base64Captcha.DefaultMemStore
-
 const (
-	prefixCaptcha    = "biz#captcha#ip:%s"
-	expireCaptcha    = 60 * 3000 // 2分钟
+	prefixCaptcha    = "biz#captcha#id:%s"
+	expireCaptcha    = 120
 	captchaImgWidth  = 105
 	captchaImgHeight = 36
 	captchaImgLength = 6
 )
+
+var captchaIDPattern = regexp.MustCompile("^[A-Za-z0-9_-]{10,128}$")
 
 type RandomImageLogic struct {
 	logx.Logger
@@ -30,46 +29,34 @@ type RandomImageLogic struct {
 }
 
 func NewRandomImageLogic(ctx context.Context, svcCtx *svc.ServiceContext) *RandomImageLogic {
-	return &RandomImageLogic{
-		Logger: logx.WithContext(ctx),
-		ctx:    ctx,
-		svcCtx: svcCtx,
-	}
+	return &RandomImageLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
-
-func (l *RandomImageLogic) RandomImage(req *types.RandomImageRequest) (resp *types.RandomImageResponse, err error) {
-	remoteAddrIp := l.ctx.Value("RemoteAddr") // 获取id 存redis
+func (l *RandomImageLogic) RandomImage(req *types.RandomImageRequest) (*types.RandomImageResponse, error) {
 	driver := base64Captcha.NewDriverDigit(captchaImgHeight, captchaImgWidth, captchaImgLength, 0.1, 10)
-
-	cp := base64Captcha.NewCaptcha(driver, store)
-
-	//id, b64s, answer, err := cp.Generate()
-	_, b64s, answer, err := cp.Generate()
-
+	store := base64Captcha.DefaultMemStore
+	id, image, answer, err := base64Captcha.NewCaptcha(driver, store).Generate()
 	if err != nil {
-		logx.Errorf("验证码获取失败! error: %v", err)
-		return
-	}
-
-	err = saveActivationCache(GetIP(remoteAddrIp), answer, l.svcCtx.BizRedis)
-	if err != nil {
-		logx.Errorf("验证码存redis错误 error: %v", err)
 		return nil, err
 	}
-	return &types.RandomImageResponse{CaptchaImg: b64s}, nil
+	store.Get(id, true) // Redis 是唯一校验存储，避免重复保留答案。
+	if err := l.svcCtx.BizRedis.SetexCtx(l.ctx, fmt.Sprintf(prefixCaptcha, id), answer, expireCaptcha); err != nil {
+		return nil, err
+	}
+	return &types.RandomImageResponse{CaptchaId: id, CaptchaImg: image}, nil
 }
 
-func saveActivationCache(keyStr, code string, rds *redis.Redis) error {
-	key := fmt.Sprintf(prefixCaptcha, keyStr)
-	return rds.Setex(key, code, expireCaptcha)
-}
-
-func GetActivationCache(keyStr string, rds *redis.Redis) (string, error) {
-	ket := fmt.Sprintf(prefixCaptcha, keyStr)
-	return rds.Get(ket)
-}
-
-func GetIP(ipStr any) string {
-	index := strings.Index(ipStr.(string), ":")
-	return ipStr.(string)[:index]
+// 每张图片仅允许一次提交，成功或失败后均需刷新；多客户端不会覆盖彼此的验证码。
+func consumeCaptcha(ctx context.Context, id, answer string, rds *redis.Redis) error {
+	if !captchaIDPattern.MatchString(id) || len(answer) != captchaImgLength {
+		return xerr.NewErrCode(xerr.CAPTCHA_ERROR)
+	}
+	result, err := rds.EvalCtx(ctx, "local value = redis.call('GET', KEYS[1]); redis.call('DEL', KEYS[1]); return value", []string{fmt.Sprintf(prefixCaptcha, id)})
+	if err != nil {
+		return err
+	}
+	expected, ok := result.(string)
+	if !ok || expected == "" || expected != answer {
+		return xerr.NewErrCode(xerr.CAPTCHA_ERROR)
+	}
+	return nil
 }

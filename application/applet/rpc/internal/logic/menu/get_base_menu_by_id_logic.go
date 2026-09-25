@@ -2,6 +2,7 @@ package menulogic
 
 import (
 	"context"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
@@ -28,7 +29,7 @@ func NewGetBaseMenuByIdLogic(ctx context.Context, svcCtx *svc.ServiceContext) *G
 // 根据id获取菜单
 func (l *GetBaseMenuByIdLogic) GetBaseMenuById(in *pb.GetBaseMenuByIdRequest) (*pb.GetBaseMenuByIdResponse, error) {
 	var sysBaseMenu model.SysBaseMenu
-	err := l.svcCtx.DB.Preload("MenuBtn").Preload("Parameters").Where("id = ?", in.ID).First(&sysBaseMenu).Error
+	err := accessutil.RequireID(l.svcCtx.DB.Preload("MenuBtn").Preload("Parameters"), &sysBaseMenu, in.ID)
 	var pbSysBaseMenu pb.SysBaseMenu
 	_ = copier.Copy(&pbSysBaseMenu, sysBaseMenu)
 	return &pb.GetBaseMenuByIdResponse{SysBaseMenu: &pbSysBaseMenu}, err

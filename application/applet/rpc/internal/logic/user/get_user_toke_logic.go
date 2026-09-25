@@ -2,7 +2,6 @@ package userlogic
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go-zero-admin/application/applet/rpc/internal/svc"
@@ -29,7 +28,6 @@ func NewGetUserTokeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUs
 
 // 获取Token
 func (l *GetUserTokeLogic) GetUserToke(in *pb.GetUserTokeRequest) (*pb.GetUserTokeResponse, error) {
-	fmt.Println("GenerateToken:----", in)
 	now := time.Now().Unix()
 	accessExpire := l.svcCtx.Config.JwtAuth.AccessExpire
 	accessToken, err := l.getJwtToken(l.svcCtx.Config.JwtAuth.AccessSecret, now, accessExpire, ctxJwt.JWTData{
@@ -47,7 +45,6 @@ func (l *GetUserTokeLogic) GetUserToke(in *pb.GetUserTokeRequest) (*pb.GetUserTo
 }
 
 func (l *GetUserTokeLogic) getJwtToken(secretKey string, iat, seconds int64, jwtData ctxJwt.JWTData) (string, error) {
-	fmt.Println("======== getJwtToken jwtData", jwtData)
 	claims := make(jwt.MapClaims)
 	claims["exp"] = iat + seconds
 	claims["iat"] = iat

@@ -27,4 +27,14 @@ type Config struct {
 		ReadWriteTimeout int64 `json:",optional"`
 	}
 	Isdev bool
+	Mail  MailConfig `json:",optional"`
+}
+
+// MailConfig uses implicit TLS (usually port 465) and verifies the SMTP certificate.
+type MailConfig struct {
+	Host     string `json:",optional"`
+	Port     int    `json:",optional"`
+	From     string `json:",optional"`
+	Username string `json:",optional"`
+	Password string `json:",optional"`
 }

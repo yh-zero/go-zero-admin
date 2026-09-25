@@ -4,6 +4,9 @@
 
 set name=%1
 
+@REM Use the version-independent API overrides; otherwise goctl silently uses defaults.
+if not exist test\goctl\api\handler.tpl exit /b 1
+if not exist test\goctl\api\main.tpl exit /b 1
 goctl api go -api application\%name%\api\desc\%name%.api -dir application\%name%\api\ -home test\goctl\ -style=go_zero
 
 

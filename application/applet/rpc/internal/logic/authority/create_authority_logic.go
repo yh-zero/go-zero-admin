@@ -2,19 +2,16 @@ package authoritylogic
 
 import (
 	"context"
-	"strconv"
-
-	"gorm.io/gorm"
-
+	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/jinzhu/copier"
+	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-	modelBase "go-zero-admin/pkg/model"
-
-	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/jinzhu/copier"
-	"github.com/pkg/errors"
-	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/pkg/result/xerr"
+	"gorm.io/gorm"
+	"strconv"
 )
 
 type CreateAuthorityLogic struct {
@@ -24,87 +21,45 @@ type CreateAuthorityLogic struct {
 }
 
 func NewCreateAuthorityLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateAuthorityLogic {
-	return &CreateAuthorityLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &CreateAuthorityLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// 创建角色
 func (l *CreateAuthorityLogic) CreateAuthority(in *pb.CreateAuthorityRequest) (*pb.CreateAuthorityResponse, error) {
-	var auth model.SysAuthority
-	_ = copier.Copy(&auth, in.SysAuthority)
-	err := l.svcCtx.DB.Where("authority_id = ?", auth.AuthorityId).First(&model.SysAuthority{}).Error
-	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, errors.New("已存在 authority_id")
-	}
-
-	txErr := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
-		auth.DefaultRouter = "index"
-		if err = tx.Omit("deleted_at").Create(&auth).Error; err != nil {
+	var role model.SysAuthority
+	err := accessutil.PolicyTransaction(l.svcCtx, func(tx *gorm.DB) error {
+		if err := validateAuthority(tx, in.SysAuthority); err != nil {
 			return err
 		}
-
-		auth.SysBaseMenus = l.DefaultMenu()
-		if err = tx.Model(&auth).Association("SysBaseMenus").Replace(&auth.SysBaseMenus); err != nil {
+		if err := accessutil.Unique(tx, &model.SysAuthority{}, "authority_id = ?", in.SysAuthority.AuthorityId); err != nil {
 			return err
 		}
-		casbinInfos := l.DefaultCasbin()
-		authorityId := strconv.Itoa(int(auth.AuthorityId))
-		rules := [][]string{}
-		for _, v := range casbinInfos {
-			rules = append(rules, []string{authorityId, v.Path, v.Method})
+		home := in.SysAuthority.DefaultRouter
+		if home == "" {
+			home = "index"
 		}
-		return l.AddPolicies(tx, rules)
+		var menu model.SysBaseMenu
+		if err := tx.Where("name = ?", home).First(&menu).Error; err != nil {
+			return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "默认首页菜单不存在")
+		}
+		if menu.ParentId != 0 {
+			return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "新角色默认首页请选择根级菜单，创建后可分配其他菜单再修改")
+		}
+		parent := in.SysAuthority.ParentId
+		role = model.SysAuthority{AuthorityId: in.SysAuthority.AuthorityId, AuthorityName: in.SysAuthority.AuthorityName, ParentId: &parent, DefaultRouter: home}
+		if err := tx.Omit("SysBaseMenus", "DataAuthorityId", "Users").Create(&role).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&model.SysAuthorityMenu{MenuId: strconv.FormatInt(menu.ID, 10), AuthorityId: strconv.FormatInt(role.AuthorityId, 10)}).Error; err != nil {
+			return err
+		}
+		return tx.Create(&gormadapter.CasbinRule{Ptype: "p", V0: strconv.FormatInt(role.AuthorityId, 10), V1: "/v1/sys/menu/getMenu", V2: "GET"}).Error
 	})
-	if txErr != nil {
-		return nil, txErr
+	if err != nil {
+		return nil, err
 	}
-
-	// 事务提交后重载内存策略 保证新角色默认权限立即生效(不重载则要到重启后才生效)
-	if err = l.svcCtx.Casbin.LoadPolicy(); err != nil {
-		logx.WithContext(l.ctx).Errorf("CreateAuthority LoadPolicy err: %v", err)
+	result := &pb.SysAuthority{}
+	if err := copier.Copy(result, role); err != nil {
+		return nil, err
 	}
-
-	var pbSysAuthority pb.SysAuthority
-	_ = copier.Copy(&pbSysAuthority, auth)
-
-	return &pb.CreateAuthorityResponse{SysAuthority: &pbSysAuthority}, nil
-}
-
-func (l *CreateAuthorityLogic) DefaultMenu() []model.SysBaseMenu {
-	return []model.SysBaseMenu{{
-		MODEL_BASE: modelBase.MODEL_BASE{ID: 1},
-		ParentId:   0,
-		Path:       "index",
-		Name:       "index",
-		Component:  "views/index.vue",
-		Sort:       1,
-		Meta: model.Meta{
-			Title: "默认页",
-			Icon:  "none",
-		},
-	}}
-}
-
-func (l *CreateAuthorityLogic) DefaultCasbin() []*pb.CasbinInfo {
-	return []*pb.CasbinInfo{
-		//{Path: "/v1/sys/login", Method: "POST"},        // 登录
-		{Path: "/v1/sys/menu/getMenu", Method: "POST"}, // 获取页面菜单 - 路由
-	}
-}
-
-// 添加匹配的权限
-func (l *CreateAuthorityLogic) AddPolicies(db *gorm.DB, rules [][]string) error {
-	var casbinRules []gormadapter.CasbinRule
-	for i := range rules {
-		casbinRules = append(casbinRules, gormadapter.CasbinRule{
-			Ptype: "p",
-			V0:    rules[i][0],
-			V1:    rules[i][1],
-			V2:    rules[i][2],
-		})
-	}
-	return db.Create(&casbinRules).Error
+	return &pb.CreateAuthorityResponse{SysAuthority: result}, nil
 }

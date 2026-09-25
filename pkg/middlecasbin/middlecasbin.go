@@ -37,9 +37,6 @@ e = some(where (p.eft == allow))
 m = r.sub == p.sub && keyMatch2(r.obj, p.obj) && r.act == p.act
 `
 
-// enforcerCacheSecond SyncedCachedEnforcer 鉴权结果缓存时间(秒)
-const enforcerCacheSecond = 60 * 60
-
 var (
 	syncedCachedEnforcer *casbin.SyncedCachedEnforcer
 	once                 sync.Once // 进程内单例 同一进程只创建一个enforcer
@@ -82,7 +79,9 @@ func (l CasbinConf) NewCasbin(dsn string) (*casbin.SyncedCachedEnforcer, error) 
 			initErr = err
 			return
 		}
-		enforcer.SetExpireTime(enforcerCacheSecond)
+		// Policies already live in memory. Avoid caching allow/deny decisions so a
+		// concurrent policy reload cannot retain a result from the old permissions.
+		enforcer.EnableCache(false)
 
 		if err = enforcer.LoadPolicy(); err != nil {
 			initErr = err

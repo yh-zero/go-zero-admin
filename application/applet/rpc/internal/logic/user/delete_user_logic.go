@@ -2,13 +2,12 @@ package userlogic
 
 import (
 	"context"
-	"gorm.io/gorm"
-
+	"errors"
+	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-
-	"github.com/zeromicro/go-zero/core/logx"
+	"gorm.io/gorm"
 )
 
 type DeleteUserLogic struct {
@@ -18,24 +17,27 @@ type DeleteUserLogic struct {
 }
 
 func NewDeleteUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteUserLogic {
-	return &DeleteUserLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
+	return &DeleteUserLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
-
-// 删除用户
 func (l *DeleteUserLogic) DeleteUser(in *pb.DeleteUserRequest) (*pb.NoDataResponse, error) {
-	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("id = ?", in.UserID).Delete(&model.SysUser{}).Error; err != nil {
+	if in.UserID <= 0 {
+		return nil, userError("用户ID无效")
+	}
+	err := l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
+		var user model.SysUser
+		if err := tx.First(&user, in.UserID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return userError("用户不存在")
+			}
 			return err
 		}
-		if err := tx.Delete(&[]model.SysUserAuthority{}, "sys_user_id = ?", in.UserID).Error; err != nil {
+		if err := tx.Delete(&user).Error; err != nil {
 			return err
 		}
-		return nil
+		return tx.Where("sys_user_id = ?", in.UserID).Delete(&model.SysUserAuthority{}).Error
 	})
-
-	return &pb.NoDataResponse{}, err
+	if err != nil {
+		return nil, err
+	}
+	return &pb.NoDataResponse{}, nil
 }

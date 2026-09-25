@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
 	"go-zero-admin/application/applet/rpc/pb"
@@ -38,16 +37,13 @@ func (l *GetApiListLogic) GetApiList(req *types.GetApiListRequest) (resp *types.
 			logx.Errorf("l.svcCtx.AppletDictionaryRPC.GetSysDictionaryInfoListDetailsById err:%v", err)
 			return nil, err
 		}
-		req.SysApi.Method = sysDictionaryInfo.SysDictionaryInfo.Label
+		req.Method = sysDictionaryInfo.SysDictionaryInfo.Label
 	}
-
-	fmt.Println("---------req.SysApi.Method", req.SysApi.Method)
-	fmt.Println("---------req.SysApi.Method", req.Method)
 	var pbPageRequest pb.PageRequest
 	_ = copier.Copy(&pbPageRequest, req.PageRequest)
 
 	var pbSysApi pb.SysApi
-	_ = copier.Copy(&pbSysApi, req.SysApi)
+	_ = copier.Copy(&pbSysApi, req)
 
 	var pbGetApiListReq pb.GetApiListRequest
 	pbGetApiListReq.PageRequest = &pbPageRequest

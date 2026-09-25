@@ -1,0 +1,32 @@
+Name: applet.rpc
+ListenOn: 0.0.0.0:6001
+Etcd:
+  Hosts:
+    - ${ETCD_ADDR}
+  Key: applet.rpc
+DB:
+  DataSource: ${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_ADDR})/${MYSQL_DATABASE}?parseTime=true&loc=Local
+  MaxIdleConns: 10
+  MaxOpenConns: 100
+  ConnMaxLifetime: 3600
+BizRedis:
+  Host: ${REDIS_ADDR}
+  Pass: ${REDIS_PASSWORD}
+  Type: node
+JwtAuth:
+  AccessSecret: ${JWT_ACCESS_SECRET}
+  AccessExpire: ${JWT_ACCESS_EXPIRE}
+CasbinConf:
+  ModelText: |
+    [request_definition]
+    r = sub, obj, act
+    [policy_definition]
+    p = sub, obj, act
+    [role_definition]
+    g = _, _
+    [policy_effect]
+    e = some(where (p.eft == allow))
+    [matchers]
+    m = r.sub == p.sub && keyMatch2(r.obj,p.obj) && r.act == p.act
+Default:
+  UserPassword: ${DEFAULT_USER_PASSWORD}

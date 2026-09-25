@@ -34,9 +34,25 @@ func (l *GetUserInfoLogic) GetUserInfo(in *pb.GetUserInfoRequest) (*pb.GetUserIn
 	var userInfo model.SysUser
 	userInfoModel := &pb.UserInfo{}
 	err := l.svcCtx.DB.Where("username = ?", in.UserName).Preload("Authorities").Preload("Authority").First(&userInfo).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, xerr.NewErrCode(xerr.USER_PASSWORD_ERROR)
+	}
+	if err != nil {
+		return nil, err
+	}
 	if err == nil {
 		if ok := hash.BcryptCheck(in.Password, userInfo.Password); !ok {
-			return nil, errors.Wrapf(xerr.NewErrCode(xerr.USER_PASSWORD_ERROR), "utils.BcryptCheck(in.Password, userInfo.Password)")
+			return nil, xerr.NewErrCode(xerr.USER_PASSWORD_ERROR)
+		}
+		if userInfo.Enable != 1 {
+			return nil, userError("账号已冻结，请联系管理员")
+		}
+		ids := make([]int64, 0, len(userInfo.Authorities))
+		for _, role := range userInfo.Authorities {
+			ids = append(ids, role.AuthorityId)
+		}
+		if _, err := validateUserAuthorities(l.svcCtx.DB.DB, ids, userInfo.AuthorityId); err != nil {
+			return nil, err
 		}
 		l.UserAuthorityDefaultRouter(&userInfo)
 	}
@@ -44,6 +60,7 @@ func (l *GetUserInfoLogic) GetUserInfo(in *pb.GetUserInfoRequest) (*pb.GetUserIn
 	if err := copier.Copy(userInfoModel, &userInfo); err != nil {
 		return nil, err
 	}
+	userInfoModel.Password = ""
 	return &pb.GetUserInfoResponse{
 		UserInfo: userInfoModel,
 	}, err

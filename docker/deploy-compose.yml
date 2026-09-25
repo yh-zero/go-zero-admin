@@ -1,0 +1,132 @@
+name: go-zero-admin-deploy
+
+services:
+  mysql:
+    image: mysql:8.0.34
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:?请在 docker/.env.deploy 中设置 MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero-admin}"
+      TZ: "Asia/Shanghai"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ../data/db/gozero-admin-20240129.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: api
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+      ETCD_ADDR: etcd:2379
+      JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET:?请在 docker/.env.deploy 中设置 JWT_ACCESS_SECRET}"
+      JWT_ACCESS_EXPIRE: "${JWT_ACCESS_EXPIRE:-86400}"
+      OSS_ENDPOINT: "${OSS_ENDPOINT:-}"
+      OSS_ACCESS_KEY_ID: "${OSS_ACCESS_KEY_ID:-}"
+      OSS_ACCESS_KEY_SECRET: "${OSS_ACCESS_KEY_SECRET:-}"
+      OSS_BUCKET_NAME: "${OSS_BUCKET_NAME:-}"
+    ports:
+      - "${API_PORT:-127.0.0.1:7001}:7001"
+    depends_on:
+      redis:
+        condition: service_healthy
+      etcd:
+        condition: service_healthy
+      rpc:
+        condition: service_started
+    init: true
+
+  rpc:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: rpc
+    restart: unless-stopped
+    environment:
+      MYSQL_ADDR: mysql:3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: "${MYSQL_ROOT_PASSWORD:?请在 docker/.env.deploy 中设置 MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero-admin}"
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+      ETCD_ADDR: etcd:2379
+      JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET:?请在 docker/.env.deploy 中设置 JWT_ACCESS_SECRET}"
+      JWT_ACCESS_EXPIRE: "${JWT_ACCESS_EXPIRE:-86400}"
+      DEFAULT_USER_PASSWORD: "${DEFAULT_USER_PASSWORD:-goZero}"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      etcd:
+        condition: service_healthy
+    init: true
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.11
+    restart: unless-stopped
+    environment:
+      ETCD_NAME: "default"
+      ETCD_DATA_DIR: "/etcd-data"
+      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_LISTEN_PEER_URLS: "http://0.0.0.0:2380"
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: "http://0.0.0.0:2380"
+      ETCD_INITIAL_CLUSTER: "default=http://0.0.0.0:2380"
+      ETCD_INITIAL_CLUSTER_TOKEN: "etcd-cluster"
+      ETCD_INITIAL_CLUSTER_STATE: "new"
+    healthcheck:
+      test: ["CMD", "etcdctl", "--endpoints=http://localhost:2379", "endpoint", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui:v5.33.0
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${SWAGGER_PORT:-8080}:8080"
+    environment:
+      SWAGGER_API_URL: "${SWAGGER_API_URL:-http://api:7001}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../data/api/generated:/spec:ro
+      - ./swagger/default.conf.template:/etc/swagger/default.conf.template:ro
+      - ./swagger/swagger-initializer.js:/etc/swagger/swagger-initializer.js:ro
+    # Use the official UI assets and Nginx with our same-origin API proxy.
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        envsubst '$$SWAGGER_API_URL' < /etc/swagger/default.conf.template > /etc/nginx/conf.d/default.conf
+        cp /etc/swagger/swagger-initializer.js /usr/share/nginx/html/swagger-initializer.js
+        exec nginx -g 'daemon off;'
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/swagger.json"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  mysql_data:
