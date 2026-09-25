@@ -6,6 +6,7 @@ import (
 	mysqldriver "github.com/go-sql-driver/mysql"
 	"github.com/gofrs/uuid/v5"
 	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
@@ -40,6 +41,9 @@ func (l *RegisterLogic) Register(in *pb.RegisterRequest) (*pb.RegisterResponse, 
 	}
 	user := model.SysUser{UUID: userUUID, Username: strings.TrimSpace(input.Username), Password: hash.BcryptHash(input.Password), NickName: input.NickName, HeaderImg: input.HeaderImg, AuthorityId: input.AuthorityId, Enable: input.Enable, Phone: input.Phone, Email: input.Email}
 	err = l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
+		if err := accessutil.LockAdminGuard(tx); err != nil {
+			return err
+		}
 		ids, err := validateUserAuthorities(tx, in.AuthorityIds, input.AuthorityId)
 		if err != nil {
 			return err

@@ -24,7 +24,7 @@ func NewAddAuthorityMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 func (l *AddAuthorityMenuLogic) AddAuthorityMenu(in *pb.AddAuthorityMenuRequest) (*pb.NoDataResponse, error) {
-	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+	err := accessutil.AdminMenuTransaction(l.svcCtx.DB.WithContext(l.ctx), func(tx *gorm.DB) error {
 		if err := accessutil.RequireRole(tx, in.AuthorityId); err != nil {
 			return err
 		}

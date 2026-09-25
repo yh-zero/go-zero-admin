@@ -1,6 +1,7 @@
 .git
-.idea
 .vscode
+.idea
+bin
 bin-debug
 bin-release
 *.exe
@@ -11,5 +12,8 @@ bin-release
 .env.*
 **/.env
 **/.env.*
-data/doc
+**/*.log
 test
+data/doc
+data/db/dump-*.sql
+*.tar.gz

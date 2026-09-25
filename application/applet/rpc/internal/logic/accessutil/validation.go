@@ -3,6 +3,7 @@ package accessutil
 import (
 	"errors"
 	"go-zero-admin/pkg/result/xerr"
+	"regexp"
 	"strings"
 
 	"go-zero-admin/application/applet/rpc/internal/model"
@@ -91,12 +92,23 @@ func API(path, method string) (string, string, error) {
 	if !strings.HasPrefix(path, "/v1/") || strings.ContainsAny(path, "?# \\") {
 		return "", "", xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "接口路径必须以/v1/开头，且不能包含查询参数")
 	}
+	if _, err := regexp.Compile(policyPathPattern(path)); err != nil {
+		return "", "", xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "接口路径包含无效的权限匹配规则")
+	}
 	switch method {
 	case "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS":
 	default:
 		return "", "", xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "HTTP方法无效")
 	}
 	return path, method, nil
+}
+
+var policyPathParameter = regexp.MustCompile(`:[^/]+`)
+
+// Match the configured Casbin keyMatch2 semantics, but let callers handle an
+// invalid expression instead of Casbin's RegexMatch panic.
+func policyPathPattern(path string) string {
+	return "^" + policyPathParameter.ReplaceAllString(strings.ReplaceAll(path, "/*", "/.*"), "[^/]+") + "$"
 }
 
 func Unique(db *gorm.DB, entity interface{}, condition string, args ...interface{}) error {

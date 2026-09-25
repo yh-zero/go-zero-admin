@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
@@ -24,6 +25,9 @@ func (l *DeleteUserLogic) DeleteUser(in *pb.DeleteUserRequest) (*pb.NoDataRespon
 		return nil, userError("用户ID无效")
 	}
 	err := l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
+		if err := accessutil.LockAdminGuard(tx); err != nil {
+			return err
+		}
 		var user model.SysUser
 		if err := tx.First(&user, in.UserID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -34,7 +38,10 @@ func (l *DeleteUserLogic) DeleteUser(in *pb.DeleteUserRequest) (*pb.NoDataRespon
 		if err := tx.Delete(&user).Error; err != nil {
 			return err
 		}
-		return tx.Where("sys_user_id = ?", in.UserID).Delete(&model.SysUserAuthority{}).Error
+		if err := tx.Where("sys_user_id = ?", in.UserID).Delete(&model.SysUserAuthority{}).Error; err != nil {
+			return err
+		}
+		return accessutil.EnsureUsableAdministrator(tx)
 	})
 	if err != nil {
 		return nil, err

@@ -15,7 +15,7 @@ services:
       - mysql_data:/var/lib/mysql
       - ../data/db/gozero-admin-20240129.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_ROOT_PASSWORD" mysqladmin ping -h localhost --silent']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -23,8 +23,11 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+    command: ["sh", "-ec", 'exec redis-server --requirepass "$$REDIS_PASSWORD"']
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -40,11 +43,16 @@ services:
       REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
       ETCD_ADDR: etcd:2379
       JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET:?请在 docker/.env.deploy 中设置 JWT_ACCESS_SECRET}"
-      JWT_ACCESS_EXPIRE: "${JWT_ACCESS_EXPIRE:-86400}"
+      JWT_ACCESS_EXPIRE: "${JWT_ACCESS_EXPIRE:-7200}"
       OSS_ENDPOINT: "${OSS_ENDPOINT:-}"
       OSS_ACCESS_KEY_ID: "${OSS_ACCESS_KEY_ID:-}"
       OSS_ACCESS_KEY_SECRET: "${OSS_ACCESS_KEY_SECRET:-}"
       OSS_BUCKET_NAME: "${OSS_BUCKET_NAME:-}"
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-465}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_FROM: "${SMTP_FROM:-}"
     ports:
       - "${API_PORT:-127.0.0.1:7001}:7001"
     depends_on:
@@ -71,7 +79,7 @@ services:
       REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
       ETCD_ADDR: etcd:2379
       JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET:?请在 docker/.env.deploy 中设置 JWT_ACCESS_SECRET}"
-      JWT_ACCESS_EXPIRE: "${JWT_ACCESS_EXPIRE:-86400}"
+      JWT_ACCESS_EXPIRE: "${JWT_ACCESS_EXPIRE:-7200}"
       DEFAULT_USER_PASSWORD: "${DEFAULT_USER_PASSWORD:-goZero}"
     depends_on:
       mysql:

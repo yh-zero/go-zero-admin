@@ -14,6 +14,9 @@ import (
 )
 
 type (
+	ApiSyncItem            = pb.ApiSyncItem
+	ApplyApiSyncRequest    = pb.ApplyApiSyncRequest
+	ApplyApiSyncResponse   = pb.ApplyApiSyncResponse
 	CreateApiRequest       = pb.CreateApiRequest
 	DeleteApiRequest       = pb.DeleteApiRequest
 	DeleteApisByIdsRequest = pb.DeleteApisByIdsRequest
@@ -22,10 +25,15 @@ type (
 	GetApiListResponse     = pb.GetApiListResponse
 	NoDataResponse         = pb.NoDataResponse
 	PageRequest            = pb.PageRequest
+	PreviewApiSyncResponse = pb.PreviewApiSyncResponse
 	SysApi                 = pb.SysApi
 	UpdateApiRequest       = pb.UpdateApiRequest
 
 	Api interface {
+		// 预览当前Swagger与权限资源的差异
+		PreviewApiSync(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*PreviewApiSyncResponse, error)
+		// 按已确认的差异同步资源，不修改现有授权
+		ApplyApiSync(ctx context.Context, in *ApplyApiSyncRequest, opts ...grpc.CallOption) (*ApplyApiSyncResponse, error)
 		// 获取API列表
 		GetApiList(ctx context.Context, in *GetApiListRequest, opts ...grpc.CallOption) (*GetApiListResponse, error)
 		// 创建/添加 API列表
@@ -49,6 +57,18 @@ func NewApi(cli zrpc.Client) Api {
 	return &defaultApi{
 		cli: cli,
 	}
+}
+
+// 预览当前Swagger与权限资源的差异
+func (m *defaultApi) PreviewApiSync(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*PreviewApiSyncResponse, error) {
+	client := pb.NewApiClient(m.cli.Conn())
+	return client.PreviewApiSync(ctx, in, opts...)
+}
+
+// 按已确认的差异同步资源，不修改现有授权
+func (m *defaultApi) ApplyApiSync(ctx context.Context, in *ApplyApiSyncRequest, opts ...grpc.CallOption) (*ApplyApiSyncResponse, error) {
+	client := pb.NewApiClient(m.cli.Conn())
+	return client.ApplyApiSync(ctx, in, opts...)
 }
 
 // 获取API列表

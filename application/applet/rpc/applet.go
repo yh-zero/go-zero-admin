@@ -13,6 +13,7 @@ import (
 	userServer "go-zero-admin/application/applet/rpc/internal/server/user"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/rpcprivacy"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
@@ -28,6 +29,7 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
+	rpcprivacy.ConfigureServer(&c.RpcServerConf)
 	ctx := svc.NewServiceContext(c)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {

@@ -1,0 +1,45 @@
+syntax = "v1"
+
+type ApiSyncItem {
+    Key string `json:"key"`
+    Id int64 `json:"id"`
+    Path string `json:"path"`
+    Method string `json:"method"`
+    ApiGroup string `json:"apiGroup"`
+    Description string `json:"description"`
+    CurrentApiGroup string `json:"currentApiGroup"`
+    CurrentDescription string `json:"currentDescription"`
+}
+
+type PreviewApiSyncResponse {
+    Version string `json:"version"`
+    Added []ApiSyncItem `json:"added"`
+    Changed []ApiSyncItem `json:"changed"`
+    Obsolete []ApiSyncItem `json:"obsolete"`
+}
+
+type ApplyApiSyncRequest {
+    Version string `json:"version"`
+    Keys []string `json:"keys"`
+}
+
+type ApplyApiSyncResponse {
+    Added int64 `json:"added"`
+    Updated int64 `json:"updated"`
+}
+
+@server(
+    prefix: /v1/sys/api
+    group: api
+    jwt: JwtAuth
+    middleware: Authority
+)
+service applet-api {
+    @doc "预览Swagger与API资源差异，失效资源仅提示"
+    @handler PreviewApiSync
+    get /previewSync returns (PreviewApiSyncResponse)
+
+    @doc "按预览版本同步选中API，仅新增资源或更新分组描述，保留授权"
+    @handler ApplyApiSync
+    post /applySync (ApplyApiSyncRequest) returns (ApplyApiSyncResponse)
+}

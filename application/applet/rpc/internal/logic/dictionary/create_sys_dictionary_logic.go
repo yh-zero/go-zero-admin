@@ -3,6 +3,7 @@ package dictionarylogic
 import (
 	"context"
 	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
@@ -33,5 +34,5 @@ func (l *CreateSysDictionaryLogic) CreateSysDictionary(in *pb.CreateSysDictionar
 		value := in.SysDictionary
 		return tx.Create(&model.SysDictionary{Name: value.Name, Type: value.Type, Status: value.Status, Desc: value.Desc}).Error
 	})
-	return &pb.NoDataResponse{}, err
+	return &pb.NoDataResponse{}, accessutil.FriendlyDuplicate(err)
 }

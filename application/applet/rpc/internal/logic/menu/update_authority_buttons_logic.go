@@ -26,7 +26,7 @@ func (l *UpdateAuthorityButtonsLogic) UpdateAuthorityButtons(in *pb.UpdateAuthor
 	if err != nil {
 		return nil, err
 	}
-	err = l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+	err = accessutil.AdminMenuTransaction(l.svcCtx.DB.WithContext(l.ctx), func(tx *gorm.DB) error {
 		if err := accessutil.RequireRole(tx, in.AuthorityId); err != nil {
 			return err
 		}

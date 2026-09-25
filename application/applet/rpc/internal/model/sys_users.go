@@ -7,6 +7,7 @@ import (
 )
 
 type SysUser struct {
+	SessionVersion int64 `json:"-" gorm:"not null;default:1;comment:登录会话版本"`
 	model.MODEL_BASE
 	UUID        uuid.UUID      `json:"uuid" gorm:"index;comment:用户UUID"`                                                                                                                             // 用户UUID
 	Username    string         `json:"userName" gorm:"index;comment:用户登录名"`                                                                                                                          // 用户登录名

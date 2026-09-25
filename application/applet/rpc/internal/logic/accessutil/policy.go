@@ -16,8 +16,20 @@ var policyWrite sync.Mutex
 func PolicyTransaction(s *svc.ServiceContext, change func(*gorm.DB) error) error {
 	policyWrite.Lock()
 	defer policyWrite.Unlock()
-	if err := s.DB.Transaction(change); err != nil {
-		return err
+	if err := s.DB.Transaction(func(tx *gorm.DB) error {
+		if err := LockAdminGuard(tx); err != nil {
+			return err
+		}
+		before, err := adminRecoveryPolicyState(tx)
+		if err != nil {
+			return err
+		}
+		if err := change(tx); err != nil {
+			return err
+		}
+		return preserveAdminRecoveryPolicies(tx, before)
+	}); err != nil {
+		return FriendlyDuplicate(err)
 	}
 	if s.Casbin != nil {
 		if err := s.Casbin.LoadPolicy(); err != nil {

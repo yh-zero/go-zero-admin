@@ -26,11 +26,11 @@
 
 | 模块 | 当前功能 |
 | --- | --- |
-| 登录与权限 | 图片验证码、JWT 登录、动态菜单、角色菜单 / 按钮 / 接口权限 |
+| 登录与权限 | 图片验证码、JWT 登录、当前用户查询、自助改密、服务端退出与会话撤销 |
 | 用户管理 | 搜索与分页、新增与编辑、角色分配、启用 / 冻结、重置密码、删除 |
-| 角色管理 | 角色树、默认首页、菜单授权、按钮授权、Casbin 接口授权 |
-| 菜单管理 | 菜单树、父子关系、页面组件选择、图标选择、排序、隐藏与缓存 |
-| API 管理 | 路径 / 分组 / 方法筛选、接口资源维护、批量删除 |
+| 角色管理 | 角色树、默认首页、菜单 / 按钮 / API 独立授权，分组搜索、选择统计与变更预览 |
+| 菜单管理 | 菜单树、页面组件与图标选择、按钮定义维护、排序、隐藏与缓存 |
+| API 管理 | 路径 / 分组 / 方法筛选、资源维护、批量删除、Swagger 差异预览与选择同步 |
 | 字典管理 | 字典与字典项维护、状态、排序、预览 |
 | 管理工具 | 阿里云 OSS 图片上传、SMTP 邮箱验证码发送 |
 | Vben 原有页面 | 保留工作台、分析页、组件演示，与后端业务菜单合并显示 |
@@ -66,7 +66,7 @@
 
 </details>
 
-当前代码注册 **43 个 HTTP 接口**，统一使用 `/v1/sys` 前缀。业务页面已接入；尚未实现的旧菜单组件显示“尚未接入”。完整 HTTP CRUD、不同角色权限和外部服务成功流程仍需按开发文档继续验收，不能仅凭页面可见判断全部流程已通过。
+当前代码注册 **48 个 HTTP 接口**，统一使用 `/v1/sys` 前缀。业务页面已接入；尚未实现的旧菜单组件显示“尚未接入”。OSS 上传和 SMTP 发送需要配置真实外部服务后验收；操作日志尚未实现。
 
 ## 架构与代码目录
 
@@ -83,7 +83,7 @@ flowchart LR
     RPC --> Etcd
 ```
 
-API 层处理 HTTP 参数、JWT 和响应封装；RPC 层实现业务、数据库操作及 Casbin 权限校验。Redis 用于验证码和权限策略同步，etcd 用于 RPC 注册与发现。前端只访问 HTTP API。
+API 层处理 HTTP 参数、JWT、当前会话校验和响应封装；RPC 层实现业务、数据库操作及 Casbin 权限校验。Redis 用于验证码和权限策略同步，etcd 用于 RPC 注册与发现。前端只访问 HTTP API。
 
 建议将两个仓库放在同一级目录：
 
@@ -122,7 +122,7 @@ go-zero-github/
 | Docker | Docker Engine / Docker Desktop，启用 Compose v2（`docker compose`） |
 | Node.js | `^22.18.0` 或 `^24.12.0`，以配套前端 `package.json` 为准 |
 | pnpm | `11.16.0`，与前端 `packageManager` 保持一致 |
-| PowerShell | Windows PowerShell 5.1 即可运行 Swagger 脚本，无需安装 `pwsh` |
+| PowerShell | Windows PowerShell 5.1 即可运行 Swagger 和数据库管理脚本，无需安装 `pwsh` |
 | goctl | 修改接口或生成文档时需要；当前脚本使用已验证的 `v1.10.2` |
 | protobuf 工具 | 仅重新生成 RPC 时需要 `protoc`、`protoc-gen-go`、`protoc-gen-go-grpc` |
 
@@ -162,32 +162,49 @@ docker compose ps
 
 这些容器端口只绑定本机。MySQL 使用命名卷 `go-zero-admin_mysql_data`；Redis、etcd 未配置持久化卷。首次使用空 MySQL 卷时自动导入 [基线 SQL](data/db/gozero-admin-20240129.sql)，已有数据卷不会重复导入，也不会因修改 Compose 而自动修改数据库密码。
 
-### 3. 执行数据库增量脚本
+### 3. 初始化或升级数据库
 
-**新初始化的数据库和已有数据库都需要执行这一步。** 基线 SQL 不包含后续全部变更；已有数据库执行前先备份。基线文件含有 `DROP TABLE`，不能重新导入到已有业务库作为升级方式。
+**新库和已有库都需要应用增量迁移。** 使用统一脚本按文件名顺序执行，不再手工逐个 `SOURCE`。基线 SQL 只用于空数据卷的首次初始化，不能重新导入已有业务库；`Init` 也不会清空已有数据库。
 
-先将脚本复制到容器，进入 MySQL 后输入本地密码 `123456`：
+Windows PowerShell 5.1，在后端根目录执行：
 
 ```powershell
-docker cp .\data\db\migrations\20260925_business_access.sql gozero-mysql:/tmp/20260925_business_access.sql
-docker cp .\data\db\migrations\20260925_user_active_username.sql gozero-mysql:/tmp/20260925_user_active_username.sql
-docker exec -it gozero-mysql mysql --default-character-set=utf8mb4 -u root -p goZero-admin
+# 首次准备：启动并等待开发依赖，然后备份并执行未应用的迁移
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\sh\db.ps1 -Action Init
+
+# 日常升级：MySQL 已运行时检查、备份或应用新增迁移
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\sh\db.ps1 -Action Status
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\sh\db.ps1 -Action Backup
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\sh\db.ps1 -Action Migrate
 ```
 
-在 MySQL 提示符下依次执行：
+Linux Shell 的对应命令（需 `sha256sum`）：
 
-```sql
-SOURCE /tmp/20260925_business_access.sql;
-SOURCE /tmp/20260925_user_active_username.sql;
-EXIT;
+```sh
+sh test/sh/db.sh init
+sh test/sh/db.sh status
+sh test/sh/db.sh backup
+sh test/sh/db.sh migrate
 ```
+
+`Init` 可代替第 2 步的启动命令；开发模式只启动 MySQL、Redis、etcd、Swagger，不启动 API/RPC。`Status` 不写迁移数据；`Backup` 单独导出当前数据库；`Migrate` 只应用未登记的脚本。脚本使用所选 Compose 中 MySQL 的数据库名及凭据，不需要宿主机安装 MySQL 客户端。
+
+当前包含 6 份迁移：
 
 | 脚本 | 用途 |
 | --- | --- |
-| [20260925_business_access.sql](data/db/migrations/20260925_business_access.sql) | 补齐菜单、按钮、API 资源及 admin 当前角色权限，修复历史 `getMenu` 方法配置 |
-| [20260925_user_active_username.sql](data/db/migrations/20260925_user_active_username.sql) | 增加活跃用户名唯一约束，同时允许复用已软删除用户的用户名 |
+| [20260925_business_access.sql](data/db/migrations/20260925_business_access.sql) | 补齐管理菜单、按钮、API 及管理员权限，修正历史菜单方法配置 |
+| [20260925_user_active_username.sql](data/db/migrations/20260925_user_active_username.sql) | 活跃用户名唯一，允许复用已软删除用户名 |
+| [20260926_00_method_dictionary.sql](data/db/migrations/20260926_00_method_dictionary.sql) | 仅修正完全匹配旧初始化数据的 HTTP 方法字典 POST 值；用户修改过的数据不自动改动 |
+| [20260926_api_sync_access.sql](data/db/migrations/20260926_api_sync_access.sql) | 登记 API 同步接口及按钮，并补内置管理员的对应授权 |
+| [20260926_business_unique.sql](data/db/migrations/20260926_business_unique.sql) | 为菜单、API、字典及字典项增加兼容软删除的唯一约束，发现冲突先停止 |
+| [20260926_session_version.sql](data/db/migrations/20260926_session_version.sql) | 为用户增加会话版本；升级前签发的旧 JWT 需要重新登录 |
 
-两份脚本可重复执行。用户名脚本发现活跃重名或不兼容结构时会停止，需先处理具体冲突；脚本包含 DDL，不能假设失败后所有步骤都已回滚。若服务已经启动，执行完后重启 RPC，再重新登录或刷新前端权限。
+迁移器在 `schema_migrations` 保存文件名、SHA-256 校验值和执行时间。已应用且校验一致的文件会跳过；修改已应用文件会报错，应新增迁移文件。执行待应用迁移前自动备份至 **`bin/db-backups/`**，同时生成 `.sha256` 文件；备份失败则不继续。备份包含选中数据库的结构和数据，不含 Redis、OSS 或源码。
+
+迁移遇错立即停止，不把失败文件登记为已应用。MySQL DDL 会隐式提交，不能假设全部步骤自动回滚；确认错误及实际结构后处理冲突，再重跑。为避免并发升级，脚本使用 MySQL 容器内 `/tmp/gozero-db-migrate.lock`；若进程异常终止留下锁，先确认没有其他迁移仍在执行，再清理该空锁目录并重试。不要在迁移运行中删锁。
+
+迁移完成后重启 RPC/API，重新登录或刷新前端权限。正常通过管理接口保存权限会自动同步，不需要重启服务。
 
 ### 4. 分别启动 RPC 和 API
 
@@ -295,6 +312,18 @@ API、RPC 和前端在各自终端按 `Ctrl+C` 停止，按前述命令重新启
 
 图片验证码为六位字符，有效期为 120 秒，提交校验后会消费；登录失败应重新获取图片。菜单是否显示、按钮是否可见、API 是否允许调用是三类权限，需要分别配置。
 
+### 当前用户、改密码与会话撤销
+
+| 接口 | 用途 |
+| --- | --- |
+| `GET /v1/sys/me` | 按当前 JWT 查询本人最新资料，前端刷新时使用 |
+| `PUT /v1/sys/changePassword` | 提交 `oldPassword`、`newPassword` 自助改密，成功后重新登录 |
+| `POST /v1/sys/logout` | 撤销当前账号的所有已登录设备会话，再清理前端状态 |
+
+这 3 个接口需要有效登录态，不需要单独分配 Casbin 业务权限。默认 JWT 有效期为 **2 小时**，API 每次验证用户状态、角色和数据库会话版本；改密、管理员重置密码、冻结、删除或角色变更后，旧会话不再有效。`logout` 是**账号所有设备退出**，不是只退出一个标签页。普通资料修改不等于改密或角色切换；目前仍无 refreshToken 和独立切换角色接口。
+
+前端个人中心位于 `/account`，提供真实资料和自助改密。浏览器缓存仅用于会话恢复，不能替代 `/me` 与后端鉴权；旧请求晚到时不会覆盖新登录资料或清理新会话。
+
 成功响应示例：
 
 ```json
@@ -326,7 +355,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\sh\swagger.ps1
 
 脚本以 `.api` 为来源，调用 goctl 生成并补齐项目实际的响应包装、鉴权及上传约定，**只生成文档，不修改业务源码**。脚本支持自动查找 Go 的 bin 目录，也可通过 `-GoctlPath` 指定工具路径。
 
-更新顺序：修改接口声明与实现 → 必要时重新生成 API / RPC → 生成 Swagger → 刷新文档验证 → 一起提交源码与 JSON。不要手工修改生成的 JSON；只更新 JSON 无需重启 Swagger 容器。
+更新顺序：修改接口声明与实现 → 必要时重新生成 API / RPC → **生成 Swagger → 重新构建 RPC/API** → 刷新文档验证 → 一起提交源码与 JSON。不要手工修改生成的 JSON。Swagger UI 挂载文件，更新 JSON 后刷新即可；API 资源同步使用 RPC 编译时嵌入的 Swagger，必须先生成文档再构建、重启 RPC，否则同步预览仍是旧版本。
+
+### 同步 API 资源
+
+API 管理页的“同步后端接口”调用 `GET /v1/sys/api/previewSync`，分别展示新增、说明变更及不在当前授权清单中的资源。后一类可能是已移除路由，也可能是登录等仍存在但无需 Casbin 授权的路由，不能直接视为接口已删除。开发者勾选后调用 `POST /v1/sys/api/applySync`，提交预览 `version` 与所选 `keys`；版本过期需重新预览并选择。
+
+同步只新增资源或更新分组和描述，保留原资源 ID 及已有角色策略；**不会自动授予新增 API 权限，也不会删除不在授权清单中的资源**。同步完成后到角色页单独授权；其他资源需核实用途后在 API 列表处理。菜单、按钮和接口权限仍分别保存，不能用接口同步替代角色授权。
 
 调整文档端口或后端目标时，修改根 Compose 中 Swagger 的端口和 `SWAGGER_API_URL`，然后执行：
 
@@ -343,8 +378,8 @@ docker compose up -d --no-deps --force-recreate swagger-ui
 1. **先定义接口。** 在 `application/applet/api/desc/` 明确方法、路径、参数、分页、返回值及错误；需要 RPC 时同步修改 `application/applet/rpc/desc/applet.proto`。
 2. **生成骨架并实现逻辑。** API 层负责协议适配，RPC 层负责业务与数据；数据库变更放入 `data/db/migrations/`，避免覆盖现有库。
 3. **新增前端文件。** 页面放 `src/views/business/<模块>/`，请求和类型放 `src/api/business/`；优先复用现有表格、表单和弹窗。
-4. **建立菜单映射。** 在前端 `src/adapter/business/menu.ts` 中增加组件白名单映射。保留历史 `component` 值，通过映射接到新页面，减少数据库改动。
-5. **配置三类权限。** 维护菜单、按钮定义和 API 资源，再为角色分别授权。API 权限使用完整后端路径 `/v1/sys/...` 与实际 HTTP 方法，不包含开发代理的 `/api`。
+4. **建立菜单映射。** 在前端 `src/adapter/business/pages.ts` 单处登记组件，菜单下拉与动态路由共用。保留历史 `component` 值，通过映射接到新页面，减少数据库改动。`/account` 为真实个人中心保留路径。
+5. **配置三类权限。** 菜单编辑器维护按钮名称和权限标识，保留未删除按钮 ID 与原菜单参数；删除按钮会清理关联授权，修改标识需同步页面使用的 `菜单name:按钮name`。角色页按菜单或 API 分组筛选、查看新增/撤销明细并分别保存；修改非当前角色仅局部更新，修改当前角色才刷新权限。API 策略使用 `/v1/sys/...` 与实际方法，不包含 `/api` 代理前缀。
 6. **验证并更新文档。** 检查成功与失败、空数据、重复提交、零值 / 空值、普通角色无权限等流程，重新生成 Swagger。
 
 前端业务代码尽量独立于 Vben 原有页面和共享包，通过配置、适配器、插槽扩展；确需改动框架文件时记录原因与回归项，便于以后升级。详细约定见配套前端的 [开发文档](https://github.com/yh-zero/go-zero-admin-vben/blob/HEAD/DEVELOPMENT.zh-CN.md) 和 [接口接入流程](https://github.com/yh-zero/go-zero-admin-vben/blob/HEAD/DEVELOPMENT-WORKFLOW.zh-CN.md)。本机同级前端仓库中也有这两个文件。
@@ -400,7 +435,7 @@ API 支持 `Mail` 配置，也支持以下环境变量：
 
 当前采用隐式 TLS 连接，需使用匹配的 SMTP 服务端口。验证码 5 分钟有效，同一邮箱至少间隔 60 秒；强制重发也不能绕过间隔限制。当前只实现发送接口，尚未形成邮箱绑定、邮件注册或找回密码的完整流程。
 
-**部署 Compose 尚未传递 `SMTP_*`。** 需要邮件时应把这些变量加入 API 服务的 `environment`，或提供包含 `Mail` 的配置；仅写入 `docker/.env.deploy` 不会自动传入容器。
+部署 Compose 已传递上述 `SMTP_*` 变量，填写 `docker/.env.deploy` 后重新创建 API 容器生效。本机运行时设置对应进程环境变量，或填写配置中的 `Mail`。
 
 ## 服务器部署
 
@@ -417,7 +452,11 @@ API 支持 `Mail` 配置，也支持以下环境变量：
 
 ### 1. 准备完整源码与部署配置
 
-服务器安装 Docker 与 Compose，获取完整后端源码。Docker 构建需要 `application/`、**`pkg/`**、`go.mod`、`go.sum`、`docker/`，运行还需要 SQL 和生成的 Swagger；只上传 `application/` 无法构建。
+服务器安装 Docker 与 Compose，获取完整后端源码。Docker 构建需要 `application/`、**`pkg/`**、`go.mod`、`go.sum`、`docker/` 和 `data/api/generated/`（包括嵌入文档的 `spec.go`）；数据库管理还需要 `data/db/` 与 `test/sh/`。只上传 `application/` 无法构建。推荐使用完整仓库；若打包上传，至少包含：
+
+```sh
+tar --exclude=docker/.env.deploy -czf go-zero-admin.tar.gz application pkg data/db data/api/generated docker test/sh go.mod go.sum
+```
 
 在服务器的后端根目录执行（Linux Shell）：
 
@@ -429,25 +468,25 @@ chmod 600 docker/.env.deploy
 
 编辑 `docker/.env.deploy`，替换数据库密码、JWT 密钥和默认重置密码等占位值。部署模板的 `DEFAULT_USER_PASSWORD` **只影响重置密码操作，不会修改初始化 SQL 中的 admin 密码**。
 
-默认 MySQL、Redis、etcd 不向宿主机暴露端口；API 和 Swagger 仅绑定本机，外部访问需配置 HTTPS 反向代理或 SSH 隧道。当前 Redis 容器未启用密码，不能只填写非空 `REDIS_PASSWORD`；启用密码时也要同步配置 Redis 服务和健康检查。
+默认 MySQL、Redis、etcd 不向宿主机暴露端口；API 和 Swagger 仅绑定本机，外部访问需配置 HTTPS 反向代理或 SSH 隧道。`REDIS_PASSWORD` 同时配置 Redis 服务、健康检查与 API / RPC 客户端，修改后应重新创建相关容器。
 
 ### 2. 初始化依赖与数据库
 
 ```sh
 docker compose --env-file docker/.env.deploy -f docker/deploy-compose.yml config --quiet
-docker compose --env-file docker/.env.deploy -f docker/deploy-compose.yml up -d mysql redis etcd
+sh test/sh/db.sh init deploy
+sh test/sh/db.sh status deploy
 docker compose --env-file docker/.env.deploy -f docker/deploy-compose.yml ps
 ```
 
-等待 MySQL 就绪后，复制并执行与本地开发相同的两个增量脚本：
+Windows 部署的等效命令：
 
-```sh
-docker compose --env-file docker/.env.deploy -f docker/deploy-compose.yml cp data/db/migrations/20260925_business_access.sql mysql:/tmp/20260925_business_access.sql
-docker compose --env-file docker/.env.deploy -f docker/deploy-compose.yml cp data/db/migrations/20260925_user_active_username.sql mysql:/tmp/20260925_user_active_username.sql
-docker compose --env-file docker/.env.deploy -f docker/deploy-compose.yml exec mysql mysql --default-character-set=utf8mb4 -u root -p gozero-admin
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\sh\db.ps1 -Action Init -Environment Deploy
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\sh\db.ps1 -Action Status -Environment Deploy
 ```
 
-输入部署数据库密码后执行前文的两条 `SOURCE`。如果修改过 `MYSQL_DATABASE`，把上面命令的库名替换为实际值；已有库先备份。
+部署模式 `Init` 只启动 MySQL、Redis、etcd，等待就绪后自动备份、迁移；API/RPC 在迁移成功后再启动。脚本读取部署 Compose 与 `docker/.env.deploy`，不要遗漏 `deploy` / `-Environment Deploy`，否则会操作开发环境。数据库管理行为、错误处理和锁说明与前文一致。
 
 ### 3. 构建并启动后端
 
@@ -485,12 +524,22 @@ location /api/ {
 
 ### 5. 更新与停止
 
-更新前备份数据库，保留服务器的 `docker/.env.deploy`；更新源码后先检查并执行新增迁移，再重新构建。项目不会自动执行增量 SQL。
+更新前备份数据库，保留服务器的 `docker/.env.deploy`。应用发布不会自动执行增量 SQL，需要在维护窗口运行迁移器；迁移时停止 API/RPC 的业务写入，成功后才运行新版本。先在开发或构建环境重新生成并提交 Swagger，服务器再构建，确保 RPC 内嵌文档和接口声明一致。
 
 ```sh
+sh test/sh/db.sh backup deploy
+# 更新源码，保留 docker/.env.deploy
+docker compose --env-file docker/.env.deploy -f docker/deploy-compose.yml stop api rpc
+sh test/sh/db.sh status deploy
+sh test/sh/db.sh migrate deploy
 docker compose --env-file docker/.env.deploy -f docker/deploy-compose.yml up -d --build
+docker compose --env-file docker/.env.deploy -f docker/deploy-compose.yml logs --tail=100 api rpc
+
+# 日常停止，保留数据卷
 docker compose --env-file docker/.env.deploy -f docker/deploy-compose.yml stop
 ```
+
+Windows 使用 `db.ps1 -Action Backup|Status|Migrate -Environment Deploy` 对应操作（每次选择一个 Action）。只更新 Swagger UI 的显示文件可以直接刷新；要更新接口同步预览仍需重建 RPC。不要用 `down -v` 代替停止或升级。
 
 ## 检查与测试
 
@@ -510,7 +559,7 @@ pnpm test:unit
 pnpm build
 ```
 
-单元测试通过后仍需真实联调：验证码登录、菜单刷新、列表查询和分页、增删改、角色菜单 / 按钮 / 接口授权、无权限拒绝、重复数据和字段清空。冻结用户后禁止新登录；已有 JWT 按到期时间失效，当前未实现服务端注销、令牌黑名单或刷新令牌。
+单元测试通过后仍需真实联调：验证码登录、菜单刷新、列表查询和分页、增删改、角色菜单 / 按钮 / 接口授权、无权限拒绝、重复数据和字段清空，以及改密 / 退出 / 冻结后旧会话失效。`session-smoke.mjs` 提供真实会话回归；需正常输入验证码，不会绕过登录。
 
 仓库提供 [登录辅助脚本](test/sh/login.mjs) 与 [HTTP 冒烟脚本](test/sh/smoke.mjs)。仅在本地开发库执行，脚本会创建和清理测试业务数据；完整 HTTP 验收状态见前端接口接入文档。
 
@@ -523,9 +572,14 @@ node .\test\sh\login.mjs login 123456
 
 # 使用临时登录会话执行冒烟测试
 node .\test\sh\smoke.mjs "$env:TEMP\go-zero-admin-regression\session.json"
+
+# 会话回归会为测试用户提示新的图片验证码，按提示输入
+node .\test\sh\session-smoke.mjs "$env:TEMP\go-zero-admin-regression\session.json"
 ```
 
 登录辅助文件保存在系统临时目录，测试报告输出到 `test/reports/latest-smoke.json`。OSS 上传和邮件送达需真实外部服务配置后单独验证。
+
+2026-09-26 代码复核：前端应用类型检查通过，**93 个测试文件 / 638 个用例通过**，生产构建通过。业务 CRUD 与授权 HTTP 回归通过；本人资料、改密、冻结、默认角色变更、关联角色变更、重置、注销、删除共 8 个会话场景通过，两次人工验证码误输入的场景已针对性复测通过；API 同步 3 项 HTTP 回归通过。OSS 上传和 SMTP 实际送达仍因缺外部配置跳过，不计为通过。详细结果以测试报告及前端接口接入文档的最新记录为准。
 
 ## 常见问题
 
@@ -535,7 +589,10 @@ node .\test\sh\smoke.mjs "$env:TEMP\go-zero-admin-regression\session.json"
 | Docker 已启动，但登录请求失败 | 根 Compose 只启动依赖；确认 RPC 6001、API 7001 也已启动 |
 | MySQL 连接失败 / 找不到库 | 核对容器健康、密码及大小写；开发库是 `goZero-admin`，部署默认是 `gozero-admin` |
 | 修改密码配置后仍无法连接 MySQL | 已有数据卷不会自动更新数据库密码；使用实际库密码并同步配置 |
-| 新库页面缺少菜单或按钮、接口返回 403 | 执行两个增量脚本；检查当前角色的菜单、按钮和 API 授权，确认方法与完整路径匹配 |
+| 新库页面缺少菜单或按钮、接口返回 403 | 先运行数据库 `Status` / `Migrate`；再检查当前角色的菜单、按钮和 API 授权，确认方法与完整路径匹配 |
+| 迁移提示已应用文件被修改 | 恢复该文件的已发布内容，另新增迁移；不要手改 `schema_migrations` 绕过校验 |
+| 迁移提示锁已存在 | 确认其他迁移已结束，核对失败原因后清理 MySQL 容器内残留空目录 `/tmp/gozero-db-migrate.lock` |
+| API 同步预览仍是旧接口 | 先重新生成 Swagger，再重新构建并启动 RPC；仅刷新 Swagger UI 不会更新 RPC 内嵌文档 |
 | HTTP 200 但操作失败 | 检查响应中的 `code` 和 `message`，不能只看 HTTP 状态 |
 | 验证码无效 / 登录后立即失效 | 重新获取验证码；核对 Redis、API/RPC JWT 密钥与令牌到期时间 |
 | Swagger 能打开，Execute 返回 502 | 确认 API 正在运行，`SWAGGER_API_URL` 能从容器访问 |

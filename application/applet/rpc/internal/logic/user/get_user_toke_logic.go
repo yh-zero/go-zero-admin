@@ -28,14 +28,24 @@ func NewGetUserTokeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUs
 
 // 获取Token
 func (l *GetUserTokeLogic) GetUserToke(in *pb.GetUserTokeRequest) (*pb.GetUserTokeResponse, error) {
+	valid, err := NewCheckSessionLogic(l.ctx, l.svcCtx).CheckSession(&pb.SessionRequest{
+		UserID: in.ID, SessionVersion: in.SessionVersion, AuthorityId: in.AuthorityId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if !valid.Valid {
+		return nil, sessionExpired()
+	}
 	now := time.Now().Unix()
 	accessExpire := l.svcCtx.Config.JwtAuth.AccessExpire
 	accessToken, err := l.getJwtToken(l.svcCtx.Config.JwtAuth.AccessSecret, now, accessExpire, ctxJwt.JWTData{
-		UUID:        in.UUID,
-		ID:          in.ID,
-		NickName:    in.NickName,
-		Username:    in.Username,
-		AuthorityId: in.AuthorityId,
+		SessionVersion: in.SessionVersion,
+		UUID:           in.UUID,
+		ID:             in.ID,
+		NickName:       in.NickName,
+		Username:       in.Username,
+		AuthorityId:    in.AuthorityId,
 	})
 
 	return &pb.GetUserTokeResponse{

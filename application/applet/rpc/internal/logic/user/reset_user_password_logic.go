@@ -7,6 +7,7 @@ import (
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 	"go-zero-admin/pkg/hash"
+	"gorm.io/gorm"
 )
 
 type ResetUserPasswordLogic struct {
@@ -22,7 +23,7 @@ func (l *ResetUserPasswordLogic) ResetUserPassword(in *pb.ResetUserPasswordReque
 	if in.UserID <= 0 {
 		return nil, userError("用户ID无效")
 	}
-	result := l.svcCtx.DB.WithContext(l.ctx).Model(&model.SysUser{}).Where("id = ?", in.UserID).Update("password", hash.BcryptHash(l.svcCtx.Config.Default.UserPassword))
+	result := l.svcCtx.DB.WithContext(l.ctx).Model(&model.SysUser{}).Where("id = ?", in.UserID).Updates(map[string]any{"password": hash.BcryptHash(l.svcCtx.Config.Default.UserPassword), "session_version": gorm.Expr("session_version + 1")})
 	if result.Error != nil {
 		return nil, result.Error
 	}

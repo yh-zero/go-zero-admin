@@ -15,9 +15,35 @@ type AddBaseMenuRequest struct {
 type AddBaseMenuResponse struct {
 }
 
+type ApiSyncItem struct {
+	Key                string `json:"key"`
+	Id                 int64  `json:"id"`
+	Path               string `json:"path"`
+	Method             string `json:"method"`
+	ApiGroup           string `json:"apiGroup"`
+	Description        string `json:"description"`
+	CurrentApiGroup    string `json:"currentApiGroup"`
+	CurrentDescription string `json:"currentDescription"`
+}
+
+type ApplyApiSyncRequest struct {
+	Version string   `json:"version"`
+	Keys    []string `json:"keys"`
+}
+
+type ApplyApiSyncResponse struct {
+	Added   int64 `json:"added"`
+	Updated int64 `json:"updated"`
+}
+
 type CasbinInfo struct {
 	Path   string `json:"path"`   // 路径
 	Method string `json:"method"` // 方法
+}
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
 }
 
 type CreateApiRequest struct {
@@ -215,6 +241,12 @@ type LoginResponse struct {
 	UserInfo     UserInfo `json:"userInfo"`
 }
 
+type LogoutRequest struct {
+}
+
+type MeRequest struct {
+}
+
 type MessageResponse struct {
 	Message string `json:"message"`
 }
@@ -245,6 +277,13 @@ type PageResponse struct {
 	Total    int64 `json:"total"`
 	PageNo   int64 `json:"page"`
 	PageSize int64 `json:"pageSize"`
+}
+
+type PreviewApiSyncResponse struct {
+	Version  string        `json:"version"`
+	Added    []ApiSyncItem `json:"added"`
+	Changed  []ApiSyncItem `json:"changed"`
+	Obsolete []ApiSyncItem `json:"obsolete"`
 }
 
 type RandomImageRequest struct {

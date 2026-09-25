@@ -453,7 +453,7 @@ CREATE TABLE `sys_dictionary_info`  (
 -- ----------------------------
 INSERT INTO `sys_dictionary_info` VALUES (1, '2024-01-16 17:37:18.206', '2024-01-16 17:37:18.206', NULL, '男', 1, '男-拓展值', 1, 0, 1);
 INSERT INTO `sys_dictionary_info` VALUES (2, '2024-01-16 17:37:35.413', '2024-01-16 17:37:35.413', NULL, '女', 2, '女-拓展值', 1, 2, 1);
-INSERT INTO `sys_dictionary_info` VALUES (3, '2024-01-16 17:38:19.939', '2024-01-18 17:26:35.798', NULL, 'POST', 2, 'POST', 1, 0, 2);
+INSERT INTO `sys_dictionary_info` VALUES (3, '2024-01-16 17:38:19.939', '2024-01-18 17:26:35.798', NULL, 'POST', 1, 'POST', 1, 0, 2);
 INSERT INTO `sys_dictionary_info` VALUES (4, '2024-01-16 17:38:36.624', '2024-01-16 17:38:36.624', NULL, 'GET', 2, 'GET', 1, 0, 2);
 INSERT INTO `sys_dictionary_info` VALUES (5, '2024-01-16 17:38:45.246', '2024-01-16 17:38:45.246', NULL, 'PUT', 3, 'PUT', 1, 0, 2);
 INSERT INTO `sys_dictionary_info` VALUES (6, '2024-01-16 17:38:56.280', '2024-01-16 17:38:56.280', NULL, 'DELETE', 4, 'DELETE', 1, 0, 2);

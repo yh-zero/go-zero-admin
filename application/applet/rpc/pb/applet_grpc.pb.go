@@ -19,6 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	User_CheckSession_FullMethodName          = "/pb.User/CheckSession"
+	User_GetCurrentUser_FullMethodName        = "/pb.User/GetCurrentUser"
+	User_ChangePassword_FullMethodName        = "/pb.User/ChangePassword"
+	User_Logout_FullMethodName                = "/pb.User/Logout"
 	User_GetUserInfo_FullMethodName           = "/pb.User/GetUserInfo"
 	User_GetUserToke_FullMethodName           = "/pb.User/GetUserToke"
 	User_GetUserList_FullMethodName           = "/pb.User/GetUserList"
@@ -33,6 +37,10 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserClient interface {
+	CheckSession(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*CheckSessionResponse, error)
+	GetCurrentUser(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
+	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	Logout(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	// 获取用户信息
 	GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
 	// 获取Token
@@ -57,6 +65,46 @@ type userClient struct {
 
 func NewUserClient(cc grpc.ClientConnInterface) UserClient {
 	return &userClient{cc}
+}
+
+func (c *userClient) CheckSession(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*CheckSessionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckSessionResponse)
+	err := c.cc.Invoke(ctx, User_CheckSession_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) GetCurrentUser(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserInfoResponse)
+	err := c.cc.Invoke(ctx, User_GetCurrentUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, User_ChangePassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) Logout(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, User_Logout_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *userClient) GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error) {
@@ -143,6 +191,10 @@ func (c *userClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility.
 type UserServer interface {
+	CheckSession(context.Context, *SessionRequest) (*CheckSessionResponse, error)
+	GetCurrentUser(context.Context, *SessionRequest) (*GetUserInfoResponse, error)
+	ChangePassword(context.Context, *ChangePasswordRequest) (*NoDataResponse, error)
+	Logout(context.Context, *SessionRequest) (*NoDataResponse, error)
 	// 获取用户信息
 	GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error)
 	// 获取Token
@@ -169,6 +221,18 @@ type UserServer interface {
 // pointer dereference when methods are called.
 type UnimplementedUserServer struct{}
 
+func (UnimplementedUserServer) CheckSession(context.Context, *SessionRequest) (*CheckSessionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckSession not implemented")
+}
+func (UnimplementedUserServer) GetCurrentUser(context.Context, *SessionRequest) (*GetUserInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCurrentUser not implemented")
+}
+func (UnimplementedUserServer) ChangePassword(context.Context, *ChangePasswordRequest) (*NoDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ChangePassword not implemented")
+}
+func (UnimplementedUserServer) Logout(context.Context, *SessionRequest) (*NoDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Logout not implemented")
+}
 func (UnimplementedUserServer) GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserInfo not implemented")
 }
@@ -212,6 +276,78 @@ func RegisterUserServer(s grpc.ServiceRegistrar, srv UserServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&User_ServiceDesc, srv)
+}
+
+func _User_CheckSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).CheckSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_CheckSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).CheckSession(ctx, req.(*SessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_GetCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).GetCurrentUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_GetCurrentUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).GetCurrentUser(ctx, req.(*SessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_ChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangePasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).ChangePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_ChangePassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).ChangePassword(ctx, req.(*ChangePasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).Logout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_Logout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).Logout(ctx, req.(*SessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _User_GetUserInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -365,6 +501,22 @@ var User_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "pb.User",
 	HandlerType: (*UserServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CheckSession",
+			Handler:    _User_CheckSession_Handler,
+		},
+		{
+			MethodName: "GetCurrentUser",
+			Handler:    _User_GetCurrentUser_Handler,
+		},
+		{
+			MethodName: "ChangePassword",
+			Handler:    _User_ChangePassword_Handler,
+		},
+		{
+			MethodName: "Logout",
+			Handler:    _User_Logout_Handler,
+		},
 		{
 			MethodName: "GetUserInfo",
 			Handler:    _User_GetUserInfo_Handler,
@@ -1127,6 +1279,8 @@ var Authority_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	Api_PreviewApiSync_FullMethodName  = "/pb.Api/PreviewApiSync"
+	Api_ApplyApiSync_FullMethodName    = "/pb.Api/ApplyApiSync"
 	Api_GetApiList_FullMethodName      = "/pb.Api/GetApiList"
 	Api_CreateApi_FullMethodName       = "/pb.Api/CreateApi"
 	Api_DeleteApi_FullMethodName       = "/pb.Api/DeleteApi"
@@ -1139,6 +1293,10 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ApiClient interface {
+	// 预览当前Swagger与权限资源的差异
+	PreviewApiSync(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*PreviewApiSyncResponse, error)
+	// 按已确认的差异同步资源，不修改现有授权
+	ApplyApiSync(ctx context.Context, in *ApplyApiSyncRequest, opts ...grpc.CallOption) (*ApplyApiSyncResponse, error)
 	// 获取API列表
 	GetApiList(ctx context.Context, in *GetApiListRequest, opts ...grpc.CallOption) (*GetApiListResponse, error)
 	// 创建/添加 API列表
@@ -1159,6 +1317,26 @@ type apiClient struct {
 
 func NewApiClient(cc grpc.ClientConnInterface) ApiClient {
 	return &apiClient{cc}
+}
+
+func (c *apiClient) PreviewApiSync(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*PreviewApiSyncResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PreviewApiSyncResponse)
+	err := c.cc.Invoke(ctx, Api_PreviewApiSync_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *apiClient) ApplyApiSync(ctx context.Context, in *ApplyApiSyncRequest, opts ...grpc.CallOption) (*ApplyApiSyncResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ApplyApiSyncResponse)
+	err := c.cc.Invoke(ctx, Api_ApplyApiSync_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *apiClient) GetApiList(ctx context.Context, in *GetApiListRequest, opts ...grpc.CallOption) (*GetApiListResponse, error) {
@@ -1225,6 +1403,10 @@ func (c *apiClient) UpdateApi(ctx context.Context, in *UpdateApiRequest, opts ..
 // All implementations must embed UnimplementedApiServer
 // for forward compatibility.
 type ApiServer interface {
+	// 预览当前Swagger与权限资源的差异
+	PreviewApiSync(context.Context, *NoDataResponse) (*PreviewApiSyncResponse, error)
+	// 按已确认的差异同步资源，不修改现有授权
+	ApplyApiSync(context.Context, *ApplyApiSyncRequest) (*ApplyApiSyncResponse, error)
 	// 获取API列表
 	GetApiList(context.Context, *GetApiListRequest) (*GetApiListResponse, error)
 	// 创建/添加 API列表
@@ -1247,6 +1429,12 @@ type ApiServer interface {
 // pointer dereference when methods are called.
 type UnimplementedApiServer struct{}
 
+func (UnimplementedApiServer) PreviewApiSync(context.Context, *NoDataResponse) (*PreviewApiSyncResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PreviewApiSync not implemented")
+}
+func (UnimplementedApiServer) ApplyApiSync(context.Context, *ApplyApiSyncRequest) (*ApplyApiSyncResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApplyApiSync not implemented")
+}
 func (UnimplementedApiServer) GetApiList(context.Context, *GetApiListRequest) (*GetApiListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetApiList not implemented")
 }
@@ -1284,6 +1472,42 @@ func RegisterApiServer(s grpc.ServiceRegistrar, srv ApiServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&Api_ServiceDesc, srv)
+}
+
+func _Api_PreviewApiSync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NoDataResponse)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServer).PreviewApiSync(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Api_PreviewApiSync_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServer).PreviewApiSync(ctx, req.(*NoDataResponse))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Api_ApplyApiSync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyApiSyncRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServer).ApplyApiSync(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Api_ApplyApiSync_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServer).ApplyApiSync(ctx, req.(*ApplyApiSyncRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Api_GetApiList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1401,6 +1625,14 @@ var Api_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "pb.Api",
 	HandlerType: (*ApiServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "PreviewApiSync",
+			Handler:    _Api_PreviewApiSync_Handler,
+		},
+		{
+			MethodName: "ApplyApiSync",
+			Handler:    _Api_ApplyApiSync_Handler,
+		},
 		{
 			MethodName: "GetApiList",
 			Handler:    _Api_GetApiList_Handler,

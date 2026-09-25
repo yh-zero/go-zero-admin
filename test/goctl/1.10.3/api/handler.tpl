@@ -9,7 +9,7 @@ import (
 	"go-zero-admin/pkg/result"
 	{{.ImportPackages}}
 
-	"github.com/zeromicro/go-zero/rest/httpx"
+	{{if .HasRequest}}"github.com/zeromicro/go-zero/rest/httpx"{{end}}
 )
 
 {{if .HasDoc}}{{.Doc}}{{end}}

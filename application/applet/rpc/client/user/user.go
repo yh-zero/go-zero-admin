@@ -14,6 +14,8 @@ import (
 )
 
 type (
+	ChangePasswordRequest        = pb.ChangePasswordRequest
+	CheckSessionResponse         = pb.CheckSessionResponse
 	DeleteUserRequest            = pb.DeleteUserRequest
 	GetUserInfoRequest           = pb.GetUserInfoRequest
 	GetUserInfoResponse          = pb.GetUserInfoResponse
@@ -27,6 +29,7 @@ type (
 	RegisterRequest              = pb.RegisterRequest
 	RegisterResponse             = pb.RegisterResponse
 	ResetUserPasswordRequest     = pb.ResetUserPasswordRequest
+	SessionRequest               = pb.SessionRequest
 	SysAuthority                 = pb.SysAuthority
 	SysBaseMenu                  = pb.SysBaseMenu
 	SysBaseMenuBtn               = pb.SysBaseMenuBtn
@@ -36,6 +39,10 @@ type (
 	UserInfo                     = pb.UserInfo
 
 	User interface {
+		CheckSession(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*CheckSessionResponse, error)
+		GetCurrentUser(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
+		ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		Logout(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 获取用户信息
 		GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
 		// 获取Token
@@ -63,6 +70,26 @@ func NewUser(cli zrpc.Client) User {
 	return &defaultUser{
 		cli: cli,
 	}
+}
+
+func (m *defaultUser) CheckSession(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*CheckSessionResponse, error) {
+	client := pb.NewUserClient(m.cli.Conn())
+	return client.CheckSession(ctx, in, opts...)
+}
+
+func (m *defaultUser) GetCurrentUser(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error) {
+	client := pb.NewUserClient(m.cli.Conn())
+	return client.GetCurrentUser(ctx, in, opts...)
+}
+
+func (m *defaultUser) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := pb.NewUserClient(m.cli.Conn())
+	return client.ChangePassword(ctx, in, opts...)
+}
+
+func (m *defaultUser) Logout(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := pb.NewUserClient(m.cli.Conn())
+	return client.Logout(ctx, in, opts...)
 }
 
 // 获取用户信息

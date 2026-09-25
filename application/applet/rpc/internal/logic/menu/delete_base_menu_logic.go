@@ -22,7 +22,7 @@ func NewDeleteBaseMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *De
 }
 
 func (l *DeleteBaseMenuLogic) DeleteBaseMenu(in *pb.DeleteBaseMenuRequest) (*pb.NoDataResponse, error) {
-	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+	err := accessutil.AdminMenuTransaction(l.svcCtx.DB.WithContext(l.ctx), func(tx *gorm.DB) error {
 		var menu model.SysBaseMenu
 		if err := accessutil.RequireID(tx, &menu, in.ID); err != nil {
 			return err

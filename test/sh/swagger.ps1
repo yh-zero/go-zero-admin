@@ -16,7 +16,7 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 function ConvertTo-JsonMap($value) {
     if ($value -is [System.Collections.IDictionary]) {
         $result = @{}
-        foreach ($key in $value.Keys) { $result[$key] = ConvertTo-JsonMap $value[$key] }
+        foreach ($key in $value.PSBase.Keys) { $result[$key] = ConvertTo-JsonMap $value[$key] }
         return $result
     }
     if ($value -is [System.Management.Automation.PSCustomObject]) {
@@ -71,8 +71,19 @@ import "./desc/applet.api"
     [IO.File]::WriteAllText($entry, $entryContent, $utf8NoBom)
 
     $apiCopies = @(Get-ChildItem -LiteralPath (Join-Path $tempRoot 'desc') -Filter '*.api' -Recurse)
+    $casbinRoutes = @{}
     foreach ($file in $apiCopies) {
         $content = [IO.File]::ReadAllText($file.FullName)
+        # Mark actual Authority-protected routes, not every JWT-only account route.
+        foreach ($service in [regex]::Matches($content, '(?s)@server\s*\((.*?)\)\s*service\s+[^\s{]+\s*\{(.*?)\}')) {
+            $annotation = $service.Groups[1].Value
+            $prefixMatch = [regex]::Match($annotation, '(?m)^\s*prefix\s*:\s*([^\s]+)')
+            $prefix = $prefixMatch.Groups[1].Value.TrimEnd('/')
+            $protected = $annotation -match '(?m)^\s*middleware\s*:[^\r\n]*\bAuthority\b'
+            foreach ($route in [regex]::Matches($service.Groups[2].Value, '(?m)^\s*(get|post|put|delete|patch|head|options)\s+([^\s(]+)')) {
+                $casbinRoutes[$route.Groups[1].Value + ' ' + $prefix + $route.Groups[2].Value] = $protected
+            }
+        }
         $content = [regex]::Replace($content, '(?s)@server\s*\((.*?)\)', {
             param($match)
             $annotation = $match.Groups[1].Value
@@ -114,14 +125,14 @@ import "./desc/applet.api"
     function Repair-Schema($value) {
         if ($value -is [System.Collections.IDictionary]) {
             if ($value.Contains('$ref')) {
-                foreach ($key in @($value.Keys)) { if ($key -ne '$ref') { $value.Remove($key) } }
+                foreach ($key in @($value.PSBase.Keys)) { if ($key -ne '$ref') { $value.Remove($key) } }
             }
             if ($value.properties -is [System.Collections.IDictionary]) { $value.properties.Remove('-') }
             if ($value.required -is [array]) {
                 $value.required = @($value.required | Where-Object { $_ -ne '-' } | Select-Object -Unique)
                 if ($value.required.Count -eq 0) { $value.Remove('required') }
             }
-            foreach ($key in @($value.Keys)) { Repair-Schema $value[$key] }
+            foreach ($key in @($value.PSBase.Keys)) { Repair-Schema $value[$key] }
         } elseif ($value -is [array]) {
             foreach ($item in $value) { Repair-Schema $item }
         }
@@ -141,9 +152,12 @@ import "./desc/applet.api"
         properties = @{ message = @{ type = 'string' } }
     }
     $count = 0
-    foreach ($path in $document.paths.Keys) {
-        foreach ($method in $document.paths[$path].Keys) {
+    foreach ($path in $document.paths.PSBase.Keys) {
+        foreach ($method in $document.paths[$path].PSBase.Keys) {
             $operation = $document.paths[$path][$method]
+            $routeKey = $method + ' ' + $path
+            if (-not $casbinRoutes.ContainsKey($routeKey)) { throw "Missing middleware metadata: $routeKey" }
+            $operation['x-casbin-resource'] = $casbinRoutes[$routeKey]
             $operation.Remove('schemes') # Inherit the configured HTTP/HTTPS schemes.
             $body = @($operation.parameters | Where-Object { $_.in -eq 'body' })
             if ($body.Count -gt 0) {
@@ -200,7 +214,10 @@ import "./desc/applet.api"
     function Sort-JsonObject($value) {
         if ($value -is [System.Collections.IDictionary]) {
             $sorted = [ordered]@{}
-            foreach ($key in ($value.Keys | Sort-Object -CaseSensitive)) { $sorted[$key] = Sort-JsonObject $value[$key] }
+            foreach ($key in ($value.PSBase.Keys | Sort-Object -CaseSensitive)) {
+                if ($key -isnot [string]) { throw "Non-string JSON key: $key ($($key.GetType().FullName))" }
+                $sorted[$key] = Sort-JsonObject $value[$key]
+            }
             return $sorted
         }
         if ($value -is [array]) { return ,@($value | ForEach-Object { Sort-JsonObject $_ }) }

@@ -25,7 +25,7 @@ func (l *UpdateBaseMenuLogic) UpdateBaseMenu(in *pb.UpdateBaseMenuRequest) (*pb.
 	if in.SysBaseMenu == nil {
 		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "菜单不能为空")
 	}
-	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+	err := accessutil.AdminMenuTransaction(l.svcCtx.DB.WithContext(l.ctx), func(tx *gorm.DB) error {
 		var old model.SysBaseMenu
 		if err := accessutil.RequireID(tx, &old, in.SysBaseMenu.ID); err != nil {
 			return err
@@ -41,5 +41,5 @@ func (l *UpdateBaseMenuLogic) UpdateBaseMenu(in *pb.UpdateBaseMenuRequest) (*pb.
 		}
 		return saveMenuRelations(tx, old.ID, in.SysBaseMenu)
 	})
-	return &pb.NoDataResponse{}, err
+	return &pb.NoDataResponse{}, accessutil.FriendlyDuplicate(err)
 }

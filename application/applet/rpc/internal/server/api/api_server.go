@@ -23,6 +23,18 @@ func NewApiServer(svcCtx *svc.ServiceContext) *ApiServer {
 	}
 }
 
+// 预览当前Swagger与权限资源的差异
+func (s *ApiServer) PreviewApiSync(ctx context.Context, in *pb.NoDataResponse) (*pb.PreviewApiSyncResponse, error) {
+	l := apilogic.NewPreviewApiSyncLogic(ctx, s.svcCtx)
+	return l.PreviewApiSync(in)
+}
+
+// 按已确认的差异同步资源，不修改现有授权
+func (s *ApiServer) ApplyApiSync(ctx context.Context, in *pb.ApplyApiSyncRequest) (*pb.ApplyApiSyncResponse, error) {
+	l := apilogic.NewApplyApiSyncLogic(ctx, s.svcCtx)
+	return l.ApplyApiSync(in)
+}
+
 // 获取API列表
 func (s *ApiServer) GetApiList(ctx context.Context, in *pb.GetApiListRequest) (*pb.GetApiListResponse, error) {
 	l := apilogic.NewGetApiListLogic(ctx, s.svcCtx)

@@ -1,0 +1,35 @@
+{
+  "time": "2026-09-25T17:14:47.077Z",
+  "base": "http://127.0.0.1:7001",
+  "prefix": "session_smoke_1790356424019_8429",
+  "scenarios": [
+    "default_role",
+    "reset"
+  ],
+  "results": [
+    {
+      "label": "Default role change revokes existing token",
+      "status": "PASS"
+    },
+    {
+      "label": "Password reset revokes and default reset password can log in",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup session_smoke_1790356424019_8429_reset",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup session_smoke_1790356424019_8429_default_role",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup Role 1790456425",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup Role 1790456424",
+      "status": "PASS"
+    }
+  ]
+}

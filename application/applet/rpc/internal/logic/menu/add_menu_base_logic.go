@@ -3,6 +3,7 @@ package menulogic
 import (
 	"context"
 	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 	"gorm.io/gorm"
@@ -19,7 +20,7 @@ func NewAddMenuBaseLogic(ctx context.Context, svcCtx *svc.ServiceContext) *AddMe
 }
 
 func (l *AddMenuBaseLogic) AddMenuBase(in *pb.AddMenuBaseRequest) (*pb.NoDataResponse, error) {
-	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+	err := accessutil.AdminMenuTransaction(l.svcCtx.DB.WithContext(l.ctx), func(tx *gorm.DB) error {
 		if in.SysBaseMenu != nil {
 			in.SysBaseMenu.ID = 0
 		}
@@ -32,5 +33,5 @@ func (l *AddMenuBaseLogic) AddMenuBase(in *pb.AddMenuBaseRequest) (*pb.NoDataRes
 		}
 		return saveMenuRelations(tx, menu.ID, in.SysBaseMenu)
 	})
-	return &pb.NoDataResponse{}, err
+	return &pb.NoDataResponse{}, accessutil.FriendlyDuplicate(err)
 }

@@ -13,6 +13,7 @@ import (
 	casbin "go-zero-admin/application/applet/api/internal/handler/casbin"
 	dictionary "go-zero-admin/application/applet/api/internal/handler/dictionary"
 	menu "go-zero-admin/application/applet/api/internal/handler/menu"
+	session "go-zero-admin/application/applet/api/internal/handler/session"
 	user "go-zero-admin/application/applet/api/internal/handler/user"
 	usernocasbin "go-zero-admin/application/applet/api/internal/handler/usernocasbin"
 	"go-zero-admin/application/applet/api/internal/svc"
@@ -60,6 +61,28 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Method:  http.MethodPut,
 					Path:    "/updateApi",
 					Handler: api.UpdateApiHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/api"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					// 按预览版本同步选中API，仅新增资源或更新分组描述，保留授权
+					Method:  http.MethodPost,
+					Path:    "/applySync",
+					Handler: api.ApplyApiSyncHandler(serverCtx),
+				},
+				{
+					// 预览Swagger与API资源差异，失效资源仅提示
+					Method:  http.MethodGet,
+					Path:    "/previewSync",
+					Handler: api.PreviewApiSyncHandler(serverCtx),
 				},
 			}...,
 		),
@@ -287,7 +310,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: menu.GetMenuAuthorityHandler(serverCtx),
 				},
 				{
-					// 分页获取base_menu列表
+					// 获取完整base_menu树，分页参数仅兼容保留，不参与分页
 					Method:  http.MethodGet,
 					Path:    "/getMenuList",
 					Handler: menu.GetMenuListHandler(serverCtx),
@@ -308,6 +331,34 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
 		rest.WithPrefix("/v1/sys/menu"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Session},
+			[]rest.Route{
+				{
+					// 修改自己的密码并撤销全部会话
+					Method:  http.MethodPut,
+					Path:    "/changePassword",
+					Handler: session.ChangePasswordHandler(serverCtx),
+				},
+				{
+					// 退出登录并撤销该用户全部会话
+					Method:  http.MethodPost,
+					Path:    "/logout",
+					Handler: session.LogoutHandler(serverCtx),
+				},
+				{
+					// 获取当前登录用户
+					Method:  http.MethodGet,
+					Path:    "/me",
+					Handler: session.MeHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys"),
 	)
 
 	server.AddRoutes(

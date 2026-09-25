@@ -23,7 +23,7 @@ func validateMenu(db *gorm.DB, menu *pb.SysBaseMenu) error {
 			return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "菜单路径不能包含.或..段")
 		}
 	}
-	reserved := map[string]bool{"AccessError": true, "Authentication": true, "BusinessSessionHome": true, "FallbackNotFound": true, "Login": true, "Root": true}
+	reserved := map[string]bool{"AccessError": true, "Authentication": true, "BusinessAccount": true, "BusinessSessionHome": true, "FallbackNotFound": true, "Login": true, "Root": true}
 	if reserved[menu.Name] {
 		return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "菜单name与系统路由冲突")
 	}
@@ -115,7 +115,9 @@ func validateResolvedPaths(all []model.SysBaseMenu, value *pb.SysBaseMenu) error
 			path = strings.ReplaceAll(path, "//", "/")
 		}
 		path = strings.TrimSuffix(path, "/")
-		if path == "" || strings.HasPrefix(path, "/auth") || strings.HasPrefix(path, "/_session") {
+		// Vue Router matches paths without case sensitivity by default.
+		reservedPath := strings.ToLower(path)
+		if path == "" || strings.HasPrefix(reservedPath, "/auth") || strings.HasPrefix(reservedPath, "/_session") || reservedPath == "/account" || strings.HasPrefix(reservedPath, "/account/") {
 			return "", xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "菜单路径与系统路由冲突")
 		}
 		visiting[id] = false

@@ -23,6 +23,26 @@ func NewUserServer(svcCtx *svc.ServiceContext) *UserServer {
 	}
 }
 
+func (s *UserServer) CheckSession(ctx context.Context, in *pb.SessionRequest) (*pb.CheckSessionResponse, error) {
+	l := userlogic.NewCheckSessionLogic(ctx, s.svcCtx)
+	return l.CheckSession(in)
+}
+
+func (s *UserServer) GetCurrentUser(ctx context.Context, in *pb.SessionRequest) (*pb.GetUserInfoResponse, error) {
+	l := userlogic.NewGetCurrentUserLogic(ctx, s.svcCtx)
+	return l.GetCurrentUser(in)
+}
+
+func (s *UserServer) ChangePassword(ctx context.Context, in *pb.ChangePasswordRequest) (*pb.NoDataResponse, error) {
+	l := userlogic.NewChangePasswordLogic(ctx, s.svcCtx)
+	return l.ChangePassword(in)
+}
+
+func (s *UserServer) Logout(ctx context.Context, in *pb.SessionRequest) (*pb.NoDataResponse, error) {
+	l := userlogic.NewLogoutLogic(ctx, s.svcCtx)
+	return l.Logout(in)
+}
+
 // 获取用户信息
 func (s *UserServer) GetUserInfo(ctx context.Context, in *pb.GetUserInfoRequest) (*pb.GetUserInfoResponse, error) {
 	l := userlogic.NewGetUserInfoLogic(ctx, s.svcCtx)

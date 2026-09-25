@@ -15,7 +15,7 @@ BizRedis:
   Type: node
 JwtAuth:
   AccessSecret: 3fG7-go-zero-admin_p2hE
-  AccessExpire: 31536000
+  AccessExpire: 7200
 CasbinConf:
   ModelText: |
     [request_definition]

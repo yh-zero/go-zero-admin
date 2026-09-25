@@ -24,6 +24,9 @@ func NewDeleteAuthorityLogic(ctx context.Context, svcCtx *svc.ServiceContext) *D
 }
 
 func (l *DeleteAuthorityLogic) DeleteAuthority(in *pb.DeleteAuthorityRequest) (*pb.NoDataResponse, error) {
+	if in.ID == accessutil.AdminAuthorityID {
+		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "内置管理员角色不能删除")
+	}
 	err := accessutil.PolicyTransaction(l.svcCtx, func(tx *gorm.DB) error {
 		if err := accessutil.RequireRole(tx, in.ID); err != nil {
 			return err

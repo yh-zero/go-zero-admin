@@ -154,27 +154,28 @@ func (x *GetUserInfoResponse) GetUserInfo() *UserInfo {
 }
 
 type UserInfo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UUID          string                 `protobuf:"bytes,1,opt,name=UUID,proto3" json:"UUID,omitempty"`
-	Username      string                 `protobuf:"bytes,2,opt,name=Username,proto3" json:"Username,omitempty"`
-	Password      string                 `protobuf:"bytes,3,opt,name=Password,proto3" json:"Password,omitempty"`
-	NickName      string                 `protobuf:"bytes,4,opt,name=NickName,proto3" json:"NickName,omitempty"`
-	SideMode      string                 `protobuf:"bytes,5,opt,name=SideMode,proto3" json:"SideMode,omitempty"`
-	HeaderImg     string                 `protobuf:"bytes,6,opt,name=HeaderImg,proto3" json:"HeaderImg,omitempty"`
-	BaseColor     string                 `protobuf:"bytes,7,opt,name=BaseColor,proto3" json:"BaseColor,omitempty"`
-	ActiveColor   string                 `protobuf:"bytes,8,opt,name=ActiveColor,proto3" json:"ActiveColor,omitempty"`
-	AuthorityId   int64                  `protobuf:"varint,9,opt,name=AuthorityId,proto3" json:"AuthorityId,omitempty"`
-	Authority     *SysAuthority          `protobuf:"bytes,10,opt,name=Authority,proto3" json:"Authority,omitempty"`
-	Authorities   []*SysAuthority        `protobuf:"bytes,11,rep,name=Authorities,proto3" json:"Authorities,omitempty"`
-	Phone         string                 `protobuf:"bytes,12,opt,name=Phone,proto3" json:"Phone,omitempty"`
-	Email         string                 `protobuf:"bytes,13,opt,name=Email,proto3" json:"Email,omitempty"`
-	Enable        int64                  `protobuf:"varint,14,opt,name=Enable,proto3" json:"Enable,omitempty"`
-	ID            int64                  `protobuf:"varint,15,opt,name=ID,proto3" json:"ID,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,16,opt,name=CreatedAt,proto3" json:"CreatedAt,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,17,opt,name=UpdatedAt,proto3" json:"UpdatedAt,omitempty"`
-	DeletedAt     string                 `protobuf:"bytes,18,opt,name=DeletedAt,proto3" json:"DeletedAt,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	UUID           string                 `protobuf:"bytes,1,opt,name=UUID,proto3" json:"UUID,omitempty"`
+	Username       string                 `protobuf:"bytes,2,opt,name=Username,proto3" json:"Username,omitempty"`
+	Password       string                 `protobuf:"bytes,3,opt,name=Password,proto3" json:"Password,omitempty"`
+	NickName       string                 `protobuf:"bytes,4,opt,name=NickName,proto3" json:"NickName,omitempty"`
+	SideMode       string                 `protobuf:"bytes,5,opt,name=SideMode,proto3" json:"SideMode,omitempty"`
+	HeaderImg      string                 `protobuf:"bytes,6,opt,name=HeaderImg,proto3" json:"HeaderImg,omitempty"`
+	BaseColor      string                 `protobuf:"bytes,7,opt,name=BaseColor,proto3" json:"BaseColor,omitempty"`
+	ActiveColor    string                 `protobuf:"bytes,8,opt,name=ActiveColor,proto3" json:"ActiveColor,omitempty"`
+	AuthorityId    int64                  `protobuf:"varint,9,opt,name=AuthorityId,proto3" json:"AuthorityId,omitempty"`
+	Authority      *SysAuthority          `protobuf:"bytes,10,opt,name=Authority,proto3" json:"Authority,omitempty"`
+	Authorities    []*SysAuthority        `protobuf:"bytes,11,rep,name=Authorities,proto3" json:"Authorities,omitempty"`
+	Phone          string                 `protobuf:"bytes,12,opt,name=Phone,proto3" json:"Phone,omitempty"`
+	Email          string                 `protobuf:"bytes,13,opt,name=Email,proto3" json:"Email,omitempty"`
+	Enable         int64                  `protobuf:"varint,14,opt,name=Enable,proto3" json:"Enable,omitempty"`
+	ID             int64                  `protobuf:"varint,15,opt,name=ID,proto3" json:"ID,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,16,opt,name=CreatedAt,proto3" json:"CreatedAt,omitempty"`
+	UpdatedAt      string                 `protobuf:"bytes,17,opt,name=UpdatedAt,proto3" json:"UpdatedAt,omitempty"`
+	DeletedAt      string                 `protobuf:"bytes,18,opt,name=DeletedAt,proto3" json:"DeletedAt,omitempty"`
+	SessionVersion int64                  `protobuf:"varint,19,opt,name=SessionVersion,proto3" json:"SessionVersion,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *UserInfo) Reset() {
@@ -331,6 +332,13 @@ func (x *UserInfo) GetDeletedAt() string {
 		return x.DeletedAt
 	}
 	return ""
+}
+
+func (x *UserInfo) GetSessionVersion() int64 {
+	if x != nil {
+		return x.SessionVersion
+	}
+	return 0
 }
 
 type SysAuthority struct {
@@ -650,14 +658,15 @@ func (x *SysBaseMenuBtn) GetDeletedAt() string {
 }
 
 type GetUserTokeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            int64                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
-	UUID          string                 `protobuf:"bytes,2,opt,name=UUID,proto3" json:"UUID,omitempty"`
-	AuthorityId   int64                  `protobuf:"varint,3,opt,name=AuthorityId,proto3" json:"AuthorityId,omitempty"`
-	Username      string                 `protobuf:"bytes,4,opt,name=Username,proto3" json:"Username,omitempty"`
-	NickName      string                 `protobuf:"bytes,5,opt,name=NickName,proto3" json:"NickName,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ID             int64                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	UUID           string                 `protobuf:"bytes,2,opt,name=UUID,proto3" json:"UUID,omitempty"`
+	AuthorityId    int64                  `protobuf:"varint,3,opt,name=AuthorityId,proto3" json:"AuthorityId,omitempty"`
+	Username       string                 `protobuf:"bytes,4,opt,name=Username,proto3" json:"Username,omitempty"`
+	NickName       string                 `protobuf:"bytes,5,opt,name=NickName,proto3" json:"NickName,omitempty"`
+	SessionVersion int64                  `protobuf:"varint,6,opt,name=SessionVersion,proto3" json:"SessionVersion,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetUserTokeRequest) Reset() {
@@ -723,6 +732,13 @@ func (x *GetUserTokeRequest) GetNickName() string {
 		return x.NickName
 	}
 	return ""
+}
+
+func (x *GetUserTokeRequest) GetSessionVersion() int64 {
+	if x != nil {
+		return x.SessionVersion
+	}
+	return 0
 }
 
 type GetUserTokeResponse struct {
@@ -4272,6 +4288,442 @@ func (x *UpdateAuthorityButtonsRequest) GetMenuBtnIds() []int64 {
 	return nil
 }
 
+type SessionRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	UserID         int64                  `protobuf:"varint,1,opt,name=UserID,proto3" json:"UserID,omitempty"`
+	SessionVersion int64                  `protobuf:"varint,2,opt,name=SessionVersion,proto3" json:"SessionVersion,omitempty"`
+	AuthorityId    int64                  `protobuf:"varint,3,opt,name=AuthorityId,proto3" json:"AuthorityId,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *SessionRequest) Reset() {
+	*x = SessionRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[74]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SessionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SessionRequest) ProtoMessage() {}
+
+func (x *SessionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[74]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SessionRequest.ProtoReflect.Descriptor instead.
+func (*SessionRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{74}
+}
+
+func (x *SessionRequest) GetUserID() int64 {
+	if x != nil {
+		return x.UserID
+	}
+	return 0
+}
+
+func (x *SessionRequest) GetSessionVersion() int64 {
+	if x != nil {
+		return x.SessionVersion
+	}
+	return 0
+}
+
+func (x *SessionRequest) GetAuthorityId() int64 {
+	if x != nil {
+		return x.AuthorityId
+	}
+	return 0
+}
+
+type CheckSessionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Valid         bool                   `protobuf:"varint,1,opt,name=Valid,proto3" json:"Valid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckSessionResponse) Reset() {
+	*x = CheckSessionResponse{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[75]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckSessionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckSessionResponse) ProtoMessage() {}
+
+func (x *CheckSessionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[75]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckSessionResponse.ProtoReflect.Descriptor instead.
+func (*CheckSessionResponse) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{75}
+}
+
+func (x *CheckSessionResponse) GetValid() bool {
+	if x != nil {
+		return x.Valid
+	}
+	return false
+}
+
+type ChangePasswordRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Session       *SessionRequest        `protobuf:"bytes,1,opt,name=Session,proto3" json:"Session,omitempty"`
+	OldPassword   string                 `protobuf:"bytes,2,opt,name=OldPassword,proto3" json:"OldPassword,omitempty"`
+	NewPassword   string                 `protobuf:"bytes,3,opt,name=NewPassword,proto3" json:"NewPassword,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChangePasswordRequest) Reset() {
+	*x = ChangePasswordRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[76]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChangePasswordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChangePasswordRequest) ProtoMessage() {}
+
+func (x *ChangePasswordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[76]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChangePasswordRequest.ProtoReflect.Descriptor instead.
+func (*ChangePasswordRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{76}
+}
+
+func (x *ChangePasswordRequest) GetSession() *SessionRequest {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
+func (x *ChangePasswordRequest) GetOldPassword() string {
+	if x != nil {
+		return x.OldPassword
+	}
+	return ""
+}
+
+func (x *ChangePasswordRequest) GetNewPassword() string {
+	if x != nil {
+		return x.NewPassword
+	}
+	return ""
+}
+
+type ApiSyncItem struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Key                string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Id                 int64                  `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	Path               string                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
+	Method             string                 `protobuf:"bytes,4,opt,name=method,proto3" json:"method,omitempty"`
+	ApiGroup           string                 `protobuf:"bytes,5,opt,name=apiGroup,proto3" json:"apiGroup,omitempty"`
+	Description        string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	CurrentApiGroup    string                 `protobuf:"bytes,7,opt,name=currentApiGroup,proto3" json:"currentApiGroup,omitempty"`
+	CurrentDescription string                 `protobuf:"bytes,8,opt,name=currentDescription,proto3" json:"currentDescription,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ApiSyncItem) Reset() {
+	*x = ApiSyncItem{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[77]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApiSyncItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApiSyncItem) ProtoMessage() {}
+
+func (x *ApiSyncItem) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[77]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApiSyncItem.ProtoReflect.Descriptor instead.
+func (*ApiSyncItem) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{77}
+}
+
+func (x *ApiSyncItem) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *ApiSyncItem) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *ApiSyncItem) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *ApiSyncItem) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *ApiSyncItem) GetApiGroup() string {
+	if x != nil {
+		return x.ApiGroup
+	}
+	return ""
+}
+
+func (x *ApiSyncItem) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *ApiSyncItem) GetCurrentApiGroup() string {
+	if x != nil {
+		return x.CurrentApiGroup
+	}
+	return ""
+}
+
+func (x *ApiSyncItem) GetCurrentDescription() string {
+	if x != nil {
+		return x.CurrentDescription
+	}
+	return ""
+}
+
+type PreviewApiSyncResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Version       string                 `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	Added         []*ApiSyncItem         `protobuf:"bytes,2,rep,name=added,proto3" json:"added,omitempty"`
+	Changed       []*ApiSyncItem         `protobuf:"bytes,3,rep,name=changed,proto3" json:"changed,omitempty"`
+	Obsolete      []*ApiSyncItem         `protobuf:"bytes,4,rep,name=obsolete,proto3" json:"obsolete,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewApiSyncResponse) Reset() {
+	*x = PreviewApiSyncResponse{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[78]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewApiSyncResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewApiSyncResponse) ProtoMessage() {}
+
+func (x *PreviewApiSyncResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[78]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewApiSyncResponse.ProtoReflect.Descriptor instead.
+func (*PreviewApiSyncResponse) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{78}
+}
+
+func (x *PreviewApiSyncResponse) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *PreviewApiSyncResponse) GetAdded() []*ApiSyncItem {
+	if x != nil {
+		return x.Added
+	}
+	return nil
+}
+
+func (x *PreviewApiSyncResponse) GetChanged() []*ApiSyncItem {
+	if x != nil {
+		return x.Changed
+	}
+	return nil
+}
+
+func (x *PreviewApiSyncResponse) GetObsolete() []*ApiSyncItem {
+	if x != nil {
+		return x.Obsolete
+	}
+	return nil
+}
+
+type ApplyApiSyncRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Version       string                 `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	Keys          []string               `protobuf:"bytes,2,rep,name=keys,proto3" json:"keys,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApplyApiSyncRequest) Reset() {
+	*x = ApplyApiSyncRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[79]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApplyApiSyncRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplyApiSyncRequest) ProtoMessage() {}
+
+func (x *ApplyApiSyncRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[79]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplyApiSyncRequest.ProtoReflect.Descriptor instead.
+func (*ApplyApiSyncRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{79}
+}
+
+func (x *ApplyApiSyncRequest) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *ApplyApiSyncRequest) GetKeys() []string {
+	if x != nil {
+		return x.Keys
+	}
+	return nil
+}
+
+type ApplyApiSyncResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Added         int64                  `protobuf:"varint,1,opt,name=added,proto3" json:"added,omitempty"`
+	Updated       int64                  `protobuf:"varint,2,opt,name=updated,proto3" json:"updated,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApplyApiSyncResponse) Reset() {
+	*x = ApplyApiSyncResponse{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[80]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApplyApiSyncResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplyApiSyncResponse) ProtoMessage() {}
+
+func (x *ApplyApiSyncResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[80]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplyApiSyncResponse.ProtoReflect.Descriptor instead.
+func (*ApplyApiSyncResponse) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{80}
+}
+
+func (x *ApplyApiSyncResponse) GetAdded() int64 {
+	if x != nil {
+		return x.Added
+	}
+	return 0
+}
+
+func (x *ApplyApiSyncResponse) GetUpdated() int64 {
+	if x != nil {
+		return x.Updated
+	}
+	return 0
+}
+
 var File_application_applet_rpc_desc_applet_proto protoreflect.FileDescriptor
 
 const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
@@ -4282,7 +4734,7 @@ const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
 	"\bUserName\x18\x01 \x01(\tR\bUserName\x12\x1a\n" +
 	"\bPassword\x18\x02 \x01(\tR\bPassword\"?\n" +
 	"\x13GetUserInfoResponse\x12(\n" +
-	"\bUserInfo\x18\x01 \x01(\v2\f.pb.UserInfoR\bUserInfo\"\xa0\x04\n" +
+	"\bUserInfo\x18\x01 \x01(\v2\f.pb.UserInfoR\bUserInfo\"\xc8\x04\n" +
 	"\bUserInfo\x12\x12\n" +
 	"\x04UUID\x18\x01 \x01(\tR\x04UUID\x12\x1a\n" +
 	"\bUsername\x18\x02 \x01(\tR\bUsername\x12\x1a\n" +
@@ -4302,7 +4754,8 @@ const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
 	"\x02ID\x18\x0f \x01(\x03R\x02ID\x12\x1c\n" +
 	"\tCreatedAt\x18\x10 \x01(\tR\tCreatedAt\x12\x1c\n" +
 	"\tUpdatedAt\x18\x11 \x01(\tR\tUpdatedAt\x12\x1c\n" +
-	"\tDeletedAt\x18\x12 \x01(\tR\tDeletedAt\"\xb3\x03\n" +
+	"\tDeletedAt\x18\x12 \x01(\tR\tDeletedAt\x12&\n" +
+	"\x0eSessionVersion\x18\x13 \x01(\x03R\x0eSessionVersion\"\xb3\x03\n" +
 	"\fSysAuthority\x12 \n" +
 	"\vAuthorityId\x18\x01 \x01(\x03R\vAuthorityId\x12$\n" +
 	"\rAuthorityName\x18\x02 \x01(\tR\rAuthorityName\x12\x1a\n" +
@@ -4332,13 +4785,14 @@ const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
 	"\x02ID\x18\x04 \x01(\x03R\x02ID\x12\x1c\n" +
 	"\tCreatedAt\x18\x05 \x01(\tR\tCreatedAt\x12\x1c\n" +
 	"\tUpdatedAt\x18\x06 \x01(\tR\tUpdatedAt\x12\x1c\n" +
-	"\tDeletedAt\x18\a \x01(\tR\tDeletedAt\"\x92\x01\n" +
+	"\tDeletedAt\x18\a \x01(\tR\tDeletedAt\"\xba\x01\n" +
 	"\x12GetUserTokeRequest\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\x03R\x02ID\x12\x12\n" +
 	"\x04UUID\x18\x02 \x01(\tR\x04UUID\x12 \n" +
 	"\vAuthorityId\x18\x03 \x01(\x03R\vAuthorityId\x12\x1a\n" +
 	"\bUsername\x18\x04 \x01(\tR\bUsername\x12\x1a\n" +
-	"\bNickName\x18\x05 \x01(\tR\bNickName\"I\n" +
+	"\bNickName\x18\x05 \x01(\tR\bNickName\x12&\n" +
+	"\x0eSessionVersion\x18\x06 \x01(\x03R\x0eSessionVersion\"I\n" +
 	"\x13GetUserTokeResponse\x12\x14\n" +
 	"\x05Token\x18\x01 \x01(\tR\x05Token\x12\x1c\n" +
 	"\tExpiresAt\x18\x02 \x01(\x03R\tExpiresAt\"6\n" +
@@ -4573,8 +5027,42 @@ const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
 	"\vAuthorityId\x18\x01 \x01(\x03R\vAuthorityId\x12\x1e\n" +
 	"\n" +
 	"MenuBtnIds\x18\x02 \x03(\x03R\n" +
-	"MenuBtnIds2\x8d\x04\n" +
-	"\x04User\x12>\n" +
+	"MenuBtnIds\"r\n" +
+	"\x0eSessionRequest\x12\x16\n" +
+	"\x06UserID\x18\x01 \x01(\x03R\x06UserID\x12&\n" +
+	"\x0eSessionVersion\x18\x02 \x01(\x03R\x0eSessionVersion\x12 \n" +
+	"\vAuthorityId\x18\x03 \x01(\x03R\vAuthorityId\",\n" +
+	"\x14CheckSessionResponse\x12\x14\n" +
+	"\x05Valid\x18\x01 \x01(\bR\x05Valid\"\x89\x01\n" +
+	"\x15ChangePasswordRequest\x12,\n" +
+	"\aSession\x18\x01 \x01(\v2\x12.pb.SessionRequestR\aSession\x12 \n" +
+	"\vOldPassword\x18\x02 \x01(\tR\vOldPassword\x12 \n" +
+	"\vNewPassword\x18\x03 \x01(\tR\vNewPassword\"\xf3\x01\n" +
+	"\vApiSyncItem\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x03R\x02id\x12\x12\n" +
+	"\x04path\x18\x03 \x01(\tR\x04path\x12\x16\n" +
+	"\x06method\x18\x04 \x01(\tR\x06method\x12\x1a\n" +
+	"\bapiGroup\x18\x05 \x01(\tR\bapiGroup\x12 \n" +
+	"\vdescription\x18\x06 \x01(\tR\vdescription\x12(\n" +
+	"\x0fcurrentApiGroup\x18\a \x01(\tR\x0fcurrentApiGroup\x12.\n" +
+	"\x12currentDescription\x18\b \x01(\tR\x12currentDescription\"\xb1\x01\n" +
+	"\x16PreviewApiSyncResponse\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\tR\aversion\x12%\n" +
+	"\x05added\x18\x02 \x03(\v2\x0f.pb.ApiSyncItemR\x05added\x12)\n" +
+	"\achanged\x18\x03 \x03(\v2\x0f.pb.ApiSyncItemR\achanged\x12+\n" +
+	"\bobsolete\x18\x04 \x03(\v2\x0f.pb.ApiSyncItemR\bobsolete\"C\n" +
+	"\x13ApplyApiSyncRequest\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\tR\aversion\x12\x12\n" +
+	"\x04keys\x18\x02 \x03(\tR\x04keys\"F\n" +
+	"\x14ApplyApiSyncResponse\x12\x14\n" +
+	"\x05added\x18\x01 \x01(\x03R\x05added\x12\x18\n" +
+	"\aupdated\x18\x02 \x01(\x03R\aupdated2\xfd\x05\n" +
+	"\x04User\x12<\n" +
+	"\fCheckSession\x12\x12.pb.SessionRequest\x1a\x18.pb.CheckSessionResponse\x12=\n" +
+	"\x0eGetCurrentUser\x12\x12.pb.SessionRequest\x1a\x17.pb.GetUserInfoResponse\x12?\n" +
+	"\x0eChangePassword\x12\x19.pb.ChangePasswordRequest\x1a\x12.pb.NoDataResponse\x120\n" +
+	"\x06Logout\x12\x12.pb.SessionRequest\x1a\x12.pb.NoDataResponse\x12>\n" +
 	"\vGetUserInfo\x12\x16.pb.GetUserInfoRequest\x1a\x17.pb.GetUserInfoResponse\x12>\n" +
 	"\vGetUserToke\x12\x16.pb.GetUserTokeRequest\x1a\x17.pb.GetUserTokeResponse\x12>\n" +
 	"\vGetUserList\x12\x16.pb.GetUserListRequest\x1a\x17.pb.GetUserListResponse\x125\n" +
@@ -4600,8 +5088,10 @@ const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
 	"\x10AddAuthorityMenu\x12\x1b.pb.AddAuthorityMenuRequest\x1a\x12.pb.NoDataResponse\x12J\n" +
 	"\x0fUpdateAuthority\x12\x1a.pb.UpdateAuthorityRequest\x1a\x1b.pb.UpdateAuthorityResponse\x12J\n" +
 	"\x0fCreateAuthority\x12\x1a.pb.CreateAuthorityRequest\x1a\x1b.pb.CreateAuthorityResponse\x12A\n" +
-	"\x0fDeleteAuthority\x12\x1a.pb.DeleteAuthorityRequest\x1a\x12.pb.NoDataResponse2\xea\x02\n" +
-	"\x03Api\x12;\n" +
+	"\x0fDeleteAuthority\x12\x1a.pb.DeleteAuthorityRequest\x1a\x12.pb.NoDataResponse2\xef\x03\n" +
+	"\x03Api\x12@\n" +
+	"\x0ePreviewApiSync\x12\x12.pb.NoDataResponse\x1a\x1a.pb.PreviewApiSyncResponse\x12A\n" +
+	"\fApplyApiSync\x12\x17.pb.ApplyApiSyncRequest\x1a\x18.pb.ApplyApiSyncResponse\x12;\n" +
 	"\n" +
 	"GetApiList\x12\x15.pb.GetApiListRequest\x1a\x16.pb.GetApiListResponse\x125\n" +
 	"\tCreateApi\x12\x14.pb.CreateApiRequest\x1a\x12.pb.NoDataResponse\x125\n" +
@@ -4639,7 +5129,7 @@ func file_application_applet_rpc_desc_applet_proto_rawDescGZIP() []byte {
 	return file_application_applet_rpc_desc_applet_proto_rawDescData
 }
 
-var file_application_applet_rpc_desc_applet_proto_msgTypes = make([]protoimpl.MessageInfo, 75)
+var file_application_applet_rpc_desc_applet_proto_msgTypes = make([]protoimpl.MessageInfo, 82)
 var file_application_applet_rpc_desc_applet_proto_goTypes = []any{
 	(*NoDataResponse)(nil),                              // 0: pb.NoDataResponse
 	(*GetUserInfoRequest)(nil),                          // 1: pb.GetUserInfoRequest
@@ -4715,154 +5205,177 @@ var file_application_applet_rpc_desc_applet_proto_goTypes = []any{
 	(*GetAuthorityButtonsRequest)(nil),                  // 71: pb.GetAuthorityButtonsRequest
 	(*GetAuthorityButtonsResponse)(nil),                 // 72: pb.GetAuthorityButtonsResponse
 	(*UpdateAuthorityButtonsRequest)(nil),               // 73: pb.UpdateAuthorityButtonsRequest
-	nil,                                                 // 74: pb.SysMenu.BtnsEntry
+	(*SessionRequest)(nil),                              // 74: pb.SessionRequest
+	(*CheckSessionResponse)(nil),                        // 75: pb.CheckSessionResponse
+	(*ChangePasswordRequest)(nil),                       // 76: pb.ChangePasswordRequest
+	(*ApiSyncItem)(nil),                                 // 77: pb.ApiSyncItem
+	(*PreviewApiSyncResponse)(nil),                      // 78: pb.PreviewApiSyncResponse
+	(*ApplyApiSyncRequest)(nil),                         // 79: pb.ApplyApiSyncRequest
+	(*ApplyApiSyncResponse)(nil),                        // 80: pb.ApplyApiSyncResponse
+	nil,                                                 // 81: pb.SysMenu.BtnsEntry
 }
 var file_application_applet_rpc_desc_applet_proto_depIdxs = []int32{
-	3,  // 0: pb.GetUserInfoResponse.UserInfo:type_name -> pb.UserInfo
-	4,  // 1: pb.UserInfo.Authority:type_name -> pb.SysAuthority
-	4,  // 2: pb.UserInfo.Authorities:type_name -> pb.SysAuthority
-	4,  // 3: pb.SysAuthority.DataAuthorityId:type_name -> pb.SysAuthority
-	4,  // 4: pb.SysAuthority.children:type_name -> pb.SysAuthority
-	10, // 5: pb.SysAuthority.SysBaseMenus:type_name -> pb.SysBaseMenu
-	12, // 6: pb.SysBaseMenu.Meta:type_name -> pb.Meta
-	4,  // 7: pb.SysBaseMenu.SysAuthoritys:type_name -> pb.SysAuthority
-	10, // 8: pb.SysBaseMenu.Children:type_name -> pb.SysBaseMenu
-	5,  // 9: pb.SysBaseMenu.Parameters:type_name -> pb.SysBaseMenuParameter
-	6,  // 10: pb.SysBaseMenu.MenuBtn:type_name -> pb.SysBaseMenuBtn
-	10, // 11: pb.SysMenu.SysBaseMenu:type_name -> pb.SysBaseMenu
-	11, // 12: pb.SysMenu.Children:type_name -> pb.SysMenu
-	5,  // 13: pb.SysMenu.Parameters:type_name -> pb.SysBaseMenuParameter
-	74, // 14: pb.SysMenu.Btns:type_name -> pb.SysMenu.BtnsEntry
-	11, // 15: pb.GetMenuTreeResponse.SysMenu:type_name -> pb.SysMenu
-	10, // 16: pb.GetMenuBaseInfoListResponse.SysBaseMenu:type_name -> pb.SysBaseMenu
-	10, // 17: pb.AddMenuBaseRequest.SysBaseMenu:type_name -> pb.SysBaseMenu
-	16, // 18: pb.GetAuthorityListRequest.Page:type_name -> pb.PageRequest
-	4,  // 19: pb.GetAuthorityListResponse.SysAuthority:type_name -> pb.SysAuthority
-	19, // 20: pb.GetApiListRequest.SysApi:type_name -> pb.SysApi
-	16, // 21: pb.GetApiListRequest.PageRequest:type_name -> pb.PageRequest
-	19, // 22: pb.GetApiListResponse.SysApi:type_name -> pb.SysApi
-	19, // 23: pb.CreateApiRequest.SysApi:type_name -> pb.SysApi
-	19, // 24: pb.DeleteApiRequest.SysApi:type_name -> pb.SysApi
-	19, // 25: pb.GetAllApiListResponse.ApiList:type_name -> pb.SysApi
-	25, // 26: pb.GetPathByAuthorityIdResponse.CasbinInfoList:type_name -> pb.CasbinInfo
-	10, // 27: pb.GetBaseMenuTreeResponse.SysBaseMenuList:type_name -> pb.SysBaseMenu
-	11, // 28: pb.GetMenuAuthorityResponse.SysMenuList:type_name -> pb.SysMenu
-	25, // 29: pb.UpdateCasbinDataRequest.CasbinInfoList:type_name -> pb.CasbinInfo
-	4,  // 30: pb.UpdateAuthorityRequest.SysAuthority:type_name -> pb.SysAuthority
-	4,  // 31: pb.UpdateAuthorityResponse.SysAuthority:type_name -> pb.SysAuthority
-	10, // 32: pb.GetBaseMenuByIdResponse.SysBaseMenu:type_name -> pb.SysBaseMenu
-	10, // 33: pb.UpdateBaseMenuRequest.SysBaseMenu:type_name -> pb.SysBaseMenu
-	4,  // 34: pb.CreateAuthorityRequest.SysAuthority:type_name -> pb.SysAuthority
-	4,  // 35: pb.CreateAuthorityResponse.SysAuthority:type_name -> pb.SysAuthority
-	16, // 36: pb.GetUserListRequest.PageRequest:type_name -> pb.PageRequest
-	3,  // 37: pb.GetUserListResponse.UserInfoList:type_name -> pb.UserInfo
-	3,  // 38: pb.RegisterRequest.UserInfo:type_name -> pb.UserInfo
-	3,  // 39: pb.RegisterResponse.UserInfo:type_name -> pb.UserInfo
-	3,  // 40: pb.UpdateUserInfoRequest.UserInfo:type_name -> pb.UserInfo
-	19, // 41: pb.UpdateCasbinDataByApiIdsResponse.SysApis:type_name -> pb.SysApi
-	19, // 42: pb.UpdateApiRequest.SysApi:type_name -> pb.SysApi
-	57, // 43: pb.SysDictionary.SysDictionaryInfoList:type_name -> pb.SysDictionaryInfo
-	56, // 44: pb.DictionaryListResponse.SysDictionaryList:type_name -> pb.SysDictionary
-	57, // 45: pb.GetSysDictionaryInfoListRequest.SysDictionaryInfo:type_name -> pb.SysDictionaryInfo
-	16, // 46: pb.GetSysDictionaryInfoListRequest.PageRequest:type_name -> pb.PageRequest
-	57, // 47: pb.GetSysDictionaryInfoListResponse.SysDictionaryInfoList:type_name -> pb.SysDictionaryInfo
-	56, // 48: pb.CreateSysDictionaryRequest.SysDictionary:type_name -> pb.SysDictionary
-	56, // 49: pb.UpdateSysDictionaryRequest.SysDictionary:type_name -> pb.SysDictionary
-	56, // 50: pb.GetSysDictionaryDetailsResponse.SysDictionary:type_name -> pb.SysDictionary
-	57, // 51: pb.GetSysDictionaryInfoListDetailsByIdResponse.SysDictionaryInfo:type_name -> pb.SysDictionaryInfo
-	57, // 52: pb.UpdateSysDictionaryInfoRequest.SysDictionaryInfo:type_name -> pb.SysDictionaryInfo
-	57, // 53: pb.CreateSysDictionaryInfoRequest.SysDictionaryInfo:type_name -> pb.SysDictionaryInfo
-	1,  // 54: pb.User.GetUserInfo:input_type -> pb.GetUserInfoRequest
-	7,  // 55: pb.User.GetUserToke:input_type -> pb.GetUserTokeRequest
-	40, // 56: pb.User.GetUserList:input_type -> pb.GetUserListRequest
-	42, // 57: pb.User.Register:input_type -> pb.RegisterRequest
-	44, // 58: pb.User.UpdateUserInfo:input_type -> pb.UpdateUserInfoRequest
-	45, // 59: pb.User.UpdateUserAuthorities:input_type -> pb.UpdateUserAuthoritiesRequest
-	46, // 60: pb.User.ResetUserPassword:input_type -> pb.ResetUserPasswordRequest
-	47, // 61: pb.User.DeleteUser:input_type -> pb.DeleteUserRequest
-	71, // 62: pb.Menu.GetAuthorityButtons:input_type -> pb.GetAuthorityButtonsRequest
-	73, // 63: pb.Menu.UpdateAuthorityButtons:input_type -> pb.UpdateAuthorityButtonsRequest
-	9,  // 64: pb.Menu.GetMenuTree:input_type -> pb.GetMenuTreeRequest
-	0,  // 65: pb.Menu.GetMenuBaseInfoList:input_type -> pb.NoDataResponse
-	15, // 66: pb.Menu.AddMenuBase:input_type -> pb.AddMenuBaseRequest
-	0,  // 67: pb.Menu.GetBaseMenuTree:input_type -> pb.NoDataResponse
-	29, // 68: pb.Menu.GetMenuAuthority:input_type -> pb.GetMenuAuthorityRequest
-	35, // 69: pb.Menu.GetBaseMenuById:input_type -> pb.GetBaseMenuByIdRequest
-	37, // 70: pb.Menu.UpdateBaseMenu:input_type -> pb.UpdateBaseMenuRequest
-	54, // 71: pb.Menu.DeleteBaseMenu:input_type -> pb.DeleteBaseMenuRequest
-	17, // 72: pb.Authority.GetAuthorityList:input_type -> pb.GetAuthorityListRequest
-	31, // 73: pb.Authority.AddAuthorityMenu:input_type -> pb.AddAuthorityMenuRequest
-	33, // 74: pb.Authority.UpdateAuthority:input_type -> pb.UpdateAuthorityRequest
-	38, // 75: pb.Authority.CreateAuthority:input_type -> pb.CreateAuthorityRequest
-	55, // 76: pb.Authority.DeleteAuthority:input_type -> pb.DeleteAuthorityRequest
-	20, // 77: pb.Api.GetApiList:input_type -> pb.GetApiListRequest
-	22, // 78: pb.Api.CreateApi:input_type -> pb.CreateApiRequest
-	23, // 79: pb.Api.DeleteApi:input_type -> pb.DeleteApiRequest
-	0,  // 80: pb.Api.GetAllApiList:input_type -> pb.NoDataResponse
-	48, // 81: pb.Api.DeleteApisByIds:input_type -> pb.DeleteApisByIdsRequest
-	53, // 82: pb.Api.UpdateApi:input_type -> pb.UpdateApiRequest
-	26, // 83: pb.Casbin.GetPathByAuthorityId:input_type -> pb.GetPathByAuthorityIdRequest
-	32, // 84: pb.Casbin.UpdateCasbinData:input_type -> pb.UpdateCasbinDataRequest
-	49, // 85: pb.Casbin.UpdateCasbinDataByApiIds:input_type -> pb.UpdateCasbinDataByApiIdsRequest
-	51, // 86: pb.Casbin.Enforce:input_type -> pb.EnforceRequest
-	0,  // 87: pb.Dictionary.GetSysDictionaryList:input_type -> pb.NoDataResponse
-	61, // 88: pb.Dictionary.CreateSysDictionary:input_type -> pb.CreateSysDictionaryRequest
-	63, // 89: pb.Dictionary.GetSysDictionaryDetails:input_type -> pb.GetSysDictionaryDetailsRequest
-	62, // 90: pb.Dictionary.UpdateSysDictionary:input_type -> pb.UpdateSysDictionaryRequest
-	65, // 91: pb.Dictionary.DeleteSysDictionary:input_type -> pb.DeleteSysDictionaryRequest
-	59, // 92: pb.Dictionary.GetSysDictionaryInfoList:input_type -> pb.GetSysDictionaryInfoListRequest
-	66, // 93: pb.Dictionary.GetSysDictionaryInfoListDetailsById:input_type -> pb.GetSysDictionaryInfoListDetailsByIdRequest
-	68, // 94: pb.Dictionary.UpdateSysDictionaryInfo:input_type -> pb.UpdateSysDictionaryInfoRequest
-	69, // 95: pb.Dictionary.CreateSysDictionaryInfo:input_type -> pb.CreateSysDictionaryInfoRequest
-	70, // 96: pb.Dictionary.DeleteSysDictionaryInfo:input_type -> pb.DeleteSysDictionaryInfoRequest
-	2,  // 97: pb.User.GetUserInfo:output_type -> pb.GetUserInfoResponse
-	8,  // 98: pb.User.GetUserToke:output_type -> pb.GetUserTokeResponse
-	41, // 99: pb.User.GetUserList:output_type -> pb.GetUserListResponse
-	43, // 100: pb.User.Register:output_type -> pb.RegisterResponse
-	0,  // 101: pb.User.UpdateUserInfo:output_type -> pb.NoDataResponse
-	0,  // 102: pb.User.UpdateUserAuthorities:output_type -> pb.NoDataResponse
-	0,  // 103: pb.User.ResetUserPassword:output_type -> pb.NoDataResponse
-	0,  // 104: pb.User.DeleteUser:output_type -> pb.NoDataResponse
-	72, // 105: pb.Menu.GetAuthorityButtons:output_type -> pb.GetAuthorityButtonsResponse
-	0,  // 106: pb.Menu.UpdateAuthorityButtons:output_type -> pb.NoDataResponse
-	13, // 107: pb.Menu.GetMenuTree:output_type -> pb.GetMenuTreeResponse
-	14, // 108: pb.Menu.GetMenuBaseInfoList:output_type -> pb.GetMenuBaseInfoListResponse
-	0,  // 109: pb.Menu.AddMenuBase:output_type -> pb.NoDataResponse
-	28, // 110: pb.Menu.GetBaseMenuTree:output_type -> pb.GetBaseMenuTreeResponse
-	30, // 111: pb.Menu.GetMenuAuthority:output_type -> pb.GetMenuAuthorityResponse
-	36, // 112: pb.Menu.GetBaseMenuById:output_type -> pb.GetBaseMenuByIdResponse
-	0,  // 113: pb.Menu.UpdateBaseMenu:output_type -> pb.NoDataResponse
-	0,  // 114: pb.Menu.DeleteBaseMenu:output_type -> pb.NoDataResponse
-	18, // 115: pb.Authority.GetAuthorityList:output_type -> pb.GetAuthorityListResponse
-	0,  // 116: pb.Authority.AddAuthorityMenu:output_type -> pb.NoDataResponse
-	34, // 117: pb.Authority.UpdateAuthority:output_type -> pb.UpdateAuthorityResponse
-	39, // 118: pb.Authority.CreateAuthority:output_type -> pb.CreateAuthorityResponse
-	0,  // 119: pb.Authority.DeleteAuthority:output_type -> pb.NoDataResponse
-	21, // 120: pb.Api.GetApiList:output_type -> pb.GetApiListResponse
-	0,  // 121: pb.Api.CreateApi:output_type -> pb.NoDataResponse
-	0,  // 122: pb.Api.DeleteApi:output_type -> pb.NoDataResponse
-	24, // 123: pb.Api.GetAllApiList:output_type -> pb.GetAllApiListResponse
-	0,  // 124: pb.Api.DeleteApisByIds:output_type -> pb.NoDataResponse
-	0,  // 125: pb.Api.UpdateApi:output_type -> pb.NoDataResponse
-	27, // 126: pb.Casbin.GetPathByAuthorityId:output_type -> pb.GetPathByAuthorityIdResponse
-	0,  // 127: pb.Casbin.UpdateCasbinData:output_type -> pb.NoDataResponse
-	50, // 128: pb.Casbin.UpdateCasbinDataByApiIds:output_type -> pb.UpdateCasbinDataByApiIdsResponse
-	52, // 129: pb.Casbin.Enforce:output_type -> pb.EnforceResponse
-	58, // 130: pb.Dictionary.GetSysDictionaryList:output_type -> pb.DictionaryListResponse
-	0,  // 131: pb.Dictionary.CreateSysDictionary:output_type -> pb.NoDataResponse
-	64, // 132: pb.Dictionary.GetSysDictionaryDetails:output_type -> pb.GetSysDictionaryDetailsResponse
-	0,  // 133: pb.Dictionary.UpdateSysDictionary:output_type -> pb.NoDataResponse
-	0,  // 134: pb.Dictionary.DeleteSysDictionary:output_type -> pb.NoDataResponse
-	60, // 135: pb.Dictionary.GetSysDictionaryInfoList:output_type -> pb.GetSysDictionaryInfoListResponse
-	67, // 136: pb.Dictionary.GetSysDictionaryInfoListDetailsById:output_type -> pb.GetSysDictionaryInfoListDetailsByIdResponse
-	0,  // 137: pb.Dictionary.UpdateSysDictionaryInfo:output_type -> pb.NoDataResponse
-	0,  // 138: pb.Dictionary.CreateSysDictionaryInfo:output_type -> pb.NoDataResponse
-	0,  // 139: pb.Dictionary.DeleteSysDictionaryInfo:output_type -> pb.NoDataResponse
-	97, // [97:140] is the sub-list for method output_type
-	54, // [54:97] is the sub-list for method input_type
-	54, // [54:54] is the sub-list for extension type_name
-	54, // [54:54] is the sub-list for extension extendee
-	0,  // [0:54] is the sub-list for field type_name
+	3,   // 0: pb.GetUserInfoResponse.UserInfo:type_name -> pb.UserInfo
+	4,   // 1: pb.UserInfo.Authority:type_name -> pb.SysAuthority
+	4,   // 2: pb.UserInfo.Authorities:type_name -> pb.SysAuthority
+	4,   // 3: pb.SysAuthority.DataAuthorityId:type_name -> pb.SysAuthority
+	4,   // 4: pb.SysAuthority.children:type_name -> pb.SysAuthority
+	10,  // 5: pb.SysAuthority.SysBaseMenus:type_name -> pb.SysBaseMenu
+	12,  // 6: pb.SysBaseMenu.Meta:type_name -> pb.Meta
+	4,   // 7: pb.SysBaseMenu.SysAuthoritys:type_name -> pb.SysAuthority
+	10,  // 8: pb.SysBaseMenu.Children:type_name -> pb.SysBaseMenu
+	5,   // 9: pb.SysBaseMenu.Parameters:type_name -> pb.SysBaseMenuParameter
+	6,   // 10: pb.SysBaseMenu.MenuBtn:type_name -> pb.SysBaseMenuBtn
+	10,  // 11: pb.SysMenu.SysBaseMenu:type_name -> pb.SysBaseMenu
+	11,  // 12: pb.SysMenu.Children:type_name -> pb.SysMenu
+	5,   // 13: pb.SysMenu.Parameters:type_name -> pb.SysBaseMenuParameter
+	81,  // 14: pb.SysMenu.Btns:type_name -> pb.SysMenu.BtnsEntry
+	11,  // 15: pb.GetMenuTreeResponse.SysMenu:type_name -> pb.SysMenu
+	10,  // 16: pb.GetMenuBaseInfoListResponse.SysBaseMenu:type_name -> pb.SysBaseMenu
+	10,  // 17: pb.AddMenuBaseRequest.SysBaseMenu:type_name -> pb.SysBaseMenu
+	16,  // 18: pb.GetAuthorityListRequest.Page:type_name -> pb.PageRequest
+	4,   // 19: pb.GetAuthorityListResponse.SysAuthority:type_name -> pb.SysAuthority
+	19,  // 20: pb.GetApiListRequest.SysApi:type_name -> pb.SysApi
+	16,  // 21: pb.GetApiListRequest.PageRequest:type_name -> pb.PageRequest
+	19,  // 22: pb.GetApiListResponse.SysApi:type_name -> pb.SysApi
+	19,  // 23: pb.CreateApiRequest.SysApi:type_name -> pb.SysApi
+	19,  // 24: pb.DeleteApiRequest.SysApi:type_name -> pb.SysApi
+	19,  // 25: pb.GetAllApiListResponse.ApiList:type_name -> pb.SysApi
+	25,  // 26: pb.GetPathByAuthorityIdResponse.CasbinInfoList:type_name -> pb.CasbinInfo
+	10,  // 27: pb.GetBaseMenuTreeResponse.SysBaseMenuList:type_name -> pb.SysBaseMenu
+	11,  // 28: pb.GetMenuAuthorityResponse.SysMenuList:type_name -> pb.SysMenu
+	25,  // 29: pb.UpdateCasbinDataRequest.CasbinInfoList:type_name -> pb.CasbinInfo
+	4,   // 30: pb.UpdateAuthorityRequest.SysAuthority:type_name -> pb.SysAuthority
+	4,   // 31: pb.UpdateAuthorityResponse.SysAuthority:type_name -> pb.SysAuthority
+	10,  // 32: pb.GetBaseMenuByIdResponse.SysBaseMenu:type_name -> pb.SysBaseMenu
+	10,  // 33: pb.UpdateBaseMenuRequest.SysBaseMenu:type_name -> pb.SysBaseMenu
+	4,   // 34: pb.CreateAuthorityRequest.SysAuthority:type_name -> pb.SysAuthority
+	4,   // 35: pb.CreateAuthorityResponse.SysAuthority:type_name -> pb.SysAuthority
+	16,  // 36: pb.GetUserListRequest.PageRequest:type_name -> pb.PageRequest
+	3,   // 37: pb.GetUserListResponse.UserInfoList:type_name -> pb.UserInfo
+	3,   // 38: pb.RegisterRequest.UserInfo:type_name -> pb.UserInfo
+	3,   // 39: pb.RegisterResponse.UserInfo:type_name -> pb.UserInfo
+	3,   // 40: pb.UpdateUserInfoRequest.UserInfo:type_name -> pb.UserInfo
+	19,  // 41: pb.UpdateCasbinDataByApiIdsResponse.SysApis:type_name -> pb.SysApi
+	19,  // 42: pb.UpdateApiRequest.SysApi:type_name -> pb.SysApi
+	57,  // 43: pb.SysDictionary.SysDictionaryInfoList:type_name -> pb.SysDictionaryInfo
+	56,  // 44: pb.DictionaryListResponse.SysDictionaryList:type_name -> pb.SysDictionary
+	57,  // 45: pb.GetSysDictionaryInfoListRequest.SysDictionaryInfo:type_name -> pb.SysDictionaryInfo
+	16,  // 46: pb.GetSysDictionaryInfoListRequest.PageRequest:type_name -> pb.PageRequest
+	57,  // 47: pb.GetSysDictionaryInfoListResponse.SysDictionaryInfoList:type_name -> pb.SysDictionaryInfo
+	56,  // 48: pb.CreateSysDictionaryRequest.SysDictionary:type_name -> pb.SysDictionary
+	56,  // 49: pb.UpdateSysDictionaryRequest.SysDictionary:type_name -> pb.SysDictionary
+	56,  // 50: pb.GetSysDictionaryDetailsResponse.SysDictionary:type_name -> pb.SysDictionary
+	57,  // 51: pb.GetSysDictionaryInfoListDetailsByIdResponse.SysDictionaryInfo:type_name -> pb.SysDictionaryInfo
+	57,  // 52: pb.UpdateSysDictionaryInfoRequest.SysDictionaryInfo:type_name -> pb.SysDictionaryInfo
+	57,  // 53: pb.CreateSysDictionaryInfoRequest.SysDictionaryInfo:type_name -> pb.SysDictionaryInfo
+	74,  // 54: pb.ChangePasswordRequest.Session:type_name -> pb.SessionRequest
+	77,  // 55: pb.PreviewApiSyncResponse.added:type_name -> pb.ApiSyncItem
+	77,  // 56: pb.PreviewApiSyncResponse.changed:type_name -> pb.ApiSyncItem
+	77,  // 57: pb.PreviewApiSyncResponse.obsolete:type_name -> pb.ApiSyncItem
+	74,  // 58: pb.User.CheckSession:input_type -> pb.SessionRequest
+	74,  // 59: pb.User.GetCurrentUser:input_type -> pb.SessionRequest
+	76,  // 60: pb.User.ChangePassword:input_type -> pb.ChangePasswordRequest
+	74,  // 61: pb.User.Logout:input_type -> pb.SessionRequest
+	1,   // 62: pb.User.GetUserInfo:input_type -> pb.GetUserInfoRequest
+	7,   // 63: pb.User.GetUserToke:input_type -> pb.GetUserTokeRequest
+	40,  // 64: pb.User.GetUserList:input_type -> pb.GetUserListRequest
+	42,  // 65: pb.User.Register:input_type -> pb.RegisterRequest
+	44,  // 66: pb.User.UpdateUserInfo:input_type -> pb.UpdateUserInfoRequest
+	45,  // 67: pb.User.UpdateUserAuthorities:input_type -> pb.UpdateUserAuthoritiesRequest
+	46,  // 68: pb.User.ResetUserPassword:input_type -> pb.ResetUserPasswordRequest
+	47,  // 69: pb.User.DeleteUser:input_type -> pb.DeleteUserRequest
+	71,  // 70: pb.Menu.GetAuthorityButtons:input_type -> pb.GetAuthorityButtonsRequest
+	73,  // 71: pb.Menu.UpdateAuthorityButtons:input_type -> pb.UpdateAuthorityButtonsRequest
+	9,   // 72: pb.Menu.GetMenuTree:input_type -> pb.GetMenuTreeRequest
+	0,   // 73: pb.Menu.GetMenuBaseInfoList:input_type -> pb.NoDataResponse
+	15,  // 74: pb.Menu.AddMenuBase:input_type -> pb.AddMenuBaseRequest
+	0,   // 75: pb.Menu.GetBaseMenuTree:input_type -> pb.NoDataResponse
+	29,  // 76: pb.Menu.GetMenuAuthority:input_type -> pb.GetMenuAuthorityRequest
+	35,  // 77: pb.Menu.GetBaseMenuById:input_type -> pb.GetBaseMenuByIdRequest
+	37,  // 78: pb.Menu.UpdateBaseMenu:input_type -> pb.UpdateBaseMenuRequest
+	54,  // 79: pb.Menu.DeleteBaseMenu:input_type -> pb.DeleteBaseMenuRequest
+	17,  // 80: pb.Authority.GetAuthorityList:input_type -> pb.GetAuthorityListRequest
+	31,  // 81: pb.Authority.AddAuthorityMenu:input_type -> pb.AddAuthorityMenuRequest
+	33,  // 82: pb.Authority.UpdateAuthority:input_type -> pb.UpdateAuthorityRequest
+	38,  // 83: pb.Authority.CreateAuthority:input_type -> pb.CreateAuthorityRequest
+	55,  // 84: pb.Authority.DeleteAuthority:input_type -> pb.DeleteAuthorityRequest
+	0,   // 85: pb.Api.PreviewApiSync:input_type -> pb.NoDataResponse
+	79,  // 86: pb.Api.ApplyApiSync:input_type -> pb.ApplyApiSyncRequest
+	20,  // 87: pb.Api.GetApiList:input_type -> pb.GetApiListRequest
+	22,  // 88: pb.Api.CreateApi:input_type -> pb.CreateApiRequest
+	23,  // 89: pb.Api.DeleteApi:input_type -> pb.DeleteApiRequest
+	0,   // 90: pb.Api.GetAllApiList:input_type -> pb.NoDataResponse
+	48,  // 91: pb.Api.DeleteApisByIds:input_type -> pb.DeleteApisByIdsRequest
+	53,  // 92: pb.Api.UpdateApi:input_type -> pb.UpdateApiRequest
+	26,  // 93: pb.Casbin.GetPathByAuthorityId:input_type -> pb.GetPathByAuthorityIdRequest
+	32,  // 94: pb.Casbin.UpdateCasbinData:input_type -> pb.UpdateCasbinDataRequest
+	49,  // 95: pb.Casbin.UpdateCasbinDataByApiIds:input_type -> pb.UpdateCasbinDataByApiIdsRequest
+	51,  // 96: pb.Casbin.Enforce:input_type -> pb.EnforceRequest
+	0,   // 97: pb.Dictionary.GetSysDictionaryList:input_type -> pb.NoDataResponse
+	61,  // 98: pb.Dictionary.CreateSysDictionary:input_type -> pb.CreateSysDictionaryRequest
+	63,  // 99: pb.Dictionary.GetSysDictionaryDetails:input_type -> pb.GetSysDictionaryDetailsRequest
+	62,  // 100: pb.Dictionary.UpdateSysDictionary:input_type -> pb.UpdateSysDictionaryRequest
+	65,  // 101: pb.Dictionary.DeleteSysDictionary:input_type -> pb.DeleteSysDictionaryRequest
+	59,  // 102: pb.Dictionary.GetSysDictionaryInfoList:input_type -> pb.GetSysDictionaryInfoListRequest
+	66,  // 103: pb.Dictionary.GetSysDictionaryInfoListDetailsById:input_type -> pb.GetSysDictionaryInfoListDetailsByIdRequest
+	68,  // 104: pb.Dictionary.UpdateSysDictionaryInfo:input_type -> pb.UpdateSysDictionaryInfoRequest
+	69,  // 105: pb.Dictionary.CreateSysDictionaryInfo:input_type -> pb.CreateSysDictionaryInfoRequest
+	70,  // 106: pb.Dictionary.DeleteSysDictionaryInfo:input_type -> pb.DeleteSysDictionaryInfoRequest
+	75,  // 107: pb.User.CheckSession:output_type -> pb.CheckSessionResponse
+	2,   // 108: pb.User.GetCurrentUser:output_type -> pb.GetUserInfoResponse
+	0,   // 109: pb.User.ChangePassword:output_type -> pb.NoDataResponse
+	0,   // 110: pb.User.Logout:output_type -> pb.NoDataResponse
+	2,   // 111: pb.User.GetUserInfo:output_type -> pb.GetUserInfoResponse
+	8,   // 112: pb.User.GetUserToke:output_type -> pb.GetUserTokeResponse
+	41,  // 113: pb.User.GetUserList:output_type -> pb.GetUserListResponse
+	43,  // 114: pb.User.Register:output_type -> pb.RegisterResponse
+	0,   // 115: pb.User.UpdateUserInfo:output_type -> pb.NoDataResponse
+	0,   // 116: pb.User.UpdateUserAuthorities:output_type -> pb.NoDataResponse
+	0,   // 117: pb.User.ResetUserPassword:output_type -> pb.NoDataResponse
+	0,   // 118: pb.User.DeleteUser:output_type -> pb.NoDataResponse
+	72,  // 119: pb.Menu.GetAuthorityButtons:output_type -> pb.GetAuthorityButtonsResponse
+	0,   // 120: pb.Menu.UpdateAuthorityButtons:output_type -> pb.NoDataResponse
+	13,  // 121: pb.Menu.GetMenuTree:output_type -> pb.GetMenuTreeResponse
+	14,  // 122: pb.Menu.GetMenuBaseInfoList:output_type -> pb.GetMenuBaseInfoListResponse
+	0,   // 123: pb.Menu.AddMenuBase:output_type -> pb.NoDataResponse
+	28,  // 124: pb.Menu.GetBaseMenuTree:output_type -> pb.GetBaseMenuTreeResponse
+	30,  // 125: pb.Menu.GetMenuAuthority:output_type -> pb.GetMenuAuthorityResponse
+	36,  // 126: pb.Menu.GetBaseMenuById:output_type -> pb.GetBaseMenuByIdResponse
+	0,   // 127: pb.Menu.UpdateBaseMenu:output_type -> pb.NoDataResponse
+	0,   // 128: pb.Menu.DeleteBaseMenu:output_type -> pb.NoDataResponse
+	18,  // 129: pb.Authority.GetAuthorityList:output_type -> pb.GetAuthorityListResponse
+	0,   // 130: pb.Authority.AddAuthorityMenu:output_type -> pb.NoDataResponse
+	34,  // 131: pb.Authority.UpdateAuthority:output_type -> pb.UpdateAuthorityResponse
+	39,  // 132: pb.Authority.CreateAuthority:output_type -> pb.CreateAuthorityResponse
+	0,   // 133: pb.Authority.DeleteAuthority:output_type -> pb.NoDataResponse
+	78,  // 134: pb.Api.PreviewApiSync:output_type -> pb.PreviewApiSyncResponse
+	80,  // 135: pb.Api.ApplyApiSync:output_type -> pb.ApplyApiSyncResponse
+	21,  // 136: pb.Api.GetApiList:output_type -> pb.GetApiListResponse
+	0,   // 137: pb.Api.CreateApi:output_type -> pb.NoDataResponse
+	0,   // 138: pb.Api.DeleteApi:output_type -> pb.NoDataResponse
+	24,  // 139: pb.Api.GetAllApiList:output_type -> pb.GetAllApiListResponse
+	0,   // 140: pb.Api.DeleteApisByIds:output_type -> pb.NoDataResponse
+	0,   // 141: pb.Api.UpdateApi:output_type -> pb.NoDataResponse
+	27,  // 142: pb.Casbin.GetPathByAuthorityId:output_type -> pb.GetPathByAuthorityIdResponse
+	0,   // 143: pb.Casbin.UpdateCasbinData:output_type -> pb.NoDataResponse
+	50,  // 144: pb.Casbin.UpdateCasbinDataByApiIds:output_type -> pb.UpdateCasbinDataByApiIdsResponse
+	52,  // 145: pb.Casbin.Enforce:output_type -> pb.EnforceResponse
+	58,  // 146: pb.Dictionary.GetSysDictionaryList:output_type -> pb.DictionaryListResponse
+	0,   // 147: pb.Dictionary.CreateSysDictionary:output_type -> pb.NoDataResponse
+	64,  // 148: pb.Dictionary.GetSysDictionaryDetails:output_type -> pb.GetSysDictionaryDetailsResponse
+	0,   // 149: pb.Dictionary.UpdateSysDictionary:output_type -> pb.NoDataResponse
+	0,   // 150: pb.Dictionary.DeleteSysDictionary:output_type -> pb.NoDataResponse
+	60,  // 151: pb.Dictionary.GetSysDictionaryInfoList:output_type -> pb.GetSysDictionaryInfoListResponse
+	67,  // 152: pb.Dictionary.GetSysDictionaryInfoListDetailsById:output_type -> pb.GetSysDictionaryInfoListDetailsByIdResponse
+	0,   // 153: pb.Dictionary.UpdateSysDictionaryInfo:output_type -> pb.NoDataResponse
+	0,   // 154: pb.Dictionary.CreateSysDictionaryInfo:output_type -> pb.NoDataResponse
+	0,   // 155: pb.Dictionary.DeleteSysDictionaryInfo:output_type -> pb.NoDataResponse
+	107, // [107:156] is the sub-list for method output_type
+	58,  // [58:107] is the sub-list for method input_type
+	58,  // [58:58] is the sub-list for extension type_name
+	58,  // [58:58] is the sub-list for extension extendee
+	0,   // [0:58] is the sub-list for field type_name
 }
 
 func init() { file_application_applet_rpc_desc_applet_proto_init() }
@@ -4876,7 +5389,7 @@ func file_application_applet_rpc_desc_applet_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_application_applet_rpc_desc_applet_proto_rawDesc), len(file_application_applet_rpc_desc_applet_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   75,
+			NumMessages:   82,
 			NumExtensions: 0,
 			NumServices:   6,
 		},

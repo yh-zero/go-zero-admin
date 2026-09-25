@@ -2,6 +2,7 @@ package usernocasbin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/mojocn/base64Captcha"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -46,16 +47,30 @@ func (l *RandomImageLogic) RandomImage(req *types.RandomImageRequest) (*types.Ra
 }
 
 // 每张图片仅允许一次提交，成功或失败后均需刷新；多客户端不会覆盖彼此的验证码。
-func consumeCaptcha(ctx context.Context, id, answer string, rds *redis.Redis) error {
+type captchaStore interface {
+	EvalCtx(context.Context, string, []string, ...any) (any, error)
+}
+
+func expiredCaptchaError() error {
+	return xerr.NewErrCodeMsg(xerr.CAPTCHA_ERROR, "验证码已失效，请刷新后重试")
+}
+
+func consumeCaptcha(ctx context.Context, id, answer string, rds captchaStore) error {
 	if !captchaIDPattern.MatchString(id) || len(answer) != captchaImgLength {
 		return xerr.NewErrCode(xerr.CAPTCHA_ERROR)
 	}
 	result, err := rds.EvalCtx(ctx, "local value = redis.call('GET', KEYS[1]); redis.call('DEL', KEYS[1]); return value", []string{fmt.Sprintf(prefixCaptcha, id)})
+	if errors.Is(err, redis.Nil) {
+		return expiredCaptchaError()
+	}
 	if err != nil {
 		return err
 	}
 	expected, ok := result.(string)
-	if !ok || expected == "" || expected != answer {
+	if !ok || expected == "" {
+		return expiredCaptchaError()
+	}
+	if expected != answer {
 		return xerr.NewErrCode(xerr.CAPTCHA_ERROR)
 	}
 	return nil

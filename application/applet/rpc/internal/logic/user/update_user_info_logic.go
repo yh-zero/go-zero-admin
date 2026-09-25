@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"slices"
 )
 
 type UpdateUserInfoLogic struct {
@@ -29,6 +31,9 @@ func (l *UpdateUserInfoLogic) UpdateUserInfo(in *pb.UpdateUserInfoRequest) (*pb.
 		return nil, err
 	}
 	err = l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
+		if err := accessutil.LockAdminGuard(tx); err != nil {
+			return err
+		}
 		var user model.SysUser
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&user, in.UserInfo.ID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -36,12 +41,15 @@ func (l *UpdateUserInfoLogic) UpdateUserInfo(in *pb.UpdateUserInfoRequest) (*pb.
 			}
 			return err
 		}
+		revoke := (updates["authority_id"] != nil && updates["authority_id"] != user.AuthorityId) || (updates["enable"] != nil && updates["enable"] != user.Enable)
 		if in.UpdateAuthorities || updates["authority_id"] != nil {
+			var previousIDs []int64
+			if err := tx.Model(&model.SysUserAuthority{}).Where("sys_user_id = ?", user.ID).Pluck("sys_authority_authority_id", &previousIDs).Error; err != nil {
+				return err
+			}
 			ids := in.AuthorityIds
 			if !in.UpdateAuthorities {
-				if err := tx.Model(&model.SysUserAuthority{}).Where("sys_user_id = ?", user.ID).Pluck("sys_authority_authority_id", &ids).Error; err != nil {
-					return err
-				}
+				ids = previousIDs
 			}
 			defaultID := user.AuthorityId
 			if value, ok := updates["authority_id"]; ok {
@@ -52,15 +60,24 @@ func (l *UpdateUserInfoLogic) UpdateUserInfo(in *pb.UpdateUserInfoRequest) (*pb.
 				return err
 			}
 			if in.UpdateAuthorities {
+				slices.Sort(previousIDs)
+				slices.Sort(ids)
+				revoke = revoke || !slices.Equal(previousIDs, ids)
 				if err := replaceUserAuthorities(tx, user.ID, ids); err != nil {
 					return err
 				}
 			}
 		}
+		if revoke {
+			updates["session_version"] = gorm.Expr("session_version + 1")
+		}
 		if len(updates) == 0 {
 			return nil
 		}
-		return tx.Model(&user).Updates(updates).Error
+		if err := tx.Model(&user).Updates(updates).Error; err != nil {
+			return err
+		}
+		return accessutil.EnsureUsableAdministrator(tx)
 	})
 	if err != nil {
 		return nil, err

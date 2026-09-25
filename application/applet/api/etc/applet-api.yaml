@@ -16,7 +16,7 @@ AppletRPC:
   NonBlock: true
 JwtAuth:
   AccessSecret: 3fG7-go-zero-admin_p2hE
-  AccessExpire: 31536000
+  AccessExpire: 7200
 Oss: # oss相关数据 安全问题 存到本地环境中了
   Endpoint:
   AccessKeyId:

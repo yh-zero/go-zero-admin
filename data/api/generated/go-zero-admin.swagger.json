@@ -100,6 +100,78 @@
                         "AddBaseMenuResponse":  {
                                                     "type":  "object"
                                                 },
+                        "ApiSyncItem":  {
+                                            "properties":  {
+                                                               "apiGroup":  {
+                                                                                "type":  "string"
+                                                                            },
+                                                               "currentApiGroup":  {
+                                                                                       "type":  "string"
+                                                                                   },
+                                                               "currentDescription":  {
+                                                                                          "type":  "string"
+                                                                                      },
+                                                               "description":  {
+                                                                                   "type":  "string"
+                                                                               },
+                                                               "id":  {
+                                                                          "type":  "integer"
+                                                                      },
+                                                               "key":  {
+                                                                           "type":  "string"
+                                                                       },
+                                                               "method":  {
+                                                                              "type":  "string"
+                                                                          },
+                                                               "path":  {
+                                                                            "type":  "string"
+                                                                        }
+                                                           },
+                                            "required":  [
+                                                             "key",
+                                                             "id",
+                                                             "path",
+                                                             "method",
+                                                             "apiGroup",
+                                                             "description",
+                                                             "currentApiGroup",
+                                                             "currentDescription"
+                                                         ],
+                                            "type":  "object"
+                                        },
+                        "ApplyApiSyncRequest":  {
+                                                    "properties":  {
+                                                                       "keys":  {
+                                                                                    "items":  {
+                                                                                                  "type":  "string"
+                                                                                              },
+                                                                                    "type":  "array"
+                                                                                },
+                                                                       "version":  {
+                                                                                       "type":  "string"
+                                                                                   }
+                                                                   },
+                                                    "required":  [
+                                                                     "version",
+                                                                     "keys"
+                                                                 ],
+                                                    "type":  "object"
+                                                },
+                        "ApplyApiSyncResponse":  {
+                                                     "properties":  {
+                                                                        "added":  {
+                                                                                      "type":  "integer"
+                                                                                  },
+                                                                        "updated":  {
+                                                                                        "type":  "integer"
+                                                                                    }
+                                                                    },
+                                                     "required":  [
+                                                                      "added",
+                                                                      "updated"
+                                                                  ],
+                                                     "type":  "object"
+                                                 },
                         "BusinessError":  {
                                               "properties":  {
                                                                  "code":  {
@@ -132,6 +204,21 @@
                                                         ],
                                            "type":  "object"
                                        },
+                        "ChangePasswordRequest":  {
+                                                      "properties":  {
+                                                                         "newPassword":  {
+                                                                                             "type":  "string"
+                                                                                         },
+                                                                         "oldPassword":  {
+                                                                                             "type":  "string"
+                                                                                         }
+                                                                     },
+                                                      "required":  [
+                                                                       "oldPassword",
+                                                                       "newPassword"
+                                                                   ],
+                                                      "type":  "object"
+                                                  },
                         "CreateApiRequest":  {
                                                  "properties":  {
                                                                     "apiGroup":  {
@@ -828,6 +915,12 @@
                                                            ],
                                               "type":  "object"
                                           },
+                        "LogoutRequest":  {
+                                              "type":  "object"
+                                          },
+                        "MeRequest":  {
+                                          "type":  "object"
+                                      },
                         "MessageResponse":  {
                                                 "properties":  {
                                                                    "message":  {
@@ -922,6 +1015,38 @@
                                                           ],
                                              "type":  "object"
                                          },
+                        "PreviewApiSyncResponse":  {
+                                                       "properties":  {
+                                                                          "added":  {
+                                                                                        "items":  {
+                                                                                                      "$ref":  "#/definitions/ApiSyncItem"
+                                                                                                  },
+                                                                                        "type":  "array"
+                                                                                    },
+                                                                          "changed":  {
+                                                                                          "items":  {
+                                                                                                        "$ref":  "#/definitions/ApiSyncItem"
+                                                                                                    },
+                                                                                          "type":  "array"
+                                                                                      },
+                                                                          "obsolete":  {
+                                                                                           "items":  {
+                                                                                                         "$ref":  "#/definitions/ApiSyncItem"
+                                                                                                     },
+                                                                                           "type":  "array"
+                                                                                       },
+                                                                          "version":  {
+                                                                                          "type":  "string"
+                                                                                      }
+                                                                      },
+                                                       "required":  [
+                                                                        "version",
+                                                                        "added",
+                                                                        "changed",
+                                                                        "obsolete"
+                                                                    ],
+                                                       "type":  "object"
+                                                   },
                         "RandomImageRequest":  {
                                                    "type":  "object"
                                                },
@@ -1905,6 +2030,92 @@
                  "version":  "v1"
              },
     "paths":  {
+                  "/v1/sys/api/applySync":  {
+                                                "post":  {
+                                                             "consumes":  [
+                                                                              "application/json"
+                                                                          ],
+                                                             "operationId":  "apiApplyApiSync",
+                                                             "parameters":  [
+                                                                                {
+                                                                                    "in":  "body",
+                                                                                    "name":  "body",
+                                                                                    "required":  true,
+                                                                                    "schema":  {
+                                                                                                   "$ref":  "#/definitions/ApplyApiSyncRequest"
+                                                                                               }
+                                                                                }
+                                                                            ],
+                                                             "produces":  [
+                                                                              "application/json"
+                                                                          ],
+                                                             "responses":  {
+                                                                               "200":  {
+                                                                                           "description":  "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+                                                                                           "schema":  {
+                                                                                                          "properties":  {
+                                                                                                                             "code":  {
+                                                                                                                                          "example":  200,
+                                                                                                                                          "type":  "integer"
+                                                                                                                                      },
+                                                                                                                             "message":  {
+                                                                                                                                             "example":  "操作成功!",
+                                                                                                                                             "type":  "string"
+                                                                                                                                         },
+                                                                                                                             "result":  {
+                                                                                                                                            "$ref":  "#/definitions/ApplyApiSyncResponse"
+                                                                                                                                        },
+                                                                                                                             "returnData":  {
+                                                                                                                                                "description":  "Currently null",
+                                                                                                                                                "x-nullable":  true
+                                                                                                                                            },
+                                                                                                                             "success":  {
+                                                                                                                                             "example":  true,
+                                                                                                                                             "type":  "boolean"
+                                                                                                                                         },
+                                                                                                                             "timestamp":  {
+                                                                                                                                               "description":  "Unix time in seconds",
+                                                                                                                                               "format":  "int64",
+                                                                                                                                               "type":  "integer"
+                                                                                                                                           }
+                                                                                                                         },
+                                                                                                          "required":  [
+                                                                                                                           "code",
+                                                                                                                           "message"
+                                                                                                                       ],
+                                                                                                          "type":  "object"
+                                                                                                      },
+                                                                                           "x-business-error-schema":  {
+                                                                                                                           "$ref":  "#/definitions/BusinessError"
+                                                                                                                       }
+                                                                                       },
+                                                                               "403":  {
+                                                                                           "description":  "接口权限不足",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/MiddlewareError"
+                                                                                                      }
+                                                                                       },
+                                                                               "500":  {
+                                                                                           "description":  "鉴权服务异常",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/MiddlewareError"
+                                                                                                      }
+                                                                                       }
+                                                                           },
+                                                             "security":  [
+                                                                              {
+                                                                                  "BearerAuth":  [
+
+                                                                                                 ]
+                                                                              }
+                                                                          ],
+                                                             "summary":  "按预览版本同步选中API，仅新增资源或更新分组描述，保留授权",
+                                                             "tags":  [
+                                                                          "api"
+                                                                      ],
+                                                             "x-casbin-resource":  true
+                                                         }
+                                            },
                   "/v1/sys/api/createApi":  {
                                                 "post":  {
                                                              "consumes":  [
@@ -1987,7 +2198,8 @@
                                                              "summary":  "创建/增加 api列表",
                                                              "tags":  [
                                                                           "api"
-                                                                      ]
+                                                                      ],
+                                                             "x-casbin-resource":  true
                                                          }
                                             },
                   "/v1/sys/api/deleteApi":  {
@@ -2072,7 +2284,8 @@
                                                                "summary":  "删除 api列表",
                                                                "tags":  [
                                                                             "api"
-                                                                        ]
+                                                                        ],
+                                                               "x-casbin-resource":  true
                                                            }
                                             },
                   "/v1/sys/api/deleteApisByIds":  {
@@ -2157,7 +2370,8 @@
                                                                      "summary":  "删除多条api",
                                                                      "tags":  [
                                                                                   "api"
-                                                                              ]
+                                                                              ],
+                                                                     "x-casbin-resource":  true
                                                                  }
                                                   },
                   "/v1/sys/api/getAllApiList":  {
@@ -2229,7 +2443,8 @@
                                                                 "summary":  "获取 所有api",
                                                                 "tags":  [
                                                                              "api"
-                                                                         ]
+                                                                         ],
+                                                                "x-casbin-resource":  true
                                                             }
                                                 },
                   "/v1/sys/api/getApiList":  {
@@ -2366,9 +2581,83 @@
                                                              "summary":  "获取api列表",
                                                              "tags":  [
                                                                           "api"
-                                                                      ]
+                                                                      ],
+                                                             "x-casbin-resource":  true
                                                          }
                                              },
+                  "/v1/sys/api/previewSync":  {
+                                                  "get":  {
+                                                              "operationId":  "apiPreviewApiSync",
+                                                              "produces":  [
+                                                                               "application/json"
+                                                                           ],
+                                                              "responses":  {
+                                                                                "200":  {
+                                                                                            "description":  "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+                                                                                            "schema":  {
+                                                                                                           "properties":  {
+                                                                                                                              "code":  {
+                                                                                                                                           "example":  200,
+                                                                                                                                           "type":  "integer"
+                                                                                                                                       },
+                                                                                                                              "message":  {
+                                                                                                                                              "example":  "操作成功!",
+                                                                                                                                              "type":  "string"
+                                                                                                                                          },
+                                                                                                                              "result":  {
+                                                                                                                                             "$ref":  "#/definitions/PreviewApiSyncResponse"
+                                                                                                                                         },
+                                                                                                                              "returnData":  {
+                                                                                                                                                 "description":  "Currently null",
+                                                                                                                                                 "x-nullable":  true
+                                                                                                                                             },
+                                                                                                                              "success":  {
+                                                                                                                                              "example":  true,
+                                                                                                                                              "type":  "boolean"
+                                                                                                                                          },
+                                                                                                                              "timestamp":  {
+                                                                                                                                                "description":  "Unix time in seconds",
+                                                                                                                                                "format":  "int64",
+                                                                                                                                                "type":  "integer"
+                                                                                                                                            }
+                                                                                                                          },
+                                                                                                           "required":  [
+                                                                                                                            "code",
+                                                                                                                            "message"
+                                                                                                                        ],
+                                                                                                           "type":  "object"
+                                                                                                       },
+                                                                                            "x-business-error-schema":  {
+                                                                                                                            "$ref":  "#/definitions/BusinessError"
+                                                                                                                        }
+                                                                                        },
+                                                                                "403":  {
+                                                                                            "description":  "接口权限不足",
+                                                                                            "schema":  {
+                                                                                                           "$ref":  "#/definitions/MiddlewareError"
+                                                                                                       }
+                                                                                        },
+                                                                                "500":  {
+                                                                                            "description":  "鉴权服务异常",
+                                                                                            "schema":  {
+                                                                                                           "$ref":  "#/definitions/MiddlewareError"
+                                                                                                       }
+                                                                                        }
+                                                                            },
+                                                              "security":  [
+                                                                               {
+                                                                                   "BearerAuth":  [
+
+                                                                                                  ]
+                                                                               }
+                                                                           ],
+                                                              "summary":  "预览Swagger与API资源差异，失效资源仅提示",
+                                                              "tags":  [
+                                                                           "api"
+                                                                       ],
+                                                              "x-casbin-resource":  true
+                                                          }
+                                              },
                   "/v1/sys/api/updateApi":  {
                                                 "put":  {
                                                             "consumes":  [
@@ -2451,7 +2740,8 @@
                                                             "summary":  "更新api",
                                                             "tags":  [
                                                                          "api"
-                                                                     ]
+                                                                     ],
+                                                            "x-casbin-resource":  true
                                                         }
                                             },
                   "/v1/sys/authority/addAuthorityMenu":  {
@@ -2536,7 +2826,8 @@
                                                                           "summary":  "增加角色和base_menu关联关系",
                                                                           "tags":  [
                                                                                        "authority"
-                                                                                   ]
+                                                                                   ],
+                                                                          "x-casbin-resource":  true
                                                                       }
                                                          },
                   "/v1/sys/authority/createAuthority":  {
@@ -2621,7 +2912,8 @@
                                                                          "summary":  "创建角色",
                                                                          "tags":  [
                                                                                       "authority"
-                                                                                  ]
+                                                                                  ],
+                                                                         "x-casbin-resource":  true
                                                                      }
                                                         },
                   "/v1/sys/authority/deleteAuthority":  {
@@ -2706,7 +2998,8 @@
                                                                            "summary":  "删除角色",
                                                                            "tags":  [
                                                                                         "authority"
-                                                                                    ]
+                                                                                    ],
+                                                                           "x-casbin-resource":  true
                                                                        }
                                                         },
                   "/v1/sys/authority/getAuthorityList":  {
@@ -2798,7 +3091,8 @@
                                                                          "summary":  "获取角色列表",
                                                                          "tags":  [
                                                                                       "authority"
-                                                                                  ]
+                                                                                  ],
+                                                                         "x-casbin-resource":  true
                                                                      }
                                                          },
                   "/v1/sys/authority/updateAuthority":  {
@@ -2883,7 +3177,8 @@
                                                                         "summary":  "更新角色 -- 设为首页",
                                                                         "tags":  [
                                                                                      "authority"
-                                                                                 ]
+                                                                                 ],
+                                                                        "x-casbin-resource":  true
                                                                     }
                                                         },
                   "/v1/sys/base/sendEmailCode":  {
@@ -2968,7 +3263,8 @@
                                                                   "summary":  "邮箱发送验证码 - 暂时用于注册账号",
                                                                   "tags":  [
                                                                                "base"
-                                                                           ]
+                                                                           ],
+                                                                  "x-casbin-resource":  true
                                                               }
                                                  },
                   "/v1/sys/base/uploadFileImg":  {
@@ -3052,7 +3348,8 @@
                                                                   "summary":  "上传图片",
                                                                   "tags":  [
                                                                                "base"
-                                                                           ]
+                                                                           ],
+                                                                  "x-casbin-resource":  true
                                                               }
                                                  },
                   "/v1/sys/casbin/getPathByAuthorityId":  {
@@ -3132,7 +3429,8 @@
                                                                           "summary":  "根据角色id获取对应的casbin数据",
                                                                           "tags":  [
                                                                                        "casbin"
-                                                                                   ]
+                                                                                   ],
+                                                                          "x-casbin-resource":  true
                                                                       }
                                                           },
                   "/v1/sys/casbin/updateCasbinData":  {
@@ -3217,7 +3515,8 @@
                                                                       "summary":  "更新一个角色的对应的casbin数据",
                                                                       "tags":  [
                                                                                    "casbin"
-                                                                               ]
+                                                                               ],
+                                                                      "x-casbin-resource":  true
                                                                   }
                                                       },
                   "/v1/sys/casbin/updateCasbinDataByApiIds":  {
@@ -3302,9 +3601,96 @@
                                                                               "summary":  "更新一个角色的对应的casbin数据 用api的ids 查数据",
                                                                               "tags":  [
                                                                                            "casbin"
-                                                                                       ]
+                                                                                       ],
+                                                                              "x-casbin-resource":  true
                                                                           }
                                                               },
+                  "/v1/sys/changePassword":  {
+                                                 "put":  {
+                                                             "consumes":  [
+                                                                              "application/json"
+                                                                          ],
+                                                             "operationId":  "sessionChangePassword",
+                                                             "parameters":  [
+                                                                                {
+                                                                                    "in":  "body",
+                                                                                    "name":  "body",
+                                                                                    "required":  true,
+                                                                                    "schema":  {
+                                                                                                   "$ref":  "#/definitions/ChangePasswordRequest"
+                                                                                               }
+                                                                                }
+                                                                            ],
+                                                             "produces":  [
+                                                                              "application/json"
+                                                                          ],
+                                                             "responses":  {
+                                                                               "200":  {
+                                                                                           "description":  "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+                                                                                           "schema":  {
+                                                                                                          "properties":  {
+                                                                                                                             "code":  {
+                                                                                                                                          "example":  200,
+                                                                                                                                          "type":  "integer"
+                                                                                                                                      },
+                                                                                                                             "message":  {
+                                                                                                                                             "example":  "操作成功!",
+                                                                                                                                             "type":  "string"
+                                                                                                                                         },
+                                                                                                                             "result":  {
+                                                                                                                                            "$ref":  "#/definitions/MessageResponse"
+                                                                                                                                        },
+                                                                                                                             "returnData":  {
+                                                                                                                                                "description":  "Currently null",
+                                                                                                                                                "x-nullable":  true
+                                                                                                                                            },
+                                                                                                                             "success":  {
+                                                                                                                                             "example":  true,
+                                                                                                                                             "type":  "boolean"
+                                                                                                                                         },
+                                                                                                                             "timestamp":  {
+                                                                                                                                               "description":  "Unix time in seconds",
+                                                                                                                                               "format":  "int64",
+                                                                                                                                               "type":  "integer"
+                                                                                                                                           }
+                                                                                                                         },
+                                                                                                          "required":  [
+                                                                                                                           "code",
+                                                                                                                           "message"
+                                                                                                                       ],
+                                                                                                          "type":  "object"
+                                                                                                      },
+                                                                                           "x-business-error-schema":  {
+                                                                                                                           "$ref":  "#/definitions/BusinessError"
+                                                                                                                       }
+                                                                                       },
+                                                                               "403":  {
+                                                                                           "description":  "接口权限不足",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/MiddlewareError"
+                                                                                                      }
+                                                                                       },
+                                                                               "500":  {
+                                                                                           "description":  "鉴权服务异常",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/MiddlewareError"
+                                                                                                      }
+                                                                                       }
+                                                                           },
+                                                             "security":  [
+                                                                              {
+                                                                                  "BearerAuth":  [
+
+                                                                                                 ]
+                                                                              }
+                                                                          ],
+                                                             "summary":  "修改自己的密码并撤销全部会话",
+                                                             "tags":  [
+                                                                          "session"
+                                                                      ],
+                                                             "x-casbin-resource":  false
+                                                         }
+                                             },
                   "/v1/sys/deleteUser":  {
                                              "delete":  {
                                                             "consumes":  [
@@ -3387,7 +3773,8 @@
                                                             "summary":  "删除用户",
                                                             "tags":  [
                                                                          "user"
-                                                                     ]
+                                                                     ],
+                                                            "x-casbin-resource":  true
                                                         }
                                          },
                   "/v1/sys/dictionary/createSysDictionary":  {
@@ -3472,7 +3859,8 @@
                                                                               "summary":  "新建SysDictionary",
                                                                               "tags":  [
                                                                                            "dictionary"
-                                                                                       ]
+                                                                                       ],
+                                                                              "x-casbin-resource":  true
                                                                           }
                                                              },
                   "/v1/sys/dictionary/createSysDictionaryInfo":  {
@@ -3557,7 +3945,8 @@
                                                                                   "summary":  "创建SysDictionaryInfo",
                                                                                   "tags":  [
                                                                                                "dictionary"
-                                                                                           ]
+                                                                                           ],
+                                                                                  "x-casbin-resource":  true
                                                                               }
                                                                  },
                   "/v1/sys/dictionary/deleteSysDictionary":  {
@@ -3642,7 +4031,8 @@
                                                                                 "summary":  "删除SysDictionary",
                                                                                 "tags":  [
                                                                                              "dictionary"
-                                                                                         ]
+                                                                                         ],
+                                                                                "x-casbin-resource":  true
                                                                             }
                                                              },
                   "/v1/sys/dictionary/deleteSysDictionaryInfo":  {
@@ -3727,7 +4117,8 @@
                                                                                     "summary":  "删除SysDictionaryInfo",
                                                                                     "tags":  [
                                                                                                  "dictionary"
-                                                                                             ]
+                                                                                             ],
+                                                                                    "x-casbin-resource":  true
                                                                                 }
                                                                  },
                   "/v1/sys/dictionary/getSysDictionaryDetails":  {
@@ -3821,7 +4212,8 @@
                                                                                  "summary":  "根据ID或者type获取SysDictionary",
                                                                                  "tags":  [
                                                                                               "dictionary"
-                                                                                          ]
+                                                                                          ],
+                                                                                 "x-casbin-resource":  true
                                                                              }
                                                                  },
                   "/v1/sys/dictionary/getSysDictionaryInfoList":  {
@@ -3937,7 +4329,8 @@
                                                                                   "summary":  "获取SysDictionaryInfo列表",
                                                                                   "tags":  [
                                                                                                "dictionary"
-                                                                                           ]
+                                                                                           ],
+                                                                                  "x-casbin-resource":  true
                                                                               }
                                                                   },
                   "/v1/sys/dictionary/getSysDictionaryInfoListDetailsById":  {
@@ -4017,7 +4410,8 @@
                                                                                              "summary":  "根据id获取SysDictionaryInfo详情",
                                                                                              "tags":  [
                                                                                                           "dictionary"
-                                                                                                      ]
+                                                                                                      ],
+                                                                                             "x-casbin-resource":  true
                                                                                          }
                                                                              },
                   "/v1/sys/dictionary/getSysDictionaryList":  {
@@ -4089,7 +4483,8 @@
                                                                               "summary":  "获取SysDictionary列表",
                                                                               "tags":  [
                                                                                            "dictionary"
-                                                                                       ]
+                                                                                       ],
+                                                                              "x-casbin-resource":  true
                                                                           }
                                                               },
                   "/v1/sys/dictionary/updateSysDictionary":  {
@@ -4174,7 +4569,8 @@
                                                                              "summary":  "更新SysDictionary",
                                                                              "tags":  [
                                                                                           "dictionary"
-                                                                                      ]
+                                                                                      ],
+                                                                             "x-casbin-resource":  true
                                                                          }
                                                              },
                   "/v1/sys/dictionary/updateSysDictionaryInfo":  {
@@ -4259,7 +4655,8 @@
                                                                                  "summary":  "更新SysDictionaryInfo",
                                                                                  "tags":  [
                                                                                               "dictionary"
-                                                                                          ]
+                                                                                          ],
+                                                                                 "x-casbin-resource":  true
                                                                              }
                                                                  },
                   "/v1/sys/getUserList":  {
@@ -4351,7 +4748,8 @@
                                                           "summary":  "分页获取用户列表",
                                                           "tags":  [
                                                                        "user"
-                                                                   ]
+                                                                   ],
+                                                          "x-casbin-resource":  true
                                                       }
                                           },
                   "/v1/sys/login":  {
@@ -4417,9 +4815,159 @@
                                                      "summary":  "用户登录",
                                                      "tags":  [
                                                                   "usernocasbin"
-                                                              ]
+                                                              ],
+                                                     "x-casbin-resource":  false
                                                  }
                                     },
+                  "/v1/sys/logout":  {
+                                         "post":  {
+                                                      "consumes":  [
+                                                                       "application/x-www-form-urlencoded"
+                                                                   ],
+                                                      "operationId":  "sessionLogout",
+                                                      "produces":  [
+                                                                       "application/json"
+                                                                   ],
+                                                      "responses":  {
+                                                                        "200":  {
+                                                                                    "description":  "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+                                                                                    "schema":  {
+                                                                                                   "properties":  {
+                                                                                                                      "code":  {
+                                                                                                                                   "example":  200,
+                                                                                                                                   "type":  "integer"
+                                                                                                                               },
+                                                                                                                      "message":  {
+                                                                                                                                      "example":  "操作成功!",
+                                                                                                                                      "type":  "string"
+                                                                                                                                  },
+                                                                                                                      "result":  {
+                                                                                                                                     "$ref":  "#/definitions/MessageResponse"
+                                                                                                                                 },
+                                                                                                                      "returnData":  {
+                                                                                                                                         "description":  "Currently null",
+                                                                                                                                         "x-nullable":  true
+                                                                                                                                     },
+                                                                                                                      "success":  {
+                                                                                                                                      "example":  true,
+                                                                                                                                      "type":  "boolean"
+                                                                                                                                  },
+                                                                                                                      "timestamp":  {
+                                                                                                                                        "description":  "Unix time in seconds",
+                                                                                                                                        "format":  "int64",
+                                                                                                                                        "type":  "integer"
+                                                                                                                                    }
+                                                                                                                  },
+                                                                                                   "required":  [
+                                                                                                                    "code",
+                                                                                                                    "message"
+                                                                                                                ],
+                                                                                                   "type":  "object"
+                                                                                               },
+                                                                                    "x-business-error-schema":  {
+                                                                                                                    "$ref":  "#/definitions/BusinessError"
+                                                                                                                }
+                                                                                },
+                                                                        "403":  {
+                                                                                    "description":  "接口权限不足",
+                                                                                    "schema":  {
+                                                                                                   "$ref":  "#/definitions/MiddlewareError"
+                                                                                               }
+                                                                                },
+                                                                        "500":  {
+                                                                                    "description":  "鉴权服务异常",
+                                                                                    "schema":  {
+                                                                                                   "$ref":  "#/definitions/MiddlewareError"
+                                                                                               }
+                                                                                }
+                                                                    },
+                                                      "security":  [
+                                                                       {
+                                                                           "BearerAuth":  [
+
+                                                                                          ]
+                                                                       }
+                                                                   ],
+                                                      "summary":  "退出登录并撤销该用户全部会话",
+                                                      "tags":  [
+                                                                   "session"
+                                                               ],
+                                                      "x-casbin-resource":  false
+                                                  }
+                                     },
+                  "/v1/sys/me":  {
+                                     "get":  {
+                                                 "operationId":  "sessionMe",
+                                                 "produces":  [
+                                                                  "application/json"
+                                                              ],
+                                                 "responses":  {
+                                                                   "200":  {
+                                                                               "description":  "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+                                                                               "schema":  {
+                                                                                              "properties":  {
+                                                                                                                 "code":  {
+                                                                                                                              "example":  200,
+                                                                                                                              "type":  "integer"
+                                                                                                                          },
+                                                                                                                 "message":  {
+                                                                                                                                 "example":  "操作成功!",
+                                                                                                                                 "type":  "string"
+                                                                                                                             },
+                                                                                                                 "result":  {
+                                                                                                                                "$ref":  "#/definitions/UserInfo"
+                                                                                                                            },
+                                                                                                                 "returnData":  {
+                                                                                                                                    "description":  "Currently null",
+                                                                                                                                    "x-nullable":  true
+                                                                                                                                },
+                                                                                                                 "success":  {
+                                                                                                                                 "example":  true,
+                                                                                                                                 "type":  "boolean"
+                                                                                                                             },
+                                                                                                                 "timestamp":  {
+                                                                                                                                   "description":  "Unix time in seconds",
+                                                                                                                                   "format":  "int64",
+                                                                                                                                   "type":  "integer"
+                                                                                                                               }
+                                                                                                             },
+                                                                                              "required":  [
+                                                                                                               "code",
+                                                                                                               "message"
+                                                                                                           ],
+                                                                                              "type":  "object"
+                                                                                          },
+                                                                               "x-business-error-schema":  {
+                                                                                                               "$ref":  "#/definitions/BusinessError"
+                                                                                                           }
+                                                                           },
+                                                                   "403":  {
+                                                                               "description":  "接口权限不足",
+                                                                               "schema":  {
+                                                                                              "$ref":  "#/definitions/MiddlewareError"
+                                                                                          }
+                                                                           },
+                                                                   "500":  {
+                                                                               "description":  "鉴权服务异常",
+                                                                               "schema":  {
+                                                                                              "$ref":  "#/definitions/MiddlewareError"
+                                                                                          }
+                                                                           }
+                                                               },
+                                                 "security":  [
+                                                                  {
+                                                                      "BearerAuth":  [
+
+                                                                                     ]
+                                                                  }
+                                                              ],
+                                                 "summary":  "获取当前登录用户",
+                                                 "tags":  [
+                                                              "session"
+                                                          ],
+                                                 "x-casbin-resource":  false
+                                             }
+                                 },
                   "/v1/sys/menu/addBaseMenu":  {
                                                    "post":  {
                                                                 "consumes":  [
@@ -4502,7 +5050,8 @@
                                                                 "summary":  "新增 base_menu",
                                                                 "tags":  [
                                                                              "menu"
-                                                                         ]
+                                                                         ],
+                                                                "x-casbin-resource":  true
                                                             }
                                                },
                   "/v1/sys/menu/deleteBaseMenu":  {
@@ -4587,7 +5136,8 @@
                                                                      "summary":  "删除系统菜单",
                                                                      "tags":  [
                                                                                   "menu"
-                                                                              ]
+                                                                              ],
+                                                                     "x-casbin-resource":  true
                                                                  }
                                                   },
                   "/v1/sys/menu/getAuthorityButtons":  {
@@ -4667,7 +5217,8 @@
                                                                        "summary":  "读取指定角色按钮授权",
                                                                        "tags":  [
                                                                                     "menu"
-                                                                                ]
+                                                                                ],
+                                                                       "x-casbin-resource":  true
                                                                    }
                                                        },
                   "/v1/sys/menu/getBaseMenuById":  {
@@ -4747,7 +5298,8 @@
                                                                    "summary":  "根据id获取菜单",
                                                                    "tags":  [
                                                                                 "menu"
-                                                                            ]
+                                                                            ],
+                                                                   "x-casbin-resource":  true
                                                                }
                                                    },
                   "/v1/sys/menu/getBaseMenuTree":  {
@@ -4819,7 +5371,8 @@
                                                                    "summary":  "获取用户动态路由树  -- 用于角色管理的设置权限",
                                                                    "tags":  [
                                                                                 "menu"
-                                                                            ]
+                                                                            ],
+                                                                   "x-casbin-resource":  true
                                                                }
                                                    },
                   "/v1/sys/menu/getMenu":  {
@@ -4891,7 +5444,8 @@
                                                            "summary":  "获取菜单",
                                                            "tags":  [
                                                                         "menu"
-                                                                    ]
+                                                                    ],
+                                                           "x-casbin-resource":  true
                                                        }
                                            },
                   "/v1/sys/menu/getMenuAuthority":  {
@@ -4971,7 +5525,8 @@
                                                                     "summary":  "获取指定角色menu  -- 用于角色管理的设置权限",
                                                                     "tags":  [
                                                                                  "menu"
-                                                                             ]
+                                                                             ],
+                                                                    "x-casbin-resource":  true
                                                                 }
                                                     },
                   "/v1/sys/menu/getMenuList":  {
@@ -5063,7 +5618,8 @@
                                                                "summary":  "获取完整base_menu树，分页参数仅兼容保留，不参与分页",
                                                                "tags":  [
                                                                             "menu"
-                                                                        ]
+                                                                        ],
+                                                               "x-casbin-resource":  true
                                                            }
                                                },
                   "/v1/sys/menu/updateAuthorityButtons":  {
@@ -5148,7 +5704,8 @@
                                                                           "summary":  "保存指定角色按钮授权",
                                                                           "tags":  [
                                                                                        "menu"
-                                                                                   ]
+                                                                                   ],
+                                                                          "x-casbin-resource":  true
                                                                       }
                                                           },
                   "/v1/sys/menu/updateBaseMenu":  {
@@ -5233,7 +5790,8 @@
                                                                   "summary":  "更新系统菜单",
                                                                   "tags":  [
                                                                                "menu"
-                                                                           ]
+                                                                           ],
+                                                                  "x-casbin-resource":  true
                                                               }
                                                   },
                   "/v1/sys/randomImage":  {
@@ -5286,7 +5844,8 @@
                                                           "summary":  "生成验证码",
                                                           "tags":  [
                                                                        "usernocasbin"
-                                                                   ]
+                                                                   ],
+                                                          "x-casbin-resource":  false
                                                       }
                                           },
                   "/v1/sys/register":  {
@@ -5372,7 +5931,8 @@
                                                         "summary":  "新增（注册）用户 - 管理员",
                                                         "tags":  [
                                                                      "user"
-                                                                 ]
+                                                                 ],
+                                                        "x-casbin-resource":  true
                                                     }
                                        },
                   "/v1/sys/resetUserPassword":  {
@@ -5457,7 +6017,8 @@
                                                                 "summary":  "重置用户密码 默认密码：goZero",
                                                                 "tags":  [
                                                                              "user"
-                                                                         ]
+                                                                         ],
+                                                                "x-casbin-resource":  true
                                                             }
                                                 },
                   "/v1/sys/updateUserInfo":  {
@@ -5542,7 +6103,8 @@
                                                              "summary":  "修改用户信息",
                                                              "tags":  [
                                                                           "user"
-                                                                      ]
+                                                                      ],
+                                                             "x-casbin-resource":  true
                                                          }
                                              }
               },

@@ -36,5 +36,5 @@ func (l *UpdateSysDictionaryLogic) UpdateSysDictionary(in *pb.UpdateSysDictionar
 		value := in.SysDictionary
 		return tx.Model(&old).Updates(map[string]interface{}{"name": value.Name, "type": value.Type, "status": value.Status, "desc": value.Desc}).Error
 	})
-	return &pb.NoDataResponse{}, err
+	return &pb.NoDataResponse{}, accessutil.FriendlyDuplicate(err)
 }

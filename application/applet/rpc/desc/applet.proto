@@ -35,6 +35,7 @@ message UserInfo{
   string CreatedAt = 16;
   string UpdatedAt = 17;
   string DeletedAt = 18;
+  int64 SessionVersion = 19;
 
 }
 
@@ -83,6 +84,7 @@ message GetUserTokeRequest {
   int64 AuthorityId = 3;
   string Username = 4;
   string NickName = 5;
+  int64 SessionVersion = 6;
 }
 
 message GetUserTokeResponse {
@@ -459,7 +461,22 @@ message UpdateAuthorityButtonsRequest {
   repeated int64 MenuBtnIds = 2;
 }
 
+message SessionRequest {
+  int64 UserID = 1;
+  int64 SessionVersion = 2;
+  int64 AuthorityId = 3;
+}
+message CheckSessionResponse { bool Valid = 1; }
+message ChangePasswordRequest {
+  SessionRequest Session = 1;
+  string OldPassword = 2;
+  string NewPassword = 3;
+}
 service User {
+  rpc CheckSession (SessionRequest) returns (CheckSessionResponse);
+  rpc GetCurrentUser (SessionRequest) returns (GetUserInfoResponse);
+  rpc ChangePassword (ChangePasswordRequest) returns (NoDataResponse);
+  rpc Logout (SessionRequest) returns (NoDataResponse);
   //  获取用户信息
   rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
   // 获取Token
@@ -519,6 +536,10 @@ service Authority {
 }
 
 service Api {
+  // 预览当前Swagger与权限资源的差异
+  rpc PreviewApiSync (NoDataResponse) returns (PreviewApiSyncResponse);
+  // 按已确认的差异同步资源，不修改现有授权
+  rpc ApplyApiSync (ApplyApiSyncRequest) returns (ApplyApiSyncResponse);
   // 获取API列表
   rpc GetApiList (GetApiListRequest) returns (GetApiListResponse);
   // 创建/添加 API列表
@@ -573,4 +594,29 @@ service Dictionary {
   rpc CreateSysDictionaryInfo (CreateSysDictionaryInfoRequest) returns (NoDataResponse);
   // 删除SysDictionaryInfo
   rpc DeleteSysDictionaryInfo (DeleteSysDictionaryInfoRequest) returns (NoDataResponse);
+}
+
+message ApiSyncItem {
+  string key = 1;
+  int64 id = 2;
+  string path = 3;
+  string method = 4;
+  string apiGroup = 5;
+  string description = 6;
+  string currentApiGroup = 7;
+  string currentDescription = 8;
+}
+message PreviewApiSyncResponse {
+  string version = 1;
+  repeated ApiSyncItem added = 2;
+  repeated ApiSyncItem changed = 3;
+  repeated ApiSyncItem obsolete = 4;
+}
+message ApplyApiSyncRequest {
+  string version = 1;
+  repeated string keys = 2;
+}
+message ApplyApiSyncResponse {
+  int64 added = 1;
+  int64 updated = 2;
 }

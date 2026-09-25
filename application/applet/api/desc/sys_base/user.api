@@ -20,6 +20,26 @@ service applet-api {
 }
 
 @server(
+    prefix: /v1/sys
+    group: session
+    jwt: JwtAuth
+    middleware: Session
+)
+service applet-api {
+    @doc "获取当前登录用户"
+    @handler Me
+    get /me (MeRequest) returns (UserInfo)
+
+    @doc "修改自己的密码并撤销全部会话"
+    @handler ChangePassword
+    put /changePassword (ChangePasswordRequest) returns (MessageResponse)
+
+    @doc "退出登录并撤销该用户全部会话"
+    @handler Logout
+    post /logout (LogoutRequest) returns (MessageResponse)
+}
+
+@server(
 	prefix: /v1/sys
 	group: user
 	jwt: JwtAuth

@@ -442,3 +442,11 @@ type UpdateAuthorityButtonsRequest {
 	AuthorityId int64 `json:"authorityId"`
 	MenuBtnIds []int64 `json:"menuBtnIds"`
 }
+
+
+type MeRequest {}
+type LogoutRequest {}
+type ChangePasswordRequest {
+    OldPassword string `json:"oldPassword"`
+    NewPassword string `json:"newPassword"`
+}

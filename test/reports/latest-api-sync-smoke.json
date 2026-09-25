@@ -1,0 +1,18 @@
+{
+  "time": "2026-09-25T17:12:31.766Z",
+  "base": "http://127.0.0.1:7001",
+  "results": [
+    {
+      "label": "Preview contract, personal endpoints excluded, invalid selection causes no writes",
+      "status": "PASS"
+    },
+    {
+      "label": "Stale version rejected, selected metadata applied once, IDs/other resources/grants preserved",
+      "status": "PASS"
+    },
+    {
+      "label": "Original API description restored",
+      "status": "PASS"
+    }
+  ]
+}

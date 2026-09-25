@@ -1,0 +1,81 @@
+{
+  "time": "2026-09-25T17:10:37.394Z",
+  "base": "http://127.0.0.1:7001",
+  "prefix": "session_smoke_1790355939619_2343",
+  "results": [
+    {
+      "label": "Current user, unchanged roles and ordinary-role HTTP 403",
+      "status": "PASS"
+    },
+    {
+      "label": "Password validation, change and fresh login",
+      "status": "PASS"
+    },
+    {
+      "label": "Freeze then unfreeze never restores the old token",
+      "status": "PASS"
+    },
+    {
+      "label": "Default role change revokes existing token",
+      "status": "FAIL",
+      "detail": "/login: 验证码错误\n\n200007 !== 200\n"
+    },
+    {
+      "label": "Associated role change revokes existing token",
+      "status": "PASS"
+    },
+    {
+      "label": "Password reset revokes and default reset password can log in",
+      "status": "FAIL",
+      "detail": "/login: 验证码错误\n\n200007 !== 200\n"
+    },
+    {
+      "label": "Logout replay cannot revoke a later login",
+      "status": "PASS"
+    },
+    {
+      "label": "Deleting a user revokes existing token",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup session_smoke_1790355939619_2343_delete",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup session_smoke_1790355939619_2343_logout",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup session_smoke_1790355939619_2343_reset",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup session_smoke_1790355939619_2343_linked_role",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup session_smoke_1790355939619_2343_default_role",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup session_smoke_1790355939619_2343_freeze",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup session_smoke_1790355939619_2343_password",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup session_smoke_1790355939619_2343_profile",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup Role 1790455940",
+      "status": "PASS"
+    },
+    {
+      "label": "Cleanup Role 1790455939",
+      "status": "PASS"
+    }
+  ]
+}

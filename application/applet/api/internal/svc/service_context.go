@@ -9,6 +9,8 @@ import (
 	dictionaryRPC "go-zero-admin/application/applet/rpc/client/dictionary"
 	"go-zero-admin/application/applet/rpc/client/menu"
 	"go-zero-admin/application/applet/rpc/client/user"
+	"go-zero-admin/pkg/rpcprivacy"
+	"net/http"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -22,6 +24,7 @@ const (
 )
 
 type ServiceContext struct {
+	Session             rest.Middleware
 	Config              config.Config
 	Authority           rest.Middleware
 	BizRedis            *redis.Redis
@@ -52,6 +55,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 	rds := redis.MustNewRedis(c.BizRedis, redis.WithPass(c.BizRedis.Pass)) // jsonMark:骑着毛驴背单词
 
+	rpcprivacy.ConfigureClient()
 	appletRPC := zrpc.MustNewClient(c.AppletRPC)
 	casbinCli := casbinRPC.NewCasbin(appletRPC)
 
@@ -68,7 +72,9 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 
 	// 权限鉴权走RPC casbin api层不直连数据库
-	svc.Authority = middleware.NewAuthorityMiddleware(casbinCli).Handle
+	svc.Session = middleware.NewSessionMiddleware(svc.AppletUserRPC).Handle
+	authority := middleware.NewAuthorityMiddleware(casbinCli).Handle
+	svc.Authority = func(next http.HandlerFunc) http.HandlerFunc { return svc.Session(authority(next)) }
 
 	return svc
 }

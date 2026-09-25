@@ -1,0 +1,154 @@
+{
+  "prefix": "smoke_1790355912584",
+  "finishedAt": "2026-09-25T17:05:14.312Z",
+  "requestedOperations": [
+    "DELETE /v1/sys/api/deleteApi",
+    "DELETE /v1/sys/api/deleteApisByIds",
+    "DELETE /v1/sys/authority/deleteAuthority",
+    "DELETE /v1/sys/deleteUser",
+    "DELETE /v1/sys/dictionary/deleteSysDictionary",
+    "DELETE /v1/sys/dictionary/deleteSysDictionaryInfo",
+    "DELETE /v1/sys/menu/deleteBaseMenu",
+    "GET /v1/sys/api/getAllApiList",
+    "GET /v1/sys/api/getApiList",
+    "GET /v1/sys/authority/getAuthorityList",
+    "GET /v1/sys/casbin/getPathByAuthorityId",
+    "GET /v1/sys/dictionary/getSysDictionaryDetails",
+    "GET /v1/sys/dictionary/getSysDictionaryInfoList",
+    "GET /v1/sys/dictionary/getSysDictionaryInfoListDetailsById",
+    "GET /v1/sys/dictionary/getSysDictionaryList",
+    "GET /v1/sys/getUserList",
+    "GET /v1/sys/menu/getAuthorityButtons",
+    "GET /v1/sys/menu/getBaseMenuById",
+    "GET /v1/sys/menu/getBaseMenuTree",
+    "GET /v1/sys/menu/getMenu",
+    "GET /v1/sys/menu/getMenuAuthority",
+    "GET /v1/sys/menu/getMenuList",
+    "POST /v1/sys/api/createApi",
+    "POST /v1/sys/authority/addAuthorityMenu",
+    "POST /v1/sys/authority/createAuthority",
+    "POST /v1/sys/base/sendEmailCode",
+    "POST /v1/sys/base/uploadFileImg",
+    "POST /v1/sys/dictionary/createSysDictionary",
+    "POST /v1/sys/dictionary/createSysDictionaryInfo",
+    "POST /v1/sys/menu/addBaseMenu",
+    "POST /v1/sys/register",
+    "PUT /v1/sys/api/updateApi",
+    "PUT /v1/sys/authority/updateAuthority",
+    "PUT /v1/sys/casbin/updateCasbinData",
+    "PUT /v1/sys/casbin/updateCasbinDataByApiIds",
+    "PUT /v1/sys/dictionary/updateSysDictionary",
+    "PUT /v1/sys/dictionary/updateSysDictionaryInfo",
+    "PUT /v1/sys/menu/updateAuthorityButtons",
+    "PUT /v1/sys/menu/updateBaseMenu",
+    "PUT /v1/sys/resetUserPassword",
+    "PUT /v1/sys/updateUserInfo"
+  ],
+  "report": [
+    {
+      "label": "Current menu /menu/getMenu",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Role create/list/update and new-role GET policy",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Menu create/tree/list/detail/update/cycle validation",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Role menu grant/target-role read/buttons/clear",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "User register/list/search/edit/clear/reset/freeze",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "API create/list/all/update/sort error",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Casbin path save / ID save / invalid ID rollback / clear",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "API batch delete",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Dictionary create/list/details/update",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Dictionary item create/list/detail/zero-value update",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Email invalid recipient fails clearly",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Email real delivery",
+      "status": "SKIP",
+      "detail": "No configured recipient / SMTP supplied"
+    },
+    {
+      "label": "Upload invalid file rejected",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Upload real OSS success",
+      "status": "SKIP",
+      "detail": "Requires configured OSS; verify separately if available"
+    },
+    {
+      "label": "Invalid JWT rejected",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "User delete",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Dictionary item delete",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Dictionary delete",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "API delete",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Menu delete",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "label": "Role delete",
+      "status": "PASS",
+      "detail": ""
+    }
+  ]
+}
