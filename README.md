@@ -557,4 +557,4 @@ node .\test\sh\smoke.mjs "$env:TEMP\go-zero-admin-regression\session.json"
 
 欢迎提交 Issue 和 Pull Request。提交时说明问题、修改内容和验证结果；接口变更同时提交定义、实现、必要迁移与更新后的 Swagger。
 
-交流微信：`qq1013055366`（备注：go-zero-admin）。
+交流微信：`golang-9527`（备注：go-zero-admin）。
