@@ -130,6 +130,7 @@ func validateResolvedPaths(all []model.SysBaseMenu, value *pb.SysBaseMenu) error
 		if err != nil {
 			return err
 		}
+		path = strings.ToLower(path)
 		if paths[path] {
 			return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "菜单完整路径重复")
 		}

@@ -1,0 +1,49 @@
+syntax = "v1"
+
+type (
+    AuditLog {
+        ID int64 `json:"id"`
+        ActorID int64 `json:"actorId"`
+        ActorName string `json:"actorName"`
+        AuthorityId int64 `json:"authorityId"`
+        Module string `json:"module"`
+        Action string `json:"action"`
+        Object string `json:"object"`
+        Path string `json:"path"`
+        Method string `json:"method"`
+        Result string `json:"result"`
+        StatusCode int64 `json:"statusCode"`
+        IP string `json:"ip"`
+        TraceID string `json:"traceId"`
+        DurationMs int64 `json:"durationMs"`
+        Params string `json:"params"`
+        CreatedAt string `json:"createdAt"`
+        EventType string `json:"eventType"`
+    }
+    GetAuditLogListRequest {
+        PageRequest
+        EventType string `form:"eventType,optional"`
+        Module string `form:"module,optional"`
+        ActorId int64 `form:"actorId,optional"`
+        ActorName string `form:"actorName,optional"`
+        Result string `form:"result,optional"`
+        StartTime string `form:"startTime,optional"`
+        EndTime string `form:"endTime,optional"`
+    }
+    GetAuditLogListResponse {
+        List []AuditLog `json:"list"`
+        PageResponse
+    }
+)
+
+@server(
+    prefix: /v1/sys/audit
+    group: audit
+    jwt: JwtAuth
+    middleware: Authority
+)
+service applet-api {
+    @doc "分页查询操作审计与登录日志，时间使用RFC3339格式"
+    @handler GetAuditLogList
+    get /getAuditLogList (GetAuditLogListRequest) returns (GetAuditLogListResponse)
+}

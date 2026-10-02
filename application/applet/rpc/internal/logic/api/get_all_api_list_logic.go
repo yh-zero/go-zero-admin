@@ -30,7 +30,7 @@ func NewGetAllApiListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get
 func (l *GetAllApiListLogic) GetAllApiList(in *pb.NoDataResponse) (*pb.GetAllApiListResponse, error) {
 	fmt.Println("========= GetAllApiList ======= ")
 	var apiList []model.SysApi
-	err := l.svcCtx.DB.Find(&apiList).Error
+	err := l.svcCtx.DB.WithContext(l.ctx).Find(&apiList).Error
 	//var pbSysApi []pb.SysApi
 	var AllApiListRes pb.GetAllApiListResponse
 	_ = copier.Copy(&AllApiListRes.ApiList, apiList)

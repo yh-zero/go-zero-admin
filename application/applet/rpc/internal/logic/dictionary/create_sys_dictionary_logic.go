@@ -21,7 +21,7 @@ func NewCreateSysDictionaryLogic(ctx context.Context, svcCtx *svc.ServiceContext
 }
 
 func (l *CreateSysDictionaryLogic) CreateSysDictionary(in *pb.CreateSysDictionaryRequest) (*pb.NoDataResponse, error) {
-	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+	err := l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
 		if in.SysDictionary != nil {
 			in.SysDictionary.ID = 0
 			if in.SysDictionary.Status == 0 {

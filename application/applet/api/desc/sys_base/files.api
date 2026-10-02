@@ -1,0 +1,59 @@
+syntax = "v1"
+
+type FileResource {
+    Id int64 `json:"id"`
+    Name string `json:"name"`
+    Mime string `json:"mime"`
+    Size int64 `json:"size"`
+    OwnerId int64 `json:"ownerId"`
+    DepartmentId int64 `json:"departmentId"`
+    Visibility string `json:"visibility"`
+    Status string `json:"status"`
+    References int64 `json:"references"`
+    CreatedAt string `json:"createdAt"`
+}
+type FileListRequest {
+    PageRequest
+    Name string `form:"name,optional"`
+    Status string `form:"status,optional"`
+}
+type FileListResponse {
+    List []FileResource `json:"list"`
+    PageResponse
+}
+type FileIDRequest { Id int64 `json:"id"` }
+type FileURLRequest { Id int64 `form:"id"` }
+type FileURLResponse {
+    Url string `json:"url"`
+    ExpiresIn int64 `json:"expiresIn"`
+}
+type FileReferenceRequest {
+    FileId int64 `json:"fileId"`
+    ObjectType string `json:"objectType"`
+    ObjectId string `json:"objectId"`
+}
+
+@server(
+    prefix: /v1/sys/files
+    group: files
+    jwt: JwtAuth
+    middleware: Authority
+    timeout: 30s
+)
+service applet-api {
+    @doc "按数据范围分页查询文件"
+    @handler GetFileList
+    get /list (FileListRequest) returns (FileListResponse)
+    @doc "获取受控文件访问地址"
+    @handler GetFileURL
+    get /url (FileURLRequest) returns (FileURLResponse)
+    @doc "删除无引用文件，失败可重试"
+    @handler DeleteFile
+    delete /resource (FileIDRequest) returns (MessageResponse)
+    @doc "登记文件业务引用"
+    @handler AddFileReference
+    post /reference (FileReferenceRequest) returns (MessageResponse)
+    @doc "移除文件业务引用"
+    @handler RemoveFileReference
+    delete /reference (FileReferenceRequest) returns (MessageResponse)
+}

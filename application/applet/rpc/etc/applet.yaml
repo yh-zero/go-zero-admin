@@ -1,5 +1,6 @@
 Name: applet.rpc
-ListenOn: 0.0.0.0:6001
+Mode: dev
+ListenOn: 127.0.0.1:6001
 Etcd:
   Hosts:
     - 127.0.0.1:2379
@@ -8,7 +9,7 @@ DB:
   DataSource: root:123456@tcp(127.0.0.1:3306)/goZero-admin?parseTime=true&loc=Local
   MaxIdleConns: 10
   MaxOpenConns: 100
-  ConnMaxLifetime: 3600
+  MaxLifetime: 3600
 BizRedis:
   Host: 127.0.0.1:6379
   Pass:
@@ -29,4 +30,4 @@ CasbinConf:
     [matchers]
     m = r.sub == p.sub && keyMatch2(r.obj,p.obj) && r.act == p.act
 Default: # 默认值
-  UserPassword: goZero   # 默认user重置密码
+  UserPassword: GoZero@2026   # 开发环境默认重置密码；生产环境通过环境变量配置

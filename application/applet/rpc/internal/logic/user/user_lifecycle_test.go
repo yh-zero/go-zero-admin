@@ -7,6 +7,7 @@ import (
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/audit"
 	"go-zero-admin/pkg/orm"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -24,7 +25,7 @@ func testUserDB(t *testing.T) *svc.ServiceContext {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { sqlDB.Close() })
-	if err := db.AutoMigrate(&model.SysAuthority{}, &model.SysUser{}, &model.SysUserAuthority{}, &model.SysAuthorityMenu{}, &model.SysBaseMenu{}); err != nil {
+	if err := db.AutoMigrate(&model.SysAuthority{}, &model.SysUser{}, &model.SysUserAuthority{}, &model.SysAuthorityMenu{}, &model.SysBaseMenu{}, &model.SysDeviceSession{}, &audit.Event{}, &model.SysUserDepartment{}, &model.SysUserPosition{}); err != nil {
 		t.Fatal(err)
 	}
 	for _, id := range []int64{801, 802} {

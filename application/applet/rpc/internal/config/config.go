@@ -4,11 +4,13 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/zrpc"
 	"go-zero-admin/pkg/middlecasbin"
+	"go-zero-admin/pkg/rpcsecurity"
 )
 
 type Config struct {
 	zrpc.RpcServerConf
 	BizRedis redis.RedisConf
+	RPCAuth  rpcsecurity.Credential `json:",optional"`
 	DB       struct {
 		DataSource   string
 		MaxOpenConns int `json:",default=10"`

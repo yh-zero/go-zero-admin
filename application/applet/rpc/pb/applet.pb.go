@@ -665,6 +665,8 @@ type GetUserTokeRequest struct {
 	Username       string                 `protobuf:"bytes,4,opt,name=Username,proto3" json:"Username,omitempty"`
 	NickName       string                 `protobuf:"bytes,5,opt,name=NickName,proto3" json:"NickName,omitempty"`
 	SessionVersion int64                  `protobuf:"varint,6,opt,name=SessionVersion,proto3" json:"SessionVersion,omitempty"`
+	IP             string                 `protobuf:"bytes,7,opt,name=IP,proto3" json:"IP,omitempty"`
+	UserAgent      string                 `protobuf:"bytes,8,opt,name=UserAgent,proto3" json:"UserAgent,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -739,6 +741,20 @@ func (x *GetUserTokeRequest) GetSessionVersion() int64 {
 		return x.SessionVersion
 	}
 	return 0
+}
+
+func (x *GetUserTokeRequest) GetIP() string {
+	if x != nil {
+		return x.IP
+	}
+	return ""
+}
+
+func (x *GetUserTokeRequest) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
 }
 
 type GetUserTokeResponse struct {
@@ -4293,6 +4309,7 @@ type SessionRequest struct {
 	UserID         int64                  `protobuf:"varint,1,opt,name=UserID,proto3" json:"UserID,omitempty"`
 	SessionVersion int64                  `protobuf:"varint,2,opt,name=SessionVersion,proto3" json:"SessionVersion,omitempty"`
 	AuthorityId    int64                  `protobuf:"varint,3,opt,name=AuthorityId,proto3" json:"AuthorityId,omitempty"`
+	SessionID      string                 `protobuf:"bytes,4,opt,name=SessionID,proto3" json:"SessionID,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -4346,6 +4363,13 @@ func (x *SessionRequest) GetAuthorityId() int64 {
 		return x.AuthorityId
 	}
 	return 0
+}
+
+func (x *SessionRequest) GetSessionID() string {
+	if x != nil {
+		return x.SessionID
+	}
+	return ""
 }
 
 type CheckSessionResponse struct {
@@ -4724,6 +4748,1822 @@ func (x *ApplyApiSyncResponse) GetUpdated() int64 {
 	return 0
 }
 
+type AuditLog struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ID            int64                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	ActorID       int64                  `protobuf:"varint,2,opt,name=ActorID,proto3" json:"ActorID,omitempty"`
+	ActorName     string                 `protobuf:"bytes,3,opt,name=ActorName,proto3" json:"ActorName,omitempty"`
+	AuthorityId   int64                  `protobuf:"varint,4,opt,name=AuthorityId,proto3" json:"AuthorityId,omitempty"`
+	Module        string                 `protobuf:"bytes,5,opt,name=Module,proto3" json:"Module,omitempty"`
+	Action        string                 `protobuf:"bytes,6,opt,name=Action,proto3" json:"Action,omitempty"`
+	Object        string                 `protobuf:"bytes,7,opt,name=Object,proto3" json:"Object,omitempty"`
+	Path          string                 `protobuf:"bytes,8,opt,name=Path,proto3" json:"Path,omitempty"`
+	Method        string                 `protobuf:"bytes,9,opt,name=Method,proto3" json:"Method,omitempty"`
+	Result        string                 `protobuf:"bytes,10,opt,name=Result,proto3" json:"Result,omitempty"`
+	StatusCode    int64                  `protobuf:"varint,11,opt,name=StatusCode,proto3" json:"StatusCode,omitempty"`
+	IP            string                 `protobuf:"bytes,12,opt,name=IP,proto3" json:"IP,omitempty"`
+	TraceID       string                 `protobuf:"bytes,13,opt,name=TraceID,proto3" json:"TraceID,omitempty"`
+	DurationMs    int64                  `protobuf:"varint,14,opt,name=DurationMs,proto3" json:"DurationMs,omitempty"`
+	Params        string                 `protobuf:"bytes,15,opt,name=Params,proto3" json:"Params,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,16,opt,name=CreatedAt,proto3" json:"CreatedAt,omitempty"`
+	EventType     string                 `protobuf:"bytes,17,opt,name=EventType,proto3" json:"EventType,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuditLog) Reset() {
+	*x = AuditLog{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[81]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuditLog) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuditLog) ProtoMessage() {}
+
+func (x *AuditLog) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[81]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuditLog.ProtoReflect.Descriptor instead.
+func (*AuditLog) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{81}
+}
+
+func (x *AuditLog) GetID() int64 {
+	if x != nil {
+		return x.ID
+	}
+	return 0
+}
+
+func (x *AuditLog) GetActorID() int64 {
+	if x != nil {
+		return x.ActorID
+	}
+	return 0
+}
+
+func (x *AuditLog) GetActorName() string {
+	if x != nil {
+		return x.ActorName
+	}
+	return ""
+}
+
+func (x *AuditLog) GetAuthorityId() int64 {
+	if x != nil {
+		return x.AuthorityId
+	}
+	return 0
+}
+
+func (x *AuditLog) GetModule() string {
+	if x != nil {
+		return x.Module
+	}
+	return ""
+}
+
+func (x *AuditLog) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *AuditLog) GetObject() string {
+	if x != nil {
+		return x.Object
+	}
+	return ""
+}
+
+func (x *AuditLog) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *AuditLog) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *AuditLog) GetResult() string {
+	if x != nil {
+		return x.Result
+	}
+	return ""
+}
+
+func (x *AuditLog) GetStatusCode() int64 {
+	if x != nil {
+		return x.StatusCode
+	}
+	return 0
+}
+
+func (x *AuditLog) GetIP() string {
+	if x != nil {
+		return x.IP
+	}
+	return ""
+}
+
+func (x *AuditLog) GetTraceID() string {
+	if x != nil {
+		return x.TraceID
+	}
+	return ""
+}
+
+func (x *AuditLog) GetDurationMs() int64 {
+	if x != nil {
+		return x.DurationMs
+	}
+	return 0
+}
+
+func (x *AuditLog) GetParams() string {
+	if x != nil {
+		return x.Params
+	}
+	return ""
+}
+
+func (x *AuditLog) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *AuditLog) GetEventType() string {
+	if x != nil {
+		return x.EventType
+	}
+	return ""
+}
+
+type RecordAuditRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Log           *AuditLog              `protobuf:"bytes,1,opt,name=Log,proto3" json:"Log,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecordAuditRequest) Reset() {
+	*x = RecordAuditRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[82]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecordAuditRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecordAuditRequest) ProtoMessage() {}
+
+func (x *RecordAuditRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[82]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecordAuditRequest.ProtoReflect.Descriptor instead.
+func (*RecordAuditRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{82}
+}
+
+func (x *RecordAuditRequest) GetLog() *AuditLog {
+	if x != nil {
+		return x.Log
+	}
+	return nil
+}
+
+type GetAuditLogListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PageRequest   *PageRequest           `protobuf:"bytes,1,opt,name=PageRequest,proto3" json:"PageRequest,omitempty"`
+	EventType     string                 `protobuf:"bytes,2,opt,name=EventType,proto3" json:"EventType,omitempty"`
+	Module        string                 `protobuf:"bytes,3,opt,name=Module,proto3" json:"Module,omitempty"`
+	ActorID       int64                  `protobuf:"varint,4,opt,name=ActorID,proto3" json:"ActorID,omitempty"`
+	ActorName     string                 `protobuf:"bytes,5,opt,name=ActorName,proto3" json:"ActorName,omitempty"`
+	Result        string                 `protobuf:"bytes,6,opt,name=Result,proto3" json:"Result,omitempty"`
+	StartTime     string                 `protobuf:"bytes,7,opt,name=StartTime,proto3" json:"StartTime,omitempty"`
+	EndTime       string                 `protobuf:"bytes,8,opt,name=EndTime,proto3" json:"EndTime,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAuditLogListRequest) Reset() {
+	*x = GetAuditLogListRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[83]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAuditLogListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAuditLogListRequest) ProtoMessage() {}
+
+func (x *GetAuditLogListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[83]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAuditLogListRequest.ProtoReflect.Descriptor instead.
+func (*GetAuditLogListRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{83}
+}
+
+func (x *GetAuditLogListRequest) GetPageRequest() *PageRequest {
+	if x != nil {
+		return x.PageRequest
+	}
+	return nil
+}
+
+func (x *GetAuditLogListRequest) GetEventType() string {
+	if x != nil {
+		return x.EventType
+	}
+	return ""
+}
+
+func (x *GetAuditLogListRequest) GetModule() string {
+	if x != nil {
+		return x.Module
+	}
+	return ""
+}
+
+func (x *GetAuditLogListRequest) GetActorID() int64 {
+	if x != nil {
+		return x.ActorID
+	}
+	return 0
+}
+
+func (x *GetAuditLogListRequest) GetActorName() string {
+	if x != nil {
+		return x.ActorName
+	}
+	return ""
+}
+
+func (x *GetAuditLogListRequest) GetResult() string {
+	if x != nil {
+		return x.Result
+	}
+	return ""
+}
+
+func (x *GetAuditLogListRequest) GetStartTime() string {
+	if x != nil {
+		return x.StartTime
+	}
+	return ""
+}
+
+func (x *GetAuditLogListRequest) GetEndTime() string {
+	if x != nil {
+		return x.EndTime
+	}
+	return ""
+}
+
+type GetAuditLogListResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*AuditLog            `protobuf:"bytes,1,rep,name=List,proto3" json:"List,omitempty"`
+	Total         int64                  `protobuf:"varint,2,opt,name=Total,proto3" json:"Total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAuditLogListResponse) Reset() {
+	*x = GetAuditLogListResponse{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[84]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAuditLogListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAuditLogListResponse) ProtoMessage() {}
+
+func (x *GetAuditLogListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[84]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAuditLogListResponse.ProtoReflect.Descriptor instead.
+func (*GetAuditLogListResponse) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{84}
+}
+
+func (x *GetAuditLogListResponse) GetList() []*AuditLog {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+func (x *GetAuditLogListResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type Department struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ID            int64                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	ParentId      int64                  `protobuf:"varint,2,opt,name=ParentId,proto3" json:"ParentId,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=Name,proto3" json:"Name,omitempty"`
+	Code          string                 `protobuf:"bytes,4,opt,name=Code,proto3" json:"Code,omitempty"`
+	Sort          int64                  `protobuf:"varint,5,opt,name=Sort,proto3" json:"Sort,omitempty"`
+	Status        int64                  `protobuf:"varint,6,opt,name=Status,proto3" json:"Status,omitempty"`
+	Leader        string                 `protobuf:"bytes,7,opt,name=Leader,proto3" json:"Leader,omitempty"`
+	Children      []*Department          `protobuf:"bytes,8,rep,name=Children,proto3" json:"Children,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Department) Reset() {
+	*x = Department{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[85]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Department) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Department) ProtoMessage() {}
+
+func (x *Department) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[85]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Department.ProtoReflect.Descriptor instead.
+func (*Department) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{85}
+}
+
+func (x *Department) GetID() int64 {
+	if x != nil {
+		return x.ID
+	}
+	return 0
+}
+
+func (x *Department) GetParentId() int64 {
+	if x != nil {
+		return x.ParentId
+	}
+	return 0
+}
+
+func (x *Department) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Department) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *Department) GetSort() int64 {
+	if x != nil {
+		return x.Sort
+	}
+	return 0
+}
+
+func (x *Department) GetStatus() int64 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+func (x *Department) GetLeader() string {
+	if x != nil {
+		return x.Leader
+	}
+	return ""
+}
+
+func (x *Department) GetChildren() []*Department {
+	if x != nil {
+		return x.Children
+	}
+	return nil
+}
+
+type Position struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ID            int64                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=Name,proto3" json:"Name,omitempty"`
+	Code          string                 `protobuf:"bytes,3,opt,name=Code,proto3" json:"Code,omitempty"`
+	Sort          int64                  `protobuf:"varint,4,opt,name=Sort,proto3" json:"Sort,omitempty"`
+	Status        int64                  `protobuf:"varint,5,opt,name=Status,proto3" json:"Status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Position) Reset() {
+	*x = Position{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[86]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Position) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Position) ProtoMessage() {}
+
+func (x *Position) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[86]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Position.ProtoReflect.Descriptor instead.
+func (*Position) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{86}
+}
+
+func (x *Position) GetID() int64 {
+	if x != nil {
+		return x.ID
+	}
+	return 0
+}
+
+func (x *Position) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Position) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *Position) GetSort() int64 {
+	if x != nil {
+		return x.Sort
+	}
+	return 0
+}
+
+func (x *Position) GetStatus() int64 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+type DepartmentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Department    *Department            `protobuf:"bytes,1,opt,name=Department,proto3" json:"Department,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DepartmentRequest) Reset() {
+	*x = DepartmentRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[87]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DepartmentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DepartmentRequest) ProtoMessage() {}
+
+func (x *DepartmentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[87]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DepartmentRequest.ProtoReflect.Descriptor instead.
+func (*DepartmentRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{87}
+}
+
+func (x *DepartmentRequest) GetDepartment() *Department {
+	if x != nil {
+		return x.Department
+	}
+	return nil
+}
+
+type PositionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Position      *Position              `protobuf:"bytes,1,opt,name=Position,proto3" json:"Position,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PositionRequest) Reset() {
+	*x = PositionRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[88]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PositionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PositionRequest) ProtoMessage() {}
+
+func (x *PositionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[88]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PositionRequest.ProtoReflect.Descriptor instead.
+func (*PositionRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{88}
+}
+
+func (x *PositionRequest) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+type OrganizationIDRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ID            int64                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OrganizationIDRequest) Reset() {
+	*x = OrganizationIDRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[89]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrganizationIDRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrganizationIDRequest) ProtoMessage() {}
+
+func (x *OrganizationIDRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[89]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrganizationIDRequest.ProtoReflect.Descriptor instead.
+func (*OrganizationIDRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{89}
+}
+
+func (x *OrganizationIDRequest) GetID() int64 {
+	if x != nil {
+		return x.ID
+	}
+	return 0
+}
+
+type OrganizationListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keyword       string                 `protobuf:"bytes,1,opt,name=Keyword,proto3" json:"Keyword,omitempty"`
+	Status        int64                  `protobuf:"varint,2,opt,name=Status,proto3" json:"Status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OrganizationListRequest) Reset() {
+	*x = OrganizationListRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[90]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrganizationListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrganizationListRequest) ProtoMessage() {}
+
+func (x *OrganizationListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[90]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrganizationListRequest.ProtoReflect.Descriptor instead.
+func (*OrganizationListRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{90}
+}
+
+func (x *OrganizationListRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *OrganizationListRequest) GetStatus() int64 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+type DepartmentListResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*Department          `protobuf:"bytes,1,rep,name=List,proto3" json:"List,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DepartmentListResponse) Reset() {
+	*x = DepartmentListResponse{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[91]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DepartmentListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DepartmentListResponse) ProtoMessage() {}
+
+func (x *DepartmentListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[91]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DepartmentListResponse.ProtoReflect.Descriptor instead.
+func (*DepartmentListResponse) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{91}
+}
+
+func (x *DepartmentListResponse) GetList() []*Department {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+type PositionListResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*Position            `protobuf:"bytes,1,rep,name=List,proto3" json:"List,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PositionListResponse) Reset() {
+	*x = PositionListResponse{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[92]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PositionListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PositionListResponse) ProtoMessage() {}
+
+func (x *PositionListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[92]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PositionListResponse.ProtoReflect.Descriptor instead.
+func (*PositionListResponse) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{92}
+}
+
+func (x *PositionListResponse) GetList() []*Position {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+type MembershipRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserID        int64                  `protobuf:"varint,1,opt,name=UserID,proto3" json:"UserID,omitempty"`
+	DepartmentId  int64                  `protobuf:"varint,2,opt,name=DepartmentId,proto3" json:"DepartmentId,omitempty"`
+	PositionIds   []int64                `protobuf:"varint,3,rep,packed,name=PositionIds,proto3" json:"PositionIds,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MembershipRequest) Reset() {
+	*x = MembershipRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[93]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MembershipRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MembershipRequest) ProtoMessage() {}
+
+func (x *MembershipRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[93]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MembershipRequest.ProtoReflect.Descriptor instead.
+func (*MembershipRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{93}
+}
+
+func (x *MembershipRequest) GetUserID() int64 {
+	if x != nil {
+		return x.UserID
+	}
+	return 0
+}
+
+func (x *MembershipRequest) GetDepartmentId() int64 {
+	if x != nil {
+		return x.DepartmentId
+	}
+	return 0
+}
+
+func (x *MembershipRequest) GetPositionIds() []int64 {
+	if x != nil {
+		return x.PositionIds
+	}
+	return nil
+}
+
+type MembershipResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserID        int64                  `protobuf:"varint,1,opt,name=UserID,proto3" json:"UserID,omitempty"`
+	DepartmentId  int64                  `protobuf:"varint,2,opt,name=DepartmentId,proto3" json:"DepartmentId,omitempty"`
+	PositionIds   []int64                `protobuf:"varint,3,rep,packed,name=PositionIds,proto3" json:"PositionIds,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MembershipResponse) Reset() {
+	*x = MembershipResponse{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[94]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MembershipResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MembershipResponse) ProtoMessage() {}
+
+func (x *MembershipResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[94]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MembershipResponse.ProtoReflect.Descriptor instead.
+func (*MembershipResponse) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{94}
+}
+
+func (x *MembershipResponse) GetUserID() int64 {
+	if x != nil {
+		return x.UserID
+	}
+	return 0
+}
+
+func (x *MembershipResponse) GetDepartmentId() int64 {
+	if x != nil {
+		return x.DepartmentId
+	}
+	return 0
+}
+
+func (x *MembershipResponse) GetPositionIds() []int64 {
+	if x != nil {
+		return x.PositionIds
+	}
+	return nil
+}
+
+type RoleDataScope struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AuthorityId   int64                  `protobuf:"varint,1,opt,name=AuthorityId,proto3" json:"AuthorityId,omitempty"`
+	Scope         string                 `protobuf:"bytes,2,opt,name=Scope,proto3" json:"Scope,omitempty"`
+	DepartmentIds []int64                `protobuf:"varint,3,rep,packed,name=DepartmentIds,proto3" json:"DepartmentIds,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoleDataScope) Reset() {
+	*x = RoleDataScope{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[95]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoleDataScope) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoleDataScope) ProtoMessage() {}
+
+func (x *RoleDataScope) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[95]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoleDataScope.ProtoReflect.Descriptor instead.
+func (*RoleDataScope) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{95}
+}
+
+func (x *RoleDataScope) GetAuthorityId() int64 {
+	if x != nil {
+		return x.AuthorityId
+	}
+	return 0
+}
+
+func (x *RoleDataScope) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *RoleDataScope) GetDepartmentIds() []int64 {
+	if x != nil {
+		return x.DepartmentIds
+	}
+	return nil
+}
+
+type RoleDataScopeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DataScope     *RoleDataScope         `protobuf:"bytes,1,opt,name=DataScope,proto3" json:"DataScope,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoleDataScopeRequest) Reset() {
+	*x = RoleDataScopeRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[96]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoleDataScopeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoleDataScopeRequest) ProtoMessage() {}
+
+func (x *RoleDataScopeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[96]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoleDataScopeRequest.ProtoReflect.Descriptor instead.
+func (*RoleDataScopeRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{96}
+}
+
+func (x *RoleDataScopeRequest) GetDataScope() *RoleDataScope {
+	if x != nil {
+		return x.DataScope
+	}
+	return nil
+}
+
+type GetRoleDataScopeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AuthorityId   int64                  `protobuf:"varint,1,opt,name=AuthorityId,proto3" json:"AuthorityId,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRoleDataScopeRequest) Reset() {
+	*x = GetRoleDataScopeRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[97]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRoleDataScopeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRoleDataScopeRequest) ProtoMessage() {}
+
+func (x *GetRoleDataScopeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[97]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRoleDataScopeRequest.ProtoReflect.Descriptor instead.
+func (*GetRoleDataScopeRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{97}
+}
+
+func (x *GetRoleDataScopeRequest) GetAuthorityId() int64 {
+	if x != nil {
+		return x.AuthorityId
+	}
+	return 0
+}
+
+type RoleDataScopeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DataScope     *RoleDataScope         `protobuf:"bytes,1,opt,name=DataScope,proto3" json:"DataScope,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoleDataScopeResponse) Reset() {
+	*x = RoleDataScopeResponse{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[98]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoleDataScopeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoleDataScopeResponse) ProtoMessage() {}
+
+func (x *RoleDataScopeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[98]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoleDataScopeResponse.ProtoReflect.Descriptor instead.
+func (*RoleDataScopeResponse) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{98}
+}
+
+func (x *RoleDataScopeResponse) GetDataScope() *RoleDataScope {
+	if x != nil {
+		return x.DataScope
+	}
+	return nil
+}
+
+type FileResource struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ID            int64                  `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	ObjectKey     string                 `protobuf:"bytes,2,opt,name=ObjectKey,proto3" json:"ObjectKey,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=Name,proto3" json:"Name,omitempty"`
+	Mime          string                 `protobuf:"bytes,4,opt,name=Mime,proto3" json:"Mime,omitempty"`
+	Size          int64                  `protobuf:"varint,5,opt,name=Size,proto3" json:"Size,omitempty"`
+	OwnerID       int64                  `protobuf:"varint,6,opt,name=OwnerID,proto3" json:"OwnerID,omitempty"`
+	DepartmentId  int64                  `protobuf:"varint,7,opt,name=DepartmentId,proto3" json:"DepartmentId,omitempty"`
+	Visibility    string                 `protobuf:"bytes,8,opt,name=Visibility,proto3" json:"Visibility,omitempty"`
+	Status        string                 `protobuf:"bytes,9,opt,name=Status,proto3" json:"Status,omitempty"`
+	References    int64                  `protobuf:"varint,10,opt,name=References,proto3" json:"References,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,11,opt,name=CreatedAt,proto3" json:"CreatedAt,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FileResource) Reset() {
+	*x = FileResource{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[99]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FileResource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FileResource) ProtoMessage() {}
+
+func (x *FileResource) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[99]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FileResource.ProtoReflect.Descriptor instead.
+func (*FileResource) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{99}
+}
+
+func (x *FileResource) GetID() int64 {
+	if x != nil {
+		return x.ID
+	}
+	return 0
+}
+
+func (x *FileResource) GetObjectKey() string {
+	if x != nil {
+		return x.ObjectKey
+	}
+	return ""
+}
+
+func (x *FileResource) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *FileResource) GetMime() string {
+	if x != nil {
+		return x.Mime
+	}
+	return ""
+}
+
+func (x *FileResource) GetSize() int64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *FileResource) GetOwnerID() int64 {
+	if x != nil {
+		return x.OwnerID
+	}
+	return 0
+}
+
+func (x *FileResource) GetDepartmentId() int64 {
+	if x != nil {
+		return x.DepartmentId
+	}
+	return 0
+}
+
+func (x *FileResource) GetVisibility() string {
+	if x != nil {
+		return x.Visibility
+	}
+	return ""
+}
+
+func (x *FileResource) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *FileResource) GetReferences() int64 {
+	if x != nil {
+		return x.References
+	}
+	return 0
+}
+
+func (x *FileResource) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+type RegisterFileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *SessionRequest        `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
+	File          *FileResource          `protobuf:"bytes,2,opt,name=File,proto3" json:"File,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterFileRequest) Reset() {
+	*x = RegisterFileRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[100]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterFileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterFileRequest) ProtoMessage() {}
+
+func (x *RegisterFileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[100]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterFileRequest.ProtoReflect.Descriptor instead.
+func (*RegisterFileRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{100}
+}
+
+func (x *RegisterFileRequest) GetActor() *SessionRequest {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *RegisterFileRequest) GetFile() *FileResource {
+	if x != nil {
+		return x.File
+	}
+	return nil
+}
+
+type FileIDRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *SessionRequest        `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
+	ID            int64                  `protobuf:"varint,2,opt,name=ID,proto3" json:"ID,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FileIDRequest) Reset() {
+	*x = FileIDRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[101]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FileIDRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FileIDRequest) ProtoMessage() {}
+
+func (x *FileIDRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[101]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FileIDRequest.ProtoReflect.Descriptor instead.
+func (*FileIDRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{101}
+}
+
+func (x *FileIDRequest) GetActor() *SessionRequest {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *FileIDRequest) GetID() int64 {
+	if x != nil {
+		return x.ID
+	}
+	return 0
+}
+
+type FileListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *SessionRequest        `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
+	PageRequest   *PageRequest           `protobuf:"bytes,2,opt,name=PageRequest,proto3" json:"PageRequest,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=Name,proto3" json:"Name,omitempty"`
+	Status        string                 `protobuf:"bytes,4,opt,name=Status,proto3" json:"Status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FileListRequest) Reset() {
+	*x = FileListRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[102]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FileListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FileListRequest) ProtoMessage() {}
+
+func (x *FileListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[102]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FileListRequest.ProtoReflect.Descriptor instead.
+func (*FileListRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{102}
+}
+
+func (x *FileListRequest) GetActor() *SessionRequest {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *FileListRequest) GetPageRequest() *PageRequest {
+	if x != nil {
+		return x.PageRequest
+	}
+	return nil
+}
+
+func (x *FileListRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *FileListRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type FileListResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*FileResource        `protobuf:"bytes,1,rep,name=List,proto3" json:"List,omitempty"`
+	Total         int64                  `protobuf:"varint,2,opt,name=Total,proto3" json:"Total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FileListResponse) Reset() {
+	*x = FileListResponse{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[103]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FileListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FileListResponse) ProtoMessage() {}
+
+func (x *FileListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[103]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FileListResponse.ProtoReflect.Descriptor instead.
+func (*FileListResponse) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{103}
+}
+
+func (x *FileListResponse) GetList() []*FileResource {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+func (x *FileListResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type FileReferenceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *SessionRequest        `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
+	FileID        int64                  `protobuf:"varint,2,opt,name=FileID,proto3" json:"FileID,omitempty"`
+	ObjectType    string                 `protobuf:"bytes,3,opt,name=ObjectType,proto3" json:"ObjectType,omitempty"`
+	ObjectID      string                 `protobuf:"bytes,4,opt,name=ObjectID,proto3" json:"ObjectID,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FileReferenceRequest) Reset() {
+	*x = FileReferenceRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[104]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FileReferenceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FileReferenceRequest) ProtoMessage() {}
+
+func (x *FileReferenceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[104]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FileReferenceRequest.ProtoReflect.Descriptor instead.
+func (*FileReferenceRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{104}
+}
+
+func (x *FileReferenceRequest) GetActor() *SessionRequest {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *FileReferenceRequest) GetFileID() int64 {
+	if x != nil {
+		return x.FileID
+	}
+	return 0
+}
+
+func (x *FileReferenceRequest) GetObjectType() string {
+	if x != nil {
+		return x.ObjectType
+	}
+	return ""
+}
+
+func (x *FileReferenceRequest) GetObjectID() string {
+	if x != nil {
+		return x.ObjectID
+	}
+	return ""
+}
+
+type DeviceSession struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ID            string                 `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	UserID        int64                  `protobuf:"varint,2,opt,name=UserID,proto3" json:"UserID,omitempty"`
+	Username      string                 `protobuf:"bytes,3,opt,name=Username,proto3" json:"Username,omitempty"`
+	IP            string                 `protobuf:"bytes,4,opt,name=IP,proto3" json:"IP,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,5,opt,name=UserAgent,proto3" json:"UserAgent,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,6,opt,name=CreatedAt,proto3" json:"CreatedAt,omitempty"`
+	ExpiresAt     string                 `protobuf:"bytes,7,opt,name=ExpiresAt,proto3" json:"ExpiresAt,omitempty"`
+	Current       bool                   `protobuf:"varint,8,opt,name=Current,proto3" json:"Current,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeviceSession) Reset() {
+	*x = DeviceSession{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[105]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeviceSession) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeviceSession) ProtoMessage() {}
+
+func (x *DeviceSession) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[105]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeviceSession.ProtoReflect.Descriptor instead.
+func (*DeviceSession) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{105}
+}
+
+func (x *DeviceSession) GetID() string {
+	if x != nil {
+		return x.ID
+	}
+	return ""
+}
+
+func (x *DeviceSession) GetUserID() int64 {
+	if x != nil {
+		return x.UserID
+	}
+	return 0
+}
+
+func (x *DeviceSession) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *DeviceSession) GetIP() string {
+	if x != nil {
+		return x.IP
+	}
+	return ""
+}
+
+func (x *DeviceSession) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *DeviceSession) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *DeviceSession) GetExpiresAt() string {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return ""
+}
+
+func (x *DeviceSession) GetCurrent() bool {
+	if x != nil {
+		return x.Current
+	}
+	return false
+}
+
+type DeviceSessionListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *SessionRequest        `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
+	PageRequest   *PageRequest           `protobuf:"bytes,2,opt,name=PageRequest,proto3" json:"PageRequest,omitempty"`
+	UserID        int64                  `protobuf:"varint,3,opt,name=UserID,proto3" json:"UserID,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeviceSessionListRequest) Reset() {
+	*x = DeviceSessionListRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[106]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeviceSessionListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeviceSessionListRequest) ProtoMessage() {}
+
+func (x *DeviceSessionListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[106]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeviceSessionListRequest.ProtoReflect.Descriptor instead.
+func (*DeviceSessionListRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{106}
+}
+
+func (x *DeviceSessionListRequest) GetActor() *SessionRequest {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *DeviceSessionListRequest) GetPageRequest() *PageRequest {
+	if x != nil {
+		return x.PageRequest
+	}
+	return nil
+}
+
+func (x *DeviceSessionListRequest) GetUserID() int64 {
+	if x != nil {
+		return x.UserID
+	}
+	return 0
+}
+
+type DeviceSessionListResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*DeviceSession       `protobuf:"bytes,1,rep,name=List,proto3" json:"List,omitempty"`
+	Total         int64                  `protobuf:"varint,2,opt,name=Total,proto3" json:"Total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeviceSessionListResponse) Reset() {
+	*x = DeviceSessionListResponse{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[107]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeviceSessionListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeviceSessionListResponse) ProtoMessage() {}
+
+func (x *DeviceSessionListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[107]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeviceSessionListResponse.ProtoReflect.Descriptor instead.
+func (*DeviceSessionListResponse) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{107}
+}
+
+func (x *DeviceSessionListResponse) GetList() []*DeviceSession {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+func (x *DeviceSessionListResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type RevokeDeviceSessionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *SessionRequest        `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
+	ID            string                 `protobuf:"bytes,2,opt,name=ID,proto3" json:"ID,omitempty"`
+	SelfOnly      bool                   `protobuf:"varint,3,opt,name=SelfOnly,proto3" json:"SelfOnly,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeDeviceSessionRequest) Reset() {
+	*x = RevokeDeviceSessionRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[108]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeDeviceSessionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeDeviceSessionRequest) ProtoMessage() {}
+
+func (x *RevokeDeviceSessionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[108]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeDeviceSessionRequest.ProtoReflect.Descriptor instead.
+func (*RevokeDeviceSessionRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{108}
+}
+
+func (x *RevokeDeviceSessionRequest) GetActor() *SessionRequest {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *RevokeDeviceSessionRequest) GetID() string {
+	if x != nil {
+		return x.ID
+	}
+	return ""
+}
+
+func (x *RevokeDeviceSessionRequest) GetSelfOnly() bool {
+	if x != nil {
+		return x.SelfOnly
+	}
+	return false
+}
+
 var File_application_applet_rpc_desc_applet_proto protoreflect.FileDescriptor
 
 const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
@@ -4785,14 +6625,16 @@ const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
 	"\x02ID\x18\x04 \x01(\x03R\x02ID\x12\x1c\n" +
 	"\tCreatedAt\x18\x05 \x01(\tR\tCreatedAt\x12\x1c\n" +
 	"\tUpdatedAt\x18\x06 \x01(\tR\tUpdatedAt\x12\x1c\n" +
-	"\tDeletedAt\x18\a \x01(\tR\tDeletedAt\"\xba\x01\n" +
+	"\tDeletedAt\x18\a \x01(\tR\tDeletedAt\"\xe8\x01\n" +
 	"\x12GetUserTokeRequest\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\x03R\x02ID\x12\x12\n" +
 	"\x04UUID\x18\x02 \x01(\tR\x04UUID\x12 \n" +
 	"\vAuthorityId\x18\x03 \x01(\x03R\vAuthorityId\x12\x1a\n" +
 	"\bUsername\x18\x04 \x01(\tR\bUsername\x12\x1a\n" +
 	"\bNickName\x18\x05 \x01(\tR\bNickName\x12&\n" +
-	"\x0eSessionVersion\x18\x06 \x01(\x03R\x0eSessionVersion\"I\n" +
+	"\x0eSessionVersion\x18\x06 \x01(\x03R\x0eSessionVersion\x12\x0e\n" +
+	"\x02IP\x18\a \x01(\tR\x02IP\x12\x1c\n" +
+	"\tUserAgent\x18\b \x01(\tR\tUserAgent\"I\n" +
 	"\x13GetUserTokeResponse\x12\x14\n" +
 	"\x05Token\x18\x01 \x01(\tR\x05Token\x12\x1c\n" +
 	"\tExpiresAt\x18\x02 \x01(\x03R\tExpiresAt\"6\n" +
@@ -5027,11 +6869,12 @@ const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
 	"\vAuthorityId\x18\x01 \x01(\x03R\vAuthorityId\x12\x1e\n" +
 	"\n" +
 	"MenuBtnIds\x18\x02 \x03(\x03R\n" +
-	"MenuBtnIds\"r\n" +
+	"MenuBtnIds\"\x90\x01\n" +
 	"\x0eSessionRequest\x12\x16\n" +
 	"\x06UserID\x18\x01 \x01(\x03R\x06UserID\x12&\n" +
 	"\x0eSessionVersion\x18\x02 \x01(\x03R\x0eSessionVersion\x12 \n" +
-	"\vAuthorityId\x18\x03 \x01(\x03R\vAuthorityId\",\n" +
+	"\vAuthorityId\x18\x03 \x01(\x03R\vAuthorityId\x12\x1c\n" +
+	"\tSessionID\x18\x04 \x01(\tR\tSessionID\",\n" +
 	"\x14CheckSessionResponse\x12\x14\n" +
 	"\x05Valid\x18\x01 \x01(\bR\x05Valid\"\x89\x01\n" +
 	"\x15ChangePasswordRequest\x12,\n" +
@@ -5057,7 +6900,151 @@ const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
 	"\x04keys\x18\x02 \x03(\tR\x04keys\"F\n" +
 	"\x14ApplyApiSyncResponse\x12\x14\n" +
 	"\x05added\x18\x01 \x01(\x03R\x05added\x12\x18\n" +
-	"\aupdated\x18\x02 \x01(\x03R\aupdated2\xfd\x05\n" +
+	"\aupdated\x18\x02 \x01(\x03R\aupdated\"\xbe\x03\n" +
+	"\bAuditLog\x12\x0e\n" +
+	"\x02ID\x18\x01 \x01(\x03R\x02ID\x12\x18\n" +
+	"\aActorID\x18\x02 \x01(\x03R\aActorID\x12\x1c\n" +
+	"\tActorName\x18\x03 \x01(\tR\tActorName\x12 \n" +
+	"\vAuthorityId\x18\x04 \x01(\x03R\vAuthorityId\x12\x16\n" +
+	"\x06Module\x18\x05 \x01(\tR\x06Module\x12\x16\n" +
+	"\x06Action\x18\x06 \x01(\tR\x06Action\x12\x16\n" +
+	"\x06Object\x18\a \x01(\tR\x06Object\x12\x12\n" +
+	"\x04Path\x18\b \x01(\tR\x04Path\x12\x16\n" +
+	"\x06Method\x18\t \x01(\tR\x06Method\x12\x16\n" +
+	"\x06Result\x18\n" +
+	" \x01(\tR\x06Result\x12\x1e\n" +
+	"\n" +
+	"StatusCode\x18\v \x01(\x03R\n" +
+	"StatusCode\x12\x0e\n" +
+	"\x02IP\x18\f \x01(\tR\x02IP\x12\x18\n" +
+	"\aTraceID\x18\r \x01(\tR\aTraceID\x12\x1e\n" +
+	"\n" +
+	"DurationMs\x18\x0e \x01(\x03R\n" +
+	"DurationMs\x12\x16\n" +
+	"\x06Params\x18\x0f \x01(\tR\x06Params\x12\x1c\n" +
+	"\tCreatedAt\x18\x10 \x01(\tR\tCreatedAt\x12\x1c\n" +
+	"\tEventType\x18\x11 \x01(\tR\tEventType\"4\n" +
+	"\x12RecordAuditRequest\x12\x1e\n" +
+	"\x03Log\x18\x01 \x01(\v2\f.pb.AuditLogR\x03Log\"\x89\x02\n" +
+	"\x16GetAuditLogListRequest\x121\n" +
+	"\vPageRequest\x18\x01 \x01(\v2\x0f.pb.PageRequestR\vPageRequest\x12\x1c\n" +
+	"\tEventType\x18\x02 \x01(\tR\tEventType\x12\x16\n" +
+	"\x06Module\x18\x03 \x01(\tR\x06Module\x12\x18\n" +
+	"\aActorID\x18\x04 \x01(\x03R\aActorID\x12\x1c\n" +
+	"\tActorName\x18\x05 \x01(\tR\tActorName\x12\x16\n" +
+	"\x06Result\x18\x06 \x01(\tR\x06Result\x12\x1c\n" +
+	"\tStartTime\x18\a \x01(\tR\tStartTime\x12\x18\n" +
+	"\aEndTime\x18\b \x01(\tR\aEndTime\"Q\n" +
+	"\x17GetAuditLogListResponse\x12 \n" +
+	"\x04List\x18\x01 \x03(\v2\f.pb.AuditLogR\x04List\x12\x14\n" +
+	"\x05Total\x18\x02 \x01(\x03R\x05Total\"\xd0\x01\n" +
+	"\n" +
+	"Department\x12\x0e\n" +
+	"\x02ID\x18\x01 \x01(\x03R\x02ID\x12\x1a\n" +
+	"\bParentId\x18\x02 \x01(\x03R\bParentId\x12\x12\n" +
+	"\x04Name\x18\x03 \x01(\tR\x04Name\x12\x12\n" +
+	"\x04Code\x18\x04 \x01(\tR\x04Code\x12\x12\n" +
+	"\x04Sort\x18\x05 \x01(\x03R\x04Sort\x12\x16\n" +
+	"\x06Status\x18\x06 \x01(\x03R\x06Status\x12\x16\n" +
+	"\x06Leader\x18\a \x01(\tR\x06Leader\x12*\n" +
+	"\bChildren\x18\b \x03(\v2\x0e.pb.DepartmentR\bChildren\"n\n" +
+	"\bPosition\x12\x0e\n" +
+	"\x02ID\x18\x01 \x01(\x03R\x02ID\x12\x12\n" +
+	"\x04Name\x18\x02 \x01(\tR\x04Name\x12\x12\n" +
+	"\x04Code\x18\x03 \x01(\tR\x04Code\x12\x12\n" +
+	"\x04Sort\x18\x04 \x01(\x03R\x04Sort\x12\x16\n" +
+	"\x06Status\x18\x05 \x01(\x03R\x06Status\"C\n" +
+	"\x11DepartmentRequest\x12.\n" +
+	"\n" +
+	"Department\x18\x01 \x01(\v2\x0e.pb.DepartmentR\n" +
+	"Department\";\n" +
+	"\x0fPositionRequest\x12(\n" +
+	"\bPosition\x18\x01 \x01(\v2\f.pb.PositionR\bPosition\"'\n" +
+	"\x15OrganizationIDRequest\x12\x0e\n" +
+	"\x02ID\x18\x01 \x01(\x03R\x02ID\"K\n" +
+	"\x17OrganizationListRequest\x12\x18\n" +
+	"\aKeyword\x18\x01 \x01(\tR\aKeyword\x12\x16\n" +
+	"\x06Status\x18\x02 \x01(\x03R\x06Status\"<\n" +
+	"\x16DepartmentListResponse\x12\"\n" +
+	"\x04List\x18\x01 \x03(\v2\x0e.pb.DepartmentR\x04List\"8\n" +
+	"\x14PositionListResponse\x12 \n" +
+	"\x04List\x18\x01 \x03(\v2\f.pb.PositionR\x04List\"q\n" +
+	"\x11MembershipRequest\x12\x16\n" +
+	"\x06UserID\x18\x01 \x01(\x03R\x06UserID\x12\"\n" +
+	"\fDepartmentId\x18\x02 \x01(\x03R\fDepartmentId\x12 \n" +
+	"\vPositionIds\x18\x03 \x03(\x03R\vPositionIds\"r\n" +
+	"\x12MembershipResponse\x12\x16\n" +
+	"\x06UserID\x18\x01 \x01(\x03R\x06UserID\x12\"\n" +
+	"\fDepartmentId\x18\x02 \x01(\x03R\fDepartmentId\x12 \n" +
+	"\vPositionIds\x18\x03 \x03(\x03R\vPositionIds\"m\n" +
+	"\rRoleDataScope\x12 \n" +
+	"\vAuthorityId\x18\x01 \x01(\x03R\vAuthorityId\x12\x14\n" +
+	"\x05Scope\x18\x02 \x01(\tR\x05Scope\x12$\n" +
+	"\rDepartmentIds\x18\x03 \x03(\x03R\rDepartmentIds\"G\n" +
+	"\x14RoleDataScopeRequest\x12/\n" +
+	"\tDataScope\x18\x01 \x01(\v2\x11.pb.RoleDataScopeR\tDataScope\";\n" +
+	"\x17GetRoleDataScopeRequest\x12 \n" +
+	"\vAuthorityId\x18\x01 \x01(\x03R\vAuthorityId\"H\n" +
+	"\x15RoleDataScopeResponse\x12/\n" +
+	"\tDataScope\x18\x01 \x01(\v2\x11.pb.RoleDataScopeR\tDataScope\"\xac\x02\n" +
+	"\fFileResource\x12\x0e\n" +
+	"\x02ID\x18\x01 \x01(\x03R\x02ID\x12\x1c\n" +
+	"\tObjectKey\x18\x02 \x01(\tR\tObjectKey\x12\x12\n" +
+	"\x04Name\x18\x03 \x01(\tR\x04Name\x12\x12\n" +
+	"\x04Mime\x18\x04 \x01(\tR\x04Mime\x12\x12\n" +
+	"\x04Size\x18\x05 \x01(\x03R\x04Size\x12\x18\n" +
+	"\aOwnerID\x18\x06 \x01(\x03R\aOwnerID\x12\"\n" +
+	"\fDepartmentId\x18\a \x01(\x03R\fDepartmentId\x12\x1e\n" +
+	"\n" +
+	"Visibility\x18\b \x01(\tR\n" +
+	"Visibility\x12\x16\n" +
+	"\x06Status\x18\t \x01(\tR\x06Status\x12\x1e\n" +
+	"\n" +
+	"References\x18\n" +
+	" \x01(\x03R\n" +
+	"References\x12\x1c\n" +
+	"\tCreatedAt\x18\v \x01(\tR\tCreatedAt\"e\n" +
+	"\x13RegisterFileRequest\x12(\n" +
+	"\x05Actor\x18\x01 \x01(\v2\x12.pb.SessionRequestR\x05Actor\x12$\n" +
+	"\x04File\x18\x02 \x01(\v2\x10.pb.FileResourceR\x04File\"I\n" +
+	"\rFileIDRequest\x12(\n" +
+	"\x05Actor\x18\x01 \x01(\v2\x12.pb.SessionRequestR\x05Actor\x12\x0e\n" +
+	"\x02ID\x18\x02 \x01(\x03R\x02ID\"\x9a\x01\n" +
+	"\x0fFileListRequest\x12(\n" +
+	"\x05Actor\x18\x01 \x01(\v2\x12.pb.SessionRequestR\x05Actor\x121\n" +
+	"\vPageRequest\x18\x02 \x01(\v2\x0f.pb.PageRequestR\vPageRequest\x12\x12\n" +
+	"\x04Name\x18\x03 \x01(\tR\x04Name\x12\x16\n" +
+	"\x06Status\x18\x04 \x01(\tR\x06Status\"N\n" +
+	"\x10FileListResponse\x12$\n" +
+	"\x04List\x18\x01 \x03(\v2\x10.pb.FileResourceR\x04List\x12\x14\n" +
+	"\x05Total\x18\x02 \x01(\x03R\x05Total\"\x94\x01\n" +
+	"\x14FileReferenceRequest\x12(\n" +
+	"\x05Actor\x18\x01 \x01(\v2\x12.pb.SessionRequestR\x05Actor\x12\x16\n" +
+	"\x06FileID\x18\x02 \x01(\x03R\x06FileID\x12\x1e\n" +
+	"\n" +
+	"ObjectType\x18\x03 \x01(\tR\n" +
+	"ObjectType\x12\x1a\n" +
+	"\bObjectID\x18\x04 \x01(\tR\bObjectID\"\xd7\x01\n" +
+	"\rDeviceSession\x12\x0e\n" +
+	"\x02ID\x18\x01 \x01(\tR\x02ID\x12\x16\n" +
+	"\x06UserID\x18\x02 \x01(\x03R\x06UserID\x12\x1a\n" +
+	"\bUsername\x18\x03 \x01(\tR\bUsername\x12\x0e\n" +
+	"\x02IP\x18\x04 \x01(\tR\x02IP\x12\x1c\n" +
+	"\tUserAgent\x18\x05 \x01(\tR\tUserAgent\x12\x1c\n" +
+	"\tCreatedAt\x18\x06 \x01(\tR\tCreatedAt\x12\x1c\n" +
+	"\tExpiresAt\x18\a \x01(\tR\tExpiresAt\x12\x18\n" +
+	"\aCurrent\x18\b \x01(\bR\aCurrent\"\x8f\x01\n" +
+	"\x18DeviceSessionListRequest\x12(\n" +
+	"\x05Actor\x18\x01 \x01(\v2\x12.pb.SessionRequestR\x05Actor\x121\n" +
+	"\vPageRequest\x18\x02 \x01(\v2\x0f.pb.PageRequestR\vPageRequest\x12\x16\n" +
+	"\x06UserID\x18\x03 \x01(\x03R\x06UserID\"X\n" +
+	"\x19DeviceSessionListResponse\x12%\n" +
+	"\x04List\x18\x01 \x03(\v2\x11.pb.DeviceSessionR\x04List\x12\x14\n" +
+	"\x05Total\x18\x02 \x01(\x03R\x05Total\"r\n" +
+	"\x1aRevokeDeviceSessionRequest\x12(\n" +
+	"\x05Actor\x18\x01 \x01(\v2\x12.pb.SessionRequestR\x05Actor\x12\x0e\n" +
+	"\x02ID\x18\x02 \x01(\tR\x02ID\x12\x1a\n" +
+	"\bSelfOnly\x18\x03 \x01(\bR\bSelfOnly2\xfd\x05\n" +
 	"\x04User\x12<\n" +
 	"\fCheckSession\x12\x12.pb.SessionRequest\x1a\x18.pb.CheckSessionResponse\x12=\n" +
 	"\x0eGetCurrentUser\x12\x12.pb.SessionRequest\x1a\x17.pb.GetUserInfoResponse\x12?\n" +
@@ -5115,7 +7102,34 @@ const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
 	"#GetSysDictionaryInfoListDetailsById\x12..pb.GetSysDictionaryInfoListDetailsByIdRequest\x1a/.pb.GetSysDictionaryInfoListDetailsByIdResponse\x12Q\n" +
 	"\x17UpdateSysDictionaryInfo\x12\".pb.UpdateSysDictionaryInfoRequest\x1a\x12.pb.NoDataResponse\x12Q\n" +
 	"\x17CreateSysDictionaryInfo\x12\".pb.CreateSysDictionaryInfoRequest\x1a\x12.pb.NoDataResponse\x12Q\n" +
-	"\x17DeleteSysDictionaryInfo\x12\".pb.DeleteSysDictionaryInfoRequest\x1a\x12.pb.NoDataResponseB\x06Z\x04./pbb\x06proto3"
+	"\x17DeleteSysDictionaryInfo\x12\".pb.DeleteSysDictionaryInfoRequest\x1a\x12.pb.NoDataResponse2\x8e\x01\n" +
+	"\x05Audit\x129\n" +
+	"\vRecordAudit\x12\x16.pb.RecordAuditRequest\x1a\x12.pb.NoDataResponse\x12J\n" +
+	"\x0fGetAuditLogList\x12\x1a.pb.GetAuditLogListRequest\x1a\x1b.pb.GetAuditLogListResponse2\xa8\x06\n" +
+	"\fOrganization\x12L\n" +
+	"\x11GetDepartmentTree\x12\x1b.pb.OrganizationListRequest\x1a\x1a.pb.DepartmentListResponse\x129\n" +
+	"\x10CreateDepartment\x12\x15.pb.DepartmentRequest\x1a\x0e.pb.Department\x12=\n" +
+	"\x10UpdateDepartment\x12\x15.pb.DepartmentRequest\x1a\x12.pb.NoDataResponse\x12A\n" +
+	"\x10DeleteDepartment\x12\x19.pb.OrganizationIDRequest\x1a\x12.pb.NoDataResponse\x12H\n" +
+	"\x0fGetPositionList\x12\x1b.pb.OrganizationListRequest\x1a\x18.pb.PositionListResponse\x123\n" +
+	"\x0eCreatePosition\x12\x13.pb.PositionRequest\x1a\f.pb.Position\x129\n" +
+	"\x0eUpdatePosition\x12\x13.pb.PositionRequest\x1a\x12.pb.NoDataResponse\x12?\n" +
+	"\x0eDeletePosition\x12\x19.pb.OrganizationIDRequest\x1a\x12.pb.NoDataResponse\x12B\n" +
+	"\rGetMembership\x12\x19.pb.OrganizationIDRequest\x1a\x16.pb.MembershipResponse\x12=\n" +
+	"\x10UpdateMembership\x12\x15.pb.MembershipRequest\x1a\x12.pb.NoDataResponse\x12J\n" +
+	"\x10GetRoleDataScope\x12\x1b.pb.GetRoleDataScopeRequest\x1a\x19.pb.RoleDataScopeResponse\x12C\n" +
+	"\x13UpdateRoleDataScope\x12\x18.pb.RoleDataScopeRequest\x1a\x12.pb.NoDataResponse2\xb4\x03\n" +
+	"\x13FileResourceService\x129\n" +
+	"\fRegisterFile\x12\x17.pb.RegisterFileRequest\x1a\x10.pb.FileResource\x128\n" +
+	"\vGetFileList\x12\x13.pb.FileListRequest\x1a\x14.pb.FileListResponse\x12.\n" +
+	"\aGetFile\x12\x11.pb.FileIDRequest\x1a\x10.pb.FileResource\x12@\n" +
+	"\x10AddFileReference\x12\x18.pb.FileReferenceRequest\x1a\x12.pb.NoDataResponse\x12C\n" +
+	"\x13RemoveFileReference\x12\x18.pb.FileReferenceRequest\x1a\x12.pb.NoDataResponse\x126\n" +
+	"\x0fBeginDeleteFile\x12\x11.pb.FileIDRequest\x1a\x10.pb.FileResource\x129\n" +
+	"\x10FinishDeleteFile\x12\x11.pb.FileIDRequest\x1a\x12.pb.NoDataResponse2\xac\x01\n" +
+	"\rSessionManage\x12P\n" +
+	"\x11GetDeviceSessions\x12\x1c.pb.DeviceSessionListRequest\x1a\x1d.pb.DeviceSessionListResponse\x12I\n" +
+	"\x13RevokeDeviceSession\x12\x1e.pb.RevokeDeviceSessionRequest\x1a\x12.pb.NoDataResponseB\x06Z\x04./pbb\x06proto3"
 
 var (
 	file_application_applet_rpc_desc_applet_proto_rawDescOnce sync.Once
@@ -5129,7 +7143,7 @@ func file_application_applet_rpc_desc_applet_proto_rawDescGZIP() []byte {
 	return file_application_applet_rpc_desc_applet_proto_rawDescData
 }
 
-var file_application_applet_rpc_desc_applet_proto_msgTypes = make([]protoimpl.MessageInfo, 82)
+var file_application_applet_rpc_desc_applet_proto_msgTypes = make([]protoimpl.MessageInfo, 110)
 var file_application_applet_rpc_desc_applet_proto_goTypes = []any{
 	(*NoDataResponse)(nil),                              // 0: pb.NoDataResponse
 	(*GetUserInfoRequest)(nil),                          // 1: pb.GetUserInfoRequest
@@ -5212,7 +7226,35 @@ var file_application_applet_rpc_desc_applet_proto_goTypes = []any{
 	(*PreviewApiSyncResponse)(nil),                      // 78: pb.PreviewApiSyncResponse
 	(*ApplyApiSyncRequest)(nil),                         // 79: pb.ApplyApiSyncRequest
 	(*ApplyApiSyncResponse)(nil),                        // 80: pb.ApplyApiSyncResponse
-	nil,                                                 // 81: pb.SysMenu.BtnsEntry
+	(*AuditLog)(nil),                                    // 81: pb.AuditLog
+	(*RecordAuditRequest)(nil),                          // 82: pb.RecordAuditRequest
+	(*GetAuditLogListRequest)(nil),                      // 83: pb.GetAuditLogListRequest
+	(*GetAuditLogListResponse)(nil),                     // 84: pb.GetAuditLogListResponse
+	(*Department)(nil),                                  // 85: pb.Department
+	(*Position)(nil),                                    // 86: pb.Position
+	(*DepartmentRequest)(nil),                           // 87: pb.DepartmentRequest
+	(*PositionRequest)(nil),                             // 88: pb.PositionRequest
+	(*OrganizationIDRequest)(nil),                       // 89: pb.OrganizationIDRequest
+	(*OrganizationListRequest)(nil),                     // 90: pb.OrganizationListRequest
+	(*DepartmentListResponse)(nil),                      // 91: pb.DepartmentListResponse
+	(*PositionListResponse)(nil),                        // 92: pb.PositionListResponse
+	(*MembershipRequest)(nil),                           // 93: pb.MembershipRequest
+	(*MembershipResponse)(nil),                          // 94: pb.MembershipResponse
+	(*RoleDataScope)(nil),                               // 95: pb.RoleDataScope
+	(*RoleDataScopeRequest)(nil),                        // 96: pb.RoleDataScopeRequest
+	(*GetRoleDataScopeRequest)(nil),                     // 97: pb.GetRoleDataScopeRequest
+	(*RoleDataScopeResponse)(nil),                       // 98: pb.RoleDataScopeResponse
+	(*FileResource)(nil),                                // 99: pb.FileResource
+	(*RegisterFileRequest)(nil),                         // 100: pb.RegisterFileRequest
+	(*FileIDRequest)(nil),                               // 101: pb.FileIDRequest
+	(*FileListRequest)(nil),                             // 102: pb.FileListRequest
+	(*FileListResponse)(nil),                            // 103: pb.FileListResponse
+	(*FileReferenceRequest)(nil),                        // 104: pb.FileReferenceRequest
+	(*DeviceSession)(nil),                               // 105: pb.DeviceSession
+	(*DeviceSessionListRequest)(nil),                    // 106: pb.DeviceSessionListRequest
+	(*DeviceSessionListResponse)(nil),                   // 107: pb.DeviceSessionListResponse
+	(*RevokeDeviceSessionRequest)(nil),                  // 108: pb.RevokeDeviceSessionRequest
+	nil,                                                 // 109: pb.SysMenu.BtnsEntry
 }
 var file_application_applet_rpc_desc_applet_proto_depIdxs = []int32{
 	3,   // 0: pb.GetUserInfoResponse.UserInfo:type_name -> pb.UserInfo
@@ -5229,7 +7271,7 @@ var file_application_applet_rpc_desc_applet_proto_depIdxs = []int32{
 	10,  // 11: pb.SysMenu.SysBaseMenu:type_name -> pb.SysBaseMenu
 	11,  // 12: pb.SysMenu.Children:type_name -> pb.SysMenu
 	5,   // 13: pb.SysMenu.Parameters:type_name -> pb.SysBaseMenuParameter
-	81,  // 14: pb.SysMenu.Btns:type_name -> pb.SysMenu.BtnsEntry
+	109, // 14: pb.SysMenu.Btns:type_name -> pb.SysMenu.BtnsEntry
 	11,  // 15: pb.GetMenuTreeResponse.SysMenu:type_name -> pb.SysMenu
 	10,  // 16: pb.GetMenuBaseInfoListResponse.SysBaseMenu:type_name -> pb.SysBaseMenu
 	10,  // 17: pb.AddMenuBaseRequest.SysBaseMenu:type_name -> pb.SysBaseMenu
@@ -5273,109 +7315,176 @@ var file_application_applet_rpc_desc_applet_proto_depIdxs = []int32{
 	77,  // 55: pb.PreviewApiSyncResponse.added:type_name -> pb.ApiSyncItem
 	77,  // 56: pb.PreviewApiSyncResponse.changed:type_name -> pb.ApiSyncItem
 	77,  // 57: pb.PreviewApiSyncResponse.obsolete:type_name -> pb.ApiSyncItem
-	74,  // 58: pb.User.CheckSession:input_type -> pb.SessionRequest
-	74,  // 59: pb.User.GetCurrentUser:input_type -> pb.SessionRequest
-	76,  // 60: pb.User.ChangePassword:input_type -> pb.ChangePasswordRequest
-	74,  // 61: pb.User.Logout:input_type -> pb.SessionRequest
-	1,   // 62: pb.User.GetUserInfo:input_type -> pb.GetUserInfoRequest
-	7,   // 63: pb.User.GetUserToke:input_type -> pb.GetUserTokeRequest
-	40,  // 64: pb.User.GetUserList:input_type -> pb.GetUserListRequest
-	42,  // 65: pb.User.Register:input_type -> pb.RegisterRequest
-	44,  // 66: pb.User.UpdateUserInfo:input_type -> pb.UpdateUserInfoRequest
-	45,  // 67: pb.User.UpdateUserAuthorities:input_type -> pb.UpdateUserAuthoritiesRequest
-	46,  // 68: pb.User.ResetUserPassword:input_type -> pb.ResetUserPasswordRequest
-	47,  // 69: pb.User.DeleteUser:input_type -> pb.DeleteUserRequest
-	71,  // 70: pb.Menu.GetAuthorityButtons:input_type -> pb.GetAuthorityButtonsRequest
-	73,  // 71: pb.Menu.UpdateAuthorityButtons:input_type -> pb.UpdateAuthorityButtonsRequest
-	9,   // 72: pb.Menu.GetMenuTree:input_type -> pb.GetMenuTreeRequest
-	0,   // 73: pb.Menu.GetMenuBaseInfoList:input_type -> pb.NoDataResponse
-	15,  // 74: pb.Menu.AddMenuBase:input_type -> pb.AddMenuBaseRequest
-	0,   // 75: pb.Menu.GetBaseMenuTree:input_type -> pb.NoDataResponse
-	29,  // 76: pb.Menu.GetMenuAuthority:input_type -> pb.GetMenuAuthorityRequest
-	35,  // 77: pb.Menu.GetBaseMenuById:input_type -> pb.GetBaseMenuByIdRequest
-	37,  // 78: pb.Menu.UpdateBaseMenu:input_type -> pb.UpdateBaseMenuRequest
-	54,  // 79: pb.Menu.DeleteBaseMenu:input_type -> pb.DeleteBaseMenuRequest
-	17,  // 80: pb.Authority.GetAuthorityList:input_type -> pb.GetAuthorityListRequest
-	31,  // 81: pb.Authority.AddAuthorityMenu:input_type -> pb.AddAuthorityMenuRequest
-	33,  // 82: pb.Authority.UpdateAuthority:input_type -> pb.UpdateAuthorityRequest
-	38,  // 83: pb.Authority.CreateAuthority:input_type -> pb.CreateAuthorityRequest
-	55,  // 84: pb.Authority.DeleteAuthority:input_type -> pb.DeleteAuthorityRequest
-	0,   // 85: pb.Api.PreviewApiSync:input_type -> pb.NoDataResponse
-	79,  // 86: pb.Api.ApplyApiSync:input_type -> pb.ApplyApiSyncRequest
-	20,  // 87: pb.Api.GetApiList:input_type -> pb.GetApiListRequest
-	22,  // 88: pb.Api.CreateApi:input_type -> pb.CreateApiRequest
-	23,  // 89: pb.Api.DeleteApi:input_type -> pb.DeleteApiRequest
-	0,   // 90: pb.Api.GetAllApiList:input_type -> pb.NoDataResponse
-	48,  // 91: pb.Api.DeleteApisByIds:input_type -> pb.DeleteApisByIdsRequest
-	53,  // 92: pb.Api.UpdateApi:input_type -> pb.UpdateApiRequest
-	26,  // 93: pb.Casbin.GetPathByAuthorityId:input_type -> pb.GetPathByAuthorityIdRequest
-	32,  // 94: pb.Casbin.UpdateCasbinData:input_type -> pb.UpdateCasbinDataRequest
-	49,  // 95: pb.Casbin.UpdateCasbinDataByApiIds:input_type -> pb.UpdateCasbinDataByApiIdsRequest
-	51,  // 96: pb.Casbin.Enforce:input_type -> pb.EnforceRequest
-	0,   // 97: pb.Dictionary.GetSysDictionaryList:input_type -> pb.NoDataResponse
-	61,  // 98: pb.Dictionary.CreateSysDictionary:input_type -> pb.CreateSysDictionaryRequest
-	63,  // 99: pb.Dictionary.GetSysDictionaryDetails:input_type -> pb.GetSysDictionaryDetailsRequest
-	62,  // 100: pb.Dictionary.UpdateSysDictionary:input_type -> pb.UpdateSysDictionaryRequest
-	65,  // 101: pb.Dictionary.DeleteSysDictionary:input_type -> pb.DeleteSysDictionaryRequest
-	59,  // 102: pb.Dictionary.GetSysDictionaryInfoList:input_type -> pb.GetSysDictionaryInfoListRequest
-	66,  // 103: pb.Dictionary.GetSysDictionaryInfoListDetailsById:input_type -> pb.GetSysDictionaryInfoListDetailsByIdRequest
-	68,  // 104: pb.Dictionary.UpdateSysDictionaryInfo:input_type -> pb.UpdateSysDictionaryInfoRequest
-	69,  // 105: pb.Dictionary.CreateSysDictionaryInfo:input_type -> pb.CreateSysDictionaryInfoRequest
-	70,  // 106: pb.Dictionary.DeleteSysDictionaryInfo:input_type -> pb.DeleteSysDictionaryInfoRequest
-	75,  // 107: pb.User.CheckSession:output_type -> pb.CheckSessionResponse
-	2,   // 108: pb.User.GetCurrentUser:output_type -> pb.GetUserInfoResponse
-	0,   // 109: pb.User.ChangePassword:output_type -> pb.NoDataResponse
-	0,   // 110: pb.User.Logout:output_type -> pb.NoDataResponse
-	2,   // 111: pb.User.GetUserInfo:output_type -> pb.GetUserInfoResponse
-	8,   // 112: pb.User.GetUserToke:output_type -> pb.GetUserTokeResponse
-	41,  // 113: pb.User.GetUserList:output_type -> pb.GetUserListResponse
-	43,  // 114: pb.User.Register:output_type -> pb.RegisterResponse
-	0,   // 115: pb.User.UpdateUserInfo:output_type -> pb.NoDataResponse
-	0,   // 116: pb.User.UpdateUserAuthorities:output_type -> pb.NoDataResponse
-	0,   // 117: pb.User.ResetUserPassword:output_type -> pb.NoDataResponse
-	0,   // 118: pb.User.DeleteUser:output_type -> pb.NoDataResponse
-	72,  // 119: pb.Menu.GetAuthorityButtons:output_type -> pb.GetAuthorityButtonsResponse
-	0,   // 120: pb.Menu.UpdateAuthorityButtons:output_type -> pb.NoDataResponse
-	13,  // 121: pb.Menu.GetMenuTree:output_type -> pb.GetMenuTreeResponse
-	14,  // 122: pb.Menu.GetMenuBaseInfoList:output_type -> pb.GetMenuBaseInfoListResponse
-	0,   // 123: pb.Menu.AddMenuBase:output_type -> pb.NoDataResponse
-	28,  // 124: pb.Menu.GetBaseMenuTree:output_type -> pb.GetBaseMenuTreeResponse
-	30,  // 125: pb.Menu.GetMenuAuthority:output_type -> pb.GetMenuAuthorityResponse
-	36,  // 126: pb.Menu.GetBaseMenuById:output_type -> pb.GetBaseMenuByIdResponse
-	0,   // 127: pb.Menu.UpdateBaseMenu:output_type -> pb.NoDataResponse
-	0,   // 128: pb.Menu.DeleteBaseMenu:output_type -> pb.NoDataResponse
-	18,  // 129: pb.Authority.GetAuthorityList:output_type -> pb.GetAuthorityListResponse
-	0,   // 130: pb.Authority.AddAuthorityMenu:output_type -> pb.NoDataResponse
-	34,  // 131: pb.Authority.UpdateAuthority:output_type -> pb.UpdateAuthorityResponse
-	39,  // 132: pb.Authority.CreateAuthority:output_type -> pb.CreateAuthorityResponse
-	0,   // 133: pb.Authority.DeleteAuthority:output_type -> pb.NoDataResponse
-	78,  // 134: pb.Api.PreviewApiSync:output_type -> pb.PreviewApiSyncResponse
-	80,  // 135: pb.Api.ApplyApiSync:output_type -> pb.ApplyApiSyncResponse
-	21,  // 136: pb.Api.GetApiList:output_type -> pb.GetApiListResponse
-	0,   // 137: pb.Api.CreateApi:output_type -> pb.NoDataResponse
-	0,   // 138: pb.Api.DeleteApi:output_type -> pb.NoDataResponse
-	24,  // 139: pb.Api.GetAllApiList:output_type -> pb.GetAllApiListResponse
-	0,   // 140: pb.Api.DeleteApisByIds:output_type -> pb.NoDataResponse
-	0,   // 141: pb.Api.UpdateApi:output_type -> pb.NoDataResponse
-	27,  // 142: pb.Casbin.GetPathByAuthorityId:output_type -> pb.GetPathByAuthorityIdResponse
-	0,   // 143: pb.Casbin.UpdateCasbinData:output_type -> pb.NoDataResponse
-	50,  // 144: pb.Casbin.UpdateCasbinDataByApiIds:output_type -> pb.UpdateCasbinDataByApiIdsResponse
-	52,  // 145: pb.Casbin.Enforce:output_type -> pb.EnforceResponse
-	58,  // 146: pb.Dictionary.GetSysDictionaryList:output_type -> pb.DictionaryListResponse
-	0,   // 147: pb.Dictionary.CreateSysDictionary:output_type -> pb.NoDataResponse
-	64,  // 148: pb.Dictionary.GetSysDictionaryDetails:output_type -> pb.GetSysDictionaryDetailsResponse
-	0,   // 149: pb.Dictionary.UpdateSysDictionary:output_type -> pb.NoDataResponse
-	0,   // 150: pb.Dictionary.DeleteSysDictionary:output_type -> pb.NoDataResponse
-	60,  // 151: pb.Dictionary.GetSysDictionaryInfoList:output_type -> pb.GetSysDictionaryInfoListResponse
-	67,  // 152: pb.Dictionary.GetSysDictionaryInfoListDetailsById:output_type -> pb.GetSysDictionaryInfoListDetailsByIdResponse
-	0,   // 153: pb.Dictionary.UpdateSysDictionaryInfo:output_type -> pb.NoDataResponse
-	0,   // 154: pb.Dictionary.CreateSysDictionaryInfo:output_type -> pb.NoDataResponse
-	0,   // 155: pb.Dictionary.DeleteSysDictionaryInfo:output_type -> pb.NoDataResponse
-	107, // [107:156] is the sub-list for method output_type
-	58,  // [58:107] is the sub-list for method input_type
-	58,  // [58:58] is the sub-list for extension type_name
-	58,  // [58:58] is the sub-list for extension extendee
-	0,   // [0:58] is the sub-list for field type_name
+	81,  // 58: pb.RecordAuditRequest.Log:type_name -> pb.AuditLog
+	16,  // 59: pb.GetAuditLogListRequest.PageRequest:type_name -> pb.PageRequest
+	81,  // 60: pb.GetAuditLogListResponse.List:type_name -> pb.AuditLog
+	85,  // 61: pb.Department.Children:type_name -> pb.Department
+	85,  // 62: pb.DepartmentRequest.Department:type_name -> pb.Department
+	86,  // 63: pb.PositionRequest.Position:type_name -> pb.Position
+	85,  // 64: pb.DepartmentListResponse.List:type_name -> pb.Department
+	86,  // 65: pb.PositionListResponse.List:type_name -> pb.Position
+	95,  // 66: pb.RoleDataScopeRequest.DataScope:type_name -> pb.RoleDataScope
+	95,  // 67: pb.RoleDataScopeResponse.DataScope:type_name -> pb.RoleDataScope
+	74,  // 68: pb.RegisterFileRequest.Actor:type_name -> pb.SessionRequest
+	99,  // 69: pb.RegisterFileRequest.File:type_name -> pb.FileResource
+	74,  // 70: pb.FileIDRequest.Actor:type_name -> pb.SessionRequest
+	74,  // 71: pb.FileListRequest.Actor:type_name -> pb.SessionRequest
+	16,  // 72: pb.FileListRequest.PageRequest:type_name -> pb.PageRequest
+	99,  // 73: pb.FileListResponse.List:type_name -> pb.FileResource
+	74,  // 74: pb.FileReferenceRequest.Actor:type_name -> pb.SessionRequest
+	74,  // 75: pb.DeviceSessionListRequest.Actor:type_name -> pb.SessionRequest
+	16,  // 76: pb.DeviceSessionListRequest.PageRequest:type_name -> pb.PageRequest
+	105, // 77: pb.DeviceSessionListResponse.List:type_name -> pb.DeviceSession
+	74,  // 78: pb.RevokeDeviceSessionRequest.Actor:type_name -> pb.SessionRequest
+	74,  // 79: pb.User.CheckSession:input_type -> pb.SessionRequest
+	74,  // 80: pb.User.GetCurrentUser:input_type -> pb.SessionRequest
+	76,  // 81: pb.User.ChangePassword:input_type -> pb.ChangePasswordRequest
+	74,  // 82: pb.User.Logout:input_type -> pb.SessionRequest
+	1,   // 83: pb.User.GetUserInfo:input_type -> pb.GetUserInfoRequest
+	7,   // 84: pb.User.GetUserToke:input_type -> pb.GetUserTokeRequest
+	40,  // 85: pb.User.GetUserList:input_type -> pb.GetUserListRequest
+	42,  // 86: pb.User.Register:input_type -> pb.RegisterRequest
+	44,  // 87: pb.User.UpdateUserInfo:input_type -> pb.UpdateUserInfoRequest
+	45,  // 88: pb.User.UpdateUserAuthorities:input_type -> pb.UpdateUserAuthoritiesRequest
+	46,  // 89: pb.User.ResetUserPassword:input_type -> pb.ResetUserPasswordRequest
+	47,  // 90: pb.User.DeleteUser:input_type -> pb.DeleteUserRequest
+	71,  // 91: pb.Menu.GetAuthorityButtons:input_type -> pb.GetAuthorityButtonsRequest
+	73,  // 92: pb.Menu.UpdateAuthorityButtons:input_type -> pb.UpdateAuthorityButtonsRequest
+	9,   // 93: pb.Menu.GetMenuTree:input_type -> pb.GetMenuTreeRequest
+	0,   // 94: pb.Menu.GetMenuBaseInfoList:input_type -> pb.NoDataResponse
+	15,  // 95: pb.Menu.AddMenuBase:input_type -> pb.AddMenuBaseRequest
+	0,   // 96: pb.Menu.GetBaseMenuTree:input_type -> pb.NoDataResponse
+	29,  // 97: pb.Menu.GetMenuAuthority:input_type -> pb.GetMenuAuthorityRequest
+	35,  // 98: pb.Menu.GetBaseMenuById:input_type -> pb.GetBaseMenuByIdRequest
+	37,  // 99: pb.Menu.UpdateBaseMenu:input_type -> pb.UpdateBaseMenuRequest
+	54,  // 100: pb.Menu.DeleteBaseMenu:input_type -> pb.DeleteBaseMenuRequest
+	17,  // 101: pb.Authority.GetAuthorityList:input_type -> pb.GetAuthorityListRequest
+	31,  // 102: pb.Authority.AddAuthorityMenu:input_type -> pb.AddAuthorityMenuRequest
+	33,  // 103: pb.Authority.UpdateAuthority:input_type -> pb.UpdateAuthorityRequest
+	38,  // 104: pb.Authority.CreateAuthority:input_type -> pb.CreateAuthorityRequest
+	55,  // 105: pb.Authority.DeleteAuthority:input_type -> pb.DeleteAuthorityRequest
+	0,   // 106: pb.Api.PreviewApiSync:input_type -> pb.NoDataResponse
+	79,  // 107: pb.Api.ApplyApiSync:input_type -> pb.ApplyApiSyncRequest
+	20,  // 108: pb.Api.GetApiList:input_type -> pb.GetApiListRequest
+	22,  // 109: pb.Api.CreateApi:input_type -> pb.CreateApiRequest
+	23,  // 110: pb.Api.DeleteApi:input_type -> pb.DeleteApiRequest
+	0,   // 111: pb.Api.GetAllApiList:input_type -> pb.NoDataResponse
+	48,  // 112: pb.Api.DeleteApisByIds:input_type -> pb.DeleteApisByIdsRequest
+	53,  // 113: pb.Api.UpdateApi:input_type -> pb.UpdateApiRequest
+	26,  // 114: pb.Casbin.GetPathByAuthorityId:input_type -> pb.GetPathByAuthorityIdRequest
+	32,  // 115: pb.Casbin.UpdateCasbinData:input_type -> pb.UpdateCasbinDataRequest
+	49,  // 116: pb.Casbin.UpdateCasbinDataByApiIds:input_type -> pb.UpdateCasbinDataByApiIdsRequest
+	51,  // 117: pb.Casbin.Enforce:input_type -> pb.EnforceRequest
+	0,   // 118: pb.Dictionary.GetSysDictionaryList:input_type -> pb.NoDataResponse
+	61,  // 119: pb.Dictionary.CreateSysDictionary:input_type -> pb.CreateSysDictionaryRequest
+	63,  // 120: pb.Dictionary.GetSysDictionaryDetails:input_type -> pb.GetSysDictionaryDetailsRequest
+	62,  // 121: pb.Dictionary.UpdateSysDictionary:input_type -> pb.UpdateSysDictionaryRequest
+	65,  // 122: pb.Dictionary.DeleteSysDictionary:input_type -> pb.DeleteSysDictionaryRequest
+	59,  // 123: pb.Dictionary.GetSysDictionaryInfoList:input_type -> pb.GetSysDictionaryInfoListRequest
+	66,  // 124: pb.Dictionary.GetSysDictionaryInfoListDetailsById:input_type -> pb.GetSysDictionaryInfoListDetailsByIdRequest
+	68,  // 125: pb.Dictionary.UpdateSysDictionaryInfo:input_type -> pb.UpdateSysDictionaryInfoRequest
+	69,  // 126: pb.Dictionary.CreateSysDictionaryInfo:input_type -> pb.CreateSysDictionaryInfoRequest
+	70,  // 127: pb.Dictionary.DeleteSysDictionaryInfo:input_type -> pb.DeleteSysDictionaryInfoRequest
+	82,  // 128: pb.Audit.RecordAudit:input_type -> pb.RecordAuditRequest
+	83,  // 129: pb.Audit.GetAuditLogList:input_type -> pb.GetAuditLogListRequest
+	90,  // 130: pb.Organization.GetDepartmentTree:input_type -> pb.OrganizationListRequest
+	87,  // 131: pb.Organization.CreateDepartment:input_type -> pb.DepartmentRequest
+	87,  // 132: pb.Organization.UpdateDepartment:input_type -> pb.DepartmentRequest
+	89,  // 133: pb.Organization.DeleteDepartment:input_type -> pb.OrganizationIDRequest
+	90,  // 134: pb.Organization.GetPositionList:input_type -> pb.OrganizationListRequest
+	88,  // 135: pb.Organization.CreatePosition:input_type -> pb.PositionRequest
+	88,  // 136: pb.Organization.UpdatePosition:input_type -> pb.PositionRequest
+	89,  // 137: pb.Organization.DeletePosition:input_type -> pb.OrganizationIDRequest
+	89,  // 138: pb.Organization.GetMembership:input_type -> pb.OrganizationIDRequest
+	93,  // 139: pb.Organization.UpdateMembership:input_type -> pb.MembershipRequest
+	97,  // 140: pb.Organization.GetRoleDataScope:input_type -> pb.GetRoleDataScopeRequest
+	96,  // 141: pb.Organization.UpdateRoleDataScope:input_type -> pb.RoleDataScopeRequest
+	100, // 142: pb.FileResourceService.RegisterFile:input_type -> pb.RegisterFileRequest
+	102, // 143: pb.FileResourceService.GetFileList:input_type -> pb.FileListRequest
+	101, // 144: pb.FileResourceService.GetFile:input_type -> pb.FileIDRequest
+	104, // 145: pb.FileResourceService.AddFileReference:input_type -> pb.FileReferenceRequest
+	104, // 146: pb.FileResourceService.RemoveFileReference:input_type -> pb.FileReferenceRequest
+	101, // 147: pb.FileResourceService.BeginDeleteFile:input_type -> pb.FileIDRequest
+	101, // 148: pb.FileResourceService.FinishDeleteFile:input_type -> pb.FileIDRequest
+	106, // 149: pb.SessionManage.GetDeviceSessions:input_type -> pb.DeviceSessionListRequest
+	108, // 150: pb.SessionManage.RevokeDeviceSession:input_type -> pb.RevokeDeviceSessionRequest
+	75,  // 151: pb.User.CheckSession:output_type -> pb.CheckSessionResponse
+	2,   // 152: pb.User.GetCurrentUser:output_type -> pb.GetUserInfoResponse
+	0,   // 153: pb.User.ChangePassword:output_type -> pb.NoDataResponse
+	0,   // 154: pb.User.Logout:output_type -> pb.NoDataResponse
+	2,   // 155: pb.User.GetUserInfo:output_type -> pb.GetUserInfoResponse
+	8,   // 156: pb.User.GetUserToke:output_type -> pb.GetUserTokeResponse
+	41,  // 157: pb.User.GetUserList:output_type -> pb.GetUserListResponse
+	43,  // 158: pb.User.Register:output_type -> pb.RegisterResponse
+	0,   // 159: pb.User.UpdateUserInfo:output_type -> pb.NoDataResponse
+	0,   // 160: pb.User.UpdateUserAuthorities:output_type -> pb.NoDataResponse
+	0,   // 161: pb.User.ResetUserPassword:output_type -> pb.NoDataResponse
+	0,   // 162: pb.User.DeleteUser:output_type -> pb.NoDataResponse
+	72,  // 163: pb.Menu.GetAuthorityButtons:output_type -> pb.GetAuthorityButtonsResponse
+	0,   // 164: pb.Menu.UpdateAuthorityButtons:output_type -> pb.NoDataResponse
+	13,  // 165: pb.Menu.GetMenuTree:output_type -> pb.GetMenuTreeResponse
+	14,  // 166: pb.Menu.GetMenuBaseInfoList:output_type -> pb.GetMenuBaseInfoListResponse
+	0,   // 167: pb.Menu.AddMenuBase:output_type -> pb.NoDataResponse
+	28,  // 168: pb.Menu.GetBaseMenuTree:output_type -> pb.GetBaseMenuTreeResponse
+	30,  // 169: pb.Menu.GetMenuAuthority:output_type -> pb.GetMenuAuthorityResponse
+	36,  // 170: pb.Menu.GetBaseMenuById:output_type -> pb.GetBaseMenuByIdResponse
+	0,   // 171: pb.Menu.UpdateBaseMenu:output_type -> pb.NoDataResponse
+	0,   // 172: pb.Menu.DeleteBaseMenu:output_type -> pb.NoDataResponse
+	18,  // 173: pb.Authority.GetAuthorityList:output_type -> pb.GetAuthorityListResponse
+	0,   // 174: pb.Authority.AddAuthorityMenu:output_type -> pb.NoDataResponse
+	34,  // 175: pb.Authority.UpdateAuthority:output_type -> pb.UpdateAuthorityResponse
+	39,  // 176: pb.Authority.CreateAuthority:output_type -> pb.CreateAuthorityResponse
+	0,   // 177: pb.Authority.DeleteAuthority:output_type -> pb.NoDataResponse
+	78,  // 178: pb.Api.PreviewApiSync:output_type -> pb.PreviewApiSyncResponse
+	80,  // 179: pb.Api.ApplyApiSync:output_type -> pb.ApplyApiSyncResponse
+	21,  // 180: pb.Api.GetApiList:output_type -> pb.GetApiListResponse
+	0,   // 181: pb.Api.CreateApi:output_type -> pb.NoDataResponse
+	0,   // 182: pb.Api.DeleteApi:output_type -> pb.NoDataResponse
+	24,  // 183: pb.Api.GetAllApiList:output_type -> pb.GetAllApiListResponse
+	0,   // 184: pb.Api.DeleteApisByIds:output_type -> pb.NoDataResponse
+	0,   // 185: pb.Api.UpdateApi:output_type -> pb.NoDataResponse
+	27,  // 186: pb.Casbin.GetPathByAuthorityId:output_type -> pb.GetPathByAuthorityIdResponse
+	0,   // 187: pb.Casbin.UpdateCasbinData:output_type -> pb.NoDataResponse
+	50,  // 188: pb.Casbin.UpdateCasbinDataByApiIds:output_type -> pb.UpdateCasbinDataByApiIdsResponse
+	52,  // 189: pb.Casbin.Enforce:output_type -> pb.EnforceResponse
+	58,  // 190: pb.Dictionary.GetSysDictionaryList:output_type -> pb.DictionaryListResponse
+	0,   // 191: pb.Dictionary.CreateSysDictionary:output_type -> pb.NoDataResponse
+	64,  // 192: pb.Dictionary.GetSysDictionaryDetails:output_type -> pb.GetSysDictionaryDetailsResponse
+	0,   // 193: pb.Dictionary.UpdateSysDictionary:output_type -> pb.NoDataResponse
+	0,   // 194: pb.Dictionary.DeleteSysDictionary:output_type -> pb.NoDataResponse
+	60,  // 195: pb.Dictionary.GetSysDictionaryInfoList:output_type -> pb.GetSysDictionaryInfoListResponse
+	67,  // 196: pb.Dictionary.GetSysDictionaryInfoListDetailsById:output_type -> pb.GetSysDictionaryInfoListDetailsByIdResponse
+	0,   // 197: pb.Dictionary.UpdateSysDictionaryInfo:output_type -> pb.NoDataResponse
+	0,   // 198: pb.Dictionary.CreateSysDictionaryInfo:output_type -> pb.NoDataResponse
+	0,   // 199: pb.Dictionary.DeleteSysDictionaryInfo:output_type -> pb.NoDataResponse
+	0,   // 200: pb.Audit.RecordAudit:output_type -> pb.NoDataResponse
+	84,  // 201: pb.Audit.GetAuditLogList:output_type -> pb.GetAuditLogListResponse
+	91,  // 202: pb.Organization.GetDepartmentTree:output_type -> pb.DepartmentListResponse
+	85,  // 203: pb.Organization.CreateDepartment:output_type -> pb.Department
+	0,   // 204: pb.Organization.UpdateDepartment:output_type -> pb.NoDataResponse
+	0,   // 205: pb.Organization.DeleteDepartment:output_type -> pb.NoDataResponse
+	92,  // 206: pb.Organization.GetPositionList:output_type -> pb.PositionListResponse
+	86,  // 207: pb.Organization.CreatePosition:output_type -> pb.Position
+	0,   // 208: pb.Organization.UpdatePosition:output_type -> pb.NoDataResponse
+	0,   // 209: pb.Organization.DeletePosition:output_type -> pb.NoDataResponse
+	94,  // 210: pb.Organization.GetMembership:output_type -> pb.MembershipResponse
+	0,   // 211: pb.Organization.UpdateMembership:output_type -> pb.NoDataResponse
+	98,  // 212: pb.Organization.GetRoleDataScope:output_type -> pb.RoleDataScopeResponse
+	0,   // 213: pb.Organization.UpdateRoleDataScope:output_type -> pb.NoDataResponse
+	99,  // 214: pb.FileResourceService.RegisterFile:output_type -> pb.FileResource
+	103, // 215: pb.FileResourceService.GetFileList:output_type -> pb.FileListResponse
+	99,  // 216: pb.FileResourceService.GetFile:output_type -> pb.FileResource
+	0,   // 217: pb.FileResourceService.AddFileReference:output_type -> pb.NoDataResponse
+	0,   // 218: pb.FileResourceService.RemoveFileReference:output_type -> pb.NoDataResponse
+	99,  // 219: pb.FileResourceService.BeginDeleteFile:output_type -> pb.FileResource
+	0,   // 220: pb.FileResourceService.FinishDeleteFile:output_type -> pb.NoDataResponse
+	107, // 221: pb.SessionManage.GetDeviceSessions:output_type -> pb.DeviceSessionListResponse
+	0,   // 222: pb.SessionManage.RevokeDeviceSession:output_type -> pb.NoDataResponse
+	151, // [151:223] is the sub-list for method output_type
+	79,  // [79:151] is the sub-list for method input_type
+	79,  // [79:79] is the sub-list for extension type_name
+	79,  // [79:79] is the sub-list for extension extendee
+	0,   // [0:79] is the sub-list for field type_name
 }
 
 func init() { file_application_applet_rpc_desc_applet_proto_init() }
@@ -5389,9 +7498,9 @@ func file_application_applet_rpc_desc_applet_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_application_applet_rpc_desc_applet_proto_rawDesc), len(file_application_applet_rpc_desc_applet_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   82,
+			NumMessages:   110,
 			NumExtensions: 0,
-			NumServices:   6,
+			NumServices:   10,
 		},
 		GoTypes:           file_application_applet_rpc_desc_applet_proto_goTypes,
 		DependencyIndexes: file_application_applet_rpc_desc_applet_proto_depIdxs,

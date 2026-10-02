@@ -22,7 +22,7 @@ func NewDeleteSysDictionaryLogic(ctx context.Context, svcCtx *svc.ServiceContext
 }
 
 func (l *DeleteSysDictionaryLogic) DeleteSysDictionary(in *pb.DeleteSysDictionaryRequest) (*pb.NoDataResponse, error) {
-	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+	err := l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
 		var value model.SysDictionary
 		if err := accessutil.RequireID(tx, &value, in.ID); err != nil {
 			return err

@@ -24,7 +24,7 @@ func NewUpdateAuthorityLogic(ctx context.Context, svcCtx *svc.ServiceContext) *U
 
 func (l *UpdateAuthorityLogic) UpdateAuthority(in *pb.UpdateAuthorityRequest) (*pb.UpdateAuthorityResponse, error) {
 	var role model.SysAuthority
-	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+	err := l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
 		if err := validateAuthority(tx, in.SysAuthority); err != nil {
 			return err
 		}

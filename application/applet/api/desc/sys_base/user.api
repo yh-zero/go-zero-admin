@@ -58,7 +58,7 @@ service applet-api {
 	@handler UpdateUserInfo
 	put /updateUserInfo (UpdateUserInfoRequest)  returns (MessageResponse)
 
-	@doc "重置用户密码 默认密码：goZero"
+	@doc "重置用户密码，使用服务端配置的默认密码"
 	@handler ResetUserPassword
 	put /resetUserPassword (ResetUserPasswordRequest)  returns (MessageResponse)
 

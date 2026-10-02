@@ -1,200 +1,72 @@
-# Casbin 策略写路径时序与同步边界说明
+# Casbin 策略写入、审计与多实例同步
 
-> 适用范围：`go-zero-admin` applet 模块（api + rpc）
-> 核心封装：`pkg/middlecasbin/middlecasbin.go`
-> 文档日期：2026-08-16
+更新日期：2026-10-03。适用范围：applet API 和 RPC。
 
----
+API 不直连数据库，通过 `Casbin/Enforce` RPC 鉴权。每个 `ServiceContext` 持有自己的常驻 `SyncedCachedEnforcer`，关闭鉴权结果缓存，避免旧的允许结果跨越策略重载。RPC 正式启动使用 `CasbinConf.NewPolicySynchronizer`，共用业务数据库连接池；旧的 Redis watcher 工厂不参与当前服务启动。
 
-## 1. 背景与架构总览
+## 写入顺序
 
-权限鉴权采用 casbin RBAC（`SyncedCachedEnforcer`），策略存储于 MySQL `casbin_rule` 表，多实例间通过 Redis `/casbin` 频道（redis-watcher）同步。
+权限变更统一使用 `accessutil.PolicyTransaction(ctx, svc, change)`：
 
-自 2026-08 改造后：**api 层不直连数据库**，所有 casbin 读写收敛到 rpc 服务；api 层中间件通过 `Casbin/Enforce` gRPC 接口鉴权。
+1. 使用请求上下文启动数据库事务，锁定内置管理员保护行。
+2. 保存管理员恢复入口的可用状态，执行业务数据与 `casbin_rule` 的变更。
+3. 校验不能删除已有的管理员权限恢复入口。
+4. 在同一事务内递增 `sys_policy_versions` 中 `id=1` 的版本。
+5. 在同一事务写入 `sys_audit_logs`，记录模块 `permission`、动作 `commitPolicy`、可信请求路径、方法和操作者；不保存策略内容。
+6. 全部成功才提交。审计或任一业务写入失败，业务数据、策略和版本一起回滚。
+7. 提交后只向容量1的唤醒队列发送非阻塞通知，然后返回成功。已有单个后台worker检查版本、重载本实例策略并发送 Redis `/casbin` 通知；重复唤醒合并，不为每次请求创建goroutine。通知只是提前检查的优化。
 
-### 组件角色
+角色创建、角色删除、角色 API 权限替换、API 创建、路径或方法修改、API 批量删除均走同一封装；单 API 删除委托批量逻辑。Swagger 资源同步仅添加资源或修改说明，不修改规则和授权，因此无需权限版本递增。
 
-| 组件 | 位置 | 职责 |
-|---|---|---|
-| applet-api | `application/applet/api` | HTTP 网关，JWT 解析，`AuthorityMiddleware` 调 RPC Enforce |
-| applet-rpc | `application/applet/rpc` | 持有唯一常驻 enforcer，全部策略读写 |
-| Enforcer | `rpc/internal/svc/service_context.go` | `SyncedCachedEnforcer` 进程内单例（`sync.Once`），1h 鉴权结果缓存 |
-| MySQL | `casbin_rule` 表 | 策略持久化（gorm adapter，autoSave 自动落库） |
-| Redis | `/casbin` 频道 | watcher 广播，实例间策略变更通知（`IgnoreSelf=true`） |
+生产 enforcer 使用带超时的只读适配器。直接 `AddPolicy`、`RemovePolicy`、`SavePolicy` 会失败，防止绕过业务事务、管理员保护和版本递增；不要对线上规则全量写回。
 
-### 核心机制要点
+## 多实例恢复
 
-1. **enforcer 单例**：整个 rpc 进程只在 `NewServiceContext` 创建一次，所有 logic 复用 `svcCtx.Casbin`，禁止在 logic 内重新创建（历史 bug：重复创建会触发 `SavePolicy` 全量写库 + 重复挂 watcher，已根除）。
-2. **autoSave**：enforcer 写策略 API（AddPolicies / RemoveFilteredPolicy / UpdatePolicies 等）在更新内存的同时自动写 MySQL，并通过 watcher 广播。
-3. **禁止调用 `SavePolicy()`**：全量把内存写回 DB（DELETE ALL + INSERT），存在清空线上策略表的风险，当前代码已移除。
-4. **matcher 统一为 `keyMatch2`**：rpc yaml 的 `CasbinConf.ModelText` 与 `middlecasbin.defaultModelText` 保持一致。
+每个同步器通过三个入口核对数据库版本：
 
----
+- 默认每两秒定期检查，与 Redis 是否可用无关。
+- Redis 订阅接到通知或重连订阅事件后立即检查；发布丢失不影响持久化版本。
+- 每个 `Enforce` RPC 请求先检查版本；版本落后时成功重载后才鉴权。数据库无法核对版本时拒绝鉴权，不继续使用可能过期的权限。
 
-## 2. 写路径清单总览
-
-| # | 写路径 | RPC logic | 写入方式 | 内存同步 | 多实例广播 |
-|---|---|---|---|---|---|
-| 1 | 更新角色权限 | `casbin/update_casbin_data_logic.go` | enforcer API | 自动 | 自动 |
-| 2 | 按 API IDs 更新角色权限 | `casbin/update_casbin_data_by_api_ids_logic.go` | enforcer API | 自动 | 自动 |
-| 3 | 删除单条 API | `api/delete_api_logic.go` | enforcer `RemoveFilteredPolicy` | 自动 | 自动 |
-| 4 | 批量删除 API | `api/delete_apis_by_ids_logic.go` | enforcer `RemoveFilteredPolicy` | 自动 | 自动 |
-| 5 | 更新 API 路径/方法 | `api/update_api_logic.go` | enforcer `UpdatePolicies` | 自动 | 自动 |
-| 6 | 创建角色（含默认策略） | `authority/create_authority_logic.go` | **gorm 事务直改表** | 事务后手动 `LoadPolicy()` | **无广播** |
-| 7 | 删除角色（含策略） | `authority/delete_authority_logic.go` | **gorm 事务直改表** | 事务后手动 `LoadPolicy()` | **无广播** |
-
-> 路径 1–5 走 enforcer API，属于"全自动"路径；路径 6–7 为了保证"角色 + 关联菜单 + 策略"事务原子性直改表，属于"半自动"路径（详见第 4 节边界说明）。
-
----
-
-## 3. 时序图
-
-### 3.1 路径 A：enforcer 写操作（全自动同步 + 广播）
-
-代表接口：`UpdateCasbinData`（其余 enforcer 写路径同理）
+重载前后分别读取版本。如果重载期间有其他实例提交更改，保存的旧版本不会被当成最新版本，最多重试三次；连续变动或数据库错误返回鉴权失败，下次检查继续恢复。所有数据库检查、策略加载和Redis发布有三秒超时；鉴权检查还遵守更短的请求期限。慢Redis发布不会占用权限写入请求或全局写入锁。`ServiceContext.Close()` 取消工作线程与正在进行的发布、关闭 Redis 订阅与连接，再关闭数据库连接池。
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant C as 前端
-    participant A as applet-api
-    participant MW as AuthorityMiddleware
-    participant L as RPC logic
-    participant E as Enforcer<br/>(svcCtx.Casbin 常驻)
-    participant M as MySQL<br/>casbin_rule
-    participant R as Redis<br/>/casbin 频道
-    participant E2 as 其他RPC实例<br/>Enforcer
-
-    C->>A: POST /v1/sys/casbin/updateCasbinData
-    A->>MW: JWT 解析 authorityId
-    MW->>L: gRPC Enforce(sub, path, method)
-    L->>E: Enforce() 内存判定(1h缓存)
-    L-->>MW: Pass
-    MW->>L: gRPC UpdateCasbinData
-    L->>L: 构造去重 rules
-
-    L->>E: GetFilteredPolicy(0, authorityId)<br/>记录旧策略(用于回滚)
-    L->>E: RemoveFilteredPolicy(0, authorityId)
-    Note over E: ①内存模型删除该角色策略<br/>②鉴权缓存失效
-    E->>M: autoSave: DELETE WHERE v0=authorityId
-    E->>R: watcher.Update() 广播<br/>(IgnoreSelf=true 不通知自己)
-
-    L->>E: AddPolicies(rules)
-    Note over E: ①内存模型批量添加<br/>②失败时回滚旧策略
-    E->>M: autoSave: INSERT batch
-    E->>R: watcher.Update() 广播
-
-    R--)E2: 订阅收到变更消息
-    E2->>E2: DefaultUpdateCallback
-    E2->>M: LoadPolicy() 全量重载<br/>缓存失效
-    Note over E2: 多实例完成同步<br/>(毫秒~秒级)
-
-    L-->>A: NoDataResponse
-    A-->>C: 修改成功
+    participant API as API 网关
+    participant RPC1 as 写入实例
+    participant Worker as 本实例单个worker
+    participant DB as MySQL
+    participant Redis as Redis 通知
+    participant RPC2 as 其他实例
+    API->>RPC1: 权限变更
+    RPC1->>DB: 事务：业务 + 规则 + 版本 + 审计
+    DB-->>RPC1: 提交成功
+    RPC1->>Worker: 非阻塞合并唤醒
+    RPC1-->>API: 提交成功
+    Worker->>DB: 检查版本并加载规则
+    Worker->>Redis: 有界发布唤醒通知
+    Redis-->>RPC2: 通知或重连事件
+    RPC2->>DB: 版本检查；有变化时重载
+    API->>RPC2: Enforce
+    RPC2->>DB: 再次核对当前版本
+    RPC2-->>API: 通过、拒绝或鉴权失败
 ```
 
-### 3.2 路径 B：事务直改表（本实例手动同步，无广播）
-
-代表接口：`CreateAuthority`（`DeleteAuthority` 同理）
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as 前端
-    participant A as applet-api
-    participant L as RPC logic
-    participant DB as MySQL<br/>(gorm 事务)
-    participant E as Enforcer<br/>(本实例)
-    participant R as Redis<br/>/casbin 频道
-    participant E2 as 其他RPC实例
-
-    C->>A: POST /v1/sys/authority/createAuthority
-    A->>L: gRPC CreateAuthority
-    L->>L: 校验 authority_id 不存在
-
-    L->>DB: BEGIN
-    L->>DB: INSERT sys_authority + 默认菜单关联
-    L->>DB: INSERT casbin_rule<br/>(直改表,保证与角色创建同事务)
-    L->>DB: COMMIT
-
-    L->>E: LoadPolicy() 手动全量重载
-    Note over E: 本实例内存已同步<br/>新角色默认权限立即生效
-    Note over R,E2: ⚠️ Redis 无消息<br/>其他实例不会收到通知<br/>内存策略处于过期状态
-    L-->>A: 创建成功
-    A-->>C: 响应
-```
-
-### 3.3 读路径（背景参考）：HTTP 鉴权
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as 前端
-    participant A as applet-api<br/>AuthorityMiddleware
-    participant L as RPC Enforce logic
-    participant E as Enforcer
-
-    C->>A: 业务请求(带 x-token)
-    A->>A: JWT 解析 authorityId
-    A->>L: gRPC Casbin/Enforce
-    L->>E: Enforce(authorityId, path, method)
-    Note over E: 纯内存判定<br/>SyncedCache 命中约微秒级
-    L-->>A: Pass / Deny
-    alt 不通过或 RPC 异常
-        A-->>C: 403 {"message":"权限不足"}<br/>或 500 {"message":"鉴权服务异常"}
-    else 通过
-        A->>A: 放行业务 handler
-    end
-```
-
----
-
-## 4. 内存同步与多实例广播边界
-
-### 4.1 边界矩阵
-
-| 写路径 | 本实例内存 | MySQL 落库 | 多实例广播 | 一致性窗口 |
-|---|---|---|---|---|
-| UpdateCasbinData / ByApiIds | enforcer API 自动 | autoSave 自动 | watcher 自动 | 毫秒~秒级 |
-| delete_api / delete_apis_by_ids | enforcer API 自动 | autoSave 自动 | watcher 自动 | 毫秒~秒级 |
-| update_api（UpdatePolicies） | enforcer API 自动 | autoSave 自动 | watcher 自动 | 毫秒~秒级 |
-| **create_authority / delete_authority** | **事务后手动 LoadPolicy** | 事务直改表 | **❌ 无广播** | **其他实例过期，直至其自身下一次写操作触发广播或重启** |
-| 读路径 Enforce | 1h 结果缓存 | — | 写操作/watcher 自动失效缓存 | — |
-
-### 4.2 当前部署形态结论
-
-- **单实例 rpc（当前形态）**：所有路径内存与 DB 最终一致，无风险。
-- **多实例 rpc**：唯一不一致窗口为 create/delete authority。若未来扩展为多实例，需补充广播（方案：事务提交后在 svc 中持有 watcher 实例并手动 `Publish`，或改为 enforcer API 写入 + 补偿事务）。
-
-### 4.3 失败场景行为
+## 失败与恢复边界
 
 | 场景 | 行为 |
 |---|---|
-| `UpdateCasbinData`：删旧成功、加新失败 | 自动回滚旧策略（`AddPolicies(oldRules)`），回滚失败仅记 Errorf 日志 |
-| `LoadPolicy` 失败（DB 抖动） | 记 Errorf，接口仍返回成功；内存保持旧策略，下次写操作或 watcher 通知会重试加载 |
-| enforcer 初始化失败（启动时 DB 不可用） | `MustNewCasbin` 直接 panic，rpc 进程启动失败（fail-fast，避免运行期 nil panic） |
-| watcher Redis 不可用 | 写操作仍正确落库 + 本实例内存同步；仅跨实例通知延迟，恢复后需手动触发一次 LoadPolicy 或等下次写操作 |
-| `CasbinInfoList` 传空列表 | 语义为"清空该角色全部权限"，正常返回成功（历史 bug 已修复） |
+| 业务、规则、版本、事务审计写入失败 | 同一事务回滚，返回失败 |
+| 提交后本实例重载失败或变慢 | 请求不等待重载，修改已提交并返回成功；后台与鉴权检查重试；当前鉴权无法检查最新规则时失败 |
+| Redis 通知发布失败、变慢或断线期间漏通知 | 请求不等待发布；数据库版本保留变更，定期检查、重连事件和鉴权检查恢复；通知队列至多保留一个待处理唤醒 |
+| 初次启动缺少版本迁移、数据库不可用或规则不匹配模型 | RPC 停止启动，避免携带无效鉴权状态运行 |
+| 请求取消或超时 | 未提交事务随请求上下文取消；已提交后不在请求中做网络工作，后台同步使用独立、有界且可关闭的上下文 |
+| 人工修改 `casbin_rule` | 必须同事务递增 `sys_policy_versions.version` 并保留审计；否则版本检查无法识别外部修改 |
 
----
+菜单与按钮授权使用 `AdminMenuTransaction`：同事务校验管理员菜单恢复能力并写入 `commitMenu` 审计。用户注册、资料或角色变更、冻结、删除、改密、重置密码分别写事务审计。HTTP 请求审计用于记录失败和请求耗时；事务审计用于证明具体敏感变更成功提交。
 
-## 5. 关键代码索引
+## 部署与验证
 
-| 主题 | 文件 |
-|---|---|
-| enforcer 封装（单例/autoSave/watcher/默认模型） | `pkg/middlecasbin/middlecasbin.go` |
-| enforcer 唯一创建点 | `application/applet/rpc/internal/svc/service_context.go` |
-| 鉴权中间件（RPC Enforce + 403/500 响应） | `application/applet/api/internal/middleware/authority_middleware.go` |
-| Enforce RPC 实现 | `application/applet/rpc/internal/logic/casbin/enforce_logic.go` |
-| enforcer 写路径 | `application/applet/rpc/internal/logic/casbin/update_casbin_data_logic.go`、`update_casbin_data_by_api_ids_logic.go` |
-| API 增删改同步策略 | `application/applet/rpc/internal/logic/api/update_api_logic.go`、`delete_api_logic.go`、`delete_apis_by_ids_logic.go` |
-| 角色增删（事务直改表） | `application/applet/rpc/internal/logic/authority/create_authority_logic.go`、`delete_authority_logic.go` |
-| 模型配置 | `application/applet/rpc/etc/applet.yaml` → `CasbinConf.ModelText`（keyMatch2） |
+先执行 `data/db/migrations/20261002_00_policy_sync.sql` 及审计迁移，再启动新版服务。本机 RPC 默认仅监听 `127.0.0.1:6001`；部署模板使用 go-zero 内置 `Auth=true`、`StrictControl=true`，API 与 RPC 配置相同应用标识及密钥。RPC 密钥登记和轮换见 `docker/部署说明.md`。
 
----
-
-## 6. 变更记录
-
-| 日期 | 变更 |
-|---|---|
-| 2026-08-16 | api 层去 DB 化，casbin 读写收敛至 rpc；新增 `Casbin/Enforce` gRPC 接口；移除 `SavePolicy` 全量写库；matcher 统一 `keyMatch2`；watcher `IgnoreSelf=true`；删除 API 同步清理策略；角色增删后补 `LoadPolicy`；鉴权失败返回 403/500 JSON |
+回归覆盖丢失通知后的跨实例撤权、策略加载失败重试、重载期间并发提交、版本事务回滚、请求取消、线程退出、缺失迁移、事务审计失败回滚。新增回归先复现慢重载/Redis阻塞提交响应，再验证非阻塞返回、写入锁及时释放、1000次通知合并、关闭取消慢发布，以及重载被阻塞时Enforce仍拒绝旧缓存、恢复后撤权生效。代码入口：`pkg/middlecasbin/policy_sync.go`、`accessutil/policy.go`、`casbin/enforce_logic.go`、`pkg/audit/event.go`。

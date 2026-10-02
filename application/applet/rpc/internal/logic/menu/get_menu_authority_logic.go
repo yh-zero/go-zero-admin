@@ -22,16 +22,16 @@ func NewGetMenuAuthorityLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 func (l *GetMenuAuthorityLogic) GetMenuAuthority(in *pb.GetMenuAuthorityRequest) (*pb.GetMenuAuthorityResponse, error) {
-	if err := accessutil.RequireRole(l.svcCtx.DB.DB, in.AuthorityId); err != nil {
+	if err := accessutil.RequireRole(l.svcCtx.DB.WithContext(l.ctx), in.AuthorityId); err != nil {
 		return nil, err
 	}
 	var ids []string
-	if err := l.svcCtx.DB.Model(&model.SysAuthorityMenu{}).Where("sys_authority_authority_id = ?", in.AuthorityId).Pluck("sys_base_menu_id", &ids).Error; err != nil {
+	if err := l.svcCtx.DB.WithContext(l.ctx).Model(&model.SysAuthorityMenu{}).Where("sys_authority_authority_id = ?", in.AuthorityId).Pluck("sys_base_menu_id", &ids).Error; err != nil {
 		return nil, err
 	}
 	var records []model.SysBaseMenu
 	if len(ids) > 0 {
-		if err := l.svcCtx.DB.Where("id IN ?", ids).Order("sort,id").Preload("Parameters").Preload("MenuBtn").Find(&records).Error; err != nil {
+		if err := l.svcCtx.DB.WithContext(l.ctx).Where("id IN ?", ids).Order("sort,id").Preload("Parameters").Preload("MenuBtn").Find(&records).Error; err != nil {
 			return nil, err
 		}
 	}

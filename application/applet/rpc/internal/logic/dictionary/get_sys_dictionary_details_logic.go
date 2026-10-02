@@ -34,7 +34,7 @@ func (l *GetSysDictionaryDetailsLogic) GetSysDictionaryDetails(in *pb.GetSysDict
 	if err := accessutil.Status(status); err != nil {
 		return nil, err
 	}
-	db := l.svcCtx.DB.Where("status = ?", status)
+	db := l.svcCtx.DB.WithContext(l.ctx).Where("status = ?", status)
 	if in.ID > 0 {
 		db = db.Where("id = ?", in.ID)
 	} else {

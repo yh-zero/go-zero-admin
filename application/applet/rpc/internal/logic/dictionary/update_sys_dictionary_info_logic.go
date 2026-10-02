@@ -25,7 +25,7 @@ func (l *UpdateSysDictionaryInfoLogic) UpdateSysDictionaryInfo(in *pb.UpdateSysD
 	if in.SysDictionaryInfo == nil {
 		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "字典项不能为空")
 	}
-	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+	err := l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
 		var old model.SysDictionaryInfo
 		if err := accessutil.RequireID(tx, &old, in.SysDictionaryInfo.ID); err != nil {
 			return err

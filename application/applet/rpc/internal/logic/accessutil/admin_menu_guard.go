@@ -2,6 +2,7 @@ package accessutil
 
 import (
 	"go-zero-admin/application/applet/rpc/internal/model"
+	"go-zero-admin/pkg/audit"
 	"go-zero-admin/pkg/result/xerr"
 	"gorm.io/gorm"
 )
@@ -97,6 +98,8 @@ func AdminMenuTransaction(db *gorm.DB, change func(*gorm.DB) error) error {
 				return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "管理员必须保留角色管理授权按钮："+name)
 			}
 		}
-		return nil
+		ctx := db.Statement.Context
+		request := audit.RequestFromContext(ctx)
+		return audit.Record(ctx, tx, audit.Event{Module: "menu", Action: "commitMenu", Object: request.Path})
 	})
 }

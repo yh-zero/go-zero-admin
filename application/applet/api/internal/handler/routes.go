@@ -8,11 +8,15 @@ import (
 	"time"
 
 	api "go-zero-admin/application/applet/api/internal/handler/api"
+	audit "go-zero-admin/application/applet/api/internal/handler/audit"
 	authority "go-zero-admin/application/applet/api/internal/handler/authority"
 	base "go-zero-admin/application/applet/api/internal/handler/base"
 	casbin "go-zero-admin/application/applet/api/internal/handler/casbin"
+	devicesession "go-zero-admin/application/applet/api/internal/handler/devicesession"
 	dictionary "go-zero-admin/application/applet/api/internal/handler/dictionary"
+	files "go-zero-admin/application/applet/api/internal/handler/files"
 	menu "go-zero-admin/application/applet/api/internal/handler/menu"
+	organization "go-zero-admin/application/applet/api/internal/handler/organization"
 	session "go-zero-admin/application/applet/api/internal/handler/session"
 	user "go-zero-admin/application/applet/api/internal/handler/user"
 	usernocasbin "go-zero-admin/application/applet/api/internal/handler/usernocasbin"
@@ -88,6 +92,22 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
 		rest.WithPrefix("/v1/sys/api"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					// 分页查询操作审计与登录日志，时间使用RFC3339格式
+					Method:  http.MethodGet,
+					Path:    "/getAuditLogList",
+					Handler: audit.GetAuditLogListHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/audit"),
 	)
 
 	server.AddRoutes(
@@ -195,6 +215,50 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 
 	server.AddRoutes(
 		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Session},
+			[]rest.Route{
+				{
+					// 撤销自己的一个设备会话
+					Method:  http.MethodDelete,
+					Path:    "/device",
+					Handler: devicesession.RevokeMyDeviceSessionHandler(serverCtx),
+				},
+				{
+					// 查询自己的有效设备会话
+					Method:  http.MethodGet,
+					Path:    "/devices",
+					Handler: devicesession.GetMyDeviceSessionsHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/session"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					// 管理员撤销一个设备会话
+					Method:  http.MethodDelete,
+					Path:    "/device",
+					Handler: devicesession.RevokeDeviceSessionHandler(serverCtx),
+				},
+				{
+					// 管理员查询有效设备会话
+					Method:  http.MethodGet,
+					Path:    "/devices",
+					Handler: devicesession.GetDeviceSessionsHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/session/admin"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
 			[]rest.Middleware{serverCtx.Authority},
 			[]rest.Route{
 				{
@@ -261,6 +325,47 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
 		rest.WithPrefix("/v1/sys/dictionary"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					// 按数据范围分页查询文件
+					Method:  http.MethodGet,
+					Path:    "/list",
+					Handler: files.GetFileListHandler(serverCtx),
+				},
+				{
+					// 登记文件业务引用
+					Method:  http.MethodPost,
+					Path:    "/reference",
+					Handler: files.AddFileReferenceHandler(serverCtx),
+				},
+				{
+					// 移除文件业务引用
+					Method:  http.MethodDelete,
+					Path:    "/reference",
+					Handler: files.RemoveFileReferenceHandler(serverCtx),
+				},
+				{
+					// 删除无引用文件，失败可重试
+					Method:  http.MethodDelete,
+					Path:    "/resource",
+					Handler: files.DeleteFileHandler(serverCtx),
+				},
+				{
+					// 获取受控文件访问地址
+					Method:  http.MethodGet,
+					Path:    "/url",
+					Handler: files.GetFileURLHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/files"),
+		rest.WithTimeout(30000*time.Millisecond),
 	)
 
 	server.AddRoutes(
@@ -335,6 +440,88 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 
 	server.AddRoutes(
 		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					// 读取角色数据范围
+					Method:  http.MethodGet,
+					Path:    "/dataScope",
+					Handler: organization.GetRoleDataScopeHandler(serverCtx),
+				},
+				{
+					// 设置角色数据范围
+					Method:  http.MethodPut,
+					Path:    "/dataScope",
+					Handler: organization.UpdateRoleDataScopeHandler(serverCtx),
+				},
+				{
+					// 查询部门树
+					Method:  http.MethodGet,
+					Path:    "/departments",
+					Handler: organization.GetDepartmentTreeHandler(serverCtx),
+				},
+				{
+					// 创建部门
+					Method:  http.MethodPost,
+					Path:    "/departments",
+					Handler: organization.CreateDepartmentHandler(serverCtx),
+				},
+				{
+					// 更新部门
+					Method:  http.MethodPut,
+					Path:    "/departments",
+					Handler: organization.UpdateDepartmentHandler(serverCtx),
+				},
+				{
+					// 删除未被使用的部门
+					Method:  http.MethodDelete,
+					Path:    "/departments",
+					Handler: organization.DeleteDepartmentHandler(serverCtx),
+				},
+				{
+					// 读取人员部门岗位归属
+					Method:  http.MethodGet,
+					Path:    "/membership",
+					Handler: organization.GetMembershipHandler(serverCtx),
+				},
+				{
+					// 设置人员部门岗位归属
+					Method:  http.MethodPut,
+					Path:    "/membership",
+					Handler: organization.UpdateMembershipHandler(serverCtx),
+				},
+				{
+					// 查询岗位列表
+					Method:  http.MethodGet,
+					Path:    "/positions",
+					Handler: organization.GetPositionListHandler(serverCtx),
+				},
+				{
+					// 创建岗位
+					Method:  http.MethodPost,
+					Path:    "/positions",
+					Handler: organization.CreatePositionHandler(serverCtx),
+				},
+				{
+					// 更新岗位
+					Method:  http.MethodPut,
+					Path:    "/positions",
+					Handler: organization.UpdatePositionHandler(serverCtx),
+				},
+				{
+					// 删除未被使用的岗位
+					Method:  http.MethodDelete,
+					Path:    "/positions",
+					Handler: organization.DeletePositionHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/organization"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
 			[]rest.Middleware{serverCtx.Session},
 			[]rest.Route{
 				{
@@ -384,7 +571,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: user.RegisterHandler(serverCtx),
 				},
 				{
-					// 重置用户密码 默认密码：goZero
+					// 重置用户密码，使用服务端配置的默认密码
 					Method:  http.MethodPut,
 					Path:    "/resetUserPassword",
 					Handler: user.ResetUserPasswordHandler(serverCtx),

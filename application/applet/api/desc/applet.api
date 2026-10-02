@@ -1,2 +1,6 @@
 import "./sys_base/user.api"
 import "./sys_base/api_sync.api"
+import "./sys_base/organization.api"
+import "./sys_base/files.api"
+import "./sys_base/device_sessions.api"
+import "./sys_base/audit.api"

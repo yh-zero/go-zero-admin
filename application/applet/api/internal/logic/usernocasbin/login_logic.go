@@ -6,6 +6,7 @@ import (
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
 	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/audit"
 	"go-zero-admin/pkg/result/xerr"
 
 	"github.com/jinzhu/copier"
@@ -38,11 +39,14 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 		return nil, err
 	}
 	var resUserInfo types.LoginResponse
+	audit.SetActor(l.ctx, audit.Actor{ID: userInfoRPC.UserInfo.ID, Name: userInfoRPC.UserInfo.Username, AuthorityID: userInfoRPC.UserInfo.AuthorityId})
 	_ = copier.Copy(&resUserInfo.UserInfo, &userInfoRPC.UserInfo)
 
 	// 获取token
 	var tokenReq = pb.GetUserTokeRequest{}
 	_ = copier.Copy(&tokenReq, userInfoRPC.UserInfo)
+	request := audit.RequestFromContext(l.ctx)
+	tokenReq.IP, tokenReq.UserAgent = request.IP, request.UserAgent
 	tokenResp, err := l.svcCtx.AppletUserRPC.GetUserToke(l.ctx, &tokenReq)
 
 	if err != nil {

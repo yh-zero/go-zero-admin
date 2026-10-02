@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
@@ -22,8 +23,12 @@ func NewGetUserListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUs
 }
 func (l *GetUserListLogic) GetUserList(in *pb.GetUserListRequest) (*pb.GetUserListResponse, error) {
 	page := in.GetPageRequest()
-	if page == nil || page.PageNo < 1 || page.PageSize < 1 || page.PageSize > 500 {
+	if page == nil {
 		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "分页参数无效，pageSize 应为 1 至 500")
+	}
+	offset, limit, err := accessutil.Page(page.PageNo, page.PageSize)
+	if err != nil {
+		return nil, err
 	}
 	db := l.svcCtx.DB.WithContext(l.ctx).Model(&model.SysUser{})
 	if keyword := strings.TrimSpace(page.Keyword); keyword != "" {
@@ -34,7 +39,7 @@ func (l *GetUserListLogic) GetUserList(in *pb.GetUserListRequest) (*pb.GetUserLi
 	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
-	if err := db.Order("id DESC").Limit(int(page.PageSize)).Offset(int((page.PageNo - 1) * page.PageSize)).Preload("Authorities").Preload("Authority").Find(&users).Error; err != nil {
+	if err := db.Order("id DESC").Limit(limit).Offset(offset).Preload("Authorities").Preload("Authority").Find(&users).Error; err != nil {
 		return nil, err
 	}
 	output := &pb.GetUserListResponse{Total: total, UserInfoList: []*pb.UserInfo{}}

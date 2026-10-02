@@ -6,10 +6,15 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
+	"time"
+	"unicode/utf8"
 
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/ctxJwt"
 	"go-zero-admin/pkg/result/xerr"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -72,6 +77,24 @@ func (l *UploadFileImgLogic) UploadFileImg(_ *types.UploadFileImgRequest, r *htt
 	if l.svcCtx.OssClient == nil {
 		return nil, xerr.NewErrCodeMsg(300002, "文件存储服务未配置")
 	}
+	visibility := r.FormValue("visibility")
+	if visibility == "" {
+		visibility = "public"
+	}
+	if visibility != "public" && visibility != "private" {
+		return nil, xerr.NewErrCodeMsg(300002, "文件可见性只允许public或private")
+	}
+	name := path.Base(strings.ReplaceAll(r.MultipartForm.File["file_img"][0].Filename, "\\", "/"))
+	if strings.TrimSpace(name) == "" || name == "." || name == ".." || len([]rune(name)) > 255 || !utf8.ValidString(name) || strings.ContainsAny(name, "\x00\r\n") {
+		return nil, xerr.NewErrCodeMsg(300002, "文件名无效或超过255字符")
+	}
+	if l.svcCtx.AppletFileRPC == nil {
+		return nil, xerr.NewErrCodeMsg(300002, "文件资源服务未配置")
+	}
+	actor := ctxJwt.GetJwtData(l.ctx)
+	if actor.ID <= 0 || actor.AuthorityId <= 0 || actor.SessionVersion <= 0 {
+		return nil, xerr.NewErrCode(xerr.TOKEN_EXPIRE_ERROR)
+	}
 	bucket, err := l.svcCtx.OssClient.Bucket(l.svcCtx.Config.Oss.BucketName)
 	if err != nil {
 		return nil, xerr.NewErrCodeMsg(300002, "文件存储服务配置无效")
@@ -81,11 +104,36 @@ func (l *UploadFileImgLogic) UploadFileImg(_ *types.UploadFileImgRequest, r *htt
 		return nil, err
 	}
 	key := "go-zero-admin/" + id.String() + imageExtension(mime)
-	if err = bucket.PutObject(key, bytes.NewReader(data), oss.ContentType(mime), oss.WithContext(l.ctx)); err != nil {
+	acl := oss.ACLPublicRead
+	if visibility == "private" {
+		acl = oss.ACLPrivate
+	}
+	if err = bucket.PutObject(key, bytes.NewReader(data), oss.ContentType(mime), oss.ObjectACL(acl), oss.WithContext(l.ctx)); err != nil {
 		l.Error("图片上传失败")
 		return nil, xerr.NewErrCodeMsg(300002, "图片上传失败，请检查文件存储服务")
 	}
-	return &types.UploadFileImgResponse{FileImgUrl: genFileURL(l.svcCtx.Config.Oss.BucketName, l.svcCtx.Config.Oss.Endpoint, key)}, nil
+	registration := &pb.RegisterFileRequest{Actor: &pb.SessionRequest{UserID: actor.ID, AuthorityId: actor.AuthorityId, SessionVersion: actor.SessionVersion, SessionID: actor.SessionID},
+		File: &pb.FileResource{ObjectKey: key, Name: name, Mime: mime, Size: int64(len(data)), Visibility: visibility}}
+	file, err := l.svcCtx.AppletFileRPC.RegisterFile(l.ctx, registration)
+	if err != nil {
+		// Retry the same idempotent registration after a transport ambiguity.
+		// Never delete the blob here: the first RPC may have already committed.
+		retryCtx, cancel := context.WithTimeout(context.WithoutCancel(l.ctx), 2*time.Second)
+		file, err = l.svcCtx.AppletFileRPC.RegisterFile(retryCtx, registration)
+		cancel()
+		if err != nil {
+			l.Errorf("uploaded object requires metadata reconciliation key=%s", key)
+			return nil, xerr.NewErrCodeMsg(300002, "图片已上传，但资源登记失败，请联系管理员核查")
+		}
+	}
+	link := genFileURL(l.svcCtx.Config.Oss.BucketName, l.svcCtx.Config.Oss.Endpoint, key)
+	if visibility == "private" {
+		link, err = bucket.SignURL(key, oss.HTTPGet, 300)
+		if err != nil {
+			return nil, xerr.NewErrCodeMsg(300002, "图片已保存，访问地址生成失败")
+		}
+	}
+	return &types.UploadFileImgResponse{FileImgUrl: link, FileId: file.ID}, nil
 }
 func genFileURL(bucketName, endpoint, key string) string {
 	endpoint = strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(endpoint, "https://"), "http://"), "/")

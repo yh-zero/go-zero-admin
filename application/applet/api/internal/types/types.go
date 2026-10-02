@@ -15,6 +15,11 @@ type AddBaseMenuRequest struct {
 type AddBaseMenuResponse struct {
 }
 
+type AdminDeviceSessionListRequest struct {
+	PageRequest
+	UserId int64 `form:"userId,optional"`
+}
+
 type ApiSyncItem struct {
 	Key                string `json:"key"`
 	Id                 int64  `json:"id"`
@@ -34,6 +39,26 @@ type ApplyApiSyncRequest struct {
 type ApplyApiSyncResponse struct {
 	Added   int64 `json:"added"`
 	Updated int64 `json:"updated"`
+}
+
+type AuditLog struct {
+	ID          int64  `json:"id"`
+	ActorID     int64  `json:"actorId"`
+	ActorName   string `json:"actorName"`
+	AuthorityId int64  `json:"authorityId"`
+	Module      string `json:"module"`
+	Action      string `json:"action"`
+	Object      string `json:"object"`
+	Path        string `json:"path"`
+	Method      string `json:"method"`
+	Result      string `json:"result"`
+	StatusCode  int64  `json:"statusCode"`
+	IP          string `json:"ip"`
+	TraceID     string `json:"traceId"`
+	DurationMs  int64  `json:"durationMs"`
+	Params      string `json:"params"`
+	CreatedAt   string `json:"createdAt"`
+	EventType   string `json:"eventType"`
 }
 
 type CasbinInfo struct {
@@ -94,6 +119,84 @@ type DeleteUserRequest struct {
 	UserID int64 `json:"userId"`
 }
 
+type Department struct {
+	Id       int64        `json:"id,optional"`
+	ParentId int64        `json:"parentId"`
+	Name     string       `json:"name"`
+	Code     string       `json:"code"`
+	Sort     int64        `json:"sort,optional"`
+	Status   int64        `json:"status"`
+	Leader   string       `json:"leader,optional"`
+	Children []Department `json:"children,optional"`
+}
+
+type DepartmentListResponse struct {
+	List []Department `json:"list"`
+}
+
+type DeviceSession struct {
+	Id        string `json:"id"`
+	UserId    int64  `json:"userId"`
+	Username  string `json:"username"`
+	Ip        string `json:"ip"`
+	UserAgent string `json:"userAgent"`
+	CreatedAt string `json:"createdAt"`
+	ExpiresAt string `json:"expiresAt"`
+	Current   bool   `json:"current"`
+}
+
+type DeviceSessionListRequest struct {
+	PageRequest
+}
+
+type DeviceSessionListResponse struct {
+	List []DeviceSession `json:"list"`
+	PageResponse
+}
+
+type FileIDRequest struct {
+	Id int64 `json:"id"`
+}
+
+type FileListRequest struct {
+	PageRequest
+	Name   string `form:"name,optional"`
+	Status string `form:"status,optional"`
+}
+
+type FileListResponse struct {
+	List []FileResource `json:"list"`
+	PageResponse
+}
+
+type FileReferenceRequest struct {
+	FileId     int64  `json:"fileId"`
+	ObjectType string `json:"objectType"`
+	ObjectId   string `json:"objectId"`
+}
+
+type FileResource struct {
+	Id           int64  `json:"id"`
+	Name         string `json:"name"`
+	Mime         string `json:"mime"`
+	Size         int64  `json:"size"`
+	OwnerId      int64  `json:"ownerId"`
+	DepartmentId int64  `json:"departmentId"`
+	Visibility   string `json:"visibility"`
+	Status       string `json:"status"`
+	References   int64  `json:"references"`
+	CreatedAt    string `json:"createdAt"`
+}
+
+type FileURLRequest struct {
+	Id int64 `form:"id"`
+}
+
+type FileURLResponse struct {
+	Url       string `json:"url"`
+	ExpiresIn int64  `json:"expiresIn"`
+}
+
 type GetAllApiListRequest struct {
 }
 
@@ -114,6 +217,22 @@ type GetApiListRequest struct {
 
 type GetApiListResponse struct {
 	List []SysApi `json:"list"`
+	PageResponse
+}
+
+type GetAuditLogListRequest struct {
+	PageRequest
+	EventType string `form:"eventType,optional"`
+	Module    string `form:"module,optional"`
+	ActorId   int64  `form:"actorId,optional"`
+	ActorName string `form:"actorName,optional"`
+	Result    string `form:"result,optional"`
+	StartTime string `form:"startTime,optional"`
+	EndTime   string `form:"endTime,optional"`
+}
+
+type GetAuditLogListResponse struct {
+	List []AuditLog `json:"list"`
 	PageResponse
 }
 
@@ -179,6 +298,10 @@ type GetPathByAuthorityIdRequest struct {
 
 type GetPathByAuthorityIdResponse struct {
 	List []CasbinInfo `json:"list"`
+}
+
+type GetRoleDataScopeRequest struct {
+	AuthorityId int64 `form:"authorityId"`
 }
 
 type GetSysDictionaryDetailsRequest struct {
@@ -247,6 +370,12 @@ type LogoutRequest struct {
 type MeRequest struct {
 }
 
+type Membership struct {
+	UserId       int64   `json:"userId"`
+	DepartmentId int64   `json:"departmentId"`
+	PositionIds  []int64 `json:"positionIds"`
+}
+
 type MessageResponse struct {
 	Message string `json:"message"`
 }
@@ -267,6 +396,19 @@ type Model struct {
 	DeletedAt string `json:"DeletedAt,optional"`
 }
 
+type OrganizationIDRequest struct {
+	Id int64 `json:"id"`
+}
+
+type OrganizationListRequest struct {
+	Keyword string `form:"keyword,optional"`
+	Status  int64  `form:"status,optional"`
+}
+
+type OrganizationUserRequest struct {
+	UserId int64 `form:"userId"`
+}
+
 type PageRequest struct {
 	PageNo   int64  `form:"pageNo,optional"`
 	PageSize int64  `form:"pageSize,optional"`
@@ -277,6 +419,18 @@ type PageResponse struct {
 	Total    int64 `json:"total"`
 	PageNo   int64 `json:"page"`
 	PageSize int64 `json:"pageSize"`
+}
+
+type Position struct {
+	Id     int64  `json:"id,optional"`
+	Name   string `json:"name"`
+	Code   string `json:"code"`
+	Sort   int64  `json:"sort,optional"`
+	Status int64  `json:"status"`
+}
+
+type PositionListResponse struct {
+	List []Position `json:"list"`
 }
 
 type PreviewApiSyncResponse struct {
@@ -311,6 +465,16 @@ type RegisterResponse struct {
 
 type ResetUserPasswordRequest struct {
 	UserID int64 `json:"userId"`
+}
+
+type RevokeDeviceSessionRequest struct {
+	Id string `json:"id"`
+}
+
+type RoleDataScope struct {
+	AuthorityId   int64   `json:"authorityId"`
+	Scope         string  `json:"scope"`
+	DepartmentIds []int64 `json:"departmentIds"`
 }
 
 type SendEmailCodeRequest struct {
@@ -452,10 +616,12 @@ type UpdateUserInfoRequest struct {
 }
 
 type UploadFileImgRequest struct {
+	Visibility string `form:"visibility,optional"`
 }
 
 type UploadFileImgResponse struct {
 	FileImgUrl string `json:"fileImgUrl"`
+	FileId     int64  `json:"fileId"`
 }
 
 type UserInfo struct {

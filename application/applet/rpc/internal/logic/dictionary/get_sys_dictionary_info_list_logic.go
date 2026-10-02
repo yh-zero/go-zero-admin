@@ -29,12 +29,12 @@ func (l *GetSysDictionaryInfoListLogic) GetSysDictionaryInfoList(in *pb.GetSysDi
 	if err != nil {
 		return nil, err
 	}
-	db := l.svcCtx.DB.Model(&model.SysDictionaryInfo{})
+	db := l.svcCtx.DB.WithContext(l.ctx).Model(&model.SysDictionaryInfo{})
 	if in.SysDictionaryInfo == nil {
 		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "请选择所属字典")
 	}
 	var dictionary model.SysDictionary
-	if err := accessutil.RequireID(l.svcCtx.DB.DB, &dictionary, in.SysDictionaryInfo.SysDictionaryID); err != nil {
+	if err := accessutil.RequireID(l.svcCtx.DB.WithContext(l.ctx), &dictionary, in.SysDictionaryInfo.SysDictionaryID); err != nil {
 		return nil, err
 	}
 	if value := in.SysDictionaryInfo; value != nil {

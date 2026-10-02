@@ -8,5 +8,5 @@ import (
 
 func sessionRequest(ctx context.Context) *pb.SessionRequest {
 	data := ctxJwt.GetJwtData(ctx)
-	return &pb.SessionRequest{UserID: data.ID, AuthorityId: data.AuthorityId, SessionVersion: data.SessionVersion}
+	return &pb.SessionRequest{UserID: data.ID, AuthorityId: data.AuthorityId, SessionVersion: data.SessionVersion, SessionID: data.SessionID}
 }

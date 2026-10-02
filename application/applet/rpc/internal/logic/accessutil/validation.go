@@ -83,6 +83,12 @@ func Page(page, size int64) (int, int, error) {
 	if page < 1 || size < 1 || size > 500 {
 		return 0, 0, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "分页参数无效，pageSize须在1至500之间")
 	}
+	// Divide before multiplying so neither int64 arithmetic nor conversion to int
+	// can wrap. This also works when the service is built for a 32-bit target.
+	maxOffset := int64(^uint(0) >> 1)
+	if page-1 > maxOffset/size {
+		return 0, 0, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "分页偏移量超出支持范围")
+	}
 	return int((page - 1) * size), int(size), nil
 }
 

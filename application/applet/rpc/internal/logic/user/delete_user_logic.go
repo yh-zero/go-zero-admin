@@ -8,7 +8,9 @@ import (
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/audit"
 	"gorm.io/gorm"
+	"strconv"
 )
 
 type DeleteUserLogic struct {
@@ -21,7 +23,7 @@ func NewDeleteUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 	return &DeleteUserLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 func (l *DeleteUserLogic) DeleteUser(in *pb.DeleteUserRequest) (*pb.NoDataResponse, error) {
-	if in.UserID <= 0 {
+	if in == nil || in.UserID <= 0 {
 		return nil, userError("用户ID无效")
 	}
 	err := l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
@@ -41,7 +43,16 @@ func (l *DeleteUserLogic) DeleteUser(in *pb.DeleteUserRequest) (*pb.NoDataRespon
 		if err := tx.Where("sys_user_id = ?", in.UserID).Delete(&model.SysUserAuthority{}).Error; err != nil {
 			return err
 		}
-		return accessutil.EnsureUsableAdministrator(tx)
+		if err := tx.Where("user_id = ?", in.UserID).Delete(&model.SysUserDepartment{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("user_id = ?", in.UserID).Delete(&model.SysUserPosition{}).Error; err != nil {
+			return err
+		}
+		if err := accessutil.EnsureUsableAdministrator(tx); err != nil {
+			return err
+		}
+		return audit.Record(l.ctx, tx, audit.Event{Module: "user", Action: "deleteUser", Object: strconv.FormatInt(in.UserID, 10)})
 	})
 	if err != nil {
 		return nil, err

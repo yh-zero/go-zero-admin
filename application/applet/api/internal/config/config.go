@@ -26,7 +26,7 @@ type Config struct {
 		ConnectTimeout   int64 `json:",optional"`
 		ReadWriteTimeout int64 `json:",optional"`
 	}
-	Isdev bool
+	Isdev bool       // Legacy development marker; login always validates and consumes CAPTCHA.
 	Mail  MailConfig `json:",optional"`
 }
 

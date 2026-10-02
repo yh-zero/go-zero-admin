@@ -33,7 +33,7 @@ func NewGetUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUs
 func (l *GetUserInfoLogic) GetUserInfo(in *pb.GetUserInfoRequest) (*pb.GetUserInfoResponse, error) {
 	var userInfo model.SysUser
 	userInfoModel := &pb.UserInfo{}
-	err := l.svcCtx.DB.Where("username = ?", in.UserName).Preload("Authorities").Preload("Authority").First(&userInfo).Error
+	err := l.svcCtx.DB.WithContext(l.ctx).Where("username = ?", in.UserName).Preload("Authorities").Preload("Authority").First(&userInfo).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, xerr.NewErrCode(xerr.USER_PASSWORD_ERROR)
 	}
@@ -51,7 +51,7 @@ func (l *GetUserInfoLogic) GetUserInfo(in *pb.GetUserInfoRequest) (*pb.GetUserIn
 		for _, role := range userInfo.Authorities {
 			ids = append(ids, role.AuthorityId)
 		}
-		if _, err := validateUserAuthorities(l.svcCtx.DB.DB, ids, userInfo.AuthorityId); err != nil {
+		if _, err := validateUserAuthorities(l.svcCtx.DB.WithContext(l.ctx), ids, userInfo.AuthorityId); err != nil {
 			return nil, err
 		}
 		l.UserAuthorityDefaultRouter(&userInfo)
@@ -69,12 +69,12 @@ func (l *GetUserInfoLogic) GetUserInfo(in *pb.GetUserInfoRequest) (*pb.GetUserIn
 // UserAuthorityDefaultRouter 用户角色默认路由检查
 func (l *GetUserInfoLogic) UserAuthorityDefaultRouter(user *model.SysUser) {
 	var menuIds []string
-	err := l.svcCtx.DB.Model(&model.SysAuthorityMenu{}).Where("sys_authority_authority_id = ?", user.AuthorityId).Pluck("sys_base_menu_id", &menuIds).Error
+	err := l.svcCtx.DB.WithContext(l.ctx).Model(&model.SysAuthorityMenu{}).Where("sys_authority_authority_id = ?", user.AuthorityId).Pluck("sys_base_menu_id", &menuIds).Error
 	if err != nil {
 		return
 	}
 	var sysBaseMenuModel model.SysBaseMenu
-	err = l.svcCtx.DB.First(&sysBaseMenuModel, "name = ? and id in (?)", user.Authority.DefaultRouter, menuIds).Error // 查到sys_authorities的DefaultRouter  用他去查SysBaseMenu  然后判断有没有默认的路由
+	err = l.svcCtx.DB.WithContext(l.ctx).First(&sysBaseMenuModel, "name = ? and id in (?)", user.Authority.DefaultRouter, menuIds).Error // 查到sys_authorities的DefaultRouter  用他去查SysBaseMenu  然后判断有没有默认的路由
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		user.Authority.DefaultRouter = "404"

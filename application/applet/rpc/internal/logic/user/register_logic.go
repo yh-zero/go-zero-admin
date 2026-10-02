@@ -10,8 +10,10 @@ import (
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/audit"
 	"go-zero-admin/pkg/hash"
 	"gorm.io/gorm"
+	"strconv"
 	"strings"
 )
 
@@ -26,8 +28,11 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 }
 func (l *RegisterLogic) Register(in *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	input := in.GetUserInfo()
-	if input == nil || strings.TrimSpace(input.Username) == "" || len(input.Password) < 6 || len(input.Password) > 72 {
-		return nil, userError("用户名不能为空，密码长度应为6至72字节")
+	if input == nil || strings.TrimSpace(input.Username) == "" {
+		return nil, userError("用户名不能为空")
+	}
+	if err := hash.ValidatePassword(input.Password); err != nil {
+		return nil, userError(err.Error())
 	}
 	if input.Enable == 0 {
 		input.Enable = 1
@@ -39,7 +44,11 @@ func (l *RegisterLogic) Register(in *pb.RegisterRequest) (*pb.RegisterResponse, 
 	if err != nil {
 		return nil, err
 	}
-	user := model.SysUser{UUID: userUUID, Username: strings.TrimSpace(input.Username), Password: hash.BcryptHash(input.Password), NickName: input.NickName, HeaderImg: input.HeaderImg, AuthorityId: input.AuthorityId, Enable: input.Enable, Phone: input.Phone, Email: input.Email}
+	passwordHash, err := hash.BcryptHash(input.Password)
+	if err != nil {
+		return nil, err
+	}
+	user := model.SysUser{UUID: userUUID, Username: strings.TrimSpace(input.Username), Password: passwordHash, NickName: input.NickName, HeaderImg: input.HeaderImg, AuthorityId: input.AuthorityId, Enable: input.Enable, Phone: input.Phone, Email: input.Email}
 	err = l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
 		if err := accessutil.LockAdminGuard(tx); err != nil {
 			return err
@@ -58,7 +67,10 @@ func (l *RegisterLogic) Register(in *pb.RegisterRequest) (*pb.RegisterResponse, 
 		if err := tx.Omit("Authority", "Authorities").Create(&user).Error; err != nil {
 			return err
 		}
-		return replaceUserAuthorities(tx, user.ID, ids)
+		if err := replaceUserAuthorities(tx, user.ID, ids); err != nil {
+			return err
+		}
+		return audit.Record(l.ctx, tx, audit.Event{Module: "user", Action: "register", Object: strconv.FormatInt(user.ID, 10)})
 	})
 	if err != nil {
 		return nil, registrationError(err)

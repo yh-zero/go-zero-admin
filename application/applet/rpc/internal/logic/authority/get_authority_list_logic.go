@@ -32,11 +32,11 @@ func (l *GetAuthorityListLogic) GetAuthorityList(in *pb.GetAuthorityListRequest)
 		return nil, err
 	}
 	var all []model.SysAuthority
-	if err := l.svcCtx.DB.Where("deleted_at IS NULL").Order("authority_id").Find(&all).Error; err != nil {
+	if err := l.svcCtx.DB.WithContext(l.ctx).Where("deleted_at IS NULL").Order("authority_id").Find(&all).Error; err != nil {
 		return nil, err
 	}
 	var grants []model.SysAuthorityMenu
-	if err := l.svcCtx.DB.Order("sys_base_menu_id").Find(&grants).Error; err != nil {
+	if err := l.svcCtx.DB.WithContext(l.ctx).Order("sys_base_menu_id").Find(&grants).Error; err != nil {
 		return nil, err
 	}
 	menus := map[string][]string{}

@@ -8,6 +8,7 @@ import (
 var CtxKeyJwtData = "jwtData"
 
 type JWTData struct {
+	SessionID      string `map:"SessionID"`
 	SessionVersion int64  `map:"SessionVersion"`
 	AuthorityId    int64  `map:"AuthorityId"`
 	ID             int64  `map:"ID"`

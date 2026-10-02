@@ -8,9 +8,11 @@ import (
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/audit"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"slices"
+	"strconv"
 )
 
 type UpdateUserInfoLogic struct {
@@ -71,13 +73,19 @@ func (l *UpdateUserInfoLogic) UpdateUserInfo(in *pb.UpdateUserInfoRequest) (*pb.
 		if revoke {
 			updates["session_version"] = gorm.Expr("session_version + 1")
 		}
-		if len(updates) == 0 {
-			return nil
+		if len(updates) > 0 {
+			if err := tx.Model(&user).Updates(updates).Error; err != nil {
+				return err
+			}
 		}
-		if err := tx.Model(&user).Updates(updates).Error; err != nil {
+		if err := accessutil.EnsureUsableAdministrator(tx); err != nil {
 			return err
 		}
-		return accessutil.EnsureUsableAdministrator(tx)
+		action := "updateUser"
+		if revoke {
+			action = "updateUserAccess"
+		}
+		return audit.Record(l.ctx, tx, audit.Event{Module: "user", Action: action, Object: strconv.FormatInt(user.ID, 10)})
 	})
 	if err != nil {
 		return nil, err

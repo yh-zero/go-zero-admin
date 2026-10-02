@@ -33,6 +33,10 @@
 | API 管理 | 路径 / 分组 / 方法筛选、资源维护、批量删除、Swagger 差异预览与选择同步 |
 | 字典管理 | 字典与字典项维护、状态、排序、预览 |
 | 管理工具 | 阿里云 OSS 图片上传、SMTP 邮箱验证码发送 |
+| 审计日志（后端） | 写操作与登录成功/失败、事务审计、分页和条件查询，参数白名单脱敏 |
+| 组织与数据范围（后端） | 部门树、岗位、用户归属，全部/本人/本部门/下级/指定部门，文件查询实际 SQL 隔离 |
+| 文件资源（后端） | 上传登记、归属和引用、删除保护与重试、私有图片短时签名访问 |
+| 设备会话（后端） | 本人/管理员会话列表、单设备撤销，与原全设备退出兼容 |
 | Vben 原有页面 | 保留工作台、分析页、组件演示，与后端业务菜单合并显示 |
 
 下面是当前前端连接本地后端的实际截图（2026-09-25）。页面数据为开发示例；截图随代码保存在本仓库，GitHub 可直接展示。
@@ -66,7 +70,7 @@
 
 </details>
 
-当前代码注册 **48 个 HTTP 接口**，统一使用 `/v1/sys` 前缀。业务页面已接入；尚未实现的旧菜单组件显示“尚未接入”。OSS 上传和 SMTP 发送需要配置真实外部服务后验收；操作日志尚未实现。
+当前代码注册 **70 个 HTTP 接口**，统一使用 `/v1/sys` 前缀。新增审计、组织、文件资源和设备会话已交付后端接口，前端新页面后续接入；尚未实现的旧菜单组件显示“尚未接入”。OSS 和 SMTP 的真实外部验收仍需配置。[开发顺序与交付记录](DEVELOPMENT_PLAN.md) 说明完成范围、延期事项和升级步骤。
 
 ## 架构与代码目录
 
@@ -83,7 +87,7 @@ flowchart LR
     RPC --> Etcd
 ```
 
-API 层处理 HTTP 参数、JWT、当前会话校验和响应封装；RPC 层实现业务、数据库操作及 Casbin 权限校验。Redis 用于验证码和权限策略同步，etcd 用于 RPC 注册与发现。前端只访问 HTTP API。
+API 层处理 HTTP 参数、JWT、当前会话校验、审计上下文和响应封装；RPC 层实现业务、数据库操作及 Casbin 权限校验。权限版本与策略在 MySQL 同事务提交，实例在鉴权前核对版本，并定期恢复同步；Redis 通知加快传播，etcd 用于 RPC 注册与发现。生产 RPC 要求 App/Token 认证和 StrictControl，本机未认证开发 RPC 只监听回环地址。前端只访问 HTTP API。
 
 建议将两个仓库放在同一级目录：
 
@@ -320,7 +324,9 @@ API、RPC 和前端在各自终端按 `Ctrl+C` 停止，按前述命令重新启
 | `PUT /v1/sys/changePassword` | 提交 `oldPassword`、`newPassword` 自助改密，成功后重新登录 |
 | `POST /v1/sys/logout` | 撤销当前账号的所有已登录设备会话，再清理前端状态 |
 
-这 3 个接口需要有效登录态，不需要单独分配 Casbin 业务权限。默认 JWT 有效期为 **2 小时**，API 每次验证用户状态、角色和数据库会话版本；改密、管理员重置密码、冻结、删除或角色变更后，旧会话不再有效。`logout` 是**账号所有设备退出**，不是只退出一个标签页。普通资料修改不等于改密或角色切换；目前仍无 refreshToken 和独立切换角色接口。
+这 3 个接口需要有效登录态，不需要单独分配 Casbin 业务权限。默认 JWT 有效期为 **2 小时**，API 每次验证用户状态、角色、数据库会话版本及新令牌的设备记录；改密、管理员重置密码、冻结、删除、角色或部门岗位归属变更后，旧会话不再有效。`logout` 是**账号所有设备退出**。`GET /v1/sys/session/devices` 查询自己的设备，`DELETE /v1/sys/session/device` 撤销指定设备，其他设备仍可使用；管理员接口位于 `/v1/sys/session/admin`，首版限定内置管理员操作。历史无设备ID的 JWT 在原有效期内保留版本校验。普通资料修改不撤销登录；目前仍无 refreshToken 和独立切换角色接口。
+
+新建、重置和修改密码统一要求 **8至72字节**（中文按 UTF-8 字节计算），哈希失败不会写入数据库。历史短密码仍可正常验证。开发配置的默认重置密码为 `GoZero@2026`；生产请配置自己的 `DEFAULT_USER_PASSWORD`，启动时校验。该配置不会修改已有账号的初始密码。
 
 前端个人中心位于 `/account`，提供真实资料和自助改密。浏览器缓存仅用于会话恢复，不能替代 `/me` 与后端鉴权；旧请求晚到时不会覆盖新登录资料或清理新会话。
 
@@ -466,7 +472,7 @@ cp docker/deploy.env.template docker/.env.deploy
 chmod 600 docker/.env.deploy
 ```
 
-编辑 `docker/.env.deploy`，替换数据库密码、JWT 密钥和默认重置密码等占位值。部署模板的 `DEFAULT_USER_PASSWORD` **只影响重置密码操作，不会修改初始化 SQL 中的 admin 密码**。
+编辑 `docker/.env.deploy`，替换数据库密码、JWT 密钥、`RPC_AUTH_TOKEN` 和默认重置密码等占位值。API/RPC 使用相同 RPC App/Token；首次启动只登记尚不存在的凭据，已有不同凭据会拒绝启动，轮换步骤见部署说明。部署模板的 `DEFAULT_USER_PASSWORD` **只影响重置密码操作，不会修改初始化 SQL 中的 admin 密码**。
 
 默认 MySQL、Redis、etcd 不向宿主机暴露端口；API 和 Swagger 仅绑定本机，外部访问需配置 HTTPS 反向代理或 SSH 隧道。`REDIS_PASSWORD` 同时配置 Redis 服务、健康检查与 API / RPC 客户端，修改后应重新创建相关容器。
 
@@ -549,6 +555,12 @@ Windows 使用 `db.ps1 -Action Backup|Status|Migrate -Environment Deploy` 对应
 go test ./...
 go vet ./...
 docker compose config --quiet
+
+# 一键格式检查、静态检查、测试及构建
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File test/sh/verify.ps1
+
+# 附加隔离 MySQL 迁移回归，不升级当前业务库
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File test/sh/verify.ps1 -IncludeDBRegression
 ```
 
 前端根目录：
@@ -607,6 +619,7 @@ node .\test\sh\session-smoke.mjs "$env:TEMP\go-zero-admin-regression\session.jso
 - [前端开发文档：接入与 Vben 升级约定](https://github.com/yh-zero/go-zero-admin-vben/blob/HEAD/DEVELOPMENT.zh-CN.md)
 - [接口接入流程与验收记录](https://github.com/yh-zero/go-zero-admin-vben/blob/HEAD/DEVELOPMENT-WORKFLOW.zh-CN.md)
 - [Casbin 策略写入链路](data/doc/casbin-policy-write-path.md)
+- [后端开发顺序、完成记录与延期事项](DEVELOPMENT_PLAN.md)
 - [当前 Swagger 定义](data/api/generated/go-zero-admin.swagger.json)
 - [go-zero](https://github.com/zeromicro/go-zero) · [Vue Vben Admin](https://github.com/vbenjs/vue-vben-admin)
 

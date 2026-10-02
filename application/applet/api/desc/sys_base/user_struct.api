@@ -323,10 +323,13 @@ type DeleteApisByIdsRequest {
 	Ids []int64 `json:"ids,optional" form:"ids,optional"`
 }
 
-type UploadFileImgRequest{}
+type UploadFileImgRequest {
+	Visibility string `form:"visibility,optional"`
+}
 
 type UploadFileImgResponse {
 	FileImgUrl string `json:"fileImgUrl"`
+	FileId int64 `json:"fileId"`
 }
 
 type UpdateCasbinDataByApiIdsRequest {

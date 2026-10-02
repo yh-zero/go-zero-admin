@@ -1,0 +1,83 @@
+syntax = "v1"
+
+type Department {
+    Id int64 `json:"id,optional"`
+    ParentId int64 `json:"parentId"`
+    Name string `json:"name"`
+    Code string `json:"code"`
+    Sort int64 `json:"sort,optional"`
+    Status int64 `json:"status"`
+    Leader string `json:"leader,optional"`
+    Children []Department `json:"children,optional"`
+}
+type Position {
+    Id int64 `json:"id,optional"`
+    Name string `json:"name"`
+    Code string `json:"code"`
+    Sort int64 `json:"sort,optional"`
+    Status int64 `json:"status"`
+}
+type OrganizationListRequest {
+    Keyword string `form:"keyword,optional"`
+    Status int64 `form:"status,optional"`
+}
+type OrganizationIDRequest { Id int64 `json:"id"` }
+type OrganizationUserRequest { UserId int64 `form:"userId"` }
+type DepartmentListResponse { List []Department `json:"list"` }
+type PositionListResponse { List []Position `json:"list"` }
+type Membership {
+    UserId int64 `json:"userId"`
+    DepartmentId int64 `json:"departmentId"`
+    PositionIds []int64 `json:"positionIds"`
+}
+type RoleDataScope {
+    AuthorityId int64 `json:"authorityId"`
+    Scope string `json:"scope"`
+    DepartmentIds []int64 `json:"departmentIds"`
+}
+type GetRoleDataScopeRequest { AuthorityId int64 `form:"authorityId"` }
+
+@server(
+    prefix: /v1/sys/organization
+    group: organization
+    jwt: JwtAuth
+    middleware: Authority
+)
+service applet-api {
+    @doc "查询部门树"
+    @handler GetDepartmentTree
+    get /departments (OrganizationListRequest) returns (DepartmentListResponse)
+    @doc "创建部门"
+    @handler CreateDepartment
+    post /departments (Department) returns (Department)
+    @doc "更新部门"
+    @handler UpdateDepartment
+    put /departments (Department) returns (MessageResponse)
+    @doc "删除未被使用的部门"
+    @handler DeleteDepartment
+    delete /departments (OrganizationIDRequest) returns (MessageResponse)
+    @doc "查询岗位列表"
+    @handler GetPositionList
+    get /positions (OrganizationListRequest) returns (PositionListResponse)
+    @doc "创建岗位"
+    @handler CreatePosition
+    post /positions (Position) returns (Position)
+    @doc "更新岗位"
+    @handler UpdatePosition
+    put /positions (Position) returns (MessageResponse)
+    @doc "删除未被使用的岗位"
+    @handler DeletePosition
+    delete /positions (OrganizationIDRequest) returns (MessageResponse)
+    @doc "读取人员部门岗位归属"
+    @handler GetMembership
+    get /membership (OrganizationUserRequest) returns (Membership)
+    @doc "设置人员部门岗位归属"
+    @handler UpdateMembership
+    put /membership (Membership) returns (MessageResponse)
+    @doc "读取角色数据范围"
+    @handler GetRoleDataScope
+    get /dataScope (GetRoleDataScopeRequest) returns (RoleDataScope)
+    @doc "设置角色数据范围"
+    @handler UpdateRoleDataScope
+    put /dataScope (RoleDataScope) returns (MessageResponse)
+}

@@ -88,7 +88,7 @@ func TestUserMutationsRevokeSessions(t *testing.T) {
 			case "roles":
 				_, err = NewUpdateUserInfoLogic(ctx, svcCtx).UpdateUserInfo(&pb.UpdateUserInfoRequest{UserInfo: &pb.UserInfo{ID: user.ID, AuthorityId: 802}, UpdateFields: []string{"authorityId"}, UpdateAuthorities: true, AuthorityIds: []int64{802}})
 			case "reset":
-				svcCtx.Config.Default.UserPassword = "goZero"
+				svcCtx.Config.Default.UserPassword = "goZero123"
 				_, err = NewResetUserPasswordLogic(ctx, svcCtx).ResetUserPassword(&pb.ResetUserPasswordRequest{UserID: user.ID})
 			case "delete":
 				_, err = NewDeleteUserLogic(ctx, svcCtx).DeleteUser(&pb.DeleteUserRequest{UserID: user.ID})

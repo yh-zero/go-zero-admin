@@ -26,7 +26,7 @@ func NewCreateAuthorityLogic(ctx context.Context, svcCtx *svc.ServiceContext) *C
 
 func (l *CreateAuthorityLogic) CreateAuthority(in *pb.CreateAuthorityRequest) (*pb.CreateAuthorityResponse, error) {
 	var role model.SysAuthority
-	err := accessutil.PolicyTransaction(l.svcCtx, func(tx *gorm.DB) error {
+	err := accessutil.PolicyTransaction(l.ctx, l.svcCtx, func(tx *gorm.DB) error {
 		if err := validateAuthority(tx, in.SysAuthority); err != nil {
 			return err
 		}

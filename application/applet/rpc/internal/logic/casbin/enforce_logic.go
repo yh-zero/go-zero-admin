@@ -25,6 +25,11 @@ func NewEnforceLogic(ctx context.Context, svcCtx *svc.ServiceContext) *EnforceLo
 
 // casbin 鉴权 供api网关/中间件调用
 func (l *EnforceLogic) Enforce(in *pb.EnforceRequest) (*pb.EnforceResponse, error) {
+	if l.svcCtx.PolicySync != nil {
+		if err := l.svcCtx.PolicySync.Sync(l.ctx); err != nil {
+			return nil, err
+		}
+	}
 	ok, err := l.svcCtx.Casbin.Enforce(in.AuthorityId, in.Path, in.Method)
 	if err != nil {
 		logx.WithContext(l.ctx).Errorf("casbin Enforce err: %v", err)

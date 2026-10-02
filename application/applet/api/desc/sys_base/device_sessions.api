@@ -1,0 +1,53 @@
+syntax = "v1"
+
+type DeviceSession {
+    Id string `json:"id"`
+    UserId int64 `json:"userId"`
+    Username string `json:"username"`
+    Ip string `json:"ip"`
+    UserAgent string `json:"userAgent"`
+    CreatedAt string `json:"createdAt"`
+    ExpiresAt string `json:"expiresAt"`
+    Current bool `json:"current"`
+}
+type DeviceSessionListRequest {
+    PageRequest
+}
+type AdminDeviceSessionListRequest {
+    PageRequest
+    UserId int64 `form:"userId,optional"`
+}
+type DeviceSessionListResponse {
+    List []DeviceSession `json:"list"`
+    PageResponse
+}
+type RevokeDeviceSessionRequest { Id string `json:"id"` }
+
+@server(
+    prefix: /v1/sys/session
+    group: devicesession
+    jwt: JwtAuth
+    middleware: Session
+)
+service applet-api {
+    @doc "查询自己的有效设备会话"
+    @handler GetMyDeviceSessions
+    get /devices (DeviceSessionListRequest) returns (DeviceSessionListResponse)
+    @doc "撤销自己的一个设备会话"
+    @handler RevokeMyDeviceSession
+    delete /device (RevokeDeviceSessionRequest) returns (MessageResponse)
+}
+@server(
+    prefix: /v1/sys/session/admin
+    group: devicesession
+    jwt: JwtAuth
+    middleware: Authority
+)
+service applet-api {
+    @doc "管理员查询有效设备会话"
+    @handler GetDeviceSessions
+    get /devices (AdminDeviceSessionListRequest) returns (DeviceSessionListResponse)
+    @doc "管理员撤销一个设备会话"
+    @handler RevokeDeviceSession
+    delete /device (RevokeDeviceSessionRequest) returns (MessageResponse)
+}

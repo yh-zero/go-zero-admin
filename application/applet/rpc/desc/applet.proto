@@ -85,6 +85,8 @@ message GetUserTokeRequest {
   string Username = 4;
   string NickName = 5;
   int64 SessionVersion = 6;
+  string IP = 7;
+  string UserAgent = 8;
 }
 
 message GetUserTokeResponse {
@@ -465,6 +467,7 @@ message SessionRequest {
   int64 UserID = 1;
   int64 SessionVersion = 2;
   int64 AuthorityId = 3;
+  string SessionID = 4;
 }
 message CheckSessionResponse { bool Valid = 1; }
 message ChangePasswordRequest {
@@ -619,4 +622,124 @@ message ApplyApiSyncRequest {
 message ApplyApiSyncResponse {
   int64 added = 1;
   int64 updated = 2;
+}
+
+message AuditLog {
+  int64 ID = 1;
+  int64 ActorID = 2;
+  string ActorName = 3;
+  int64 AuthorityId = 4;
+  string Module = 5;
+  string Action = 6;
+  string Object = 7;
+  string Path = 8;
+  string Method = 9;
+  string Result = 10;
+  int64 StatusCode = 11;
+  string IP = 12;
+  string TraceID = 13;
+  int64 DurationMs = 14;
+  string Params = 15;
+  string CreatedAt = 16;
+  string EventType = 17;
+}
+message RecordAuditRequest { AuditLog Log = 1; }
+message GetAuditLogListRequest {
+  PageRequest PageRequest = 1;
+  string EventType = 2;
+  string Module = 3;
+  int64 ActorID = 4;
+  string ActorName = 5;
+  string Result = 6;
+  string StartTime = 7;
+  string EndTime = 8;
+}
+message GetAuditLogListResponse { repeated AuditLog List = 1; int64 Total = 2; }
+service Audit {
+  rpc RecordAudit (RecordAuditRequest) returns (NoDataResponse);
+  rpc GetAuditLogList (GetAuditLogListRequest) returns (GetAuditLogListResponse);
+}
+
+message Department {
+  int64 ID = 1;
+  int64 ParentId = 2;
+  string Name = 3;
+  string Code = 4;
+  int64 Sort = 5;
+  int64 Status = 6;
+  string Leader = 7;
+  repeated Department Children = 8;
+}
+message Position { int64 ID = 1; string Name = 2; string Code = 3; int64 Sort = 4; int64 Status = 5; }
+message DepartmentRequest { Department Department = 1; }
+message PositionRequest { Position Position = 1; }
+message OrganizationIDRequest { int64 ID = 1; }
+message OrganizationListRequest { string Keyword = 1; int64 Status = 2; }
+message DepartmentListResponse { repeated Department List = 1; }
+message PositionListResponse { repeated Position List = 1; }
+message MembershipRequest { int64 UserID = 1; int64 DepartmentId = 2; repeated int64 PositionIds = 3; }
+message MembershipResponse { int64 UserID = 1; int64 DepartmentId = 2; repeated int64 PositionIds = 3; }
+message RoleDataScope { int64 AuthorityId = 1; string Scope = 2; repeated int64 DepartmentIds = 3; }
+message RoleDataScopeRequest { RoleDataScope DataScope = 1; }
+message GetRoleDataScopeRequest { int64 AuthorityId = 1; }
+message RoleDataScopeResponse { RoleDataScope DataScope = 1; }
+service Organization {
+  rpc GetDepartmentTree (OrganizationListRequest) returns (DepartmentListResponse);
+  rpc CreateDepartment (DepartmentRequest) returns (Department);
+  rpc UpdateDepartment (DepartmentRequest) returns (NoDataResponse);
+  rpc DeleteDepartment (OrganizationIDRequest) returns (NoDataResponse);
+  rpc GetPositionList (OrganizationListRequest) returns (PositionListResponse);
+  rpc CreatePosition (PositionRequest) returns (Position);
+  rpc UpdatePosition (PositionRequest) returns (NoDataResponse);
+  rpc DeletePosition (OrganizationIDRequest) returns (NoDataResponse);
+  rpc GetMembership (OrganizationIDRequest) returns (MembershipResponse);
+  rpc UpdateMembership (MembershipRequest) returns (NoDataResponse);
+  rpc GetRoleDataScope (GetRoleDataScopeRequest) returns (RoleDataScopeResponse);
+  rpc UpdateRoleDataScope (RoleDataScopeRequest) returns (NoDataResponse);
+}
+
+message FileResource {
+  int64 ID = 1;
+  string ObjectKey = 2;
+  string Name = 3;
+  string Mime = 4;
+  int64 Size = 5;
+  int64 OwnerID = 6;
+  int64 DepartmentId = 7;
+  string Visibility = 8;
+  string Status = 9;
+  int64 References = 10;
+  string CreatedAt = 11;
+}
+message RegisterFileRequest { SessionRequest Actor = 1; FileResource File = 2; }
+message FileIDRequest { SessionRequest Actor = 1; int64 ID = 2; }
+message FileListRequest { SessionRequest Actor = 1; PageRequest PageRequest = 2; string Name = 3; string Status = 4; }
+message FileListResponse { repeated FileResource List = 1; int64 Total = 2; }
+message FileReferenceRequest { SessionRequest Actor = 1; int64 FileID = 2; string ObjectType = 3; string ObjectID = 4; }
+service FileResourceService {
+  rpc RegisterFile (RegisterFileRequest) returns (FileResource);
+  rpc GetFileList (FileListRequest) returns (FileListResponse);
+  rpc GetFile (FileIDRequest) returns (FileResource);
+  rpc AddFileReference (FileReferenceRequest) returns (NoDataResponse);
+  rpc RemoveFileReference (FileReferenceRequest) returns (NoDataResponse);
+  rpc BeginDeleteFile (FileIDRequest) returns (FileResource);
+  rpc FinishDeleteFile (FileIDRequest) returns (NoDataResponse);
+}
+
+message DeviceSession {
+  string ID = 1;
+  int64 UserID = 2;
+  string Username = 3;
+  string IP = 4;
+  string UserAgent = 5;
+  string CreatedAt = 6;
+  string ExpiresAt = 7;
+  bool Current = 8;
+}
+message DeviceSessionListRequest { SessionRequest Actor = 1; PageRequest PageRequest = 2; int64 UserID = 3; }
+message DeviceSessionListResponse { repeated DeviceSession List = 1; int64 Total = 2; }
+message RevokeDeviceSessionRequest { SessionRequest Actor = 1; string ID = 2; bool SelfOnly = 3; }
+service SessionManage {
+  rpc GetDeviceSessions (DeviceSessionListRequest) returns (DeviceSessionListResponse);
+  rpc RevokeDeviceSession (RevokeDeviceSessionRequest) returns (NoDataResponse);
 }

@@ -30,7 +30,7 @@ func (l *DeleteApisByIdsLogic) DeleteApisByIds(in *pb.DeleteApisByIdsRequest) (*
 	if len(ids) == 0 {
 		return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "请选择要删除的API")
 	}
-	err = accessutil.PolicyTransaction(l.svcCtx, func(tx *gorm.DB) error {
+	err = accessutil.PolicyTransaction(l.ctx, l.svcCtx, func(tx *gorm.DB) error {
 		var apis []model.SysApi
 		if err := tx.Where("id IN ?", ids).Find(&apis).Error; err != nil {
 			return err

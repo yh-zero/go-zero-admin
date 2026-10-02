@@ -29,7 +29,7 @@ func (l *CreateApiLogic) CreateApi(in *pb.CreateApiRequest) (*pb.NoDataResponse,
 	if err != nil {
 		return nil, err
 	}
-	err = accessutil.PolicyTransaction(l.svcCtx, func(tx *gorm.DB) error {
+	err = accessutil.PolicyTransaction(l.ctx, l.svcCtx, func(tx *gorm.DB) error {
 		if err := accessutil.Unique(tx, &model.SysApi{}, "path = ? AND method = ?", path, method); err != nil {
 			return err
 		}

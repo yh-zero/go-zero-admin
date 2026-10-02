@@ -30,7 +30,7 @@ func (l *UpdateApiLogic) UpdateApi(in *pb.UpdateApiRequest) (*pb.NoDataResponse,
 	if err != nil {
 		return nil, err
 	}
-	err = accessutil.PolicyTransaction(l.svcCtx, func(tx *gorm.DB) error {
+	err = accessutil.PolicyTransaction(l.ctx, l.svcCtx, func(tx *gorm.DB) error {
 		var old model.SysApi
 		if err := accessutil.RequireID(tx, &old, in.SysApi.ID); err != nil {
 			return err

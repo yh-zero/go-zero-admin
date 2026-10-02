@@ -21,8 +21,8 @@ func NewDeleteSysDictionaryInfoLogic(ctx context.Context, svcCtx *svc.ServiceCon
 
 func (l *DeleteSysDictionaryInfoLogic) DeleteSysDictionaryInfo(in *pb.DeleteSysDictionaryInfoRequest) (*pb.NoDataResponse, error) {
 	var value model.SysDictionaryInfo
-	if err := accessutil.RequireID(l.svcCtx.DB.DB, &value, in.ID); err != nil {
+	if err := accessutil.RequireID(l.svcCtx.DB.WithContext(l.ctx), &value, in.ID); err != nil {
 		return nil, err
 	}
-	return &pb.NoDataResponse{}, l.svcCtx.DB.Delete(&value).Error
+	return &pb.NoDataResponse{}, l.svcCtx.DB.WithContext(l.ctx).Delete(&value).Error
 }

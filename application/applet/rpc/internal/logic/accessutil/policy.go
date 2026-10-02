@@ -1,22 +1,26 @@
 package accessutil
 
 import (
-	"sync"
+	"context"
 
-	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/svc"
-	"go-zero-admin/pkg/result/xerr"
+	"go-zero-admin/pkg/audit"
+	"go-zero-admin/pkg/middlecasbin"
 	"gorm.io/gorm"
 )
 
 // Serialize policy writes inside this RPC process. Business data and policies
-// commit in one database transaction; only then reload the enforcement cache.
-var policyWrite sync.Mutex
+// commit in one database transaction; only then queue the enforcement refresh.
+var policyWrite = make(chan struct{}, 1)
 
-func PolicyTransaction(s *svc.ServiceContext, change func(*gorm.DB) error) error {
-	policyWrite.Lock()
-	defer policyWrite.Unlock()
-	if err := s.DB.Transaction(func(tx *gorm.DB) error {
+func PolicyTransaction(ctx context.Context, s *svc.ServiceContext, change func(*gorm.DB) error) error {
+	select {
+	case policyWrite <- struct{}{}:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	defer func() { <-policyWrite }()
+	if err := s.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := LockAdminGuard(tx); err != nil {
 			return err
 		}
@@ -27,21 +31,24 @@ func PolicyTransaction(s *svc.ServiceContext, change func(*gorm.DB) error) error
 		if err := change(tx); err != nil {
 			return err
 		}
-		return preserveAdminRecoveryPolicies(tx, before)
+		if err := preserveAdminRecoveryPolicies(tx, before); err != nil {
+			return err
+		}
+		if err := middlecasbin.BumpPolicyVersion(tx); err != nil {
+			return err
+		}
+		request := audit.RequestFromContext(ctx)
+		return audit.Record(ctx, tx, audit.Event{Module: "permission", Action: "commitPolicy", Object: request.Path})
 	}); err != nil {
 		return FriendlyDuplicate(err)
 	}
-	if s.Casbin != nil {
+	if s.PolicySync != nil {
+		// Redis publication and cache reload run on one coalescing worker. Every
+		// Enforce still checks the durable version synchronously and fails closed.
+		s.PolicySync.Notify()
+	} else if s.Casbin != nil {
 		if err := s.Casbin.LoadPolicy(); err != nil {
-			logx.Errorf("Reload committed policies: %v", err)
-			return xerr.NewErrCodeMsg(xerr.SERVER_COMMON_ERROR, "数据已保存，但权限缓存刷新失败，请刷新确认后重试")
-		}
-	}
-	if s.BizRedis != nil {
-		// Same message used by the existing redis-watcher for a complete policy reload.
-		if _, err := s.BizRedis.Publish("/casbin", `{"Method":"Update","ID":"business-policy-transaction"}`); err != nil {
-			logx.Errorf("Broadcast committed policies: %v", err)
-			return xerr.NewErrCodeMsg(xerr.SERVER_COMMON_ERROR, "数据已保存，但权限同步失败，请刷新确认后重试")
+			return err
 		}
 	}
 	return nil

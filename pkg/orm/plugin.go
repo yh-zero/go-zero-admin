@@ -1,259 +1,79 @@
 package orm
 
 import (
+	"context"
 	"strconv"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/trace"
+	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
-
-	"github.com/zeromicro/go-zero/core/trace"
 )
 
 type CustomePlugin struct{}
 
-func NewCustomePlugin() *CustomePlugin {
-	return &CustomePlugin{}
+type operationTrace struct {
+	start   time.Time
+	span    oteltrace.Span
+	context context.Context
 }
 
-func (p *CustomePlugin) Name() string {
-	return "CustomePlugin"
-}
+func NewCustomePlugin() *CustomePlugin { return &CustomePlugin{} }
+func (p *CustomePlugin) Name() string  { return "CustomePlugin" }
 
 func (p *CustomePlugin) Initialize(db *gorm.DB) error {
-	// Before callbacks
-	if err := db.Callback().Create().Before("gorm:CreateBefore").Register("gorm:createBefore:metric:trace", func(db *gorm.DB) {
-		startTime := time.Now().Unix()
-		db.InstanceSet("gorm:create_start_time", startTime)
-
-		ctx := db.Statement.Context
-		tracer := trace.TracerFromContext(ctx)
-		_, span := tracer.Start(ctx, "gorm:create", oteltrace.WithSpanKind(oteltrace.SpanKindClient))
-		db.InstanceSet("gorm:create_span", span)
-	}); err != nil {
-		return err
+	callbacks := []struct {
+		operation string
+		before    func(string, func(*gorm.DB)) error
+		after     func(string, func(*gorm.DB)) error
+	}{
+		{"create", db.Callback().Create().Before("*").Register, db.Callback().Create().After("*").Register},
+		{"query", db.Callback().Query().Before("*").Register, db.Callback().Query().After("*").Register},
+		{"update", db.Callback().Update().Before("*").Register, db.Callback().Update().After("*").Register},
+		{"delete", db.Callback().Delete().Before("*").Register, db.Callback().Delete().After("*").Register},
+		{"row", db.Callback().Row().Before("*").Register, db.Callback().Row().After("*").Register},
+		{"raw", db.Callback().Raw().Before("*").Register, db.Callback().Raw().After("*").Register},
 	}
-	if err := db.Callback().Query().Before("gorm:queryBefore").Register("gorm:queryBefore:metric:trace", func(db *gorm.DB) {
-		startTime := time.Now().Unix()
-		db.InstanceSet("gorm:query_start_time", startTime)
-
-		ctx := db.Statement.Context
-		tracer := trace.TracerFromContext(ctx)
-		_, span := tracer.Start(ctx, "gorm:query", oteltrace.WithSpanKind(oteltrace.SpanKindClient))
-		db.InstanceSet("gorm:query_span", span)
-	}); err != nil {
-		return err
+	for _, callback := range callbacks {
+		if err := callback.before("metric:trace:before:"+callback.operation, beginOperation(callback.operation)); err != nil {
+			return err
+		}
+		if err := callback.after("metric:trace:after:"+callback.operation, endOperation(callback.operation)); err != nil {
+			return err
+		}
 	}
-	if err := db.Callback().Update().Before("gorm:updateBefore").Register("gorm:updateBefore:metric:trace", func(db *gorm.DB) {
-		startTime := time.Now().Unix()
-		db.InstanceSet("gorm:update_start_time", startTime)
-
-		ctx := db.Statement.Context
-		tracer := trace.TracerFromContext(ctx)
-		_, span := tracer.Start(ctx, "gorm:update", oteltrace.WithSpanKind(oteltrace.SpanKindClient))
-		db.InstanceSet("gorm:update_span", span)
-	}); err != nil {
-		return err
-	}
-	if err := db.Callback().Delete().Before("gorm:deleteBefore").Register("gorm:deleteBefore:metric:trace", func(db *gorm.DB) {
-		startTime := time.Now().Unix()
-		db.InstanceSet("gorm:delete_start_time", startTime)
-
-		ctx := db.Statement.Context
-		tracer := trace.TracerFromContext(ctx)
-		_, span := tracer.Start(ctx, "gorm:delete", oteltrace.WithSpanKind(oteltrace.SpanKindClient))
-		db.InstanceSet("gorm:delete_span", span)
-	}); err != nil {
-		return err
-	}
-	if err := db.Callback().Row().Before("gorm:rowBefore").Register("gorm:rowBefore:metric:trace", func(db *gorm.DB) {
-		startTime := time.Now().Unix()
-		db.InstanceSet("gorm:row_start_time", startTime)
-
-		ctx := db.Statement.Context
-		tracer := trace.TracerFromContext(ctx)
-		_, span := tracer.Start(ctx,
-			"gorm:row",
-			oteltrace.WithSpanKind(oteltrace.SpanKindClient),
-		)
-		db.InstanceSet("gorm:row_span", span)
-	}); err != nil {
-		return err
-	}
-	if err := db.Callback().Raw().Before("gorm:rawBefore").Register("gorm:rawBefore:metric:trace", func(db *gorm.DB) {
-		startTime := time.Now().Unix()
-		db.InstanceSet("gorm:raw_start_time", startTime)
-
-		ctx := db.Statement.Context
-		tracer := trace.TracerFromContext(ctx)
-		_, span := tracer.Start(ctx,
-			"gorm:raw",
-			oteltrace.WithSpanKind(oteltrace.SpanKindClient),
-		)
-		db.InstanceSet("gorm:raw_span", span)
-	}); err != nil {
-		return err
-	}
-
-	// After callbacks
-
-	if err := db.Callback().Create().After("gorm:createAfter").Register("gorm:createAfter:metric:trace", func(db *gorm.DB) {
-		startTime, ok := db.InstanceGet("gorm:create_start_time")
-		if !ok {
-			return
-		}
-		stSecond := startTime.(int64)
-		st := time.Unix(stSecond, 0)
-		metricClientReqDur.Observe(time.Since(st).Milliseconds(), db.Statement.Table, "create")
-		metricClientReqErrTotal.Inc(db.Statement.Table, "create", strconv.FormatBool(db.Statement.Error != nil))
-
-		v, ok := db.InstanceGet("gorm:create_span")
-		if !ok {
-			return
-		}
-		span := v.(oteltrace.Span)
-		if db.Statement.Error != nil {
-			span.RecordError(db.Statement.Error)
-		}
-		span.SetAttributes(
-			semconv.DBSQLTableKey.String(db.Statement.Table),
-			semconv.DBStatementKey.String(db.Statement.SQL.String()),
-		)
-		span.End()
-	}); err != nil {
-		return err
-	}
-	if err := db.Callback().Query().After("gorm:queryAfter").Register("gorm:queryAfter:metric:trace", func(db *gorm.DB) {
-		startTime, ok := db.InstanceGet("gorm:query_start_time")
-		if !ok {
-			return
-		}
-		stSecond := startTime.(int64)
-		st := time.Unix(stSecond, 0)
-		metricClientReqDur.Observe(time.Since(st).Milliseconds(), db.Statement.Table, "query")
-		metricClientReqErrTotal.Inc(db.Statement.Table, "query", strconv.FormatBool(db.Statement.Error != nil))
-
-		v, ok := db.InstanceGet("gorm:query_span")
-		if !ok {
-			return
-		}
-		span := v.(oteltrace.Span)
-		if db.Statement.Error != nil {
-			span.RecordError(db.Statement.Error)
-		}
-		span.SetAttributes(
-			semconv.DBSQLTableKey.String(db.Statement.Table),
-			semconv.DBStatementKey.String(db.Statement.SQL.String()),
-		)
-		span.End()
-	}); err != nil {
-		return err
-	}
-	if err := db.Callback().Update().After("gorm:updateAfter").Register("gorm:updateAfter:metric:trace", func(db *gorm.DB) {
-		startTime, ok := db.InstanceGet("gorm:update_start_time")
-		if !ok {
-			return
-		}
-		stSecond := startTime.(int64)
-		st := time.Unix(stSecond, 0)
-		metricClientReqDur.Observe(time.Since(st).Milliseconds(), db.Statement.Table, "update")
-		metricClientReqErrTotal.Inc(db.Statement.Table, "update", strconv.FormatBool(db.Statement.Error != nil))
-
-		v, ok := db.InstanceGet("gorm:update_span")
-		if !ok {
-			return
-		}
-		span := v.(oteltrace.Span)
-		if db.Statement.Error != nil {
-			span.RecordError(db.Statement.Error)
-		}
-		span.SetAttributes(
-			semconv.DBSQLTableKey.String(db.Statement.Table),
-			semconv.DBStatementKey.String(db.Statement.SQL.String()),
-		)
-		span.End()
-	}); err != nil {
-		return err
-	}
-	if err := db.Callback().Delete().After("gorm:deleteAfter").Register("gorm:deleteAfter:metric:trace", func(db *gorm.DB) {
-		startTime, ok := db.InstanceGet("gorm:delete_start_time")
-		if !ok {
-			return
-		}
-		stSecond := startTime.(int64)
-		st := time.Unix(stSecond, 0)
-		metricClientReqDur.Observe(time.Since(st).Milliseconds(), db.Statement.Table, "delete")
-		metricClientReqErrTotal.Inc(db.Statement.Table, "delete", strconv.FormatBool(db.Statement.Error != nil))
-
-		v, ok := db.InstanceGet("gorm:delete_span")
-		if !ok {
-			return
-		}
-		span := v.(oteltrace.Span)
-		if db.Statement.Error != nil {
-			span.RecordError(db.Statement.Error)
-		}
-		span.SetAttributes(
-			semconv.DBSQLTableKey.String(db.Statement.Table),
-			semconv.DBStatementKey.String(db.Statement.SQL.String()),
-		)
-		span.End()
-	}); err != nil {
-		return err
-	}
-	if err := db.Callback().Row().After("gorm:rowAfter").Register("gorm:rowAfter:metric:trace", func(db *gorm.DB) {
-		startTime, ok := db.InstanceGet("gorm:row_start_time")
-		if !ok {
-			return
-		}
-		stSecond := startTime.(int64)
-		st := time.Unix(stSecond, 0)
-		metricClientReqDur.Observe(time.Since(st).Milliseconds(), db.Statement.Table, "row")
-		metricClientReqErrTotal.Inc(db.Statement.Table, "row", strconv.FormatBool(db.Statement.Error != nil))
-
-		v, ok := db.InstanceGet("gorm:row_span")
-		if !ok {
-			return
-		}
-		span := v.(oteltrace.Span)
-		if db.Statement.Error != nil {
-			span.RecordError(db.Statement.Error)
-		}
-		span.SetAttributes(
-			semconv.DBSQLTableKey.String(db.Statement.Table),
-			semconv.DBStatementKey.String(db.Statement.SQL.String()),
-		)
-		span.End()
-	}); err != nil {
-		return err
-	}
-	if err := db.Callback().Raw().After("gorm:rawAfter").Register("gorm:rawAfter:metric:trace", func(db *gorm.DB) {
-		startTime, ok := db.InstanceGet("gorm:raw_start_time")
-		if !ok {
-			return
-		}
-		stSecond := startTime.(int64)
-		st := time.Unix(stSecond, 0)
-		metricClientReqDur.Observe(time.Since(st).Milliseconds(), db.Statement.Table, "raw")
-		metricClientReqErrTotal.Inc(db.Statement.Table, "raw", strconv.FormatBool(db.Statement.Error != nil))
-
-		v, ok := db.InstanceGet("gorm:raw_span")
-		if !ok {
-			return
-		}
-		span := v.(oteltrace.Span)
-		if db.Statement.Error != nil {
-			span.RecordError(db.Statement.Error)
-		}
-		span.SetAttributes(
-			semconv.DBSQLTableKey.String(db.Statement.Table),
-			semconv.DBStatementKey.String(db.Statement.SQL.String()),
-		)
-		span.End()
-	}); err != nil {
-		return err
-	}
-
 	return nil
+}
+
+func beginOperation(operation string) func(*gorm.DB) {
+	return func(db *gorm.DB) {
+		original := db.Statement.Context
+		ctx, span := trace.TracerFromContext(original).Start(original, "gorm:"+operation, oteltrace.WithSpanKind(oteltrace.SpanKindClient))
+		db.InstanceSet("gorm:operation_trace:"+operation, operationTrace{start: time.Now(), span: span, context: original})
+		db.Statement.Context = ctx
+	}
+}
+
+func endOperation(operation string) func(*gorm.DB) {
+	return func(db *gorm.DB) {
+		value, found := db.InstanceGet("gorm:operation_trace:" + operation)
+		if !found {
+			return
+		}
+		state, ok := value.(operationTrace)
+		if !ok {
+			return
+		}
+		defer state.span.End()
+		defer func() { db.Statement.Context = state.context }()
+		metricClientReqDur.ObserveFloat(float64(time.Since(state.start))/float64(time.Millisecond), db.Statement.Table, operation)
+		metricClientReqErrTotal.Inc(db.Statement.Table, operation, strconv.FormatBool(db.Error != nil))
+		if db.Error != nil {
+			// Error text can contain duplicate-key values, so only record the status.
+			state.span.SetStatus(codes.Error, "database operation failed")
+		}
+		state.span.SetAttributes(semconv.DBSQLTableKey.String(db.Statement.Table), semconv.DBStatementKey.String(redactSQL(db.Statement.SQL.String())))
+	}
 }

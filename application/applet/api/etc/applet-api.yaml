@@ -1,4 +1,5 @@
 Name: applet-api
+Mode: dev
 Host: 0.0.0.0
 Port: 7001
 BizRedis:
@@ -22,4 +23,4 @@ Oss: # oss相关数据 安全问题 存到本地环境中了
   AccessKeyId:
   AccessKeySecret:
   BucketName:
-Isdev: true # true的时候不验证 验证码
+Isdev: true # 仅保留开发标识；登录始终校验且一次性消费图形验证码，不会跳过验证

@@ -32,3 +32,22 @@ func TestBusinessAccountRouteIsReserved(t *testing.T) {
 		t.Fatal("absolute account path in a descendant was accepted")
 	}
 }
+
+func TestResolvedPathsIgnoreCaseForCollisions(t *testing.T) {
+	all := []model.SysBaseMenu{
+		{MODEL_BASE: base.MODEL_BASE{ID: 1}, Path: "/Sales"},
+		{MODEL_BASE: base.MODEL_BASE{ID: 2}, ParentId: 1, Path: "Orders"},
+	}
+	for _, path := range []string{"/sales/orders", "/SALES/ORDERS/", "Sales/Orders"} {
+		if err := validateResolvedPaths(all, &pb.SysBaseMenu{Path: path}); err == nil {
+			t.Errorf("case-insensitive route collision accepted: %s", path)
+		}
+	}
+	all = append(all, model.SysBaseMenu{MODEL_BASE: base.MODEL_BASE{ID: 3}, Path: "/billing/orders"})
+	if err := validateResolvedPaths(all, &pb.SysBaseMenu{ID: 1, Path: "/BILLING"}); err == nil {
+		t.Fatal("moving a parent allowed a case-insensitive descendant collision")
+	}
+	if err := validateResolvedPaths(all, &pb.SysBaseMenu{ID: 1, Path: "/billing-new"}); err != nil {
+		t.Fatal("distinct path was rejected", err)
+	}
+}

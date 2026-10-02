@@ -21,7 +21,7 @@ func NewGetBaseMenuTreeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *G
 
 func (l *GetBaseMenuTreeLogic) GetBaseMenuTree(in *pb.NoDataResponse) (*pb.GetBaseMenuTreeResponse, error) {
 	var all []model.SysBaseMenu
-	if err := l.svcCtx.DB.Order("sort,id").Preload("MenuBtn").Preload("Parameters").Find(&all).Error; err != nil {
+	if err := l.svcCtx.DB.WithContext(l.ctx).Order("sort,id").Preload("MenuBtn").Preload("Parameters").Find(&all).Error; err != nil {
 		return nil, err
 	}
 	tree := baseMenuTree(all, 0)

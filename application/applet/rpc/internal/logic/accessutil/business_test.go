@@ -15,6 +15,8 @@ import (
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/audit"
+	"go-zero-admin/pkg/middlecasbin"
 	base "go-zero-admin/pkg/model"
 	"go-zero-admin/pkg/orm"
 
@@ -38,7 +40,7 @@ func service(t *testing.T) *svc.ServiceContext {
 	}
 	sqlDB.SetMaxOpenConns(1)
 	t.Cleanup(func() { _ = sqlDB.Close() })
-	err = db.AutoMigrate(&model.SysBaseMenu{}, &model.SysBaseMenuBtn{}, &model.SysBaseMenuParameter{}, &model.SysAuthority{}, &model.SysUser{}, &model.SysAuthorityMenu{}, &model.SysAuthorityBtn{}, &model.SysUserAuthority{}, &model.SysApi{}, &model.SysDictionary{}, &model.SysDictionaryInfo{}, &gormadapter.CasbinRule{})
+	err = db.AutoMigrate(&model.SysBaseMenu{}, &model.SysBaseMenuBtn{}, &model.SysBaseMenuParameter{}, &model.SysAuthority{}, &model.SysUser{}, &model.SysAuthorityMenu{}, &model.SysAuthorityBtn{}, &model.SysUserAuthority{}, &model.SysApi{}, &model.SysDictionary{}, &model.SysDictionaryInfo{}, &gormadapter.CasbinRule{}, &middlecasbin.PolicyVersion{}, &audit.Event{}, &model.SysRoleDataScope{}, &model.SysRoleScopeDepartment{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -324,5 +326,15 @@ func TestFailedPolicyInsertKeepsExistingRoleGrants(t *testing.T) {
 	must(t, err)
 	if !allowed {
 		t.Fatal("failed transaction changed effective permission")
+	}
+}
+
+func TestCanceledContextStopsMenuRead(t *testing.T) {
+	s := service(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, err := menulogic.NewGetMenuBaseInfoListLogic(ctx, s).GetMenuBaseInfoList(&pb.NoDataResponse{})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("menu read ignored canceled request: %v", err)
 	}
 }

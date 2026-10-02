@@ -41,7 +41,7 @@ func (l *GetApiListLogic) GetApiList(in *pb.GetApiListRequest) (*pb.GetApiListRe
 	if in.Desc {
 		order += " desc"
 	}
-	db := l.svcCtx.DB.Model(&model.SysApi{})
+	db := l.svcCtx.DB.WithContext(l.ctx).Model(&model.SysApi{})
 	if api := in.SysApi; api != nil {
 		if api.Path != "" {
 			db = db.Where("path LIKE ?", "%"+api.Path+"%")

@@ -1,6 +1,7 @@
 package apilogic
 
 import (
+	"go-zero-admin/pkg/middlecasbin"
 	"strings"
 	"testing"
 
@@ -25,7 +26,7 @@ func syncDB(t *testing.T) *gorm.DB {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = sql.Close() })
-	if err := db.AutoMigrate(&model.SysApi{}, &gormadapter.CasbinRule{}); err != nil {
+	if err := db.AutoMigrate(&model.SysApi{}, &gormadapter.CasbinRule{}, &middlecasbin.PolicyVersion{}); err != nil {
 		t.Fatal(err)
 	}
 	return db

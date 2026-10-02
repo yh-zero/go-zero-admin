@@ -50,7 +50,7 @@ func (l *GetMenuTreeLogic) getMenuTreeMap(authorityId int64) (treeMap map[string
 	treeMap = make(map[string][]model.SysMenu)
 
 	var SysAuthorityMenus []model.SysAuthorityMenu
-	if err = l.svcCtx.DB.Where("sys_authority_authority_id = ?", authorityId).Find(&SysAuthorityMenus).Error; err != nil {
+	if err = l.svcCtx.DB.WithContext(l.ctx).Where("sys_authority_authority_id = ?", authorityId).Find(&SysAuthorityMenus).Error; err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func (l *GetMenuTreeLogic) getMenuTreeMap(authorityId int64) (treeMap map[string
 		MenuIds = append(MenuIds, SysAuthorityMenus[i].MenuId)
 	}
 
-	if err = l.svcCtx.DB.Where("id in (?)", MenuIds).Order("sort").Preload("Parameters").Find(&baseMenu).Error; err != nil {
+	if err = l.svcCtx.DB.WithContext(l.ctx).Where("id in (?)", MenuIds).Order("sort").Preload("Parameters").Find(&baseMenu).Error; err != nil {
 		return nil, err
 	}
 
@@ -72,7 +72,7 @@ func (l *GetMenuTreeLogic) getMenuTreeMap(authorityId int64) (treeMap map[string
 		})
 	}
 
-	if err = l.svcCtx.DB.Where("authority_id = ?", authorityId).Preload("SysBaseMenuBtn").Find(&btns).Error; err != nil {
+	if err = l.svcCtx.DB.WithContext(l.ctx).Where("authority_id = ?", authorityId).Preload("SysBaseMenuBtn").Find(&btns).Error; err != nil {
 		return nil, err
 	}
 

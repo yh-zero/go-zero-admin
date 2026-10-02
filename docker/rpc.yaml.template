@@ -1,5 +1,16 @@
 Name: applet.rpc
+Mode: pro
 ListenOn: 0.0.0.0:6001
+Auth: true
+StrictControl: true
+Redis:
+  Host: '${REDIS_ADDR}'
+  Pass: '${REDIS_PASSWORD}'
+  Type: node
+  Key: go-zero-admin:rpc:tokens
+RPCAuth:
+  App: '${RPC_AUTH_APP}'
+  Token: '${RPC_AUTH_TOKEN}'
 Etcd:
   Hosts:
     - '${ETCD_ADDR}'

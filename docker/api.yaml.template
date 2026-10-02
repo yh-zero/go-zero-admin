@@ -1,4 +1,5 @@
 Name: applet-api
+Mode: pro
 Host: 0.0.0.0
 Port: 7001
 BizRedis:
@@ -9,6 +10,8 @@ Page:
   PageNo: 1
   PageSize: 10
 AppletRPC:
+  App: '${RPC_AUTH_APP}'
+  Token: '${RPC_AUTH_TOKEN}'
   Etcd:
     Hosts:
       - '${ETCD_ADDR}'

@@ -34,10 +34,16 @@ func (l *UpdateBaseMenuLogic) UpdateBaseMenu(in *pb.UpdateBaseMenuRequest) (*pb.
 			return err
 		}
 		menu := menuModel(in.SysBaseMenu)
+		oldName := old.Name
 		fields := map[string]interface{}{"parent_id": menu.ParentId, "path": menu.Path, "name": menu.Name, "hidden": menu.Hidden, "component": menu.Component, "sort": menu.Sort,
 			"active_name": menu.ActiveName, "keep_alive": menu.KeepAlive, "default_menu": menu.DefaultMenu, "title": menu.Title, "icon": menu.Icon, "close_tab": menu.CloseTab}
 		if err := tx.Model(&old).Updates(fields).Error; err != nil {
 			return err
+		}
+		if oldName != menu.Name {
+			if err := tx.Model(&model.SysAuthority{}).Where("default_router = ? AND deleted_at IS NULL", oldName).Update("default_router", menu.Name).Error; err != nil {
+				return err
+			}
 		}
 		return saveMenuRelations(tx, old.ID, in.SysBaseMenu)
 	})
