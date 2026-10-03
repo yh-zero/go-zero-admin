@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -80,7 +81,10 @@ func readSwaggerResources(data []byte) ([]syncResource, error) {
 			if op.CasbinResource != nil && !*op.CasbinResource {
 				continue
 			}
-			path, method, err := accessutil.API(strings.TrimRight(doc.BasePath, "/")+route, method)
+			// Swagger {id} must become go-zero/Casbin :id so syncing a
+			// parameterized endpoint does not create an unusable grant.
+			policyPath := swaggerParameter.ReplaceAllString(strings.TrimRight(doc.BasePath, "/")+route, ":${1}")
+			path, method, err := accessutil.API(policyPath, method)
 			if err != nil {
 				return nil, err
 			}
@@ -103,6 +107,8 @@ func readSwaggerResources(data []byte) ([]syncResource, error) {
 	sort.Slice(resources, func(i, j int) bool { return resources[i].Key < resources[j].Key })
 	return resources, nil
 }
+
+var swaggerParameter = regexp.MustCompile(`\{([A-Za-z_][A-Za-z0-9_]*)\}`)
 
 func apiSyncError(message string) error { return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, message) }
 

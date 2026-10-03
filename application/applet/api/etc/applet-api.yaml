@@ -24,3 +24,11 @@ Oss: # oss相关数据 安全问题 存到本地环境中了
   AccessKeySecret:
   BucketName:
 Isdev: true # 仅保留开发标识；登录始终校验且一次性消费图形验证码，不会跳过验证
+
+# Optional AI service; ordinary APIs remain available if it is offline.
+AIRPC:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: ai.rpc
+  NonBlock: true

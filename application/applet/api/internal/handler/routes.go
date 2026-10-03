@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	aiagent "go-zero-admin/application/applet/api/internal/handler/aiagent"
 	api "go-zero-admin/application/applet/api/internal/handler/api"
 	audit "go-zero-admin/application/applet/api/internal/handler/audit"
 	authority "go-zero-admin/application/applet/api/internal/handler/authority"
@@ -26,6 +27,48 @@ import (
 )
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					Method:  http.MethodGet,
+					Path:    "/conversations",
+					Handler: aiagent.ListAgentConversationsHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/conversations/:id/messages",
+					Handler: aiagent.ListAgentMessagesHandler(serverCtx),
+				},
+				{
+					// 查询AI开关、模型名称和当前用户可用的只读工具
+					Method:  http.MethodGet,
+					Path:    "/info",
+					Handler: aiagent.GetAgentInfoHandler(serverCtx),
+				},
+				{
+					// 提交有界异步Agent任务，同一requestId幂等
+					Method:  http.MethodPost,
+					Path:    "/runs",
+					Handler: aiagent.CreateAgentRunHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/runs/:id",
+					Handler: aiagent.GetAgentRunHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/runs/:id/cancel",
+					Handler: aiagent.CancelAgentRunHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/ai"),
+	)
+
 	server.AddRoutes(
 		rest.WithMiddlewares(
 			[]rest.Middleware{serverCtx.Authority},

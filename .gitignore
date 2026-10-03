@@ -3,6 +3,7 @@ bin-debug/
 bin-release/
 [Oo]bj/
 [Bb]in/
+/.tmp-go-build-*/
 
 # Other files and folders
 .settings/

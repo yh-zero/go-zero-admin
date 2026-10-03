@@ -17,6 +17,14 @@ AppletRPC:
       - '${ETCD_ADDR}'
     Key: applet.rpc
   NonBlock: true
+AIRPC:
+  App: '${RPC_AUTH_APP}'
+  Token: '${RPC_AUTH_TOKEN}'
+  Etcd:
+    Hosts:
+      - '${ETCD_ADDR}'
+    Key: ai.rpc
+  NonBlock: true
 JwtAuth:
   AccessSecret: '${JWT_ACCESS_SECRET}'
   AccessExpire: ${JWT_ACCESS_EXPIRE}

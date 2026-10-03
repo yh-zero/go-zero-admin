@@ -18,6 +18,7 @@ type Config struct {
 		PageSize int64
 	}
 	AppletRPC zrpc.RpcClientConf
+	AIRPC     zrpc.RpcClientConf `json:",optional"`
 	Oss       struct {
 		Endpoint         string
 		AccessKeyId      string

@@ -743,3 +743,12 @@ service SessionManage {
   rpc GetDeviceSessions (DeviceSessionListRequest) returns (DeviceSessionListResponse);
   rpc RevokeDeviceSession (RevokeDeviceSessionRequest) returns (NoDataResponse);
 }
+
+// Business tools are internal RPC only and validate Actor on every call.
+message AgentToolRequest { SessionRequest Actor = 1; string ArgumentsJson = 2; }
+message AgentToolResult { string Content = 1; string Summary = 2; int64 Count = 3; }
+service AgentTools {
+  rpc QueryAgentAudit (AgentToolRequest) returns (AgentToolResult);
+  rpc GetAgentFileStatus (AgentToolRequest) returns (AgentToolResult);
+  rpc ListAgentDevices (AgentToolRequest) returns (AgentToolResult);
+}

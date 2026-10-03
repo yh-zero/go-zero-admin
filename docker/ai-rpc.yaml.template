@@ -1,0 +1,44 @@
+Name: ai.rpc
+Mode: pro
+ListenOn: 0.0.0.0:6002
+# 普通模型参数直接填写，API Key 仅从所选提供商的进程环境变量读取。
+AI:
+  Enabled: false
+  Provider: deepseek
+  MaxInputChars: 2000
+  MaxSteps: 6
+  MaxRunSeconds: 90
+  DeepSeek:
+    Model: ''
+    BaseURL: 'https://api.deepseek.com/v1'
+  Qwen:
+    Model: ''
+    BaseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1'
+Auth: true
+StrictControl: true
+Redis:
+  Host: '${REDIS_ADDR}'
+  Pass: '${REDIS_PASSWORD}'
+  Type: node
+  Key: go-zero-admin:ai-rpc:tokens
+RPCAuth:
+  App: '${RPC_AUTH_APP}'
+  Token: '${RPC_AUTH_TOKEN}'
+Etcd:
+  Hosts:
+    - '${ETCD_ADDR}'
+  Key: ai.rpc
+DB:
+  DataSource: '${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_ADDR})/${MYSQL_DATABASE}?parseTime=true&loc=Local'
+  MaxIdleConns: 10
+  MaxOpenConns: 100
+  MaxLifetime: 3600
+AppletRPC:
+  Timeout: 5000
+  App: '${RPC_AUTH_APP}'
+  Token: '${RPC_AUTH_TOKEN}'
+  Etcd:
+    Hosts:
+      - '${ETCD_ADDR}'
+    Key: applet.rpc
+  NonBlock: true

@@ -20,6 +20,88 @@ type AdminDeviceSessionListRequest struct {
 	UserId int64 `form:"userId,optional"`
 }
 
+type AgentConversation struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type AgentConversationListResponse struct {
+	Items []AgentConversation `json:"items"`
+	Total int64               `json:"total"`
+}
+
+type AgentIDRequest struct {
+	ID string `path:"id"`
+}
+
+type AgentInfo struct {
+	Enabled       bool            `json:"enabled"`
+	Configured    bool            `json:"configured"`
+	Provider      string          `json:"provider"`
+	Model         string          `json:"model"`
+	Tools         []AgentToolInfo `json:"tools"`
+	MaxInputChars int64           `json:"maxInputChars"`
+	MaxSteps      int64           `json:"maxSteps"`
+	MaxRunSeconds int64           `json:"maxRunSeconds"`
+}
+
+type AgentMessage struct {
+	ID             string `json:"id"`
+	ConversationId string `json:"conversationId"`
+	RunId          string `json:"runId"`
+	Role           string `json:"role"`
+	Content        string `json:"content"`
+	CreatedAt      string `json:"createdAt"`
+}
+
+type AgentMessageListRequest struct {
+	ID       string `path:"id"`
+	PageNo   int64  `form:"pageNo,default=1"`
+	PageSize int64  `form:"pageSize,default=20"`
+}
+
+type AgentMessageListResponse struct {
+	Items []AgentMessage `json:"items"`
+	Total int64          `json:"total"`
+}
+
+type AgentPageRequest struct {
+	PageNo   int64 `form:"pageNo,default=1"`
+	PageSize int64 `form:"pageSize,default=20"`
+}
+
+type AgentRun struct {
+	ID             string          `json:"id"`
+	ConversationId string          `json:"conversationId"`
+	RequestId      string          `json:"requestId"`
+	Status         string          `json:"status"`
+	Answer         string          `json:"answer"`
+	Error          string          `json:"error"`
+	Provider       string          `json:"provider"`
+	Model          string          `json:"model"`
+	InputTokens    int64           `json:"inputTokens"`
+	OutputTokens   int64           `json:"outputTokens"`
+	CreatedAt      string          `json:"createdAt"`
+	UpdatedAt      string          `json:"updatedAt"`
+	ToolCalls      []AgentToolCall `json:"toolCalls"`
+}
+
+type AgentToolCall struct {
+	Name    string `json:"name"`
+	Status  string `json:"status"`
+	Error   string `json:"error"`
+	Summary string `json:"summary"`
+}
+
+type AgentToolInfo struct {
+	Name        string `json:"name"`
+	Label       string `json:"label"`
+	Description string `json:"description"`
+	Available   bool   `json:"available"`
+}
+
 type ApiSyncItem struct {
 	Key                string `json:"key"`
 	Id                 int64  `json:"id"`
@@ -69,6 +151,12 @@ type CasbinInfo struct {
 type ChangePasswordRequest struct {
 	OldPassword string `json:"oldPassword"`
 	NewPassword string `json:"newPassword"`
+}
+
+type CreateAgentRunRequest struct {
+	ConversationId string `json:"conversationId,optional"`
+	RequestId      string `json:"requestId"`
+	Message        string `json:"message"`
 }
 
 type CreateApiRequest struct {

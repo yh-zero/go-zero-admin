@@ -7,6 +7,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'env.ps1')
 $devRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $devRuntime = Join-Path $devRoot 'bin/dev/managed'
 $devManifest = Join-Path $devRuntime 'services.json'
@@ -34,10 +35,33 @@ function Test-DevPort([int]$Port) {
     finally { $client.Close() }
 }
 
+function Get-DevServiceDefinitions {
+    return @(
+        @{ Name = 'rpc'; Port = 6001; Package = './application/applet/rpc'; Config = 'application/applet/rpc/etc/applet.yaml' },
+        @{ Name = 'ai-rpc'; Port = 6002; Package = './application/ai/rpc'; Config = 'application/ai/rpc/etc/ai.yaml' },
+        @{ Name = 'api'; Port = 7001; Package = './application/applet/api'; Config = 'application/applet/api/etc/applet-api.yaml' }
+    )
+}
+
+function Invoke-DevServiceLaunch([string]$ServiceName, [System.Collections.IDictionary]$ModelEnvironment, [scriptblock]$Launch) {
+    if ($ServiceName -eq 'ai-rpc') {
+        Invoke-DevWithModelKeys -Values $ModelEnvironment -Action $Launch
+    } else {
+        Invoke-DevWithoutModelKeys -Action $Launch
+    }
+}
+
 function Stop-DevServices {
     $state = Read-DevState
     if (-not $state) { Write-Host 'No managed backend processes are recorded.'; return }
-    foreach ($entry in @($state.Services | Sort-Object Name)) {
+    $stopOrder = @{ 'api' = 0; 'ai-rpc' = 1; 'rpc' = 2 }
+    $verifiedServices = @()
+    # Verify every live process before stopping any of them. A stale or reused PID
+    # must not leave the remaining project services partially stopped.
+    foreach ($entry in @($state.Services)) {
+        if (-not $stopOrder.ContainsKey([string]$entry.Name)) {
+            throw 'Recorded service is unknown; refusing to stop any backend processes.'
+        }
         $running = Get-CimInstance Win32_Process -Filter ('ProcessId=' + [int]$entry.PID)
         if (-not $running) { continue }
         $expectedPath = [IO.Path]::GetFullPath([string]$entry.Binary)
@@ -47,6 +71,9 @@ function Stop-DevServices {
         if (-not [string]::Equals([string]$running.ExecutablePath, $expectedPath, [StringComparison]::OrdinalIgnoreCase)) {
             throw ('PID ' + $entry.PID + ' no longer belongs to the recorded backend binary; refusing to stop it.')
         }
+        $verifiedServices += $entry
+    }
+    foreach ($entry in @($verifiedServices | Sort-Object { $stopOrder[[string]$_.Name] })) {
         Stop-Process -Id ([int]$entry.PID) -Force
         Write-Host ('Stopped ' + $entry.Name + ' PID ' + $entry.PID)
     }
@@ -67,11 +94,11 @@ function Wait-DevService($Process, [int]$Port, [string]$ErrorLog) {
     throw ('Backend did not become ready on port ' + $Port + '; inspect its logs.')
 }
 
-function Start-DevServices {
+function Start-DevServices([System.Collections.IDictionary]$ModelEnvironment) {
     foreach ($tool in @('go', 'docker')) {
         if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) { throw ('Required tool is missing: ' + $tool) }
     }
-    foreach ($port in @(6001, 7001)) {
+    foreach ($port in @((Get-DevServiceDefinitions).Port)) {
         if (Test-DevPort $port) { throw ('Port ' + $port + ' is already occupied. Use Status and stop that exact project process before starting.') }
     }
     if (-not $SkipDependencies) {
@@ -100,10 +127,7 @@ function Start-DevServices {
     $runRoot = Join-Path $devRuntime $stamp
     New-Item -ItemType Directory -Path $runRoot -Force | Out-Null
     $state = [ordered]@{ StartedAt = (Get-Date).ToString('o'); Services = @() }
-    foreach ($service in @(
-        @{ Name = 'rpc'; Port = 6001; Package = './application/applet/rpc'; Config = 'application/applet/rpc/etc/applet.yaml' },
-        @{ Name = 'api'; Port = 7001; Package = './application/applet/api'; Config = 'application/applet/api/etc/applet-api.yaml' }
-    )) {
+    foreach ($service in @(Get-DevServiceDefinitions)) {
         $binary = Join-Path $runRoot ('applet-' + $service.Name + '.exe')
         Write-Host ('Building ' + $service.Name + '...')
         & go build -o $binary $service.Package
@@ -111,7 +135,10 @@ function Start-DevServices {
         $stdout = Join-Path $runRoot ($service.Name + '.out.log')
         $stderr = Join-Path $runRoot ($service.Name + '.err.log')
         $config = Join-Path $devRoot $service.Config
-        $process = Start-Process -FilePath $binary -ArgumentList @('-f', ('"' + $config + '"')) -WorkingDirectory $devRoot -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru
+        $launch = {
+            Start-Process -FilePath $binary -ArgumentList @('-f', ('"' + $config + '"')) -WorkingDirectory $devRoot -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru
+        }
+        $process = Invoke-DevServiceLaunch -ServiceName $service.Name -ModelEnvironment $ModelEnvironment -Launch $launch
         $script:devDidStart = $true
         $state.Services += [ordered]@{ Name = $service.Name; Port = $service.Port; PID = $process.Id; Binary = $binary; Config = $config; Stdout = $stdout; Stderr = $stderr }
         Save-DevState $state
@@ -125,6 +152,7 @@ function Start-DevServices {
 
 Push-Location $devRoot
 $devOperationLock = $null
+$devEnvironmentSnapshot = $null
 try {
     New-Item -ItemType Directory -Path $devRuntime -Force | Out-Null
     try {
@@ -132,21 +160,34 @@ try {
     } catch [IO.IOException] {
         throw 'Another backend operation is in progress. Retry after it finishes.'
     }
+    if ($Action -eq 'Start' -or $Action -eq 'Restart') {
+        # Validate the complete file before Restart is allowed to stop existing processes.
+        $devEnvironmentValues = Read-DevEnvFile -Path (Join-Path $devRoot '.env.local')
+        $devEnvironmentSnapshot = Set-DevEnvironmentDefaults -Values $devEnvironmentValues
+        $devModelEnvironment = Get-DevModelEnvironment
+    }
     switch ($Action) {
         'Status' {
             $state = Read-DevState
             if ($state) { $state.Services | Format-Table Name, Port, PID, Stdout -AutoSize | Out-Host }
             else { Write-Host 'No managed backend processes are recorded.' }
-            foreach ($port in @(6001, 7001)) { Write-Host ('Port ' + $port + ': ' + $(if (Test-DevPort $port) { 'listening' } else { 'closed' })) }
+            foreach ($port in @((Get-DevServiceDefinitions).Port)) { Write-Host ('Port ' + $port + ': ' + $(if (Test-DevPort $port) { 'listening' } else { 'closed' })) }
         }
         'Stop' { Stop-DevServices }
-        'Restart' { Stop-DevServices; Start-DevServices }
-        'Start' { Start-DevServices }
+        'Restart' {
+            Invoke-DevWithoutModelKeys -Action { Stop-DevServices; Start-DevServices -ModelEnvironment $devModelEnvironment }
+        }
+        'Start' {
+            Invoke-DevWithoutModelKeys -Action { Start-DevServices -ModelEnvironment $devModelEnvironment }
+        }
     }
 } catch {
     if ($script:devDidStart) { Stop-DevServices }
     throw
 } finally {
-    if ($devOperationLock) { $devOperationLock.Dispose() }
-    Pop-Location
+    try { Restore-DevEnvironment -Snapshot $devEnvironmentSnapshot }
+    finally {
+        if ($devOperationLock) { $devOperationLock.Dispose() }
+        Pop-Location
+    }
 }

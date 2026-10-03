@@ -103,6 +103,255 @@
                         "AdminDeviceSessionListRequest":  {
                                                               "type":  "object"
                                                           },
+                        "AgentConversation":  {
+                                                  "properties":  {
+                                                                     "createdAt":  {
+                                                                                       "type":  "string"
+                                                                                   },
+                                                                     "id":  {
+                                                                                "type":  "string"
+                                                                            },
+                                                                     "title":  {
+                                                                                   "type":  "string"
+                                                                               },
+                                                                     "updatedAt":  {
+                                                                                       "type":  "string"
+                                                                                   }
+                                                                 },
+                                                  "required":  [
+                                                                   "id",
+                                                                   "title",
+                                                                   "createdAt",
+                                                                   "updatedAt"
+                                                               ],
+                                                  "type":  "object"
+                                              },
+                        "AgentConversationListResponse":  {
+                                                              "properties":  {
+                                                                                 "items":  {
+                                                                                               "items":  {
+                                                                                                             "$ref":  "#/definitions/AgentConversation"
+                                                                                                         },
+                                                                                               "type":  "array"
+                                                                                           },
+                                                                                 "total":  {
+                                                                                               "type":  "integer"
+                                                                                           }
+                                                                             },
+                                                              "required":  [
+                                                                               "items",
+                                                                               "total"
+                                                                           ],
+                                                              "type":  "object"
+                                                          },
+                        "AgentIDRequest":  {
+                                               "type":  "object"
+                                           },
+                        "AgentInfo":  {
+                                          "properties":  {
+                                                             "configured":  {
+                                                                                "type":  "boolean"
+                                                                            },
+                                                             "enabled":  {
+                                                                             "type":  "boolean"
+                                                                         },
+                                                             "maxInputChars":  {
+                                                                                   "type":  "integer"
+                                                                               },
+                                                             "maxRunSeconds":  {
+                                                                                   "type":  "integer"
+                                                                               },
+                                                             "maxSteps":  {
+                                                                              "type":  "integer"
+                                                                          },
+                                                             "model":  {
+                                                                           "type":  "string"
+                                                                       },
+                                                             "provider":  {
+                                                                              "type":  "string"
+                                                                          },
+                                                             "tools":  {
+                                                                           "items":  {
+                                                                                         "$ref":  "#/definitions/AgentToolInfo"
+                                                                                     },
+                                                                           "type":  "array"
+                                                                       }
+                                                         },
+                                          "required":  [
+                                                           "enabled",
+                                                           "configured",
+                                                           "provider",
+                                                           "model",
+                                                           "tools",
+                                                           "maxInputChars",
+                                                           "maxSteps",
+                                                           "maxRunSeconds"
+                                                       ],
+                                          "type":  "object"
+                                      },
+                        "AgentMessage":  {
+                                             "properties":  {
+                                                                "content":  {
+                                                                                "type":  "string"
+                                                                            },
+                                                                "conversationId":  {
+                                                                                       "type":  "string"
+                                                                                   },
+                                                                "createdAt":  {
+                                                                                  "type":  "string"
+                                                                              },
+                                                                "id":  {
+                                                                           "type":  "string"
+                                                                       },
+                                                                "role":  {
+                                                                             "type":  "string"
+                                                                         },
+                                                                "runId":  {
+                                                                              "type":  "string"
+                                                                          }
+                                                            },
+                                             "required":  [
+                                                              "id",
+                                                              "conversationId",
+                                                              "runId",
+                                                              "role",
+                                                              "content",
+                                                              "createdAt"
+                                                          ],
+                                             "type":  "object"
+                                         },
+                        "AgentMessageListRequest":  {
+                                                        "type":  "object"
+                                                    },
+                        "AgentMessageListResponse":  {
+                                                         "properties":  {
+                                                                            "items":  {
+                                                                                          "items":  {
+                                                                                                        "$ref":  "#/definitions/AgentMessage"
+                                                                                                    },
+                                                                                          "type":  "array"
+                                                                                      },
+                                                                            "total":  {
+                                                                                          "type":  "integer"
+                                                                                      }
+                                                                        },
+                                                         "required":  [
+                                                                          "items",
+                                                                          "total"
+                                                                      ],
+                                                         "type":  "object"
+                                                     },
+                        "AgentPageRequest":  {
+                                                 "type":  "object"
+                                             },
+                        "AgentRun":  {
+                                         "properties":  {
+                                                            "answer":  {
+                                                                           "type":  "string"
+                                                                       },
+                                                            "conversationId":  {
+                                                                                   "type":  "string"
+                                                                               },
+                                                            "createdAt":  {
+                                                                              "type":  "string"
+                                                                          },
+                                                            "error":  {
+                                                                          "type":  "string"
+                                                                      },
+                                                            "id":  {
+                                                                       "type":  "string"
+                                                                   },
+                                                            "inputTokens":  {
+                                                                                "type":  "integer"
+                                                                            },
+                                                            "model":  {
+                                                                          "type":  "string"
+                                                                      },
+                                                            "outputTokens":  {
+                                                                                 "type":  "integer"
+                                                                             },
+                                                            "provider":  {
+                                                                             "type":  "string"
+                                                                         },
+                                                            "requestId":  {
+                                                                              "type":  "string"
+                                                                          },
+                                                            "status":  {
+                                                                           "type":  "string"
+                                                                       },
+                                                            "toolCalls":  {
+                                                                              "items":  {
+                                                                                            "$ref":  "#/definitions/AgentToolCall"
+                                                                                        },
+                                                                              "type":  "array"
+                                                                          },
+                                                            "updatedAt":  {
+                                                                              "type":  "string"
+                                                                          }
+                                                        },
+                                         "required":  [
+                                                          "id",
+                                                          "conversationId",
+                                                          "requestId",
+                                                          "status",
+                                                          "answer",
+                                                          "error",
+                                                          "provider",
+                                                          "model",
+                                                          "inputTokens",
+                                                          "outputTokens",
+                                                          "createdAt",
+                                                          "updatedAt",
+                                                          "toolCalls"
+                                                      ],
+                                         "type":  "object"
+                                     },
+                        "AgentToolCall":  {
+                                              "properties":  {
+                                                                 "error":  {
+                                                                               "type":  "string"
+                                                                           },
+                                                                 "name":  {
+                                                                              "type":  "string"
+                                                                          },
+                                                                 "status":  {
+                                                                                "type":  "string"
+                                                                            },
+                                                                 "summary":  {
+                                                                                 "type":  "string"
+                                                                             }
+                                                             },
+                                              "required":  [
+                                                               "name",
+                                                               "status",
+                                                               "error",
+                                                               "summary"
+                                                           ],
+                                              "type":  "object"
+                                          },
+                        "AgentToolInfo":  {
+                                              "properties":  {
+                                                                 "available":  {
+                                                                                   "type":  "boolean"
+                                                                               },
+                                                                 "description":  {
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                 "label":  {
+                                                                               "type":  "string"
+                                                                           },
+                                                                 "name":  {
+                                                                              "type":  "string"
+                                                                          }
+                                                             },
+                                              "required":  [
+                                                               "name",
+                                                               "label",
+                                                               "description",
+                                                               "available"
+                                                           ],
+                                              "type":  "object"
+                                          },
                         "ApiSyncItem":  {
                                             "properties":  {
                                                                "apiGroup":  {
@@ -294,6 +543,24 @@
                                                       "required":  [
                                                                        "oldPassword",
                                                                        "newPassword"
+                                                                   ],
+                                                      "type":  "object"
+                                                  },
+                        "CreateAgentRunRequest":  {
+                                                      "properties":  {
+                                                                         "conversationId":  {
+                                                                                                "type":  "string"
+                                                                                            },
+                                                                         "message":  {
+                                                                                         "type":  "string"
+                                                                                     },
+                                                                         "requestId":  {
+                                                                                           "type":  "string"
+                                                                                       }
+                                                                     },
+                                                      "required":  [
+                                                                       "requestId",
+                                                                       "message"
                                                                    ],
                                                       "type":  "object"
                                                   },
@@ -2499,6 +2766,518 @@
                  "version":  "v1"
              },
     "paths":  {
+                  "/v1/ai/conversations":  {
+                                               "get":  {
+                                                           "operationId":  "aiagentListAgentConversations",
+                                                           "parameters":  [
+                                                                              {
+                                                                                  "default":  1,
+                                                                                  "example":  1,
+                                                                                  "in":  "query",
+                                                                                  "name":  "pageNo",
+                                                                                  "required":  true,
+                                                                                  "type":  "integer"
+                                                                              },
+                                                                              {
+                                                                                  "default":  20,
+                                                                                  "example":  20,
+                                                                                  "in":  "query",
+                                                                                  "name":  "pageSize",
+                                                                                  "required":  true,
+                                                                                  "type":  "integer"
+                                                                              }
+                                                                          ],
+                                                           "produces":  [
+                                                                            "application/json"
+                                                                        ],
+                                                           "responses":  {
+                                                                             "200":  {
+                                                                                         "description":  "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+                                                                                         "schema":  {
+                                                                                                        "properties":  {
+                                                                                                                           "code":  {
+                                                                                                                                        "example":  200,
+                                                                                                                                        "type":  "integer"
+                                                                                                                                    },
+                                                                                                                           "message":  {
+                                                                                                                                           "example":  "操作成功!",
+                                                                                                                                           "type":  "string"
+                                                                                                                                       },
+                                                                                                                           "result":  {
+                                                                                                                                          "$ref":  "#/definitions/AgentConversationListResponse"
+                                                                                                                                      },
+                                                                                                                           "returnData":  {
+                                                                                                                                              "description":  "Currently null",
+                                                                                                                                              "x-nullable":  true
+                                                                                                                                          },
+                                                                                                                           "success":  {
+                                                                                                                                           "example":  true,
+                                                                                                                                           "type":  "boolean"
+                                                                                                                                       },
+                                                                                                                           "timestamp":  {
+                                                                                                                                             "description":  "Unix time in seconds",
+                                                                                                                                             "format":  "int64",
+                                                                                                                                             "type":  "integer"
+                                                                                                                                         }
+                                                                                                                       },
+                                                                                                        "required":  [
+                                                                                                                         "code",
+                                                                                                                         "message"
+                                                                                                                     ],
+                                                                                                        "type":  "object"
+                                                                                                    },
+                                                                                         "x-business-error-schema":  {
+                                                                                                                         "$ref":  "#/definitions/BusinessError"
+                                                                                                                     }
+                                                                                     },
+                                                                             "403":  {
+                                                                                         "description":  "接口权限不足",
+                                                                                         "schema":  {
+                                                                                                        "$ref":  "#/definitions/MiddlewareError"
+                                                                                                    }
+                                                                                     },
+                                                                             "500":  {
+                                                                                         "description":  "鉴权服务异常",
+                                                                                         "schema":  {
+                                                                                                        "$ref":  "#/definitions/MiddlewareError"
+                                                                                                    }
+                                                                                     }
+                                                                         },
+                                                           "security":  [
+                                                                            {
+                                                                                "BearerAuth":  [
+
+                                                                                               ]
+                                                                            }
+                                                                        ],
+                                                           "summary":  "ListAgentConversations",
+                                                           "tags":  [
+                                                                        "aiagent"
+                                                                    ],
+                                                           "x-casbin-resource":  true
+                                                       }
+                                           },
+                  "/v1/ai/conversations/{id}/messages":  {
+                                                             "get":  {
+                                                                         "operationId":  "aiagentListAgentMessages",
+                                                                         "parameters":  [
+                                                                                            {
+                                                                                                "in":  "path",
+                                                                                                "name":  "id",
+                                                                                                "required":  true,
+                                                                                                "type":  "string"
+                                                                                            },
+                                                                                            {
+                                                                                                "default":  1,
+                                                                                                "example":  1,
+                                                                                                "in":  "query",
+                                                                                                "name":  "pageNo",
+                                                                                                "required":  true,
+                                                                                                "type":  "integer"
+                                                                                            },
+                                                                                            {
+                                                                                                "default":  20,
+                                                                                                "example":  20,
+                                                                                                "in":  "query",
+                                                                                                "name":  "pageSize",
+                                                                                                "required":  true,
+                                                                                                "type":  "integer"
+                                                                                            }
+                                                                                        ],
+                                                                         "produces":  [
+                                                                                          "application/json"
+                                                                                      ],
+                                                                         "responses":  {
+                                                                                           "200":  {
+                                                                                                       "description":  "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+                                                                                                       "schema":  {
+                                                                                                                      "properties":  {
+                                                                                                                                         "code":  {
+                                                                                                                                                      "example":  200,
+                                                                                                                                                      "type":  "integer"
+                                                                                                                                                  },
+                                                                                                                                         "message":  {
+                                                                                                                                                         "example":  "操作成功!",
+                                                                                                                                                         "type":  "string"
+                                                                                                                                                     },
+                                                                                                                                         "result":  {
+                                                                                                                                                        "$ref":  "#/definitions/AgentMessageListResponse"
+                                                                                                                                                    },
+                                                                                                                                         "returnData":  {
+                                                                                                                                                            "description":  "Currently null",
+                                                                                                                                                            "x-nullable":  true
+                                                                                                                                                        },
+                                                                                                                                         "success":  {
+                                                                                                                                                         "example":  true,
+                                                                                                                                                         "type":  "boolean"
+                                                                                                                                                     },
+                                                                                                                                         "timestamp":  {
+                                                                                                                                                           "description":  "Unix time in seconds",
+                                                                                                                                                           "format":  "int64",
+                                                                                                                                                           "type":  "integer"
+                                                                                                                                                       }
+                                                                                                                                     },
+                                                                                                                      "required":  [
+                                                                                                                                       "code",
+                                                                                                                                       "message"
+                                                                                                                                   ],
+                                                                                                                      "type":  "object"
+                                                                                                                  },
+                                                                                                       "x-business-error-schema":  {
+                                                                                                                                       "$ref":  "#/definitions/BusinessError"
+                                                                                                                                   }
+                                                                                                   },
+                                                                                           "403":  {
+                                                                                                       "description":  "接口权限不足",
+                                                                                                       "schema":  {
+                                                                                                                      "$ref":  "#/definitions/MiddlewareError"
+                                                                                                                  }
+                                                                                                   },
+                                                                                           "500":  {
+                                                                                                       "description":  "鉴权服务异常",
+                                                                                                       "schema":  {
+                                                                                                                      "$ref":  "#/definitions/MiddlewareError"
+                                                                                                                  }
+                                                                                                   }
+                                                                                       },
+                                                                         "security":  [
+                                                                                          {
+                                                                                              "BearerAuth":  [
+
+                                                                                                             ]
+                                                                                          }
+                                                                                      ],
+                                                                         "summary":  "ListAgentMessages",
+                                                                         "tags":  [
+                                                                                      "aiagent"
+                                                                                  ],
+                                                                         "x-casbin-resource":  true
+                                                                     }
+                                                         },
+                  "/v1/ai/info":  {
+                                      "get":  {
+                                                  "operationId":  "aiagentGetAgentInfo",
+                                                  "produces":  [
+                                                                   "application/json"
+                                                               ],
+                                                  "responses":  {
+                                                                    "200":  {
+                                                                                "description":  "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+                                                                                "schema":  {
+                                                                                               "properties":  {
+                                                                                                                  "code":  {
+                                                                                                                               "example":  200,
+                                                                                                                               "type":  "integer"
+                                                                                                                           },
+                                                                                                                  "message":  {
+                                                                                                                                  "example":  "操作成功!",
+                                                                                                                                  "type":  "string"
+                                                                                                                              },
+                                                                                                                  "result":  {
+                                                                                                                                 "$ref":  "#/definitions/AgentInfo"
+                                                                                                                             },
+                                                                                                                  "returnData":  {
+                                                                                                                                     "description":  "Currently null",
+                                                                                                                                     "x-nullable":  true
+                                                                                                                                 },
+                                                                                                                  "success":  {
+                                                                                                                                  "example":  true,
+                                                                                                                                  "type":  "boolean"
+                                                                                                                              },
+                                                                                                                  "timestamp":  {
+                                                                                                                                    "description":  "Unix time in seconds",
+                                                                                                                                    "format":  "int64",
+                                                                                                                                    "type":  "integer"
+                                                                                                                                }
+                                                                                                              },
+                                                                                               "required":  [
+                                                                                                                "code",
+                                                                                                                "message"
+                                                                                                            ],
+                                                                                               "type":  "object"
+                                                                                           },
+                                                                                "x-business-error-schema":  {
+                                                                                                                "$ref":  "#/definitions/BusinessError"
+                                                                                                            }
+                                                                            },
+                                                                    "403":  {
+                                                                                "description":  "接口权限不足",
+                                                                                "schema":  {
+                                                                                               "$ref":  "#/definitions/MiddlewareError"
+                                                                                           }
+                                                                            },
+                                                                    "500":  {
+                                                                                "description":  "鉴权服务异常",
+                                                                                "schema":  {
+                                                                                               "$ref":  "#/definitions/MiddlewareError"
+                                                                                           }
+                                                                            }
+                                                                },
+                                                  "security":  [
+                                                                   {
+                                                                       "BearerAuth":  [
+
+                                                                                      ]
+                                                                   }
+                                                               ],
+                                                  "summary":  "查询AI开关、模型名称和当前用户可用的只读工具",
+                                                  "tags":  [
+                                                               "aiagent"
+                                                           ],
+                                                  "x-casbin-resource":  true
+                                              }
+                                  },
+                  "/v1/ai/runs":  {
+                                      "post":  {
+                                                   "consumes":  [
+                                                                    "application/json"
+                                                                ],
+                                                   "operationId":  "aiagentCreateAgentRun",
+                                                   "parameters":  [
+                                                                      {
+                                                                          "in":  "body",
+                                                                          "name":  "body",
+                                                                          "required":  true,
+                                                                          "schema":  {
+                                                                                         "$ref":  "#/definitions/CreateAgentRunRequest"
+                                                                                     }
+                                                                      }
+                                                                  ],
+                                                   "produces":  [
+                                                                    "application/json"
+                                                                ],
+                                                   "responses":  {
+                                                                     "200":  {
+                                                                                 "description":  "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+                                                                                 "schema":  {
+                                                                                                "properties":  {
+                                                                                                                   "code":  {
+                                                                                                                                "example":  200,
+                                                                                                                                "type":  "integer"
+                                                                                                                            },
+                                                                                                                   "message":  {
+                                                                                                                                   "example":  "操作成功!",
+                                                                                                                                   "type":  "string"
+                                                                                                                               },
+                                                                                                                   "result":  {
+                                                                                                                                  "$ref":  "#/definitions/AgentRun"
+                                                                                                                              },
+                                                                                                                   "returnData":  {
+                                                                                                                                      "description":  "Currently null",
+                                                                                                                                      "x-nullable":  true
+                                                                                                                                  },
+                                                                                                                   "success":  {
+                                                                                                                                   "example":  true,
+                                                                                                                                   "type":  "boolean"
+                                                                                                                               },
+                                                                                                                   "timestamp":  {
+                                                                                                                                     "description":  "Unix time in seconds",
+                                                                                                                                     "format":  "int64",
+                                                                                                                                     "type":  "integer"
+                                                                                                                                 }
+                                                                                                               },
+                                                                                                "required":  [
+                                                                                                                 "code",
+                                                                                                                 "message"
+                                                                                                             ],
+                                                                                                "type":  "object"
+                                                                                            },
+                                                                                 "x-business-error-schema":  {
+                                                                                                                 "$ref":  "#/definitions/BusinessError"
+                                                                                                             }
+                                                                             },
+                                                                     "403":  {
+                                                                                 "description":  "接口权限不足",
+                                                                                 "schema":  {
+                                                                                                "$ref":  "#/definitions/MiddlewareError"
+                                                                                            }
+                                                                             },
+                                                                     "500":  {
+                                                                                 "description":  "鉴权服务异常",
+                                                                                 "schema":  {
+                                                                                                "$ref":  "#/definitions/MiddlewareError"
+                                                                                            }
+                                                                             }
+                                                                 },
+                                                   "security":  [
+                                                                    {
+                                                                        "BearerAuth":  [
+
+                                                                                       ]
+                                                                    }
+                                                                ],
+                                                   "summary":  "提交有界异步Agent任务，同一requestId幂等",
+                                                   "tags":  [
+                                                                "aiagent"
+                                                            ],
+                                                   "x-casbin-resource":  true
+                                               }
+                                  },
+                  "/v1/ai/runs/{id}":  {
+                                           "get":  {
+                                                       "operationId":  "aiagentGetAgentRun",
+                                                       "parameters":  [
+                                                                          {
+                                                                              "in":  "path",
+                                                                              "name":  "id",
+                                                                              "required":  true,
+                                                                              "type":  "string"
+                                                                          }
+                                                                      ],
+                                                       "produces":  [
+                                                                        "application/json"
+                                                                    ],
+                                                       "responses":  {
+                                                                         "200":  {
+                                                                                     "description":  "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+                                                                                     "schema":  {
+                                                                                                    "properties":  {
+                                                                                                                       "code":  {
+                                                                                                                                    "example":  200,
+                                                                                                                                    "type":  "integer"
+                                                                                                                                },
+                                                                                                                       "message":  {
+                                                                                                                                       "example":  "操作成功!",
+                                                                                                                                       "type":  "string"
+                                                                                                                                   },
+                                                                                                                       "result":  {
+                                                                                                                                      "$ref":  "#/definitions/AgentRun"
+                                                                                                                                  },
+                                                                                                                       "returnData":  {
+                                                                                                                                          "description":  "Currently null",
+                                                                                                                                          "x-nullable":  true
+                                                                                                                                      },
+                                                                                                                       "success":  {
+                                                                                                                                       "example":  true,
+                                                                                                                                       "type":  "boolean"
+                                                                                                                                   },
+                                                                                                                       "timestamp":  {
+                                                                                                                                         "description":  "Unix time in seconds",
+                                                                                                                                         "format":  "int64",
+                                                                                                                                         "type":  "integer"
+                                                                                                                                     }
+                                                                                                                   },
+                                                                                                    "required":  [
+                                                                                                                     "code",
+                                                                                                                     "message"
+                                                                                                                 ],
+                                                                                                    "type":  "object"
+                                                                                                },
+                                                                                     "x-business-error-schema":  {
+                                                                                                                     "$ref":  "#/definitions/BusinessError"
+                                                                                                                 }
+                                                                                 },
+                                                                         "403":  {
+                                                                                     "description":  "接口权限不足",
+                                                                                     "schema":  {
+                                                                                                    "$ref":  "#/definitions/MiddlewareError"
+                                                                                                }
+                                                                                 },
+                                                                         "500":  {
+                                                                                     "description":  "鉴权服务异常",
+                                                                                     "schema":  {
+                                                                                                    "$ref":  "#/definitions/MiddlewareError"
+                                                                                                }
+                                                                                 }
+                                                                     },
+                                                       "security":  [
+                                                                        {
+                                                                            "BearerAuth":  [
+
+                                                                                           ]
+                                                                        }
+                                                                    ],
+                                                       "summary":  "GetAgentRun",
+                                                       "tags":  [
+                                                                    "aiagent"
+                                                                ],
+                                                       "x-casbin-resource":  true
+                                                   }
+                                       },
+                  "/v1/ai/runs/{id}/cancel":  {
+                                                  "post":  {
+                                                               "consumes":  [
+                                                                                "application/x-www-form-urlencoded"
+                                                                            ],
+                                                               "operationId":  "aiagentCancelAgentRun",
+                                                               "parameters":  [
+                                                                                  {
+                                                                                      "in":  "path",
+                                                                                      "name":  "id",
+                                                                                      "required":  true,
+                                                                                      "type":  "string"
+                                                                                  }
+                                                                              ],
+                                                               "produces":  [
+                                                                                "application/json"
+                                                                            ],
+                                                               "responses":  {
+                                                                                 "200":  {
+                                                                                             "description":  "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+                                                                                             "schema":  {
+                                                                                                            "properties":  {
+                                                                                                                               "code":  {
+                                                                                                                                            "example":  200,
+                                                                                                                                            "type":  "integer"
+                                                                                                                                        },
+                                                                                                                               "message":  {
+                                                                                                                                               "example":  "操作成功!",
+                                                                                                                                               "type":  "string"
+                                                                                                                                           },
+                                                                                                                               "result":  {
+                                                                                                                                              "$ref":  "#/definitions/AgentRun"
+                                                                                                                                          },
+                                                                                                                               "returnData":  {
+                                                                                                                                                  "description":  "Currently null",
+                                                                                                                                                  "x-nullable":  true
+                                                                                                                                              },
+                                                                                                                               "success":  {
+                                                                                                                                               "example":  true,
+                                                                                                                                               "type":  "boolean"
+                                                                                                                                           },
+                                                                                                                               "timestamp":  {
+                                                                                                                                                 "description":  "Unix time in seconds",
+                                                                                                                                                 "format":  "int64",
+                                                                                                                                                 "type":  "integer"
+                                                                                                                                             }
+                                                                                                                           },
+                                                                                                            "required":  [
+                                                                                                                             "code",
+                                                                                                                             "message"
+                                                                                                                         ],
+                                                                                                            "type":  "object"
+                                                                                                        },
+                                                                                             "x-business-error-schema":  {
+                                                                                                                             "$ref":  "#/definitions/BusinessError"
+                                                                                                                         }
+                                                                                         },
+                                                                                 "403":  {
+                                                                                             "description":  "接口权限不足",
+                                                                                             "schema":  {
+                                                                                                            "$ref":  "#/definitions/MiddlewareError"
+                                                                                                        }
+                                                                                         },
+                                                                                 "500":  {
+                                                                                             "description":  "鉴权服务异常",
+                                                                                             "schema":  {
+                                                                                                            "$ref":  "#/definitions/MiddlewareError"
+                                                                                                        }
+                                                                                         }
+                                                                             },
+                                                               "security":  [
+                                                                                {
+                                                                                    "BearerAuth":  [
+
+                                                                                                   ]
+                                                                                }
+                                                                            ],
+                                                               "summary":  "CancelAgentRun",
+                                                               "tags":  [
+                                                                            "aiagent"
+                                                                        ],
+                                                               "x-casbin-resource":  true
+                                                           }
+                                              },
                   "/v1/sys/api/applySync":  {
                                                 "post":  {
                                                              "consumes":  [
@@ -8545,6 +9324,6 @@
     "x-description":  "This is a goctl generated swagger file.",
     "x-generator":  "goctl version 1.10.2 windows/amd64",
     "x-github":  "https://github.com/zeromicro/go-zero",
-    "x-goctl-version":  "1.10.2",
-    "x-go-zero-doc":  "https://go-zero.dev/"
+    "x-go-zero-doc":  "https://go-zero.dev/",
+    "x-goctl-version":  "1.10.2"
 }

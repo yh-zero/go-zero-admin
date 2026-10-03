@@ -3483,3 +3483,181 @@ var SessionManage_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "application/applet/rpc/desc/applet.proto",
 }
+
+const (
+	AgentTools_QueryAgentAudit_FullMethodName    = "/pb.AgentTools/QueryAgentAudit"
+	AgentTools_GetAgentFileStatus_FullMethodName = "/pb.AgentTools/GetAgentFileStatus"
+	AgentTools_ListAgentDevices_FullMethodName   = "/pb.AgentTools/ListAgentDevices"
+)
+
+// AgentToolsClient is the client API for AgentTools service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AgentToolsClient interface {
+	QueryAgentAudit(ctx context.Context, in *AgentToolRequest, opts ...grpc.CallOption) (*AgentToolResult, error)
+	GetAgentFileStatus(ctx context.Context, in *AgentToolRequest, opts ...grpc.CallOption) (*AgentToolResult, error)
+	ListAgentDevices(ctx context.Context, in *AgentToolRequest, opts ...grpc.CallOption) (*AgentToolResult, error)
+}
+
+type agentToolsClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAgentToolsClient(cc grpc.ClientConnInterface) AgentToolsClient {
+	return &agentToolsClient{cc}
+}
+
+func (c *agentToolsClient) QueryAgentAudit(ctx context.Context, in *AgentToolRequest, opts ...grpc.CallOption) (*AgentToolResult, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AgentToolResult)
+	err := c.cc.Invoke(ctx, AgentTools_QueryAgentAudit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentToolsClient) GetAgentFileStatus(ctx context.Context, in *AgentToolRequest, opts ...grpc.CallOption) (*AgentToolResult, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AgentToolResult)
+	err := c.cc.Invoke(ctx, AgentTools_GetAgentFileStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentToolsClient) ListAgentDevices(ctx context.Context, in *AgentToolRequest, opts ...grpc.CallOption) (*AgentToolResult, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AgentToolResult)
+	err := c.cc.Invoke(ctx, AgentTools_ListAgentDevices_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AgentToolsServer is the server API for AgentTools service.
+// All implementations must embed UnimplementedAgentToolsServer
+// for forward compatibility.
+type AgentToolsServer interface {
+	QueryAgentAudit(context.Context, *AgentToolRequest) (*AgentToolResult, error)
+	GetAgentFileStatus(context.Context, *AgentToolRequest) (*AgentToolResult, error)
+	ListAgentDevices(context.Context, *AgentToolRequest) (*AgentToolResult, error)
+	mustEmbedUnimplementedAgentToolsServer()
+}
+
+// UnimplementedAgentToolsServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedAgentToolsServer struct{}
+
+func (UnimplementedAgentToolsServer) QueryAgentAudit(context.Context, *AgentToolRequest) (*AgentToolResult, error) {
+	return nil, status.Error(codes.Unimplemented, "method QueryAgentAudit not implemented")
+}
+func (UnimplementedAgentToolsServer) GetAgentFileStatus(context.Context, *AgentToolRequest) (*AgentToolResult, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAgentFileStatus not implemented")
+}
+func (UnimplementedAgentToolsServer) ListAgentDevices(context.Context, *AgentToolRequest) (*AgentToolResult, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAgentDevices not implemented")
+}
+func (UnimplementedAgentToolsServer) mustEmbedUnimplementedAgentToolsServer() {}
+func (UnimplementedAgentToolsServer) testEmbeddedByValue()                    {}
+
+// UnsafeAgentToolsServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AgentToolsServer will
+// result in compilation errors.
+type UnsafeAgentToolsServer interface {
+	mustEmbedUnimplementedAgentToolsServer()
+}
+
+func RegisterAgentToolsServer(s grpc.ServiceRegistrar, srv AgentToolsServer) {
+	// If the following call panics, it indicates UnimplementedAgentToolsServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&AgentTools_ServiceDesc, srv)
+}
+
+func _AgentTools_QueryAgentAudit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AgentToolRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentToolsServer).QueryAgentAudit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentTools_QueryAgentAudit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentToolsServer).QueryAgentAudit(ctx, req.(*AgentToolRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentTools_GetAgentFileStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AgentToolRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentToolsServer).GetAgentFileStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentTools_GetAgentFileStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentToolsServer).GetAgentFileStatus(ctx, req.(*AgentToolRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentTools_ListAgentDevices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AgentToolRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentToolsServer).ListAgentDevices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentTools_ListAgentDevices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentToolsServer).ListAgentDevices(ctx, req.(*AgentToolRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AgentTools_ServiceDesc is the grpc.ServiceDesc for AgentTools service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AgentTools_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.AgentTools",
+	HandlerType: (*AgentToolsServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "QueryAgentAudit",
+			Handler:    _AgentTools_QueryAgentAudit_Handler,
+		},
+		{
+			MethodName: "GetAgentFileStatus",
+			Handler:    _AgentTools_GetAgentFileStatus_Handler,
+		},
+		{
+			MethodName: "ListAgentDevices",
+			Handler:    _AgentTools_ListAgentDevices_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "application/applet/rpc/desc/applet.proto",
+}

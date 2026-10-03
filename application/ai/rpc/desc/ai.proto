@@ -1,0 +1,34 @@
+syntax = "proto3";
+option go_package = "./pb";
+package ai;
+
+// Trusted identity comes from the authenticated API, not the model.
+message SessionRequest {
+  int64 UserID = 1;
+  int64 SessionVersion = 2;
+  int64 AuthorityId = 3;
+  string SessionID = 4;
+}
+
+// Async AI Agent. Actor comes from the authenticated API, never model arguments.
+message AgentToolInfo { string Name = 1; string Label = 2; string Description = 3; bool Available = 4; }
+message AgentToolCall { string Name = 1; string Status = 2; string Error = 3; string Summary = 4; }
+message AgentInfo { bool Enabled = 1; bool Configured = 2; string Provider = 3; string Model = 4; repeated AgentToolInfo Tools = 5; int64 MaxInputChars = 6; int64 MaxSteps = 7; int64 MaxRunSeconds = 8; }
+message AgentRun { string ID = 1; string ConversationId = 2; string RequestId = 3; string Status = 4; string Answer = 5; string Error = 6; string Provider = 7; string Model = 8; int64 InputTokens = 9; int64 OutputTokens = 10; string CreatedAt = 11; string UpdatedAt = 12; repeated AgentToolCall ToolCalls = 13; }
+message AgentConversation { string ID = 1; string Title = 2; string CreatedAt = 3; string UpdatedAt = 4; }
+message AgentMessage { string ID = 1; string ConversationId = 2; string RunId = 3; string Role = 4; string Content = 5; string CreatedAt = 6; }
+message AgentInfoRequest { SessionRequest Actor = 1; }
+message CreateAgentRunRequest { SessionRequest Actor = 1; string ConversationId = 2; string RequestId = 3; string Message = 4; }
+message AgentIDRequest { SessionRequest Actor = 1; string ID = 2; }
+message AgentPageRequest { SessionRequest Actor = 1; int64 PageNo = 2; int64 PageSize = 3; }
+message AgentMessageListRequest { SessionRequest Actor = 1; string ID = 2; int64 PageNo = 3; int64 PageSize = 4; }
+message AgentConversationListResponse { repeated AgentConversation Items = 1; int64 Total = 2; }
+message AgentMessageListResponse { repeated AgentMessage Items = 1; int64 Total = 2; }
+service Agent {
+  rpc GetAgentInfo (AgentInfoRequest) returns (AgentInfo);
+  rpc CreateAgentRun (CreateAgentRunRequest) returns (AgentRun);
+  rpc GetAgentRun (AgentIDRequest) returns (AgentRun);
+  rpc CancelAgentRun (AgentIDRequest) returns (AgentRun);
+  rpc ListAgentConversations (AgentPageRequest) returns (AgentConversationListResponse);
+  rpc ListAgentMessages (AgentMessageListRequest) returns (AgentMessageListResponse);
+}

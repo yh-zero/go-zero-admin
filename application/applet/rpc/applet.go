@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"go-zero-admin/application/applet/rpc/internal/config"
+	agentToolsServer "go-zero-admin/application/applet/rpc/internal/server/agenttools"
 	apiServer "go-zero-admin/application/applet/rpc/internal/server/api"
 	auditServer "go-zero-admin/application/applet/rpc/internal/server/audit"
 	authorityServer "go-zero-admin/application/applet/rpc/internal/server/authority"
@@ -38,6 +39,7 @@ func main() {
 	defer ctx.Close()
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+		pb.RegisterAgentToolsServer(grpcServer, agentToolsServer.NewAgentToolsServer(ctx))
 		pb.RegisterUserServer(grpcServer, userServer.NewUserServer(ctx))
 		pb.RegisterMenuServer(grpcServer, menuServer.NewMenuServer(ctx))
 		pb.RegisterAuthorityServer(grpcServer, authorityServer.NewAuthorityServer(ctx))

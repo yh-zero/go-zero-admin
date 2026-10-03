@@ -1,6 +1,7 @@
 package svc
 
 import (
+	agentRPC "go-zero-admin/application/ai/rpc/client/agent"
 	"go-zero-admin/application/applet/api/internal/config"
 	"go-zero-admin/application/applet/api/internal/middleware"
 	"go-zero-admin/application/applet/rpc/client/api"
@@ -30,6 +31,7 @@ const (
 )
 
 type ServiceContext struct {
+	AIAgentRPC             agentRPC.Agent
 	Audit                  rest.Middleware
 	AppletAuditRPC         auditRPC.Audit
 	AppletOrganizationRPC  organization.Organization
@@ -74,6 +76,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	casbinCli := casbinRPC.NewCasbin(appletRPC)
 
 	svc := &ServiceContext{
+		AIAgentRPC:             newAIAgentClient(c.AIRPC, c.Mode),
 		AppletAuditRPC:         auditRPC.NewAudit(appletRPC),
 		AppletOrganizationRPC:  organization.NewOrganization(appletRPC),
 		AppletFileRPC:          fileresourceservice.NewFileResourceService(appletRPC),

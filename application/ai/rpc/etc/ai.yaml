@@ -1,0 +1,32 @@
+Name: ai.rpc
+Mode: dev
+ListenOn: 127.0.0.1:6002
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: ai.rpc
+AppletRPC:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: applet.rpc
+  Timeout: 5000
+  NonBlock: true
+DB:
+  DataSource: root:123456@tcp(127.0.0.1:3306)/goZero-admin?parseTime=true&loc=Local
+  MaxIdleConns: 10
+  MaxOpenConns: 100
+  MaxLifetime: 3600
+AI:
+  # 模型参数由此文件管理，.env.local 仅保存 DEEPSEEK_API_KEY / QWEN_API_KEY。
+  Enabled: false
+  Provider: deepseek # deepseek 或 qwen
+  MaxInputChars: 2000
+  MaxSteps: 6
+  MaxRunSeconds: 90
+  DeepSeek:
+    Model: 'deepseek-flash' # 启用前填写支持工具调用的模型名
+    BaseURL: https://api.deepseek.com/v1
+  Qwen:
+    Model: '' # 启用前填写模型名，并确认 BaseURL 对应账号区域
+    BaseURL: https://dashscope.aliyuncs.com/compatible-mode/v1

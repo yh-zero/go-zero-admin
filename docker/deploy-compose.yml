@@ -94,6 +94,35 @@ services:
         condition: service_healthy
     init: true
 
+  ai-rpc:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: ai-rpc
+    restart: unless-stopped
+    environment:
+      MYSQL_ADDR: mysql:3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: "${MYSQL_ROOT_PASSWORD:?请在 docker/.env.deploy 中设置 MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero-admin}"
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+      ETCD_ADDR: etcd:2379
+      RPC_AUTH_APP: "${RPC_AUTH_APP:-applet-api}"
+      RPC_AUTH_TOKEN: "${RPC_AUTH_TOKEN:?请在 docker/.env.deploy 中设置 RPC_AUTH_TOKEN}"
+      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
+      QWEN_API_KEY: "${QWEN_API_KEY:-}"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      etcd:
+        condition: service_healthy
+      rpc:
+        condition: service_started
+    init: true
+
   etcd:
     image: quay.io/coreos/etcd:v3.5.11
     restart: unless-stopped

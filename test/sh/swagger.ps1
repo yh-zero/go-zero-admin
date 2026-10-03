@@ -155,7 +155,9 @@ import "./desc/applet.api"
     foreach ($path in $document.paths.PSBase.Keys) {
         foreach ($method in $document.paths[$path].PSBase.Keys) {
             $operation = $document.paths[$path][$method]
-            $routeKey = $method + ' ' + $path
+            # Swagger uses {id}; go-zero and Casbin use :id.
+            $casbinPath = [regex]::Replace($path, '\{([A-Za-z_][A-Za-z0-9_]*)\}', ':$1')
+            $routeKey = $method + ' ' + $casbinPath
             if (-not $casbinRoutes.ContainsKey($routeKey)) { throw "Missing middleware metadata: $routeKey" }
             $operation['x-casbin-resource'] = $casbinRoutes[$routeKey]
             $operation.Remove('schemes') # Inherit the configured HTTP/HTTPS schemes.

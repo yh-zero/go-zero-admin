@@ -1,0 +1,103 @@
+syntax = "v1"
+
+type (
+    AgentToolInfo {
+        Name string `json:"name"`
+        Label string `json:"label"`
+        Description string `json:"description"`
+        Available bool `json:"available"`
+    }
+    AgentToolCall {
+        Name string `json:"name"`
+        Status string `json:"status"`
+        Error string `json:"error"`
+        Summary string `json:"summary"`
+    }
+    AgentInfo {
+        Enabled bool `json:"enabled"`
+        Configured bool `json:"configured"`
+        Provider string `json:"provider"`
+        Model string `json:"model"`
+        Tools []AgentToolInfo `json:"tools"`
+        MaxInputChars int64 `json:"maxInputChars"`
+        MaxSteps int64 `json:"maxSteps"`
+        MaxRunSeconds int64 `json:"maxRunSeconds"`
+    }
+    AgentRun {
+        ID string `json:"id"`
+        ConversationId string `json:"conversationId"`
+        RequestId string `json:"requestId"`
+        Status string `json:"status"`
+        Answer string `json:"answer"`
+        Error string `json:"error"`
+        Provider string `json:"provider"`
+        Model string `json:"model"`
+        InputTokens int64 `json:"inputTokens"`
+        OutputTokens int64 `json:"outputTokens"`
+        CreatedAt string `json:"createdAt"`
+        UpdatedAt string `json:"updatedAt"`
+        ToolCalls []AgentToolCall `json:"toolCalls"`
+    }
+    AgentConversation {
+        ID string `json:"id"`
+        Title string `json:"title"`
+        CreatedAt string `json:"createdAt"`
+        UpdatedAt string `json:"updatedAt"`
+    }
+    AgentMessage {
+        ID string `json:"id"`
+        ConversationId string `json:"conversationId"`
+        RunId string `json:"runId"`
+        Role string `json:"role"`
+        Content string `json:"content"`
+        CreatedAt string `json:"createdAt"`
+    }
+    CreateAgentRunRequest {
+        ConversationId string `json:"conversationId,optional"`
+        RequestId string `json:"requestId"`
+        Message string `json:"message"`
+    }
+    AgentIDRequest {
+        ID string `path:"id"`
+    }
+    AgentPageRequest {
+        PageNo int64 `form:"pageNo,default=1"`
+        PageSize int64 `form:"pageSize,default=20"`
+    }
+    AgentMessageListRequest {
+        ID string `path:"id"`
+        PageNo int64 `form:"pageNo,default=1"`
+        PageSize int64 `form:"pageSize,default=20"`
+    }
+    AgentConversationListResponse {
+        Items []AgentConversation `json:"items"`
+        Total int64 `json:"total"`
+    }
+    AgentMessageListResponse {
+        Items []AgentMessage `json:"items"`
+        Total int64 `json:"total"`
+    }
+)
+
+@server(
+    prefix: /v1/ai
+    group: aiagent
+    jwt: JwtAuth
+    middleware: Authority
+)
+service applet-api {
+    @doc "查询AI开关、模型名称和当前用户可用的只读工具"
+    @handler GetAgentInfo
+    get /info returns (AgentInfo)
+    @doc "提交有界异步Agent任务，同一requestId幂等"
+    @handler CreateAgentRun
+    post /runs (CreateAgentRunRequest) returns (AgentRun)
+    @handler GetAgentRun
+    get /runs/:id (AgentIDRequest) returns (AgentRun)
+    @handler CancelAgentRun
+    post /runs/:id/cancel (AgentIDRequest) returns (AgentRun)
+    @handler ListAgentConversations
+    get /conversations (AgentPageRequest) returns (AgentConversationListResponse)
+    @handler ListAgentMessages
+    get /conversations/:id/messages (AgentMessageListRequest) returns (AgentMessageListResponse)
+}

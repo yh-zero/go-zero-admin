@@ -1,37 +1,14 @@
 # go-zero-admin
 
-#### Description
+An administration backend built with go-zero, GORM and Casbin, paired with the Vue Vben Admin web-antdv-next frontend.
 
-{**When you're done, you can delete the content in this README and update the file with details for others getting started with your repository**}
+The backend provides user/role/menu/API authorization, dictionaries, organization and file management, audit logs, device sessions and an optional AI Agent using external DeepSeek or Qwen models.
 
-#### Software Architecture
+- HTTP API: port 7001; business RPC: 6001; independent AI RPC: 6002.
+- Local development: Docker starts MySQL, Redis and etcd; the three Go services and the frontend run separately.
+- AI settings are in `application/ai/rpc/etc/ai.yaml`; model API keys are supplied only to the AI process through its environment.
+- Database upgrades use incremental migrations and backups. Do not replay the baseline SQL over an existing database.
 
-Software architecture description
+See [README.md](README.md) for installation, startup, configuration, code generation, tests and deployment; [Docker deployment](docker/部署说明.md) for production service authentication and upgrades; [development plan](DEVELOPMENT_PLAN.md) for unfinished work and acceptance checks.
 
-#### Installation
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### Instructions
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### Contribution
-
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
-
-#### Gitee Feature
-
-1.  You can use Readme_XXX.md to support different languages, such as Readme_en.md, Readme_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+Licensed under [Apache License 2.0](LICENSE). The frontend preserves its upstream MIT license.

@@ -6564,6 +6564,119 @@ func (x *RevokeDeviceSessionRequest) GetSelfOnly() bool {
 	return false
 }
 
+// Business tools are internal RPC only and validate Actor on every call.
+type AgentToolRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *SessionRequest        `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
+	ArgumentsJson string                 `protobuf:"bytes,2,opt,name=ArgumentsJson,proto3" json:"ArgumentsJson,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentToolRequest) Reset() {
+	*x = AgentToolRequest{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[109]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentToolRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentToolRequest) ProtoMessage() {}
+
+func (x *AgentToolRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[109]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentToolRequest.ProtoReflect.Descriptor instead.
+func (*AgentToolRequest) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{109}
+}
+
+func (x *AgentToolRequest) GetActor() *SessionRequest {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *AgentToolRequest) GetArgumentsJson() string {
+	if x != nil {
+		return x.ArgumentsJson
+	}
+	return ""
+}
+
+type AgentToolResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Content       string                 `protobuf:"bytes,1,opt,name=Content,proto3" json:"Content,omitempty"`
+	Summary       string                 `protobuf:"bytes,2,opt,name=Summary,proto3" json:"Summary,omitempty"`
+	Count         int64                  `protobuf:"varint,3,opt,name=Count,proto3" json:"Count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentToolResult) Reset() {
+	*x = AgentToolResult{}
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[110]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentToolResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentToolResult) ProtoMessage() {}
+
+func (x *AgentToolResult) ProtoReflect() protoreflect.Message {
+	mi := &file_application_applet_rpc_desc_applet_proto_msgTypes[110]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentToolResult.ProtoReflect.Descriptor instead.
+func (*AgentToolResult) Descriptor() ([]byte, []int) {
+	return file_application_applet_rpc_desc_applet_proto_rawDescGZIP(), []int{110}
+}
+
+func (x *AgentToolResult) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *AgentToolResult) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *AgentToolResult) GetCount() int64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
 var File_application_applet_rpc_desc_applet_proto protoreflect.FileDescriptor
 
 const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
@@ -7044,7 +7157,14 @@ const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
 	"\x1aRevokeDeviceSessionRequest\x12(\n" +
 	"\x05Actor\x18\x01 \x01(\v2\x12.pb.SessionRequestR\x05Actor\x12\x0e\n" +
 	"\x02ID\x18\x02 \x01(\tR\x02ID\x12\x1a\n" +
-	"\bSelfOnly\x18\x03 \x01(\bR\bSelfOnly2\xfd\x05\n" +
+	"\bSelfOnly\x18\x03 \x01(\bR\bSelfOnly\"b\n" +
+	"\x10AgentToolRequest\x12(\n" +
+	"\x05Actor\x18\x01 \x01(\v2\x12.pb.SessionRequestR\x05Actor\x12$\n" +
+	"\rArgumentsJson\x18\x02 \x01(\tR\rArgumentsJson\"[\n" +
+	"\x0fAgentToolResult\x12\x18\n" +
+	"\aContent\x18\x01 \x01(\tR\aContent\x12\x18\n" +
+	"\aSummary\x18\x02 \x01(\tR\aSummary\x12\x14\n" +
+	"\x05Count\x18\x03 \x01(\x03R\x05Count2\xfd\x05\n" +
 	"\x04User\x12<\n" +
 	"\fCheckSession\x12\x12.pb.SessionRequest\x1a\x18.pb.CheckSessionResponse\x12=\n" +
 	"\x0eGetCurrentUser\x12\x12.pb.SessionRequest\x1a\x17.pb.GetUserInfoResponse\x12?\n" +
@@ -7129,7 +7249,12 @@ const file_application_applet_rpc_desc_applet_proto_rawDesc = "" +
 	"\x10FinishDeleteFile\x12\x11.pb.FileIDRequest\x1a\x12.pb.NoDataResponse2\xac\x01\n" +
 	"\rSessionManage\x12P\n" +
 	"\x11GetDeviceSessions\x12\x1c.pb.DeviceSessionListRequest\x1a\x1d.pb.DeviceSessionListResponse\x12I\n" +
-	"\x13RevokeDeviceSession\x12\x1e.pb.RevokeDeviceSessionRequest\x1a\x12.pb.NoDataResponseB\x06Z\x04./pbb\x06proto3"
+	"\x13RevokeDeviceSession\x12\x1e.pb.RevokeDeviceSessionRequest\x1a\x12.pb.NoDataResponse2\xca\x01\n" +
+	"\n" +
+	"AgentTools\x12<\n" +
+	"\x0fQueryAgentAudit\x12\x14.pb.AgentToolRequest\x1a\x13.pb.AgentToolResult\x12?\n" +
+	"\x12GetAgentFileStatus\x12\x14.pb.AgentToolRequest\x1a\x13.pb.AgentToolResult\x12=\n" +
+	"\x10ListAgentDevices\x12\x14.pb.AgentToolRequest\x1a\x13.pb.AgentToolResultB\x06Z\x04./pbb\x06proto3"
 
 var (
 	file_application_applet_rpc_desc_applet_proto_rawDescOnce sync.Once
@@ -7143,7 +7268,7 @@ func file_application_applet_rpc_desc_applet_proto_rawDescGZIP() []byte {
 	return file_application_applet_rpc_desc_applet_proto_rawDescData
 }
 
-var file_application_applet_rpc_desc_applet_proto_msgTypes = make([]protoimpl.MessageInfo, 110)
+var file_application_applet_rpc_desc_applet_proto_msgTypes = make([]protoimpl.MessageInfo, 112)
 var file_application_applet_rpc_desc_applet_proto_goTypes = []any{
 	(*NoDataResponse)(nil),                              // 0: pb.NoDataResponse
 	(*GetUserInfoRequest)(nil),                          // 1: pb.GetUserInfoRequest
@@ -7254,7 +7379,9 @@ var file_application_applet_rpc_desc_applet_proto_goTypes = []any{
 	(*DeviceSessionListRequest)(nil),                    // 106: pb.DeviceSessionListRequest
 	(*DeviceSessionListResponse)(nil),                   // 107: pb.DeviceSessionListResponse
 	(*RevokeDeviceSessionRequest)(nil),                  // 108: pb.RevokeDeviceSessionRequest
-	nil,                                                 // 109: pb.SysMenu.BtnsEntry
+	(*AgentToolRequest)(nil),                            // 109: pb.AgentToolRequest
+	(*AgentToolResult)(nil),                             // 110: pb.AgentToolResult
+	nil,                                                 // 111: pb.SysMenu.BtnsEntry
 }
 var file_application_applet_rpc_desc_applet_proto_depIdxs = []int32{
 	3,   // 0: pb.GetUserInfoResponse.UserInfo:type_name -> pb.UserInfo
@@ -7271,7 +7398,7 @@ var file_application_applet_rpc_desc_applet_proto_depIdxs = []int32{
 	10,  // 11: pb.SysMenu.SysBaseMenu:type_name -> pb.SysBaseMenu
 	11,  // 12: pb.SysMenu.Children:type_name -> pb.SysMenu
 	5,   // 13: pb.SysMenu.Parameters:type_name -> pb.SysBaseMenuParameter
-	109, // 14: pb.SysMenu.Btns:type_name -> pb.SysMenu.BtnsEntry
+	111, // 14: pb.SysMenu.Btns:type_name -> pb.SysMenu.BtnsEntry
 	11,  // 15: pb.GetMenuTreeResponse.SysMenu:type_name -> pb.SysMenu
 	10,  // 16: pb.GetMenuBaseInfoListResponse.SysBaseMenu:type_name -> pb.SysBaseMenu
 	10,  // 17: pb.AddMenuBaseRequest.SysBaseMenu:type_name -> pb.SysBaseMenu
@@ -7336,155 +7463,162 @@ var file_application_applet_rpc_desc_applet_proto_depIdxs = []int32{
 	16,  // 76: pb.DeviceSessionListRequest.PageRequest:type_name -> pb.PageRequest
 	105, // 77: pb.DeviceSessionListResponse.List:type_name -> pb.DeviceSession
 	74,  // 78: pb.RevokeDeviceSessionRequest.Actor:type_name -> pb.SessionRequest
-	74,  // 79: pb.User.CheckSession:input_type -> pb.SessionRequest
-	74,  // 80: pb.User.GetCurrentUser:input_type -> pb.SessionRequest
-	76,  // 81: pb.User.ChangePassword:input_type -> pb.ChangePasswordRequest
-	74,  // 82: pb.User.Logout:input_type -> pb.SessionRequest
-	1,   // 83: pb.User.GetUserInfo:input_type -> pb.GetUserInfoRequest
-	7,   // 84: pb.User.GetUserToke:input_type -> pb.GetUserTokeRequest
-	40,  // 85: pb.User.GetUserList:input_type -> pb.GetUserListRequest
-	42,  // 86: pb.User.Register:input_type -> pb.RegisterRequest
-	44,  // 87: pb.User.UpdateUserInfo:input_type -> pb.UpdateUserInfoRequest
-	45,  // 88: pb.User.UpdateUserAuthorities:input_type -> pb.UpdateUserAuthoritiesRequest
-	46,  // 89: pb.User.ResetUserPassword:input_type -> pb.ResetUserPasswordRequest
-	47,  // 90: pb.User.DeleteUser:input_type -> pb.DeleteUserRequest
-	71,  // 91: pb.Menu.GetAuthorityButtons:input_type -> pb.GetAuthorityButtonsRequest
-	73,  // 92: pb.Menu.UpdateAuthorityButtons:input_type -> pb.UpdateAuthorityButtonsRequest
-	9,   // 93: pb.Menu.GetMenuTree:input_type -> pb.GetMenuTreeRequest
-	0,   // 94: pb.Menu.GetMenuBaseInfoList:input_type -> pb.NoDataResponse
-	15,  // 95: pb.Menu.AddMenuBase:input_type -> pb.AddMenuBaseRequest
-	0,   // 96: pb.Menu.GetBaseMenuTree:input_type -> pb.NoDataResponse
-	29,  // 97: pb.Menu.GetMenuAuthority:input_type -> pb.GetMenuAuthorityRequest
-	35,  // 98: pb.Menu.GetBaseMenuById:input_type -> pb.GetBaseMenuByIdRequest
-	37,  // 99: pb.Menu.UpdateBaseMenu:input_type -> pb.UpdateBaseMenuRequest
-	54,  // 100: pb.Menu.DeleteBaseMenu:input_type -> pb.DeleteBaseMenuRequest
-	17,  // 101: pb.Authority.GetAuthorityList:input_type -> pb.GetAuthorityListRequest
-	31,  // 102: pb.Authority.AddAuthorityMenu:input_type -> pb.AddAuthorityMenuRequest
-	33,  // 103: pb.Authority.UpdateAuthority:input_type -> pb.UpdateAuthorityRequest
-	38,  // 104: pb.Authority.CreateAuthority:input_type -> pb.CreateAuthorityRequest
-	55,  // 105: pb.Authority.DeleteAuthority:input_type -> pb.DeleteAuthorityRequest
-	0,   // 106: pb.Api.PreviewApiSync:input_type -> pb.NoDataResponse
-	79,  // 107: pb.Api.ApplyApiSync:input_type -> pb.ApplyApiSyncRequest
-	20,  // 108: pb.Api.GetApiList:input_type -> pb.GetApiListRequest
-	22,  // 109: pb.Api.CreateApi:input_type -> pb.CreateApiRequest
-	23,  // 110: pb.Api.DeleteApi:input_type -> pb.DeleteApiRequest
-	0,   // 111: pb.Api.GetAllApiList:input_type -> pb.NoDataResponse
-	48,  // 112: pb.Api.DeleteApisByIds:input_type -> pb.DeleteApisByIdsRequest
-	53,  // 113: pb.Api.UpdateApi:input_type -> pb.UpdateApiRequest
-	26,  // 114: pb.Casbin.GetPathByAuthorityId:input_type -> pb.GetPathByAuthorityIdRequest
-	32,  // 115: pb.Casbin.UpdateCasbinData:input_type -> pb.UpdateCasbinDataRequest
-	49,  // 116: pb.Casbin.UpdateCasbinDataByApiIds:input_type -> pb.UpdateCasbinDataByApiIdsRequest
-	51,  // 117: pb.Casbin.Enforce:input_type -> pb.EnforceRequest
-	0,   // 118: pb.Dictionary.GetSysDictionaryList:input_type -> pb.NoDataResponse
-	61,  // 119: pb.Dictionary.CreateSysDictionary:input_type -> pb.CreateSysDictionaryRequest
-	63,  // 120: pb.Dictionary.GetSysDictionaryDetails:input_type -> pb.GetSysDictionaryDetailsRequest
-	62,  // 121: pb.Dictionary.UpdateSysDictionary:input_type -> pb.UpdateSysDictionaryRequest
-	65,  // 122: pb.Dictionary.DeleteSysDictionary:input_type -> pb.DeleteSysDictionaryRequest
-	59,  // 123: pb.Dictionary.GetSysDictionaryInfoList:input_type -> pb.GetSysDictionaryInfoListRequest
-	66,  // 124: pb.Dictionary.GetSysDictionaryInfoListDetailsById:input_type -> pb.GetSysDictionaryInfoListDetailsByIdRequest
-	68,  // 125: pb.Dictionary.UpdateSysDictionaryInfo:input_type -> pb.UpdateSysDictionaryInfoRequest
-	69,  // 126: pb.Dictionary.CreateSysDictionaryInfo:input_type -> pb.CreateSysDictionaryInfoRequest
-	70,  // 127: pb.Dictionary.DeleteSysDictionaryInfo:input_type -> pb.DeleteSysDictionaryInfoRequest
-	82,  // 128: pb.Audit.RecordAudit:input_type -> pb.RecordAuditRequest
-	83,  // 129: pb.Audit.GetAuditLogList:input_type -> pb.GetAuditLogListRequest
-	90,  // 130: pb.Organization.GetDepartmentTree:input_type -> pb.OrganizationListRequest
-	87,  // 131: pb.Organization.CreateDepartment:input_type -> pb.DepartmentRequest
-	87,  // 132: pb.Organization.UpdateDepartment:input_type -> pb.DepartmentRequest
-	89,  // 133: pb.Organization.DeleteDepartment:input_type -> pb.OrganizationIDRequest
-	90,  // 134: pb.Organization.GetPositionList:input_type -> pb.OrganizationListRequest
-	88,  // 135: pb.Organization.CreatePosition:input_type -> pb.PositionRequest
-	88,  // 136: pb.Organization.UpdatePosition:input_type -> pb.PositionRequest
-	89,  // 137: pb.Organization.DeletePosition:input_type -> pb.OrganizationIDRequest
-	89,  // 138: pb.Organization.GetMembership:input_type -> pb.OrganizationIDRequest
-	93,  // 139: pb.Organization.UpdateMembership:input_type -> pb.MembershipRequest
-	97,  // 140: pb.Organization.GetRoleDataScope:input_type -> pb.GetRoleDataScopeRequest
-	96,  // 141: pb.Organization.UpdateRoleDataScope:input_type -> pb.RoleDataScopeRequest
-	100, // 142: pb.FileResourceService.RegisterFile:input_type -> pb.RegisterFileRequest
-	102, // 143: pb.FileResourceService.GetFileList:input_type -> pb.FileListRequest
-	101, // 144: pb.FileResourceService.GetFile:input_type -> pb.FileIDRequest
-	104, // 145: pb.FileResourceService.AddFileReference:input_type -> pb.FileReferenceRequest
-	104, // 146: pb.FileResourceService.RemoveFileReference:input_type -> pb.FileReferenceRequest
-	101, // 147: pb.FileResourceService.BeginDeleteFile:input_type -> pb.FileIDRequest
-	101, // 148: pb.FileResourceService.FinishDeleteFile:input_type -> pb.FileIDRequest
-	106, // 149: pb.SessionManage.GetDeviceSessions:input_type -> pb.DeviceSessionListRequest
-	108, // 150: pb.SessionManage.RevokeDeviceSession:input_type -> pb.RevokeDeviceSessionRequest
-	75,  // 151: pb.User.CheckSession:output_type -> pb.CheckSessionResponse
-	2,   // 152: pb.User.GetCurrentUser:output_type -> pb.GetUserInfoResponse
-	0,   // 153: pb.User.ChangePassword:output_type -> pb.NoDataResponse
-	0,   // 154: pb.User.Logout:output_type -> pb.NoDataResponse
-	2,   // 155: pb.User.GetUserInfo:output_type -> pb.GetUserInfoResponse
-	8,   // 156: pb.User.GetUserToke:output_type -> pb.GetUserTokeResponse
-	41,  // 157: pb.User.GetUserList:output_type -> pb.GetUserListResponse
-	43,  // 158: pb.User.Register:output_type -> pb.RegisterResponse
-	0,   // 159: pb.User.UpdateUserInfo:output_type -> pb.NoDataResponse
-	0,   // 160: pb.User.UpdateUserAuthorities:output_type -> pb.NoDataResponse
-	0,   // 161: pb.User.ResetUserPassword:output_type -> pb.NoDataResponse
-	0,   // 162: pb.User.DeleteUser:output_type -> pb.NoDataResponse
-	72,  // 163: pb.Menu.GetAuthorityButtons:output_type -> pb.GetAuthorityButtonsResponse
-	0,   // 164: pb.Menu.UpdateAuthorityButtons:output_type -> pb.NoDataResponse
-	13,  // 165: pb.Menu.GetMenuTree:output_type -> pb.GetMenuTreeResponse
-	14,  // 166: pb.Menu.GetMenuBaseInfoList:output_type -> pb.GetMenuBaseInfoListResponse
-	0,   // 167: pb.Menu.AddMenuBase:output_type -> pb.NoDataResponse
-	28,  // 168: pb.Menu.GetBaseMenuTree:output_type -> pb.GetBaseMenuTreeResponse
-	30,  // 169: pb.Menu.GetMenuAuthority:output_type -> pb.GetMenuAuthorityResponse
-	36,  // 170: pb.Menu.GetBaseMenuById:output_type -> pb.GetBaseMenuByIdResponse
-	0,   // 171: pb.Menu.UpdateBaseMenu:output_type -> pb.NoDataResponse
-	0,   // 172: pb.Menu.DeleteBaseMenu:output_type -> pb.NoDataResponse
-	18,  // 173: pb.Authority.GetAuthorityList:output_type -> pb.GetAuthorityListResponse
-	0,   // 174: pb.Authority.AddAuthorityMenu:output_type -> pb.NoDataResponse
-	34,  // 175: pb.Authority.UpdateAuthority:output_type -> pb.UpdateAuthorityResponse
-	39,  // 176: pb.Authority.CreateAuthority:output_type -> pb.CreateAuthorityResponse
-	0,   // 177: pb.Authority.DeleteAuthority:output_type -> pb.NoDataResponse
-	78,  // 178: pb.Api.PreviewApiSync:output_type -> pb.PreviewApiSyncResponse
-	80,  // 179: pb.Api.ApplyApiSync:output_type -> pb.ApplyApiSyncResponse
-	21,  // 180: pb.Api.GetApiList:output_type -> pb.GetApiListResponse
-	0,   // 181: pb.Api.CreateApi:output_type -> pb.NoDataResponse
-	0,   // 182: pb.Api.DeleteApi:output_type -> pb.NoDataResponse
-	24,  // 183: pb.Api.GetAllApiList:output_type -> pb.GetAllApiListResponse
-	0,   // 184: pb.Api.DeleteApisByIds:output_type -> pb.NoDataResponse
-	0,   // 185: pb.Api.UpdateApi:output_type -> pb.NoDataResponse
-	27,  // 186: pb.Casbin.GetPathByAuthorityId:output_type -> pb.GetPathByAuthorityIdResponse
-	0,   // 187: pb.Casbin.UpdateCasbinData:output_type -> pb.NoDataResponse
-	50,  // 188: pb.Casbin.UpdateCasbinDataByApiIds:output_type -> pb.UpdateCasbinDataByApiIdsResponse
-	52,  // 189: pb.Casbin.Enforce:output_type -> pb.EnforceResponse
-	58,  // 190: pb.Dictionary.GetSysDictionaryList:output_type -> pb.DictionaryListResponse
-	0,   // 191: pb.Dictionary.CreateSysDictionary:output_type -> pb.NoDataResponse
-	64,  // 192: pb.Dictionary.GetSysDictionaryDetails:output_type -> pb.GetSysDictionaryDetailsResponse
-	0,   // 193: pb.Dictionary.UpdateSysDictionary:output_type -> pb.NoDataResponse
-	0,   // 194: pb.Dictionary.DeleteSysDictionary:output_type -> pb.NoDataResponse
-	60,  // 195: pb.Dictionary.GetSysDictionaryInfoList:output_type -> pb.GetSysDictionaryInfoListResponse
-	67,  // 196: pb.Dictionary.GetSysDictionaryInfoListDetailsById:output_type -> pb.GetSysDictionaryInfoListDetailsByIdResponse
-	0,   // 197: pb.Dictionary.UpdateSysDictionaryInfo:output_type -> pb.NoDataResponse
-	0,   // 198: pb.Dictionary.CreateSysDictionaryInfo:output_type -> pb.NoDataResponse
-	0,   // 199: pb.Dictionary.DeleteSysDictionaryInfo:output_type -> pb.NoDataResponse
-	0,   // 200: pb.Audit.RecordAudit:output_type -> pb.NoDataResponse
-	84,  // 201: pb.Audit.GetAuditLogList:output_type -> pb.GetAuditLogListResponse
-	91,  // 202: pb.Organization.GetDepartmentTree:output_type -> pb.DepartmentListResponse
-	85,  // 203: pb.Organization.CreateDepartment:output_type -> pb.Department
-	0,   // 204: pb.Organization.UpdateDepartment:output_type -> pb.NoDataResponse
-	0,   // 205: pb.Organization.DeleteDepartment:output_type -> pb.NoDataResponse
-	92,  // 206: pb.Organization.GetPositionList:output_type -> pb.PositionListResponse
-	86,  // 207: pb.Organization.CreatePosition:output_type -> pb.Position
-	0,   // 208: pb.Organization.UpdatePosition:output_type -> pb.NoDataResponse
-	0,   // 209: pb.Organization.DeletePosition:output_type -> pb.NoDataResponse
-	94,  // 210: pb.Organization.GetMembership:output_type -> pb.MembershipResponse
-	0,   // 211: pb.Organization.UpdateMembership:output_type -> pb.NoDataResponse
-	98,  // 212: pb.Organization.GetRoleDataScope:output_type -> pb.RoleDataScopeResponse
-	0,   // 213: pb.Organization.UpdateRoleDataScope:output_type -> pb.NoDataResponse
-	99,  // 214: pb.FileResourceService.RegisterFile:output_type -> pb.FileResource
-	103, // 215: pb.FileResourceService.GetFileList:output_type -> pb.FileListResponse
-	99,  // 216: pb.FileResourceService.GetFile:output_type -> pb.FileResource
-	0,   // 217: pb.FileResourceService.AddFileReference:output_type -> pb.NoDataResponse
-	0,   // 218: pb.FileResourceService.RemoveFileReference:output_type -> pb.NoDataResponse
-	99,  // 219: pb.FileResourceService.BeginDeleteFile:output_type -> pb.FileResource
-	0,   // 220: pb.FileResourceService.FinishDeleteFile:output_type -> pb.NoDataResponse
-	107, // 221: pb.SessionManage.GetDeviceSessions:output_type -> pb.DeviceSessionListResponse
-	0,   // 222: pb.SessionManage.RevokeDeviceSession:output_type -> pb.NoDataResponse
-	151, // [151:223] is the sub-list for method output_type
-	79,  // [79:151] is the sub-list for method input_type
-	79,  // [79:79] is the sub-list for extension type_name
-	79,  // [79:79] is the sub-list for extension extendee
-	0,   // [0:79] is the sub-list for field type_name
+	74,  // 79: pb.AgentToolRequest.Actor:type_name -> pb.SessionRequest
+	74,  // 80: pb.User.CheckSession:input_type -> pb.SessionRequest
+	74,  // 81: pb.User.GetCurrentUser:input_type -> pb.SessionRequest
+	76,  // 82: pb.User.ChangePassword:input_type -> pb.ChangePasswordRequest
+	74,  // 83: pb.User.Logout:input_type -> pb.SessionRequest
+	1,   // 84: pb.User.GetUserInfo:input_type -> pb.GetUserInfoRequest
+	7,   // 85: pb.User.GetUserToke:input_type -> pb.GetUserTokeRequest
+	40,  // 86: pb.User.GetUserList:input_type -> pb.GetUserListRequest
+	42,  // 87: pb.User.Register:input_type -> pb.RegisterRequest
+	44,  // 88: pb.User.UpdateUserInfo:input_type -> pb.UpdateUserInfoRequest
+	45,  // 89: pb.User.UpdateUserAuthorities:input_type -> pb.UpdateUserAuthoritiesRequest
+	46,  // 90: pb.User.ResetUserPassword:input_type -> pb.ResetUserPasswordRequest
+	47,  // 91: pb.User.DeleteUser:input_type -> pb.DeleteUserRequest
+	71,  // 92: pb.Menu.GetAuthorityButtons:input_type -> pb.GetAuthorityButtonsRequest
+	73,  // 93: pb.Menu.UpdateAuthorityButtons:input_type -> pb.UpdateAuthorityButtonsRequest
+	9,   // 94: pb.Menu.GetMenuTree:input_type -> pb.GetMenuTreeRequest
+	0,   // 95: pb.Menu.GetMenuBaseInfoList:input_type -> pb.NoDataResponse
+	15,  // 96: pb.Menu.AddMenuBase:input_type -> pb.AddMenuBaseRequest
+	0,   // 97: pb.Menu.GetBaseMenuTree:input_type -> pb.NoDataResponse
+	29,  // 98: pb.Menu.GetMenuAuthority:input_type -> pb.GetMenuAuthorityRequest
+	35,  // 99: pb.Menu.GetBaseMenuById:input_type -> pb.GetBaseMenuByIdRequest
+	37,  // 100: pb.Menu.UpdateBaseMenu:input_type -> pb.UpdateBaseMenuRequest
+	54,  // 101: pb.Menu.DeleteBaseMenu:input_type -> pb.DeleteBaseMenuRequest
+	17,  // 102: pb.Authority.GetAuthorityList:input_type -> pb.GetAuthorityListRequest
+	31,  // 103: pb.Authority.AddAuthorityMenu:input_type -> pb.AddAuthorityMenuRequest
+	33,  // 104: pb.Authority.UpdateAuthority:input_type -> pb.UpdateAuthorityRequest
+	38,  // 105: pb.Authority.CreateAuthority:input_type -> pb.CreateAuthorityRequest
+	55,  // 106: pb.Authority.DeleteAuthority:input_type -> pb.DeleteAuthorityRequest
+	0,   // 107: pb.Api.PreviewApiSync:input_type -> pb.NoDataResponse
+	79,  // 108: pb.Api.ApplyApiSync:input_type -> pb.ApplyApiSyncRequest
+	20,  // 109: pb.Api.GetApiList:input_type -> pb.GetApiListRequest
+	22,  // 110: pb.Api.CreateApi:input_type -> pb.CreateApiRequest
+	23,  // 111: pb.Api.DeleteApi:input_type -> pb.DeleteApiRequest
+	0,   // 112: pb.Api.GetAllApiList:input_type -> pb.NoDataResponse
+	48,  // 113: pb.Api.DeleteApisByIds:input_type -> pb.DeleteApisByIdsRequest
+	53,  // 114: pb.Api.UpdateApi:input_type -> pb.UpdateApiRequest
+	26,  // 115: pb.Casbin.GetPathByAuthorityId:input_type -> pb.GetPathByAuthorityIdRequest
+	32,  // 116: pb.Casbin.UpdateCasbinData:input_type -> pb.UpdateCasbinDataRequest
+	49,  // 117: pb.Casbin.UpdateCasbinDataByApiIds:input_type -> pb.UpdateCasbinDataByApiIdsRequest
+	51,  // 118: pb.Casbin.Enforce:input_type -> pb.EnforceRequest
+	0,   // 119: pb.Dictionary.GetSysDictionaryList:input_type -> pb.NoDataResponse
+	61,  // 120: pb.Dictionary.CreateSysDictionary:input_type -> pb.CreateSysDictionaryRequest
+	63,  // 121: pb.Dictionary.GetSysDictionaryDetails:input_type -> pb.GetSysDictionaryDetailsRequest
+	62,  // 122: pb.Dictionary.UpdateSysDictionary:input_type -> pb.UpdateSysDictionaryRequest
+	65,  // 123: pb.Dictionary.DeleteSysDictionary:input_type -> pb.DeleteSysDictionaryRequest
+	59,  // 124: pb.Dictionary.GetSysDictionaryInfoList:input_type -> pb.GetSysDictionaryInfoListRequest
+	66,  // 125: pb.Dictionary.GetSysDictionaryInfoListDetailsById:input_type -> pb.GetSysDictionaryInfoListDetailsByIdRequest
+	68,  // 126: pb.Dictionary.UpdateSysDictionaryInfo:input_type -> pb.UpdateSysDictionaryInfoRequest
+	69,  // 127: pb.Dictionary.CreateSysDictionaryInfo:input_type -> pb.CreateSysDictionaryInfoRequest
+	70,  // 128: pb.Dictionary.DeleteSysDictionaryInfo:input_type -> pb.DeleteSysDictionaryInfoRequest
+	82,  // 129: pb.Audit.RecordAudit:input_type -> pb.RecordAuditRequest
+	83,  // 130: pb.Audit.GetAuditLogList:input_type -> pb.GetAuditLogListRequest
+	90,  // 131: pb.Organization.GetDepartmentTree:input_type -> pb.OrganizationListRequest
+	87,  // 132: pb.Organization.CreateDepartment:input_type -> pb.DepartmentRequest
+	87,  // 133: pb.Organization.UpdateDepartment:input_type -> pb.DepartmentRequest
+	89,  // 134: pb.Organization.DeleteDepartment:input_type -> pb.OrganizationIDRequest
+	90,  // 135: pb.Organization.GetPositionList:input_type -> pb.OrganizationListRequest
+	88,  // 136: pb.Organization.CreatePosition:input_type -> pb.PositionRequest
+	88,  // 137: pb.Organization.UpdatePosition:input_type -> pb.PositionRequest
+	89,  // 138: pb.Organization.DeletePosition:input_type -> pb.OrganizationIDRequest
+	89,  // 139: pb.Organization.GetMembership:input_type -> pb.OrganizationIDRequest
+	93,  // 140: pb.Organization.UpdateMembership:input_type -> pb.MembershipRequest
+	97,  // 141: pb.Organization.GetRoleDataScope:input_type -> pb.GetRoleDataScopeRequest
+	96,  // 142: pb.Organization.UpdateRoleDataScope:input_type -> pb.RoleDataScopeRequest
+	100, // 143: pb.FileResourceService.RegisterFile:input_type -> pb.RegisterFileRequest
+	102, // 144: pb.FileResourceService.GetFileList:input_type -> pb.FileListRequest
+	101, // 145: pb.FileResourceService.GetFile:input_type -> pb.FileIDRequest
+	104, // 146: pb.FileResourceService.AddFileReference:input_type -> pb.FileReferenceRequest
+	104, // 147: pb.FileResourceService.RemoveFileReference:input_type -> pb.FileReferenceRequest
+	101, // 148: pb.FileResourceService.BeginDeleteFile:input_type -> pb.FileIDRequest
+	101, // 149: pb.FileResourceService.FinishDeleteFile:input_type -> pb.FileIDRequest
+	106, // 150: pb.SessionManage.GetDeviceSessions:input_type -> pb.DeviceSessionListRequest
+	108, // 151: pb.SessionManage.RevokeDeviceSession:input_type -> pb.RevokeDeviceSessionRequest
+	109, // 152: pb.AgentTools.QueryAgentAudit:input_type -> pb.AgentToolRequest
+	109, // 153: pb.AgentTools.GetAgentFileStatus:input_type -> pb.AgentToolRequest
+	109, // 154: pb.AgentTools.ListAgentDevices:input_type -> pb.AgentToolRequest
+	75,  // 155: pb.User.CheckSession:output_type -> pb.CheckSessionResponse
+	2,   // 156: pb.User.GetCurrentUser:output_type -> pb.GetUserInfoResponse
+	0,   // 157: pb.User.ChangePassword:output_type -> pb.NoDataResponse
+	0,   // 158: pb.User.Logout:output_type -> pb.NoDataResponse
+	2,   // 159: pb.User.GetUserInfo:output_type -> pb.GetUserInfoResponse
+	8,   // 160: pb.User.GetUserToke:output_type -> pb.GetUserTokeResponse
+	41,  // 161: pb.User.GetUserList:output_type -> pb.GetUserListResponse
+	43,  // 162: pb.User.Register:output_type -> pb.RegisterResponse
+	0,   // 163: pb.User.UpdateUserInfo:output_type -> pb.NoDataResponse
+	0,   // 164: pb.User.UpdateUserAuthorities:output_type -> pb.NoDataResponse
+	0,   // 165: pb.User.ResetUserPassword:output_type -> pb.NoDataResponse
+	0,   // 166: pb.User.DeleteUser:output_type -> pb.NoDataResponse
+	72,  // 167: pb.Menu.GetAuthorityButtons:output_type -> pb.GetAuthorityButtonsResponse
+	0,   // 168: pb.Menu.UpdateAuthorityButtons:output_type -> pb.NoDataResponse
+	13,  // 169: pb.Menu.GetMenuTree:output_type -> pb.GetMenuTreeResponse
+	14,  // 170: pb.Menu.GetMenuBaseInfoList:output_type -> pb.GetMenuBaseInfoListResponse
+	0,   // 171: pb.Menu.AddMenuBase:output_type -> pb.NoDataResponse
+	28,  // 172: pb.Menu.GetBaseMenuTree:output_type -> pb.GetBaseMenuTreeResponse
+	30,  // 173: pb.Menu.GetMenuAuthority:output_type -> pb.GetMenuAuthorityResponse
+	36,  // 174: pb.Menu.GetBaseMenuById:output_type -> pb.GetBaseMenuByIdResponse
+	0,   // 175: pb.Menu.UpdateBaseMenu:output_type -> pb.NoDataResponse
+	0,   // 176: pb.Menu.DeleteBaseMenu:output_type -> pb.NoDataResponse
+	18,  // 177: pb.Authority.GetAuthorityList:output_type -> pb.GetAuthorityListResponse
+	0,   // 178: pb.Authority.AddAuthorityMenu:output_type -> pb.NoDataResponse
+	34,  // 179: pb.Authority.UpdateAuthority:output_type -> pb.UpdateAuthorityResponse
+	39,  // 180: pb.Authority.CreateAuthority:output_type -> pb.CreateAuthorityResponse
+	0,   // 181: pb.Authority.DeleteAuthority:output_type -> pb.NoDataResponse
+	78,  // 182: pb.Api.PreviewApiSync:output_type -> pb.PreviewApiSyncResponse
+	80,  // 183: pb.Api.ApplyApiSync:output_type -> pb.ApplyApiSyncResponse
+	21,  // 184: pb.Api.GetApiList:output_type -> pb.GetApiListResponse
+	0,   // 185: pb.Api.CreateApi:output_type -> pb.NoDataResponse
+	0,   // 186: pb.Api.DeleteApi:output_type -> pb.NoDataResponse
+	24,  // 187: pb.Api.GetAllApiList:output_type -> pb.GetAllApiListResponse
+	0,   // 188: pb.Api.DeleteApisByIds:output_type -> pb.NoDataResponse
+	0,   // 189: pb.Api.UpdateApi:output_type -> pb.NoDataResponse
+	27,  // 190: pb.Casbin.GetPathByAuthorityId:output_type -> pb.GetPathByAuthorityIdResponse
+	0,   // 191: pb.Casbin.UpdateCasbinData:output_type -> pb.NoDataResponse
+	50,  // 192: pb.Casbin.UpdateCasbinDataByApiIds:output_type -> pb.UpdateCasbinDataByApiIdsResponse
+	52,  // 193: pb.Casbin.Enforce:output_type -> pb.EnforceResponse
+	58,  // 194: pb.Dictionary.GetSysDictionaryList:output_type -> pb.DictionaryListResponse
+	0,   // 195: pb.Dictionary.CreateSysDictionary:output_type -> pb.NoDataResponse
+	64,  // 196: pb.Dictionary.GetSysDictionaryDetails:output_type -> pb.GetSysDictionaryDetailsResponse
+	0,   // 197: pb.Dictionary.UpdateSysDictionary:output_type -> pb.NoDataResponse
+	0,   // 198: pb.Dictionary.DeleteSysDictionary:output_type -> pb.NoDataResponse
+	60,  // 199: pb.Dictionary.GetSysDictionaryInfoList:output_type -> pb.GetSysDictionaryInfoListResponse
+	67,  // 200: pb.Dictionary.GetSysDictionaryInfoListDetailsById:output_type -> pb.GetSysDictionaryInfoListDetailsByIdResponse
+	0,   // 201: pb.Dictionary.UpdateSysDictionaryInfo:output_type -> pb.NoDataResponse
+	0,   // 202: pb.Dictionary.CreateSysDictionaryInfo:output_type -> pb.NoDataResponse
+	0,   // 203: pb.Dictionary.DeleteSysDictionaryInfo:output_type -> pb.NoDataResponse
+	0,   // 204: pb.Audit.RecordAudit:output_type -> pb.NoDataResponse
+	84,  // 205: pb.Audit.GetAuditLogList:output_type -> pb.GetAuditLogListResponse
+	91,  // 206: pb.Organization.GetDepartmentTree:output_type -> pb.DepartmentListResponse
+	85,  // 207: pb.Organization.CreateDepartment:output_type -> pb.Department
+	0,   // 208: pb.Organization.UpdateDepartment:output_type -> pb.NoDataResponse
+	0,   // 209: pb.Organization.DeleteDepartment:output_type -> pb.NoDataResponse
+	92,  // 210: pb.Organization.GetPositionList:output_type -> pb.PositionListResponse
+	86,  // 211: pb.Organization.CreatePosition:output_type -> pb.Position
+	0,   // 212: pb.Organization.UpdatePosition:output_type -> pb.NoDataResponse
+	0,   // 213: pb.Organization.DeletePosition:output_type -> pb.NoDataResponse
+	94,  // 214: pb.Organization.GetMembership:output_type -> pb.MembershipResponse
+	0,   // 215: pb.Organization.UpdateMembership:output_type -> pb.NoDataResponse
+	98,  // 216: pb.Organization.GetRoleDataScope:output_type -> pb.RoleDataScopeResponse
+	0,   // 217: pb.Organization.UpdateRoleDataScope:output_type -> pb.NoDataResponse
+	99,  // 218: pb.FileResourceService.RegisterFile:output_type -> pb.FileResource
+	103, // 219: pb.FileResourceService.GetFileList:output_type -> pb.FileListResponse
+	99,  // 220: pb.FileResourceService.GetFile:output_type -> pb.FileResource
+	0,   // 221: pb.FileResourceService.AddFileReference:output_type -> pb.NoDataResponse
+	0,   // 222: pb.FileResourceService.RemoveFileReference:output_type -> pb.NoDataResponse
+	99,  // 223: pb.FileResourceService.BeginDeleteFile:output_type -> pb.FileResource
+	0,   // 224: pb.FileResourceService.FinishDeleteFile:output_type -> pb.NoDataResponse
+	107, // 225: pb.SessionManage.GetDeviceSessions:output_type -> pb.DeviceSessionListResponse
+	0,   // 226: pb.SessionManage.RevokeDeviceSession:output_type -> pb.NoDataResponse
+	110, // 227: pb.AgentTools.QueryAgentAudit:output_type -> pb.AgentToolResult
+	110, // 228: pb.AgentTools.GetAgentFileStatus:output_type -> pb.AgentToolResult
+	110, // 229: pb.AgentTools.ListAgentDevices:output_type -> pb.AgentToolResult
+	155, // [155:230] is the sub-list for method output_type
+	80,  // [80:155] is the sub-list for method input_type
+	80,  // [80:80] is the sub-list for extension type_name
+	80,  // [80:80] is the sub-list for extension extendee
+	0,   // [0:80] is the sub-list for field type_name
 }
 
 func init() { file_application_applet_rpc_desc_applet_proto_init() }
@@ -7498,9 +7632,9 @@ func file_application_applet_rpc_desc_applet_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_application_applet_rpc_desc_applet_proto_rawDesc), len(file_application_applet_rpc_desc_applet_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   110,
+			NumMessages:   112,
 			NumExtensions: 0,
-			NumServices:   10,
+			NumServices:   11,
 		},
 		GoTypes:           file_application_applet_rpc_desc_applet_proto_goTypes,
 		DependencyIndexes: file_application_applet_rpc_desc_applet_proto_depIdxs,

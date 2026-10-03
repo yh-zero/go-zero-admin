@@ -32,7 +32,8 @@ Copy-Item -LiteralPath (Join-Path $root 'docker-compose.yml') -Destination $test
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'db.ps1') -Destination (Join-Path $testRoot 'test/sh')
 [IO.File]::WriteAllText((Join-Path $testRoot 'test/sh/mysql-client.sh'), [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'mysql-client.sh')).Replace("`r`n", "`n"), $utf8)
 $compatName = '20261003_frontend_routes_compat.sql'
-Get-ChildItem -LiteralPath (Join-Path $root 'data/db/migrations') -Filter '*.sql' | Where-Object { $_.Name -ne $compatName } | Copy-Item -Destination (Join-Path $testRoot 'data/db/migrations')
+$agentName = '20261003_zz_ai_agent.sql'
+Get-ChildItem -LiteralPath (Join-Path $root 'data/db/migrations') -Filter '*.sql' | Where-Object { $_.Name -notin @($compatName, $agentName) } | Copy-Item -Destination (Join-Path $testRoot 'data/db/migrations')
 $created = $false
 try {
     Docker @('cp', (Join-Path $testRoot 'test/sh/mysql-client.sh'), ($container + ':' + $helper)) | Out-Null
@@ -98,6 +99,44 @@ try {
         Expect "SELECT COUNT(*) FROM sys_base_menus WHERE name='files' AND component='views/custom/storage.vue' AND path='custom-storage' AND title='Custom storage' AND deleted_at IS NULL;" '1'
         Expect "SELECT COUNT(*) FROM sys_base_menus WHERE name='audit' AND deleted_at IS NULL;" '0'
     } finally { Docker @('exec', $container, 'rm', '-f', '--', $menuMigration) | Out-Null }
+    # Install the agent module after reproducing the old route compatibility bug.
+    # Existing ordinary-role grants must survive initial install and direct reruns.
+    Query "INSERT INTO casbin_rule(ptype,v0,v1,v2) VALUES('p','888','/v1/ai/info','GET');" | Out-Null
+    Copy-Item -LiteralPath (Join-Path $root ('data/db/migrations/' + $agentName)) -Destination (Join-Path $testRoot 'data/db/migrations')
+    Migrate
+    $count++
+    Expect 'SELECT COUNT(*) FROM schema_migrations;' ([string]$count)
+    Expect "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('sys_ai_conversations','sys_ai_messages','sys_ai_runs');" '3'
+    Expect "SELECT COUNT(*) FROM sys_apis WHERE deleted_at IS NULL AND path LIKE '/v1/ai/%';" '6'
+    Expect "SELECT COUNT(*) FROM casbin_rule WHERE ptype='p' AND v0='1' AND v1 LIKE '/v1/ai/%';" '6'
+    Expect "SELECT COUNT(*) FROM casbin_rule WHERE ptype='p' AND v0='888' AND v1='/v1/ai/info' AND v2='GET';" '1'
+    Expect "SELECT COUNT(*) FROM sys_base_menus WHERE name='ai-agent' AND path='ai-agent' AND component='views/business/ai-agent/index.vue' AND deleted_at IS NULL;" '1'
+    Expect "SELECT COUNT(*) FROM sys_authority_menus granted JOIN sys_base_menus menu ON menu.id=granted.sys_base_menu_id WHERE granted.sys_authority_authority_id=1 AND menu.name IN ('ai-agent','superAdmin') AND menu.deleted_at IS NULL;" '2'
+    Expect "SELECT COUNT(*) FROM sys_authority_btns granted JOIN sys_base_menu_btns button ON button.id=granted.sys_base_menu_btn_id JOIN sys_base_menus menu ON menu.id=granted.sys_menu_id WHERE granted.authority_id=1 AND menu.name='ai-agent' AND button.name IN ('run','cancel') AND button.deleted_at IS NULL;" '2'
+    Query "INSERT INTO sys_ai_conversations(id,owner_id,title,created_at,updated_at) VALUES('10000000-0000-4000-8000-000000000001',1,'Kept history',NOW(3),NOW(3)); INSERT INTO sys_ai_runs(id,owner_id,authority_id,session_version,request_id,request_hash,conversation_id,sequence,question,status,text,extra_json,queue_expires_at,created_at,updated_at) VALUES('10000000-0000-4000-8000-000000000002',1,1,0,'10000000-0000-4000-8000-000000000003',REPEAT('a',64),'10000000-0000-4000-8000-000000000001',1,'kept question','succeeded','kept answer','[]',NOW(3),NOW(3),NOW(3)); INSERT INTO sys_ai_messages(id,owner_id,conversation_id,run_id,role,content,created_at) VALUES('10000000-0000-4000-8000-000000000004',1,'10000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000002','assistant','kept answer',NOW(3));" | Out-Null
+    $agentMigration = '/tmp/gozero-agent-migration-' + $id + '.sql'
+    Docker @('cp', (Join-Path $root ('data/db/migrations/' + $agentName)), ($container + ':' + $agentMigration)) | Out-Null
+    try {
+        $policyVersion = (Query 'SELECT version FROM sys_policy_versions WHERE id=1;' | Out-String).Trim()
+        Docker @('exec', '-e', ('MYSQL_DATABASE=' + $database), $container, 'sh', $helper, 'run', $agentMigration) | Out-Host
+        Expect 'SELECT version FROM sys_policy_versions WHERE id=1;' $policyVersion
+        Expect "SELECT COUNT(*) FROM sys_ai_runs WHERE text='kept answer';" '1'
+        Expect "SELECT COUNT(*) FROM sys_ai_messages WHERE content='kept answer';" '1'
+        Expect "SELECT COUNT(*) FROM sys_audit_logs WHERE action='seedAgentModule';" '1'
+        # Preserve a customized component and report it, without changing grants.
+        Query "UPDATE sys_base_menus SET path='custom-ai',component='views/custom/assistant.vue',title='Custom assistant' WHERE name='ai-agent' AND deleted_at IS NULL;" | Out-Null
+        $agentOutput = @(Docker @('exec', '-e', ('MYSQL_DATABASE=' + $database), $container, 'sh', $helper, 'run', $agentMigration))
+        if (-not @($agentOutput | Where-Object { $_ -match '^ai-agent\s+SKIPPED:' }).Count) { throw 'Customized AI menu was not explicitly reported as SKIPPED.' }
+        Expect "SELECT COUNT(*) FROM sys_base_menus WHERE name='ai-agent' AND path='custom-ai' AND component='views/custom/assistant.vue' AND title='Custom assistant' AND deleted_at IS NULL;" '1'
+        Expect "SELECT COUNT(*) FROM sys_authority_btns granted JOIN sys_base_menu_btns button ON button.id=granted.sys_base_menu_btn_id JOIN sys_base_menus menu ON menu.id=granted.sys_menu_id WHERE granted.authority_id=1 AND menu.name='ai-agent' AND button.name IN ('run','cancel') AND button.deleted_at IS NULL;" '2'
+        # Canonical /admin//ai-agent must prevent insertion of a duplicate seed.
+        Query "UPDATE sys_base_menus SET name='custom-existing-ai' WHERE name='ai-agent' AND deleted_at IS NULL; INSERT INTO sys_base_menus(created_at,updated_at,parent_id,path,name,component,title,hidden) VALUES(NOW(3),NOW(3),0,'/admin//ai-agent','custom-absolute-ai','views/custom/assistant.vue','Custom absolute AI',0);" | Out-Null
+        $agentOutput = @(Docker @('exec', '-e', ('MYSQL_DATABASE=' + $database), $container, 'sh', $helper, 'run', $agentMigration))
+        if (-not @($agentOutput | Where-Object { $_ -match '^ai-agent\s+SKIPPED:' }).Count) { throw 'Canonical AI conflict was not explicitly reported as SKIPPED.' }
+        Expect "SELECT COUNT(*) FROM sys_base_menus WHERE name='ai-agent' AND deleted_at IS NULL;" '0'
+        Expect "SELECT COUNT(*) FROM sys_base_menus WHERE name='custom-absolute-ai' AND path='/admin//ai-agent' AND deleted_at IS NULL;" '1'
+        Expect "SELECT COUNT(*) FROM casbin_rule WHERE ptype='p' AND v0='888' AND v1='/v1/ai/info' AND v2='GET';" '1'
+    } finally { Docker @('exec', $container, 'rm', '-f', '--', $agentMigration) | Out-Null }
     # The failing batch must stop before later statements and must not be recorded.
     $probe = Join-Path $testRoot 'data/db/migrations/99991230_probe.sql'
     [IO.File]::WriteAllText($probe, "SELECT * FROM intentionally_missing_regression_table;`nINSERT INTO schema_migrations(filename,checksum) VALUES('must_not_run','bad');`n", $utf8)
@@ -108,7 +147,7 @@ try {
     Expect "SELECT COUNT(*) FROM schema_migrations WHERE filename='99991230_probe.sql';" '1'
     [IO.File]::WriteAllText($probe, "SELECT 2;`n", $utf8)
     Migrate $false
-    Write-Host 'PASS: fresh install, repeat migration, schema checks, frontend seed, old canonical conflict reproduced, compatibility repair, fallback collisions, grants preserved, customized conflict skipped, SQL failure stop, retry, checksum guard.'
+    Write-Host 'PASS: fresh install, repeat migration, schema checks, frontend seed, old canonical conflict reproduced, compatibility repair, fallback collisions, grants preserved, customized conflict skipped, agent schema/permissions/menu/history preservation, SQL failure stop, retry, checksum guard.'
 } finally {
     if ($created) { Docker @('exec', $container, 'sh', $helper, 'query', "DROP DATABASE $database;") | Out-Null }
     Docker @('exec', $container, 'rm', '-f', '--', $helper, $baseline) | Out-Null
