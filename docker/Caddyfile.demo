@@ -1,0 +1,48 @@
+{
+	admin off
+}
+
+(demo_site) {
+	root * /srv
+	encode zstd gzip
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy same-origin
+		-Server
+	}
+	request_body {
+		max_size 1MB
+	}
+	# Order is explicit: only the actual login POST crosses the public proxy.
+	route {
+		@login {
+			method POST
+			path /api/v1/sys/login
+		}
+		handle @login {
+			uri strip_prefix /api
+			reverse_proxy api:7001
+		}
+		@private path /api/v1/sys/session/* /api/v1/sys/changePassword /api/v1/sys/logout /api/v1/sys/audit/*
+		respond @private "Public demo: this endpoint is unavailable" 403
+		@write not method GET HEAD
+		respond @write "Public demo is read-only" 403
+		handle_path /api/* {
+			reverse_proxy api:7001
+		}
+		handle {
+			try_files {path} /index.html
+			file_server
+		}
+	}
+}
+
+{$DEMO_DOMAIN} {
+	import demo_site
+}
+
+# IP access stays available over HTTP; use the domain for trusted HTTPS.
+http://{$DEMO_IP}, http://localhost, http://127.0.0.1 {
+	import demo_site
+}

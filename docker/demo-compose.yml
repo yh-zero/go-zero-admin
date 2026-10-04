@@ -1,0 +1,106 @@
+# Optional public, read-only demo. Persistent application data stays under DEPLOY_ROOT.
+name: ${DEMO_PROJECT_NAME:-go-zero-admin-demo}
+
+services:
+  mysql:
+    extends:
+      file: deploy-compose.yml
+      service: mysql
+    image: ${DEMO_MYSQL_IMAGE:-mysql:8.4@sha256:6ea90827b1100f8f2ae306a539f86d2c264a26ed435a2a9f75551dd5c3aeb242}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --innodb-buffer-pool-size=128M
+      - --max-connections=80
+      - --performance-schema=OFF
+    mem_limit: 512m
+    volumes:
+      - ${DEPLOY_ROOT:?Set DEPLOY_ROOT}/runtime/mysql:/var/lib/mysql
+
+  redis:
+    extends:
+      file: deploy-compose.yml
+      service: redis
+    mem_limit: 128m
+    volumes:
+      - ${DEPLOY_ROOT:?Set DEPLOY_ROOT}/runtime/redis:/data
+
+  etcd:
+    extends:
+      file: deploy-compose.yml
+      service: etcd
+    image: ${DEMO_ETCD_IMAGE:-quay.io/coreos/etcd:v3.5.26}
+    mem_limit: 128m
+    environment:
+      ETCD_ADVERTISE_CLIENT_URLS: http://etcd:2379
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd:2380
+      ETCD_INITIAL_CLUSTER: default=http://etcd:2380
+    volumes:
+      - ${DEPLOY_ROOT:?Set DEPLOY_ROOT}/runtime/etcd:/etcd-data
+
+  api:
+    extends:
+      file: deploy-compose.yml
+      service: api
+    build:
+      context: ../bin/runtime
+      dockerfile: Dockerfile
+      target: api
+    mem_limit: 192m
+    environment:
+      GOMEMLIMIT: 144MiB
+
+  rpc:
+    extends:
+      file: deploy-compose.yml
+      service: rpc
+    build:
+      context: ../bin/runtime
+      dockerfile: Dockerfile
+      target: rpc
+    mem_limit: 256m
+    environment:
+      GOMEMLIMIT: 192MiB
+
+  ai-rpc:
+    extends:
+      file: deploy-compose.yml
+      service: ai-rpc
+    build:
+      context: ../bin/runtime
+      dockerfile: Dockerfile
+      target: ai-rpc
+    mem_limit: 128m
+    environment:
+      GOMEMLIMIT: 96MiB
+      DEEPSEEK_API_KEY: ''
+      QWEN_API_KEY: ''
+
+  web:
+    image: caddy:2-alpine@sha256:881bbc60f9986d5ab8e7cfd6cf7e4ef3c9c0439fef2429d035d065577882f028
+    restart: unless-stopped
+    mem_limit: 128m
+    environment:
+      DEMO_DOMAIN: ${DEMO_DOMAIN:?Set DEMO_DOMAIN}
+      DEMO_IP: ${DEMO_IP:?Set DEMO_IP}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile.demo:/etc/caddy/Caddyfile:ro
+      - ../../frontend/dist:/srv:ro
+      - ${DEPLOY_ROOT:?Set DEPLOY_ROOT}/runtime/caddy-data:/data
+      - ${DEPLOY_ROOT:?Set DEPLOY_ROOT}/runtime/caddy-config:/config
+    depends_on:
+      api:
+        condition: service_started
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:80/]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

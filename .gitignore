@@ -4,6 +4,8 @@ bin-release/
 [Oo]bj/
 [Bb]in/
 /.tmp-go-build-*/
+__pycache__/
+*.py[cod]
 
 # Other files and folders
 .settings/

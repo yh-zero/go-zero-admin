@@ -1,0 +1,24 @@
+# Build context: bin/runtime in a package produced by test/sh/package-demo.ps1.
+# The Go binaries are cross-compiled locally for Linux amd64; no source or keys
+# are required on the deployment server.
+FROM alpine:3.22 AS runtime
+RUN apk add --no-cache ca-certificates tzdata gettext
+WORKDIR /app
+COPY applet-api applet-rpc applet-ai-rpc /usr/local/bin/
+COPY entrypoint.sh /usr/local/bin/app-entrypoint
+RUN chmod 0555 /usr/local/bin/applet-api /usr/local/bin/applet-rpc \
+    /usr/local/bin/applet-ai-rpc /usr/local/bin/app-entrypoint
+ENV TZ=Asia/Shanghai
+ENTRYPOINT ["/usr/local/bin/app-entrypoint"]
+
+FROM runtime AS api
+COPY api.yaml.template /app/config.yaml.template
+CMD ["applet-api", "-f", "/tmp/config.yaml"]
+
+FROM runtime AS rpc
+COPY rpc.yaml.template /app/config.yaml.template
+CMD ["applet-rpc", "-f", "/tmp/config.yaml"]
+
+FROM runtime AS ai-rpc
+COPY ai-rpc.yaml.template /app/config.yaml.template
+CMD ["applet-ai-rpc", "-f", "/tmp/config.yaml"]

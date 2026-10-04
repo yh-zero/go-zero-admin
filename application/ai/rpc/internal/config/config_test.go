@@ -9,7 +9,9 @@ import (
 	"go-zero-admin/pkg/aiagent"
 )
 
-func TestLocalConfigDoesNotRequireBusinessRedisOrModelCredentials(t *testing.T) {
+func TestLocalYAMLLoadsWithoutBusinessRedisOrModelCredentials(t *testing.T) {
+	t.Setenv("DEEPSEEK_API_KEY", "")
+	t.Setenv("QWEN_API_KEY", "")
 	var cfg Config
 	if err := conf.Load("../../etc/ai.yaml", &cfg); err != nil {
 		t.Fatal(err)
@@ -17,7 +19,9 @@ func TestLocalConfigDoesNotRequireBusinessRedisOrModelCredentials(t *testing.T) 
 	if cfg.ListenOn != "127.0.0.1:6002" || cfg.Etcd.Key != "ai.rpc" || cfg.AppletRPC.Etcd.Key != "applet.rpc" || cfg.BizRedis.Host != "" || cfg.DB.MaxOpenConns != 100 || cfg.DB.MaxIdleConns != 10 {
 		t.Fatal("local AI config does not match the independent service contract")
 	}
-	if cfg.AI.Enabled || cfg.AI.Provider != aiagent.ProviderDeepSeek || cfg.AI.MaxInputChars != 2000 || cfg.AI.MaxSteps != 6 || cfg.AI.MaxRunSeconds != 90 {
+	// Enabled is a local operator setting. YAML parsing does not need credentials;
+	// LoadConfig separately validates credentials when the runtime is enabled.
+	if cfg.AI.Provider != aiagent.ProviderDeepSeek || cfg.AI.MaxInputChars != 2000 || cfg.AI.MaxSteps != 6 || cfg.AI.MaxRunSeconds != 90 {
 		t.Fatal("local AI YAML parameters do not match the default contract")
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"go-zero-admin/application/ai/rpc/pb"
 	appletpb "go-zero-admin/application/applet/rpc/pb"
 	"go-zero-admin/pkg/agentjobs"
+	"go-zero-admin/pkg/agenttools"
 	"go-zero-admin/pkg/aiagent"
 	"go-zero-admin/pkg/result/xerr"
 	"google.golang.org/grpc/codes"
@@ -107,6 +108,7 @@ func execute(ctx context.Context, s *svc.ServiceContext, job agentjobs.Job) (age
 	if s.AgentRunner == nil || s.AgentJobs == nil {
 		return agentjobs.Result{}, agentjobs.ErrDisabled
 	}
+	tools, display := collectResultDisplay(tools, s.AgentConfig.MaxAnswerBytes)
 	history := make([]aiagent.Message, 0, len(job.History)+1)
 	for _, m := range job.History {
 		history = append(history, aiagent.Message{Role: m.Role, Content: m.Content})
@@ -156,6 +158,16 @@ func execute(ctx context.Context, s *svc.ServiceContext, job agentjobs.Job) (age
 		raw, _ := json.Marshal(traces)
 		return agentjobs.Result{Provider: result.Provider, Model: result.Model, InputTokens: int64(result.Usage.PromptTokens), OutputTokens: int64(result.Usage.CompletionTokens), ExtraJSON: string(raw)}, err
 	}
+	// A tool grant can be revoked while the model is composing its answer.
+	// Recheck every used capability before accepting either text or details.
+	for _, spec := range agenttools.Specs {
+		if display.used(spec.Name) {
+			if err := toolPermission(ctx, s, a, spec); err != nil {
+				raw, _ := json.Marshal(traces)
+				return agentjobs.Result{Provider: result.Provider, Model: result.Model, InputTokens: int64(result.Usage.PromptTokens), OutputTokens: int64(result.Usage.CompletionTokens), ExtraJSON: string(raw)}, err
+			}
+		}
+	}
 	traces = make([]toolCall, 0, len(result.ToolSummaries))
 	for _, t := range result.ToolSummaries {
 		status := "succeeded"
@@ -167,7 +179,7 @@ func execute(ctx context.Context, s *svc.ServiceContext, job agentjobs.Job) (age
 		traces = append(traces, toolCall{Name: t.Name, Status: status, Error: msg, Summary: t.Summary})
 	}
 	raw, _ := json.Marshal(traces)
-	return agentjobs.Result{Text: result.FinalAnswer, Provider: result.Provider, Model: result.Model, InputTokens: int64(result.Usage.PromptTokens), OutputTokens: int64(result.Usage.CompletionTokens), ExtraJSON: string(raw)}, nil
+	return agentjobs.Result{Text: display.answer(result.FinalAnswer, s.AgentConfig.MaxAnswerBytes), Provider: result.Provider, Model: result.Model, InputTokens: int64(result.Usage.PromptTokens), OutputTokens: int64(result.Usage.CompletionTokens), ExtraJSON: string(raw)}, nil
 }
 
 func historyBytes(history []aiagent.Message) int {

@@ -4,6 +4,7 @@
 
 - 后端仓库：[yh-zero/go-zero-admin](https://github.com/yh-zero/go-zero-admin)
 - 配套前端：[yh-zero/go-zero-admin-vben](https://github.com/yh-zero/go-zero-admin-vben)
+- 在线演示：[yh9527.top（HTTPS）](https://yh9527.top) · [IP入口](http://175.178.67.80)。账号 `admin / 123456`，需图片验证码；当前为只读演示，AI 未配置 Key。
 - 本地接口文档：[Swagger UI](http://localhost:8080) · [Swagger JSON](data/api/generated/go-zero-admin.swagger.json)
 
 **开发方式：Docker 启动依赖，API、业务 RPC、AI RPC 在本机运行，前端单独启动。服务器部署使用另一份 Compose 配置。**
@@ -516,6 +517,10 @@ API 支持 `Mail` 配置，也支持以下环境变量：
 
 ## 服务器部署
 
+用于开源项目公开参考时，可使用可选的 [只读演示部署](docker/部署说明.md#公开只读演示本次云部署)：本机构建前后端运行包，服务器 `prepare → init → start`，自动配置站点 HTTPS、独立凭据和普通演示账号，AI 服务关闭且无 Key。以下保留普通完整部署流程；演示部署不替代真实业务权限设计。
+
+演示站点损坏时参考根目录 [快速恢复](QUICK_RECOVERY.md)：校验发布包并准备独立新环境，保留原数据库和回退路径；整机丢失需要本机发布包与服务器之外的数据备份。
+
 开发与部署配置分开使用：
 
 | 项目 | 本地开发 | 服务器部署 |
@@ -532,7 +537,7 @@ API 支持 `Mail` 配置，也支持以下环境变量：
 服务器安装 Docker 与 Compose，获取完整后端源码。Docker 构建需要 `application/`、**`pkg/`**、`go.mod`、`go.sum`、`docker/` 和 `data/api/generated/`（包括嵌入文档的 `spec.go`）；数据库管理还需要 `data/db/` 与 `test/sh/`。只上传 `application/` 无法构建。推荐使用完整仓库；若打包上传，至少包含：
 
 ```sh
-tar --exclude=docker/.env.deploy -czf go-zero-admin.tar.gz application pkg data/db data/api/generated docker test/sh go.mod go.sum
+tar --exclude=docker/.env.deploy -czf go-zero-admin.tar.gz .dockerignore application pkg data/db data/api/generated docker test/sh go.mod go.sum
 ```
 
 在服务器的后端根目录执行（Linux Shell）：
@@ -733,7 +738,11 @@ API 的 AI 客户端使用唯一后台工作线程初始化：go-zero 的 Etcd �
 
 任务状态为 `queued`、`running`、`succeeded`、`failed`、`cancelled`、`interrupted`。requestId 为 UUID；结果不确定的重试保留同一 requestId、问题和会话，内容不同会拒绝。每会话最多一个活跃任务、每用户最多两个；外部模型请求失败不自动重试，避免重复计费。成功历史按 sequence 稳定分页，同轮 assistant 在 user 前，前端反转当前页显示；上下文最多取最近 12 条成功消息并裁去最早完整轮次，初始历史不超过 64 KiB，每轮输入/实际 HTTP 请求正文有 256 KiB 上限。
 
-答案及工具进度受总量限制，只持久化名称、状态、摘要，不保存原始工具参数/结果或隐藏推理。DeepSeek 请求关闭 thinking，Qwen 设置 enable_thinking=false；兼容服务返回的工具回合推理仅在当前请求内存暂存/回传，不给前端或数据库。
+成功答案会附上服务端生成的“查询明细”，覆盖审计汇总/最近记录、文件状态和本人设备。即使模型只给出概述，授权字段仍可通过现有任务答案和历史消息显示，无需新增 API、RPC 或迁移。明细按字段白名单生成，区分匹配总数、返回样本与空结果；每组最多 20 条，明细总量不超过 4 KiB，单元格最多 64 个字符，超限有提示。答案默认上限 8 KiB；概述与明细合计超限时保留完整明细并说明省略概述。保存前重新检查会话、AI 执行权限和实际使用的工具权限；任务失败、取消或撤权时不附加明细。
+
+工具进度只持久化名称、状态、摘要；成功答案中的明细仅保存上述授权展示字段，不保存原始工具参数/JSON、对象 key、签名 URL、设备会话 ID 或隐藏推理。前端使用受限 Markdown 和 Vue 转义文本节点展示表格、列表、标题和代码，不执行 HTML，不生成可点击链接或加载图片。DeepSeek 请求关闭 thinking，Qwen 设置 enable_thinking=false；兼容服务返回的工具回合推理仅在当前请求内存暂存/回传，不给前端或数据库。
+
+查询展示的自动回归覆盖任务答案、历史持久化、空结果、显示限额及失败/撤权。`TestLiveProviderPersistsAuthorizedQueryDetails` 默认跳过；在独立测试终端安全设置所选提供商的 Key 和 `GO_ZERO_AI_LIVE_TEST=1` 后，可执行 `go test ./application/ai/rpc/internal/logic/agent -run '^TestLiveProviderPersistsAuthorizedQueryDetails$' -count=1 -v`。该测试最多发起两次付费模型请求，业务 RPC 和数据库使用隔离样例，不能替代正常登录后的真实业务验收；结束后移除测试标记和 Key 环境变量。
 
 当前三个 AI 表与业务共用 MySQL：提交限流锁定 `sys_users`，任务/取消与审计同事务写 `sys_audit_logs`，不能将 AI 数据库账号权限仅限三表。提交使用 READ COMMITTED，不改变全库隔离级别。优雅退出取消运行任务；强制结束后租约到期收敛为 interrupted，不重放已领取的付费调用。迟到结果不能覆盖取消/中断或重新写答案；已返回用量可以保留，但未返回请求的计费未知。业务 RPC 离线时在下一鉴权点拒绝结果，已发 HTTP 仍受任务预算约束。
 

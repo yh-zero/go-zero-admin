@@ -9,7 +9,7 @@ project_root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$project_root"
 compose() {
     if [ "$environment" = deploy ]; then
-        docker compose --env-file docker/.env.deploy -f docker/deploy-compose.yml "$@"
+        docker compose --env-file docker/.env.deploy -f "${GOZERO_DEPLOY_COMPOSE_FILE:-docker/deploy-compose.yml}" "$@"
     else
         docker compose -f docker-compose.yml "$@"
     fi
