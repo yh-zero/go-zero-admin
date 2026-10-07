@@ -4,6 +4,7 @@ import importlib.util
 import io
 import os
 import re
+import subprocess
 import tempfile
 import unittest
 from contextlib import ExitStack, redirect_stderr, redirect_stdout
@@ -14,6 +15,7 @@ MODULE_PATH = Path(__file__).resolve().parents[1] / "docker/demo-bootstrap.py"
 SPEC = importlib.util.spec_from_file_location("demo_bootstrap", MODULE_PATH)
 BOOTSTRAP = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(BOOTSTRAP)
+REAL_SQL = BOOTSTRAP.sql
 
 # Deliberately synthetic values: no application environment is read by this suite.
 PRIVATE_PASSWORD = "fixture-private-password-not-live"
@@ -292,6 +294,96 @@ class DemoBootstrapTests(unittest.TestCase):
             BOOTSTRAP.public_login()
         self.assertEqual(self.credentials.read_bytes(), original_text)
         self.assertEqual(self.users, original_users)
+
+    def test_selected_database_is_preserved_for_demo_sql(self):
+        self.env_file.write_text(self.env_file.read_text(encoding="utf-8").replace(
+            "MYSQL_DATABASE=gozero-admin", "MYSQL_DATABASE=demo_fixture"), encoding="utf-8")
+        self.assertEqual(BOOTSTRAP.read_env()["MYSQL_DATABASE"], "demo_fixture")
+        with patch.object(BOOTSTRAP.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, "", "")) as run:
+            REAL_SQL("SELECT DATABASE();")
+        command = run.call_args.args[0]
+        self.assertIn('"$MYSQL_DATABASE"', command[-1])
+        self.assertEqual(run.call_args.kwargs["input"], "SELECT DATABASE();")
+
+    def test_empty_database_imports_current_sql(self):
+        snapshot = self.backend / "data/db/gozero-admin.sql"
+        snapshot.parent.mkdir(parents=True)
+        snapshot.write_text("CREATE TABLE fixture(id INT);\n", encoding="utf-8")
+        statements = []
+
+        def empty_sql(statement):
+            statements.append(statement)
+            return "0" if statement.startswith("SELECT ") else ""
+
+        with patch.object(BOOTSTRAP, "sql", empty_sql):
+            BOOTSTRAP.initialize_database()
+        self.assertEqual(statements[-1], "CREATE TABLE fixture(id INT);\n")
+        self.assertEqual(len([statement for statement in statements if not statement.startswith("SELECT ")]), 1)
+
+    def test_existing_unmarked_database_is_never_imported(self):
+        statements = []
+
+        def existing_sql(statement):
+            statements.append(statement)
+            if "table_name='sys_demo_bootstrap'" in statement:
+                return "0"
+            return "3"
+
+        with patch.object(BOOTSTRAP, "sql", existing_sql), self.assertRaisesRegex(ValueError, "non-empty"):
+            BOOTSTRAP.initialize_database()
+        self.assertTrue(all(statement.startswith("SELECT ") for statement in statements))
+
+    def test_completed_demo_is_preserved_without_import(self):
+        users_before = copy.deepcopy(self.users)
+        BOOTSTRAP.initialize_database()
+        self.assertEqual(self.users, users_before)
+        self.assertEqual(self.writes(), [])
+
+    def run_fresh_seed(self, dirty_table=None):
+        migrations = self.backend / "data/db/migrations"
+        migrations.mkdir(parents=True, exist_ok=True)
+        (migrations / "fixture.sql").write_text("SELECT 1;\n", encoding="utf-8")
+        statements = []
+
+        def fresh_sql(statement):
+            statements.append(statement)
+            clean = " ".join(statement.split())
+            if "information_schema.tables" in clean:
+                return "0"
+            if clean == "SELECT COUNT(*) FROM schema_migrations;":
+                return "1"
+            if clean == "SELECT COUNT(*) FROM sys_users;":
+                return "1"
+            if clean == "SELECT COUNT(*) FROM sys_users WHERE username='admin' AND authority_id=1 AND deleted_at IS NULL;":
+                return "1"
+            if clean.startswith("SELECT "):
+                return "1" if dirty_table and f"FROM {dirty_table}" in clean else "0"
+            return ""
+
+        with patch.object(BOOTSTRAP, "sql", fresh_sql), patch.object(BOOTSTRAP, "check"), patch.object(
+                BOOTSTRAP, "password_hash", side_effect=[PRIVATE_HASH, PUBLIC_HASH]) as hashed:
+            if dirty_table:
+                with self.assertRaisesRegex(ValueError, "existing business data"):
+                    BOOTSTRAP.seed()
+                self.assertEqual(hashed.call_count, 0)
+                self.assertTrue(all(statement.startswith("SELECT ") for statement in statements))
+            else:
+                BOOTSTRAP.seed()
+                self.assertEqual([call.args[0] for call in hashed.call_args_list], [PRIVATE_PASSWORD, "123456"])
+                transaction = next(statement for statement in statements if statement.startswith("START TRANSACTION;"))
+                self.assertIn("username='demo-maintainer'", transaction)
+                self.assertIn("'admin','" + PUBLIC_HASH, transaction)
+                self.assertIn("VALUES(@demo_user,9527)", transaction)
+                self.assertIn("INSERT INTO sys_demo_bootstrap(id,completed_at)", transaction)
+
+    def test_current_single_admin_seed_is_accepted(self):
+        self.run_fresh_seed()
+
+    def test_business_rows_refuse_seed_before_any_write(self):
+        for table in ("sys_device_sessions", "sys_ai_runs", "sys_ai_conversations", "sys_ai_messages",
+                      "sys_file_resources", "sys_file_references", "sys_departments", "sys_positions", "sys_audit_logs"):
+            with self.subTest(table=table):
+                self.run_fresh_seed(table)
 
 
 if __name__ == "__main__":

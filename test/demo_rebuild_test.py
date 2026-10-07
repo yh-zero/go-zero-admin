@@ -26,7 +26,7 @@ class DemoRebuildTests(unittest.TestCase):
     def archive(self, extras=(), omitted=(), contents=None):
         destination = self.root / "release.tar.gz"
         with tarfile.open(destination, "w:gz") as target:
-            for name in REBUILD.REQUIRED:
+            for name in (*REBUILD.REQUIRED, "backend/data/db/migrations/fixture.sql"):
                 if name not in omitted:
                     entry = tarfile.TarInfo(name)
                     content = b"safe fixture"
@@ -193,6 +193,18 @@ class DemoRebuildTests(unittest.TestCase):
         archive, digest = self.archive(omitted=["frontend/dist/index.html"])
         with self.assertRaisesRegex(ValueError, "required"):
             REBUILD.prepare_rebuild(self.arguments(archive, digest))
+
+    def test_missing_current_sql_is_rejected_before_preparing(self):
+        archive, digest = self.archive(omitted=["backend/data/db/gozero-admin.sql"])
+        with tarfile.open(archive) as release, self.assertRaisesRegex(ValueError, "required"):
+            REBUILD.members_checked(release)
+        self.assertFalse((self.root / "rebuilds").exists())
+
+    def test_missing_migrations_are_rejected_before_preparing(self):
+        archive, digest = self.archive(omitted=["backend/data/db/migrations/fixture.sql"])
+        with tarfile.open(archive) as release, self.assertRaisesRegex(ValueError, "migration"):
+            REBUILD.members_checked(release)
+        self.assertFalse((self.root / "rebuilds").exists())
 
     def test_external_release_refused(self):
         with tempfile.TemporaryDirectory() as outside:

@@ -15,5 +15,7 @@ bin-release
 **/*.log
 test
 data/doc
-data/db/dump-*.sql
+data/db/archive/
+data/db/dump-*.sql*
+data/db/gozero-admin-full-*.sql*
 *.tar.gz

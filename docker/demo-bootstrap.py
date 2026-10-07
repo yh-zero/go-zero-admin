@@ -96,7 +96,7 @@ def read_env():
     inside(ENV_FILE, root)
     if ENV_FILE.stat().st_mode & 0o077:
         raise ValueError("Deployment environment must have private 0600 permissions")
-    if values.get("MYSQL_DATABASE") != "gozero-admin" or values.get("API_PORT") != "127.0.0.1:7001":
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", values.get("MYSQL_DATABASE", "")) or values.get("API_PORT") != "127.0.0.1:7001":
         raise ValueError("Unexpected demo database or API binding")
     if values.get("DEEPSEEK_API_KEY") or values.get("QWEN_API_KEY"):
         raise ValueError("This public demo must not contain a model key")
@@ -126,6 +126,19 @@ def completed():
     if sql("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='sys_demo_bootstrap';") == "0":
         return False
     return sql("SELECT COUNT(*) FROM sys_demo_bootstrap WHERE id=1;") == "1"
+
+
+def initialize_database():
+    """Import the current SQL only into a completely empty demo database."""
+    read_env()
+    if sql("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE();") != "0":
+        if not completed():
+            raise ValueError("Demo database is non-empty and has no completed bootstrap; existing data will not be altered")
+        print("Existing initialized demo database preserved; SQL import skipped")
+        return
+    snapshot = BACKEND / "data/db/gozero-admin.sql"
+    sql(snapshot.read_text(encoding="utf-8-sig"))
+    print("Current SQL imported into the selected empty demo database")
 
 
 def check(public_username=PUBLIC_USERNAME, private_username=PRIVATE_USERNAME):
@@ -217,18 +230,19 @@ def seed():
     if sql("SELECT COUNT(*) FROM schema_migrations;") != str(expected):
         raise ValueError("Apply the complete migration chain before demo bootstrap")
     checks = [
-        ("SELECT COUNT(*) FROM sys_users;", "7"),
+        ("SELECT COUNT(*) FROM sys_users;", "1"),
         ("SELECT COUNT(*) FROM sys_users WHERE username='admin' AND authority_id=1 AND deleted_at IS NULL;", "1"),
         ("SELECT COUNT(*) FROM sys_users WHERE username='demo';", "0"),
         ("SELECT COUNT(*) FROM sys_authorities WHERE authority_id=9527;", "0"),
         ("SELECT COUNT(*) FROM sys_device_sessions;", "0"),
         ("SELECT COUNT(*) FROM sys_ai_runs;", "0"),
+        ("SELECT COUNT(*) FROM sys_ai_conversations;", "0"),
+        ("SELECT COUNT(*) FROM sys_ai_messages;", "0"),
         ("SELECT COUNT(*) FROM sys_file_resources;", "0"),
-        ("""SELECT COUNT(*) FROM sys_audit_logs WHERE NOT (
-             event_type='operation' AND result='success' AND params='{}' AND ip='' AND actor_id=0
-             AND ((module='menu' AND action='seedFrontendModules' AND object='20261003_frontend_modules.sql')
-             OR (module='ai-agent' AND action='seedAgentModule' AND object='20261003_zz_ai_agent.sql')
-             OR (module='menu' AND action='repairFrontendRoute' AND object REGEXP '^20261003_frontend_routes_compat[.]sql:[0-9]+$')));""", "0"),
+        ("SELECT COUNT(*) FROM sys_file_references;", "0"),
+        ("SELECT COUNT(*) FROM sys_departments;", "0"),
+        ("SELECT COUNT(*) FROM sys_positions;", "0"),
+        ("SELECT COUNT(*) FROM sys_audit_logs;", "0"),
     ]
     for query, expected_value in checks:
         if sql(query) != expected_value:
@@ -272,6 +286,8 @@ if __name__ == "__main__":
     try:
         if len(sys.argv) == 5 and sys.argv[1] == "prepare":
             prepare(*sys.argv[2:])
+        elif len(sys.argv) == 2 and sys.argv[1] == "init-db":
+            initialize_database()
         elif len(sys.argv) == 2 and sys.argv[1] == "seed":
             seed()
         elif len(sys.argv) == 2 and sys.argv[1] == "check":
@@ -279,7 +295,7 @@ if __name__ == "__main__":
         elif len(sys.argv) == 2 and sys.argv[1] == "public-login":
             public_login()
         else:
-            raise ValueError("Use prepare ROOT DOMAIN IP, seed, check or public-login")
+            raise ValueError("Use prepare ROOT DOMAIN IP, init-db, seed, check or public-login")
     except (ValueError, RuntimeError, OSError, KeyError) as error:
         print(str(error), file=sys.stderr)
         sys.exit(1)

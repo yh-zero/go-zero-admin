@@ -1,9 +1,9 @@
 #!/bin/sh
-# Usage: sh test/sh/db.sh init|migrate|backup|status [development|deploy]
+# Usage: sh test/sh/db.sh migrate|backup|status [development|deploy]
 set -eu
 action="${1:-status}"
 environment="${2:-development}"
-case "$action" in init|migrate|backup|status) ;; *) echo 'Unknown action' >&2; exit 2 ;; esac
+case "$action" in migrate|backup|status) ;; *) echo 'Usage: sh test/sh/db.sh migrate|backup|status [development|deploy]' >&2; exit 2 ;; esac
 case "$environment" in development|deploy) ;; *) echo 'Unknown environment' >&2; exit 2 ;; esac
 project_root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$project_root"
@@ -48,19 +48,14 @@ backup() {
     docker exec "$container" rm -f -- "/tmp/$name"
     printf 'Backup saved: %s\n' "$target"
 }
-if [ "$action" = init ]; then
-    if [ "$environment" = development ]; then
-        compose up -d --wait --wait-timeout 180 mysql redis etcd swagger-ui
-    else
-        compose up -d --wait --wait-timeout 180 mysql redis etcd
-    fi
-fi
 container=$(compose ps -q mysql)
-[ -n "$container" ] || { echo 'Start MySQL first, or use init.' >&2; exit 1; }
+[ -n "$container" ] || { echo 'Start MySQL first. For a first installation, select the target database and manually import data/db/gozero-admin.sql.' >&2; exit 1; }
 docker cp test/sh/mysql-client.sh "$container:$helper" >/dev/null
 query 'SELECT 1;' >/dev/null
 printf 'Database: %s\n' "$(query 'SELECT DATABASE();')"
 if [ "$action" = backup ]; then backup; exit 0; fi
+base_tables=$(query "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('sys_users','sys_authorities','sys_base_menus','sys_apis','casbin_rule','sys_user_authority');")
+[ "$base_tables" = 6 ] || { echo 'Database is empty or missing required base tables. For a first installation into an empty database, select that database and manually import data/db/gozero-admin.sql. For an existing database, restore missing tables from backup before applying migrations.' >&2; exit 1; }
 table_exists=$(query "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='schema_migrations';")
 pending=false
 for file in data/db/migrations/*.sql; do

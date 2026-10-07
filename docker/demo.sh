@@ -7,7 +7,7 @@ cd "$root"
 # Use this deployment's persisted selectors, never a caller's other environment.
 # prepare still accepts DEMO_PROJECT_NAME before persisting the new settings.
 if [ "$action" != prepare ]; then
-    unset COMPOSE_PROJECT_NAME DEMO_PROJECT_NAME DEPLOY_ROOT
+    unset COMPOSE_PROJECT_NAME DEMO_PROJECT_NAME DEPLOY_ROOT GOZERO_DB_NAME
 fi
 export GOZERO_DEPLOY_COMPOSE_FILE=docker/demo-compose.yml
 compose() {
@@ -24,7 +24,9 @@ case "$action" in
     compose config --quiet
     # Runtime images contain no Go/Node toolchains and no deployment env file.
     compose build api rpc ai-rpc
-    sh test/sh/db.sh init deploy
+    compose up -d --wait --wait-timeout 180 mysql redis etcd
+    python3 docker/demo-bootstrap.py init-db
+    sh test/sh/db.sh migrate deploy
     python3 docker/demo-bootstrap.py seed
     ;;
   start)

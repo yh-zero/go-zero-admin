@@ -40,6 +40,9 @@ try {
     Invoke-GoCheck @('test', './...', '-count=1')
     Invoke-GoCheck @('build', './...')
     if ($IncludeDBRegression) {
+        Write-Host 'Running isolated development-MySQL full SQL import regression.'
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'db-import-regression.ps1')
+        if ($LASTEXITCODE -ne 0) { throw 'Database import regression failed.' }
         Write-Host 'Running isolated development-MySQL migration regression.'
         & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'db-regression.ps1')
         if ($LASTEXITCODE -ne 0) { throw 'Database regression failed.' }

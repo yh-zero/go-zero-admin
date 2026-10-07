@@ -31,6 +31,7 @@ REQUIRED = (
     "backend/docker/demo-compose.yml", "backend/docker/deploy-compose.yml",
     "backend/docker/Caddyfile.demo", "backend/test/sh/db.sh",
     "backend/test/sh/mysql-client.sh", "backend/bin/runtime/Dockerfile",
+    "backend/data/db/gozero-admin.sql",
     "backend/bin/runtime/applet-api", "backend/bin/runtime/applet-rpc",
     "backend/bin/runtime/applet-ai-rpc", "frontend/dist/index.html",
 )
@@ -144,6 +145,9 @@ def members_checked(archive):
                 raise ValueError("A release file cannot be a parent directory")
     if any(name not in paths or not paths[name].isfile() for name in REQUIRED):
         raise ValueError("Release is missing a required deployment file")
+    if not any(name.startswith("backend/data/db/migrations/") and name.endswith(".sql") and member.isfile()
+               for name, member in paths.items()):
+        raise ValueError("Release is missing the database migrations")
     with archive.extractfile(paths["backend/docker/demo-compose.yml"]) as source:
         compose_text = source.read(65537)
     if (len(compose_text) > 65536 or not re.search(

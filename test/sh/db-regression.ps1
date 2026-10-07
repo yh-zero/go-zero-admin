@@ -25,6 +25,16 @@ function Expect([string]$Sql, [string]$Expected) {
     $actual = (Query $Sql | Out-String).Trim()
     if ($actual -cne $Expected) { throw "Expected $Expected, got $actual" }
 }
+function Expect-Uninitialized([string]$Action) {
+    $ErrorActionPreference = 'Continue'
+    $output = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $testRoot 'test/sh/db.ps1') -Action $Action -Database $database 2>&1)
+    $exitCode = $LASTEXITCODE
+    $ErrorActionPreference = 'Stop'
+    if ($exitCode -eq 0 -or ($output | Out-String) -notmatch 'data/db/gozero-admin[.]sql') {
+        throw ('Uninitialized database must refuse ' + $Action + ' and explain the manual SQL import.')
+    }
+    Expect 'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE();' '0'
+}
 $container = (Docker @('compose', '-f', (Join-Path $root 'docker-compose.yml'), 'ps', '-q', 'mysql') | Out-String).Trim()
 if (-not $container) { throw 'Start development MySQL first.' }
 New-Item -ItemType Directory -Path (Join-Path $testRoot 'test/sh'), (Join-Path $testRoot 'data/db/migrations') -Force | Out-Null
@@ -39,7 +49,9 @@ try {
     Docker @('cp', (Join-Path $testRoot 'test/sh/mysql-client.sh'), ($container + ':' + $helper)) | Out-Null
     Docker @('exec', $container, 'sh', $helper, 'query', "CREATE DATABASE $database CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;") | Out-Null
     $created = $true
-    Docker @('cp', (Join-Path $root 'data/db/gozero-admin-20240129.sql'), ($container + ':' + $baseline)) | Out-Null
+    Expect-Uninitialized 'Status'
+    Expect-Uninitialized 'Migrate'
+    Docker @('cp', (Join-Path $root 'data/db/archive/gozero-admin-20240129.sql'), ($container + ':' + $baseline)) | Out-Null
     Docker @('exec', '-e', ('MYSQL_DATABASE=' + $database), $container, 'sh', $helper, 'run', $baseline) | Out-Null
     # Reproduce the old 13-migration bug: the legacy seed misses internal //.
     Query "INSERT INTO sys_base_menus (created_at,updated_at,parent_id,path,name,component,title,hidden) VALUES(NOW(3),NOW(3),0,'/admin//audit','custom-double-audit','views/custom/audit.vue','Custom double audit',0); INSERT INTO sys_authority_menus(sys_base_menu_id,sys_authority_authority_id) SELECT id,1 FROM sys_base_menus WHERE name='custom-double-audit';" | Out-Null

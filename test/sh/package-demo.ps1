@@ -40,7 +40,7 @@ foreach ($packageTool in @('go', 'pnpm', 'tar')) {
 foreach ($packageRequired in @(
     'docker/Dockerfile.prebuilt', 'docker/entrypoint.sh', 'docker/api.yaml.template',
     'docker/rpc.yaml.template', 'docker/ai-rpc.yaml.template', 'test/sh/db.sh',
-    'test/sh/mysql-client.sh', 'data/db/gozero-admin-20240129.sql', '.dockerignore', 'README.md',
+    'test/sh/mysql-client.sh', 'data/db/gozero-admin.sql', '.dockerignore', 'README.md',
     'docker/demo-rebuild.py', 'QUICK_RECOVERY.md'
 )) {
     if (-not (Test-Path -LiteralPath (Join-Path $packageBackendRoot $packageRequired) -PathType Leaf)) {
@@ -153,7 +153,7 @@ foreach ($packageRuntimeFile in @('entrypoint.sh', 'api.yaml.template', 'rpc.yam
     Copy-DemoPackageFile -Source (Join-Path $packageBackendRoot ('docker/' + $packageRuntimeFile)) -Destination (Join-Path $packageRuntime $packageRuntimeFile)
 }
 Copy-DemoPackageFile -Source (Join-Path $packageBackendRoot 'docker/Dockerfile.prebuilt') -Destination (Join-Path $packageRuntime 'Dockerfile')
-foreach ($packageSource in @('test/sh/db.sh', 'test/sh/mysql-client.sh', 'data/db/gozero-admin-20240129.sql', '.dockerignore', 'README.md', 'CLOUD_DEPLOYMENT_NOTES.md', 'QUICK_RECOVERY.md')) {
+foreach ($packageSource in @('test/sh/db.sh', 'test/sh/mysql-client.sh', 'data/db/gozero-admin.sql', '.dockerignore', 'README.md', 'CLOUD_DEPLOYMENT_NOTES.md', 'QUICK_RECOVERY.md')) {
     Copy-DemoPackageFile -Source (Join-Path $packageBackendRoot $packageSource) -Destination (Join-Path $packageBackend $packageSource)
 }
 Copy-DemoPackageTree -Source (Join-Path $packageBackendRoot 'data/db/migrations') -Destination (Join-Path $packageBackend 'data/db/migrations') -Include {

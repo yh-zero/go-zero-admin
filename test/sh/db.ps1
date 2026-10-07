@@ -1,7 +1,7 @@
 #requires -Version 5.1
 [CmdletBinding()]
 param(
-    [ValidateSet('Init', 'Migrate', 'Backup', 'Status')][string]$Action = 'Status',
+    [ValidateSet('Migrate', 'Backup', 'Status')][string]$Action = 'Status',
     [ValidateSet('Development', 'Deploy')][string]$Environment = 'Development',
     [ValidatePattern('^[A-Za-z0-9_-]*$')][string]$Database = ''
 )
@@ -58,19 +58,18 @@ $container = ''
 $helper = '/tmp/gozero-db-client-' + [guid]::NewGuid().ToString('N') + '.sh'
 $helperLocal = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetFileName($helper))
 try {
-    if ($Action -eq 'Init') {
-        $services = @('mysql', 'redis', 'etcd')
-        if ($Environment -eq 'Development') { $services += 'swagger-ui' }
-        Invoke-Compose (@('up', '-d', '--wait', '--wait-timeout', '180') + $services) | Out-Host
-    }
     $container = (Invoke-Compose @('ps', '-q', 'mysql') | Out-String).Trim()
-    if (-not $container) { throw 'Start the MySQL service first, or use -Action Init.' }
+    if (-not $container) { throw 'Start MySQL first. For a first installation, select the target database and manually import data/db/gozero-admin.sql.' }
     # Normalize checkout CRLF before copying this POSIX script into the container.
     [IO.File]::WriteAllText($helperLocal, ([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'mysql-client.sh')).Replace("`r`n", "`n")), $utf8)
     Invoke-Docker @('cp', $helperLocal, ($container + ':' + $helper)) | Out-Null
     Invoke-Query 'SELECT 1;' | Out-Null
     Write-Host ('Database: ' + ((Invoke-Query 'SELECT DATABASE();') | Out-String).Trim())
     if ($Action -eq 'Backup') { Save-Backup; return }
+    $baseTables = (Invoke-Query "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('sys_users','sys_authorities','sys_base_menus','sys_apis','casbin_rule','sys_user_authority');" | Out-String).Trim()
+    if ($baseTables -ne '6') {
+        throw 'Database is empty or missing required base tables. For a first installation into an empty database, select that database and manually import data/db/gozero-admin.sql. For an existing database, restore missing tables from backup before applying migrations.'
+    }
     $tableExists = (Invoke-Query "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='schema_migrations';" | Out-String).Trim() -eq '1'
     $applied = @{}
     if ($tableExists) {
