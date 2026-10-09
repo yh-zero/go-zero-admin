@@ -14,31 +14,37 @@ import (
 )
 
 type (
-	ChangePasswordRequest        = pb.ChangePasswordRequest
-	CheckSessionResponse         = pb.CheckSessionResponse
-	DeleteUserRequest            = pb.DeleteUserRequest
-	GetUserInfoRequest           = pb.GetUserInfoRequest
-	GetUserInfoResponse          = pb.GetUserInfoResponse
-	GetUserListRequest           = pb.GetUserListRequest
-	GetUserListResponse          = pb.GetUserListResponse
-	GetUserTokeRequest           = pb.GetUserTokeRequest
-	GetUserTokeResponse          = pb.GetUserTokeResponse
-	Meta                         = pb.Meta
-	NoDataResponse               = pb.NoDataResponse
-	PageRequest                  = pb.PageRequest
-	RegisterRequest              = pb.RegisterRequest
-	RegisterResponse             = pb.RegisterResponse
-	ResetUserPasswordRequest     = pb.ResetUserPasswordRequest
-	SessionRequest               = pb.SessionRequest
-	SysAuthority                 = pb.SysAuthority
-	SysBaseMenu                  = pb.SysBaseMenu
-	SysBaseMenuBtn               = pb.SysBaseMenuBtn
-	SysBaseMenuParameter         = pb.SysBaseMenuParameter
-	UpdateUserAuthoritiesRequest = pb.UpdateUserAuthoritiesRequest
-	UpdateUserInfoRequest        = pb.UpdateUserInfoRequest
-	UserInfo                     = pb.UserInfo
+	ChangePasswordRequest         = pb.ChangePasswordRequest
+	CheckSessionResponse          = pb.CheckSessionResponse
+	DeleteUserRequest             = pb.DeleteUserRequest
+	GetUserInfoRequest            = pb.GetUserInfoRequest
+	GetUserInfoResponse           = pb.GetUserInfoResponse
+	GetUserListRequest            = pb.GetUserListRequest
+	GetUserListResponse           = pb.GetUserListResponse
+	GetUserTokeRequest            = pb.GetUserTokeRequest
+	GetUserTokeResponse           = pb.GetUserTokeResponse
+	Meta                          = pb.Meta
+	NoDataResponse                = pb.NoDataResponse
+	PageRequest                   = pb.PageRequest
+	RegisterRequest               = pb.RegisterRequest
+	RegisterResponse              = pb.RegisterResponse
+	ResetUserPasswordRequest      = pb.ResetUserPasswordRequest
+	SessionRequest                = pb.SessionRequest
+	SysAuthority                  = pb.SysAuthority
+	SysBaseMenu                   = pb.SysBaseMenu
+	SysBaseMenuBtn                = pb.SysBaseMenuBtn
+	SysBaseMenuParameter          = pb.SysBaseMenuParameter
+	TransferUserResourcesRequest  = pb.TransferUserResourcesRequest
+	TransferUserResourcesResponse = pb.TransferUserResourcesResponse
+	UpdateUserAuthoritiesRequest  = pb.UpdateUserAuthoritiesRequest
+	UpdateUserInfoRequest         = pb.UpdateUserInfoRequest
+	UserInfo                      = pb.UserInfo
+	UserResourcePreviewRequest    = pb.UserResourcePreviewRequest
+	UserResourcePreviewResponse   = pb.UserResourcePreviewResponse
 
 	User interface {
+		GetUserResourcePreview(ctx context.Context, in *UserResourcePreviewRequest, opts ...grpc.CallOption) (*UserResourcePreviewResponse, error)
+		TransferUserResources(ctx context.Context, in *TransferUserResourcesRequest, opts ...grpc.CallOption) (*TransferUserResourcesResponse, error)
 		CheckSession(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*CheckSessionResponse, error)
 		GetCurrentUser(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
 		ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
@@ -70,6 +76,16 @@ func NewUser(cli zrpc.Client) User {
 	return &defaultUser{
 		cli: cli,
 	}
+}
+
+func (m *defaultUser) GetUserResourcePreview(ctx context.Context, in *UserResourcePreviewRequest, opts ...grpc.CallOption) (*UserResourcePreviewResponse, error) {
+	client := pb.NewUserClient(m.cli.Conn())
+	return client.GetUserResourcePreview(ctx, in, opts...)
+}
+
+func (m *defaultUser) TransferUserResources(ctx context.Context, in *TransferUserResourcesRequest, opts ...grpc.CallOption) (*TransferUserResourcesResponse, error) {
+	client := pb.NewUserClient(m.cli.Conn())
+	return client.TransferUserResources(ctx, in, opts...)
 }
 
 func (m *defaultUser) CheckSession(ctx context.Context, in *SessionRequest, opts ...grpc.CallOption) (*CheckSessionResponse, error) {

@@ -23,6 +23,16 @@ func NewUserServer(svcCtx *svc.ServiceContext) *UserServer {
 	}
 }
 
+func (s *UserServer) GetUserResourcePreview(ctx context.Context, in *pb.UserResourcePreviewRequest) (*pb.UserResourcePreviewResponse, error) {
+	l := userlogic.NewGetUserResourcePreviewLogic(ctx, s.svcCtx)
+	return l.GetUserResourcePreview(in)
+}
+
+func (s *UserServer) TransferUserResources(ctx context.Context, in *pb.TransferUserResourcesRequest) (*pb.TransferUserResourcesResponse, error) {
+	l := userlogic.NewTransferUserResourcesLogic(ctx, s.svcCtx)
+	return l.TransferUserResources(in)
+}
+
 func (s *UserServer) CheckSession(ctx context.Context, in *pb.SessionRequest) (*pb.CheckSessionResponse, error) {
 	l := userlogic.NewCheckSessionLogic(ctx, s.svcCtx)
 	return l.CheckSession(in)

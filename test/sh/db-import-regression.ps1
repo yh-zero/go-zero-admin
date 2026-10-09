@@ -34,7 +34,7 @@ try {
     Docker @('cp', $SqlFile, ($container + ':' + $remoteSql)) | Out-Null
     # Exercise the documented PowerShell -> Docker -> shell import path.
     Docker @('exec', '-e', ('MYSQL_DATABASE=' + $database), $container, 'sh', '-c', 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --user=root --database="$MYSQL_DATABASE" < "$1"', 'sh', $remoteSql) | Out-Null
-    Expect 'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE();' '28'
+    Expect 'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE();' '30'
     Expect "SELECT COUNT(*) FROM sys_users WHERE id=1 AND username='admin' AND authority_id=1 AND enable=1 AND deleted_at IS NULL;" '1'
     Expect 'SELECT COUNT(*) FROM sys_users;' '1'
     Expect 'SELECT COUNT(*) FROM sys_user_authority WHERE sys_user_id=1 AND sys_authority_authority_id=1;' '1'
@@ -44,7 +44,7 @@ try {
     Expect 'SELECT COUNT(*) FROM sys_authority_menus grant_row LEFT JOIN sys_base_menus menu ON menu.id=grant_row.sys_base_menu_id WHERE menu.id IS NULL;' '0'
     Expect 'SELECT COUNT(*) FROM sys_authorities;' '1'
     Expect 'SELECT COUNT(*) FROM sys_authorities WHERE authority_id=1 AND deleted_at IS NULL;' '1'
-    Expect 'SELECT COUNT(*) FROM schema_migrations;' '15'
+    Expect 'SELECT COUNT(*) FROM schema_migrations;' '16'
     foreach ($migration in @(Get-ChildItem -LiteralPath (Join-Path $root 'data/db/migrations') -Filter '*.sql')) {
         $normalized = [IO.File]::ReadAllText($migration.FullName).Replace("`r`n", "`n")
         $algorithm = [Security.Cryptography.SHA256]::Create()
@@ -61,7 +61,7 @@ try {
     if ($repeatExit -eq 0) { throw 'Importing over an existing database must fail instead of resetting it.' }
     Expect "SELECT COUNT(*) FROM sys_audit_logs WHERE action='preserveExistingRows';" '1'
     Expect 'SELECT COUNT(*) FROM sys_users;' '1'
-    Expect 'SELECT COUNT(*) FROM schema_migrations;' '15'
+    Expect 'SELECT COUNT(*) FROM schema_migrations;' '16'
     Write-Host 'PASS: current SQL imports into a custom empty database, is ready for startup, and preserves existing data on repeat import.'
 } finally {
     if ($created) { Query ('DROP DATABASE ' + $database + ';') | Out-Null }

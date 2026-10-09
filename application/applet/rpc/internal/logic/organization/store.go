@@ -28,10 +28,7 @@ func (s store) record(tx *gorm.DB, action string, id int64) error {
 	return audit.Record(s.ctx, tx, audit.Event{Module: "organization", Action: action, Object: strconv.FormatInt(id, 10)})
 }
 func (s store) change(fn func(*gorm.DB) error) error {
-	return accessutil.FriendlyDuplicate(s.db.WithContext(s.ctx).Transaction(func(tx *gorm.DB) error {
-		if err := accessutil.LockAdminGuard(tx); err != nil {
-			return err
-		}
+	return accessutil.FriendlyDuplicate(accessutil.PermissionTransaction(s.db.WithContext(s.ctx), func(tx *gorm.DB) error {
 		return fn(tx)
 	}))
 }
@@ -427,26 +424,12 @@ func (s store) dataScope(in *pb.GetRoleDataScopeRequest) (*pb.RoleDataScopeRespo
 		return nil, orgError("角色ID无效")
 	}
 	var out *pb.RoleDataScopeResponse
-	err := s.db.WithContext(s.ctx).Transaction(func(tx *gorm.DB) error {
-		if err := accessutil.RequireRole(tx, in.AuthorityId); err != nil {
+	err := accessutil.PermissionRead(s.db.WithContext(s.ctx), func(tx *gorm.DB) error {
+		e, err := accessutil.LoadPermissionEdit(tx, in.AuthorityId, "dataScope")
+		if err != nil {
 			return err
 		}
-		value := &pb.RoleDataScope{AuthorityId: in.AuthorityId, Scope: "self", DepartmentIds: []int64{}}
-		var row model.SysRoleDataScope
-		err := tx.First(&row, "authority_id = ?", in.AuthorityId).Error
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-			return err
-		}
-		if err == nil {
-			value.Scope = row.Scope
-		}
-		if in.AuthorityId == accessutil.AdminAuthorityID {
-			value.Scope = "all"
-		}
-		if err := tx.Model(&model.SysRoleScopeDepartment{}).Where("authority_id = ?", in.AuthorityId).Order("department_id ASC").Pluck("department_id", &value.DepartmentIds).Error; err != nil {
-			return err
-		}
-		out = &pb.RoleDataScopeResponse{DataScope: value}
+		out = &pb.RoleDataScopeResponse{DataScope: e.DataScope}
 		return nil
 	})
 	return out, err
@@ -475,6 +458,9 @@ func (s store) updateDataScope(in *pb.RoleDataScopeRequest) error {
 		return orgError("custom范围至少选择一个部门")
 	}
 	return s.change(func(tx *gorm.DB) error {
+		if err := accessutil.RequirePermissionRevision(tx, value.ExpectedRevision); err != nil {
+			return err
+		}
 		if err := accessutil.RequireRole(tx, value.AuthorityId); err != nil {
 			return err
 		}

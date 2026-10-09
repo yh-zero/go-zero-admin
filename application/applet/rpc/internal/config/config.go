@@ -9,9 +9,13 @@ import (
 
 type Config struct {
 	zrpc.RpcServerConf
-	BizRedis redis.RedisConf
-	RPCAuth  rpcsecurity.Credential `json:",optional"`
-	DB       struct {
+	BizRedis      redis.RedisConf
+	RPCAuth       rpcsecurity.Credential `json:",optional"`
+	UserResources struct {
+		// Must describe the AI service's actual database; unset disables AI lifecycle writes.
+		AIDataSource string `json:",optional"`
+	} `json:",optional"`
+	DB struct {
 		DataSource   string
 		MaxOpenConns int `json:",default=10"`
 		MaxIdleConns int `json:",default=100"`

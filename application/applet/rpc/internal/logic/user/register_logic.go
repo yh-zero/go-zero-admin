@@ -31,6 +31,14 @@ func (l *RegisterLogic) Register(in *pb.RegisterRequest) (*pb.RegisterResponse, 
 	if input == nil || strings.TrimSpace(input.Username) == "" {
 		return nil, userError("用户名不能为空")
 	}
+	for _, field := range []struct{ name, value string }{
+		{"username", strings.TrimSpace(input.Username)}, {"nickName", input.NickName},
+		{"headerImg", input.HeaderImg}, {"phone", input.Phone}, {"email", input.Email},
+	} {
+		if err := validateProfileField(field.name, field.value); err != nil {
+			return nil, err
+		}
+	}
 	if err := hash.ValidatePassword(input.Password); err != nil {
 		return nil, userError(err.Error())
 	}

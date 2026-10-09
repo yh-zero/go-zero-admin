@@ -40,6 +40,7 @@ func (l *GetMenuAuthorityLogic) GetMenuAuthority(req *types.GetMenuAuthorityRequ
 	var typesGetMenuAuthorityResponse types.GetMenuAuthorityResponse
 	var sysMenus []types.SysMenu
 	_ = copier.Copy(&sysMenus, authority.SysMenuList)
+	typesGetMenuAuthorityResponse.Revision = authority.Revision
 	typesGetMenuAuthorityResponse.SysMenuList = sysMenus
 
 	return &typesGetMenuAuthorityResponse, err

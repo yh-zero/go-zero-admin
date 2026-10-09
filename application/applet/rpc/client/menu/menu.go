@@ -28,6 +28,9 @@ type (
 	GetMenuTreeResponse           = pb.GetMenuTreeResponse
 	Meta                          = pb.Meta
 	NoDataResponse                = pb.NoDataResponse
+	PermissionMenuLink            = pb.PermissionMenuLink
+	PreviewMenuMoveRequest        = pb.PreviewMenuMoveRequest
+	PreviewMenuMoveResponse       = pb.PreviewMenuMoveResponse
 	SysAuthority                  = pb.SysAuthority
 	SysBaseMenu                   = pb.SysBaseMenu
 	SysBaseMenuBtn                = pb.SysBaseMenuBtn
@@ -37,6 +40,7 @@ type (
 	UpdateBaseMenuRequest         = pb.UpdateBaseMenuRequest
 
 	Menu interface {
+		PreviewMenuMove(ctx context.Context, in *PreviewMenuMoveRequest, opts ...grpc.CallOption) (*PreviewMenuMoveResponse, error)
 		GetAuthorityButtons(ctx context.Context, in *GetAuthorityButtonsRequest, opts ...grpc.CallOption) (*GetAuthorityButtonsResponse, error)
 		UpdateAuthorityButtons(ctx context.Context, in *UpdateAuthorityButtonsRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		// 获取菜单-路由
@@ -66,6 +70,11 @@ func NewMenu(cli zrpc.Client) Menu {
 	return &defaultMenu{
 		cli: cli,
 	}
+}
+
+func (m *defaultMenu) PreviewMenuMove(ctx context.Context, in *PreviewMenuMoveRequest, opts ...grpc.CallOption) (*PreviewMenuMoveResponse, error) {
+	client := pb.NewMenuClient(m.cli.Conn())
+	return client.PreviewMenuMove(ctx, in, opts...)
 }
 
 func (m *defaultMenu) GetAuthorityButtons(ctx context.Context, in *GetAuthorityButtonsRequest, opts ...grpc.CallOption) (*GetAuthorityButtonsResponse, error) {

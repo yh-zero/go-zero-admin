@@ -28,7 +28,7 @@ func NewUpdateBaseMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Up
 func (l *UpdateBaseMenuLogic) UpdateBaseMenu(req *types.UpdateBaseMenuRequest) (resp *types.MessageResponse, err error) {
 	var pbSysBaseMenu pb.SysBaseMenu
 	_ = copier.Copy(&pbSysBaseMenu, req)
-	_, err = l.svcCtx.AppletMenuRPC.UpdateBaseMenu(l.ctx, &pb.UpdateBaseMenuRequest{SysBaseMenu: &pbSysBaseMenu})
+	_, err = l.svcCtx.AppletMenuRPC.UpdateBaseMenu(l.ctx, &pb.UpdateBaseMenuRequest{MovePreviewVersion: req.MovePreviewVersion, SysBaseMenu: &pbSysBaseMenu})
 	if err != nil {
 		logx.Errorf("l.svcCtx.AppletMenuRPC.UpdateBaseMenu err: %v", err)
 		return nil, err

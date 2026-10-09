@@ -14,6 +14,7 @@ import (
 	fileServer "go-zero-admin/application/applet/rpc/internal/server/fileresourceservice"
 	menuServer "go-zero-admin/application/applet/rpc/internal/server/menu"
 	organizationServer "go-zero-admin/application/applet/rpc/internal/server/organization"
+	permissionServer "go-zero-admin/application/applet/rpc/internal/server/permission"
 	sessionServer "go-zero-admin/application/applet/rpc/internal/server/sessionmanage"
 	userServer "go-zero-admin/application/applet/rpc/internal/server/user"
 	"go-zero-admin/application/applet/rpc/internal/svc"
@@ -41,6 +42,7 @@ func main() {
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		pb.RegisterAgentToolsServer(grpcServer, agentToolsServer.NewAgentToolsServer(ctx))
 		pb.RegisterUserServer(grpcServer, userServer.NewUserServer(ctx))
+		pb.RegisterPermissionServer(grpcServer, permissionServer.NewPermissionServer(ctx))
 		pb.RegisterMenuServer(grpcServer, menuServer.NewMenuServer(ctx))
 		pb.RegisterAuthorityServer(grpcServer, authorityServer.NewAuthorityServer(ctx))
 		pb.RegisterApiServer(grpcServer, apiServer.NewApiServer(ctx))

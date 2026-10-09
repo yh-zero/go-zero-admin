@@ -26,6 +26,7 @@ func NewAddAuthorityMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 
 func (l *AddAuthorityMenuLogic) AddAuthorityMenu(req *types.AddAuthorityMenuRequest) (resp *types.MessageResponse, err error) {
 	var authorityMenu pb.AddAuthorityMenuRequest
+	authorityMenu.ExpectedRevision = req.ExpectedRevision
 	authorityMenu.AuthorityId = req.AuthorityId
 	authorityMenu.MenuIds = req.MenuIds
 

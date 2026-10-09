@@ -37,7 +37,9 @@ docker cp .\data\db\gozero-admin.sql gozero-mysql:/tmp/gozero-admin.sql
 docker exec gozero-mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --user=root --database="$MYSQL_DATABASE" < /tmp/gozero-admin.sql'
 ```
 
-Compose 不自动导入。SQL 已包含当前表结构、必要数据和迁移记录，首次导入后无需执行迁移；已有业务库按下方升级流程处理。
+Compose 不自动导入。SQL 已包含权限版本、变更历史、稳定按钮键、管理员新编辑入口和迁移记录，首次导入后无需重复执行权限结构迁移；已有业务库按下方升级流程处理。
+
+本次权限升级要求前后端配套更新，旧客户端没有 `expectedRevision` 时不能保存授权。已有数据库先停 API、业务 RPC 和 AI RPC，备份后由正常迁移工具执行 [权限结构迁移](data/db/migrations/20261008_permission_revision_history.sql)。服务保持停止，再审核并单独执行 [管理员恢复脚本](data/db/operator/20261008_permission_admin_recovery_bootstrap.sql)，检查角色 1 的两条恢复授权后重启。该脚本只在角色 1 已有旧恢复能力时补新编辑入口与菜单移动预览，不由通用迁移自动收集；历史、回滚接口及普通角色由管理员通过 API 同步和角色授权明确配置。已有业务库不要重新导入初始化 SQL。
 
 ### 3. 启动后端
 
@@ -94,10 +96,25 @@ AI 默认关闭，不影响管理功能。启用时：
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File test/sh/dev.ps1 -Action Stop
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File test/sh/db.ps1 -Action Backup
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File test/sh/db.ps1 -Action Migrate
+# 本次权限升级首次执行时：按上方说明单独运行管理员恢复脚本，核对两条授权后再启动。
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File test/sh/dev.ps1 -Action Start
 ```
 
 备份位于 `bin/db-backups/`。可用 `db.ps1 -Action Status` 检查待迁移项；不要向已有业务库重放全量 SQL，也不要修改已发布的迁移文件。
+
+## 权限与用户资源维护
+
+四类授权读取一致快照、保存携带版本，过期编辑必须重新比对；菜单移动先确认影响预览。按钮使用稳定 `permissionKey`。授权历史和回滚接口需要明确 API 授权，首版回滚会拒绝事件之后已有任何配置修改的情况。
+
+用户删除前可预览归属资源，默认软删后保留文件、AI 历史和审计；资源移交为独立操作。AI 预览/移交需在业务 RPC 配置可选 `UserResources.AIDataSource`，填 AI 服务实际生效 DSN，且 network/address/schema 与业务库一致。未配置、跨库或缺表时显示 AI 不可用原因，文件仍可独立移交。DSN 通过环境替换传入，不复制密码到文档或日志。
+
+设备会话维护要求显式保留天数和批大小，默认只预演，例如：
+
+```powershell
+go run ./application/applet/rpc/cmd/sessioncleanup -f application/applet/rpc/etc/applet.yaml -retention-days 90 -batch-size 200
+```
+
+核对结果后明确添加 `-apply` 才逐批清理旧到期/撤销会话；有效会话、近期记录和审计保留，不自动设定保留期或创建定时任务。代码和验证边界见 [后端计划](DEVELOPMENT_PLAN.md#本轮权限优化开发2026-10-09)。
 
 ## 代码生成
 

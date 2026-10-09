@@ -3,6 +3,7 @@ package userlogic
 import (
 	"context"
 	"gorm.io/gorm"
+	"strings"
 
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
@@ -34,6 +35,11 @@ func (l *GetUserInfoLogic) GetUserInfo(in *pb.GetUserInfoRequest) (*pb.GetUserIn
 	var userInfo model.SysUser
 	userInfoModel := &pb.UserInfo{}
 	err := l.svcCtx.DB.WithContext(l.ctx).Where("username = ?", in.UserName).Preload("Authorities").Preload("Authority").First(&userInfo).Error
+	// Existing raw usernames retain priority. Only an absent exact match permits
+	// the same whitespace normalization used when registering a new account.
+	if normalized := strings.TrimSpace(in.UserName); errors.Is(err, gorm.ErrRecordNotFound) && normalized != in.UserName && normalized != "" {
+		err = l.svcCtx.DB.WithContext(l.ctx).Where("username = ?", normalized).Preload("Authorities").Preload("Authority").First(&userInfo).Error
+	}
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, xerr.NewErrCode(xerr.USER_PASSWORD_ERROR)
 	}

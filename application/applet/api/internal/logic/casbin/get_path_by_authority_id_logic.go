@@ -40,6 +40,6 @@ func (l *GetPathByAuthorityIdLogic) GetPathByAuthorityId(req *types.GetPathByAut
 	}
 
 	return &types.GetPathByAuthorityIdResponse{
-		List: casbinInfoList,
+		List: casbinInfoList, Revision: getPathByAuthorityId.Revision,
 	}, nil
 }

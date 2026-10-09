@@ -19,7 +19,7 @@ func NewUpdateAuthorityButtonsLogic(ctx context.Context, svcCtx *svc.ServiceCont
 }
 
 func (l *UpdateAuthorityButtonsLogic) UpdateAuthorityButtons(req *types.UpdateAuthorityButtonsRequest) (*types.MessageResponse, error) {
-	_, err := l.svcCtx.AppletMenuRPC.UpdateAuthorityButtons(l.ctx, &pb.UpdateAuthorityButtonsRequest{AuthorityId: req.AuthorityId, MenuBtnIds: req.MenuBtnIds})
+	_, err := l.svcCtx.AppletMenuRPC.UpdateAuthorityButtons(l.ctx, &pb.UpdateAuthorityButtonsRequest{ExpectedRevision: req.ExpectedRevision, AuthorityId: req.AuthorityId, MenuBtnIds: req.MenuBtnIds})
 	if err != nil {
 		return nil, err
 	}

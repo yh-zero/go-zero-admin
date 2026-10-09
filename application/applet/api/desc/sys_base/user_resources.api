@@ -1,0 +1,38 @@
+syntax = "v1"
+type UserResourcePreviewRequest { UserID int64 `form:"userId"` }
+type UserResourcePreviewResponse {
+ UserID int64 `json:"userId"`
+ Username string `json:"username"`
+ Files int64 `json:"files"`
+ AIConversations int64 `json:"aiConversations"`
+ AIMessages int64 `json:"aiMessages"`
+ AIRuns int64 `json:"aiRuns"`
+ AIAvailable bool `json:"aiAvailable"`
+ AIReason string `json:"aiReason"`
+ TransferMode string `json:"transferMode"`
+}
+type TransferUserResourcesRequest {
+ UserID int64 `json:"userId"`
+ TargetUserID int64 `json:"targetUserId"`
+ IncludeFiles bool `json:"includeFiles"`
+ IncludeAI bool `json:"includeAI"`
+}
+type TransferUserResourcesResponse {
+ Files int64 `json:"files"`
+ AIConversations int64 `json:"aiConversations"`
+ AIMessages int64 `json:"aiMessages"`
+ AIRuns int64 `json:"aiRuns"`
+ TransactionMode string `json:"transactionMode"`
+}
+@server(
+ prefix: /v1/sys/user
+ group: user
+ jwt: JwtAuth
+ middleware: Authority
+)
+service applet-api {
+ @handler GetUserResourcePreview
+ get /resources (UserResourcePreviewRequest) returns (UserResourcePreviewResponse)
+ @handler TransferUserResources
+ post /resources/transfer (TransferUserResourcesRequest) returns (TransferUserResourcesResponse)
+}

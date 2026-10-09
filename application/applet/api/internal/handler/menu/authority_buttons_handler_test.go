@@ -23,6 +23,7 @@ type buttonRPCStub struct {
 	failure     error
 	authorityID int64
 	ids         []int64
+	revision    string
 }
 
 func (s *buttonRPCStub) GetAuthorityButtons(_ context.Context, in *pb.GetAuthorityButtonsRequest, _ ...grpc.CallOption) (*pb.GetAuthorityButtonsResponse, error) {
@@ -30,11 +31,12 @@ func (s *buttonRPCStub) GetAuthorityButtons(_ context.Context, in *pb.GetAuthori
 	if s.failure != nil {
 		return nil, s.failure
 	}
-	return &pb.GetAuthorityButtonsResponse{MenuBtnIds: []int64{7, 8}}, nil
+	return &pb.GetAuthorityButtonsResponse{MenuBtnIds: []int64{7, 8}, Revision: "1"}, nil
 }
 func (s *buttonRPCStub) UpdateAuthorityButtons(_ context.Context, in *pb.UpdateAuthorityButtonsRequest, _ ...grpc.CallOption) (*pb.NoDataResponse, error) {
 	s.authorityID = in.AuthorityId
 	s.ids = in.MenuBtnIds
+	s.revision = in.ExpectedRevision
 	if s.failure != nil {
 		return nil, s.failure
 	}
@@ -57,7 +59,7 @@ func TestAuthorityButtonHTTPEnvelope(t *testing.T) {
 	if response.Code != 200 || read.Code != 200 || !reflect.DeepEqual(read.Result.IDs, []int64{7, 8}) || stub.authorityID != 42 {
 		t.Fatalf("GET must wrap and preserve payload: %s", response.Body.String())
 	}
-	request := httptest.NewRequest(http.MethodPut, "/v1/sys/menu/updateAuthorityButtons", strings.NewReader(`{"authorityId":42,"menuBtnIds":[8]}`))
+	request := httptest.NewRequest(http.MethodPut, "/v1/sys/menu/updateAuthorityButtons", strings.NewReader(`{"authorityId":42,"menuBtnIds":[8],"expectedRevision":"1"}`))
 	request.Header.Set("Content-Type", "application/json")
 	response = httptest.NewRecorder()
 	UpdateAuthorityButtonsHandler(service)(response, request)
@@ -70,7 +72,7 @@ func TestAuthorityButtonHTTPEnvelope(t *testing.T) {
 	if err := json.Unmarshal(response.Body.Bytes(), &saved); err != nil {
 		t.Fatal(err)
 	}
-	if response.Code != 200 || saved.Code != 200 || saved.Result.Message == "" || stub.authorityID != 42 || !reflect.DeepEqual(stub.ids, []int64{8}) {
+	if response.Code != 200 || saved.Code != 200 || saved.Result.Message == "" || stub.authorityID != 42 || stub.revision != "1" || !reflect.DeepEqual(stub.ids, []int64{8}) {
 		t.Fatalf("PUT must wrap and pass request: %s", response.Body.String())
 	}
 }

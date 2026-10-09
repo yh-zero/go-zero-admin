@@ -27,11 +27,7 @@ func (l *ApplyApiSyncLogic) ApplyApiSync(in *pb.ApplyApiSyncRequest) (*pb.ApplyA
 		return nil, err
 	}
 	var result *pb.ApplyApiSyncResponse
-	err = l.svcCtx.DB.WithContext(l.ctx).Transaction(func(tx *gorm.DB) error {
-		// Serialize concurrent syncs without changing role or policy data.
-		if err := accessutil.LockAdminGuard(tx); err != nil {
-			return err
-		}
+	err = accessutil.PermissionTransaction(l.svcCtx.DB.WithContext(l.ctx), func(tx *gorm.DB) error {
 		var err error
 		result, err = applyApiSync(tx, resources, in)
 		return err

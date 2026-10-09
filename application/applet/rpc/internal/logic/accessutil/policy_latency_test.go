@@ -33,6 +33,11 @@ func TestCommittedPolicyDoesNotWaitForCacheReload(t *testing.T) {
 		if tx.Statement.Table != "casbin_rule" {
 			return
 		}
+		// Permission history now reads grants inside the write transaction.
+		// This hook models only the background enforcement cache reload.
+		if _, transactional := tx.Statement.ConnPool.(gorm.TxCommitter); transactional {
+			return
+		}
 		select {
 		case started <- struct{}{}:
 		default:

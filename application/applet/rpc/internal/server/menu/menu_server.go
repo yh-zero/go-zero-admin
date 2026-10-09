@@ -23,6 +23,11 @@ func NewMenuServer(svcCtx *svc.ServiceContext) *MenuServer {
 	}
 }
 
+func (s *MenuServer) PreviewMenuMove(ctx context.Context, in *pb.PreviewMenuMoveRequest) (*pb.PreviewMenuMoveResponse, error) {
+	l := menulogic.NewPreviewMenuMoveLogic(ctx, s.svcCtx)
+	return l.PreviewMenuMove(in)
+}
+
 func (s *MenuServer) GetAuthorityButtons(ctx context.Context, in *pb.GetAuthorityButtonsRequest) (*pb.GetAuthorityButtonsResponse, error) {
 	l := menulogic.NewGetAuthorityButtonsLogic(ctx, s.svcCtx)
 	return l.GetAuthorityButtons(in)

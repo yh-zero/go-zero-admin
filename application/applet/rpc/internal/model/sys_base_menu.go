@@ -38,6 +38,7 @@ type SysBaseMenuParameter struct {
 
 type SysBaseMenuBtn struct {
 	model.MODEL_BASE
+	PermissionKey string `json:"permissionKey" gorm:"size:383;uniqueIndex"`
 	Name          string `json:"name" gorm:"comment:按钮关键key"`
 	Desc          string `json:"desc" gorm:"按钮备注"`
 	SysBaseMenuID int64  `json:"sysBaseMenuID" gorm:"comment:菜单ID"`

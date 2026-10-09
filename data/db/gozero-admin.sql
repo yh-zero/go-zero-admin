@@ -1,6 +1,6 @@
--- go-zero-admin 当前完整初始化 SQL（2026-10-07）
+-- go-zero-admin 当前完整初始化 SQL（2026-10-09）
 -- MySQL 8；在已创建且选定的空数据库中导入一次，然后启动项目。
--- 包含完整表结构、必要初始数据及截至 20261003_zz_ai_agent.sql 的迁移记录。
+-- 包含完整表结构、必要初始数据及截至 20261008_permission_revision_history.sql 的迁移记录。
 -- 初始管理员：admin / 123456。首次登录后修改密码。
 -- 不包含测试账号、测试角色、测试菜单、审计日志、设备会话或 AI 历史数据。
 -- 已有数据库升级使用 data/db/migrations/；不要向已有业务库导入全量 SQL。
@@ -500,3 +500,77 @@ INSERT INTO `sys_users` (`id`, `created_at`, `updated_at`, `deleted_at`, `uuid`,
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Permission baseline for fresh installations. Existing databases use the
+-- incremental migration and explicit operator bootstrap; never replay this file.
+-- Apply once to an existing database after a backup. No startup AutoMigrate.
+CREATE TABLE IF NOT EXISTS sys_permission_versions (
+ id bigint NOT NULL PRIMARY KEY,
+ revision bigint unsigned NOT NULL
+) ENGINE=InnoDB;
+INSERT IGNORE INTO sys_permission_versions(id,revision) VALUES(1,1);
+
+CREATE TABLE IF NOT EXISTS sys_permission_changes (
+ id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ authority_id bigint NOT NULL,
+ kind varchar(16) NOT NULL,
+ before_revision bigint unsigned NOT NULL,
+ after_revision bigint unsigned NOT NULL,
+ `before` longtext NOT NULL,
+ `after` longtext NOT NULL,
+ actor_id bigint NOT NULL DEFAULT 0,
+ actor_name varchar(64) NOT NULL DEFAULT '',
+ trace_id varchar(64) NOT NULL DEFAULT '',
+ created_at datetime(3) NOT NULL,
+ KEY idx_permission_history_role (authority_id,id),
+ KEY idx_permission_history_revision (after_revision)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Both historical names are varchar(191); retain their full combined key.
+-- REDUNDANT row format limits index keys to 767 bytes, so expand it first.
+ALTER TABLE sys_base_menu_btns ROW_FORMAT=DYNAMIC;
+ALTER TABLE sys_base_menu_btns ADD COLUMN permission_key varchar(383) NULL;
+UPDATE sys_base_menu_btns b JOIN sys_base_menus m ON m.id=b.sys_base_menu_id
+SET b.permission_key=CONCAT(m.name,':',b.name) WHERE b.permission_key IS NULL;
+-- Orphan definitions receive a stable fallback. A duplicate legacy code causes
+-- the unique index below to fail visibly; resolve those definitions, do not
+-- silently merge their grants.
+UPDATE sys_base_menu_btns SET permission_key=CONCAT('legacy.button.',id) WHERE permission_key IS NULL;
+ALTER TABLE sys_base_menu_btns MODIFY permission_key varchar(383) NOT NULL;
+CREATE UNIQUE INDEX idx_sys_base_menu_btns_permission_key ON sys_base_menu_btns(permission_key);
+-- New permission endpoints are catalogued by the existing API sync workflow;
+-- no policies are inserted and no API permission is granted by this migration.
+CREATE INDEX idx_device_revoked ON sys_device_sessions(revoked_at,id);
+
+-- Explicit operator step, after 20261008_permission_revision_history.sql.
+-- Stop API/RPC instances first; review backup and role 1's legacy recovery
+-- grants. This script only repairs access to the replacement editor and move
+-- preview. History, rollback and ordinary roles require explicit API grants.
+START TRANSACTION;
+SELECT authority_id FROM sys_authorities WHERE authority_id=1 AND deleted_at IS NULL FOR UPDATE;
+SELECT revision FROM sys_permission_versions WHERE id=1 FOR UPDATE;
+
+INSERT INTO sys_apis(created_at,updated_at,path,description,api_group,method)
+SELECT NOW(3),NOW(3),'/v1/sys/permissions/edit','读取四类授权的统一资源与选择快照','permission','GET'
+WHERE NOT EXISTS(SELECT 1 FROM sys_apis WHERE path='/v1/sys/permissions/edit' AND method='GET' AND deleted_at IS NULL);
+INSERT INTO sys_apis(created_at,updated_at,path,description,api_group,method)
+SELECT NOW(3),NOW(3),'/v1/sys/menu/previewMove','预览菜单移动新增可见入口','menu','POST'
+WHERE NOT EXISTS(SELECT 1 FROM sys_apis WHERE path='/v1/sys/menu/previewMove' AND method='POST' AND deleted_at IS NULL);
+
+INSERT INTO casbin_rule(ptype,v0,v1,v2,v3,v4,v5)
+SELECT 'p','1',replacement.path,replacement.method,'','',''
+FROM (SELECT '/v1/sys/permissions/edit' AS path,'GET' AS method UNION ALL SELECT '/v1/sys/menu/previewMove','POST') replacement
+WHERE EXISTS(SELECT 1 FROM sys_authorities WHERE authority_id=1 AND deleted_at IS NULL)
+AND EXISTS(SELECT 1 FROM casbin_rule WHERE ptype='p' AND v0='1' AND v1='/v1/sys/casbin/getPathByAuthorityId' AND v2='GET')
+AND EXISTS(SELECT 1 FROM casbin_rule WHERE ptype='p' AND v0='1' AND v1='/v1/sys/casbin/updateCasbinData' AND v2='PUT')
+AND NOT EXISTS(SELECT 1 FROM casbin_rule p WHERE p.ptype='p' AND p.v0='1' AND p.v1=replacement.path AND p.v2=replacement.method);
+
+INSERT INTO sys_policy_versions(id,version,updated_at) VALUES(1,1,NOW(3))
+ON DUPLICATE KEY UPDATE version=version+1,updated_at=NOW(3);
+UPDATE sys_permission_versions SET revision=revision+1 WHERE id=1;
+COMMIT;
+-- Verify both explicit role-1 grants before restarting the upgraded services.
+SELECT ptype,v0,v1,v2 FROM casbin_rule WHERE ptype='p' AND v0='1'
+AND v1 IN('/v1/sys/permissions/edit','/v1/sys/menu/previewMove');
+
+INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261008_permission_revision_history.sql','bc8c6e02847cc29f0dcabff6098326e3854a37303c28ca9cc03e7cbeb58ebfe9',NOW());

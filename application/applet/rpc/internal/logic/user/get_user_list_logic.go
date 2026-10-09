@@ -39,7 +39,7 @@ func (l *GetUserListLogic) GetUserList(in *pb.GetUserListRequest) (*pb.GetUserLi
 	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
-	if err := db.Order("id DESC").Limit(limit).Offset(offset).Preload("Authorities").Preload("Authority").Find(&users).Error; err != nil {
+	if err := db.Select("id", "created_at", "updated_at", "deleted_at", "uuid", "username", "nick_name", "side_mode", "header_img", "base_color", "active_color", "authority_id", "phone", "email", "enable", "session_version").Order("id DESC").Limit(limit).Offset(offset).Preload("Authorities").Preload("Authority").Find(&users).Error; err != nil {
 		return nil, err
 	}
 	output := &pb.GetUserListResponse{Total: total, UserInfoList: []*pb.UserInfo{}}

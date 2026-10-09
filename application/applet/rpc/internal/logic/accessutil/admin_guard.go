@@ -54,6 +54,7 @@ func EnsureUsableAdministrator(tx *gorm.DB) error {
 }
 
 var adminRecoveryAPIs = []struct{ Path, Method string }{
+	{"/v1/sys/permissions/edit", "GET"},
 	{"/v1/sys/menu/getMenu", "GET"},
 	{"/v1/sys/authority/getAuthorityList", "GET"},
 	{"/v1/sys/api/getApiList", "GET"},

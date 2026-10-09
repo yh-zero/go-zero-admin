@@ -29,6 +29,10 @@ func (l *UpdateCasbinDataByApiIdsLogic) UpdateCasbinDataByApiIds(in *pb.UpdateCa
 	}
 	var apis []model.SysApi
 	err = accessutil.PolicyTransaction(l.ctx, l.svcCtx, func(tx *gorm.DB) error {
+		if err := accessutil.RequirePermissionRevision(tx, in.ExpectedRevision); err != nil {
+			return err
+		}
+
 		if len(ids) > 0 {
 			if err := tx.Where("id IN ?", ids).Find(&apis).Error; err != nil {
 				return err

@@ -20,10 +20,7 @@ func PolicyTransaction(ctx context.Context, s *svc.ServiceContext, change func(*
 		return ctx.Err()
 	}
 	defer func() { <-policyWrite }()
-	if err := s.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := LockAdminGuard(tx); err != nil {
-			return err
-		}
+	if err := AdminMenuTransaction(s.DB.WithContext(ctx), func(tx *gorm.DB) error {
 		before, err := adminRecoveryPolicyState(tx)
 		if err != nil {
 			return err

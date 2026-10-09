@@ -3,6 +3,8 @@ package organizationlogic
 import (
 	"context"
 	"fmt"
+	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"testing"
 
 	"github.com/glebarez/sqlite"
@@ -26,7 +28,10 @@ func testStore(t *testing.T) store {
 	}
 	sqlDB.SetMaxOpenConns(1)
 	t.Cleanup(func() { _ = sqlDB.Close() })
-	if err := db.AutoMigrate(&model.SysAuthority{}, &model.SysUser{}, &model.SysUserAuthority{}, &model.SysDepartment{}, &model.SysPosition{}, &model.SysUserDepartment{}, &model.SysUserPosition{}, &model.SysRoleDataScope{}, &model.SysRoleScopeDepartment{}, &model.SysFileResource{}, &audit.Event{}); err != nil {
+	if err := db.AutoMigrate(&model.SysPermissionVersion{}, &model.SysPermissionChange{}, &model.SysBaseMenu{}, &model.SysBaseMenuBtn{}, &model.SysBaseMenuParameter{}, &model.SysAuthorityMenu{}, &model.SysAuthorityBtn{}, &model.SysApi{}, &gormadapter.CasbinRule{}, &model.SysAuthority{}, &model.SysUser{}, &model.SysUserAuthority{}, &model.SysDepartment{}, &model.SysPosition{}, &model.SysUserDepartment{}, &model.SysUserPosition{}, &model.SysRoleDataScope{}, &model.SysRoleScopeDepartment{}, &model.SysFileResource{}, &audit.Event{}); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Create(&model.SysPermissionVersion{ID: 1, Revision: 1}).Error; err != nil {
 		t.Fatal(err)
 	}
 	for _, id := range []int64{1, 2} {
@@ -188,7 +193,7 @@ func TestRoleDataScopeValidationAndDepartmentReferences(t *testing.T) {
 			t.Fatal("invalid data scope accepted", input)
 		}
 	}
-	if err := s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{AuthorityId: 2, Scope: "custom", DepartmentIds: []int64{d.ID, d.ID}}}); err != nil {
+	if err := s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{ExpectedRevision: permissionRevision(t, s), AuthorityId: 2, Scope: "custom", DepartmentIds: []int64{d.ID, d.ID}}}); err != nil {
 		t.Fatal(err)
 	}
 	got, err := s.dataScope(&pb.GetRoleDataScopeRequest{AuthorityId: 2})
@@ -198,7 +203,7 @@ func TestRoleDataScopeValidationAndDepartmentReferences(t *testing.T) {
 	if err := s.deleteDepartment(&pb.OrganizationIDRequest{ID: d.ID}); err == nil {
 		t.Fatal("custom-scope department deleted")
 	}
-	if err := s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{AuthorityId: 2, Scope: "self"}}); err != nil {
+	if err := s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{ExpectedRevision: permissionRevision(t, s), AuthorityId: 2, Scope: "self"}}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.deleteDepartment(&pb.OrganizationIDRequest{ID: d.ID}); err != nil {
@@ -246,4 +251,13 @@ func TestDepartmentDeletionProtectsLiveFileOwnership(t *testing.T) {
 	if err := s.deleteDepartment(&pb.OrganizationIDRequest{ID: department.ID}); err != nil {
 		t.Fatal("archived file should not prevent department deletion", err)
 	}
+}
+
+func permissionRevision(t *testing.T, s store) string {
+	t.Helper()
+	rev, err := accessutil.PermissionRevision(s.db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return rev
 }

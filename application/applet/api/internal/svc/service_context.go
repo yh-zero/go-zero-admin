@@ -12,6 +12,7 @@ import (
 	"go-zero-admin/application/applet/rpc/client/fileresourceservice"
 	"go-zero-admin/application/applet/rpc/client/menu"
 	"go-zero-admin/application/applet/rpc/client/organization"
+	"go-zero-admin/application/applet/rpc/client/permission"
 	"go-zero-admin/application/applet/rpc/client/sessionmanage"
 	"go-zero-admin/application/applet/rpc/client/user"
 	"go-zero-admin/pkg/audit"
@@ -31,6 +32,7 @@ const (
 )
 
 type ServiceContext struct {
+	AppletPermissionRPC    permission.Permission
 	AIAgentRPC             agentRPC.Agent
 	Audit                  rest.Middleware
 	AppletAuditRPC         auditRPC.Audit
@@ -76,6 +78,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	casbinCli := casbinRPC.NewCasbin(appletRPC)
 
 	svc := &ServiceContext{
+		AppletPermissionRPC:    permission.NewPermission(appletRPC),
 		AIAgentRPC:             newAIAgentClient(c.AIRPC, c.Mode),
 		AppletAuditRPC:         auditRPC.NewAudit(appletRPC),
 		AppletOrganizationRPC:  organization.NewOrganization(appletRPC),

@@ -68,6 +68,7 @@ message SysBaseMenuParameter {
 }
 
 message SysBaseMenuBtn{
+  string PermissionKey = 8;
   string Name = 1;
   string Desc = 2;
   int64 SysBaseMenuID = 3;
@@ -237,6 +238,7 @@ message GetPathByAuthorityIdRequest {
 }
 
 message GetPathByAuthorityIdResponse {
+  string Revision = 2;
   repeated CasbinInfo CasbinInfoList = 1;
 }
 
@@ -249,6 +251,7 @@ message GetMenuAuthorityRequest {
 }
 
 message GetMenuAuthorityResponse {
+  string Revision = 2;
   repeated SysMenu SysMenuList = 1;
 }
 
@@ -258,11 +261,13 @@ message GetMenuAuthorityResponse {
 //}
 
 message AddAuthorityMenuRequest {
+  string ExpectedRevision = 3;
   int64 AuthorityId = 1;
   string MenuIds = 2;
 }
 
 message UpdateCasbinDataRequest {
+  string ExpectedRevision = 3;
   int64 AuthorityId = 1;
   repeated CasbinInfo CasbinInfoList = 2;
 }
@@ -284,6 +289,7 @@ message GetBaseMenuByIdResponse {
 }
 
 message UpdateBaseMenuRequest {
+  string MovePreviewVersion = 2;
   SysBaseMenu SysBaseMenu = 1;
 }
 
@@ -338,6 +344,7 @@ message DeleteApisByIdsRequest {
 }
 
 message UpdateCasbinDataByApiIdsRequest {
+  string ExpectedRevision = 3;
   int64 AuthorityId = 1;
   repeated int64 ApiIds = 2;
 }
@@ -456,9 +463,11 @@ message GetAuthorityButtonsRequest {
   int64 AuthorityId = 1;
 }
 message GetAuthorityButtonsResponse {
+  string Revision = 2;
   repeated int64 MenuBtnIds = 1;
 }
 message UpdateAuthorityButtonsRequest {
+  string ExpectedRevision = 3;
   int64 AuthorityId = 1;
   repeated int64 MenuBtnIds = 2;
 }
@@ -476,6 +485,8 @@ message ChangePasswordRequest {
   string NewPassword = 3;
 }
 service User {
+ rpc GetUserResourcePreview(UserResourcePreviewRequest) returns(UserResourcePreviewResponse);
+ rpc TransferUserResources(TransferUserResourcesRequest) returns(TransferUserResourcesResponse);
   rpc CheckSession (SessionRequest) returns (CheckSessionResponse);
   rpc GetCurrentUser (SessionRequest) returns (GetUserInfoResponse);
   rpc ChangePassword (ChangePasswordRequest) returns (NoDataResponse);
@@ -501,6 +512,7 @@ service User {
 
 
 service Menu {
+ rpc PreviewMenuMove (PreviewMenuMoveRequest) returns (PreviewMenuMoveResponse);
   rpc GetAuthorityButtons (GetAuthorityButtonsRequest) returns (GetAuthorityButtonsResponse);
   rpc UpdateAuthorityButtons (UpdateAuthorityButtonsRequest) returns (NoDataResponse);
   // 获取菜单-路由
@@ -679,7 +691,7 @@ message DepartmentListResponse { repeated Department List = 1; }
 message PositionListResponse { repeated Position List = 1; }
 message MembershipRequest { int64 UserID = 1; int64 DepartmentId = 2; repeated int64 PositionIds = 3; }
 message MembershipResponse { int64 UserID = 1; int64 DepartmentId = 2; repeated int64 PositionIds = 3; }
-message RoleDataScope { int64 AuthorityId = 1; string Scope = 2; repeated int64 DepartmentIds = 3; }
+message RoleDataScope { string Revision = 4; string ExpectedRevision = 5; int64 AuthorityId = 1; string Scope = 2; repeated int64 DepartmentIds = 3; }
 message RoleDataScopeRequest { RoleDataScope DataScope = 1; }
 message GetRoleDataScopeRequest { int64 AuthorityId = 1; }
 message RoleDataScopeResponse { RoleDataScope DataScope = 1; }
@@ -752,3 +764,30 @@ service AgentTools {
   rpc GetAgentFileStatus (AgentToolRequest) returns (AgentToolResult);
   rpc ListAgentDevices (AgentToolRequest) returns (AgentToolResult);
 }
+
+message PreviewMenuMoveRequest { int64 ID = 1; int64 ParentId = 2; }
+message PermissionMenuLink { int64 AuthorityId = 1; int64 MenuId = 2; }
+message PreviewMenuMoveResponse { string Version = 1; repeated int64 AuthorityIds = 2; repeated int64 AncestorIds = 3; repeated PermissionMenuLink AddedLinks = 4; }
+message GetPermissionEditRequest { int64 AuthorityId = 1; string Kind = 2; }
+message GetPermissionEditResponse { string Revision = 1; int64 AuthorityId = 2; string Kind = 3; repeated SysBaseMenu Menus = 4; repeated SysApi Apis = 5; repeated Department Departments = 6; repeated int64 MenuIds = 7; repeated int64 MenuBtnIds = 8; repeated CasbinInfo Policies = 9; RoleDataScope DataScope = 10; }
+message GetPermissionSnapshotRequest { SessionRequest Actor = 1; }
+message GetPermissionSnapshotResponse { string Revision = 1; string Fingerprint = 2; int64 AuthorityId = 3; string DefaultRouter = 4; repeated SysMenu Menus = 5; repeated string Codes = 6; }
+message PermissionGrantSet { repeated int64 MenuIds = 1; repeated int64 MenuBtnIds = 2; repeated CasbinInfo Policies = 3; RoleDataScope DataScope = 4; }
+message PermissionChange { int64 ID = 1; int64 AuthorityId = 2; string Kind = 3; string BeforeRevision = 4; string AfterRevision = 5; PermissionGrantSet Before = 6; PermissionGrantSet After = 7; int64 ActorId = 8; string ActorName = 9; string TraceId = 10; string CreatedAt = 11; }
+message GetPermissionHistoryRequest { int64 AuthorityId = 1; string Kind = 2; PageRequest PageRequest = 3; }
+message GetPermissionHistoryResponse { repeated PermissionChange List = 1; int64 Total = 2; }
+message PreviewPermissionRollbackRequest { int64 ID = 1; }
+message PreviewPermissionRollbackResponse { string Version = 1; PermissionChange Change = 2; bool Allowed = 3; string Reason = 4; }
+message ApplyPermissionRollbackRequest { int64 ID = 1; string ExpectedRevision = 2; string Version = 3; }
+service Permission {
+ rpc GetPermissionEdit (GetPermissionEditRequest) returns (GetPermissionEditResponse);
+ rpc GetPermissionSnapshot (GetPermissionSnapshotRequest) returns (GetPermissionSnapshotResponse);
+ rpc GetPermissionHistory (GetPermissionHistoryRequest) returns (GetPermissionHistoryResponse);
+ rpc PreviewPermissionRollback (PreviewPermissionRollbackRequest) returns (PreviewPermissionRollbackResponse);
+ rpc ApplyPermissionRollback (ApplyPermissionRollbackRequest) returns (NoDataResponse);
+}
+
+message UserResourcePreviewRequest { SessionRequest Actor = 1; int64 UserID = 2; }
+message UserResourcePreviewResponse { int64 UserID = 1; string Username = 2; int64 Files = 3; int64 AIConversations = 4; int64 AIMessages = 5; int64 AIRuns = 6; bool AIAvailable = 7; string AIReason = 8; string TransferMode = 9; }
+message TransferUserResourcesRequest { SessionRequest Actor = 1; int64 UserID = 2; int64 TargetUserID = 3; bool IncludeFiles = 4; bool IncludeAI = 5; }
+message TransferUserResourcesResponse { int64 Files = 1; int64 AIConversations = 2; int64 AIMessages = 3; int64 AIRuns = 4; string TransactionMode = 5; }

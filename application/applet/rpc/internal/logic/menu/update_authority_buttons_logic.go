@@ -27,6 +27,10 @@ func (l *UpdateAuthorityButtonsLogic) UpdateAuthorityButtons(in *pb.UpdateAuthor
 		return nil, err
 	}
 	err = accessutil.AdminMenuTransaction(l.svcCtx.DB.WithContext(l.ctx), func(tx *gorm.DB) error {
+		if err := accessutil.RequirePermissionRevision(tx, in.ExpectedRevision); err != nil {
+			return err
+		}
+
 		if err := accessutil.RequireRole(tx, in.AuthorityId); err != nil {
 			return err
 		}

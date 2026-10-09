@@ -33,5 +33,5 @@ func (l *GetRoleDataScopeLogic) GetRoleDataScope(req *types.GetRoleDataScopeRequ
 	if err != nil {
 		return nil, err
 	}
-	return &types.RoleDataScope{AuthorityId: result.DataScope.AuthorityId, Scope: result.DataScope.Scope, DepartmentIds: append([]int64{}, result.DataScope.DepartmentIds...)}, nil
+	return &types.RoleDataScope{Revision: result.DataScope.Revision, AuthorityId: result.DataScope.AuthorityId, Scope: result.DataScope.Scope, DepartmentIds: append([]int64{}, result.DataScope.DepartmentIds...)}, nil
 }

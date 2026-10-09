@@ -74,6 +74,7 @@ type SysBaseMenuParameter {
 }
 
 type SysBaseMenuBtn {
+ PermissionKey string `json:"permissionKey,optional"`
 	Name          string `json:"name"`
 	Desc          string `json:"desc"`
 	SysBaseMenuID int64  `json:"sysBaseMenuID,optional"`
@@ -215,6 +216,7 @@ type GetPathByAuthorityIdRequest {
 }
 
 type GetPathByAuthorityIdResponse {
+ Revision string `json:"revision"`
 	List []CasbinInfo `json:"list"`
 }
 
@@ -229,6 +231,7 @@ type GetMenuAuthorityRequest {
 }
 
 type GetMenuAuthorityResponse {
+ Revision string `json:"revision"`
 	SysMenuList []SysMenu `json:"list"`
 }
 
@@ -238,11 +241,13 @@ type GetMenuAuthorityResponse {
 //}
 
 type AddAuthorityMenuRequest {
+ ExpectedRevision string `json:"expectedRevision"`
 	AuthorityId int64  `json:"authorityId"`
 	MenuIds     string `json:"menuIds"`
 }
 
 type UpdateCasbinDataRequest {
+ ExpectedRevision string `json:"expectedRevision"`
 	AuthorityId    int64        `json:"authorityId"`
 	CasbinInfoList []CasbinInfo `json:"casbinInfoList"`
 }
@@ -265,6 +270,7 @@ type GetBaseMenuByIdResponse {
 }
 
 type UpdateBaseMenuRequest {
+ MovePreviewVersion string `json:"movePreviewVersion,optional"`
 	SysBaseMenu
 }
 
@@ -333,6 +339,7 @@ type UploadFileImgResponse {
 }
 
 type UpdateCasbinDataByApiIdsRequest {
+ ExpectedRevision string `json:"expectedRevision"`
 	AuthorityId int64   `json:"authorityId"`
 	ApiIds      []int64 `json:"apiIds"`
 }
@@ -439,9 +446,11 @@ type GetAuthorityButtonsRequest {
 	AuthorityId int64 `form:"authorityId"`
 }
 type GetAuthorityButtonsResponse {
+ Revision string `json:"revision"`
 	MenuBtnIds []int64 `json:"menuBtnIds"`
 }
 type UpdateAuthorityButtonsRequest {
+ ExpectedRevision string `json:"expectedRevision"`
 	AuthorityId int64 `json:"authorityId"`
 	MenuBtnIds []int64 `json:"menuBtnIds"`
 }

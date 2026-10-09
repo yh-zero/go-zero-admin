@@ -67,16 +67,24 @@ func (l *GetAuthorityListLogic) GetAuthorityList(in *pb.GetAuthorityListRequest)
 }
 
 func authorityTree(all []model.SysAuthority, parent int64) []model.SysAuthority {
-	result := make([]model.SysAuthority, 0)
-	for _, role := range all {
+	children := make(map[int64][]int, len(all))
+	for i := range all {
 		p := int64(0)
-		if role.ParentId != nil {
-			p = *role.ParentId
+		if all[i].ParentId != nil {
+			p = *all[i].ParentId
 		}
-		if p == parent {
-			role.Children = authorityTree(all, role.AuthorityId)
+		children[p] = append(children[p], i)
+	}
+	var build func(int64) []model.SysAuthority
+	build = func(parentID int64) []model.SysAuthority {
+		indices := children[parentID]
+		result := make([]model.SysAuthority, 0, len(indices))
+		for _, i := range indices {
+			role := all[i]
+			role.Children = build(role.AuthorityId)
 			result = append(result, role)
 		}
+		return result
 	}
-	return result
+	return build(parent)
 }

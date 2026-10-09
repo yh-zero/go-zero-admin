@@ -30,8 +30,16 @@ func (l *UpdateBaseMenuLogic) UpdateBaseMenu(in *pb.UpdateBaseMenuRequest) (*pb.
 		if err := accessutil.RequireID(tx, &old, in.SysBaseMenu.ID); err != nil {
 			return err
 		}
+		if old.Name != in.SysBaseMenu.Name && builtinPermissionMenu(old.Name) {
+			return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "内置业务菜单标识不可重命名")
+		}
 		if err := validateMenu(tx, in.SysBaseMenu); err != nil {
 			return err
+		}
+		if old.ParentId != in.SysBaseMenu.ParentId {
+			if err := applyMenuMove(tx, old.ID, in.SysBaseMenu.ParentId, in.MovePreviewVersion); err != nil {
+				return err
+			}
 		}
 		menu := menuModel(in.SysBaseMenu)
 		oldName := old.Name

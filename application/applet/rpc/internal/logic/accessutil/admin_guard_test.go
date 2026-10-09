@@ -39,9 +39,9 @@ func TestAdministratorCannotLoseAllRecoveryPermissions(t *testing.T) {
 	s := service(t)
 	resources := seedRecoveryRole(t, s)
 	ctx := context.Background()
-	_, err := casbinlogic.NewUpdateCasbinDataByApiIdsLogic(ctx, s).UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{AuthorityId: 1})
+	_, err := casbinlogic.NewUpdateCasbinDataByApiIdsLogic(ctx, s).UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 1})
 	mustFail(t, err)
-	_, err = casbinlogic.NewUpdateCasbinDataLogic(ctx, s).UpdateCasbinData(&pb.UpdateCasbinDataRequest{AuthorityId: 1})
+	_, err = casbinlogic.NewUpdateCasbinDataLogic(ctx, s).UpdateCasbinData(&pb.UpdateCasbinDataRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 1})
 	mustFail(t, err)
 	_, err = apilogic.NewDeleteApisByIdsLogic(ctx, s).DeleteApisByIds(&pb.DeleteApisByIdsRequest{Ids: []int64{resources[0].ID}})
 	mustFail(t, err)
@@ -58,7 +58,7 @@ func TestAdministratorCannotLoseAllRecoveryPermissions(t *testing.T) {
 		t.Fatal("denied API rename changed resource")
 	}
 	// Ordinary roles remain revocable; this protection is specific to recovery.
-	_, err = casbinlogic.NewUpdateCasbinDataByApiIdsLogic(ctx, s).UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{AuthorityId: 88})
+	_, err = casbinlogic.NewUpdateCasbinDataByApiIdsLogic(ctx, s).UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88})
 	must(t, err)
 }
 

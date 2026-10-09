@@ -4,8 +4,9 @@
 package types
 
 type AddAuthorityMenuRequest struct {
-	AuthorityId int64  `json:"authorityId"`
-	MenuIds     string `json:"menuIds"`
+	ExpectedRevision string `json:"expectedRevision"`
+	AuthorityId      int64  `json:"authorityId"`
+	MenuIds          string `json:"menuIds"`
 }
 
 type AddBaseMenuRequest struct {
@@ -121,6 +122,12 @@ type ApplyApiSyncRequest struct {
 type ApplyApiSyncResponse struct {
 	Added   int64 `json:"added"`
 	Updated int64 `json:"updated"`
+}
+
+type ApplyPermissionRollbackRequest struct {
+	ID               int64  `json:"id"`
+	ExpectedRevision string `json:"expectedRevision"`
+	Version          string `json:"version"`
 }
 
 type AuditLog struct {
@@ -329,6 +336,7 @@ type GetAuthorityButtonsRequest struct {
 }
 
 type GetAuthorityButtonsResponse struct {
+	Revision   string  `json:"revision"`
 	MenuBtnIds []int64 `json:"menuBtnIds"`
 }
 
@@ -361,6 +369,7 @@ type GetMenuAuthorityRequest struct {
 }
 
 type GetMenuAuthorityResponse struct {
+	Revision    string    `json:"revision"`
 	SysMenuList []SysMenu `json:"list"`
 }
 
@@ -385,7 +394,49 @@ type GetPathByAuthorityIdRequest struct {
 }
 
 type GetPathByAuthorityIdResponse struct {
-	List []CasbinInfo `json:"list"`
+	Revision string       `json:"revision"`
+	List     []CasbinInfo `json:"list"`
+}
+
+type GetPermissionEditRequest struct {
+	AuthorityId int64  `form:"authorityId"`
+	Kind        string `form:"kind"`
+}
+
+type GetPermissionEditResponse struct {
+	Revision    string        `json:"revision"`
+	AuthorityId int64         `json:"authorityId"`
+	Kind        string        `json:"kind"`
+	Menus       []SysBaseMenu `json:"menus"`
+	Apis        []SysApi      `json:"apis"`
+	Departments []Department  `json:"departments"`
+	MenuIds     []int64       `json:"menuIds"`
+	MenuBtnIds  []int64       `json:"menuBtnIds"`
+	Policies    []CasbinInfo  `json:"policies"`
+	DataScope   RoleDataScope `json:"dataScope"`
+}
+
+type GetPermissionHistoryRequest struct {
+	AuthorityId int64  `form:"authorityId"`
+	Kind        string `form:"kind,optional"`
+	PageRequest
+}
+
+type GetPermissionHistoryResponse struct {
+	List  []PermissionChange `json:"list"`
+	Total int64              `json:"total"`
+}
+
+type GetPermissionSnapshotRequest struct {
+}
+
+type GetPermissionSnapshotResponse struct {
+	Revision      string    `json:"revision"`
+	Fingerprint   string    `json:"fingerprint"`
+	AuthorityId   int64     `json:"authorityId"`
+	DefaultRouter string    `json:"defaultRouter"`
+	Menus         []SysMenu `json:"menus"`
+	Codes         []string  `json:"codes"`
 }
 
 type GetRoleDataScopeRequest struct {
@@ -509,6 +560,32 @@ type PageResponse struct {
 	PageSize int64 `json:"pageSize"`
 }
 
+type PermissionChange struct {
+	ID             int64              `json:"id"`
+	AuthorityId    int64              `json:"authorityId"`
+	Kind           string             `json:"kind"`
+	BeforeRevision string             `json:"beforeRevision"`
+	AfterRevision  string             `json:"afterRevision"`
+	Before         PermissionGrantSet `json:"before"`
+	After          PermissionGrantSet `json:"after"`
+	ActorId        int64              `json:"actorId"`
+	ActorName      string             `json:"actorName"`
+	TraceId        string             `json:"traceId"`
+	CreatedAt      string             `json:"createdAt"`
+}
+
+type PermissionGrantSet struct {
+	MenuIds    []int64       `json:"menuIds"`
+	MenuBtnIds []int64       `json:"menuBtnIds"`
+	Policies   []CasbinInfo  `json:"policies"`
+	DataScope  RoleDataScope `json:"dataScope"`
+}
+
+type PermissionMenuLink struct {
+	AuthorityId int64 `json:"authorityId"`
+	MenuId      int64 `json:"menuId"`
+}
+
 type Position struct {
 	Id     int64  `json:"id,optional"`
 	Name   string `json:"name"`
@@ -526,6 +603,29 @@ type PreviewApiSyncResponse struct {
 	Added    []ApiSyncItem `json:"added"`
 	Changed  []ApiSyncItem `json:"changed"`
 	Obsolete []ApiSyncItem `json:"obsolete"`
+}
+
+type PreviewMenuMoveRequest struct {
+	ID       int64 `json:"id"`
+	ParentId int64 `json:"parentId"`
+}
+
+type PreviewMenuMoveResponse struct {
+	Version      string               `json:"version"`
+	AuthorityIds []int64              `json:"authorityIds"`
+	AncestorIds  []int64              `json:"ancestorIds"`
+	AddedLinks   []PermissionMenuLink `json:"addedLinks"`
+}
+
+type PreviewPermissionRollbackRequest struct {
+	ID int64 `json:"id"`
+}
+
+type PreviewPermissionRollbackResponse struct {
+	Version string           `json:"version"`
+	Change  PermissionChange `json:"change"`
+	Allowed bool             `json:"allowed"`
+	Reason  string           `json:"reason"`
 }
 
 type RandomImageRequest struct {
@@ -560,9 +660,11 @@ type RevokeDeviceSessionRequest struct {
 }
 
 type RoleDataScope struct {
-	AuthorityId   int64   `json:"authorityId"`
-	Scope         string  `json:"scope"`
-	DepartmentIds []int64 `json:"departmentIds"`
+	Revision         string  `json:"revision,optional"`
+	ExpectedRevision string  `json:"expectedRevision,optional"`
+	AuthorityId      int64   `json:"authorityId"`
+	Scope            string  `json:"scope"`
+	DepartmentIds    []int64 `json:"departmentIds"`
 }
 
 type SendEmailCodeRequest struct {
@@ -609,6 +711,7 @@ type SysBaseMenu struct {
 }
 
 type SysBaseMenuBtn struct {
+	PermissionKey string `json:"permissionKey,optional"`
 	Name          string `json:"name"`
 	Desc          string `json:"desc"`
 	SysBaseMenuID int64  `json:"sysBaseMenuID,optional"`
@@ -651,13 +754,29 @@ type SysMenu struct {
 	Btns        map[string]int64       `json:"btns"`
 }
 
+type TransferUserResourcesRequest struct {
+	UserID       int64 `json:"userId"`
+	TargetUserID int64 `json:"targetUserId"`
+	IncludeFiles bool  `json:"includeFiles"`
+	IncludeAI    bool  `json:"includeAI"`
+}
+
+type TransferUserResourcesResponse struct {
+	Files           int64  `json:"files"`
+	AIConversations int64  `json:"aiConversations"`
+	AIMessages      int64  `json:"aiMessages"`
+	AIRuns          int64  `json:"aiRuns"`
+	TransactionMode string `json:"transactionMode"`
+}
+
 type UpdateApiRequest struct {
 	SysApi
 }
 
 type UpdateAuthorityButtonsRequest struct {
-	AuthorityId int64   `json:"authorityId"`
-	MenuBtnIds  []int64 `json:"menuBtnIds"`
+	ExpectedRevision string  `json:"expectedRevision"`
+	AuthorityId      int64   `json:"authorityId"`
+	MenuBtnIds       []int64 `json:"menuBtnIds"`
 }
 
 type UpdateAuthorityRequest struct {
@@ -670,17 +789,20 @@ type UpdateAuthorityResponse struct {
 }
 
 type UpdateBaseMenuRequest struct {
+	MovePreviewVersion string `json:"movePreviewVersion,optional"`
 	SysBaseMenu
 }
 
 type UpdateCasbinDataByApiIdsRequest struct {
-	AuthorityId int64   `json:"authorityId"`
-	ApiIds      []int64 `json:"apiIds"`
+	ExpectedRevision string  `json:"expectedRevision"`
+	AuthorityId      int64   `json:"authorityId"`
+	ApiIds           []int64 `json:"apiIds"`
 }
 
 type UpdateCasbinDataRequest struct {
-	AuthorityId    int64        `json:"authorityId"`
-	CasbinInfoList []CasbinInfo `json:"casbinInfoList"`
+	ExpectedRevision string       `json:"expectedRevision"`
+	AuthorityId      int64        `json:"authorityId"`
+	CasbinInfoList   []CasbinInfo `json:"casbinInfoList"`
 }
 
 type UpdateSysDictionaryInfoRequest struct {
@@ -728,4 +850,20 @@ type UserInfo struct {
 	Email       string         `json:"email"`  // 用户邮箱
 	Enable      int64          `json:"enable"` //用户是否被冻结 1正常 2冻结
 	Model
+}
+
+type UserResourcePreviewRequest struct {
+	UserID int64 `form:"userId"`
+}
+
+type UserResourcePreviewResponse struct {
+	UserID          int64  `json:"userId"`
+	Username        string `json:"username"`
+	Files           int64  `json:"files"`
+	AIConversations int64  `json:"aiConversations"`
+	AIMessages      int64  `json:"aiMessages"`
+	AIRuns          int64  `json:"aiRuns"`
+	AIAvailable     bool   `json:"aiAvailable"`
+	AIReason        string `json:"aiReason"`
+	TransferMode    string `json:"transferMode"`
 }

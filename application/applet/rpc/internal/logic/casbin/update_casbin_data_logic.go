@@ -20,6 +20,11 @@ func NewUpdateCasbinDataLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 func (l *UpdateCasbinDataLogic) UpdateCasbinData(in *pb.UpdateCasbinDataRequest) (*pb.NoDataResponse, error) {
-	err := accessutil.PolicyTransaction(l.ctx, l.svcCtx, func(tx *gorm.DB) error { return replaceRolePolicies(tx, in.AuthorityId, in.CasbinInfoList) })
+	err := accessutil.PolicyTransaction(l.ctx, l.svcCtx, func(tx *gorm.DB) error {
+		if err := accessutil.RequirePermissionRevision(tx, in.ExpectedRevision); err != nil {
+			return err
+		}
+		return replaceRolePolicies(tx, in.AuthorityId, in.CasbinInfoList)
+	})
 	return &pb.NoDataResponse{}, err
 }

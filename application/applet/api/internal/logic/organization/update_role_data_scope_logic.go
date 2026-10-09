@@ -29,7 +29,7 @@ func NewUpdateRoleDataScopeLogic(ctx context.Context, svcCtx *svc.ServiceContext
 }
 
 func (l *UpdateRoleDataScopeLogic) UpdateRoleDataScope(req *types.RoleDataScope) (resp *types.MessageResponse, err error) {
-	_, err = l.svcCtx.AppletOrganizationRPC.UpdateRoleDataScope(l.ctx, &pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{AuthorityId: req.AuthorityId, Scope: req.Scope, DepartmentIds: req.DepartmentIds}})
+	_, err = l.svcCtx.AppletOrganizationRPC.UpdateRoleDataScope(l.ctx, &pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{ExpectedRevision: req.ExpectedRevision, AuthorityId: req.AuthorityId, Scope: req.Scope, DepartmentIds: req.DepartmentIds}})
 	if err != nil {
 		return nil, err
 	}

@@ -31,6 +31,8 @@ type Membership {
     PositionIds []int64 `json:"positionIds"`
 }
 type RoleDataScope {
+ Revision string `json:"revision,optional"`
+ ExpectedRevision string `json:"expectedRevision,optional"`
     AuthorityId int64 `json:"authorityId"`
     Scope string `json:"scope"`
     DepartmentIds []int64 `json:"departmentIds"`

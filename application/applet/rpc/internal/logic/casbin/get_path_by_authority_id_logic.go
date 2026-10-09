@@ -2,12 +2,11 @@ package casbinlogic
 
 import (
 	"context"
-	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
-	"strconv"
+	"gorm.io/gorm"
 )
 
 type GetPathByAuthorityIdLogic struct {
@@ -21,16 +20,14 @@ func NewGetPathByAuthorityIdLogic(ctx context.Context, svcCtx *svc.ServiceContex
 }
 
 func (l *GetPathByAuthorityIdLogic) GetPathByAuthorityId(in *pb.GetPathByAuthorityIdRequest) (*pb.GetPathByAuthorityIdResponse, error) {
-	if err := accessutil.RequireRole(l.svcCtx.DB.WithContext(l.ctx), in.AuthorityId); err != nil {
-		return nil, err
-	}
-	var rules []gormadapter.CasbinRule
-	if err := l.svcCtx.DB.WithContext(l.ctx).Where("ptype = ? AND v0 = ?", "p", strconv.FormatInt(in.AuthorityId, 10)).Order("v1,v2").Find(&rules).Error; err != nil {
-		return nil, err
-	}
-	result := &pb.GetPathByAuthorityIdResponse{CasbinInfoList: make([]*pb.CasbinInfo, 0, len(rules))}
-	for _, rule := range rules {
-		result.CasbinInfoList = append(result.CasbinInfoList, &pb.CasbinInfo{Path: rule.V1, Method: rule.V2})
-	}
-	return result, nil
+	var out *pb.GetPathByAuthorityIdResponse
+	err := accessutil.PermissionRead(l.svcCtx.DB.WithContext(l.ctx), func(tx *gorm.DB) error {
+		e, err := accessutil.LoadPermissionEdit(tx, in.AuthorityId, "api")
+		if err != nil {
+			return err
+		}
+		out = &pb.GetPathByAuthorityIdResponse{Revision: e.Revision, CasbinInfoList: e.Policies}
+		return nil
+	})
+	return out, err
 }

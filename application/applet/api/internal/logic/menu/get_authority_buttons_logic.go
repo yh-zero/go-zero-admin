@@ -23,5 +23,5 @@ func (l *GetAuthorityButtonsLogic) GetAuthorityButtons(req *types.GetAuthorityBu
 	if err != nil {
 		return nil, err
 	}
-	return &types.GetAuthorityButtonsResponse{MenuBtnIds: result.MenuBtnIds}, nil
+	return &types.GetAuthorityButtonsResponse{Revision: result.Revision, MenuBtnIds: result.MenuBtnIds}, nil
 }

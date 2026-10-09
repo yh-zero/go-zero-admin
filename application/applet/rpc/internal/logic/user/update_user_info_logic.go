@@ -119,6 +119,24 @@ func userUpdates(in *pb.UpdateUserInfoRequest) (map[string]any, error) {
 		default:
 			return nil, userError("不支持更新该用户字段")
 		}
+		var value string
+		switch field {
+		case "nickName":
+			value = in.UserInfo.NickName
+		case "phone":
+			value = in.UserInfo.Phone
+		case "email":
+			value = in.UserInfo.Email
+		case "headerImg":
+			value = in.UserInfo.HeaderImg
+		case "sideMode":
+			value = in.UserInfo.SideMode
+		default:
+			continue
+		}
+		if err := validateProfileField(field, value); err != nil {
+			return nil, err
+		}
 	}
 	return values, nil
 }

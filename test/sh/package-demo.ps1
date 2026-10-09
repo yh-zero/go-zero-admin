@@ -40,7 +40,8 @@ foreach ($packageTool in @('go', 'pnpm', 'tar')) {
 foreach ($packageRequired in @(
     'docker/Dockerfile.prebuilt', 'docker/entrypoint.sh', 'docker/api.yaml.template',
     'docker/rpc.yaml.template', 'docker/ai-rpc.yaml.template', 'test/sh/db.sh',
-    'test/sh/mysql-client.sh', 'data/db/gozero-admin.sql', '.dockerignore', 'README.md',
+    'test/sh/mysql-client.sh', 'data/db/gozero-admin.sql',
+    'data/db/operator/20261008_permission_admin_recovery_bootstrap.sql', '.dockerignore', 'README.md',
     'docker/demo-rebuild.py', 'QUICK_RECOVERY.md'
 )) {
     if (-not (Test-Path -LiteralPath (Join-Path $packageBackendRoot $packageRequired) -PathType Leaf)) {
@@ -157,6 +158,10 @@ foreach ($packageSource in @('test/sh/db.sh', 'test/sh/mysql-client.sh', 'data/d
     Copy-DemoPackageFile -Source (Join-Path $packageBackendRoot $packageSource) -Destination (Join-Path $packageBackend $packageSource)
 }
 Copy-DemoPackageTree -Source (Join-Path $packageBackendRoot 'data/db/migrations') -Destination (Join-Path $packageBackend 'data/db/migrations') -Include {
+    param($entry)
+    return $entry.Extension -eq '.sql'
+}
+Copy-DemoPackageTree -Source (Join-Path $packageBackendRoot 'data/db/operator') -Destination (Join-Path $packageBackend 'data/db/operator') -Include {
     param($entry)
     return $entry.Extension -eq '.sql'
 }

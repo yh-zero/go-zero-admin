@@ -40,10 +40,11 @@ func service(t *testing.T) *svc.ServiceContext {
 	}
 	sqlDB.SetMaxOpenConns(1)
 	t.Cleanup(func() { _ = sqlDB.Close() })
-	err = db.AutoMigrate(&model.SysBaseMenu{}, &model.SysBaseMenuBtn{}, &model.SysBaseMenuParameter{}, &model.SysAuthority{}, &model.SysUser{}, &model.SysAuthorityMenu{}, &model.SysAuthorityBtn{}, &model.SysUserAuthority{}, &model.SysApi{}, &model.SysDictionary{}, &model.SysDictionaryInfo{}, &gormadapter.CasbinRule{}, &middlecasbin.PolicyVersion{}, &audit.Event{}, &model.SysRoleDataScope{}, &model.SysRoleScopeDepartment{})
+	err = db.AutoMigrate(&model.SysPermissionVersion{}, &model.SysPermissionChange{}, &model.SysDepartment{}, &model.SysBaseMenu{}, &model.SysBaseMenuBtn{}, &model.SysBaseMenuParameter{}, &model.SysAuthority{}, &model.SysUser{}, &model.SysAuthorityMenu{}, &model.SysAuthorityBtn{}, &model.SysUserAuthority{}, &model.SysApi{}, &model.SysDictionary{}, &model.SysDictionaryInfo{}, &gormadapter.CasbinRule{}, &middlecasbin.PolicyVersion{}, &audit.Event{}, &model.SysRoleDataScope{}, &model.SysRoleScopeDepartment{})
 	if err != nil {
 		t.Fatal(err)
 	}
+	must(t, db.Create(&model.SysPermissionVersion{ID: 1, Revision: 1}).Error)
 	adapter, err := gormadapter.NewAdapterByDB(db)
 	if err != nil {
 		t.Fatal(err)
@@ -97,7 +98,7 @@ func TestMenuAuthorizationTransactionsAndButtons(t *testing.T) {
 	var button model.SysBaseMenuBtn
 	must(t, s.DB.First(&button, "sys_base_menu_id = ?", child.ID).Error)
 	grant := authoritylogic.NewAddAuthorityMenuLogic(ctx, s)
-	_, err = grant.AddAuthorityMenu(&pb.AddAuthorityMenuRequest{AuthorityId: 88, MenuIds: strconv.FormatInt(child.ID, 10)})
+	_, err = grant.AddAuthorityMenu(&pb.AddAuthorityMenuRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88, MenuIds: strconv.FormatInt(child.ID, 10)})
 	must(t, err)
 	result, err := menulogic.NewGetMenuAuthorityLogic(ctx, s).GetMenuAuthority(&pb.GetMenuAuthorityRequest{AuthorityId: 88})
 	must(t, err)
@@ -113,7 +114,7 @@ func TestMenuAuthorizationTransactionsAndButtons(t *testing.T) {
 	if !found {
 		t.Fatal("target role response lost menu fields/button definitions")
 	}
-	_, err = menulogic.NewUpdateAuthorityButtonsLogic(ctx, s).UpdateAuthorityButtons(&pb.UpdateAuthorityButtonsRequest{AuthorityId: 88, MenuBtnIds: []int64{button.ID}})
+	_, err = menulogic.NewUpdateAuthorityButtonsLogic(ctx, s).UpdateAuthorityButtons(&pb.UpdateAuthorityButtonsRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88, MenuBtnIds: []int64{button.ID}})
 	must(t, err)
 	child.MenuBtn[0].ID = button.ID
 	child.Meta.Title = "changed"
@@ -129,7 +130,7 @@ func TestMenuAuthorizationTransactionsAndButtons(t *testing.T) {
 	mustFail(t, err)
 	_, err = menulogic.NewDeleteBaseMenuLogic(ctx, s).DeleteBaseMenu(&pb.DeleteBaseMenuRequest{ID: child.ID})
 	mustFail(t, err)
-	_, err = grant.AddAuthorityMenu(&pb.AddAuthorityMenuRequest{AuthorityId: 88, MenuIds: "999999"})
+	_, err = grant.AddAuthorityMenu(&pb.AddAuthorityMenuRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88, MenuIds: "999999"})
 	mustFail(t, err)
 	// Fail after the replacement DELETE to prove transaction rollback keeps old grants.
 	must(t, s.DB.Callback().Create().Before("gorm:create").Register("test_menu_failure", func(tx *gorm.DB) {
@@ -137,7 +138,7 @@ func TestMenuAuthorizationTransactionsAndButtons(t *testing.T) {
 			tx.AddError(errors.New("injected insert failure"))
 		}
 	}))
-	_, err = grant.AddAuthorityMenu(&pb.AddAuthorityMenuRequest{AuthorityId: 88, MenuIds: "7"})
+	_, err = grant.AddAuthorityMenu(&pb.AddAuthorityMenuRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88, MenuIds: "7"})
 	mustFail(t, err)
 	must(t, s.DB.Callback().Create().Remove("test_menu_failure"))
 	result, err = menulogic.NewGetMenuAuthorityLogic(ctx, s).GetMenuAuthority(&pb.GetMenuAuthorityRequest{AuthorityId: 88})
@@ -145,7 +146,7 @@ func TestMenuAuthorizationTransactionsAndButtons(t *testing.T) {
 	if len(result.SysMenuList) != 2 {
 		t.Fatal("failed replacement lost old menu grants")
 	}
-	_, err = grant.AddAuthorityMenu(&pb.AddAuthorityMenuRequest{AuthorityId: 88, MenuIds: ""})
+	_, err = grant.AddAuthorityMenu(&pb.AddAuthorityMenuRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88, MenuIds: ""})
 	must(t, err)
 	buttons, err = menulogic.NewGetAuthorityButtonsLogic(ctx, s).GetAuthorityButtons(&pb.GetAuthorityButtonsRequest{AuthorityId: 88})
 	must(t, err)
@@ -201,14 +202,14 @@ func TestAPIPoliciesValidateRollbackAndReload(t *testing.T) {
 		t.Fatal("HTTP method not normalized")
 	}
 	save := casbinlogic.NewUpdateCasbinDataByApiIdsLogic(ctx, s)
-	_, err = save.UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{AuthorityId: 88, ApiIds: []int64{api.ID}})
+	_, err = save.UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88, ApiIds: []int64{api.ID}})
 	must(t, err)
 	allowed, err := s.Casbin.Enforce("88", api.Path, "GET")
 	must(t, err)
 	if !allowed {
 		t.Fatal("saved policy not effective")
 	}
-	_, err = save.UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{AuthorityId: 88, ApiIds: []int64{api.ID, 99999}})
+	_, err = save.UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88, ApiIds: []int64{api.ID, 99999}})
 	mustFail(t, err)
 	allowed, err = s.Casbin.Enforce("88", api.Path, "GET")
 	must(t, err)
@@ -227,7 +228,7 @@ func TestAPIPoliciesValidateRollbackAndReload(t *testing.T) {
 	if !allowed {
 		t.Fatal("renamed policy not effective")
 	}
-	_, err = casbinlogic.NewUpdateCasbinDataLogic(ctx, s).UpdateCasbinData(&pb.UpdateCasbinDataRequest{AuthorityId: 88, CasbinInfoList: []*pb.CasbinInfo{{Path: "/v1/not-registered", Method: "GET"}}})
+	_, err = casbinlogic.NewUpdateCasbinDataLogic(ctx, s).UpdateCasbinData(&pb.UpdateCasbinDataRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88, CasbinInfoList: []*pb.CasbinInfo{{Path: "/v1/not-registered", Method: "GET"}}})
 	mustFail(t, err)
 	_, err = apilogic.NewGetApiListLogic(ctx, s).GetApiList(&pb.GetApiListRequest{PageRequest: &pb.PageRequest{PageNo: 1, PageSize: 10}, OrderKey: "DROP TABLE"})
 	mustFail(t, err)
@@ -307,14 +308,14 @@ func TestFailedPolicyInsertKeepsExistingRoleGrants(t *testing.T) {
 	api := model.SysApi{Path: "/v1/test/keep", Method: "GET"}
 	must(t, s.DB.Create(&api).Error)
 	save := casbinlogic.NewUpdateCasbinDataByApiIdsLogic(ctx, s)
-	_, err := save.UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{AuthorityId: 88, ApiIds: []int64{api.ID}})
+	_, err := save.UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88, ApiIds: []int64{api.ID}})
 	must(t, err)
 	must(t, s.DB.Callback().Create().Before("gorm:create").Register("test_policy_failure", func(tx *gorm.DB) {
 		if tx.Statement.Table == "casbin_rule" {
 			tx.AddError(errors.New("injected policy insert failure"))
 		}
 	}))
-	_, err = save.UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{AuthorityId: 88, ApiIds: []int64{api.ID}})
+	_, err = save.UpdateCasbinDataByApiIds(&pb.UpdateCasbinDataByApiIdsRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88, ApiIds: []int64{api.ID}})
 	mustFail(t, err)
 	must(t, s.DB.Callback().Create().Remove("test_policy_failure"))
 	var count int64
@@ -337,4 +338,11 @@ func TestCanceledContextStopsMenuRead(t *testing.T) {
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("menu read ignored canceled request: %v", err)
 	}
+}
+
+func currentPermissionRevision(t *testing.T, s *svc.ServiceContext) string {
+	t.Helper()
+	rev, err := accessutil.PermissionRevision(s.DB.DB)
+	must(t, err)
+	return rev
 }

@@ -28,6 +28,7 @@ func NewUpdateCasbinDataLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 func (l *UpdateCasbinDataLogic) UpdateCasbinData(req *types.UpdateCasbinDataRequest) (resp *types.MessageResponse, err error) {
 	var pbUpdateCasbinData pb.UpdateCasbinDataRequest
 	_ = copier.Copy(&pbUpdateCasbinData.CasbinInfoList, req.CasbinInfoList)
+	pbUpdateCasbinData.ExpectedRevision = req.ExpectedRevision
 	pbUpdateCasbinData.AuthorityId = req.AuthorityId
 	_, err = l.svcCtx.AppletCasbinRPC.UpdateCasbinData(l.ctx, &pbUpdateCasbinData)
 	if err != nil {

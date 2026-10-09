@@ -18,6 +18,7 @@ import (
 	files "go-zero-admin/application/applet/api/internal/handler/files"
 	menu "go-zero-admin/application/applet/api/internal/handler/menu"
 	organization "go-zero-admin/application/applet/api/internal/handler/organization"
+	permission "go-zero-admin/application/applet/api/internal/handler/permission"
 	session "go-zero-admin/application/applet/api/internal/handler/session"
 	user "go-zero-admin/application/applet/api/internal/handler/user"
 	usernocasbin "go-zero-admin/application/applet/api/internal/handler/usernocasbin"
@@ -486,6 +487,21 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			[]rest.Middleware{serverCtx.Authority},
 			[]rest.Route{
 				{
+					Method:  http.MethodPost,
+					Path:    "/previewMove",
+					Handler: menu.PreviewMenuMoveHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/menu"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
 					// 读取角色数据范围
 					Method:  http.MethodGet,
 					Path:    "/dataScope",
@@ -565,6 +581,51 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 
 	server.AddRoutes(
 		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					Method:  http.MethodGet,
+					Path:    "/edit",
+					Handler: permission.GetPermissionEditHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/history",
+					Handler: permission.GetPermissionHistoryHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/rollback/apply",
+					Handler: permission.ApplyPermissionRollbackHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/rollback/preview",
+					Handler: permission.PreviewPermissionRollbackHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/permissions"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Session},
+			[]rest.Route{
+				{
+					Method:  http.MethodGet,
+					Path:    "/snapshot",
+					Handler: permission.GetPermissionSnapshotHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/permissions"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
 			[]rest.Middleware{serverCtx.Session},
 			[]rest.Route{
 				{
@@ -629,6 +690,26 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
 		rest.WithPrefix("/v1/sys"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					Method:  http.MethodGet,
+					Path:    "/resources",
+					Handler: user.GetUserResourcePreviewHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/resources/transfer",
+					Handler: user.TransferUserResourcesHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/user"),
 	)
 
 	server.AddRoutes(

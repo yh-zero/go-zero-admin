@@ -22,12 +22,12 @@ func TestLegacyMissingRecoveryPoliciesDoNotBlockUnrelatedWork(t *testing.T) {
 	must(t, s.DB.Create(&model.SysAuthority{AuthorityId: 1, AuthorityName: "legacy admin"}).Error)
 	_, err := apilogic.NewCreateApiLogic(ctx, s).CreateApi(&pb.CreateApiRequest{SysApi: &pb.SysApi{Path: "/v1/sys/newResource", Method: "GET"}})
 	must(t, err)
-	_, err = casbinlogic.NewUpdateCasbinDataLogic(ctx, s).UpdateCasbinData(&pb.UpdateCasbinDataRequest{AuthorityId: 88})
+	_, err = casbinlogic.NewUpdateCasbinDataLogic(ctx, s).UpdateCasbinData(&pb.UpdateCasbinDataRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88})
 	must(t, err)
 	// A partial legacy recovery grant may improve, but an existing grant cannot be lost.
 	must(t, s.DB.Create(&model.SysApi{Path: "/v1/sys/menu/getMenu", Method: "GET"}).Error)
 	must(t, s.DB.Create(&gormadapter.CasbinRule{Ptype: "p", V0: "1", V1: "/v1/sys/menu/getMenu", V2: "GET"}).Error)
-	_, err = casbinlogic.NewUpdateCasbinDataLogic(ctx, s).UpdateCasbinData(&pb.UpdateCasbinDataRequest{AuthorityId: 1})
+	_, err = casbinlogic.NewUpdateCasbinDataLogic(ctx, s).UpdateCasbinData(&pb.UpdateCasbinDataRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 1})
 	mustFail(t, err)
 	_, err = authoritylogic.NewDeleteAuthorityLogic(ctx, s).DeleteAuthority(&pb.DeleteAuthorityRequest{ID: 1})
 	mustFail(t, err)
@@ -50,9 +50,9 @@ func TestAdministratorRecoveryMenuAndButtonsArePreserved(t *testing.T) {
 		buttonIDs = append(buttonIDs, button.ID)
 		must(t, s.DB.Create(&model.SysAuthorityBtn{AuthorityId: 1, SysMenuID: 11, SysBaseMenuBtnID: button.ID}).Error)
 	}
-	_, err := authoritylogic.NewAddAuthorityMenuLogic(ctx, s).AddAuthorityMenu(&pb.AddAuthorityMenuRequest{AuthorityId: 1, MenuIds: ""})
+	_, err := authoritylogic.NewAddAuthorityMenuLogic(ctx, s).AddAuthorityMenu(&pb.AddAuthorityMenuRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 1, MenuIds: ""})
 	mustFail(t, err)
-	_, err = menulogic.NewUpdateAuthorityButtonsLogic(ctx, s).UpdateAuthorityButtons(&pb.UpdateAuthorityButtonsRequest{AuthorityId: 1, MenuBtnIds: buttonIDs[:2]})
+	_, err = menulogic.NewUpdateAuthorityButtonsLogic(ctx, s).UpdateAuthorityButtons(&pb.UpdateAuthorityButtonsRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 1, MenuBtnIds: buttonIDs[:2]})
 	mustFail(t, err)
 	_, err = menulogic.NewUpdateBaseMenuLogic(ctx, s).UpdateBaseMenu(&pb.UpdateBaseMenuRequest{SysBaseMenu: &pb.SysBaseMenu{ID: 10, Name: "admin", Path: "admin", Component: root.Component, Hidden: true, Meta: &pb.Meta{Title: "Admin"}}})
 	mustFail(t, err)
@@ -61,12 +61,12 @@ func TestAdministratorRecoveryMenuAndButtonsArePreserved(t *testing.T) {
 	// Keeping the component but deleting its permission button definitions also fails.
 	_, err = menulogic.NewUpdateBaseMenuLogic(ctx, s).UpdateBaseMenu(&pb.UpdateBaseMenuRequest{SysBaseMenu: &pb.SysBaseMenu{ID: 11, ParentId: 10, Name: "authority", Path: "authority", Component: page.Component, Meta: &pb.Meta{Title: "Roles"}}})
 	mustFail(t, err)
-	_, err = authoritylogic.NewAddAuthorityMenuLogic(ctx, s).AddAuthorityMenu(&pb.AddAuthorityMenuRequest{AuthorityId: 88, MenuIds: ""})
+	_, err = authoritylogic.NewAddAuthorityMenuLogic(ctx, s).AddAuthorityMenu(&pb.AddAuthorityMenuRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 88, MenuIds: ""})
 	must(t, err)
 	// No special restrictions on preserving all recovery capabilities unchanged.
-	_, err = authoritylogic.NewAddAuthorityMenuLogic(ctx, s).AddAuthorityMenu(&pb.AddAuthorityMenuRequest{AuthorityId: accessutil.AdminAuthorityID, MenuIds: "11"})
+	_, err = authoritylogic.NewAddAuthorityMenuLogic(ctx, s).AddAuthorityMenu(&pb.AddAuthorityMenuRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: accessutil.AdminAuthorityID, MenuIds: "11"})
 	must(t, err)
-	_, err = menulogic.NewUpdateAuthorityButtonsLogic(ctx, s).UpdateAuthorityButtons(&pb.UpdateAuthorityButtonsRequest{AuthorityId: 1, MenuBtnIds: buttonIDs})
+	_, err = menulogic.NewUpdateAuthorityButtonsLogic(ctx, s).UpdateAuthorityButtons(&pb.UpdateAuthorityButtonsRequest{ExpectedRevision: currentPermissionRevision(t, s), AuthorityId: 1, MenuBtnIds: buttonIDs})
 	must(t, err)
 	var count int64
 	must(t, s.DB.Model(&model.SysAuthorityBtn{}).Where("authority_id = ?", 1).Count(&count).Error)

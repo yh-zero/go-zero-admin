@@ -75,10 +75,7 @@ func adminMenuState(tx *gorm.DB) (adminMenuAccess, error) {
 // recoverable capabilities before committing. This also covers editing the page
 // component, hiding its ancestor, and removing a button definition.
 func AdminMenuTransaction(db *gorm.DB, change func(*gorm.DB) error) error {
-	return db.Transaction(func(tx *gorm.DB) error {
-		if err := LockAdminGuard(tx); err != nil {
-			return err
-		}
+	return PermissionTransaction(db, func(tx *gorm.DB) error {
 		before, err := adminMenuState(tx)
 		if err != nil {
 			return err

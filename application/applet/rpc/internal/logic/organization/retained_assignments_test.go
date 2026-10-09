@@ -94,7 +94,7 @@ func TestCustomScopeRetainsDisabledDepartmentsWithoutReassignmentBypass(t *testi
 	b := mustDepartment(t, s, 0, "B", "b")
 	c := mustDepartment(t, s, 0, "C", "c")
 	set := func(ids ...int64) error {
-		return s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{AuthorityId: 2, Scope: "custom", DepartmentIds: ids}})
+		return s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{ExpectedRevision: permissionRevision(t, s), AuthorityId: 2, Scope: "custom", DepartmentIds: ids}})
 	}
 	if err := set(a.ID); err != nil {
 		t.Fatal(err)
@@ -141,7 +141,7 @@ func TestRetainedAssignmentsMustStillExist(t *testing.T) {
 			if err := s.updateMembership(&pb.MembershipRequest{UserID: 10, DepartmentId: d.ID, PositionIds: []int64{p.ID}}); err != nil {
 				t.Fatal(err)
 			}
-			if err := s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{AuthorityId: 2, Scope: "custom", DepartmentIds: []int64{d.ID}}}); err != nil {
+			if err := s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{ExpectedRevision: permissionRevision(t, s), AuthorityId: 2, Scope: "custom", DepartmentIds: []int64{d.ID}}}); err != nil {
 				t.Fatal(err)
 			}
 			var err error
@@ -154,7 +154,7 @@ func TestRetainedAssignmentsMustStillExist(t *testing.T) {
 				t.Fatal(err)
 			}
 			if missing == "scope_department" {
-				err = s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{AuthorityId: 2, Scope: "custom", DepartmentIds: []int64{d.ID}}})
+				err = s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{ExpectedRevision: permissionRevision(t, s), AuthorityId: 2, Scope: "custom", DepartmentIds: []int64{d.ID}}})
 			} else {
 				err = s.updateMembership(&pb.MembershipRequest{UserID: 10, DepartmentId: d.ID, PositionIds: []int64{p.ID}})
 			}
@@ -181,4 +181,24 @@ func TestRetainedMembershipAuditFailureRollsBackAssignmentsAndSession(t *testing
 		t.Fatal("failed audit allowed retained membership update")
 	}
 	requireMembership(t, s, a.ID, []int64{p.ID}, 2)
+}
+func TestStaleDataScopeCannotBroadenAndMissingRevisionRejects(t *testing.T) {
+	s := testStore(t)
+	old := permissionRevision(t, s)
+	if err := s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{AuthorityId: 2, Scope: "self", ExpectedRevision: old}}); err != nil {
+		t.Fatal(err)
+	}
+	latest := permissionRevision(t, s)
+	for _, rev := range []string{old, ""} {
+		if err := s.updateDataScope(&pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{AuthorityId: 2, Scope: "all", ExpectedRevision: rev}}); err == nil {
+			t.Fatal("stale/missing revision widened data scope")
+		}
+	}
+	result, err := s.dataScope(&pb.GetRoleDataScopeRequest{AuthorityId: 2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.DataScope.Scope != "self" || result.DataScope.Revision != latest {
+		t.Fatalf("scope or revision changed: %+v", result)
+	}
 }

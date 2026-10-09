@@ -1,0 +1,117 @@
+syntax = "v1"
+
+type GetPermissionEditRequest {
+ AuthorityId int64 `form:"authorityId"`
+ Kind string `form:"kind"`
+}
+type GetPermissionEditResponse {
+ Revision string `json:"revision"`
+ AuthorityId int64 `json:"authorityId"`
+ Kind string `json:"kind"`
+ Menus []SysBaseMenu `json:"menus"`
+ Apis []SysApi `json:"apis"`
+ Departments []Department `json:"departments"`
+ MenuIds []int64 `json:"menuIds"`
+ MenuBtnIds []int64 `json:"menuBtnIds"`
+ Policies []CasbinInfo `json:"policies"`
+ DataScope RoleDataScope `json:"dataScope"`
+}
+type GetPermissionSnapshotRequest {}
+type GetPermissionSnapshotResponse {
+ Revision string `json:"revision"`
+ Fingerprint string `json:"fingerprint"`
+ AuthorityId int64 `json:"authorityId"`
+ DefaultRouter string `json:"defaultRouter"`
+ Menus []SysMenu `json:"menus"`
+ Codes []string `json:"codes"`
+}
+type PreviewMenuMoveRequest {
+ ID int64 `json:"id"`
+ ParentId int64 `json:"parentId"`
+}
+type PermissionMenuLink {
+ AuthorityId int64 `json:"authorityId"`
+ MenuId int64 `json:"menuId"`
+}
+type PreviewMenuMoveResponse {
+ Version string `json:"version"`
+ AuthorityIds []int64 `json:"authorityIds"`
+ AncestorIds []int64 `json:"ancestorIds"`
+ AddedLinks []PermissionMenuLink `json:"addedLinks"`
+}
+type PermissionGrantSet {
+ MenuIds []int64 `json:"menuIds"`
+ MenuBtnIds []int64 `json:"menuBtnIds"`
+ Policies []CasbinInfo `json:"policies"`
+ DataScope RoleDataScope `json:"dataScope"`
+}
+type PermissionChange {
+ ID int64 `json:"id"`
+ AuthorityId int64 `json:"authorityId"`
+ Kind string `json:"kind"`
+ BeforeRevision string `json:"beforeRevision"`
+ AfterRevision string `json:"afterRevision"`
+ Before PermissionGrantSet `json:"before"`
+ After PermissionGrantSet `json:"after"`
+ ActorId int64 `json:"actorId"`
+ ActorName string `json:"actorName"`
+ TraceId string `json:"traceId"`
+ CreatedAt string `json:"createdAt"`
+}
+type GetPermissionHistoryRequest {
+ AuthorityId int64 `form:"authorityId"`
+ Kind string `form:"kind,optional"`
+ PageRequest
+}
+type GetPermissionHistoryResponse {
+ List []PermissionChange `json:"list"`
+ Total int64 `json:"total"`
+}
+type PreviewPermissionRollbackRequest { ID int64 `json:"id"` }
+type PreviewPermissionRollbackResponse {
+ Version string `json:"version"`
+ Change PermissionChange `json:"change"`
+ Allowed bool `json:"allowed"`
+ Reason string `json:"reason"`
+}
+type ApplyPermissionRollbackRequest {
+ ID int64 `json:"id"`
+ ExpectedRevision string `json:"expectedRevision"`
+ Version string `json:"version"`
+}
+@server(
+ prefix: /v1/sys/permissions
+ group: permission
+ jwt: JwtAuth
+ middleware: Authority
+)
+service applet-api {
+ @handler GetPermissionEdit
+ get /edit (GetPermissionEditRequest) returns (GetPermissionEditResponse)
+ @handler GetPermissionHistory
+ get /history (GetPermissionHistoryRequest) returns (GetPermissionHistoryResponse)
+ @handler PreviewPermissionRollback
+ post /rollback/preview (PreviewPermissionRollbackRequest) returns (PreviewPermissionRollbackResponse)
+ @handler ApplyPermissionRollback
+ post /rollback/apply (ApplyPermissionRollbackRequest) returns (MessageResponse)
+}
+@server(
+ prefix: /v1/sys/permissions
+ group: permission
+ jwt: JwtAuth
+ middleware: Session
+)
+service applet-api {
+ @handler GetPermissionSnapshot
+ get /snapshot (GetPermissionSnapshotRequest) returns (GetPermissionSnapshotResponse)
+}
+@server(
+ prefix: /v1/sys/menu
+ group: menu
+ jwt: JwtAuth
+ middleware: Authority
+)
+service applet-api {
+ @handler PreviewMenuMove
+ post /previewMove (PreviewMenuMoveRequest) returns (PreviewMenuMoveResponse)
+}

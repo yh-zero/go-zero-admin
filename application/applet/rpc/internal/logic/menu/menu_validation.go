@@ -2,7 +2,9 @@ package menulogic
 
 import (
 	"go-zero-admin/pkg/result/xerr"
+	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
@@ -50,10 +52,20 @@ func validateMenu(db *gorm.DB, menu *pb.SysBaseMenu) error {
 			return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "按钮name不能为空、重复或包含冒号")
 		}
 		names[button.Name] = true
+		// A historical key joins two varchar(191) names with a separator.
+		if utf8.RuneCountInString(button.PermissionKey) > 383 || strings.TrimSpace(button.PermissionKey) != button.PermissionKey || utf8.RuneCountInString(button.Name) > 191 {
+			return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "按钮权限标识长度或格式无效")
+		}
 		if button.ID > 0 {
 			var old model.SysBaseMenuBtn
 			if err := accessutil.RequireID(db, &old, button.ID); err != nil {
 				return err
+			}
+			if button.PermissionKey != "" && button.PermissionKey != old.PermissionKey {
+				return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "permissionKey创建后不可修改")
+			}
+			if builtinPermissionMenu(menu.Name) && button.Name != old.Name {
+				return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "内置业务按钮标识不可重命名")
 			}
 			if old.SysBaseMenuID != menu.ID {
 				return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "按钮不属于当前菜单")
@@ -148,6 +160,22 @@ func menuModel(menu *pb.SysBaseMenu) model.SysBaseMenu {
 
 // Keep retained button IDs stable so editing a menu does not lose existing grants.
 func saveMenuRelations(tx *gorm.DB, id int64, menu *pb.SysBaseMenu) error {
+	var oldButtons []model.SysBaseMenuBtn
+	if err := tx.Where("sys_base_menu_id = ?", id).Find(&oldButtons).Error; err != nil {
+		return err
+	}
+	keys := map[int64]string{}
+	for _, b := range oldButtons {
+		key := b.PermissionKey
+		if key == "" {
+			var oldMenu model.SysBaseMenu
+			if err := tx.First(&oldMenu, id).Error; err != nil {
+				return err
+			}
+			key = oldMenu.Name + ":" + b.Name
+		}
+		keys[b.ID] = key
+	}
 	keep := make([]int64, 0, len(menu.MenuBtn))
 	for _, button := range menu.MenuBtn {
 		if button.ID > 0 {
@@ -174,10 +202,25 @@ func saveMenuRelations(tx *gorm.DB, id int64, menu *pb.SysBaseMenu) error {
 		}
 	}
 	for _, button := range menu.MenuBtn {
-		value := model.SysBaseMenuBtn{MODEL_BASE: base.MODEL_BASE{ID: button.ID}, SysBaseMenuID: id, Name: button.Name, Desc: button.Desc}
+		key := button.PermissionKey
+		if button.ID > 0 {
+			key = keys[button.ID]
+		}
+		if key == "" {
+			key = "menu." + strconv.FormatInt(id, 10) + ".button." + button.Name
+		}
+		value := model.SysBaseMenuBtn{PermissionKey: key, MODEL_BASE: base.MODEL_BASE{ID: button.ID}, SysBaseMenuID: id, Name: button.Name, Desc: button.Desc}
 		if err := tx.Create(&value).Error; err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func builtinPermissionMenu(name string) bool {
+	switch name {
+	case "user", "authority", "menu", "api", "dictionary", "files", "organization-departments", "organization-positions", "businessTools", "ai-agent":
+		return true
+	}
+	return false
 }

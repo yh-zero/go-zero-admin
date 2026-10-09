@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/glebarez/sqlite"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	auditserver "go-zero-admin/application/applet/rpc/internal/server/audit"
@@ -53,6 +54,12 @@ func fixture(t *testing.T) *rpcFixture {
 	}
 	sqlDB.SetMaxOpenConns(1)
 	if err := db.AutoMigrate(&model.SysAuthority{}, &model.SysUser{}, &model.SysUserAuthority{}, &model.SysDeviceSession{}, &model.SysDepartment{}, &model.SysPosition{}, &model.SysUserDepartment{}, &model.SysUserPosition{}, &model.SysRoleDataScope{}, &model.SysRoleScopeDepartment{}, &model.SysFileResource{}, &model.SysFileReference{}, &audit.Event{}); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.AutoMigrate(&model.SysPermissionVersion{}, &model.SysPermissionChange{}, &model.SysBaseMenu{}, &model.SysBaseMenuBtn{}, &model.SysAuthorityMenu{}, &model.SysAuthorityBtn{}, &model.SysApi{}, &model.SysBaseMenuParameter{}, &gormadapter.CasbinRule{}); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Create(&model.SysPermissionVersion{ID: 1, Revision: 1}).Error; err != nil {
 		t.Fatal(err)
 	}
 	for _, id := range []int64{1, 2} {
@@ -134,7 +141,11 @@ func TestOrganizationAuditRPCSerializationAndMetadata(t *testing.T) {
 	if err != nil || len(tree.List) != 1 || len(tree.List[0].Children) != 1 || tree.List[0].Children[0].ID != child.ID {
 		t.Fatal("nested protobuf tree failed", tree, err)
 	}
-	if _, err := org.UpdateRoleDataScope(ctx, &pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{AuthorityId: 2, Scope: "custom", DepartmentIds: []int64{child.ID}}}); err != nil {
+	initialScope, err := org.GetRoleDataScope(ctx, &pb.GetRoleDataScopeRequest{AuthorityId: 2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := org.UpdateRoleDataScope(ctx, &pb.RoleDataScopeRequest{DataScope: &pb.RoleDataScope{ExpectedRevision: initialScope.DataScope.Revision, AuthorityId: 2, Scope: "custom", DepartmentIds: []int64{child.ID}}}); err != nil {
 		t.Fatal(err)
 	}
 	scope, err := org.GetRoleDataScope(ctx, &pb.GetRoleDataScopeRequest{AuthorityId: 2})
