@@ -39,12 +39,12 @@ try {
     Invoke-GoCheck @('vet', './...')
     Invoke-GoCheck @('test', './...', '-count=1')
     Invoke-GoCheck @('build', './...')
+    Write-Host 'Running environment and model-key isolation regression.'
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'regression.ps1') -Scope env
+    if ($LASTEXITCODE -ne 0) { throw 'Environment regression failed.' }
     if ($IncludeDBRegression) {
-        Write-Host 'Running isolated development-MySQL full SQL import regression.'
-        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'db-import-regression.ps1')
-        if ($LASTEXITCODE -ne 0) { throw 'Database import regression failed.' }
-        Write-Host 'Running isolated development-MySQL migration regression.'
-        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'db-regression.ps1')
+        Write-Host 'Running isolated development-MySQL migration and import regression.'
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'regression.ps1') -Scope db
         if ($LASTEXITCODE -ne 0) { throw 'Database regression failed.' }
     }
     Write-Host 'All requested verification checks passed.'

@@ -1,11 +1,63 @@
 ﻿#requires -Version 5.1
+# go-zero-admin 代码生成入口（api / rpc / model / swagger）
+#
+#   .\test\sh\gen.ps1 api   <module>             生成 API 代码（使用项目自定义模板）
+#   .\test\sh\gen.ps1 rpc   <module> <proto>      生成 RPC 代码
+#   .\test\sh\gen.ps1 model <module> <table>      从 MySQL 表生成 Model 代码
+#   .\test\sh\gen.ps1 swagger [-ApiHost host]    生成 Swagger 文档
+#
+# 前提：已安装 goctl v1.10.2（go install github.com/zeromicro/go-zero/tools/goctl@v1.10.2）；
+#       rpc 另需 protobuf 工具。在项目根目录或任意目录均可运行。
+# 注意：生成后请检查差异，保留已有的自定义业务逻辑。
 [CmdletBinding()]
 param(
+    [Parameter(Position = 0)][ValidateSet('api', 'rpc', 'model', 'swagger')][string]$Command,
+    [Parameter(Position = 1)][string]$Name,
+    [Parameter(Position = 2)][string]$Target,
     [string]$GoctlPath,
     [string]$ApiHost = 'localhost:7001'
 )
 
 $ErrorActionPreference = 'Stop'
+$projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+
+function Join-Parts([string[]]$Parts) {
+    $joined = $Parts[0]
+    for ($index = 1; $index -lt $Parts.Count; $index++) { $joined = Join-Path $joined $Parts[$index] }
+    return $joined
+}
+
+function Invoke-ApiGen {
+    if (-not $Name) { throw 'Usage: gen.ps1 api <module>   (example: gen.ps1 api applet)' }
+    foreach ($template in @('test/goctl/api/handler.tpl', 'test/goctl/api/main.tpl')) {
+        if (-not (Test-Path -LiteralPath $template -PathType Leaf)) { throw ('Custom template not found: ' + $template) }
+    }
+    Write-Host ('Generating API code for ' + $Name + '...')
+    $apiFile = Join-Parts @('application', $Name, 'api', 'desc', ($Name + '.api'))
+    $apiDir = Join-Parts @('application', $Name, 'api')
+    & goctl api go -api $apiFile -dir $apiDir -home test/goctl -style=go_zero
+    if ($LASTEXITCODE -ne 0) { throw 'goctl api generation failed.' }
+}
+
+function Invoke-RpcGen {
+    if (-not $Name -or -not $Target) { throw 'Usage: gen.ps1 rpc <module> <proto>   (example: gen.ps1 rpc applet applet)' }
+    Write-Host ('Generating RPC code for ' + $Name + '/' + $Target + '...')
+    $protoFile = Join-Parts @('application', $Name, 'rpc', 'desc', ($Target + '.proto'))
+    $rpcDir = Join-Parts @('application', $Name, 'rpc')
+    & goctl rpc protoc $protoFile --go_out=$rpcDir --go-grpc_out=$rpcDir --zrpc_out=$rpcDir -m --style=go_zero --name-from-filename
+    if ($LASTEXITCODE -ne 0) { throw 'goctl rpc generation failed.' }
+}
+
+function Invoke-ModelGen {
+    if (-not $Name -or -not $Target) { throw 'Usage: gen.ps1 model <module> <table>   (example: gen.ps1 model applet sys_users)' }
+    Write-Host ('Generating Model code for ' + $Name + '.' + $Target + '...')
+    $modelDir = Join-Parts @('application', $Name, 'rpc', 'internal', 'model')
+    $dsn = 'root:123456@tcp(127.0.0.1:3306)/goZero-admin'
+    & goctl model mysql datasource --dir $modelDir --table $Target --cache true --url=$dsn
+    if ($LASTEXITCODE -ne 0) { throw 'goctl model generation failed.' }
+}
+
+function Invoke-SwaggerGen {
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $sourceDir = Join-Path $projectRoot 'application/applet/api/desc'
 $outputFile = Join-Path $projectRoot 'data/api/generated/go-zero-admin.swagger.json'
@@ -141,7 +193,7 @@ import "./desc/applet.api"
     $document.Remove('x-date') # A generation timestamp would change every run.
     $document.host = $ApiHost
     $document.schemes = @('http', 'https')
-    $document.info.description = 'Generated from current .api definitions by test/sh/swagger.ps1. Success: code/message/result/returnData/success/timestamp. Business errors may use HTTP 200 with code/message. GET parameters use query strings. Login requires the captchaId and captcha from a fresh image; a captcha expires after 120 seconds and is consumed on submission.'
+    $document.info.description = 'Generated from current .api definitions by test/sh/gen.ps1. Success: code/message/result/returnData/success/timestamp. Business errors may use HTTP 200 with code/message. GET parameters use query strings. Login requires the captchaId and captcha from a fresh image; a captcha expires after 120 seconds and is consumed on submission.'
     $document['x-generator'] = $generatorVersion
     $document.definitions.BusinessError = @{
         type = 'object'; required = @('code', 'message')
@@ -244,4 +296,20 @@ import "./desc/applet.api"
         throw "Unsafe temporary directory: $resolvedTemp"
     }
     Remove-Item -LiteralPath $resolvedTemp -Recurse -Force
+}
+}
+
+switch ($Command) {
+    'api' { Invoke-ApiGen }
+    'rpc' { Invoke-RpcGen }
+    'model' { Invoke-ModelGen }
+    'swagger' { Invoke-SwaggerGen }
+    default {
+        Write-Host 'Usage: gen.ps1 <api|rpc|model|swagger> [args...]'
+        Write-Host '  api   <module>          example: gen.ps1 api applet'
+        Write-Host '  rpc   <module> <proto>  example: gen.ps1 rpc applet applet'
+        Write-Host '  model <module> <table>  example: gen.ps1 model applet sys_users'
+        Write-Host '  swagger                 example: gen.ps1 swagger'
+        exit 1
+    }
 }
