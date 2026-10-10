@@ -1,6 +1,3 @@
-# Local Go module cache (temporary)
-.gopath/
-
 # Build and Release Folders
 bin-debug/
 bin-release/
