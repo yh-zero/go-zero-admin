@@ -7,7 +7,7 @@ $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ('go-zero-env-' + [guid]::Ne
 $fixtureRoot = [IO.Path]::GetFullPath($fixtureRoot)
 $utf8 = New-Object Text.UTF8Encoding($false)
 $originalProcess = @{}
-$fixtureNames = @('DEEPSEEK_API_KEY', 'QWEN_API_KEY', 'GOZERO_ENV_FIXTURE_DEFAULT', 'GOZERO_ENV_FIXTURE_PRIORITY', 'GOZERO_ENV_FIXTURE_FAILURE')
+$fixtureNames = @('API_KEY_DEEPSEEK', 'API_KEY_QWEN', 'GOZERO_ENV_FIXTURE_DEFAULT', 'GOZERO_ENV_FIXTURE_PRIORITY', 'GOZERO_ENV_FIXTURE_FAILURE')
 foreach ($name in $fixtureNames) {
     $originalProcess[$name] = [Environment]::GetEnvironmentVariable($name, [EnvironmentVariableTarget]::Process)
 }
@@ -86,15 +86,15 @@ SPACES = '  surrounding spaces  '
     catch { $failure = $_.Exception.Message }
     Assert-Env ($null -ne $failure -and $null -eq [Environment]::GetEnvironmentVariable('GOZERO_ENV_FIXTURE_DEFAULT', 'Process')) 'defaults must validate all entries before applying any'
 
-    [Environment]::SetEnvironmentVariable('DEEPSEEK_API_KEY', 'fixture-deepseek', [EnvironmentVariableTarget]::Process)
-    [Environment]::SetEnvironmentVariable('QWEN_API_KEY', 'fixture-qwen', [EnvironmentVariableTarget]::Process)
+    [Environment]::SetEnvironmentVariable('API_KEY_DEEPSEEK', 'fixture-deepseek', [EnvironmentVariableTarget]::Process)
+    [Environment]::SetEnvironmentVariable('API_KEY_QWEN', 'fixture-qwen', [EnvironmentVariableTarget]::Process)
     $modelValues = Get-DevModelEnvironment
     $childScript = Join-Path $fixtureRoot 'child.ps1'
     [IO.File]::WriteAllText($childScript, @'
 param([string]$Output)
 $result = @{
-    DeepSeekPresent = -not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'Process'))
-    QwenPresent = -not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('QWEN_API_KEY', 'Process'))
+    DeepSeekPresent = -not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('API_KEY_DEEPSEEK', 'Process'))
+    QwenPresent = -not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('API_KEY_QWEN', 'Process'))
 }
 [IO.File]::WriteAllText($Output, ($result | ConvertTo-Json))
 '@, $utf8)
@@ -105,11 +105,11 @@ $result = @{
         Assert-Env (-not $rpcChild.DeepSeekPresent -and -not $rpcChild.QwenPresent) 'business RPC child must not inherit either model key'
         $aiChild = Invoke-DevWithModelKeys -Values $modelValues -Action { Invoke-FixtureChild 'ai-rpc' }
         Assert-Env ($aiChild.DeepSeekPresent -and $aiChild.QwenPresent) 'AI RPC child must inherit the selected model keys'
-        Assert-Env ($null -eq [Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'Process')) 'nested AI RPC injection must restore the key-free outer environment'
+        Assert-Env ($null -eq [Environment]::GetEnvironmentVariable('API_KEY_DEEPSEEK', 'Process')) 'nested AI RPC injection must restore the key-free outer environment'
     }
-    Assert-Env ([Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'Process') -ceq 'fixture-deepseek') 'key filter must restore caller after success'
+    Assert-Env ([Environment]::GetEnvironmentVariable('API_KEY_DEEPSEEK', 'Process') -ceq 'fixture-deepseek') 'key filter must restore caller after success'
     try { Invoke-DevWithoutModelKeys -Action { throw 'controlled action failure' } } catch { }
-    Assert-Env ([Environment]::GetEnvironmentVariable('QWEN_API_KEY', 'Process') -ceq 'fixture-qwen') 'key filter must restore caller after failure'
+    Assert-Env ([Environment]::GetEnvironmentVariable('API_KEY_QWEN', 'Process') -ceq 'fixture-qwen') 'key filter must restore caller after failure'
 
     # Execute a copy of the real entrypoint with service functions replaced by safe stubs.
     # This verifies ordering/finally without builds, Docker, migrations, network or service restarts.
@@ -206,9 +206,9 @@ function Start-DevServices([System.Collections.IDictionary]$ModelEnvironment) {
     $result = @{
         DefaultApplied = [Environment]::GetEnvironmentVariable('GOZERO_ENV_FIXTURE_DEFAULT', 'Process') -ceq 'file-default'
         ProcessWins = [Environment]::GetEnvironmentVariable('GOZERO_ENV_FIXTURE_PRIORITY', 'Process') -ceq 'process-wins'
-        KeysHidden = [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'Process')) -and [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('QWEN_API_KEY', 'Process'))
-        DeepSeekFromProcess = $ModelEnvironment['DEEPSEEK_API_KEY'] -ceq 'fixture-deepseek'
-        QwenFromFile = $ModelEnvironment['QWEN_API_KEY'] -ceq 'fixture-qwen-file'
+        KeysHidden = [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('API_KEY_DEEPSEEK', 'Process')) -and [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('API_KEY_QWEN', 'Process'))
+        DeepSeekFromProcess = $ModelEnvironment['API_KEY_DEEPSEEK'] -ceq 'fixture-deepseek'
+        QwenFromFile = $ModelEnvironment['API_KEY_QWEN'] -ceq 'fixture-qwen-file'
         Services = @(Get-DevServiceDefinitions)
         Launches = @()
     }
@@ -216,8 +216,8 @@ function Start-DevServices([System.Collections.IDictionary]$ModelEnvironment) {
         $result.Launches += Invoke-DevServiceLaunch -ServiceName $service.Name -ModelEnvironment $ModelEnvironment -Launch {
             @{
                 Name = $service.Name
-                DeepSeekPresent = -not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'Process'))
-                QwenPresent = -not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('QWEN_API_KEY', 'Process'))
+                DeepSeekPresent = -not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('API_KEY_DEEPSEEK', 'Process'))
+                QwenPresent = -not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable('API_KEY_QWEN', 'Process'))
             }
         }
     }
@@ -249,15 +249,15 @@ function Start-DevServices([System.Collections.IDictionary]$ModelEnvironment) {
     [IO.File]::WriteAllText($fixtureEnv, '', $utf8)
     & $fixtureDev -Action Restart
     Assert-Env (Test-Path -LiteralPath (Join-Path $fixtureRoot 'stop-called')) 'Restart must accept an empty file before stopping and starting'
-    Assert-Env ($null -eq [Environment]::GetEnvironmentVariable('GOZERO_ENV_FIXTURE_DEFAULT', 'Process') -and [Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'Process') -ceq 'fixture-deepseek') 'missing and empty files must preserve caller environment'
+    Assert-Env ($null -eq [Environment]::GetEnvironmentVariable('GOZERO_ENV_FIXTURE_DEFAULT', 'Process') -and [Environment]::GetEnvironmentVariable('API_KEY_DEEPSEEK', 'Process') -ceq 'fixture-deepseek') 'missing and empty files must preserve caller environment'
     Remove-Item -LiteralPath (Join-Path $fixtureRoot 'stop-called') -Force
 
-    [Environment]::SetEnvironmentVariable('QWEN_API_KEY', $null, [EnvironmentVariableTarget]::Process)
+    [Environment]::SetEnvironmentVariable('API_KEY_QWEN', $null, [EnvironmentVariableTarget]::Process)
     [IO.File]::WriteAllText($fixtureEnv, @'
 GOZERO_ENV_FIXTURE_DEFAULT=file-default
 GOZERO_ENV_FIXTURE_PRIORITY=file-loses
-DEEPSEEK_API_KEY=fixture-deepseek-file
-QWEN_API_KEY=fixture-qwen-file
+API_KEY_DEEPSEEK=fixture-deepseek-file
+API_KEY_QWEN=fixture-qwen-file
 '@, $utf8)
     & $fixtureDev -Action Start
     $checks = [IO.File]::ReadAllText((Join-Path $fixtureRoot 'start-checks.json')) | ConvertFrom-Json
@@ -269,14 +269,14 @@ QWEN_API_KEY=fixture-qwen-file
     Assert-Env ($checks.Launches.Count -eq 3 -and ($checks.Launches.Name -join ',') -ceq 'rpc,ai-rpc,api') 'entrypoint must route all three launch environments'
     Assert-Env (-not $checks.Launches[0].DeepSeekPresent -and -not $checks.Launches[0].QwenPresent -and -not $checks.Launches[2].DeepSeekPresent -and -not $checks.Launches[2].QwenPresent) 'business RPC and API launch must both hide model keys'
     Assert-Env ($checks.Launches[1].DeepSeekPresent -and $checks.Launches[1].QwenPresent) 'AI RPC launch must receive both effective model keys'
-    Assert-Env ($null -eq [Environment]::GetEnvironmentVariable('GOZERO_ENV_FIXTURE_DEFAULT', 'Process') -and $null -eq [Environment]::GetEnvironmentVariable('QWEN_API_KEY', 'Process')) 'successful entrypoint must restore newly added variables'
-    Assert-Env ([Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'Process') -ceq 'fixture-deepseek') 'successful entrypoint must preserve caller keys'
+    Assert-Env ($null -eq [Environment]::GetEnvironmentVariable('GOZERO_ENV_FIXTURE_DEFAULT', 'Process') -and $null -eq [Environment]::GetEnvironmentVariable('API_KEY_QWEN', 'Process')) 'successful entrypoint must restore newly added variables'
+    Assert-Env ([Environment]::GetEnvironmentVariable('API_KEY_DEEPSEEK', 'Process') -ceq 'fixture-deepseek') 'successful entrypoint must preserve caller keys'
     [Environment]::SetEnvironmentVariable('GOZERO_ENV_FIXTURE_FAILURE', '1', [EnvironmentVariableTarget]::Process)
     $failure = $null
     try { & $fixtureDev -Action Restart } catch { $failure = $_.Exception.Message }
     Assert-Env ($failure -eq 'controlled startup failure' -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'stop-called'))) 'valid Restart must stop before starting and surface startup failure'
-    Assert-Env ($null -eq [Environment]::GetEnvironmentVariable('GOZERO_ENV_FIXTURE_DEFAULT', 'Process') -and $null -eq [Environment]::GetEnvironmentVariable('QWEN_API_KEY', 'Process')) 'failed entrypoint must restore all file defaults'
-    Assert-Env ([Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'Process') -ceq 'fixture-deepseek') 'failed entrypoint must preserve caller keys'
+    Assert-Env ($null -eq [Environment]::GetEnvironmentVariable('GOZERO_ENV_FIXTURE_DEFAULT', 'Process') -and $null -eq [Environment]::GetEnvironmentVariable('API_KEY_QWEN', 'Process')) 'failed entrypoint must restore all file defaults'
+    Assert-Env ([Environment]::GetEnvironmentVariable('API_KEY_DEEPSEEK', 'Process') -ceq 'fixture-deepseek') 'failed entrypoint must preserve caller keys'
     # Finally must release the runtime operation lock even when startup fails.
     & $fixtureDev -Action Status
     Write-Host ('PASS: ' + $script:envChecks + ' environment regression assertions (temporary fixtures only).')

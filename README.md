@@ -83,10 +83,12 @@ API 与业务 RPC 的 `JwtAuth.AccessSecret` 必须一致；业务 RPC 与 AI RP
 AI 默认关闭，不影响管理功能。启用时：
 
 1. 在 [ai.yaml](application/ai/rpc/etc/ai.yaml) 中设置 `AI.Enabled: true`、`Provider`（`deepseek` 或 `qwen`）以及对应的 `Model`、`BaseURL`。
-2. 首次复制 [.env.local.example](.env.local.example) 为 `.env.local`，填写所选提供商的 `DEEPSEEK_API_KEY` 或 `QWEN_API_KEY`。
-3. 使用 `dev.ps1 -Action Restart` 重启。托管脚本自动加载 `.env.local`；手动 `go run` 时需自行设置进程环境变量。
+2. 密钥配置两种方式（优先级从高到低）：
+   - **环境变量**：设置 `API_KEY_DEEPSEEK` 或 `API_KEY_QWEN`（推荐生产环境）
+   - **YAML 兜底**：在 `ai.yaml` 的对应提供商块中填写 `APIKey` 字段
+3. 使用 `dev.ps1 -Action Restart` 重启生效。
 
-密钥只放环境文件，不写入 YAML 或提交到仓库；不要覆盖已有 `.env.local`。
+**注意**：`ai.yaml` 会提交到 Git，填写真实密钥后请勿推送；生产环境务必使用环境变量。
 
 ## 数据库升级
 

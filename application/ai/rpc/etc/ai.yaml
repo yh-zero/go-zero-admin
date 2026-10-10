@@ -18,7 +18,8 @@ DB:
   MaxOpenConns: 100
   MaxLifetime: 3600
 AI:
-  # 模型参数由此文件管理，.env.local 仅保存 DEEPSEEK_API_KEY / QWEN_API_KEY。
+  # 模型参数由此文件管理。密钥优先读环境变量 API_KEY_DEEPSEEK / API_KEY_QWEN，
+  # 未设置时使用下方对应提供商的 APIKey 字段作为兜底。
   Enabled: false
   Provider: deepseek # deepseek 或 qwen
   MaxInputChars: 2000
@@ -27,6 +28,8 @@ AI:
   DeepSeek:
     Model: 'deepseek-flash' # 启用前填写支持工具调用的模型名
     BaseURL: https://api.deepseek.com/v1
+    APIKey: '' # 兜底密钥；环境变量 API_KEY_DEEPSEEK 优先
   Qwen:
     Model: '' # 启用前填写模型名，并确认 BaseURL 对应账号区域
     BaseURL: https://dashscope.aliyuncs.com/compatible-mode/v1
+    APIKey: '' # 兜底密钥；环境变量 API_KEY_QWEN 优先

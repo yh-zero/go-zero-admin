@@ -8,7 +8,7 @@ import (
 )
 
 func TestYAMLSettingsDefaultDisabledAndSelectProviderCredentials(t *testing.T) {
-	values := map[string]string{"DEEPSEEK_API_KEY": "unused-key", "QWEN_API_KEY": "test-secret"}
+	values := map[string]string{"API_KEY_DEEPSEEK": "unused-key", "API_KEY_QWEN": "test-secret"}
 	getenv := func(name string) string { return values[name] }
 	c, err := loadConfig(Settings{}, func(string) string {
 		t.Fatal("disabled feature read credentials")
@@ -28,7 +28,7 @@ func TestYAMLSettingsDefaultDisabledAndSelectProviderCredentials(t *testing.T) {
 			t.Fatal("config exposed API key")
 		}
 	}
-	delete(values, "QWEN_API_KEY")
+	delete(values, "API_KEY_QWEN")
 	if _, err := loadConfig(settings, getenv); err == nil {
 		t.Fatal("enabled agent accepted missing credentials")
 	}
@@ -69,7 +69,7 @@ func TestYAMLSettingsCannotEnableTestHTTP(t *testing.T) {
 }
 
 func TestChangingProviderDoesNotReuseAnotherProvidersEndpoint(t *testing.T) {
-	values := map[string]string{"DEEPSEEK_API_KEY": "deepseek-key", "QWEN_API_KEY": "qwen-key"}
+	values := map[string]string{"API_KEY_DEEPSEEK": "deepseek-key", "API_KEY_QWEN": "qwen-key"}
 	settings := Settings{Enabled: true, Provider: ProviderDeepSeek, DeepSeek: ProviderSettings{Model: "fixture-deepseek", BaseURL: "https://api.deepseek.com/v1"}, Qwen: ProviderSettings{Model: "fixture-qwen"}}
 	getenv := func(name string) string { return values[name] }
 	c, err := loadConfig(settings, getenv)
@@ -87,11 +87,11 @@ func TestLegacyParameterEnvironmentDoesNotOverrideYAML(t *testing.T) {
 	values := map[string]string{
 		"AI_AGENT_ENABLED": "true", "AI_AGENT_PROVIDER": "qwen", "AI_AGENT_MAX_INPUT_CHARS": "8000",
 		"AI_AGENT_MAX_STEPS": "8", "AI_AGENT_MAX_RUN_SECONDS": "180", "DEEPSEEK_MODEL": "old-model",
-		"DEEPSEEK_BASE_URL": "https://old.example.com", "DEEPSEEK_API_KEY": "test-key", "QWEN_API_KEY": "other-key",
+		"DEEPSEEK_BASE_URL": "https://old.example.com", "DEEPSEEK_API_KEY": "legacy-key", "API_KEY_DEEPSEEK": "test-key", "API_KEY_QWEN": "other-key",
 	}
 	settings := Settings{Enabled: true, Provider: ProviderDeepSeek, MaxInputChars: 1234, MaxSteps: 3, MaxRunSeconds: 45, DeepSeek: ProviderSettings{Model: "yaml-model", BaseURL: "https://yaml.example.com/v1"}}
 	c, err := loadConfig(settings, func(name string) string {
-		if name != "DEEPSEEK_API_KEY" {
+		if name != "API_KEY_DEEPSEEK" {
 			t.Fatalf("configuration unexpectedly read %s", name)
 		}
 		return values[name]
@@ -106,5 +106,41 @@ func TestLegacyParameterEnvironmentDoesNotOverrideYAML(t *testing.T) {
 	})
 	if err != nil || c.Enabled {
 		t.Fatal("disabled YAML setting was ignored", c, err)
+	}
+}
+
+func TestEnvironmentKeyTakesPriorityOverYAMLFallback(t *testing.T) {
+	// Environment variable wins when both are set.
+	settings := Settings{Enabled: true, Provider: ProviderDeepSeek, DeepSeek: ProviderSettings{Model: "fixture-model", APIKey: "yaml-fallback-key"}}
+	c, err := loadConfig(settings, func(name string) string {
+		if name == "API_KEY_DEEPSEEK" {
+			return "env-key"
+		}
+		return ""
+	})
+	if err != nil || c.APIKey != "env-key" {
+		t.Fatal("environment key should take priority over YAML fallback", c, err)
+	}
+
+	// YAML APIKey is used when the environment variable is absent.
+	c, err = loadConfig(settings, func(string) string { return "" })
+	if err != nil || c.APIKey != "yaml-fallback-key" {
+		t.Fatal("YAML APIKey should be used as fallback", c, err)
+	}
+
+	// Same priority for Qwen.
+	qsettings := Settings{Enabled: true, Provider: ProviderQwen, Qwen: ProviderSettings{Model: "fixture-qwen", APIKey: "qwen-yaml-key"}}
+	c, err = loadConfig(qsettings, func(name string) string {
+		if name == "API_KEY_QWEN" {
+			return "qwen-env-key"
+		}
+		return ""
+	})
+	if err != nil || c.APIKey != "qwen-env-key" {
+		t.Fatal("Qwen environment key should take priority", c, err)
+	}
+	c, err = loadConfig(qsettings, func(string) string { return "" })
+	if err != nil || c.APIKey != "qwen-yaml-key" {
+		t.Fatal("Qwen YAML APIKey should be used as fallback", c, err)
 	}
 }

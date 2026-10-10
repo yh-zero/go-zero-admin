@@ -70,7 +70,7 @@ def prepare(directory, domain, address):
             "JWT_ACCESS_EXPIRE": "1800", "RPC_AUTH_APP": "applet-api",
             "RPC_AUTH_TOKEN": secrets.token_hex(32), "DEFAULT_USER_PASSWORD": secrets.token_urlsafe(32),
             "ADMIN_INITIAL_PASSWORD": secrets.token_urlsafe(32), "API_PORT": "127.0.0.1:7001",
-            "DEEPSEEK_API_KEY": "", "QWEN_API_KEY": "",
+            "API_KEY_DEEPSEEK": "", "API_KEY_QWEN": "",
         }
         private_write(credentials, "".join(f"{key}={value}\n" for key, value in values.items()))
         private_write(runtime / "ADMIN_CREDENTIALS.txt", "Private administrator for this demo only.\nUsername: demo-maintainer\nPassword: " + values["ADMIN_INITIAL_PASSWORD"] + "\nPublic visitors must use admin / 123456 (read-only role 9527).\n")
@@ -98,7 +98,7 @@ def read_env():
         raise ValueError("Deployment environment must have private 0600 permissions")
     if not re.fullmatch(r"[A-Za-z0-9_-]+", values.get("MYSQL_DATABASE", "")) or values.get("API_PORT") != "127.0.0.1:7001":
         raise ValueError("Unexpected demo database or API binding")
-    if values.get("DEEPSEEK_API_KEY") or values.get("QWEN_API_KEY"):
+    if values.get("API_KEY_DEEPSEEK") or values.get("API_KEY_QWEN"):
         raise ValueError("This public demo must not contain a model key")
     if not re.fullmatch(r"go-zero-admin-demo(?:-rebuild-[a-z0-9-]+)?", values.get("DEMO_PROJECT_NAME", "go-zero-admin-demo")):
         raise ValueError("Invalid demo Compose project name")

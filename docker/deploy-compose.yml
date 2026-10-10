@@ -109,8 +109,8 @@ services:
       ETCD_ADDR: etcd:2379
       RPC_AUTH_APP: "${RPC_AUTH_APP:-applet-api}"
       RPC_AUTH_TOKEN: "${RPC_AUTH_TOKEN:?请在 docker/.env.deploy 中设置 RPC_AUTH_TOKEN}"
-      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
-      QWEN_API_KEY: "${QWEN_API_KEY:-}"
+      API_KEY_DEEPSEEK: "${API_KEY_DEEPSEEK:-}"
+      API_KEY_QWEN: "${API_KEY_QWEN:-}"
     depends_on:
       mysql:
         condition: service_healthy

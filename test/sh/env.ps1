@@ -104,7 +104,7 @@ function Set-DevEnvironmentDefaults {
 
 function Get-DevModelEnvironment {
     $values = @{}
-    foreach ($name in @('DEEPSEEK_API_KEY', 'QWEN_API_KEY')) {
+    foreach ($name in @('API_KEY_DEEPSEEK', 'API_KEY_QWEN')) {
         $values[$name] = [Environment]::GetEnvironmentVariable($name, [EnvironmentVariableTarget]::Process)
     }
     return $values
@@ -119,7 +119,7 @@ function Invoke-DevWithModelKeys {
 
     $snapshot = Get-DevModelEnvironment
     try {
-        foreach ($name in @('DEEPSEEK_API_KEY', 'QWEN_API_KEY')) {
+        foreach ($name in @('API_KEY_DEEPSEEK', 'API_KEY_QWEN')) {
             [Environment]::SetEnvironmentVariable($name, $Values[$name], [EnvironmentVariableTarget]::Process)
         }
         & $Action
@@ -130,5 +130,5 @@ function Invoke-DevWithoutModelKeys {
     [CmdletBinding()]
     param([Parameter(Mandatory = $true)][scriptblock]$Action)
 
-    Invoke-DevWithModelKeys -Values @{ DEEPSEEK_API_KEY = $null; QWEN_API_KEY = $null } -Action $Action
+    Invoke-DevWithModelKeys -Values @{ API_KEY_DEEPSEEK = $null; API_KEY_QWEN = $null } -Action $Action
 }
