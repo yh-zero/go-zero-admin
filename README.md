@@ -124,9 +124,9 @@ go run ./application/applet/rpc/cmd/sessioncleanup -f application/applet/rpc/etc
 
 ```powershell
 go install github.com/zeromicro/go-zero/tools/goctl@v1.10.2
-.\test\sh\api.bat applet
-.\test\sh\rpc.bat applet applet
-.\test\sh\rpc.bat ai ai
+.\test\sh\gen.bat api applet
+.\test\sh\gen.bat rpc applet applet
+.\test\sh\gen.bat rpc ai ai
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File test/sh/swagger.ps1
 ```
 
