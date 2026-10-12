@@ -28,7 +28,12 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.RegisterResponse, err error) {
 	var pbUserInfo pb.UserInfo
 	_ = copier.Copy(&pbUserInfo, req)
-	_, err = l.svcCtx.AppletUserRPC.Register(l.ctx, &pb.RegisterRequest{UserInfo: &pbUserInfo, AuthorityIds: req.AuthorityIds})
+	_, err = l.svcCtx.AppletUserRPC.Register(l.ctx, &pb.RegisterRequest{
+		UserInfo:     &pbUserInfo,
+		AuthorityIds: req.AuthorityIds,
+		EmailCode:    req.EmailCode,
+		Scene:        req.Scene,
+	})
 	if err != nil {
 		logx.Errorf("l.svcCtx.AppletUserRPC.Register err: %v", err)
 		return nil, err

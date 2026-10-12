@@ -3,62 +3,85 @@ package usernocasbin
 import (
 	"context"
 	"errors"
-	"fmt"
-	"github.com/zeromicro/go-zero/core/stores/redis"
-	"go-zero-admin/pkg/result/xerr"
-	"strings"
 	"testing"
+
+	"go-zero-admin/application/applet/api/internal/svc"
+	userclient "go-zero-admin/application/applet/rpc/client/user"
+
+	"go-zero-admin/application/applet/api/internal/types"
+	captchaRPC "go-zero-admin/application/applet/rpc/client/captcha"
+	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/result/xerr"
+	"google.golang.org/grpc"
 )
 
-type captchaStoreStub struct {
-	value any
-	err   error
-	calls int
+type stubCaptcha struct {
+	captchaRPC.Captcha
+	request             *pb.VerifyCaptchaRequest
+	resp                *pb.VerifyCaptchaResponse
+	err                 error
+	generateImageCalled bool
 }
 
-func (s *captchaStoreStub) EvalCtx(_ context.Context, _ string, _ []string, _ ...any) (any, error) {
-	s.calls++
-	return s.value, s.err
+func (s *stubCaptcha) VerifyCaptcha(_ context.Context, req *pb.VerifyCaptchaRequest, _ ...grpc.CallOption) (*pb.VerifyCaptchaResponse, error) {
+	s.request = req
+	return s.resp, s.err
 }
 
-func TestCaptchaMissingOrExpiredIsBusinessError(t *testing.T) {
-	for _, test := range []struct {
-		name  string
-		value any
-		err   error
-	}{
-		{name: "redis nil", err: redis.Nil},
-		{name: "wrapped redis nil", err: fmt.Errorf("eval: %w", redis.Nil)},
-		{name: "nil response"},
-		{name: "empty response", value: ""},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			err := consumeCaptcha(context.Background(), "captcha-test-123", "123456", &captchaStoreStub{value: test.value, err: test.err})
-			var business *xerr.CodeError
-			if !errors.As(err, &business) || business.GetErrCode() != xerr.CAPTCHA_ERROR || !strings.Contains(business.GetErrMsg(), "失效") {
-				t.Fatalf("expected explicit expired CAPTCHA error, got %v", err)
-			}
-		})
+func (s *stubCaptcha) GenerateImage(_ context.Context, _ *pb.NoDataResponse, _ ...grpc.CallOption) (*pb.GenerateImageResponse, error) {
+	s.generateImageCalled = true
+	return &pb.GenerateImageResponse{Id: "captcha-123", Image: "data:image/png;base64,AAAA"}, nil
+}
+
+func TestLoginPassesCaptchaIdAndAnswerToRPC(t *testing.T) {
+	cstub := &stubCaptcha{resp: &pb.VerifyCaptchaResponse{Matched: true}}
+	ustub := &stubUser{}
+	s := &svc.ServiceContext{AppletCaptchaRPC: cstub, AppletUserRPC: ustub}
+	_, err := NewLoginLogic(context.Background(), s).Login(&types.LoginRequest{UserName: "u", Password: "p", CaptchaId: "id-1", Captcha: "123456"})
+	if cstub.request == nil || cstub.request.Id != "id-1" || cstub.request.Answer != "123456" {
+		t.Fatalf("captcha not forwarded: %+v", cstub.request)
+	}
+	if !ustub.getUserInfoCalled {
+		t.Fatal("login must proceed past captcha to user lookup")
+	}
+	if !errors.Is(err, errStopAfterCaptcha) {
+		t.Fatalf("expected downstream error to surface, got %v", err)
 	}
 }
-func TestCaptchaDoesNotHideRedisOutage(t *testing.T) {
-	outage := errors.New("Redis unavailable")
-	err := consumeCaptcha(context.Background(), "captcha-test-123", "123456", &captchaStoreStub{err: outage})
-	if !errors.Is(err, outage) {
-		t.Fatalf("Redis failure was replaced: %v", err)
+
+func TestLoginRejectsOnCaptchaMismatch(t *testing.T) {
+	stub := &stubCaptcha{resp: &pb.VerifyCaptchaResponse{Matched: false}}
+	s := &svc.ServiceContext{AppletCaptchaRPC: stub}
+	_, err := NewLoginLogic(context.Background(), s).Login(&types.LoginRequest{UserName: "u", Password: "p", CaptchaId: "id-1", Captcha: "123456"})
+	var be *xerr.CodeError
+	if !errors.As(err, &be) || be.GetErrCode() != xerr.CAPTCHA_ERROR {
+		t.Fatalf("expected CAPTCHA_ERROR, got %v", err)
 	}
 }
-func TestCaptchaValidWrongAndMalformed(t *testing.T) {
-	valid := &captchaStoreStub{value: "123456"}
-	if err := consumeCaptcha(context.Background(), "captcha-test-123", "123456", valid); err != nil {
+
+func TestRandomImagePassesThrough(t *testing.T) {
+	stub := &stubCaptcha{}
+	s := &svc.ServiceContext{AppletCaptchaRPC: stub}
+	resp, err := NewRandomImageLogic(context.Background(), s).RandomImage(&types.RandomImageRequest{})
+	if err != nil {
 		t.Fatal(err)
 	}
-	var business *xerr.CodeError
-	if err := consumeCaptcha(context.Background(), "captcha-test-123", "654321", valid); !errors.As(err, &business) || business.GetErrCode() != xerr.CAPTCHA_ERROR {
-		t.Fatal("wrong answer accepted", err)
+	if !stub.generateImageCalled {
+		t.Fatal("GenerateImage RPC not called")
 	}
-	untouched := &captchaStoreStub{err: errors.New("should not query Redis")}
-	if err := consumeCaptcha(context.Background(), "bad", "123456", untouched); err == nil || untouched.calls != 0 {
-		t.Fatal("malformed challenge reached Redis")
+	if resp.CaptchaId != "captcha-123" || resp.CaptchaImg == "" {
+		t.Fatalf("response not mapped: %+v", resp)
 	}
+}
+
+var errStopAfterCaptcha = errors.New("stub: stop after captcha")
+
+type stubUser struct {
+	userclient.User
+	getUserInfoCalled bool
+}
+
+func (s *stubUser) GetUserInfo(_ context.Context, _ *pb.GetUserInfoRequest, _ ...grpc.CallOption) (*pb.GetUserInfoResponse, error) {
+	s.getUserInfoCalled = true
+	return nil, errStopAfterCaptcha
 }

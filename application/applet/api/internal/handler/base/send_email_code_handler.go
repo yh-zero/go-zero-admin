@@ -18,6 +18,10 @@ func SendEmailCodeHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
+		if req.Scene == "" {
+			req.Scene = "register"
+		}
+		req.ClientIP = httpx.GetRemoteAddr(r)
 
 		l := base.NewSendEmailCodeLogic(r.Context(), svcCtx)
 		resp, err := l.SendEmailCode(&req)

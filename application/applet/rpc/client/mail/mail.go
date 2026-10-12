@@ -1,0 +1,42 @@
+// Code scaffolded by goctl. Safe to edit.
+
+package mail
+
+import (
+	"context"
+
+	"go-zero-admin/application/applet/rpc/pb"
+
+	"github.com/zeromicro/go-zero/zrpc"
+	"google.golang.org/grpc"
+)
+
+type (
+	NoDataResponse          = pb.NoDataResponse
+	SendEmailCodeRequest    = pb.SendEmailCodeRequest
+	VerifyEmailCodeRequest  = pb.VerifyEmailCodeRequest
+	VerifyEmailCodeResponse = pb.VerifyEmailCodeResponse
+
+	Mail interface {
+		SendEmailCode(ctx context.Context, in *SendEmailCodeRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		VerifyEmailCode(ctx context.Context, in *VerifyEmailCodeRequest, opts ...grpc.CallOption) (*VerifyEmailCodeResponse, error)
+	}
+
+	defaultMail struct {
+		cli zrpc.Client
+	}
+)
+
+func NewMail(cli zrpc.Client) Mail {
+	return &defaultMail{cli: cli}
+}
+
+func (m *defaultMail) SendEmailCode(ctx context.Context, in *SendEmailCodeRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := pb.NewMailClient(m.cli.Conn())
+	return client.SendEmailCode(ctx, in, opts...)
+}
+
+func (m *defaultMail) VerifyEmailCode(ctx context.Context, in *VerifyEmailCodeRequest, opts ...grpc.CallOption) (*VerifyEmailCodeResponse, error) {
+	client := pb.NewMailClient(m.cli.Conn())
+	return client.VerifyEmailCode(ctx, in, opts...)
+}

@@ -9,8 +9,8 @@ import (
 
 type Config struct {
 	zrpc.RpcServerConf
-	BizRedis      redis.RedisConf
-	RPCAuth       rpcsecurity.Credential `json:",optional"`
+	BizRedis redis.RedisConf
+	RPCAuth  rpcsecurity.Credential `json:",optional"`
 	UserResources struct {
 		// Must describe the AI service's actual database; unset disables AI lifecycle writes.
 		AIDataSource string `json:",optional"`
@@ -29,4 +29,32 @@ type Config struct {
 	Default    struct {
 		UserPassword string
 	}
+	// Oss owns the Aliyun OSS credentials. Only this RPC process should ever see
+	// AccessKeySecret; the API tier must not be configured with these values.
+	Oss OssConfig `json:",optional"`
+	// Mail owns the SMTP credentials and rate-limit settings for outbound
+	// verification codes. The API tier talks to it over gRPC.
+	Mail MailConfig `json:",optional"`
 }
+
+// OssConfig uses implicit TLS endpoints (or unencrypted if Insecure=true for
+// local dev). AccessKeySecret must be supplied via the YAML/secret manager, not
+// through the API tier.
+type OssConfig struct {
+	Endpoint         string `json:",optional"`
+	AccessKeyId      string `json:",optional"`
+	AccessKeySecret  string `json:",optional"`
+	BucketName       string `json:",optional"`
+	ConnectTimeout   int64  `json:",default=1"`
+	ReadWriteTimeout int64  `json:",default=3"`
+}
+
+// MailConfig uses implicit TLS (typically port 465) and verifies the SMTP cert.
+type MailConfig struct {
+	Host     string `json:",optional"`
+	Port     int    `json:",optional"`
+	From     string `json:",optional"`
+	Username string `json:",optional"`
+	Password string `json:",optional"`
+}
+

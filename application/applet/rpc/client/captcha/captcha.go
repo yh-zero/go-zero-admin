@@ -1,0 +1,42 @@
+// Code scaffolded by goctl. Safe to edit.
+
+package captcha
+
+import (
+	"context"
+
+	"go-zero-admin/application/applet/rpc/pb"
+
+	"github.com/zeromicro/go-zero/zrpc"
+	"google.golang.org/grpc"
+)
+
+type (
+	GenerateImageResponse  = pb.GenerateImageResponse
+	NoDataResponse         = pb.NoDataResponse
+	VerifyCaptchaRequest   = pb.VerifyCaptchaRequest
+	VerifyCaptchaResponse  = pb.VerifyCaptchaResponse
+
+	Captcha interface {
+		GenerateImage(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GenerateImageResponse, error)
+		VerifyCaptcha(ctx context.Context, in *VerifyCaptchaRequest, opts ...grpc.CallOption) (*VerifyCaptchaResponse, error)
+	}
+
+	defaultCaptcha struct {
+		cli zrpc.Client
+	}
+)
+
+func NewCaptcha(cli zrpc.Client) Captcha {
+	return &defaultCaptcha{cli: cli}
+}
+
+func (m *defaultCaptcha) GenerateImage(ctx context.Context, in *NoDataResponse, opts ...grpc.CallOption) (*GenerateImageResponse, error) {
+	client := pb.NewCaptchaClient(m.cli.Conn())
+	return client.GenerateImage(ctx, in, opts...)
+}
+
+func (m *defaultCaptcha) VerifyCaptcha(ctx context.Context, in *VerifyCaptchaRequest, opts ...grpc.CallOption) (*VerifyCaptchaResponse, error) {
+	client := pb.NewCaptchaClient(m.cli.Conn())
+	return client.VerifyCaptcha(ctx, in, opts...)
+}
