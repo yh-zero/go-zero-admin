@@ -73,8 +73,8 @@ services:
     mem_limit: 128m
     environment:
       GOMEMLIMIT: 96MiB
-      DEEPSEEK_API_KEY: ''
-      QWEN_API_KEY: ''
+      API_KEY_DEEPSEEK: ''
+      API_KEY_QWEN: ''
 
   web:
     image: caddy:2-alpine@sha256:881bbc60f9986d5ab8e7cfd6cf7e4ef3c9c0439fef2429d035d065577882f028

@@ -313,6 +313,10 @@ message GetUserListResponse {
 message RegisterRequest {
   UserInfo UserInfo = 1;
   repeated int64 AuthorityIds = 2;
+  // Optional. When set, RPC verifies and consumes the verification code
+  // through Mail.VerifyEmailCode before writing the user row.
+  string EmailCode = 3;
+  string Scene = 4; // e.g. "register"; ties to the Mail.SendEmailCode scene.
 }
 
 message RegisterResponse {
@@ -736,6 +740,32 @@ service FileResourceService {
   rpc RemoveFileReference (FileReferenceRequest) returns (NoDataResponse);
   rpc BeginDeleteFile (FileIDRequest) returns (FileResource);
   rpc FinishDeleteFile (FileIDRequest) returns (NoDataResponse);
+  // UploadFile stores the bytes in OSS (credentials live only in this RPC) and
+  // registers the metadata in a single call. The Data field is bounded to 10MB.
+  rpc UploadFile (UploadFileRequest) returns (UploadFileResponse);
+  // GetFileURL returns a public URL for public files, or a 5-minute signed
+  // URL for private files.
+  rpc GetFileURL (FileIDRequest) returns (FileURLResponse);
+  // DeleteFile is the one-shot orchestration: begin -> OSS delete -> finish.
+  // It is safe to retry; already-deleted resources short-circuit.
+  rpc DeleteFile (FileIDRequest) returns (NoDataResponse);
+}
+
+message UploadFileRequest {
+  SessionRequest Actor = 1;
+  bytes Data = 2;
+  string Mime = 3;
+  string Filename = 4;
+  string Visibility = 5; // "public" | "private"
+}
+message UploadFileResponse {
+  FileResource File = 1;
+  string Url = 2;
+  int64 ExpiresIn = 3; // 0 for public, 300 for private signed URL
+}
+message FileURLResponse {
+  string Url = 1;
+  int64 ExpiresIn = 2;
 }
 
 message DeviceSession {
@@ -785,6 +815,48 @@ service Permission {
  rpc GetPermissionHistory (GetPermissionHistoryRequest) returns (GetPermissionHistoryResponse);
  rpc PreviewPermissionRollback (PreviewPermissionRollbackRequest) returns (PreviewPermissionRollbackResponse);
  rpc ApplyPermissionRollback (ApplyPermissionRollbackRequest) returns (NoDataResponse);
+}
+
+// Mail owns the SMTP credentials and Redis cooldown/limit keys. Callers must
+// supply the originating IP for rate limiting; the scene distinguishes
+// register / reset_password / etc so the same email can hold independent codes.
+message SendEmailCodeRequest {
+  string Email = 1;
+  bool IsForce = 2;
+  string Scene = 3; // "register" | "reset_password" | ...
+  string ClientIP = 4; // for per-IP rate limiting
+}
+message VerifyEmailCodeRequest {
+  string Email = 1;
+  string Code = 2;
+  string Scene = 3;
+}
+message VerifyEmailCodeResponse {
+  bool Matched = 1;
+}
+service Mail {
+  rpc SendEmailCode (SendEmailCodeRequest) returns (NoDataResponse);
+  rpc VerifyEmailCode (VerifyEmailCodeRequest) returns (VerifyEmailCodeResponse);
+}
+
+// Captcha owns the image-captcha Redis schema (key prefix, TTL, image
+// dimensions, rate limits). Callers ask for a fresh image and later
+// atomically consume it; both are server-side so the API tier never holds a
+// Redis handle.
+message GenerateImageResponse {
+  string Id = 1;     // opaque captcha id; 10-128 chars [A-Za-z0-9_-]
+  string Image = 2;  // base64 PNG, ready to drop into an <img> src
+}
+message VerifyCaptchaRequest {
+  string Id = 1;
+  string Answer = 2;
+}
+message VerifyCaptchaResponse {
+  bool Matched = 1;
+}
+service Captcha {
+  rpc GenerateImage (NoDataResponse) returns (GenerateImageResponse);
+  rpc VerifyCaptcha (VerifyCaptchaRequest) returns (VerifyCaptchaResponse);
 }
 
 message UserResourcePreviewRequest { SessionRequest Actor = 1; int64 UserID = 2; }

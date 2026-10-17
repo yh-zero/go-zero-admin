@@ -3224,7 +3224,7 @@
   },
   "host": "localhost:7001",
   "info": {
-    "description": "Generated from current .api definitions by test/sh/swagger.ps1. Success: code/message/result/returnData/success/timestamp. Business errors may use HTTP 200 with code/message. GET parameters use query strings. Login requires the captchaId and captcha from a fresh image; a captcha expires after 120 seconds and is consumed on submission.",
+    "description": "Generated from current .api definitions by test/sh/gen.ps1. Success: code/message/result/returnData/success/timestamp. Business errors may use HTTP 200 with code/message. GET parameters use query strings. Login requires the captchaId and captcha from a fresh image; a captcha expires after 120 seconds and is consumed on submission.",
     "title": "go-zero-admin API",
     "version": "v1"
   },

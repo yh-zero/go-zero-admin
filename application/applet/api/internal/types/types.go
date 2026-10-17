@@ -646,6 +646,14 @@ type RegisterRequest struct {
 	AuthorityIds []int64 `json:"authorityIds"`       // 角色id []int64
 	Phone        string  `json:"phone,optional"`     // 电话号码
 	Email        string  `json:"email,optional"`     // 电子邮箱
+	// EmailCode is the verification code previously sent via
+	// /sendEmailCode. The RPC tier verifies and consumes it before writing
+	// the user row; when empty, registration proceeds without verification
+	// (admin self-service path).
+	EmailCode string `json:"emailCode,optional"`
+	// Scene pairs with the code; the same email can hold independent codes
+	// for "register" / "reset_password" etc.
+	Scene string `json:"scene,optional"`
 }
 
 type RegisterResponse struct {
@@ -670,6 +678,14 @@ type RoleDataScope struct {
 type SendEmailCodeRequest struct {
 	Email   string `json:"email"`
 	IsForce bool   `json:"isForce,optional"`
+	// Scene is forwarded to the RPC and forms part of the Redis key, so the
+	// same email can hold independent codes for different purposes. Defaults
+	// to "register" server-side when empty.
+	Scene string `json:"scene,optional"`
+	// ClientIP is the originating IP, used for per-IP hourly rate limiting on
+	// the RPC side. The handler populates it from the request before calling
+	// the logic.
+	ClientIP string `json:"-"`
 }
 
 type SysApi struct {

@@ -2,17 +2,20 @@ package base
 
 import (
 	"bytes"
+	"context"
 	"image"
 	"image/png"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"go-zero-admin/application/applet/api/internal/config"
 	"go-zero-admin/application/applet/api/internal/svc"
 	"go-zero-admin/application/applet/api/internal/types"
+	"go-zero-admin/application/applet/rpc/client/fileresourceservice"
+	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/ctxJwt"
+	"google.golang.org/grpc"
 )
 
 func uploadRequest(t *testing.T, field string, data []byte) *http.Request {
@@ -39,8 +42,10 @@ func TestImageUploadValidation(t *testing.T) {
 	if err := png.Encode(&valid, image.NewRGBA(image.Rect(0, 0, 1, 1))); err != nil {
 		t.Fatal(err)
 	}
-	data, mime, err := readImage(uploadRequest(t, "file_img", valid.Bytes()))
-	if err != nil || mime != "image/png" || !bytes.Equal(data, valid.Bytes()) {
+	// readImage is still a multipart parser in the API layer; it should accept
+	// a real PNG and reject the obvious abuse vectors before the bytes ever
+	// leave the process.
+	if _, mime, err := readImage(uploadRequest(t, "file_img", valid.Bytes())); err != nil || mime != "image/png" {
 		t.Fatalf("valid PNG rejected: %v", err)
 	}
 	for _, tc := range []struct {
@@ -58,36 +63,52 @@ func TestImageUploadValidation(t *testing.T) {
 			}
 		})
 	}
+}
+
+// capturingFileClient records the request UploadFile receives, so we can
+// assert that the API layer forwards bytes, mime, filename, visibility,
+// and the JWT-derived actor.
+type capturingFileClient struct {
+	fileresourceservice.FileResourceService
+	request *pb.UploadFileRequest
+}
+
+func (c *capturingFileClient) UploadFile(ctx context.Context, req *pb.UploadFileRequest, _ ...grpc.CallOption) (*pb.UploadFileResponse, error) {
+	c.request = req
+	return &pb.UploadFileResponse{File: &pb.FileResource{ID: 99, ObjectKey: "go-zero-admin/abc.png"}, Url: "https://returned/abc.png"}, nil
+}
+
+func TestUploadFileImgForwardsBytesAndActorToRPC(t *testing.T) {
+	var valid bytes.Buffer
+	if err := png.Encode(&valid, image.NewRGBA(image.Rect(0, 0, 1, 1))); err != nil {
+		t.Fatal(err)
+	}
+	rpc := &capturingFileClient{}
+	s := &svc.ServiceContext{AppletFileRPC: rpc}
 	req := uploadRequest(t, "file_img", valid.Bytes())
-	_, err = NewUploadFileImgLogic(req.Context(), &svc.ServiceContext{}).UploadFileImg(&types.UploadFileImgRequest{}, req)
-	if err == nil || !strings.Contains(err.Error(), "未配置") {
-		t.Fatalf("missing OSS not explained: %v", err)
+	req = req.WithContext(ctxWithJwt(req.Context()))
+	resp, err := NewUploadFileImgLogic(req.Context(), s).UploadFileImg(&types.UploadFileImgRequest{}, req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rpc.request == nil || len(rpc.request.Data) == 0 || rpc.request.Mime != "image/png" || rpc.request.Visibility != "public" || rpc.request.Actor == nil || rpc.request.Actor.UserID != 10 || resp.FileId != 99 {
+		t.Fatalf("forwarded request unexpected: %+v", rpc.request)
 	}
 }
 
-func TestImageURL(t *testing.T) {
-	got := genFileURL("bucket", "https://oss.example.test/", "folder/image name.png")
-	if got != "https://bucket.oss.example.test/folder/image%20name.png" {
-		t.Fatal(got)
+func TestUploadFileImgRejectsWhenFileRPCMissing(t *testing.T) {
+	var valid bytes.Buffer
+	if err := png.Encode(&valid, image.NewRGBA(image.Rect(0, 0, 1, 1))); err != nil {
+		t.Fatal(err)
+	}
+	req := uploadRequest(t, "file_img", valid.Bytes())
+	req = req.WithContext(ctxWithJwt(req.Context()))
+	s := &svc.ServiceContext{}
+	if _, err := NewUploadFileImgLogic(req.Context(), s).UploadFileImg(&types.UploadFileImgRequest{}, req); err == nil {
+		t.Fatal("missing RPC accepted")
 	}
 }
 
-func TestEmailValidation(t *testing.T) {
-	for _, value := range []string{"", "invalid", "Display <test@example.test>", "test@example.test\r\nBcc: victim@example.test"} {
-		if _, err := normalizeEmail(value); err == nil {
-			t.Fatalf("accepted invalid recipient: %q", value)
-		}
-	}
-	if got, err := normalizeEmail(" test@example.test "); err != nil || got != "test@example.test" {
-		t.Fatalf("valid recipient: %q %v", got, err)
-	}
-	if err := validateMail(config.MailConfig{}); err == nil {
-		t.Fatal("missing SMTP accepted")
-	}
-	for i := 0; i < 20; i++ {
-		code, err := emailCode()
-		if err != nil || len(code) != 6 || strings.Trim(code, "0123456789") != "" {
-			t.Fatalf("invalid code: %v", err)
-		}
-	}
+func ctxWithJwt(ctx context.Context) context.Context {
+	return context.WithValue(ctx, ctxJwt.CtxKeyJwtData, map[string]any{"ID": 10, "AuthorityId": 2, "SessionVersion": 1, "SessionID": "api-test"})
 }

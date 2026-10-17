@@ -27,8 +27,22 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 	}
 }
 
+// consumeCaptcha forwards to the RPC tier, which owns the Redis schema and
+// atomic GET+DEL semantics. Wrong, missing, or malformed captchas collapse to
+// a single business error so callers cannot distinguish the reason.
+func (l *LoginLogic) consumeCaptcha(ctx context.Context, captchaId, captcha string) error {
+	matched, err := l.svcCtx.AppletCaptchaRPC.VerifyCaptcha(ctx, &pb.VerifyCaptchaRequest{Id: captchaId, Answer: captcha})
+	if err != nil {
+		return err
+	}
+	if matched == nil || !matched.Matched {
+		return xerr.NewErrCode(xerr.CAPTCHA_ERROR)
+	}
+	return nil
+}
+
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
-	if err := consumeCaptcha(l.ctx, req.CaptchaId, req.Captcha, l.svcCtx.BizRedis); err != nil {
+	if err := l.consumeCaptcha(l.ctx, req.CaptchaId, req.Captcha); err != nil {
 		return nil, err
 	}
 

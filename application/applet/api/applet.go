@@ -1,11 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
-	"os"
 
 	"go-zero-admin/application/applet/api/internal/config"
 	"go-zero-admin/application/applet/api/internal/handler"
@@ -15,45 +13,16 @@ import (
 	"go-zero-admin/pkg/result/xerr"
 
 	"github.com/zeromicro/go-zero/core/conf"
-	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest"
 )
 
 var configFile = flag.String("f", "etc/applet-api.yaml", "the config file")
-
-// var OssEnv = os.Getenv("AliYunOss")
-var OssEnv = os.Getenv("AliYunOss_go-zero-admin")
-
-type AliYunOss struct {
-	Endpoint        string
-	AccessKeyId     string
-	AccessKeySecret string
-	BucketName      string
-}
-
-func getEnv(c *config.Config, o *AliYunOss) {
-	c.Oss.AccessKeyId = o.AccessKeyId
-	c.Oss.AccessKeySecret = o.AccessKeySecret
-	c.Oss.BucketName = o.BucketName
-	c.Oss.Endpoint = o.Endpoint
-}
 
 func main() {
 	flag.Parse()
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
-
-	if OssEnv != "" {
-		// 把阿里云的值存到本地环境中
-		var aliYunOssEnv AliYunOss
-		err := json.Unmarshal([]byte(OssEnv), &aliYunOssEnv)
-		if err != nil {
-			logx.Errorf("Obtain local environment Err: %v", err)
-			panic(err)
-		}
-		getEnv(&c, &aliYunOssEnv)
-	}
 
 	httpprivacy.ConfigureServer(&c.RestConf)
 	ctx := svc.NewServiceContext(c)

@@ -10,8 +10,8 @@ import (
 )
 
 func TestLocalYAMLLoadsWithoutBusinessRedisOrModelCredentials(t *testing.T) {
-	t.Setenv("DEEPSEEK_API_KEY", "")
-	t.Setenv("QWEN_API_KEY", "")
+	t.Setenv("API_KEY_DEEPSEEK", "")
+	t.Setenv("API_KEY_QWEN", "")
 	var cfg Config
 	if err := conf.Load("../../etc/ai.yaml", &cfg); err != nil {
 		t.Fatal(err)
@@ -27,7 +27,7 @@ func TestLocalYAMLLoadsWithoutBusinessRedisOrModelCredentials(t *testing.T) {
 }
 
 func TestYAMLSettingsReachRuntimeAndCredentialsStayInEnvironment(t *testing.T) {
-	t.Setenv("QWEN_API_KEY", "fixture-qwen-key")
+	t.Setenv("API_KEY_QWEN", "fixture-qwen-key")
 	t.Setenv("AI_AGENT_PROVIDER", "deepseek")
 	t.Setenv("AI_AGENT_MAX_STEPS", "8")
 	var cfg Config

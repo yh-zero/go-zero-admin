@@ -1,7 +1,6 @@
 package config
 
 import (
-	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
 )
@@ -10,32 +9,12 @@ type Config struct {
 	rest.RestConf
 	JwtAuth struct {
 		AccessSecret string
-		AccessExpire int
 	}
-	BizRedis redis.RedisConf
 	Page     struct {
 		PageNo   int64
 		PageSize int64
 	}
 	AppletRPC zrpc.RpcClientConf
 	AIRPC     zrpc.RpcClientConf `json:",optional"`
-	Oss       struct {
-		Endpoint         string
-		AccessKeyId      string
-		AccessKeySecret  string
-		BucketName       string
-		ConnectTimeout   int64 `json:",optional"`
-		ReadWriteTimeout int64 `json:",optional"`
-	}
-	Isdev bool       // Legacy development marker; login always validates and consumes CAPTCHA.
-	Mail  MailConfig `json:",optional"`
 }
 
-// MailConfig uses implicit TLS (usually port 465) and verifies the SMTP certificate.
-type MailConfig struct {
-	Host     string `json:",optional"`
-	Port     int    `json:",optional"`
-	From     string `json:",optional"`
-	Username string `json:",optional"`
-	Password string `json:",optional"`
-}

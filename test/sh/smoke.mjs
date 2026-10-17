@@ -369,6 +369,36 @@ try {
     const data = await res.json();
     assert.ok(res.status === 401 || data.code === 100003);
   });
+  await step("API sync preview and apply with version control", async () => {
+    const catalog = async () => (await call("GET", "/api/getAllApiList")).apiList;
+    const normalized = (rows) =>
+      rows.map(({ ID, path, method, apiGroup, description }) => ({ ID, path, method, apiGroup, description })).sort((a, b) => a.ID - b.ID);
+    const before = await catalog();
+    const preview = await call("GET", "/api/previewSync");
+    assert.match(preview.version, /^[a-f0-9]{64}$/);
+    assert.ok(Array.isArray(preview.added) && Array.isArray(preview.changed) && Array.isArray(preview.obsolete));
+    assert.ok([...preview.added, ...preview.changed].every(({ path }) => !["/v1/sys/me", "/v1/sys/logout", "/v1/sys/changePassword"].includes(path)));
+    await call("POST", "/api/applySync", { version: preview.version, keys: [] }, true);
+    await call("POST", "/api/applySync", { version: preview.version, keys: ["GET /v1/sys/not-a-real-interface"] }, true);
+    assert.deepEqual(normalized(await catalog()), normalized(before));
+    const original = before.find(({ path, method }) => path === "/v1/sys/api/previewSync" && method === "GET");
+    assert.ok(original, "Run database migrations first");
+    const policies = await call("GET", "/casbin/getPathByAuthorityId?authorityId=1");
+    await call("PUT", "/api/updateApi", { ...original, description: "Temporary API sync regression " + Date.now() });
+    const changed = await call("GET", "/api/previewSync");
+    const key = "GET /v1/sys/api/previewSync";
+    assert.ok(changed.changed.some((item) => item.key === key));
+    await call("POST", "/api/applySync", { version: preview.version, keys: [key] }, true);
+    const result = await call("POST", "/api/applySync", { version: changed.version, keys: [key] });
+    assert.equal(result.updated, 1);
+    assert.equal(result.added, 0);
+    const after = await catalog();
+    assert.equal(after.find(({ path, method }) => path === original.path && method === original.method).ID, original.ID);
+    assert.deepEqual(normalized(after.filter(({ ID }) => ID !== original.ID)), normalized(before.filter(({ ID }) => ID !== original.ID)));
+    assert.deepEqual(await call("GET", "/casbin/getPathByAuthorityId?authorityId=1"), policies);
+    await call("POST", "/api/applySync", { version: changed.version, keys: [key] }, true);
+    await call("PUT", "/api/updateApi", original);
+  });
 } finally {
   // Reverse creation order first; users and role-menu links must be removed before menus/roles.
   if (userId) {

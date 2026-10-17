@@ -9,9 +9,11 @@ import (
 	apiServer "go-zero-admin/application/applet/rpc/internal/server/api"
 	auditServer "go-zero-admin/application/applet/rpc/internal/server/audit"
 	authorityServer "go-zero-admin/application/applet/rpc/internal/server/authority"
+	captchaServer "go-zero-admin/application/applet/rpc/internal/server/captcha"
 	casbinServer "go-zero-admin/application/applet/rpc/internal/server/casbin"
 	dictionaryServer "go-zero-admin/application/applet/rpc/internal/server/dictionary"
 	fileServer "go-zero-admin/application/applet/rpc/internal/server/fileresourceservice"
+	mailServer "go-zero-admin/application/applet/rpc/internal/server/mail"
 	menuServer "go-zero-admin/application/applet/rpc/internal/server/menu"
 	organizationServer "go-zero-admin/application/applet/rpc/internal/server/organization"
 	permissionServer "go-zero-admin/application/applet/rpc/internal/server/permission"
@@ -47,10 +49,12 @@ func main() {
 		pb.RegisterAuthorityServer(grpcServer, authorityServer.NewAuthorityServer(ctx))
 		pb.RegisterApiServer(grpcServer, apiServer.NewApiServer(ctx))
 		pb.RegisterCasbinServer(grpcServer, casbinServer.NewCasbinServer(ctx))
+		pb.RegisterCaptchaServer(grpcServer, captchaServer.NewCaptchaServer(ctx))
 		pb.RegisterDictionaryServer(grpcServer, dictionaryServer.NewDictionaryServer(ctx))
 		pb.RegisterAuditServer(grpcServer, auditServer.NewAuditServer(ctx))
 		pb.RegisterOrganizationServer(grpcServer, organizationServer.NewOrganizationServer(ctx))
 		pb.RegisterFileResourceServiceServer(grpcServer, fileServer.NewFileResourceServiceServer(ctx))
+		pb.RegisterMailServer(grpcServer, mailServer.NewMailServer(ctx))
 		pb.RegisterSessionManageServer(grpcServer, sessionServer.NewSessionManageServer(ctx))
 
 		if c.Mode == service.DevMode || c.Mode == service.TestMode {

@@ -7,11 +7,13 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
+	maillogic "go-zero-admin/application/applet/rpc/internal/logic/mail"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 	"go-zero-admin/pkg/audit"
 	"go-zero-admin/pkg/hash"
+	"go-zero-admin/pkg/result/xerr"
 	"gorm.io/gorm"
 	"strconv"
 	"strings"
@@ -37,6 +39,24 @@ func (l *RegisterLogic) Register(in *pb.RegisterRequest) (*pb.RegisterResponse, 
 	} {
 		if err := validateProfileField(field.name, field.value); err != nil {
 			return nil, err
+		}
+	}
+	// If the caller provided a verification code, consume it before writing
+	// the user. Without this guard, sendEmailCode is decorative. Field
+	// validation runs first so a malformed request does not burn a valid code;
+	// a username conflict afterwards still consumes it (safe over friendly).
+	if in.EmailCode != "" {
+		scene := in.Scene
+		if scene == "" {
+			scene = "register"
+		}
+		verifier := maillogic.NewVerifyEmailCodeLogic(l.ctx, l.svcCtx)
+		matched, err := verifier.VerifyEmailCode(&pb.VerifyEmailCodeRequest{Email: input.Email, Code: in.EmailCode, Scene: scene})
+		if err != nil {
+			return nil, err
+		}
+		if matched == nil || !matched.Matched {
+			return nil, xerr.NewErrCodeMsg(300004, "邮箱验证码错误或已过期")
 		}
 	}
 	if err := hash.ValidatePassword(input.Password); err != nil {

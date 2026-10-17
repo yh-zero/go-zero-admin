@@ -39,7 +39,7 @@ class DemoBootstrapTests(unittest.TestCase):
             f"DEPLOY_ROOT={self.root}\nMYSQL_DATABASE=gozero-admin\n"
             "API_PORT=127.0.0.1:7001\nDEMO_PROJECT_NAME=go-zero-admin-demo\n"
             f"ADMIN_INITIAL_PASSWORD={PRIVATE_PASSWORD}\n"
-            "DEEPSEEK_API_KEY=\nQWEN_API_KEY=\n", encoding="utf-8")
+            "API_KEY_DEEPSEEK=\nAPI_KEY_QWEN=\n", encoding="utf-8")
         self.credentials = self.root / "runtime/ADMIN_CREDENTIALS.txt"
         self.credentials.parent.mkdir(parents=True)
         self.write_credentials("admin", "demo / Demo@2026.")

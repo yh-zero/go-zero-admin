@@ -32,6 +32,9 @@ type Settings struct {
 type ProviderSettings struct {
 	Model   string `json:",optional"`
 	BaseURL string `json:",optional"`
+	// APIKey is the fallback credential; the environment variable API_KEY_DEEPSEEK
+	// or API_KEY_QWEN takes priority when set.
+	APIKey string `json:",optional"`
 }
 
 // Config contains server-side settings only. APIKey is never serialized or
@@ -62,9 +65,10 @@ func (c Config) String() string {
 
 func (c Config) GoString() string { return c.String() }
 
-// LoadConfig reads parameters from service YAML and only credentials from the
-// environment. Legacy AI_AGENT_*, *_MODEL and *_BASE_URL variables do not override
-// YAML. Disabled mode never reads model credentials or contacts a provider.
+// LoadConfig reads parameters from service YAML. Credentials come from the
+// API_KEY_DEEPSEEK / API_KEY_QWEN environment variable when set, otherwise from
+// the provider's APIKey field in YAML. Legacy AI_AGENT_*, *_MODEL and *_BASE_URL
+// variables do not override YAML. Disabled mode never reads credentials.
 func LoadConfig(settings Settings) (Config, error) {
 	return loadConfig(settings, os.Getenv)
 }
@@ -77,17 +81,25 @@ func loadConfig(settings Settings, getenv func(string) string) (Config, error) {
 	if c.Provider == "" {
 		c.Provider = ProviderDeepSeek
 	}
-	keyName := ""
+	if !c.Enabled {
+		return c.normalized()
+	}
 	switch c.Provider {
 	case ProviderDeepSeek:
 		c.Model, c.BaseURL = settings.DeepSeek.Model, settings.DeepSeek.BaseURL
-		keyName = "DEEPSEEK_API_KEY"
+		// Environment variable first; fall back to the YAML credential.
+		if key := getenv("API_KEY_DEEPSEEK"); key != "" {
+			c.APIKey = key
+		} else {
+			c.APIKey = settings.DeepSeek.APIKey
+		}
 	case ProviderQwen:
 		c.Model, c.BaseURL = settings.Qwen.Model, settings.Qwen.BaseURL
-		keyName = "QWEN_API_KEY"
-	}
-	if c.Enabled && keyName != "" {
-		c.APIKey = getenv(keyName)
+		if key := getenv("API_KEY_QWEN"); key != "" {
+			c.APIKey = key
+		} else {
+			c.APIKey = settings.Qwen.APIKey
+		}
 	}
 	return c.normalized()
 }

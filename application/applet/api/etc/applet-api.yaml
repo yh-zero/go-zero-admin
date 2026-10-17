@@ -2,10 +2,6 @@ Name: applet-api
 Mode: dev
 Host: 0.0.0.0
 Port: 7001
-BizRedis:
-  Host: 127.0.0.1:6379
-  Pass:
-  Type: node
 Page:
   PageNo: 1
   PageSize: 10
@@ -17,13 +13,8 @@ AppletRPC:
   NonBlock: true
 JwtAuth:
   AccessSecret: 3fG7-go-zero-admin_p2hE
-  AccessExpire: 7200
-Oss: # oss相关数据 安全问题 存到本地环境中了
-  Endpoint:
-  AccessKeyId:
-  AccessKeySecret:
-  BucketName:
-Isdev: true # 仅保留开发标识；登录始终校验且一次性消费图形验证码，不会跳过验证
+# OSS/SMTP/Redis 业务键均已下沉到 applet RPC 服务（application/applet/rpc/etc/applet.yaml），
+# API 侧不再保留任何 AccessKeySecret / SMTP 密码副本，业务键 schema 也集中管理。
 
 # Optional AI service; ordinary APIs remain available if it is offline.
 AIRPC:
