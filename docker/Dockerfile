@@ -1,5 +1,5 @@
 # 在一个镜像构建阶段编译 API、业务 RPC 和 AI RPC 三个服务。
-FROM golang:1.26-alpine AS builder
+FROM golang:1.27.1-alpine AS builder
 
 WORKDIR /src
 RUN apk add --no-cache git

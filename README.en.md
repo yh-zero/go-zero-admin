@@ -4,6 +4,8 @@ An administration backend built with go-zero, GORM and Casbin, paired with the V
 
 The backend provides user/role/menu/API authorization, dictionaries, organization and file management, audit logs, device sessions and an optional AI Agent using external DeepSeek or Qwen models.
 
+Requires Go 1.27.0 or newer; the recommended toolchain and Docker builder use Go 1.27.1. The framework is pinned to go-zero v1.10.3, and code generation uses goctl v1.10.2. The framework and generator have independent release versions. Install the generator with `go install github.com/zeromicro/go-zero/tools/goctl@v1.10.2` and add `GOBIN` (or `GOPATH/bin` when unset) to PATH.
+
 - HTTP API: port 7001; business RPC: 6001; independent AI RPC: 6002.
 - Local development: Docker starts MySQL, Redis and etcd; the three Go services and the frontend run separately.
 - AI settings are in `application/ai/rpc/etc/ai.yaml`; model API keys are supplied only to the AI process through its environment.

@@ -39,6 +39,24 @@ Compose 不再自动导入旧 SQL。通用数据库脚本只保留状态、备�
 
 同日复查重新通过导入、旧库迁移、33 项 Python 测试及 Compose 检查，并补齐交付排除规则：Docker 构建上下文排除历史 SQL 归档和本地全量快照；README 的源码打包命令只携带正式 SQL 和迁移目录。使用合成文件实测 Docker 构建上下文与源码归档，所需 SQL 均保留、备份均排除，原快照内容未改动。
 
+## 本轮 Go 工具链升级（2026-10-07）
+
+本轮按“使用最新稳定版，已经是最新则跳过”处理 Go、go-zero 和 goctl；用户、角色、菜单、API 的权限与数据一致性优化留待后续独立开展。
+
+| 项目 | 处理结果 |
+| --- | --- |
+| 本机 Go | `1.26.6 → 1.27.1`；官方 ZIP 已核对 SHA256，安装到 `E:\Software\go\go1.27.1`，旧 SDK 保留；用户 PATH 已切换，新终端生效 |
+| 项目 Go | 最低版本改为 `go 1.27.0`，推荐工具链为 `toolchain go1.27.1`；Docker 构建器固定为 `golang:1.27.1-alpine` |
+| go-zero | 官方最新稳定版为 `v1.10.3`，项目已经使用该版本，跳过升级 |
+| goctl | 官方独立模块最新稳定版为 `v1.10.2`，本机已经安装，跳过重装；将 `GOPATH/bin` 加入用户 PATH，原自定义模板继续使用 |
+| 必要兼容依赖 | Sonic `v1.15.0 → v1.15.4`、loader `v0.5.0 → v0.5.2`，使 Go 1.27 使用原生 JSON 路径；仅整理现有模块，没有批量升级其他依赖 |
+
+版本依据：[Go 官方稳定版](https://go.dev/dl/)、[go-zero/goctl 发布记录](https://github.com/zeromicro/go-zero/releases)、[Sonic Go 1.27 支持](https://github.com/bytedance/sonic/releases/tag/v1.15.3)。Sonic 随后的 [v1.15.4](https://github.com/bytedance/sonic/releases/tag/v1.15.4) 包含数组解码 GC 修复。
+
+已通过：升级前 Go 1.26.6 全量测试；升级后 `go mod verify`；Go 1.27.1 执行现有 `verify.ps1` 的 419 个源码格式检查、`go vet ./...`、`go test ./... -count=1` 和 `go build ./...`；goctl 在临时目录生成 API，并检查统一响应与 JWT 错误模板；Linux/amd64、`CGO_ENABLED=0` 的 API、业务 RPC、AI RPC 三个服务构建，产物 Go 版本均为 `go1.27.1`；Sonic 实际编译文件包含原生入口 `sonic.go`。
+
+未配置 `GO_ZERO_MYSQL_TEST_DSN`，MySQL 专用测试跳过；本轮未执行完整 Docker 镜像构建、SQL 导入/迁移验收、业务 HTTP 登录、服务重启或远程部署。前端依赖及业务接口保持本轮升级前的状态。
+
 ## 本轮权限优化开发（2026-10-09）
 
 已完成角色/菜单统一关联保护、全局授权 revision、一致编辑及当前会话快照、移动预览绑定、稳定按钮键、四类授权差异历史和严格版本回滚。用户输入保留历史兼容语义，列表投影排除密码哈希；角色/完整菜单树使用父节点索引。用户资源预览与同库移交、显式设备会话维护工具已实现。

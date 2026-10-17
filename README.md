@@ -8,7 +8,8 @@
 
 ## 环境要求
 
-- Go ≥ 1.24，推荐 1.26.x；Docker 与 Docker Compose v2。
+- Go ≥ 1.27.0，项目推荐工具链固定为 `go1.27.1`；Docker 与 Docker Compose v2。
+- 后端框架固定为 `go-zero v1.10.3`，代码生成工具固定为 `goctl v1.10.2`。两者独立发布，不要求版本号相同。
 - 前端：Node.js `^22.18.0` 或 `^24.12.0`，pnpm `11.16.0`。
 - 下列本机脚本使用 Windows PowerShell 5.1；命令均在对应仓库根目录执行。
 
@@ -121,7 +122,9 @@ go run ./application/applet/rpc/cmd/sessioncleanup -f application/applet/rpc/etc
 仅修改接口契约时需要生成工具：`goctl v1.10.2`；RPC 生成另需 protobuf 工具。
 
 ```powershell
+go version
 go install github.com/zeromicro/go-zero/tools/goctl@v1.10.2
+goctl --version
 .\test\sh\api.bat applet
 .\test\sh\rpc.bat applet applet
 .\test\sh\rpc.bat ai ai
@@ -129,6 +132,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File test/sh/swagger.ps1
 ```
 
 按需执行对应命令，生成后检查差异，保留自定义逻辑。接口变更后先更新 Swagger，再构建并重启 RPC/API。
+
+`go install` 将工具放入 `GOBIN`，未设置时使用 `GOPATH/bin`；请将该目录加入 PATH。`go.mod` 的 `toolchain go1.27.1` 指定推荐 Go 版本，Docker 构建使用同版本镜像。仅升级工具链时无需重生成现有 API、RPC 或模型代码。
 
 ### go-zero 自定义模板
 
