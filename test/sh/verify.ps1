@@ -1,6 +1,6 @@
 #requires -Version 5.1
 [CmdletBinding()]
-param([switch]$IncludeDBRegression)
+param([switch]$IncludeDBRegression, [switch]$IncludeDeployTests)
 
 $ErrorActionPreference = 'Stop'
 $verifyRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -46,6 +46,14 @@ try {
         Write-Host 'Running isolated development-MySQL migration and import regression.'
         & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'regression.ps1') -Scope db
         if ($LASTEXITCODE -ne 0) { throw 'Database regression failed.' }
+    }
+    if ($IncludeDeployTests) {
+        if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+            throw 'Python is unavailable. Install Python 3 to run the deployment tool tests.'
+        }
+        Write-Host 'Running deployment tool tests (demo-bootstrap / demo-rebuild).'
+        & python -m unittest test/demo_bootstrap_test.py test/demo_rebuild_test.py
+        if ($LASTEXITCODE -ne 0) { throw 'Deployment tool tests failed.' }
     }
     Write-Host 'All requested verification checks passed.'
 } finally {

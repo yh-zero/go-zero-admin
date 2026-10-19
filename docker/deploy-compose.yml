@@ -2,7 +2,7 @@ name: go-zero-admin-deploy
 
 services:
   mysql:
-    image: mysql:8.0.34
+    image: mysql:8.4.10@sha256:8dbcf531a03aade657e181b9cf2f1d1803ce621a1d55610cb44cb531ab7d7db6
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:?请在 docker/.env.deploy 中设置 MYSQL_ROOT_PASSWORD}"
@@ -18,6 +18,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   redis:
     image: redis:7-alpine

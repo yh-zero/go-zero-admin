@@ -152,7 +152,6 @@ function Start-DevServices([System.Collections.IDictionary]$ModelEnvironment) {
 
 Push-Location $devRoot
 $devOperationLock = $null
-$devEnvironmentSnapshot = $null
 try {
     New-Item -ItemType Directory -Path $devRuntime -Force | Out-Null
     try {
@@ -161,9 +160,7 @@ try {
         throw 'Another backend operation is in progress. Retry after it finishes.'
     }
     if ($Action -eq 'Start' -or $Action -eq 'Restart') {
-        # Validate the complete file before Restart is allowed to stop existing processes.
-        $devEnvironmentValues = Read-DevEnvFile -Path (Join-Path $devRoot '.env.local')
-        $devEnvironmentSnapshot = Set-DevEnvironmentDefaults -Values $devEnvironmentValues
+        # Model keys come only from the caller's environment (system/user/process).
         $devModelEnvironment = Get-DevModelEnvironment
     }
     switch ($Action) {
@@ -185,9 +182,6 @@ try {
     if ($script:devDidStart) { Stop-DevServices }
     throw
 } finally {
-    try { Restore-DevEnvironment -Snapshot $devEnvironmentSnapshot }
-    finally {
-        if ($devOperationLock) { $devOperationLock.Dispose() }
-        Pop-Location
-    }
+    if ($devOperationLock) { $devOperationLock.Dispose() }
+    Pop-Location
 }

@@ -27,6 +27,6 @@ Permission edits use consistent snapshots and mandatory revisions; menu moves re
 
 Session maintenance is opt-in: `go run ./application/applet/rpc/cmd/sessioncleanup -f application/applet/rpc/etc/applet.yaml -retention-days 90 -batch-size 200` previews old terminal sessions. Add `-apply` explicitly after reviewing the result. Valid/recent sessions and audits remain; no retention schedule is created automatically.
 
-See [README.md](README.md) for installation, startup, configuration, code generation, tests and deployment; [Docker deployment](docker/部署说明.md) for production service authentication and upgrades; [development plan](DEVELOPMENT_PLAN.md) for unfinished work and acceptance checks.
+See [README.md](README.md) for installation, startup, configuration, code generation, tests and deployment; [Docker deployment](docker/部署说明.md) for production service authentication and upgrades.
 
 Licensed under [Apache License 2.0](LICENSE). The frontend preserves its upstream MIT license.

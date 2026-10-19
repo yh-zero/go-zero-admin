@@ -4,6 +4,7 @@ bin-release/
 [Oo]bj/
 [Bb]in/
 /.tmp-go-build-*/
+test/reports/
 __pycache__/
 *.py[cod]
 

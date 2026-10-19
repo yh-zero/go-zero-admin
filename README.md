@@ -5,14 +5,14 @@
 - [后端仓库](https://github.com/yh-zero/go-zero-admin) : https://github.com/yh-zero/go-zero-admin
 - [前端仓库](https://github.com/yh-zero/go-zero-admin-vben) : https://github.com/yh-zero/go-zero-admin-vben
 - [在线演示](https://yh9527.top) : https://yh9527.top（admin / 123456，只读）
-- [Swagger UI](http://localhost:8080) : http://localhost:8080
+- [Swagger UI](http://localhost:7000) : http://localhost:7000
 - [接口 JSON](data/api/generated/go-zero-admin.swagger.json)
 
 
 
 ## 接口文档
 
-- [Swagger UI](http://localhost:8080) : http://localhost:8080
+- [Swagger UI](http://localhost:7000) : http://localhost:7000
 - [接口 JSON](data/api/generated/go-zero-admin.swagger.json) : data/api/generated/go-zero-admin.swagger.json
 
 
@@ -52,7 +52,7 @@ API 与业务 RPC 的 `JwtAuth.AccessSecret` 必须一致；业务 RPC 与 AI RP
 
 ## AI 助手
 
-默认关闭。启用：在 ai.yaml 设 `AI.Enabled: true` 并选择 `Provider`（deepseek 或 qwen）。密钥优先读环境变量 `API_KEY_DEEPSEEK` / `API_KEY_QWEN`，未设置时用 yaml 的 `APIKey` 字段兜底。改后 `dev.ps1 -Action Restart` 生效。
+默认关闭。启用：在 ai.yaml 设 `AI.Enabled: true` 并选择 `Provider`（deepseek 或 qwen）。密钥优先读环境变量 `API_KEY_DEEPSEEK` / `API_KEY_QWEN`，未设置时用 yaml 的 `APIKey` 字段兜底；环境变量只注入 AI RPC 进程，不进入其他服务与构建子进程，Windows 可用 `setx API_KEY_DEEPSEEK "sk-..."` 配置（新终端生效）。改后 `dev.ps1 -Action Restart` 生效。
 
 ## 数据库升级
 
@@ -97,8 +97,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File test/sh/verify.ps1 -IncludeD
 | `db.ps1` / `db.sh` | 数据库迁移、备份、状态（Windows / Linux） |
 | `gen.ps1` | 代码生成：`api` / `rpc` / `model` / `swagger` |
 | `verify.ps1` | 一键检查与测试 |
-| `regression.ps1` | 回归测试：`-Scope env` 环境隔离 / `-Scope db` 数据库 |
-| `smoke.mjs` / `session-smoke.mjs` | API 冒烟测试 / 会话专项测试 |
+| `regression.ps1` | 回归测试：`-Scope env` 密钥隔离与启动编排 / `-Scope db` 数据库 |
+| `smoke.mjs` / `session-smoke.mjs` | API 冒烟测试 / 会话专项测试（报告输出到 `test/reports/`，已被 Git 忽略） |
 | `package-demo.ps1` | 打包部署文件 |
 | `env.ps1` / `mysql-client.sh` | 内部工具，被上述脚本引用 |
 
