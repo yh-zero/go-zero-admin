@@ -114,6 +114,171 @@ type ApiSyncItem struct {
 	CurrentDescription string `json:"currentDescription"`
 }
 
+type AppAuthOptions struct {
+	EmailVerificationRequired bool `json:"emailVerificationRequired"`
+	EmailCodeEnabled          bool `json:"emailCodeEnabled"`
+}
+
+type AppAuthTokens struct {
+	AccessToken      string  `json:"accessToken"`
+	RefreshToken     string  `json:"refreshToken"`
+	ExpiresAt        int64   `json:"expiresAt"`
+	RefreshExpiresAt int64   `json:"refreshExpiresAt"`
+	User             AppUser `json:"user"`
+}
+
+type AppExample struct {
+	UserID      int64  `json:"userId"`
+	Account     string `json:"account"`
+	Nickname    string `json:"nickname"`
+	GeneratedAt string `json:"generatedAt"`
+}
+
+type AppGrant struct {
+	ID           int64    `json:"id"`
+	UserID       int64    `json:"userId"`
+	Account      string   `json:"account"`
+	PlanID       int64    `json:"planId"`
+	PlanCode     string   `json:"planCode"`
+	PlanVersion  int64    `json:"planVersion"`
+	Entitlements []string `json:"entitlements"`
+	StartsAt     string   `json:"startsAt"`
+	EndsAt       string   `json:"endsAt"`
+	RevokedAt    string   `json:"revokedAt"`
+	Reason       string   `json:"reason"`
+	RevokeReason string   `json:"revokeReason"`
+	CreatedAt    string   `json:"createdAt"`
+	Status       string   `json:"status"`
+}
+
+type AppGrantList struct {
+	List     []AppGrant `json:"list"`
+	Total    int64      `json:"total"`
+	PageNo   int64      `json:"pageNo"`
+	PageSize int64      `json:"pageSize"`
+}
+
+type AppGrantListRequest struct {
+	PageNo   int64 `form:"pageNo,default=1"`
+	PageSize int64 `form:"pageSize,default=10"`
+	UserID   int64 `form:"userId,optional"`
+}
+
+type AppGrantRequest struct {
+	UserID    int64  `json:"userId"`
+	PlanID    int64  `json:"planId"`
+	Days      int64  `json:"days"`
+	RequestID string `json:"requestId"`
+	Reason    string `json:"reason"`
+}
+
+type AppGrantRevokeRequest struct {
+	ID     int64  `json:"id"`
+	Reason string `json:"reason"`
+}
+
+type AppLoginRequest struct {
+	Account  string `json:"account"`
+	Password string `json:"password"`
+}
+
+type AppLogoutRequest struct {
+	AllDevices bool `json:"allDevices,optional"`
+}
+
+type AppMembership struct {
+	Active       bool     `json:"active"`
+	ExpiresAt    string   `json:"expiresAt"`
+	Entitlements []string `json:"entitlements"`
+}
+
+type AppPlan struct {
+	ID           int64    `json:"id"`
+	Code         string   `json:"code"`
+	Name         string   `json:"name"`
+	Version      int64    `json:"version"`
+	Entitlements []string `json:"entitlements"`
+}
+
+type AppPlanList struct {
+	List []AppPlan `json:"list"`
+}
+
+type AppProfileRequest struct {
+	Nickname string `json:"nickname"`
+}
+
+type AppRefreshRequest struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
+type AppRegisterRequest struct {
+	EmailCode string `json:"emailCode,optional"`
+	Account   string `json:"account"`
+	Password  string `json:"password"`
+	Nickname  string `json:"nickname,optional"`
+}
+
+type AppSendEmailCodeRequest struct {
+	Account string `json:"account"`
+}
+
+type AppSession struct {
+	ID        string `json:"id"`
+	UserID    int64  `json:"userId"`
+	IP        string `json:"ip"`
+	UserAgent string `json:"userAgent"`
+	CreatedAt string `json:"createdAt"`
+	ExpiresAt string `json:"expiresAt"`
+	Current   bool   `json:"current"`
+}
+
+type AppSessionIDRequest struct {
+	ID string `json:"id"`
+}
+
+type AppSessionList struct {
+	List []AppSession `json:"list"`
+}
+
+type AppStatusRequest struct {
+	UserID int64  `json:"userId"`
+	Status string `json:"status"`
+	Reason string `json:"reason"`
+}
+
+type AppUser struct {
+	IdentityVerified   bool   `json:"identityVerified"`
+	RegistrationIP     string `json:"registrationIP"`
+	RegistrationRegion string `json:"registrationRegion"`
+	ID                 int64  `json:"id"`
+	Account            string `json:"account"`
+	IdentityKind       string `json:"identityKind"`
+	Nickname           string `json:"nickname"`
+	Status             string `json:"status"`
+	ReviewReason       string `json:"reviewReason"`
+	CreatedAt          string `json:"createdAt"`
+	UpdatedAt          string `json:"updatedAt"`
+}
+
+type AppUserIDRequest struct {
+	UserID int64 `form:"userId"`
+}
+
+type AppUserList struct {
+	List     []AppUser `json:"list"`
+	Total    int64     `json:"total"`
+	PageNo   int64     `json:"pageNo"`
+	PageSize int64     `json:"pageSize"`
+}
+
+type AppUserListRequest struct {
+	PageNo   int64  `form:"pageNo,default=1"`
+	PageSize int64  `form:"pageSize,default=10"`
+	Keyword  string `form:"keyword,optional"`
+	Status   string `form:"status,optional"`
+}
+
 type ApplyApiSyncRequest struct {
 	Version string   `json:"version"`
 	Keys    []string `json:"keys"`
@@ -646,14 +811,8 @@ type RegisterRequest struct {
 	AuthorityIds []int64 `json:"authorityIds"`       // 角色id []int64
 	Phone        string  `json:"phone,optional"`     // 电话号码
 	Email        string  `json:"email,optional"`     // 电子邮箱
-	// EmailCode is the verification code previously sent via
-	// /sendEmailCode. The RPC tier verifies and consumes it before writing
-	// the user row; when empty, registration proceeds without verification
-	// (admin self-service path).
-	EmailCode string `json:"emailCode,optional"`
-	// Scene pairs with the code; the same email can hold independent codes
-	// for "register" / "reset_password" etc.
-	Scene string `json:"scene,optional"`
+	EmailCode    string  `json:"emailCode,optional"` // 邮箱验证码
+	Scene        string  `json:"scene,optional"`     // 邮箱验证场景，默认 register
 }
 
 type RegisterResponse struct {
@@ -676,16 +835,10 @@ type RoleDataScope struct {
 }
 
 type SendEmailCodeRequest struct {
-	Email   string `json:"email"`
-	IsForce bool   `json:"isForce,optional"`
-	// Scene is forwarded to the RPC and forms part of the Redis key, so the
-	// same email can hold independent codes for different purposes. Defaults
-	// to "register" server-side when empty.
-	Scene string `json:"scene,optional"`
-	// ClientIP is the originating IP, used for per-IP hourly rate limiting on
-	// the RPC side. The handler populates it from the request before calling
-	// the logic.
-	ClientIP string `json:"-"`
+	Email    string `json:"email"`
+	IsForce  bool   `json:"isForce,optional"`
+	Scene    string `json:"scene,optional"` // 邮箱验证场景，默认 register
+	ClientIP string `json:"-"`              // 由处理器从 HTTP 请求提取
 }
 
 type SysApi struct {

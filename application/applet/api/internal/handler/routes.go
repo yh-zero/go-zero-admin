@@ -9,6 +9,9 @@ import (
 
 	aiagent "go-zero-admin/application/applet/api/internal/handler/aiagent"
 	api "go-zero-admin/application/applet/api/internal/handler/api"
+	appaccount "go-zero-admin/application/applet/api/internal/handler/appaccount"
+	appauth "go-zero-admin/application/applet/api/internal/handler/appauth"
+	appmembers "go-zero-admin/application/applet/api/internal/handler/appmembers"
 	audit "go-zero-admin/application/applet/api/internal/handler/audit"
 	authority "go-zero-admin/application/applet/api/internal/handler/authority"
 	base "go-zero-admin/application/applet/api/internal/handler/base"
@@ -136,6 +139,155 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
 		rest.WithPrefix("/v1/sys/api"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.AppSession},
+			[]rest.Route{
+				{
+					// 退出当前或全部设备
+					Method:  http.MethodPost,
+					Path:    "/auth/logout",
+					Handler: appaccount.LogoutAppAccountHandler(serverCtx),
+				},
+				{
+					// 会员示例：导出本人资料
+					Method:  http.MethodGet,
+					Path:    "/example/profile-export",
+					Handler: appaccount.GetAppMemberExampleHandler(serverCtx),
+				},
+				{
+					// 读取本人资料
+					Method:  http.MethodGet,
+					Path:    "/me",
+					Handler: appaccount.GetAppProfileHandler(serverCtx),
+				},
+				{
+					// 更新本人昵称
+					Method:  http.MethodPut,
+					Path:    "/me",
+					Handler: appaccount.UpdateAppProfileHandler(serverCtx),
+				},
+				{
+					// 读取当前会员权益
+					Method:  http.MethodGet,
+					Path:    "/membership",
+					Handler: appaccount.GetAppMembershipHandler(serverCtx),
+				},
+				{
+					// 撤销本人设备
+					Method:  http.MethodDelete,
+					Path:    "/session",
+					Handler: appaccount.RevokeMyAppSessionHandler(serverCtx),
+				},
+				{
+					// 查看本人有效设备
+					Method:  http.MethodGet,
+					Path:    "/sessions",
+					Handler: appaccount.GetMyAppSessionsHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.AppJwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/app"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.AppRequest},
+			[]rest.Route{
+				{
+					// 发送 App 邮箱注册验证码
+					Method:  http.MethodPost,
+					Path:    "/email-code",
+					Handler: appauth.SendAppEmailCodeHandler(serverCtx),
+				},
+				{
+					// 已审核 App 账号登录
+					Method:  http.MethodPost,
+					Path:    "/login",
+					Handler: appauth.LoginAppAccountHandler(serverCtx),
+				},
+				{
+					// 查询邮箱验证配置
+					Method:  http.MethodGet,
+					Path:    "/options",
+					Handler: appauth.GetAppAuthOptionsHandler(serverCtx),
+				},
+				{
+					// 轮换 App 刷新令牌
+					Method:  http.MethodPost,
+					Path:    "/refresh",
+					Handler: appauth.RefreshAppTokenHandler(serverCtx),
+				},
+				{
+					// 邮箱或手机号注册，等待管理员审核
+					Method:  http.MethodPost,
+					Path:    "/register",
+					Handler: appauth.RegisterAppAccountHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithPrefix("/v1/app/auth"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					// 撤销指定会员授予
+					Method:  http.MethodDelete,
+					Path:    "/grant",
+					Handler: appmembers.RevokeAppMembershipHandler(serverCtx),
+				},
+				{
+					// 分页查询会员授予记录
+					Method:  http.MethodGet,
+					Path:    "/grants",
+					Handler: appmembers.ListAppGrantsHandler(serverCtx),
+				},
+				{
+					// 人工开通或续期会员
+					Method:  http.MethodPost,
+					Path:    "/grants",
+					Handler: appmembers.GrantAppMembershipHandler(serverCtx),
+				},
+				{
+					// 读取会员方案
+					Method:  http.MethodGet,
+					Path:    "/plans",
+					Handler: appmembers.ListAppPlansHandler(serverCtx),
+				},
+				{
+					// 撤销 App 用户设备
+					Method:  http.MethodDelete,
+					Path:    "/session",
+					Handler: appmembers.RevokeAppUserSessionHandler(serverCtx),
+				},
+				{
+					// 查询 App 用户有效设备
+					Method:  http.MethodGet,
+					Path:    "/sessions",
+					Handler: appmembers.ListAppUserSessionsHandler(serverCtx),
+				},
+				{
+					// 审核或禁用恢复 App 账号
+					Method:  http.MethodPut,
+					Path:    "/status",
+					Handler: appmembers.SetAppUserStatusHandler(serverCtx),
+				},
+				{
+					// 分页查询 App 用户与待审核账号
+					Method:  http.MethodGet,
+					Path:    "/users",
+					Handler: appmembers.ListAppUsersHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/app-members"),
 	)
 
 	server.AddRoutes(
@@ -657,6 +809,26 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			[]rest.Middleware{serverCtx.Authority},
 			[]rest.Route{
 				{
+					Method:  http.MethodGet,
+					Path:    "/resources",
+					Handler: user.GetUserResourcePreviewHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/resources/transfer",
+					Handler: user.TransferUserResourcesHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/user"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
 					// 删除用户
 					Method:  http.MethodDelete,
 					Path:    "/deleteUser",
@@ -690,26 +862,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
 		rest.WithPrefix("/v1/sys"),
-	)
-
-	server.AddRoutes(
-		rest.WithMiddlewares(
-			[]rest.Middleware{serverCtx.Authority},
-			[]rest.Route{
-				{
-					Method:  http.MethodGet,
-					Path:    "/resources",
-					Handler: user.GetUserResourcePreviewHandler(serverCtx),
-				},
-				{
-					Method:  http.MethodPost,
-					Path:    "/resources/transfer",
-					Handler: user.TransferUserResourcesHandler(serverCtx),
-				},
-			}...,
-		),
-		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
-		rest.WithPrefix("/v1/sys/user"),
 	)
 
 	server.AddRoutes(

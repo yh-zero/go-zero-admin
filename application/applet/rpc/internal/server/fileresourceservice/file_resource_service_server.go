@@ -59,21 +59,18 @@ func (s *FileResourceServiceServer) FinishDeleteFile(ctx context.Context, in *pb
 }
 
 // UploadFile stores the bytes in OSS (credentials live only in this RPC) and
-// registers the metadata in a single call. The Data field is bounded to 10MB.
 func (s *FileResourceServiceServer) UploadFile(ctx context.Context, in *pb.UploadFileRequest) (*pb.UploadFileResponse, error) {
 	l := fileresourceservicelogic.NewUploadFileLogic(ctx, s.svcCtx)
 	return l.UploadFile(in)
 }
 
 // GetFileURL returns a public URL for public files, or a 5-minute signed
-// URL for private files.
 func (s *FileResourceServiceServer) GetFileURL(ctx context.Context, in *pb.FileIDRequest) (*pb.FileURLResponse, error) {
 	l := fileresourceservicelogic.NewGetFileURLLogic(ctx, s.svcCtx)
 	return l.GetFileURL(in)
 }
 
 // DeleteFile is the one-shot orchestration: begin -> OSS delete -> finish.
-// It is safe to retry; already-deleted resources short-circuit.
 func (s *FileResourceServiceServer) DeleteFile(ctx context.Context, in *pb.FileIDRequest) (*pb.NoDataResponse, error) {
 	l := fileresourceservicelogic.NewDeleteFileLogic(ctx, s.svcCtx)
 	return l.DeleteFile(in)

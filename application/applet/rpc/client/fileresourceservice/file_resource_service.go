@@ -35,11 +35,9 @@ type (
 		RemoveFileReference(ctx context.Context, in *FileReferenceRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		BeginDeleteFile(ctx context.Context, in *FileIDRequest, opts ...grpc.CallOption) (*FileResource, error)
 		FinishDeleteFile(ctx context.Context, in *FileIDRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
-		// UploadFile stores the bytes in OSS (credentials live only in the RPC tier)
-		// and registers the metadata in a single call.
+		// UploadFile stores the bytes in OSS (credentials live only in this RPC) and
 		UploadFile(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error)
-		// GetFileURL returns a public URL for public files, or a 5-minute
-		// signed URL for private files.
+		// GetFileURL returns a public URL for public files, or a 5-minute signed
 		GetFileURL(ctx context.Context, in *FileIDRequest, opts ...grpc.CallOption) (*FileURLResponse, error)
 		// DeleteFile is the one-shot orchestration: begin -> OSS delete -> finish.
 		DeleteFile(ctx context.Context, in *FileIDRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
@@ -91,16 +89,19 @@ func (m *defaultFileResourceService) FinishDeleteFile(ctx context.Context, in *F
 	return client.FinishDeleteFile(ctx, in, opts...)
 }
 
+// UploadFile stores the bytes in OSS (credentials live only in this RPC) and
 func (m *defaultFileResourceService) UploadFile(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error) {
 	client := pb.NewFileResourceServiceClient(m.cli.Conn())
 	return client.UploadFile(ctx, in, opts...)
 }
 
+// GetFileURL returns a public URL for public files, or a 5-minute signed
 func (m *defaultFileResourceService) GetFileURL(ctx context.Context, in *FileIDRequest, opts ...grpc.CallOption) (*FileURLResponse, error) {
 	client := pb.NewFileResourceServiceClient(m.cli.Conn())
 	return client.GetFileURL(ctx, in, opts...)
 }
 
+// DeleteFile is the one-shot orchestration: begin -> OSS delete -> finish.
 func (m *defaultFileResourceService) DeleteFile(ctx context.Context, in *FileIDRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewFileResourceServiceClient(m.cli.Conn())
 	return client.DeleteFile(ctx, in, opts...)

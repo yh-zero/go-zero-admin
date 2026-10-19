@@ -104,9 +104,6 @@
     "AddBaseMenuResponse": {
       "type": "object"
     },
-    "AdminDeviceSessionListRequest": {
-      "type": "object"
-    },
     "AgentConversation": {
       "properties": {
         "createdAt": {
@@ -146,9 +143,6 @@
         "items",
         "total"
       ],
-      "type": "object"
-    },
-    "AgentIDRequest": {
       "type": "object"
     },
     "AgentInfo": {
@@ -224,9 +218,6 @@
       ],
       "type": "object"
     },
-    "AgentMessageListRequest": {
-      "type": "object"
-    },
     "AgentMessageListResponse": {
       "properties": {
         "items": {
@@ -243,9 +234,6 @@
         "items",
         "total"
       ],
-      "type": "object"
-    },
-    "AgentPageRequest": {
       "type": "object"
     },
     "AgentRun": {
@@ -395,6 +383,140 @@
       ],
       "type": "object"
     },
+    "AppGrant": {
+      "properties": {
+        "account": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "endsAt": {
+          "type": "string"
+        },
+        "entitlements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "planCode": {
+          "type": "string"
+        },
+        "planId": {
+          "type": "integer"
+        },
+        "planVersion": {
+          "type": "integer"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "revokedAt": {
+          "type": "string"
+        },
+        "revokeReason": {
+          "type": "string"
+        },
+        "startsAt": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "account",
+        "planId",
+        "planCode",
+        "planVersion",
+        "entitlements",
+        "startsAt",
+        "endsAt",
+        "revokedAt",
+        "reason",
+        "revokeReason",
+        "createdAt",
+        "status"
+      ],
+      "type": "object"
+    },
+    "AppGrantList": {
+      "properties": {
+        "list": {
+          "items": {
+            "$ref": "#/definitions/AppGrant"
+          },
+          "type": "array"
+        },
+        "pageNo": {
+          "type": "integer"
+        },
+        "pageSize": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "list",
+        "total",
+        "pageNo",
+        "pageSize"
+      ],
+      "type": "object"
+    },
+    "AppGrantRequest": {
+      "properties": {
+        "days": {
+          "type": "integer"
+        },
+        "planId": {
+          "type": "integer"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "userId",
+        "planId",
+        "days",
+        "requestId",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "AppGrantRevokeRequest": {
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "reason"
+      ],
+      "type": "object"
+    },
     "ApplyApiSyncRequest": {
       "properties": {
         "keys": {
@@ -444,6 +566,206 @@
         "id",
         "expectedRevision",
         "version"
+      ],
+      "type": "object"
+    },
+    "AppPlan": {
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "entitlements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "code",
+        "name",
+        "version",
+        "entitlements"
+      ],
+      "type": "object"
+    },
+    "AppPlanList": {
+      "properties": {
+        "list": {
+          "items": {
+            "$ref": "#/definitions/AppPlan"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "list"
+      ],
+      "type": "object"
+    },
+    "AppSession": {
+      "properties": {
+        "createdAt": {
+          "type": "string"
+        },
+        "current": {
+          "type": "boolean"
+        },
+        "expiresAt": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "userAgent": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "ip",
+        "userAgent",
+        "createdAt",
+        "expiresAt",
+        "current"
+      ],
+      "type": "object"
+    },
+    "AppSessionIDRequest": {
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "type": "object"
+    },
+    "AppSessionList": {
+      "properties": {
+        "list": {
+          "items": {
+            "$ref": "#/definitions/AppSession"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "list"
+      ],
+      "type": "object"
+    },
+    "AppStatusRequest": {
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "userId",
+        "status",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "AppUser": {
+      "properties": {
+        "account": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "identityKind": {
+          "type": "string"
+        },
+        "identityVerified": {
+          "type": "boolean"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "registrationIP": {
+          "type": "string"
+        },
+        "registrationRegion": {
+          "type": "string"
+        },
+        "reviewReason": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "identityVerified",
+        "registrationIP",
+        "registrationRegion",
+        "id",
+        "account",
+        "identityKind",
+        "nickname",
+        "status",
+        "reviewReason",
+        "createdAt",
+        "updatedAt"
+      ],
+      "type": "object"
+    },
+    "AppUserList": {
+      "properties": {
+        "list": {
+          "items": {
+            "$ref": "#/definitions/AppUser"
+          },
+          "type": "array"
+        },
+        "pageNo": {
+          "type": "integer"
+        },
+        "pageSize": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "list",
+        "total",
+        "pageNo",
+        "pageSize"
       ],
       "type": "object"
     },
@@ -963,9 +1285,6 @@
       ],
       "type": "object"
     },
-    "DeviceSessionListRequest": {
-      "type": "object"
-    },
     "DeviceSessionListResponse": {
       "properties": {
         "list": {
@@ -1001,9 +1320,6 @@
       "required": [
         "id"
       ],
-      "type": "object"
-    },
-    "FileListRequest": {
       "type": "object"
     },
     "FileListResponse": {
@@ -1098,9 +1414,6 @@
       ],
       "type": "object"
     },
-    "FileURLRequest": {
-      "type": "object"
-    },
     "FileURLResponse": {
       "properties": {
         "expiresIn": {
@@ -1116,9 +1429,6 @@
       ],
       "type": "object"
     },
-    "GetAllApiListRequest": {
-      "type": "object"
-    },
     "GetAllApiListResponse": {
       "properties": {
         "apiList": {
@@ -1131,9 +1441,6 @@
       "required": [
         "apiList"
       ],
-      "type": "object"
-    },
-    "GetApiListRequest": {
       "type": "object"
     },
     "GetApiListResponse": {
@@ -1162,9 +1469,6 @@
       ],
       "type": "object"
     },
-    "GetAuditLogListRequest": {
-      "type": "object"
-    },
     "GetAuditLogListResponse": {
       "properties": {
         "list": {
@@ -1191,9 +1495,6 @@
       ],
       "type": "object"
     },
-    "GetAuthorityButtonsRequest": {
-      "type": "object"
-    },
     "GetAuthorityButtonsResponse": {
       "properties": {
         "menuBtnIds": {
@@ -1210,9 +1511,6 @@
         "revision",
         "menuBtnIds"
       ],
-      "type": "object"
-    },
-    "GetAuthorityListRequest": {
       "type": "object"
     },
     "GetAuthorityListResponse": {
@@ -1241,9 +1539,6 @@
       ],
       "type": "object"
     },
-    "GetBaseMenuByIdRequest": {
-      "type": "object"
-    },
     "GetBaseMenuByIdResponse": {
       "properties": {
         "sysBaseMenu": {
@@ -1253,9 +1548,6 @@
       "required": [
         "sysBaseMenu"
       ],
-      "type": "object"
-    },
-    "GetBaseMenuTreeRequest": {
       "type": "object"
     },
     "GetBaseMenuTreeResponse": {
@@ -1270,9 +1562,6 @@
       "required": [
         "list"
       ],
-      "type": "object"
-    },
-    "GetMenuAuthorityRequest": {
       "type": "object"
     },
     "GetMenuAuthorityResponse": {
@@ -1291,9 +1580,6 @@
         "revision",
         "list"
       ],
-      "type": "object"
-    },
-    "GetMenuListRequest": {
       "type": "object"
     },
     "GetMenuListResponse": {
@@ -1322,9 +1608,6 @@
       ],
       "type": "object"
     },
-    "GetMenuRequest": {
-      "type": "object"
-    },
     "GetMenuResponse": {
       "properties": {
         "menus": {
@@ -1337,9 +1620,6 @@
       "required": [
         "menus"
       ],
-      "type": "object"
-    },
-    "GetPathByAuthorityIdRequest": {
       "type": "object"
     },
     "GetPathByAuthorityIdResponse": {
@@ -1358,9 +1638,6 @@
         "revision",
         "list"
       ],
-      "type": "object"
-    },
-    "GetPermissionEditRequest": {
       "type": "object"
     },
     "GetPermissionEditResponse": {
@@ -1428,9 +1705,6 @@
       ],
       "type": "object"
     },
-    "GetPermissionHistoryRequest": {
-      "type": "object"
-    },
     "GetPermissionHistoryResponse": {
       "properties": {
         "list": {
@@ -1447,9 +1721,6 @@
         "list",
         "total"
       ],
-      "type": "object"
-    },
-    "GetPermissionSnapshotRequest": {
       "type": "object"
     },
     "GetPermissionSnapshotResponse": {
@@ -1487,12 +1758,6 @@
         "menus",
         "codes"
       ],
-      "type": "object"
-    },
-    "GetRoleDataScopeRequest": {
-      "type": "object"
-    },
-    "GetSysDictionaryDetailsRequest": {
       "type": "object"
     },
     "GetSysDictionaryDetailsResponse": {
@@ -1539,9 +1804,6 @@
       ],
       "type": "object"
     },
-    "GetSysDictionaryInfoListDetailsByIdRequest": {
-      "type": "object"
-    },
     "GetSysDictionaryInfoListDetailsByIdResponse": {
       "properties": {
         "CreatedAt": {
@@ -1583,9 +1845,6 @@
       },
       "type": "object"
     },
-    "GetSysDictionaryInfoListRequest": {
-      "type": "object"
-    },
     "GetSysDictionaryInfoListResponse": {
       "properties": {
         "list": {
@@ -1612,9 +1871,6 @@
       ],
       "type": "object"
     },
-    "GetSysDictionaryListRequest": {
-      "type": "object"
-    },
     "GetSysDictionaryListResponse": {
       "properties": {
         "list": {
@@ -1627,9 +1883,6 @@
       "required": [
         "list"
       ],
-      "type": "object"
-    },
-    "GetUserListRequest": {
       "type": "object"
     },
     "GetUserListResponse": {
@@ -1700,9 +1953,6 @@
       ],
       "type": "object"
     },
-    "LogoutRequest": {
-      "type": "object"
-    },
     "Membership": {
       "properties": {
         "departmentId": {
@@ -1723,9 +1973,6 @@
         "departmentId",
         "positionIds"
       ],
-      "type": "object"
-    },
-    "MeRequest": {
       "type": "object"
     },
     "MessageResponse": {
@@ -1783,23 +2030,6 @@
       ],
       "type": "object"
     },
-    "Model": {
-      "properties": {
-        "CreatedAt": {
-          "type": "string"
-        },
-        "DeletedAt": {
-          "type": "string"
-        },
-        "ID": {
-          "type": "integer"
-        },
-        "UpdatedAt": {
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
     "OrganizationIDRequest": {
       "properties": {
         "id": {
@@ -1808,34 +2038,6 @@
       },
       "required": [
         "id"
-      ],
-      "type": "object"
-    },
-    "OrganizationListRequest": {
-      "type": "object"
-    },
-    "OrganizationUserRequest": {
-      "type": "object"
-    },
-    "PageRequest": {
-      "type": "object"
-    },
-    "PageResponse": {
-      "properties": {
-        "page": {
-          "type": "integer"
-        },
-        "pageSize": {
-          "type": "integer"
-        },
-        "total": {
-          "type": "integer"
-        }
-      },
-      "required": [
-        "total",
-        "page",
-        "pageSize"
       ],
       "type": "object"
     },
@@ -2089,9 +2291,6 @@
       ],
       "type": "object"
     },
-    "RandomImageRequest": {
-      "type": "object"
-    },
     "RandomImageResponse": {
       "properties": {
         "captchaId": {
@@ -2124,6 +2323,10 @@
           "description": "电子邮箱",
           "type": "string"
         },
+        "emailCode": {
+          "description": "邮箱验证码",
+          "type": "string"
+        },
         "enable": {
           "description": "是否启用",
           "type": "integer"
@@ -2144,6 +2347,10 @@
           "description": "电话号码",
           "type": "string"
         },
+        "scene": {
+          "description": "邮箱验证场景，默认 register",
+          "type": "string"
+        },
         "userName": {
           "description": "用户名",
           "type": "string"
@@ -2156,9 +2363,6 @@
         "authorityId",
         "authorityIds"
       ],
-      "type": "object"
-    },
-    "RegisterResponse": {
       "type": "object"
     },
     "ResetUserPasswordRequest": {
@@ -2218,6 +2422,10 @@
         },
         "isForce": {
           "type": "boolean"
+        },
+        "scene": {
+          "description": "邮箱验证场景，默认 register",
+          "type": "string"
         }
       },
       "required": [
@@ -3072,9 +3280,6 @@
       ],
       "type": "object"
     },
-    "UploadFileImgRequest": {
-      "type": "object"
-    },
     "UploadFileImgResponse": {
       "properties": {
         "fileId": {
@@ -3175,9 +3380,6 @@
       ],
       "type": "object"
     },
-    "UserResourcePreviewRequest": {
-      "type": "object"
-    },
     "UserResourcePreviewResponse": {
       "properties": {
         "aiAvailable": {
@@ -3224,7 +3426,7 @@
   },
   "host": "localhost:7001",
   "info": {
-    "description": "Generated from current .api definitions by test/sh/gen.ps1. Success: code/message/result/returnData/success/timestamp. Business errors may use HTTP 200 with code/message. GET parameters use query strings. Login requires the captchaId and captcha from a fresh image; a captcha expires after 120 seconds and is consumed on submission.",
+    "description": "Generated from current .api definitions by data/scripts/gen.ps1. Success: code/message/result/returnData/success/timestamp. Business errors may use HTTP 200 with code/message. GET parameters use query strings. Login requires the captchaId and captcha from a fresh image; a captcha expires after 120 seconds and is consumed on submission.",
     "title": "go-zero-admin API",
     "version": "v1"
   },
@@ -3315,7 +3517,8 @@
         "tags": [
           "aiagent"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/ai/conversations/{id}/messages": {
@@ -3410,7 +3613,8 @@
         "tags": [
           "aiagent"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/ai/info": {
@@ -3481,7 +3685,8 @@
         "tags": [
           "aiagent"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/ai/runs": {
@@ -3565,7 +3770,8 @@
         "tags": [
           "aiagent"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/ai/runs/{id}": {
@@ -3644,7 +3850,8 @@
         "tags": [
           "aiagent"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/ai/runs/{id}/cancel": {
@@ -3726,7 +3933,8 @@
         "tags": [
           "aiagent"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/api/applySync": {
@@ -3810,7 +4018,8 @@
         "tags": [
           "api"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/api/createApi": {
@@ -3894,7 +4103,8 @@
         "tags": [
           "api"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/api/deleteApi": {
@@ -3978,7 +4188,8 @@
         "tags": [
           "api"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/api/deleteApisByIds": {
@@ -4062,7 +4273,8 @@
         "tags": [
           "api"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/api/getAllApiList": {
@@ -4133,7 +4345,8 @@
         "tags": [
           "api"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/api/getApiList": {
@@ -4269,7 +4482,8 @@
         "tags": [
           "api"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/api/previewSync": {
@@ -4340,7 +4554,8 @@
         "tags": [
           "api"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/api/updateApi": {
@@ -4424,7 +4639,696 @@
         "tags": [
           "api"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
+      }
+    },
+    "/v1/sys/app-members/grant": {
+      "delete": {
+        "consumes": [
+          "application/json"
+        ],
+        "operationId": "appmembersRevokeAppMembership",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AppGrantRevokeRequest"
+            }
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+            "schema": {
+              "properties": {
+                "code": {
+                  "example": 200,
+                  "type": "integer"
+                },
+                "message": {
+                  "example": "操作成功!",
+                  "type": "string"
+                },
+                "result": {
+                  "$ref": "#/definitions/MessageResponse"
+                },
+                "returnData": {
+                  "description": "Currently null",
+                  "x-nullable": true
+                },
+                "success": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "timestamp": {
+                  "description": "Unix time in seconds",
+                  "format": "int64",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "type": "object"
+            },
+            "x-business-error-schema": {
+              "$ref": "#/definitions/BusinessError"
+            }
+          },
+          "403": {
+            "description": "接口权限不足",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          },
+          "500": {
+            "description": "鉴权服务异常",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "撤销指定会员授予",
+        "tags": [
+          "appmembers"
+        ],
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
+      }
+    },
+    "/v1/sys/app-members/grants": {
+      "get": {
+        "operationId": "appmembersListAppGrants",
+        "parameters": [
+          {
+            "default": 1,
+            "example": 1,
+            "in": "query",
+            "name": "pageNo",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "default": 10,
+            "example": 10,
+            "in": "query",
+            "name": "pageSize",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "allowEmptyValue": true,
+            "in": "query",
+            "name": "userId",
+            "type": "integer"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+            "schema": {
+              "properties": {
+                "code": {
+                  "example": 200,
+                  "type": "integer"
+                },
+                "message": {
+                  "example": "操作成功!",
+                  "type": "string"
+                },
+                "result": {
+                  "$ref": "#/definitions/AppGrantList"
+                },
+                "returnData": {
+                  "description": "Currently null",
+                  "x-nullable": true
+                },
+                "success": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "timestamp": {
+                  "description": "Unix time in seconds",
+                  "format": "int64",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "type": "object"
+            },
+            "x-business-error-schema": {
+              "$ref": "#/definitions/BusinessError"
+            }
+          },
+          "403": {
+            "description": "接口权限不足",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          },
+          "500": {
+            "description": "鉴权服务异常",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "分页查询会员授予记录",
+        "tags": [
+          "appmembers"
+        ],
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
+      },
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "operationId": "appmembersGrantAppMembership",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AppGrantRequest"
+            }
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+            "schema": {
+              "properties": {
+                "code": {
+                  "example": 200,
+                  "type": "integer"
+                },
+                "message": {
+                  "example": "操作成功!",
+                  "type": "string"
+                },
+                "result": {
+                  "$ref": "#/definitions/AppGrant"
+                },
+                "returnData": {
+                  "description": "Currently null",
+                  "x-nullable": true
+                },
+                "success": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "timestamp": {
+                  "description": "Unix time in seconds",
+                  "format": "int64",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "type": "object"
+            },
+            "x-business-error-schema": {
+              "$ref": "#/definitions/BusinessError"
+            }
+          },
+          "403": {
+            "description": "接口权限不足",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          },
+          "500": {
+            "description": "鉴权服务异常",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "人工开通或续期会员",
+        "tags": [
+          "appmembers"
+        ],
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
+      }
+    },
+    "/v1/sys/app-members/plans": {
+      "get": {
+        "operationId": "appmembersListAppPlans",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+            "schema": {
+              "properties": {
+                "code": {
+                  "example": 200,
+                  "type": "integer"
+                },
+                "message": {
+                  "example": "操作成功!",
+                  "type": "string"
+                },
+                "result": {
+                  "$ref": "#/definitions/AppPlanList"
+                },
+                "returnData": {
+                  "description": "Currently null",
+                  "x-nullable": true
+                },
+                "success": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "timestamp": {
+                  "description": "Unix time in seconds",
+                  "format": "int64",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "type": "object"
+            },
+            "x-business-error-schema": {
+              "$ref": "#/definitions/BusinessError"
+            }
+          },
+          "403": {
+            "description": "接口权限不足",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          },
+          "500": {
+            "description": "鉴权服务异常",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "读取会员方案",
+        "tags": [
+          "appmembers"
+        ],
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
+      }
+    },
+    "/v1/sys/app-members/session": {
+      "delete": {
+        "consumes": [
+          "application/json"
+        ],
+        "operationId": "appmembersRevokeAppUserSession",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AppSessionIDRequest"
+            }
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+            "schema": {
+              "properties": {
+                "code": {
+                  "example": 200,
+                  "type": "integer"
+                },
+                "message": {
+                  "example": "操作成功!",
+                  "type": "string"
+                },
+                "result": {
+                  "$ref": "#/definitions/MessageResponse"
+                },
+                "returnData": {
+                  "description": "Currently null",
+                  "x-nullable": true
+                },
+                "success": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "timestamp": {
+                  "description": "Unix time in seconds",
+                  "format": "int64",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "type": "object"
+            },
+            "x-business-error-schema": {
+              "$ref": "#/definitions/BusinessError"
+            }
+          },
+          "403": {
+            "description": "接口权限不足",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          },
+          "500": {
+            "description": "鉴权服务异常",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "撤销 App 用户设备",
+        "tags": [
+          "appmembers"
+        ],
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
+      }
+    },
+    "/v1/sys/app-members/sessions": {
+      "get": {
+        "operationId": "appmembersListAppUserSessions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userId",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+            "schema": {
+              "properties": {
+                "code": {
+                  "example": 200,
+                  "type": "integer"
+                },
+                "message": {
+                  "example": "操作成功!",
+                  "type": "string"
+                },
+                "result": {
+                  "$ref": "#/definitions/AppSessionList"
+                },
+                "returnData": {
+                  "description": "Currently null",
+                  "x-nullable": true
+                },
+                "success": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "timestamp": {
+                  "description": "Unix time in seconds",
+                  "format": "int64",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "type": "object"
+            },
+            "x-business-error-schema": {
+              "$ref": "#/definitions/BusinessError"
+            }
+          },
+          "403": {
+            "description": "接口权限不足",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          },
+          "500": {
+            "description": "鉴权服务异常",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "查询 App 用户有效设备",
+        "tags": [
+          "appmembers"
+        ],
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
+      }
+    },
+    "/v1/sys/app-members/status": {
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "operationId": "appmembersSetAppUserStatus",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AppStatusRequest"
+            }
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+            "schema": {
+              "properties": {
+                "code": {
+                  "example": 200,
+                  "type": "integer"
+                },
+                "message": {
+                  "example": "操作成功!",
+                  "type": "string"
+                },
+                "result": {
+                  "$ref": "#/definitions/MessageResponse"
+                },
+                "returnData": {
+                  "description": "Currently null",
+                  "x-nullable": true
+                },
+                "success": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "timestamp": {
+                  "description": "Unix time in seconds",
+                  "format": "int64",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "type": "object"
+            },
+            "x-business-error-schema": {
+              "$ref": "#/definitions/BusinessError"
+            }
+          },
+          "403": {
+            "description": "接口权限不足",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          },
+          "500": {
+            "description": "鉴权服务异常",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "审核或禁用恢复 App 账号",
+        "tags": [
+          "appmembers"
+        ],
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
+      }
+    },
+    "/v1/sys/app-members/users": {
+      "get": {
+        "operationId": "appmembersListAppUsers",
+        "parameters": [
+          {
+            "default": 1,
+            "example": 1,
+            "in": "query",
+            "name": "pageNo",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "default": 10,
+            "example": 10,
+            "in": "query",
+            "name": "pageSize",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "allowEmptyValue": true,
+            "in": "query",
+            "name": "keyword",
+            "type": "string"
+          },
+          {
+            "allowEmptyValue": true,
+            "in": "query",
+            "name": "status",
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+            "schema": {
+              "properties": {
+                "code": {
+                  "example": 200,
+                  "type": "integer"
+                },
+                "message": {
+                  "example": "操作成功!",
+                  "type": "string"
+                },
+                "result": {
+                  "$ref": "#/definitions/AppUserList"
+                },
+                "returnData": {
+                  "description": "Currently null",
+                  "x-nullable": true
+                },
+                "success": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "timestamp": {
+                  "description": "Unix time in seconds",
+                  "format": "int64",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "type": "object"
+            },
+            "x-business-error-schema": {
+              "$ref": "#/definitions/BusinessError"
+            }
+          },
+          "403": {
+            "description": "接口权限不足",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          },
+          "500": {
+            "description": "鉴权服务异常",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "分页查询 App 用户与待审核账号",
+        "tags": [
+          "appmembers"
+        ],
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/audit/getAuditLogList": {
@@ -4557,7 +5461,8 @@
         "tags": [
           "audit"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/authority/addAuthorityMenu": {
@@ -4641,7 +5546,8 @@
         "tags": [
           "authority"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/authority/createAuthority": {
@@ -4725,7 +5631,8 @@
         "tags": [
           "authority"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/authority/deleteAuthority": {
@@ -4809,7 +5716,8 @@
         "tags": [
           "authority"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/authority/getAuthorityList": {
@@ -4900,7 +5808,8 @@
         "tags": [
           "authority"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/authority/updateAuthority": {
@@ -4984,7 +5893,8 @@
         "tags": [
           "authority"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/base/sendEmailCode": {
@@ -5068,7 +5978,8 @@
         "tags": [
           "base"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/base/uploadFileImg": {
@@ -5151,7 +6062,8 @@
         "tags": [
           "base"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/casbin/getPathByAuthorityId": {
@@ -5230,7 +6142,8 @@
         "tags": [
           "casbin"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/casbin/updateCasbinData": {
@@ -5314,7 +6227,8 @@
         "tags": [
           "casbin"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/casbin/updateCasbinDataByApiIds": {
@@ -5398,7 +6312,8 @@
         "tags": [
           "casbin"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/changePassword": {
@@ -5482,7 +6397,8 @@
         "tags": [
           "session"
         ],
-        "x-casbin-resource": false
+        "x-casbin-resource": false,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/deleteUser": {
@@ -5566,7 +6482,8 @@
         "tags": [
           "user"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/dictionary/createSysDictionary": {
@@ -5650,7 +6567,8 @@
         "tags": [
           "dictionary"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/dictionary/createSysDictionaryInfo": {
@@ -5734,7 +6652,8 @@
         "tags": [
           "dictionary"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/dictionary/deleteSysDictionary": {
@@ -5818,7 +6737,8 @@
         "tags": [
           "dictionary"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/dictionary/deleteSysDictionaryInfo": {
@@ -5902,7 +6822,8 @@
         "tags": [
           "dictionary"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/dictionary/getSysDictionaryDetails": {
@@ -5995,7 +6916,8 @@
         "tags": [
           "dictionary"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/dictionary/getSysDictionaryInfoList": {
@@ -6110,7 +7032,8 @@
         "tags": [
           "dictionary"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/dictionary/getSysDictionaryInfoListDetailsById": {
@@ -6189,7 +7112,8 @@
         "tags": [
           "dictionary"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/dictionary/getSysDictionaryList": {
@@ -6260,7 +7184,8 @@
         "tags": [
           "dictionary"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/dictionary/updateSysDictionary": {
@@ -6344,7 +7269,8 @@
         "tags": [
           "dictionary"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/dictionary/updateSysDictionaryInfo": {
@@ -6428,7 +7354,8 @@
         "tags": [
           "dictionary"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/files/list": {
@@ -6531,7 +7458,8 @@
         "tags": [
           "files"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/files/reference": {
@@ -6615,7 +7543,8 @@
         "tags": [
           "files"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       },
       "post": {
         "consumes": [
@@ -6697,7 +7626,8 @@
         "tags": [
           "files"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/files/resource": {
@@ -6781,7 +7711,8 @@
         "tags": [
           "files"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/files/url": {
@@ -6860,7 +7791,8 @@
         "tags": [
           "files"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/getUserList": {
@@ -6951,7 +7883,8 @@
         "tags": [
           "user"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/login": {
@@ -7018,7 +7951,8 @@
         "tags": [
           "usernocasbin"
         ],
-        "x-casbin-resource": false
+        "x-casbin-resource": false,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/logout": {
@@ -7092,7 +8026,8 @@
         "tags": [
           "session"
         ],
-        "x-casbin-resource": false
+        "x-casbin-resource": false,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/me": {
@@ -7163,7 +8098,8 @@
         "tags": [
           "session"
         ],
-        "x-casbin-resource": false
+        "x-casbin-resource": false,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/menu/addBaseMenu": {
@@ -7247,7 +8183,8 @@
         "tags": [
           "menu"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/menu/deleteBaseMenu": {
@@ -7331,7 +8268,8 @@
         "tags": [
           "menu"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/menu/getAuthorityButtons": {
@@ -7410,7 +8348,8 @@
         "tags": [
           "menu"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/menu/getBaseMenuById": {
@@ -7489,7 +8428,8 @@
         "tags": [
           "menu"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/menu/getBaseMenuTree": {
@@ -7560,7 +8500,8 @@
         "tags": [
           "menu"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/menu/getMenu": {
@@ -7631,7 +8572,8 @@
         "tags": [
           "menu"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/menu/getMenuAuthority": {
@@ -7710,7 +8652,8 @@
         "tags": [
           "menu"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/menu/getMenuList": {
@@ -7801,7 +8744,8 @@
         "tags": [
           "menu"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/menu/previewMove": {
@@ -7885,7 +8829,8 @@
         "tags": [
           "menu"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/menu/updateAuthorityButtons": {
@@ -7969,7 +8914,8 @@
         "tags": [
           "menu"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/menu/updateBaseMenu": {
@@ -8053,7 +8999,8 @@
         "tags": [
           "menu"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/organization/dataScope": {
@@ -8132,7 +9079,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       },
       "put": {
         "consumes": [
@@ -8214,7 +9162,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/organization/departments": {
@@ -8298,7 +9247,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       },
       "get": {
         "operationId": "organizationGetDepartmentTree",
@@ -8381,7 +9331,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       },
       "post": {
         "consumes": [
@@ -8463,7 +9414,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       },
       "put": {
         "consumes": [
@@ -8545,7 +9497,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/organization/membership": {
@@ -8624,7 +9577,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       },
       "put": {
         "consumes": [
@@ -8706,7 +9660,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/organization/positions": {
@@ -8790,7 +9745,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       },
       "get": {
         "operationId": "organizationGetPositionList",
@@ -8873,7 +9829,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       },
       "post": {
         "consumes": [
@@ -8955,7 +9912,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       },
       "put": {
         "consumes": [
@@ -9037,7 +9995,8 @@
         "tags": [
           "organization"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/permissions/edit": {
@@ -9122,7 +10081,8 @@
         "tags": [
           "permission"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/permissions/history": {
@@ -9225,7 +10185,8 @@
         "tags": [
           "permission"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/permissions/rollback/apply": {
@@ -9309,7 +10270,8 @@
         "tags": [
           "permission"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/permissions/rollback/preview": {
@@ -9393,7 +10355,8 @@
         "tags": [
           "permission"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/permissions/snapshot": {
@@ -9464,7 +10427,8 @@
         "tags": [
           "permission"
         ],
-        "x-casbin-resource": false
+        "x-casbin-resource": false,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/randomImage": {
@@ -9518,7 +10482,8 @@
         "tags": [
           "usernocasbin"
         ],
-        "x-casbin-resource": false
+        "x-casbin-resource": false,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/register": {
@@ -9603,7 +10568,8 @@
         "tags": [
           "user"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/resetUserPassword": {
@@ -9687,7 +10653,8 @@
         "tags": [
           "user"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/session/admin/device": {
@@ -9771,7 +10738,8 @@
         "tags": [
           "devicesession"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/session/admin/devices": {
@@ -9868,7 +10836,8 @@
         "tags": [
           "devicesession"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/session/device": {
@@ -9952,7 +10921,8 @@
         "tags": [
           "devicesession"
         ],
-        "x-casbin-resource": false
+        "x-casbin-resource": false,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/session/devices": {
@@ -10043,7 +11013,8 @@
         "tags": [
           "devicesession"
         ],
-        "x-casbin-resource": false
+        "x-casbin-resource": false,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/updateUserInfo": {
@@ -10127,7 +11098,8 @@
         "tags": [
           "user"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/user/resources": {
@@ -10206,7 +11178,8 @@
         "tags": [
           "user"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     },
     "/v1/sys/user/resources/transfer": {
@@ -10290,7 +11263,8 @@
         "tags": [
           "user"
         ],
-        "x-casbin-resource": true
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
       }
     }
   },
@@ -10314,5 +11288,6 @@
   "x-generator": "goctl version 1.10.2 windows/amd64",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",
-  "x-goctl-version": "1.10.2"
+  "x-goctl-version": "1.10.2",
+  "x-identity-domain": "admin"
 }

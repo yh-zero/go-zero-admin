@@ -7,14 +7,17 @@ import (
 
 type Config struct {
 	rest.RestConf
-	JwtAuth struct {
+	AppProxyTrustedCIDRs string `json:",optional"`
+	JwtAuth              struct {
 		AccessSecret string
 	}
-	Page     struct {
+	AppJwtAuth struct {
+		AccessSecret string `json:",optional"`
+	} `json:",optional"`
+	Page struct {
 		PageNo   int64
 		PageSize int64
 	}
 	AppletRPC zrpc.RpcClientConf
 	AIRPC     zrpc.RpcClientConf `json:",optional"`
 }
-

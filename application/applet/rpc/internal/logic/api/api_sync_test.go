@@ -58,6 +58,21 @@ func TestSwaggerCatalogOnlyPermissionResources(t *testing.T) {
 	}
 }
 
+func TestSwaggerCatalogRejectsAppIdentityDomain(t *testing.T) {
+	source := []byte(`{"swagger":"2.0","paths":{
+ "/v1/app/me":{"get":{"security":[{"BearerAuth":[]}],"x-casbin-resource":true}},
+ "/v1/sys/app-members/users":{"get":{"security":[{"BearerAuth":[]}],"x-casbin-resource":true}},
+ "/v1/elsewhere":{"get":{"security":[{"BearerAuth":[]}],"x-identity-domain":"app","x-casbin-resource":true}}
+ }}`)
+	resources, err := readSwaggerResources(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(resources) != 1 || resources[0].Path != "/v1/sys/app-members/users" {
+		t.Fatalf("App endpoint entered admin authorization: %+v", resources)
+	}
+}
+
 func TestApiSyncSelectedChangesPreserveGrantsAndObsolete(t *testing.T) {
 	db := syncDB(t)
 	old := model.SysApi{Path: "/v1/sys/old", Method: "GET", ApiGroup: "old", Description: "old description"}

@@ -2,9 +2,12 @@ package svc
 
 import (
 	agentRPC "go-zero-admin/application/ai/rpc/client/agent"
+	"go-zero-admin/application/applet/api/internal/appbridge"
 	"go-zero-admin/application/applet/api/internal/config"
 	"go-zero-admin/application/applet/api/internal/middleware"
 	"go-zero-admin/application/applet/rpc/client/api"
+	"go-zero-admin/application/applet/rpc/client/appaccountservice"
+	"go-zero-admin/application/applet/rpc/client/appmembershipservice"
 	auditRPC "go-zero-admin/application/applet/rpc/client/audit"
 	"go-zero-admin/application/applet/rpc/client/authority"
 	captchaRPC "go-zero-admin/application/applet/rpc/client/captcha"
@@ -27,6 +30,11 @@ import (
 )
 
 type ServiceContext struct {
+	ClientIPResolver       *appbridge.ClientIPResolver
+	AppAccountRPC          appaccountservice.AppAccountService
+	AppMembershipRPC       appmembershipservice.AppMembershipService
+	AppSession             rest.Middleware
+	AppRequest             rest.Middleware
 	AppletPermissionRPC    permission.Permission
 	AIAgentRPC             agentRPC.Agent
 	Audit                  rest.Middleware
@@ -48,6 +56,10 @@ type ServiceContext struct {
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
+	appIPResolver, err := appbridge.NewClientIPResolver(c.AppProxyTrustedCIDRs)
+	if err != nil {
+		panic(err)
+	}
 	if err := rpcsecurity.ValidateClient(c.AppletRPC, c.Mode); err != nil {
 		panic(err)
 	}
@@ -57,6 +69,9 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	casbinCli := casbinRPC.NewCasbin(appletRPC)
 
 	svc := &ServiceContext{
+		ClientIPResolver:       appIPResolver,
+		AppAccountRPC:          appaccountservice.NewAppAccountService(appletRPC),
+		AppMembershipRPC:       appmembershipservice.NewAppMembershipService(appletRPC),
 		AppletPermissionRPC:    permission.NewPermission(appletRPC),
 		AIAgentRPC:             newAIAgentClient(c.AIRPC, c.Mode),
 		AppletAuditRPC:         auditRPC.NewAudit(appletRPC),
@@ -76,10 +91,11 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 	// 权限鉴权走RPC casbin api层不直连数据库
 	svc.Audit = middleware.NewAuditMiddleware(svc.AppletAuditRPC).Handle
+	svc.AppRequest = middleware.AppRequestWithResolver(appIPResolver)
+	svc.AppSession = middleware.AppSessionWithResolver(svc.AppAccountRPC, appIPResolver)
 	svc.Session = middleware.NewSessionMiddleware(svc.AppletUserRPC).Handle
 	authority := middleware.NewAuthorityMiddleware(casbinCli).Handle
 	svc.Authority = func(next http.HandlerFunc) http.HandlerFunc { return svc.Session(authority(next)) }
 
 	return svc
 }
-

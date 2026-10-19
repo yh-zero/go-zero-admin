@@ -3,14 +3,15 @@ package config
 import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/zrpc"
+	"go-zero-admin/pkg/appauth"
 	"go-zero-admin/pkg/middlecasbin"
 	"go-zero-admin/pkg/rpcsecurity"
 )
 
 type Config struct {
 	zrpc.RpcServerConf
-	BizRedis redis.RedisConf
-	RPCAuth  rpcsecurity.Credential `json:",optional"`
+	BizRedis      redis.RedisConf
+	RPCAuth       rpcsecurity.Credential `json:",optional"`
 	UserResources struct {
 		// Must describe the AI service's actual database; unset disables AI lifecycle writes.
 		AIDataSource string `json:",optional"`
@@ -26,7 +27,12 @@ type Config struct {
 		AccessExpire int64
 	}
 	CasbinConf middlecasbin.CasbinConf
-	Default    struct {
+	AppJwtAuth appauth.Config `json:",optional"`
+	IPLocation struct {
+		IPv4Path string `json:",default=data/ipregion/ip2region_v4.xdb"`
+		IPv6Path string `json:",default=data/ipregion/ip2region_v6.xdb"`
+	} `json:",optional"`
+	Default struct {
 		UserPassword string
 	}
 	// Oss owns the Aliyun OSS credentials. Only this RPC process should ever see
@@ -57,4 +63,3 @@ type MailConfig struct {
 	Username string `json:",optional"`
 	Password string `json:",optional"`
 }
-

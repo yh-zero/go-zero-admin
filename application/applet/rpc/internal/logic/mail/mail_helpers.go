@@ -19,28 +19,33 @@ import (
 	"github.com/jordan-wright/email"
 )
 
-// Key layout for verification codes and rate limits. All keys carry the scene so
-// the same email can hold independent codes for "register" / "reset_password".
+// Codes and cooldowns remain scene-specific. Daily sending budgets deliberately
+// omit the scene so switching workflows cannot multiply the allowance.
 const (
 	emailCodePrefix   = "biz#emailcode#%s#email:%s" // scene, address as supplied
 	emailCooldownPref = "biz#emailcode#%s#cooldown:%s"
-	emailDailyPref    = "biz#emailcode#%s#daily:%s" // scene, address; YYYY-MM-DD suffix added
+	emailDailyPref    = "biz#emailcode#daily:email:%s:%s" // lowercase address, Beijing YYYYMMDD
 	emailAttemptPref  = "biz#emailcode#%s#attempts:%s"
-	// The IP key deliberately omits the scene: the hourly budget is shared
-	// across all scenes so an attacker cannot multiply it per scene.
-	emailIPHourPref = "biz#emailcode#ip:%s" // ip; YYYYMMDDHH suffix added
+	emailIPDailyPref  = "biz#emailcode#daily:ip:%s:%s" // canonical IP, Beijing YYYYMMDD
 
 	expireEmailCode   = 300 // seconds the code itself is valid
 	cooldownSeconds   = 60  // 1 minute between consecutive sends to the same address
-	dailyLimit        = 20  // per email per scene per UTC day
-	ipHourlyLimit     = 30  // per source IP across ALL scenes per UTC hour
+	dailyLimit        = 5   // per email and per source IP across all scenes per Beijing day
 	maxVerifyAttempts = 5   // wrong-code guesses before the code is invalidated
 )
 
+var beijingTime = time.FixedZone("Asia/Shanghai", 8*60*60)
+
+func emailDayWindow(now time.Time) (string, time.Time) {
+	local := now.In(beijingTime)
+	next := time.Date(local.Year(), local.Month(), local.Day()+1, 0, 0, 0, 0, beijingTime)
+	return local.Format("20060102"), next
+}
+
 // normalizeEmail trims and rejects control characters that could enable SMTP
 // injection. We deliberately do NOT lowercase the address; the local-part is
-// case-sensitive per RFC 5321 and the Redis key is the exact address the user
-// supplied (after trim).
+// case-sensitive per RFC 5321 and code/verification keys retain the trimmed
+// address. Daily sending budgets separately fold case to prevent quota bypass.
 func normalizeEmail(value string) (string, error) {
 	value = strings.TrimSpace(value)
 	addr, err := mail.ParseAddress(value)

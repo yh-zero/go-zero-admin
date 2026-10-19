@@ -27,6 +27,20 @@ BizRedis:
 JwtAuth:
   AccessSecret: '${JWT_ACCESS_SECRET}'
   AccessExpire: ${JWT_ACCESS_EXPIRE}
+AppJwtAuth:
+  AccessSecret: '${APP_JWT_ACCESS_SECRET}'
+  AccessExpire: ${APP_JWT_ACCESS_EXPIRE}
+  RefreshExpire: ${APP_JWT_REFRESH_EXPIRE}
+  EmailVerificationRequired: ${APP_EMAIL_VERIFICATION_REQUIRED}
+IPLocation:
+  IPv4Path: data/ipregion/ip2region_v4.xdb
+  IPv6Path: data/ipregion/ip2region_v6.xdb
+Mail:
+  Host: '${SMTP_HOST}'
+  Port: ${SMTP_PORT}
+  Username: '${SMTP_USER}'
+  Password: '${SMTP_PASSWORD}'
+  From: '${SMTP_FROM}'
 CasbinConf:
   ModelText: |
     [request_definition]

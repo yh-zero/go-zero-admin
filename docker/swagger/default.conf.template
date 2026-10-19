@@ -11,6 +11,12 @@ server {
         add_header Cache-Control "no-store";
     }
 
+    location = /app-swagger.json {
+        alias /spec/go-zero-app.swagger.json;
+        default_type application/json;
+        add_header Cache-Control "no-store";
+    }
+
     location /v1/ {
         # No trailing URI: preserve the original /v1/... path and query string.
         proxy_pass ${SWAGGER_API_URL};

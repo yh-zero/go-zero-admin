@@ -24,6 +24,7 @@ type swaggerOperation struct {
 	Tags           []string              `json:"tags"`
 	Security       []map[string][]string `json:"security"`
 	CasbinResource *bool                 `json:"x-casbin-resource"`
+	IdentityDomain string                `json:"x-identity-domain"`
 }
 
 type syncResource struct {
@@ -84,6 +85,9 @@ func readSwaggerResources(data []byte) ([]syncResource, error) {
 			// Swagger {id} must become go-zero/Casbin :id so syncing a
 			// parameterized endpoint does not create an unusable grant.
 			policyPath := swaggerParameter.ReplaceAllString(strings.TrimRight(doc.BasePath, "/")+route, ":${1}")
+			if op.IdentityDomain == "app" || policyPath == "/v1/app" || strings.HasPrefix(policyPath, "/v1/app/") {
+				continue
+			}
 			path, method, err := accessutil.API(policyPath, method)
 			if err != nil {
 				return nil, err

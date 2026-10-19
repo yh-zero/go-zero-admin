@@ -574,3 +574,196 @@ SELECT ptype,v0,v1,v2 FROM casbin_rule WHERE ptype='p' AND v0='1'
 AND v1 IN('/v1/sys/permissions/edit','/v1/sys/menu/previewMove');
 
 INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261008_permission_revision_history.sql','bc8c6e02847cc29f0dcabff6098326e3854a37303c28ca9cc03e7cbeb58ebfe9',NOW());
+
+-- App module: fresh installation includes administrator role 1 bootstrap.
+-- App accounts and membership; requires all earlier migrations.
+-- Adds resources only. Existing roles gain no permissions until explicitly granted.
+SET NAMES utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS app_users (
+ id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ nickname VARCHAR(64) NOT NULL,
+ status VARCHAR(16) NOT NULL DEFAULT 'pending',
+ session_version BIGINT NOT NULL DEFAULT 1,
+ review_reason VARCHAR(500) NOT NULL DEFAULT '',
+ reviewed_by BIGINT NOT NULL DEFAULT 0,
+ reviewed_at DATETIME(3) NULL,
+ created_at DATETIME(3) NOT NULL,
+ updated_at DATETIME(3) NOT NULL,
+ KEY idx_app_user_status(status,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS app_user_identities (
+ id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ user_id BIGINT NOT NULL,
+ kind VARCHAR(16) NOT NULL,
+ identifier VARCHAR(254) COLLATE utf8mb4_bin NOT NULL,
+ password_hash VARCHAR(255) NOT NULL,
+ verified_at DATETIME(3) NULL,
+ created_at DATETIME(3) NOT NULL,
+ UNIQUE KEY uk_app_identity_user(user_id),
+ UNIQUE KEY uk_app_identity_identifier(identifier)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
+
+CREATE TABLE IF NOT EXISTS app_sessions (
+ id VARCHAR(36) NOT NULL PRIMARY KEY,
+ user_id BIGINT NOT NULL,
+ refresh_hash VARCHAR(64) NOT NULL,
+ previous_refresh_hash VARCHAR(64) NOT NULL DEFAULT '',
+ refresh_generation BIGINT NOT NULL DEFAULT 1,
+ session_version BIGINT NOT NULL,
+ ip VARCHAR(64) NOT NULL,
+ user_agent VARCHAR(512) NOT NULL,
+ expires_at DATETIME(3) NOT NULL,
+ revoked_at DATETIME(3) NULL,
+ created_at DATETIME(3) NOT NULL,
+ updated_at DATETIME(3) NOT NULL,
+ KEY idx_app_session_user(user_id),
+ KEY idx_app_session_expiry(expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS app_membership_plans (
+ id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ code VARCHAR(32) NOT NULL,
+ name VARCHAR(64) NOT NULL,
+ version BIGINT NOT NULL,
+ entitlements JSON NOT NULL,
+ enabled BOOLEAN NOT NULL,
+ created_at DATETIME(3) NOT NULL,
+ updated_at DATETIME(3) NOT NULL,
+ UNIQUE KEY uk_app_plan_version(code,version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS app_membership_grants (
+ id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ user_id BIGINT NOT NULL,
+ plan_id BIGINT NOT NULL,
+ plan_code VARCHAR(32) NOT NULL,
+ plan_version BIGINT NOT NULL,
+ entitlements JSON NOT NULL,
+ request_id VARCHAR(64) COLLATE utf8mb4_bin NOT NULL,
+ days BIGINT NOT NULL,
+ starts_at DATETIME(3) NOT NULL,
+ ends_at DATETIME(3) NOT NULL,
+ revoked_at DATETIME(3) NULL,
+ granted_by BIGINT NOT NULL,
+ revoked_by BIGINT NOT NULL DEFAULT 0,
+ reason VARCHAR(500) NOT NULL,
+ revoke_reason VARCHAR(500) NOT NULL DEFAULT '',
+ created_at DATETIME(3) NOT NULL,
+ UNIQUE KEY uk_app_grant_request(request_id),
+ KEY idx_app_grant_user_end(user_id,ends_at),
+ KEY idx_app_grant_revoked(revoked_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+START TRANSACTION;
+INSERT INTO app_membership_plans(code,name,version,entitlements,enabled,created_at,updated_at)
+SELECT 'vip','VIP 会员',1,JSON_ARRAY('profile.export'),1,UTC_TIMESTAMP(3),UTC_TIMESTAMP(3)
+WHERE NOT EXISTS(SELECT 1 FROM app_membership_plans WHERE code='vip' AND version=1);
+
+INSERT INTO sys_base_menus(created_at,updated_at,menu_level,parent_id,path,name,hidden,component,sort,active_name,keep_alive,default_menu,title,icon,close_tab)
+SELECT NOW(3),NOW(3),0,0,seed.path,seed.name,0,seed.component,seed.sort,'',0,0,seed.title,'',0
+FROM (
+ SELECT 'app-members/users' path,'app-members-users' name,'views/business/app-members/users.vue' component,'App 用户' title,70 sort
+ UNION ALL SELECT 'app-members/memberships','app-memberships','views/business/app-members/memberships.vue','App 会员',71
+) seed
+WHERE NOT EXISTS(SELECT 1 FROM sys_base_menus m WHERE m.deleted_at IS NULL AND (m.name=seed.name OR TRIM(BOTH '/' FROM m.path)=seed.path));
+
+INSERT INTO sys_base_menu_btns(created_at,updated_at,name,`desc`,sys_base_menu_id,permission_key)
+SELECT NOW(3),NOW(3),seed.name,seed.description,m.id,CONCAT(seed.menu,':',seed.name)
+FROM (
+ SELECT 'app-members-users' menu,'review' name,'审核 App 账号' description
+ UNION ALL SELECT 'app-members-users','status','禁用或恢复 App 账号'
+ UNION ALL SELECT 'app-members-users','revoke-session','撤销 App 设备'
+ UNION ALL SELECT 'app-memberships','grant','开通或续期会员'
+ UNION ALL SELECT 'app-memberships','revoke','撤销会员授予'
+) seed
+JOIN sys_base_menus m ON m.name=seed.menu AND m.deleted_at IS NULL
+ AND m.component IN('views/business/app-members/users.vue','views/business/app-members/memberships.vue')
+WHERE NOT EXISTS(SELECT 1 FROM sys_base_menu_btns b WHERE b.permission_key=CONCAT(seed.menu,':',seed.name));
+
+INSERT INTO sys_apis(created_at,updated_at,path,description,api_group,method)
+SELECT NOW(3),NOW(3),seed.path,seed.description,'appmembers',seed.method
+FROM (
+ SELECT '/v1/sys/app-members/users' path,'GET' method,'查询 App 用户' description
+ UNION ALL SELECT '/v1/sys/app-members/status','PUT','审核或调整 App 账号状态'
+ UNION ALL SELECT '/v1/sys/app-members/sessions','GET','查询 App 设备会话'
+ UNION ALL SELECT '/v1/sys/app-members/session','DELETE','撤销 App 设备会话'
+ UNION ALL SELECT '/v1/sys/app-members/plans','GET','查询会员方案'
+ UNION ALL SELECT '/v1/sys/app-members/grants','GET','查询会员授予'
+ UNION ALL SELECT '/v1/sys/app-members/grants','POST','开通或续期会员'
+ UNION ALL SELECT '/v1/sys/app-members/grant','DELETE','撤销会员授予'
+) seed
+WHERE NOT EXISTS(SELECT 1 FROM sys_apis a WHERE a.path=seed.path AND a.method=seed.method AND a.deleted_at IS NULL);
+
+UPDATE sys_permission_versions SET revision=revision+1 WHERE id=1;
+COMMIT;
+
+
+-- Optional, explicit grant of the App management module to administrator role 1.
+-- Run after 20261019_app_members.sql with API/RPC stopped. Other roles are unchanged.
+START TRANSACTION;
+SELECT authority_id FROM sys_authorities WHERE authority_id=1 AND deleted_at IS NULL FOR UPDATE;
+SELECT revision FROM sys_permission_versions WHERE id=1 FOR UPDATE;
+
+INSERT INTO sys_authority_menus(sys_base_menu_id,sys_authority_authority_id)
+SELECT m.id,1 FROM sys_base_menus m
+WHERE m.deleted_at IS NULL AND m.name IN('app-members-users','app-memberships')
+AND m.component IN('views/business/app-members/users.vue','views/business/app-members/memberships.vue')
+AND EXISTS(SELECT 1 FROM sys_authorities WHERE authority_id=1 AND deleted_at IS NULL)
+AND NOT EXISTS(SELECT 1 FROM sys_authority_menus a WHERE a.sys_base_menu_id=m.id AND a.sys_authority_authority_id=1);
+
+INSERT INTO sys_authority_btns(authority_id,sys_menu_id,sys_base_menu_btn_id)
+SELECT 1,b.sys_base_menu_id,b.id FROM sys_base_menu_btns b
+JOIN sys_authority_menus a ON a.sys_base_menu_id=b.sys_base_menu_id AND a.sys_authority_authority_id=1
+WHERE b.deleted_at IS NULL AND b.permission_key IN('app-members-users:review','app-members-users:status','app-members-users:revoke-session','app-memberships:grant','app-memberships:revoke')
+AND NOT EXISTS(SELECT 1 FROM sys_authority_btns existing WHERE existing.authority_id=1 AND existing.sys_base_menu_btn_id=b.id);
+
+INSERT INTO casbin_rule(ptype,v0,v1,v2,v3,v4,v5)
+SELECT 'p','1',a.path,a.method,'','','' FROM sys_apis a
+WHERE a.deleted_at IS NULL AND a.api_group='appmembers'
+AND (a.path,a.method) IN (
+ ('/v1/sys/app-members/users','GET'),
+ ('/v1/sys/app-members/status','PUT'),
+ ('/v1/sys/app-members/sessions','GET'),
+ ('/v1/sys/app-members/session','DELETE'),
+ ('/v1/sys/app-members/plans','GET'),
+ ('/v1/sys/app-members/grants','GET'),
+ ('/v1/sys/app-members/grants','POST'),
+ ('/v1/sys/app-members/grant','DELETE')
+)
+AND EXISTS(SELECT 1 FROM sys_authorities WHERE authority_id=1 AND deleted_at IS NULL)
+-- Historical Casbin and API tables use different utf8mb4 collations.
+AND NOT EXISTS(SELECT 1 FROM casbin_rule p WHERE p.ptype='p' AND p.v0='1'
+ AND p.v1 COLLATE utf8mb4_bin=a.path COLLATE utf8mb4_bin
+ AND p.v2 COLLATE utf8mb4_bin=a.method COLLATE utf8mb4_bin);
+
+INSERT INTO sys_policy_versions(id,version,updated_at) VALUES(1,1,NOW(3))
+ON DUPLICATE KEY UPDATE version=version+1,updated_at=NOW(3);
+UPDATE sys_permission_versions SET revision=revision+1 WHERE id=1;
+COMMIT;
+
+
+INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261019_app_members.sql','d6b4f5ba9cdad5192f4234486d3bbe28e81cefde16c001601fb16a101f14bf50',NOW());
+
+-- Registration network metadata; run after 20261019_app_members.sql.
+-- Existing users retain their data and have unknown (empty) registration metadata.
+SET @app_registration_ip_column = (SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'app_users' AND COLUMN_NAME = 'registration_ip');
+SET @app_registration_ip_ddl = IF(@app_registration_ip_column = 0,
+  'ALTER TABLE app_users ADD COLUMN registration_ip VARCHAR(64) NOT NULL DEFAULT ''''',
+  'SELECT 1');
+PREPARE app_registration_ip_statement FROM @app_registration_ip_ddl;
+EXECUTE app_registration_ip_statement;
+DEALLOCATE PREPARE app_registration_ip_statement;
+
+SET @app_registration_region_column = (SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'app_users' AND COLUMN_NAME = 'registration_region');
+SET @app_registration_region_ddl = IF(@app_registration_region_column = 0,
+  'ALTER TABLE app_users ADD COLUMN registration_region VARCHAR(255) NOT NULL DEFAULT ''''',
+  'SELECT 1');
+PREPARE app_registration_region_statement FROM @app_registration_region_ddl;
+EXECUTE app_registration_region_statement;
+DEALLOCATE PREPARE app_registration_region_statement;
+
+INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261019_app_registration_ip.sql','96b60c1c9ee4582b55eb8f7a46d9413af8c5b1700e7f7fc88f7118dfd31ebf12',NOW());

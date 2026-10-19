@@ -1,5 +1,72 @@
 syntax = "proto3";
 
+message AppUserInfo {
+  int64 ID = 1; string Account = 2; string IdentityKind = 3; string Nickname = 4;
+  string Status = 5; string ReviewReason = 6; string CreatedAt = 7; string UpdatedAt = 8; bool IdentityVerified = 9;
+  string RegistrationIP = 10; string RegistrationRegion = 11;
+}
+message AppRegisterRequest { string Account = 1; string Password = 2; string Nickname = 3; string IP = 4; string EmailCode = 5; }
+message AppSendEmailCodeRequest { string Account = 1; string IP = 2; }
+message AppAuthOptions { bool EmailVerificationRequired = 1; bool EmailCodeEnabled = 2; }
+message AppLoginRequest { string Account = 1; string Password = 2; string IP = 3; string UserAgent = 4; }
+message AppAuthTokens { string AccessToken = 1; string RefreshToken = 2; int64 ExpiresAt = 3; int64 RefreshExpiresAt = 4; AppUserInfo User = 5; }
+message AppRefreshRequest { string RefreshToken = 1; string IP = 2; string UserAgent = 3; }
+message AppAccessRequest { string AccessToken = 1; }
+message AppProfileRequest { string AccessToken = 1; string Nickname = 2; }
+message AppLogoutRequest { string AccessToken = 1; bool AllDevices = 2; }
+message AppRevokeSelfRequest { string AccessToken = 1; string ID = 2; }
+message AppSessionInfo { string ID = 1; int64 UserID = 2; string IP = 3; string UserAgent = 4; string CreatedAt = 5; string ExpiresAt = 6; bool Current = 7; }
+message AppSessionListResponse { repeated AppSessionInfo List = 1; }
+message AppAdminRequest { SessionRequest Actor = 1; }
+message AppAdminListRequest { SessionRequest Actor = 1; PageRequest Page = 2; string Status = 3; }
+message AppUserListResponse { repeated AppUserInfo List = 1; int64 Total = 2; }
+message AppStatusRequest { SessionRequest Actor = 1; int64 UserID = 2; string Status = 3; string Reason = 4; }
+message AppAdminUserRequest { SessionRequest Actor = 1; int64 UserID = 2; }
+message AppAdminRevokeRequest { SessionRequest Actor = 1; string ID = 2; }
+
+service AppAccountService {
+  rpc SendAppEmailCode(AppSendEmailCodeRequest) returns(NoDataResponse);
+  rpc GetAppAuthOptions(NoDataResponse) returns(AppAuthOptions);
+  rpc RegisterAppAccount(AppRegisterRequest) returns(AppUserInfo);
+  rpc LoginAppAccount(AppLoginRequest) returns(AppAuthTokens);
+  rpc RefreshAppToken(AppRefreshRequest) returns(AppAuthTokens);
+  rpc CheckAppSession(AppAccessRequest) returns(AppUserInfo);
+  rpc GetAppProfile(AppAccessRequest) returns(AppUserInfo);
+  rpc UpdateAppProfile(AppProfileRequest) returns(AppUserInfo);
+  rpc LogoutAppAccount(AppLogoutRequest) returns(NoDataResponse);
+  rpc GetMyAppSessions(AppAccessRequest) returns(AppSessionListResponse);
+  rpc RevokeMyAppSession(AppRevokeSelfRequest) returns(NoDataResponse);
+  rpc ListAppUsers(AppAdminListRequest) returns(AppUserListResponse);
+  rpc SetAppUserStatus(AppStatusRequest) returns(NoDataResponse);
+  rpc ListAppUserSessions(AppAdminUserRequest) returns(AppSessionListResponse);
+  rpc RevokeAppUserSession(AppAdminRevokeRequest) returns(NoDataResponse);
+}
+
+message AppPlanInfo { int64 ID = 1; string Code = 2; string Name = 3; int64 Version = 4; repeated string Entitlements = 5; }
+message AppPlanListResponse { repeated AppPlanInfo List = 1; }
+message AppGrantInfo {
+  int64 ID = 1; int64 UserID = 2; string Account = 3; int64 PlanID = 4; string PlanCode = 5;
+  int64 PlanVersion = 6; repeated string Entitlements = 7; string StartsAt = 8; string EndsAt = 9;
+  string RevokedAt = 10; string Reason = 11; string RevokeReason = 12; string CreatedAt = 13; string Status = 14;
+}
+message AppGrantListRequest { SessionRequest Actor = 1; PageRequest Page = 2; int64 UserID = 3; }
+message AppGrantListResponse { repeated AppGrantInfo List = 1; int64 Total = 2; }
+message AppGrantRequest { SessionRequest Actor = 1; int64 UserID = 2; int64 PlanID = 3; int64 Days = 4; string RequestID = 5; string Reason = 6; }
+message AppGrantRevokeRequest { SessionRequest Actor = 1; int64 ID = 2; string Reason = 3; }
+message AppMembershipInfo { bool Active = 1; string ExpiresAt = 2; repeated string Entitlements = 3; }
+message AppExampleRequest { string AccessToken = 1; int64 UserID = 2; }
+message AppExampleResponse { int64 UserID = 1; string Account = 2; string Nickname = 3; string GeneratedAt = 4; }
+
+service AppMembershipService {
+  rpc GetAppMembership(AppAccessRequest) returns(AppMembershipInfo);
+  rpc ListAppPlans(AppAdminRequest) returns(AppPlanListResponse);
+  rpc ListAppGrants(AppGrantListRequest) returns(AppGrantListResponse);
+  rpc GrantAppMembership(AppGrantRequest) returns(AppGrantInfo);
+  rpc RevokeAppMembership(AppGrantRevokeRequest) returns(NoDataResponse);
+  rpc GetAppMemberExample(AppExampleRequest) returns(AppExampleResponse);
+}
+
+
 option go_package = "./pb";
 
 package pb;

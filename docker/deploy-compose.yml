@@ -14,7 +14,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_ROOT_PASSWORD" mysqladmin ping -h localhost --silent']
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_ROOT_PASSWORD" mysqladmin ping --protocol=TCP -h 127.0.0.1 --silent']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -44,17 +44,16 @@ services:
       ETCD_ADDR: etcd:2379
       JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET:?请在 docker/.env.deploy 中设置 JWT_ACCESS_SECRET}"
       JWT_ACCESS_EXPIRE: "${JWT_ACCESS_EXPIRE:-7200}"
+      APP_JWT_ACCESS_SECRET: "${APP_JWT_ACCESS_SECRET:?请在 docker/.env.deploy 中设置独立的 APP_JWT_ACCESS_SECRET}"
+      APP_JWT_ACCESS_EXPIRE: "${APP_JWT_ACCESS_EXPIRE:-900}"
+      APP_JWT_REFRESH_EXPIRE: "${APP_JWT_REFRESH_EXPIRE:-2592000}"
       RPC_AUTH_APP: "${RPC_AUTH_APP:-applet-api}"
       RPC_AUTH_TOKEN: "${RPC_AUTH_TOKEN:?请在 docker/.env.deploy 中设置 RPC_AUTH_TOKEN}"
       OSS_ENDPOINT: "${OSS_ENDPOINT:-}"
+      APP_TRUSTED_PROXY_CIDRS: "${APP_TRUSTED_PROXY_CIDRS:-}"
       OSS_ACCESS_KEY_ID: "${OSS_ACCESS_KEY_ID:-}"
       OSS_ACCESS_KEY_SECRET: "${OSS_ACCESS_KEY_SECRET:-}"
       OSS_BUCKET_NAME: "${OSS_BUCKET_NAME:-}"
-      SMTP_HOST: "${SMTP_HOST:-}"
-      SMTP_PORT: "${SMTP_PORT:-465}"
-      SMTP_USER: "${SMTP_USER:-}"
-      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
-      SMTP_FROM: "${SMTP_FROM:-}"
     ports:
       - "${API_PORT:-127.0.0.1:7001}:7001"
     depends_on:
@@ -63,8 +62,16 @@ services:
       etcd:
         condition: service_healthy
       rpc:
-        condition: service_started
+        condition: service_healthy
+      ai-rpc:
+        condition: service_healthy
     init: true
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -ltn | grep -q ':7001 .*LISTEN'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
 
   rpc:
     build:
@@ -82,9 +89,18 @@ services:
       ETCD_ADDR: etcd:2379
       JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET:?请在 docker/.env.deploy 中设置 JWT_ACCESS_SECRET}"
       JWT_ACCESS_EXPIRE: "${JWT_ACCESS_EXPIRE:-7200}"
+      APP_JWT_ACCESS_SECRET: "${APP_JWT_ACCESS_SECRET:?请在 docker/.env.deploy 中设置独立的 APP_JWT_ACCESS_SECRET}"
+      APP_JWT_ACCESS_EXPIRE: "${APP_JWT_ACCESS_EXPIRE:-900}"
+      APP_JWT_REFRESH_EXPIRE: "${APP_JWT_REFRESH_EXPIRE:-2592000}"
       RPC_AUTH_APP: "${RPC_AUTH_APP:-applet-api}"
       RPC_AUTH_TOKEN: "${RPC_AUTH_TOKEN:?请在 docker/.env.deploy 中设置 RPC_AUTH_TOKEN}"
       DEFAULT_USER_PASSWORD: "${DEFAULT_USER_PASSWORD:-GoZero@2026}"
+      APP_EMAIL_VERIFICATION_REQUIRED: "${APP_EMAIL_VERIFICATION_REQUIRED:-false}"
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-465}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_FROM: "${SMTP_FROM:-}"
     depends_on:
       mysql:
         condition: service_healthy
@@ -93,6 +109,12 @@ services:
       etcd:
         condition: service_healthy
     init: true
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -ltn | grep -q ':6001 .*LISTEN'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
 
   ai-rpc:
     build:
@@ -120,8 +142,31 @@ services:
       etcd:
         condition: service_healthy
       rpc:
-        condition: service_started
+        condition: service_healthy
     init: true
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -ltn | grep -q ':6002 .*LISTEN'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  web:
+    build:
+      # Keep frontend and backend checkouts next to each other, or set an
+      # absolute FRONTEND_CONTEXT in docker/.env.deploy.
+      context: "${FRONTEND_CONTEXT:-../../go-zero-admin-vben}"
+      dockerfile: scripts/deploy/Dockerfile
+      target: production
+      args:
+        VITE_GLOB_API_URL: /api
+        VITE_BASE: /
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-127.0.0.1:8080}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
 
   etcd:
     image: quay.io/coreos/etcd:v3.5.11
@@ -130,10 +175,10 @@ services:
       ETCD_NAME: "default"
       ETCD_DATA_DIR: "/etcd-data"
       ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
-      ETCD_ADVERTISE_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://etcd:2379"
       ETCD_LISTEN_PEER_URLS: "http://0.0.0.0:2380"
-      ETCD_INITIAL_ADVERTISE_PEER_URLS: "http://0.0.0.0:2380"
-      ETCD_INITIAL_CLUSTER: "default=http://0.0.0.0:2380"
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: "http://etcd:2380"
+      ETCD_INITIAL_CLUSTER: "default=http://etcd:2380"
       ETCD_INITIAL_CLUSTER_TOKEN: "etcd-cluster"
       ETCD_INITIAL_CLUSTER_STATE: "new"
     healthcheck:
@@ -143,10 +188,11 @@ services:
       retries: 10
 
   swagger-ui:
+    profiles: [tools]
     image: swaggerapi/swagger-ui:v5.33.0
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${SWAGGER_PORT:-8080}:8080"
+      - "127.0.0.1:${SWAGGER_PORT:-8081}:8080"
     environment:
       SWAGGER_API_URL: "${SWAGGER_API_URL:-http://api:7001}"
     extra_hosts:

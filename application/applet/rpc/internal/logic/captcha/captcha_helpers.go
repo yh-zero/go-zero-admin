@@ -7,8 +7,8 @@ import (
 // Captcha schema is owned by the RPC tier so the API tier has no Redis handle.
 // Key layout, TTL, and image dimensions are all private to this package.
 const (
-	prefixCaptcha   = "biz#captcha#id:%s"
-	expireCaptcha   = 120 // seconds before a freshly generated captcha is discarded
+	prefixCaptcha    = "biz#captcha#id:%s"
+	expireCaptcha    = 120 // seconds before a freshly generated captcha is discarded
 	captchaImgWidth  = 105
 	captchaImgHeight = 36
 	captchaImgLength = 6

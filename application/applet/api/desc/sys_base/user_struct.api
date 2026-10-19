@@ -301,6 +301,8 @@ type RegisterRequest {
 	AuthorityIds []int64 `json:"authorityIds"`       // 角色id []int64
 	Phone        string  `json:"phone,optional"`     // 电话号码
 	Email        string  `json:"email,optional"`     // 电子邮箱
+	EmailCode    string  `json:"emailCode,optional"` // 邮箱验证码
+	Scene        string  `json:"scene,optional"`     // 邮箱验证场景，默认 register
 }
 
 type RegisterResponse {}
@@ -439,7 +441,8 @@ type DeleteSysDictionaryInfoRequest {
 type SendEmailCodeRequest {
 	Email string `json:"email"`
 	IsForce bool `json:"isForce,optional"`
-
+	Scene string `json:"scene,optional"` // 邮箱验证场景，默认 register
+	ClientIP string `json:"-"` // 由处理器从 HTTP 请求提取
 }
 
 type GetAuthorityButtonsRequest {

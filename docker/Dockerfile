@@ -26,6 +26,7 @@ COPY docker/api.yaml.template /app/config.yaml.template
 CMD ["applet-api", "-f", "/tmp/config.yaml"]
 
 FROM runtime AS rpc
+COPY data/ipregion/ /app/data/ipregion/
 COPY docker/rpc.yaml.template /app/config.yaml.template
 CMD ["applet-rpc", "-f", "/tmp/config.yaml"]
 

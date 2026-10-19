@@ -1,6 +1,7 @@
 package base
 
 import (
+	"go-zero-admin/application/applet/api/internal/appbridge"
 	"net/http"
 
 	"go-zero-admin/application/applet/api/internal/logic/base"
@@ -21,7 +22,8 @@ func SendEmailCodeHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		if req.Scene == "" {
 			req.Scene = "register"
 		}
-		req.ClientIP = httpx.GetRemoteAddr(r)
+		r = svcCtx.ClientIPResolver.WithRequest(r)
+		req.ClientIP = appbridge.Request(r.Context()).IP
 
 		l := base.NewSendEmailCodeLogic(r.Context(), svcCtx)
 		resp, err := l.SendEmailCode(&req)

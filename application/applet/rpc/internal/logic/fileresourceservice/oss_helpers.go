@@ -17,7 +17,7 @@ import (
 
 const (
 	maxUploadBytes     = 10 << 20 // 10MB hard cap, matches the API tier
-	privateURLLifetime = 300       // seconds a private OSS signed URL stays valid
+	privateURLLifetime = 300      // seconds a private OSS signed URL stays valid
 )
 
 // ossBucket returns the configured bucket or an error if OSS is not configured.

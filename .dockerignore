@@ -1,6 +1,8 @@
 .git
 .vscode
 .idea
+.cache
+.go-build-cache
 bin
 bin-debug
 bin-release
@@ -14,8 +16,10 @@ bin-release
 **/.env.*
 **/*.log
 test
-data/doc
+data/goctl/
+data/scripts/
 data/db/archive/
+data/db/backups/
 data/db/dump-*.sql*
 data/db/gozero-admin-full-*.sql*
 *.tar.gz

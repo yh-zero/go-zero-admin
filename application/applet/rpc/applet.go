@@ -7,6 +7,8 @@ import (
 	"go-zero-admin/application/applet/rpc/internal/config"
 	agentToolsServer "go-zero-admin/application/applet/rpc/internal/server/agenttools"
 	apiServer "go-zero-admin/application/applet/rpc/internal/server/api"
+	appAccountServer "go-zero-admin/application/applet/rpc/internal/server/appaccountservice"
+	appMembershipServer "go-zero-admin/application/applet/rpc/internal/server/appmembershipservice"
 	auditServer "go-zero-admin/application/applet/rpc/internal/server/audit"
 	authorityServer "go-zero-admin/application/applet/rpc/internal/server/authority"
 	captchaServer "go-zero-admin/application/applet/rpc/internal/server/captcha"
@@ -42,6 +44,8 @@ func main() {
 	defer ctx.Close()
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+		pb.RegisterAppAccountServiceServer(grpcServer, appAccountServer.NewAppAccountServiceServer(ctx))
+		pb.RegisterAppMembershipServiceServer(grpcServer, appMembershipServer.NewAppMembershipServiceServer(ctx))
 		pb.RegisterAgentToolsServer(grpcServer, agentToolsServer.NewAgentToolsServer(ctx))
 		pb.RegisterUserServer(grpcServer, userServer.NewUserServer(ctx))
 		pb.RegisterPermissionServer(grpcServer, permissionServer.NewPermissionServer(ctx))

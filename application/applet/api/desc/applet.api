@@ -1,4 +1,6 @@
 import "./sys_base/user.api"
+import "./sys_base/app_members.api"
+import "./app/app.api"
 import "./sys_base/api_sync.api"
 import "./sys_base/organization.api"
 import "./sys_base/files.api"

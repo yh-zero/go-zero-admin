@@ -79,10 +79,10 @@ func (l *UploadFileImgLogic) UploadFileImg(_ *types.UploadFileImgRequest, r *htt
 		return nil, xerr.NewErrCode(xerr.TOKEN_EXPIRE_ERROR)
 	}
 	resp, err := l.svcCtx.AppletFileRPC.UploadFile(l.ctx, &pb.UploadFileRequest{
-		Actor:     &pb.SessionRequest{UserID: actor.ID, AuthorityId: actor.AuthorityId, SessionVersion: actor.SessionVersion, SessionID: actor.SessionID},
-		Data:      data,
-		Mime:      mime,
-		Filename:  filename,
+		Actor:      &pb.SessionRequest{UserID: actor.ID, AuthorityId: actor.AuthorityId, SessionVersion: actor.SessionVersion, SessionID: actor.SessionID},
+		Data:       data,
+		Mime:       mime,
+		Filename:   filename,
 		Visibility: visibility,
 	})
 	if err != nil {

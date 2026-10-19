@@ -3,6 +3,7 @@ package svc
 import (
 	"go-zero-admin/application/applet/rpc/internal/config"
 	"go-zero-admin/pkg/hash"
+	"go-zero-admin/pkg/iplocation"
 	"go-zero-admin/pkg/middlecasbin"
 	"go-zero-admin/pkg/orm"
 	"go-zero-admin/pkg/rpcsecurity"
@@ -13,6 +14,7 @@ import (
 )
 
 type ServiceContext struct {
+	IPLocation interface{ Lookup(string) string }
 	Config     config.Config
 	DB         *orm.DB
 	BizRedis   *redis.Redis
@@ -27,6 +29,10 @@ type ServiceContext struct {
 func NewServiceContext(c config.Config) *ServiceContext {
 	if err := hash.ValidatePassword(c.Default.UserPassword); err != nil {
 		panic("invalid Default.UserPassword: " + err.Error())
+	}
+	location, err := iplocation.New(c.IPLocation.IPv4Path, c.IPLocation.IPv6Path)
+	if err != nil {
+		panic("invalid IPLocation config: " + err.Error())
 	}
 	if err := rpcsecurity.RegisterCredential(c.RpcServerConf, c.RPCAuth); err != nil {
 		panic(err)
@@ -68,6 +74,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 
 	return &ServiceContext{
+		IPLocation: location,
 		Config:     c,
 		DB:         db,
 		BizRedis:   rds,

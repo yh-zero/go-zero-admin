@@ -1,14 +1,31 @@
 name: go-zero-admin
 
-# 本机开发依赖，无需环境文件；服务器请使用 docker/deploy-compose.yml。
+# 本机完整后端，无需安装 Go 或准备环境文件；前端仍使用 pnpm dev。
+# 启动/更新：docker compose up -d --build --wait
+# 查看日志：docker compose logs -f api rpc ai-rpc
+# 停止并保留数据：docker compose down（不要添加 -v）。
+# 以下默认凭据仅用于本机开发；服务器请使用 docker/deploy-compose.yml。
+x-service-environment: &service-environment
+  REDIS_ADDR: redis:6379
+  REDIS_PASSWORD: ""
+  ETCD_ADDR: etcd:2379
+  RPC_AUTH_APP: "${RPC_AUTH_APP:-applet-api}"
+  RPC_AUTH_TOKEN: "${RPC_AUTH_TOKEN:-go-zero-admin-local-development-rpc-token}"
+
+x-database-environment: &database-environment
+  MYSQL_ADDR: mysql:3306
+  MYSQL_USER: root
+  MYSQL_PASSWORD: "${MYSQL_ROOT_PASSWORD:-123456}"
+  MYSQL_DATABASE: "${MYSQL_DATABASE:-goZero-admin}"
+
 services:
   mysql:
-    image: mysql:8.4.10@sha256:8dbcf531a03aade657e181b9cf2f1d1803ce621a1d55610cb44cb531ab7d7db6
+    image: mysql:8.4.11
     container_name: gozero-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: "123456"
-      MYSQL_DATABASE: "goZero-admin"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-123456}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-goZero-admin}"
       TZ: "Asia/Shanghai"
     command:
       - --character-set-server=utf8mb4
@@ -17,11 +34,16 @@ services:
       - "127.0.0.1:3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      # MySQL 仅在新数据卷上执行；已有数据库不会重新导入或覆盖。
+      # 已有库升级仍需按迁移清单执行，不能重放此初始化快照。
+      - ./data/db/gozero-admin.sql:/docker-entrypoint-initdb.d/001-gozero-admin.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      # TCP 在首次 SQL 导入完成、最终 MySQL 服务启动后才可用。
+      test: ["CMD-SHELL", "mysqladmin ping --protocol=TCP -h 127.0.0.1 -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
@@ -45,10 +67,10 @@ services:
       ETCD_NAME: "default"
       ETCD_DATA_DIR: "/etcd-data"
       ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
-      ETCD_ADVERTISE_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://etcd:2379"
       ETCD_LISTEN_PEER_URLS: "http://0.0.0.0:2380"
-      ETCD_INITIAL_ADVERTISE_PEER_URLS: "http://0.0.0.0:2380"
-      ETCD_INITIAL_CLUSTER: "default=http://0.0.0.0:2380"
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: "http://etcd:2380"
+      ETCD_INITIAL_CLUSTER: "default=http://etcd:2380"
       ETCD_INITIAL_CLUSTER_TOKEN: "etcd-cluster"
       ETCD_INITIAL_CLUSTER_STATE: "new"
     healthcheck:
@@ -57,6 +79,111 @@ services:
       timeout: 5s
       retries: 10
 
+  rpc:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: rpc
+    container_name: gozero-rpc
+    restart: unless-stopped
+    init: true
+    environment:
+      <<: [*service-environment, *database-environment]
+      JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET:-go-zero-admin-local-development-jwt-secret}"
+      JWT_ACCESS_EXPIRE: "${JWT_ACCESS_EXPIRE:-7200}"
+      APP_JWT_ACCESS_SECRET: "${APP_JWT_ACCESS_SECRET:-go-zero-app-local-development-secret-change-me}"
+      APP_JWT_ACCESS_EXPIRE: "900"
+      APP_JWT_REFRESH_EXPIRE: "2592000"
+      DEFAULT_USER_PASSWORD: "${DEFAULT_USER_PASSWORD:-GoZero@2026}"
+      APP_EMAIL_VERIFICATION_REQUIRED: "${APP_EMAIL_VERIFICATION_REQUIRED:-false}"
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-465}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_FROM: "${SMTP_FROM:-}"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      etcd:
+        condition: service_healthy
+    healthcheck:
+      # 当前模板未启用框架 HTTP 健康端口，探测实际 RPC 监听端口。
+      test: ["CMD-SHELL", "netstat -ltn | grep -q ':6001 .*LISTEN'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  ai-rpc:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: ai-rpc
+    container_name: gozero-ai-rpc
+    restart: unless-stopped
+    init: true
+    environment:
+      <<: [*service-environment, *database-environment]
+      # 现有模板默认 AI.Enabled=false，不需要模型 Key 即可启动。
+      API_KEY_DEEPSEEK: ""
+      API_KEY_QWEN: ""
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      etcd:
+        condition: service_healthy
+      rpc:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -ltn | grep -q ':6002 .*LISTEN'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: api
+    container_name: gozero-api
+    restart: unless-stopped
+    init: true
+    environment:
+      <<: *service-environment
+      JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET:-go-zero-admin-local-development-jwt-secret}"
+      JWT_ACCESS_EXPIRE: "${JWT_ACCESS_EXPIRE:-7200}"
+      APP_JWT_ACCESS_SECRET: "${APP_JWT_ACCESS_SECRET:-go-zero-app-local-development-secret-change-me}"
+      APP_JWT_ACCESS_EXPIRE: "900"
+      APP_JWT_REFRESH_EXPIRE: "2592000"
+      OSS_ENDPOINT: "${OSS_ENDPOINT:-}"
+      APP_TRUSTED_PROXY_CIDRS: "${APP_TRUSTED_PROXY_CIDRS:-}"
+      OSS_ACCESS_KEY_ID: "${OSS_ACCESS_KEY_ID:-}"
+      OSS_ACCESS_KEY_SECRET: "${OSS_ACCESS_KEY_SECRET:-}"
+      OSS_BUCKET_NAME: "${OSS_BUCKET_NAME:-}"
+    ports:
+      - "127.0.0.1:7001:7001"
+    depends_on:
+      redis:
+        condition: service_healthy
+      etcd:
+        condition: service_healthy
+      rpc:
+        condition: service_healthy
+      ai-rpc:
+        condition: service_healthy
+    healthcheck:
+      # 端口探针不反复生成验证码；完整 API 链路在启动验收时检查。
+      test: ["CMD-SHELL", "netstat -ltn | grep -q ':7001 .*LISTEN'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
   swagger-ui:
     container_name: gozero-swagger
     image: swaggerapi/swagger-ui:v5.33.0
@@ -64,9 +191,10 @@ services:
     ports:
       - "127.0.0.1:7000:8080"
     environment:
-      SWAGGER_API_URL: "http://host.docker.internal:7001"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      SWAGGER_API_URL: "http://api:7001"
+    depends_on:
+      api:
+        condition: service_healthy
     volumes:
       - ./data/api/generated:/spec:ro
       - ./docker/swagger/default.conf.template:/etc/swagger/default.conf.template:ro
