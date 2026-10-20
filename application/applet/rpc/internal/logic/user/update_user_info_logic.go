@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
+	"go-zero-admin/application/applet/rpc/internal/logic/avatarutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
@@ -72,6 +73,11 @@ func (l *UpdateUserInfoLogic) UpdateUserInfo(in *pb.UpdateUserInfoRequest) (*pb.
 		}
 		if revoke {
 			updates["session_version"] = gorm.Expr("session_version + 1")
+		}
+		if avatar, ok := updates["header_img"]; ok {
+			if err := avatarutil.Sync(l.ctx, tx, l.svcCtx.Config.Storage, avatarutil.SysUser, user.ID, user.HeaderImg, avatar.(string)); err != nil {
+				return err
+			}
 		}
 		if len(updates) > 0 {
 			if err := tx.Model(&user).Updates(updates).Error; err != nil {

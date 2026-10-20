@@ -18,7 +18,57 @@ x-database-environment: &database-environment
   MYSQL_PASSWORD: "${MYSQL_ROOT_PASSWORD:-123456}"
   MYSQL_DATABASE: "${MYSQL_DATABASE:-goZero-admin}"
 
+x-storage-environment: &storage-environment
+  STORAGE_ENDPOINT: http://rustfs:9000
+  STORAGE_EXTERNAL_ENDPOINT: "${STORAGE_EXTERNAL_ENDPOINT:-http://127.0.0.1:9000}"
+  STORAGE_REGION: us-east-1
+  STORAGE_ACCESS_KEY_ID: "${STORAGE_ACCESS_KEY_ID:-GOZEROLOCALAPP}"
+  STORAGE_SECRET_ACCESS_KEY: "${STORAGE_SECRET_ACCESS_KEY:-go-zero-local-storage-app-change-me}"
+  STORAGE_PUBLIC_BUCKET: "${STORAGE_PUBLIC_BUCKET:-gozero-public}"
+  STORAGE_PRIVATE_BUCKET: "${STORAGE_PRIVATE_BUCKET:-gozero-private}"
+  STORAGE_PRESIGN_TTL_SECONDS: "300"
+  STORAGE_REQUEST_TIMEOUT_SECONDS: "30"
+
 services:
+  rustfs:
+    image: rustfs/rustfs:1.0.3
+    container_name: gozero-rustfs
+    restart: unless-stopped
+    environment:
+      RUSTFS_ACCESS_KEY: "${RUSTFS_ACCESS_KEY:-GOZEROLOCALROOT}"
+      RUSTFS_SECRET_KEY: "${RUSTFS_SECRET_KEY:-go-zero-local-storage-root-change-me}"
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_OBS_LOG_DIRECTORY: /logs
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - rustfs_data:/data
+      - rustfs_logs:/logs
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  storage-init:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.storage-init
+    restart: "no"
+    environment:
+      <<: *storage-environment
+      RUSTFS_ACCESS_KEY: "${RUSTFS_ACCESS_KEY:-GOZEROLOCALROOT}"
+      RUSTFS_SECRET_KEY: "${RUSTFS_SECRET_KEY:-go-zero-local-storage-root-change-me}"
+      STORAGE_CORS_ORIGINS: "${STORAGE_CORS_ORIGINS:-http://localhost:5999,http://127.0.0.1:5999}"
+    depends_on:
+      rustfs:
+        condition: service_healthy
+
   mysql:
     image: mysql:8.4.11
     container_name: gozero-mysql
@@ -94,7 +144,7 @@ services:
     restart: unless-stopped
     init: true
     environment:
-      <<: [*service-environment, *database-environment]
+      <<: [*service-environment, *database-environment, *storage-environment]
       JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET:-go-zero-admin-local-development-jwt-secret}"
       JWT_ACCESS_EXPIRE: "${JWT_ACCESS_EXPIRE:-7200}"
       APP_JWT_ACCESS_SECRET: "${APP_JWT_ACCESS_SECRET:-go-zero-app-local-development-secret-change-me}"
@@ -108,6 +158,8 @@ services:
       SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
       SMTP_FROM: "${SMTP_FROM:-}"
     depends_on:
+      storage-init:
+        condition: service_completed_successfully
       mysql:
         condition: service_healthy
       redis:
@@ -166,11 +218,7 @@ services:
       APP_JWT_ACCESS_SECRET: "${APP_JWT_ACCESS_SECRET:-go-zero-app-local-development-secret-change-me}"
       APP_JWT_ACCESS_EXPIRE: "900"
       APP_JWT_REFRESH_EXPIRE: "2592000"
-      OSS_ENDPOINT: "${OSS_ENDPOINT:-}"
       APP_TRUSTED_PROXY_CIDRS: "${APP_TRUSTED_PROXY_CIDRS:-}"
-      OSS_ACCESS_KEY_ID: "${OSS_ACCESS_KEY_ID:-}"
-      OSS_ACCESS_KEY_SECRET: "${OSS_ACCESS_KEY_SECRET:-}"
-      OSS_BUCKET_NAME: "${OSS_BUCKET_NAME:-}"
     ports:
       - "127.0.0.1:7001:7001"
     depends_on:
@@ -221,3 +269,5 @@ services:
 
 volumes:
   mysql_data:
+  rustfs_data:
+  rustfs_logs:

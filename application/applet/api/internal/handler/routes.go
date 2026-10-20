@@ -237,6 +237,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			[]rest.Middleware{serverCtx.Authority},
 			[]rest.Route{
 				{
+					// 更新 App 用户头像，空地址恢复默认头像
+					Method:  http.MethodPut,
+					Path:    "/avatar",
+					Handler: appmembers.SetAppUserAvatarHandler(serverCtx),
+				},
+				{
 					// 撤销指定会员授予
 					Method:  http.MethodDelete,
 					Path:    "/grant",
@@ -569,6 +575,21 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			[]rest.Middleware{serverCtx.Authority},
 			[]rest.Route{
 				{
+					Method:  http.MethodPost,
+					Path:    "/previewMove",
+					Handler: menu.PreviewMenuMoveHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/menu"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
 					// 新增 base_menu
 					Method:  http.MethodPost,
 					Path:    "/addBaseMenu",
@@ -627,21 +648,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Method:  http.MethodPut,
 					Path:    "/updateBaseMenu",
 					Handler: menu.UpdateBaseMenuHandler(serverCtx),
-				},
-			}...,
-		),
-		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
-		rest.WithPrefix("/v1/sys/menu"),
-	)
-
-	server.AddRoutes(
-		rest.WithMiddlewares(
-			[]rest.Middleware{serverCtx.Authority},
-			[]rest.Route{
-				{
-					Method:  http.MethodPost,
-					Path:    "/previewMove",
-					Handler: menu.PreviewMenuMoveHandler(serverCtx),
 				},
 			}...,
 		),
@@ -809,26 +815,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			[]rest.Middleware{serverCtx.Authority},
 			[]rest.Route{
 				{
-					Method:  http.MethodGet,
-					Path:    "/resources",
-					Handler: user.GetUserResourcePreviewHandler(serverCtx),
-				},
-				{
-					Method:  http.MethodPost,
-					Path:    "/resources/transfer",
-					Handler: user.TransferUserResourcesHandler(serverCtx),
-				},
-			}...,
-		),
-		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
-		rest.WithPrefix("/v1/sys/user"),
-	)
-
-	server.AddRoutes(
-		rest.WithMiddlewares(
-			[]rest.Middleware{serverCtx.Authority},
-			[]rest.Route{
-				{
 					// 删除用户
 					Method:  http.MethodDelete,
 					Path:    "/deleteUser",
@@ -862,6 +848,26 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		),
 		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
 		rest.WithPrefix("/v1/sys"),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.Authority},
+			[]rest.Route{
+				{
+					Method:  http.MethodGet,
+					Path:    "/resources",
+					Handler: user.GetUserResourcePreviewHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/resources/transfer",
+					Handler: user.TransferUserResourcesHandler(serverCtx),
+				},
+			}...,
+		),
+		rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret),
+		rest.WithPrefix("/v1/sys/user"),
 	)
 
 	server.AddRoutes(

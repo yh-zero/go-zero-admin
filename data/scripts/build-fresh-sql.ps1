@@ -5,7 +5,8 @@
     migration/operator files listed in $TailEntries.
 .DESCRIPTION
     Single source of truth: baseline.sql and the files under data/db/migrations
-    and data/db/operator. Never edit gozero-admin.sql by hand. To include a new
+    and data/db/operator, followed by the fresh-only files under seeds/. Never edit
+    gozero-admin.sql by hand. To include a new
     migration in fresh installations, append its entries to $TailEntries and run
     this script. schema_migrations checksums (SHA-256 over UTF-8 without BOM,
     CRLF normalized to LF) are computed automatically. -Check compares the
@@ -29,6 +30,9 @@ $TailEntries = @(
     @{ Path = 'migrations/20261019_app_members.sql'; Marker = '-- App module: fresh installation includes administrator role 1 bootstrap.' }
     @{ Path = 'operator/20261019_app_member_admin_bootstrap.sql' }
     @{ Path = 'migrations/20261019_app_registration_ip.sql' }
+    @{ Path = 'migrations/20261020_rustfs_avatar.sql' }
+    @{ Path = 'migrations/20261020_user_avatar_references.sql' }
+    @{ Path = 'operator/20261020_avatar_admin_bootstrap.sql' }
 )
 
 function Read-SqlText([string]$relativePath) {
@@ -67,7 +71,11 @@ foreach ($entry in $TailEntries) {
 if ($null -ne $pendingMigration) {
     Add-MigrationRecord $builder $pendingMigration "`n"
 }
-$built = $builder.ToString()
+[void]$builder.Append("`n-- Fresh-install demo seed; never run against an existing database.`n")
+foreach ($seed in @('seeds/demo.sql', 'seeds/activity.sql')) {
+    [void]$builder.Append((Read-SqlText $seed) + "`n")
+}
+$built = $builder.ToString().TrimEnd([char]10) + "`n"
 
 if ($Check) {
     $current = $utf8.GetString([IO.File]::ReadAllBytes($target)).TrimStart([char]0xFEFF).Replace("`r`n", "`n")

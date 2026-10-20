@@ -233,6 +233,9 @@
         "account": {
           "type": "string"
         },
+        "avatarUrl": {
+          "type": "string"
+        },
         "createdAt": {
           "type": "string"
         },
@@ -265,6 +268,7 @@
         }
       },
       "required": [
+        "avatarUrl",
         "identityVerified",
         "registrationIP",
         "registrationRegion",

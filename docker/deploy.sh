@@ -43,6 +43,8 @@ cmd_init() {
     app_jwt=$(random_secret)
     rpc=$(random_secret)
     user_pw=$(random_secret | cut -c1-24)
+    storage_root_secret=$(random_secret)
+    storage_app_secret=$(random_secret)
     cat > "$ENV_FILE" <<EOF
 # 由 docker/deploy.sh init 生成；不要提交，不要复制进镜像。
 
@@ -53,6 +55,10 @@ JWT_ACCESS_SECRET=$jwt
 APP_JWT_ACCESS_SECRET=$app_jwt
 RPC_AUTH_TOKEN=$rpc
 DEFAULT_USER_PASSWORD=$user_pw
+RUSTFS_ACCESS_KEY=GOZEROSTORAGEROOT
+RUSTFS_SECRET_KEY=$storage_root_secret
+STORAGE_ACCESS_KEY_ID=GOZEROSTORAGEAPP
+STORAGE_SECRET_ACCESS_KEY=$storage_app_secret
 
 # --- 端口与路径 ---
 JWT_ACCESS_EXPIRE=7200
@@ -64,17 +70,17 @@ WEB_PORT=127.0.0.1:8080
 SWAGGER_PORT=8081
 SWAGGER_API_URL=http://api:7001
 FRONTEND_CONTEXT=../../go-zero-admin-vben
+STORAGE_PORT=127.0.0.1:9000
+STORAGE_CONSOLE_PORT=127.0.0.1:9001
+# 对外部署时改为真实 HTTPS 文件域名及前端来源（协议+域名+端口，无路径）。
+STORAGE_EXTERNAL_ENDPOINT=http://127.0.0.1:9000
+STORAGE_CORS_ORIGINS=http://127.0.0.1:8080
 
 # --- 可选：留空即关闭 ---
 REDIS_PASSWORD=
 
 # 只填实际反向代理容器的 IP/32 或 /128，多个用逗号分隔；留空表示不信任转发头。
 APP_TRUSTED_PROXY_CIDRS=
-
-OSS_ENDPOINT=
-OSS_ACCESS_KEY_ID=
-OSS_ACCESS_KEY_SECRET=
-OSS_BUCKET_NAME=
 
 SMTP_HOST=
 SMTP_PORT=465
@@ -97,10 +103,11 @@ cmd_check() {
     if grep -q 'replace-with' "$ENV_FILE"; then
         die "$ENV_FILE 仍有占位值 replace-with-，请替换"
     fi
-    for key in MYSQL_ROOT_PASSWORD JWT_ACCESS_SECRET APP_JWT_ACCESS_SECRET RPC_AUTH_TOKEN; do
+    for key in MYSQL_ROOT_PASSWORD JWT_ACCESS_SECRET APP_JWT_ACCESS_SECRET RPC_AUTH_TOKEN RUSTFS_ACCESS_KEY RUSTFS_SECRET_KEY STORAGE_ACCESS_KEY_ID STORAGE_SECRET_ACCESS_KEY STORAGE_EXTERNAL_ENDPOINT STORAGE_CORS_ORIGINS; do
         [ -n "$(env_value "$key")" ] || die "$key 为空"
     done
     [ "$(env_value JWT_ACCESS_SECRET)" = "$(env_value APP_JWT_ACCESS_SECRET)" ] && die "JWT_ACCESS_SECRET 与 APP_JWT_ACCESS_SECRET 必须不同"
+    [ "$(env_value RUSTFS_ACCESS_KEY)" = "$(env_value STORAGE_ACCESS_KEY_ID)" ] && die "RustFS 管理身份和应用身份必须不同"
     for key in JWT_ACCESS_SECRET APP_JWT_ACCESS_SECRET RPC_AUTH_TOKEN; do
         value=$(env_value "$key")
         if [ "${#value}" -lt 32 ]; then say "警告: $key 短于 32 个字符，建议改用更长的随机值"; fi
@@ -187,7 +194,14 @@ say "4/4 待应用: $name"
         read -r answer || answer=''
         case "$answer" in
             y|Y)
-                dc exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --user=root --database="$MYSQL_DATABASE"' < "$file" || die "$name 执行失败，已停止；核实部分执行状态后再处理，不要直接重跑"
+                if [ "$name" = '20261020_user_avatar_references.sql' ]; then
+                    avatar_bucket=$(env_value STORAGE_PUBLIC_BUCKET)
+                    avatar_bucket=${avatar_bucket:-gozero-public}
+                    case "$avatar_bucket" in *[!a-z0-9.-]*) die 'STORAGE_PUBLIC_BUCKET 格式无效';; esac
+                    { printf "SET @avatar_public_bucket='%s';\n" "$avatar_bucket"; cat "$file"; } | dc exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --user=root --database="$MYSQL_DATABASE"' || die "$name 执行失败，已停止"
+                else
+                    dc exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql --user=root --database="$MYSQL_DATABASE"' < "$file" || die "$name 执行失败，已停止；核实部分执行状态后再处理，不要直接重跑"
+                fi
                 mysql_run "INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('$name','$want',NOW())"
 say "    已应用并登记: $name"
                 ;;

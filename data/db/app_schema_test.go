@@ -33,14 +33,25 @@ func TestAppFreshSQLContainsExactMigrationAndBootstrap(t *testing.T) {
 	migration := appSQL(t, "migrations/20261019_app_members.sql")
 	bootstrap := appSQL(t, "operator/20261019_app_member_admin_bootstrap.sql")
 	registration := appSQL(t, "migrations/20261019_app_registration_ip.sql")
+	avatar := appSQL(t, "migrations/20261020_rustfs_avatar.sql")
+	references := appSQL(t, "migrations/20261020_user_avatar_references.sql")
+	avatarBootstrap := appSQL(t, "operator/20261020_avatar_admin_bootstrap.sql")
 	checksum := fmt.Sprintf("%x", sha256.Sum256([]byte(migration)))
 	registrationChecksum := fmt.Sprintf("%x", sha256.Sum256([]byte(registration)))
+	avatarChecksum := fmt.Sprintf("%x", sha256.Sum256([]byte(avatar)))
+	referencesChecksum := fmt.Sprintf("%x", sha256.Sum256([]byte(references)))
 	expected := migration + "\n" + bootstrap + "\n" +
 		"INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261019_app_members.sql','" + checksum + "',NOW());\n\n" +
 		registration + "\n" +
-		"INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261019_app_registration_ip.sql','" + registrationChecksum + "',NOW());\n"
-	if tail != expected {
-		t.Fatal("fresh installation differs from the standalone App SQL files")
+		"INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261019_app_registration_ip.sql','" + registrationChecksum + "',NOW());\n\n" +
+		avatar + "\n" +
+		"INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261020_rustfs_avatar.sql','" + avatarChecksum + "',NOW());\n\n" +
+		references + "\n" + avatarBootstrap + "\n" +
+		"INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261020_user_avatar_references.sql','" + referencesChecksum + "',NOW());\n"
+	seed, found := strings.CutPrefix(tail, expected+"\n-- Fresh-install demo seed; never run against an existing database.\n")
+	expectedSeed := appSQL(t, "seeds/demo.sql") + "\n" + appSQL(t, "seeds/activity.sql")
+	if !found || strings.TrimSpace(seed) != strings.TrimSpace(expectedSeed) {
+		t.Fatal("fresh installation differs from the standalone App SQL files and fresh-only demo seed")
 	}
 	if checksum != "d6b4f5ba9cdad5192f4234486d3bbe28e81cefde16c001601fb16a101f14bf50" {
 		t.Fatal("already applied App membership migration must remain unchanged")
@@ -91,14 +102,14 @@ func assertAppSchema(t *testing.T, db *sql.DB, name string) {
 	appCount(t, db, "SELECT COUNT(*) FROM app_membership_plans WHERE code='vip' AND version=1 AND enabled=1 AND JSON_CONTAINS(entitlements, JSON_QUOTE('profile.export'))", 1)
 	appCount(t, db, "SELECT COUNT(*) FROM sys_base_menus WHERE name IN('app-members-users','app-memberships') AND deleted_at IS NULL", 2)
 	appCount(t, db, "SELECT COUNT(*) FROM sys_base_menu_btns WHERE permission_key IN('app-members-users:review','app-members-users:status','app-members-users:revoke-session','app-memberships:grant','app-memberships:revoke') AND deleted_at IS NULL", 5)
-	appCount(t, db, "SELECT COUNT(*) FROM sys_apis WHERE api_group='appmembers' AND deleted_at IS NULL", 8)
+	appCount(t, db, "SELECT COUNT(*) FROM sys_apis WHERE api_group='appmembers' AND deleted_at IS NULL", 9)
 }
 
 func assertAppAuthorization(t *testing.T, db *sql.DB, menus, buttons, apis int) {
 	t.Helper()
-	appCount(t, db, "SELECT COUNT(*) FROM sys_authority_menus a JOIN sys_base_menus m ON a.sys_base_menu_id=m.id WHERE m.name IN('app-members-users','app-memberships')", menus)
-	appCount(t, db, "SELECT COUNT(*) FROM sys_authority_btns a JOIN sys_base_menu_btns b ON a.sys_base_menu_btn_id=b.id WHERE b.permission_key LIKE 'app-members%'", buttons)
-	appCount(t, db, "SELECT COUNT(*) FROM casbin_rule WHERE ptype='p' AND v1 LIKE '/v1/sys/app-members/%'", apis)
+	appCount(t, db, "SELECT COUNT(*) FROM sys_authority_menus a JOIN sys_base_menus m ON a.sys_base_menu_id=m.id WHERE a.sys_authority_authority_id=1 AND m.name IN('app-members-users','app-memberships')", menus)
+	appCount(t, db, "SELECT COUNT(*) FROM sys_authority_btns a JOIN sys_base_menu_btns b ON a.sys_base_menu_btn_id=b.id WHERE a.authority_id=1 AND b.permission_key LIKE 'app-members%'", buttons)
+	appCount(t, db, "SELECT COUNT(*) FROM casbin_rule WHERE ptype='p' AND v0='1' AND v1 LIKE '/v1/sys/app-members/%'", apis)
 }
 
 func assertAppRegistrationSchema(t *testing.T, db *sql.DB, name string) {

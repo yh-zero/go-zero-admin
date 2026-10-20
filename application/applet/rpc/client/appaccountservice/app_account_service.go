@@ -20,6 +20,7 @@ type (
 	AppAdminUserRequest     = pb.AppAdminUserRequest
 	AppAuthOptions          = pb.AppAuthOptions
 	AppAuthTokens           = pb.AppAuthTokens
+	AppAvatarRequest        = pb.AppAvatarRequest
 	AppLoginRequest         = pb.AppLoginRequest
 	AppLogoutRequest        = pb.AppLogoutRequest
 	AppProfileRequest       = pb.AppProfileRequest
@@ -50,6 +51,7 @@ type (
 		RevokeMyAppSession(ctx context.Context, in *AppRevokeSelfRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		ListAppUsers(ctx context.Context, in *AppAdminListRequest, opts ...grpc.CallOption) (*AppUserListResponse, error)
 		SetAppUserStatus(ctx context.Context, in *AppStatusRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		SetAppUserAvatar(ctx context.Context, in *AppAvatarRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		ListAppUserSessions(ctx context.Context, in *AppAdminUserRequest, opts ...grpc.CallOption) (*AppSessionListResponse, error)
 		RevokeAppUserSession(ctx context.Context, in *AppAdminRevokeRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	}
@@ -128,6 +130,11 @@ func (m *defaultAppAccountService) ListAppUsers(ctx context.Context, in *AppAdmi
 func (m *defaultAppAccountService) SetAppUserStatus(ctx context.Context, in *AppStatusRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := pb.NewAppAccountServiceClient(m.cli.Conn())
 	return client.SetAppUserStatus(ctx, in, opts...)
+}
+
+func (m *defaultAppAccountService) SetAppUserAvatar(ctx context.Context, in *AppAvatarRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := pb.NewAppAccountServiceClient(m.cli.Conn())
+	return client.SetAppUserAvatar(ctx, in, opts...)
 }
 
 func (m *defaultAppAccountService) ListAppUserSessions(ctx context.Context, in *AppAdminUserRequest, opts ...grpc.CallOption) (*AppSessionListResponse, error) {

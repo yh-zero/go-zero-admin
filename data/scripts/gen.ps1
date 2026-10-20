@@ -260,7 +260,10 @@ import "./desc/applet.api"
 
     $upload = $document.paths['/v1/sys/base/uploadFileImg'].post
     $upload.consumes = @('multipart/form-data')
-    $upload.parameters = @(@{ name = 'file_img'; in = 'formData'; type = 'file'; required = $true; description = 'Image file; requires configured OSS storage.' })
+    $upload.parameters = @(
+        @{ name = 'file_img'; in = 'formData'; type = 'file'; required = $true; description = 'PNG/JPEG/GIF/WebP image, up to 10MB; stored in RustFS.' }
+        @{ name = 'visibility'; in = 'formData'; type = 'string'; required = $false; enum = @('public', 'private'); default = 'public'; description = 'Public files use a permanent URL; private files require a short-lived signed URL.' }
+    )
     $document.paths['/v1/sys/register'].post.responses['200'].schema.properties.result = @{
         description = 'Current registration logic returns null on success.'; 'x-nullable' = $true
     }
@@ -279,10 +282,16 @@ import "./desc/applet.api"
         return $value
     }
 
+    function Copy-JsonMap($value) {
+        # Rebuild arrays before cloning: WinPS 5.1 may otherwise serialize
+        # ConvertFrom-Json's array wrapper as a {Count,value} object.
+        return ConvertTo-JsonMap (ConvertFrom-Json -InputObject (Sort-JsonObject $value | ConvertTo-Json -Depth 100))
+    }
+
     # Produce separate audiences from the same source contracts. The RPC embeds
     # only the admin file; App operations never enter its permission catalogue.
     function Write-AudienceDocument([string]$audience, [string]$destination) {
-        $copy = ConvertTo-JsonMap (ConvertFrom-Json -InputObject ($document | ConvertTo-Json -Depth 100))
+        $copy = Copy-JsonMap $document
         foreach ($path in @($copy.paths.PSBase.Keys)) {
             if ($path.StartsWith('/v1/app/') -ne ($audience -eq 'app')) { $copy.paths.Remove($path) }
         }

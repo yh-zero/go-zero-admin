@@ -11,6 +11,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/gofrs/uuid/v5"
+	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
+	"go-zero-admin/application/applet/rpc/internal/logic/avatarutil"
 	"go-zero-admin/application/applet/rpc/internal/logic/datascope"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/pb"
@@ -21,6 +23,39 @@ import (
 )
 
 func fileError(message string) error { return xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, message) }
+
+// registerFileRecord revalidates the actor and commits metadata with its audit.
+// Response construction stays outside this transaction and its cleanup boundary.
+func registerFileRecord(ctx context.Context, db *gorm.DB, actor *pb.SessionRequest, file *model.SysFileResource) error {
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := accessutil.LockAdminGuard(tx); err != nil {
+			return err
+		}
+		if _, err := datascope.Apply(ctx, tx.Model(&model.SysFileResource{}), actor, "owner_id", "department_id"); err != nil {
+			return err
+		}
+		var existing model.SysFileResource
+		if err := tx.Where("object_key = ?", file.ObjectKey).First(&existing).Error; err == nil {
+			if existing.OwnerID != file.OwnerID || existing.Name != file.Name || existing.Mime != file.Mime || existing.Size != file.Size || existing.Visibility != file.Visibility || existing.Status != "active" {
+				return fileError("文件对象已登记且元数据不一致")
+			}
+			*file = existing
+			return nil
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		var membership model.SysUserDepartment
+		if err := tx.Where("user_id = ?", actor.UserID).First(&membership).Error; err == nil {
+			file.DepartmentID = membership.DepartmentID
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		if err := tx.Create(file).Error; err != nil {
+			return err
+		}
+		return auditFile(ctx, tx, actor, "registerFile", file.ID)
+	})
+}
 
 func scopedFile(ctx context.Context, db *gorm.DB, actor *pb.SessionRequest, id int64, lock bool) (*model.SysFileResource, error) {
 	if id <= 0 {
@@ -91,8 +126,7 @@ func validateFile(input *pb.FileResource) error {
 	if input.Visibility != "public" && input.Visibility != "private" {
 		return fileError("文件可见性只允许public或private")
 	}
-	extensions := map[string]string{"image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif", "image/webp": ".webp"}
-	ext := extensions[input.Mime]
+	ext := imageExtension(input.Mime)
 	if ext == "" || !strings.HasPrefix(input.ObjectKey, "go-zero-admin/") || path.Ext(input.ObjectKey) != ext {
 		return fileError("只支持系统上传的PNG、JPEG、GIF、WebP资源")
 	}
@@ -112,6 +146,9 @@ func validateReference(input *pb.FileReferenceRequest) error {
 	}
 	if input.FileID <= 0 || !objectTypePattern.MatchString(input.ObjectType) || !objectIDPattern.MatchString(input.ObjectID) {
 		return fileError("文件引用标识无效")
+	}
+	if avatarutil.IsSystemReference(input.ObjectType) {
+		return fileError("头像引用由用户资料自动维护，不能手动增删")
 	}
 	return nil
 }

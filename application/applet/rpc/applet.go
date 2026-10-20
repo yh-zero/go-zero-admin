@@ -23,6 +23,7 @@ import (
 	userServer "go-zero-admin/application/applet/rpc/internal/server/user"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
+	"go-zero-admin/pkg/filerpc"
 	"go-zero-admin/pkg/rpcprivacy"
 
 	"github.com/zeromicro/go-zero/core/conf"
@@ -65,6 +66,7 @@ func main() {
 			reflection.Register(grpcServer)
 		}
 	})
+	s.AddOptions(filerpc.ServerOptions()...)
 	defer s.Stop()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)

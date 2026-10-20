@@ -69,7 +69,7 @@ func listUsers(ctx context.Context, s *svc.ServiceContext, in *pb.AppAdminListRe
 	}
 	result := &pb.AppUserListResponse{Total: total, List: make([]*pb.AppUserInfo, 0, len(rows))}
 	for _, r := range rows {
-		result.List = append(result.List, &pb.AppUserInfo{ID: r.ID, Nickname: r.Nickname, Status: r.Status, ReviewReason: r.ReviewReason, Account: r.Account, IdentityKind: r.IdentityKind, IdentityVerified: r.IdentityVerifiedAt != nil, RegistrationIP: r.RegistrationIP, RegistrationRegion: r.RegistrationRegion, CreatedAt: timestamp(r.CreatedAt), UpdatedAt: timestamp(r.UpdatedAt)})
+		result.List = append(result.List, &pb.AppUserInfo{ID: r.ID, Nickname: r.Nickname, AvatarURL: r.AvatarURL, Status: r.Status, ReviewReason: r.ReviewReason, Account: r.Account, IdentityKind: r.IdentityKind, IdentityVerified: r.IdentityVerifiedAt != nil, RegistrationIP: r.RegistrationIP, RegistrationRegion: r.RegistrationRegion, CreatedAt: timestamp(r.CreatedAt), UpdatedAt: timestamp(r.UpdatedAt)})
 	}
 	if err := AuthorizeAdmin(ctx, s, in.Actor, adminRoot+"users", "GET"); err != nil {
 		return nil, err

@@ -4,6 +4,7 @@ message AppUserInfo {
   int64 ID = 1; string Account = 2; string IdentityKind = 3; string Nickname = 4;
   string Status = 5; string ReviewReason = 6; string CreatedAt = 7; string UpdatedAt = 8; bool IdentityVerified = 9;
   string RegistrationIP = 10; string RegistrationRegion = 11;
+  string AvatarURL = 12;
 }
 message AppRegisterRequest { string Account = 1; string Password = 2; string Nickname = 3; string IP = 4; string EmailCode = 5; }
 message AppSendEmailCodeRequest { string Account = 1; string IP = 2; }
@@ -21,6 +22,7 @@ message AppAdminRequest { SessionRequest Actor = 1; }
 message AppAdminListRequest { SessionRequest Actor = 1; PageRequest Page = 2; string Status = 3; }
 message AppUserListResponse { repeated AppUserInfo List = 1; int64 Total = 2; }
 message AppStatusRequest { SessionRequest Actor = 1; int64 UserID = 2; string Status = 3; string Reason = 4; }
+message AppAvatarRequest { SessionRequest Actor = 1; int64 UserID = 2; string AvatarURL = 3; }
 message AppAdminUserRequest { SessionRequest Actor = 1; int64 UserID = 2; }
 message AppAdminRevokeRequest { SessionRequest Actor = 1; string ID = 2; }
 
@@ -38,6 +40,7 @@ service AppAccountService {
   rpc RevokeMyAppSession(AppRevokeSelfRequest) returns(NoDataResponse);
   rpc ListAppUsers(AppAdminListRequest) returns(AppUserListResponse);
   rpc SetAppUserStatus(AppStatusRequest) returns(NoDataResponse);
+  rpc SetAppUserAvatar(AppAvatarRequest) returns(NoDataResponse);
   rpc ListAppUserSessions(AppAdminUserRequest) returns(AppSessionListResponse);
   rpc RevokeAppUserSession(AppAdminRevokeRequest) returns(NoDataResponse);
 }
@@ -807,13 +810,13 @@ service FileResourceService {
   rpc RemoveFileReference (FileReferenceRequest) returns (NoDataResponse);
   rpc BeginDeleteFile (FileIDRequest) returns (FileResource);
   rpc FinishDeleteFile (FileIDRequest) returns (NoDataResponse);
-  // UploadFile stores the bytes in OSS (credentials live only in this RPC) and
+  // UploadFile stores the bytes in object storage (credentials live only in this RPC) and
   // registers the metadata in a single call. The Data field is bounded to 10MB.
   rpc UploadFile (UploadFileRequest) returns (UploadFileResponse);
   // GetFileURL returns a public URL for public files, or a 5-minute signed
   // URL for private files.
   rpc GetFileURL (FileIDRequest) returns (FileURLResponse);
-  // DeleteFile is the one-shot orchestration: begin -> OSS delete -> finish.
+  // DeleteFile is the one-shot orchestration: begin -> object storage delete -> finish.
   // It is safe to retry; already-deleted resources short-circuit.
   rpc DeleteFile (FileIDRequest) returns (NoDataResponse);
 }

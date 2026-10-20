@@ -10,9 +10,11 @@ import (
 	"go-zero-admin/application/applet/api/internal/types"
 	"go-zero-admin/application/applet/rpc/pb"
 	"go-zero-admin/pkg/ctxJwt"
+	"go-zero-admin/pkg/filerpc"
 	"go-zero-admin/pkg/result/xerr"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/zrpc"
 )
 
 const maxFileSize = 10 << 20
@@ -51,10 +53,8 @@ func readImage(r *http.Request) ([]byte, string, error) {
 	return nil, "", xerr.NewErrCodeMsg(300002, "仅支持PNG、JPEG、GIF、WebP图片")
 }
 
-// UploadFileImg is now a thin pass-through to the RPC tier. The RPC owns the
-// OSS credentials, the rate-limited signing key, and the metadata registration
-// in a single transaction. The API only parses the multipart request and
-// forwards the bytes over gRPC.
+// UploadFileImg parses the multipart image and forwards it to the RPC, which
+// owns storage credentials, validates the upload and registers its metadata.
 func (l *UploadFileImgLogic) UploadFileImg(_ *types.UploadFileImgRequest, r *http.Request) (*types.UploadFileImgResponse, error) {
 	data, mime, err := readImage(r)
 	if err != nil {
@@ -84,7 +84,7 @@ func (l *UploadFileImgLogic) UploadFileImg(_ *types.UploadFileImgRequest, r *htt
 		Mime:       mime,
 		Filename:   filename,
 		Visibility: visibility,
-	})
+	}, zrpc.WithCallTimeout(filerpc.OperationTimeout))
 	if err != nil {
 		return nil, err
 	}

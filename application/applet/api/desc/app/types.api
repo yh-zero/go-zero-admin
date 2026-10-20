@@ -3,6 +3,7 @@ syntax = "v1"
 import "../sys_base/user_struct.api"
 
 type AppUser {
+    AvatarURL string `json:"avatarUrl"`
     IdentityVerified bool `json:"identityVerified"`
     RegistrationIP string `json:"registrationIP"`
     RegistrationRegion string `json:"registrationRegion"`
@@ -91,6 +92,11 @@ type AppStatusRequest {
     UserID int64 `json:"userId"`
     Status string `json:"status"`
     Reason string `json:"reason"`
+}
+
+type AppAvatarRequest {
+    UserID int64 `json:"userId"`
+    AvatarURL string `json:"avatarUrl"`
 }
 
 type AppUserIDRequest {

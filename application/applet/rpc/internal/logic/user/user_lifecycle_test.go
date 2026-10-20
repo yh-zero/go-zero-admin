@@ -25,7 +25,7 @@ func testUserDB(t *testing.T) *svc.ServiceContext {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { sqlDB.Close() })
-	if err := db.AutoMigrate(&model.SysAuthority{}, &model.SysUser{}, &model.SysUserAuthority{}, &model.SysAuthorityMenu{}, &model.SysBaseMenu{}, &model.SysDeviceSession{}, &audit.Event{}, &model.SysUserDepartment{}, &model.SysUserPosition{}); err != nil {
+	if err := db.AutoMigrate(&model.SysAuthority{}, &model.SysUser{}, &model.SysUserAuthority{}, &model.SysAuthorityMenu{}, &model.SysBaseMenu{}, &model.SysDeviceSession{}, &audit.Event{}, &model.SysUserDepartment{}, &model.SysUserPosition{}, &model.SysFileResource{}, &model.SysFileReference{}); err != nil {
 		t.Fatal(err)
 	}
 	for _, id := range []int64{801, 802} {

@@ -86,5 +86,5 @@ func userInfo(ctx context.Context, s *svc.ServiceContext, user *model.AppUser) (
 	if err := s.DB.WithContext(ctx).Select("identifier", "kind", "verified_at").Where("user_id = ?", user.ID).First(&identity).Error; err != nil {
 		return nil, err
 	}
-	return &pb.AppUserInfo{ID: user.ID, Account: identity.Identifier, IdentityKind: identity.Kind, IdentityVerified: identity.VerifiedAt != nil, RegistrationIP: user.RegistrationIP, RegistrationRegion: user.RegistrationRegion, Nickname: user.Nickname, Status: user.Status, ReviewReason: user.ReviewReason, CreatedAt: timestamp(user.CreatedAt), UpdatedAt: timestamp(user.UpdatedAt)}, nil
+	return &pb.AppUserInfo{ID: user.ID, Account: identity.Identifier, IdentityKind: identity.Kind, IdentityVerified: identity.VerifiedAt != nil, RegistrationIP: user.RegistrationIP, RegistrationRegion: user.RegistrationRegion, Nickname: user.Nickname, AvatarURL: user.AvatarURL, Status: user.Status, ReviewReason: user.ReviewReason, CreatedAt: timestamp(user.CreatedAt), UpdatedAt: timestamp(user.UpdatedAt)}, nil
 }

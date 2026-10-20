@@ -5,6 +5,7 @@ import "time"
 type AppUser struct {
 	ID                 int64  `gorm:"primaryKey;autoIncrement"`
 	Nickname           string `gorm:"size:64;not null"`
+	AvatarURL          string `gorm:"size:1024;not null;default:''"`
 	RegistrationIP     string `gorm:"size:64;not null;default:''"`
 	RegistrationRegion string `gorm:"size:255;not null;default:''"`
 	Status             string `gorm:"size:16;not null;default:pending;index:idx_app_user_status"`

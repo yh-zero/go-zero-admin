@@ -21,7 +21,56 @@ x-db: &db
   MYSQL_PASSWORD: "${MYSQL_ROOT_PASSWORD:?请在 docker/.env.deploy 中设置 MYSQL_ROOT_PASSWORD}"
   MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero-admin}"
 
+x-storage: &storage
+  STORAGE_ENDPOINT: http://rustfs:9000
+  STORAGE_EXTERNAL_ENDPOINT: "${STORAGE_EXTERNAL_ENDPOINT:?请设置浏览器可访问的文件服务地址}"
+  STORAGE_REGION: us-east-1
+  STORAGE_ACCESS_KEY_ID: "${STORAGE_ACCESS_KEY_ID:?请设置存储应用身份}"
+  STORAGE_SECRET_ACCESS_KEY: "${STORAGE_SECRET_ACCESS_KEY:?请设置存储应用密钥}"
+  STORAGE_PUBLIC_BUCKET: "${STORAGE_PUBLIC_BUCKET:-gozero-public}"
+  STORAGE_PRIVATE_BUCKET: "${STORAGE_PRIVATE_BUCKET:-gozero-private}"
+  STORAGE_PRESIGN_TTL_SECONDS: "300"
+  STORAGE_REQUEST_TIMEOUT_SECONDS: "30"
+
 services:
+  rustfs:
+    image: rustfs/rustfs:1.0.3
+    restart: unless-stopped
+    environment:
+      RUSTFS_ACCESS_KEY: "${RUSTFS_ACCESS_KEY:?请设置 RustFS 管理身份}"
+      RUSTFS_SECRET_KEY: "${RUSTFS_SECRET_KEY:?请设置 RustFS 管理密钥}"
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_OBS_LOG_DIRECTORY: /logs
+    ports:
+      - "${STORAGE_PORT:-127.0.0.1:9000}:9000"
+      - "${STORAGE_CONSOLE_PORT:-127.0.0.1:9001}:9001"
+    volumes:
+      - rustfs_data:/data
+      - rustfs_logs:/logs
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  storage-init:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.storage-init
+    restart: "no"
+    environment:
+      <<: *storage
+      RUSTFS_ACCESS_KEY: "${RUSTFS_ACCESS_KEY:?请设置 RustFS 管理身份}"
+      RUSTFS_SECRET_KEY: "${RUSTFS_SECRET_KEY:?请设置 RustFS 管理密钥}"
+      STORAGE_CORS_ORIGINS: "${STORAGE_CORS_ORIGINS:?请设置前端完整来源地址}"
+    depends_on:
+      rustfs:
+        condition: service_healthy
+
   mysql:
     image: mysql:8.4.11@sha256:0f51e63e537a1f176423fa03ef559aabe6fa4372a53160a44bc7e75da7d15364
     restart: unless-stopped
@@ -87,10 +136,6 @@ services:
     environment:
       <<: [*infra, *jwt]
       APP_TRUSTED_PROXY_CIDRS: "${APP_TRUSTED_PROXY_CIDRS:-}"
-      OSS_ENDPOINT: "${OSS_ENDPOINT:-}"
-      OSS_ACCESS_KEY_ID: "${OSS_ACCESS_KEY_ID:-}"
-      OSS_ACCESS_KEY_SECRET: "${OSS_ACCESS_KEY_SECRET:-}"
-      OSS_BUCKET_NAME: "${OSS_BUCKET_NAME:-}"
     ports:
       - "${API_PORT:-127.0.0.1:7001}:7001"
     depends_on:
@@ -117,7 +162,7 @@ services:
       target: rpc
     restart: unless-stopped
     environment:
-      <<: [*infra, *jwt, *db]
+      <<: [*infra, *jwt, *db, *storage]
       DEFAULT_USER_PASSWORD: "${DEFAULT_USER_PASSWORD:-GoZero@2026}"
       APP_EMAIL_VERIFICATION_REQUIRED: "${APP_EMAIL_VERIFICATION_REQUIRED:-false}"
       SMTP_HOST: "${SMTP_HOST:-}"
@@ -126,6 +171,8 @@ services:
       SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
       SMTP_FROM: "${SMTP_FROM:-}"
     depends_on:
+      storage-init:
+        condition: service_completed_successfully
       mysql:
         condition: service_healthy
       redis:
@@ -214,3 +261,5 @@ services:
 
 volumes:
   mysql_data:
+  rustfs_data:
+  rustfs_logs:

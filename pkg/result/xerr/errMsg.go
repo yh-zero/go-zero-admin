@@ -18,8 +18,8 @@ func init() {
 	message[REPEAT_NAME_ERROR] = "添加失败,不能添加同样的name"
 
 	// sys_base 模块
-	message[REPEAT_OSS_GET_BUCKET_ERROR] = "获取oss_bucket实例失败"
-	message[REPEAT_OSS_PUT_BUCKET_ERROR] = "上传oss_bucket失败"
+	message[FILE_STORAGE_CONFIG_ERROR] = "文件存储服务配置无效"
+	message[FILE_STORAGE_ERROR] = "文件存储操作失败"
 	message[EMAIL_CANNOT_BE_EMPTY_ERROR] = "邮箱不能为空错误"
 	message[ALREADY_EXISTS_ERROR] = "邮箱已发送"
 }

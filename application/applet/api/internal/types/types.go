@@ -127,6 +127,11 @@ type AppAuthTokens struct {
 	User             AppUser `json:"user"`
 }
 
+type AppAvatarRequest struct {
+	UserID    int64  `json:"userId"`
+	AvatarURL string `json:"avatarUrl"`
+}
+
 type AppExample struct {
 	UserID      int64  `json:"userId"`
 	Account     string `json:"account"`
@@ -248,6 +253,7 @@ type AppStatusRequest struct {
 }
 
 type AppUser struct {
+	AvatarURL          string `json:"avatarUrl"`
 	IdentityVerified   bool   `json:"identityVerified"`
 	RegistrationIP     string `json:"registrationIP"`
 	RegistrationRegion string `json:"registrationRegion"`

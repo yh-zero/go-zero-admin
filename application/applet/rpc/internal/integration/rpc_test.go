@@ -2,7 +2,10 @@ package integration
 
 import (
 	"context"
+	"io"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -10,6 +13,7 @@ import (
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/glebarez/sqlite"
 	"go-zero-admin/application/applet/rpc/internal/model"
+	appaccountserver "go-zero-admin/application/applet/rpc/internal/server/appaccountservice"
 	auditserver "go-zero-admin/application/applet/rpc/internal/server/audit"
 	fileserver "go-zero-admin/application/applet/rpc/internal/server/fileresourceservice"
 	organizationserver "go-zero-admin/application/applet/rpc/internal/server/organization"
@@ -18,7 +22,9 @@ import (
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 	"go-zero-admin/pkg/audit"
+	"go-zero-admin/pkg/filerpc"
 	base "go-zero-admin/pkg/model"
+	"go-zero-admin/pkg/objectstorage"
 	"go-zero-admin/pkg/orm"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -37,6 +43,7 @@ const (
 
 type rpcFixture struct {
 	db                            *gorm.DB
+	service                       *svc.ServiceContext
 	conn                          *grpc.ClientConn
 	admin, member                 *pb.SessionRequest
 	cancelStarted, cancelFinished chan struct{}
@@ -84,8 +91,9 @@ func fixture(t *testing.T) *rpcFixture {
 	}
 	f := &rpcFixture{db: db, admin: &pb.SessionRequest{UserID: 30, AuthorityId: 1, SessionVersion: 1, SessionID: adminDevice}, member: &pb.SessionRequest{UserID: 10, AuthorityId: 2, SessionVersion: 1, SessionID: memberDevice}, cancelStarted: make(chan struct{}), cancelFinished: make(chan struct{})}
 	service := &svc.ServiceContext{DB: &orm.DB{DB: db}}
+	f.service = service
 	listener := bufconn.Listen(1024 * 1024)
-	server := grpc.NewServer(grpc.UnaryInterceptor(func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+	serverOptions := append(filerpc.ServerOptions(), grpc.UnaryInterceptor(func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		if in, ok := req.(*pb.DepartmentRequest); ok && in.Department != nil && in.Department.Code == "cancel_me" {
 			close(f.cancelStarted)
 			<-ctx.Done()
@@ -93,11 +101,13 @@ func fixture(t *testing.T) *rpcFixture {
 		}
 		return handler(ctx, req)
 	}))
+	server := grpc.NewServer(serverOptions...)
 	pb.RegisterOrganizationServer(server, organizationserver.NewOrganizationServer(service))
 	pb.RegisterAuditServer(server, auditserver.NewAuditServer(service))
 	pb.RegisterSessionManageServer(server, sessionserver.NewSessionManageServer(service))
 	pb.RegisterUserServer(server, userserver.NewUserServer(service))
 	pb.RegisterFileResourceServiceServer(server, fileserver.NewFileResourceServiceServer(service))
+	pb.RegisterAppAccountServiceServer(server, appaccountserver.NewAppAccountServiceServer(service))
 	go func() { _ = server.Serve(listener) }()
 	f.conn, err = grpc.NewClient("passthrough:///bufnet", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) { return listener.DialContext(ctx) }), grpc.WithUnaryInterceptor(audit.ClientInterceptor()))
 	if err != nil {
@@ -105,6 +115,45 @@ func fixture(t *testing.T) *rpcFixture {
 	}
 	t.Cleanup(func() { _ = f.conn.Close(); server.Stop(); _ = listener.Close(); _ = sqlDB.Close() })
 	return f
+}
+
+func TestFileUploadAcceptsFiveMiBAcrossRPCTransport(t *testing.T) {
+	f := fixture(t)
+	const payloadSize = 5 << 20
+	stored := make(chan int, 1)
+	storageServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut || !strings.HasPrefix(r.URL.Path, "/gozero-public/go-zero-admin/") {
+			t.Errorf("unexpected storage request %s %s", r.Method, r.URL.Path)
+		}
+		data, _ := io.ReadAll(r.Body)
+		stored <- len(data)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer storageServer.Close()
+	storage, err := objectstorage.New(objectstorage.Config{Endpoint: storageServer.URL, ExternalEndpoint: storageServer.URL, Region: "us-east-1", AccessKeyID: "test-access", SecretAccessKey: "test-secret", PublicBucket: "gozero-public", PrivateBucket: "gozero-private"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.service.Storage = storage
+	image := make([]byte, payloadSize)
+	copy(image, []byte("\x89PNG\r\n\x1a\n"))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	response, err := pb.NewFileResourceServiceClient(f.conn).UploadFile(ctx, &pb.UploadFileRequest{Actor: f.member, Filename: "large.png", Mime: "image/png", Visibility: "public", Data: image})
+	if err != nil {
+		t.Fatalf("valid 5MiB image failed across gRPC: %v", err)
+	}
+	if response.File == nil || response.File.ID <= 0 || response.File.Size != payloadSize {
+		t.Fatalf("large upload metadata lost: %+v", response.File)
+	}
+	select {
+	case size := <-stored:
+		if size != payloadSize {
+			t.Fatalf("storage received %d bytes, want %d", size, payloadSize)
+		}
+	default:
+		t.Fatal("upload did not reach object storage")
+	}
 }
 func operatorContext() (context.Context, context.CancelFunc) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

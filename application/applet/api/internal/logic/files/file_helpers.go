@@ -17,6 +17,6 @@ func fileType(file *pb.FileResource) types.FileResource {
 		DepartmentId: file.DepartmentId, Visibility: file.Visibility, Status: file.Status, References: file.References, CreatedAt: file.CreatedAt}
 }
 
-// publicFileURL moved to the RPC tier (fileresourceservice/oss_helpers.go):
-// URL construction requires the OSS endpoint/bucket, which the API no longer
+// publicFileURL moved to the RPC tier (pkg/objectstorage):
+// URL construction requires the object storage endpoint/bucket, which the API no longer
 // holds.

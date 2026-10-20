@@ -5,6 +5,11 @@ bin-release/
 [Bb]in/
 /.tmp-go-build-*/
 /.cache/
+# Local database exports may contain credentials and personal data.
+/data/db/backups/*.sql
+/data/db/backups/*.sha256
+!/data/db/backups/gozero-admin-demo-latest.sql
+!/data/db/backups/gozero-admin-demo-latest.sql.sha256
 __pycache__/
 *.py[cod]
 

@@ -1,9 +1,9 @@
--- go-zero-admin 当前完整初始化 SQL（2026-10-20）
+-- go-zero-admin 全新安装基线（2026-10-20）
 -- MySQL 8；在已创建且选定的空数据库中导入一次，然后启动项目。
--- 包含完整表结构、必要初始数据及截至 20261019_app_registration_ip.sql 的迁移记录。
--- 完整初始化 SQL 由 data/scripts/build-fresh-sql.ps1 生成（baseline.sql + 尾部迁移/授权脚本），请勿手工编辑 gozero-admin.sql。
+-- 包含基础表结构、必要资源及已合并的历史迁移记录。
+-- 完整初始化 SQL 由 data/scripts/build-fresh-sql.ps1 生成（基线 + 尾部迁移/授权 + seeds/demo.sql），请勿手工编辑 gozero-admin.sql。
 -- 初始管理员：admin / 123456。首次登录后修改密码。
--- 不包含测试账号、测试角色、测试菜单、审计日志、设备会话或 AI 历史数据。
+-- 尾部 seeds/ 提供少量完整演示数据：账号、角色、文件、审计和 AI 对话；不包含真实业务数据、临时测试菜单或有效会话。
 -- 已有数据库升级使用 data/db/migrations/；不要向已有业务库导入全量 SQL。
 -- 不创建/切换数据库，不删除已有表；导入到非空库会报表已存在错误。
 
@@ -174,7 +174,7 @@ CREATE TABLE `sys_authorities` (
   `authority_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '角色ID',
   `authority_name` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '角色名',
   `parent_id` bigint unsigned DEFAULT NULL COMMENT '父角色ID',
-  `default_router` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'dashboard' COMMENT '默认菜单',
+  `default_router` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'index' COMMENT '默认菜单',
   PRIMARY KEY (`authority_id`) USING BTREE,
   UNIQUE KEY `authority_id` (`authority_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;

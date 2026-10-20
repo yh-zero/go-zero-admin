@@ -5,6 +5,7 @@ import (
 	"github.com/zeromicro/go-zero/zrpc"
 	"go-zero-admin/pkg/appauth"
 	"go-zero-admin/pkg/middlecasbin"
+	"go-zero-admin/pkg/objectstorage"
 	"go-zero-admin/pkg/rpcsecurity"
 )
 
@@ -35,24 +36,11 @@ type Config struct {
 	Default struct {
 		UserPassword string
 	}
-	// Oss owns the Aliyun OSS credentials. Only this RPC process should ever see
-	// AccessKeySecret; the API tier must not be configured with these values.
-	Oss OssConfig `json:",optional"`
+	// Storage credentials belong only to this RPC process.
+	Storage objectstorage.Config `json:",optional"`
 	// Mail owns the SMTP credentials and rate-limit settings for outbound
 	// verification codes. The API tier talks to it over gRPC.
 	Mail MailConfig `json:",optional"`
-}
-
-// OssConfig uses implicit TLS endpoints (or unencrypted if Insecure=true for
-// local dev). AccessKeySecret must be supplied via the YAML/secret manager, not
-// through the API tier.
-type OssConfig struct {
-	Endpoint         string `json:",optional"`
-	AccessKeyId      string `json:",optional"`
-	AccessKeySecret  string `json:",optional"`
-	BucketName       string `json:",optional"`
-	ConnectTimeout   int64  `json:",default=1"`
-	ReadWriteTimeout int64  `json:",default=3"`
 }
 
 // MailConfig uses implicit TLS (typically port 465) and verifies the SMTP cert.

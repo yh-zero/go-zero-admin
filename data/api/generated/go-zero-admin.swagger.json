@@ -383,6 +383,21 @@
       ],
       "type": "object"
     },
+    "AppAvatarRequest": {
+      "properties": {
+        "avatarUrl": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "userId",
+        "avatarUrl"
+      ],
+      "type": "object"
+    },
     "AppGrant": {
       "properties": {
         "account": {
@@ -697,6 +712,9 @@
         "account": {
           "type": "string"
         },
+        "avatarUrl": {
+          "type": "string"
+        },
         "createdAt": {
           "type": "string"
         },
@@ -729,6 +747,7 @@
         }
       },
       "required": [
+        "avatarUrl",
         "identityVerified",
         "registrationIP",
         "registrationRegion",
@@ -4643,6 +4662,91 @@
         "x-identity-domain": "admin"
       }
     },
+    "/v1/sys/app-members/avatar": {
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "operationId": "appmembersSetAppUserAvatar",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AppAvatarRequest"
+            }
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success: code=200. Business errors can also return HTTP 200 with only code/message; check code before reading result. JWT failure also uses HTTP 200, code=100003.",
+            "schema": {
+              "properties": {
+                "code": {
+                  "example": 200,
+                  "type": "integer"
+                },
+                "message": {
+                  "example": "操作成功!",
+                  "type": "string"
+                },
+                "result": {
+                  "$ref": "#/definitions/MessageResponse"
+                },
+                "returnData": {
+                  "description": "Currently null",
+                  "x-nullable": true
+                },
+                "success": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "timestamp": {
+                  "description": "Unix time in seconds",
+                  "format": "int64",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "type": "object"
+            },
+            "x-business-error-schema": {
+              "$ref": "#/definitions/BusinessError"
+            }
+          },
+          "403": {
+            "description": "接口权限不足",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          },
+          "500": {
+            "description": "鉴权服务异常",
+            "schema": {
+              "$ref": "#/definitions/MiddlewareError"
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "更新 App 用户头像，空地址恢复默认头像",
+        "tags": [
+          "appmembers"
+        ],
+        "x-casbin-resource": true,
+        "x-identity-domain": "admin"
+      }
+    },
     "/v1/sys/app-members/grant": {
       "delete": {
         "consumes": [
@@ -5990,11 +6094,23 @@
         "operationId": "baseUploadFileImg",
         "parameters": [
           {
-            "description": "Image file; requires configured OSS storage.",
+            "description": "PNG/JPEG/GIF/WebP image, up to 10MB; stored in RustFS.",
             "in": "formData",
             "name": "file_img",
             "required": true,
             "type": "file"
+          },
+          {
+            "default": "public",
+            "description": "Public files use a permanent URL; private files require a short-lived signed URL.",
+            "enum": [
+              "public",
+              "private"
+            ],
+            "in": "formData",
+            "name": "visibility",
+            "required": false,
+            "type": "string"
           }
         ],
         "produces": [

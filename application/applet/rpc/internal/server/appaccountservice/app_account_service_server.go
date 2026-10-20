@@ -88,6 +88,11 @@ func (s *AppAccountServiceServer) SetAppUserStatus(ctx context.Context, in *pb.A
 	return l.SetAppUserStatus(in)
 }
 
+func (s *AppAccountServiceServer) SetAppUserAvatar(ctx context.Context, in *pb.AppAvatarRequest) (*pb.NoDataResponse, error) {
+	l := appaccountservicelogic.NewSetAppUserAvatarLogic(ctx, s.svcCtx)
+	return l.SetAppUserAvatar(in)
+}
+
 func (s *AppAccountServiceServer) ListAppUserSessions(ctx context.Context, in *pb.AppAdminUserRequest) (*pb.AppSessionListResponse, error) {
 	l := appaccountservicelogic.NewListAppUserSessionsLogic(ctx, s.svcCtx)
 	return l.ListAppUserSessions(in)

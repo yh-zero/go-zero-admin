@@ -1,35 +1,25 @@
 package fileresourceservicelogic
 
 import (
-	"bytes"
-	"context"
 	"net/http"
 	"path"
 	"strings"
 	"unicode/utf8"
 
 	"go-zero-admin/application/applet/rpc/internal/svc"
+	"go-zero-admin/pkg/objectstorage"
 	"go-zero-admin/pkg/result/xerr"
 
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/gofrs/uuid/v5"
 )
 
-const (
-	maxUploadBytes     = 10 << 20 // 10MB hard cap, matches the API tier
-	privateURLLifetime = 300      // seconds a private OSS signed URL stays valid
-)
+const maxUploadBytes = 10 << 20 // 10MB hard cap, matches the API tier
 
-// ossBucket returns the configured bucket or an error if OSS is not configured.
-func ossBucket(svcCtx *svc.ServiceContext) (*oss.Bucket, error) {
-	if svcCtx.OssClient == nil {
+func configuredStorage(svcCtx *svc.ServiceContext) (*objectstorage.Client, error) {
+	if svcCtx.Storage == nil {
 		return nil, xerr.NewErrCodeMsg(300002, "文件存储服务未配置")
 	}
-	cfg := svcCtx.Config.Oss
-	if cfg.BucketName == "" {
-		return nil, xerr.NewErrCodeMsg(300002, "文件存储服务配置无效")
-	}
-	return svcCtx.OssClient.Bucket(cfg.BucketName)
+	return svcCtx.Storage, nil
 }
 
 // imageExtension maps the detected MIME to the canonical object key extension.
@@ -78,19 +68,4 @@ func detectAndValidateImage(data []byte) (string, error) {
 		return "", xerr.NewErrCodeMsg(300002, "仅支持PNG、JPEG、GIF、WebP图片")
 	}
 	return mime, nil
-}
-
-// publicFileURL builds the canonical public URL for a public object.
-func publicFileURL(bucketName, endpoint, key string) string {
-	endpoint = strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(endpoint, "https://"), "http://"), "/")
-	return "https://" + bucketName + "." + endpoint + "/" + key
-}
-
-// putObject writes the bytes to OSS with the requested ACL and content type.
-func putObject(ctx context.Context, bucket *oss.Bucket, key, mime string, data []byte, visibility string) error {
-	acl := oss.ACLPublicRead
-	if visibility == "private" {
-		acl = oss.ACLPrivate
-	}
-	return bucket.PutObject(key, bytes.NewReader(data), oss.ContentType(mime), oss.ObjectACL(acl), oss.WithContext(ctx))
 }

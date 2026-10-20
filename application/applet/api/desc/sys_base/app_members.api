@@ -17,6 +17,10 @@ service applet-api {
     @handler SetAppUserStatus
     put /status (AppStatusRequest) returns (MessageResponse)
 
+    @doc "更新 App 用户头像，空地址恢复默认头像"
+    @handler SetAppUserAvatar
+    put /avatar (AppAvatarRequest) returns (MessageResponse)
+
     @doc "查询 App 用户有效设备"
     @handler ListAppUserSessions
     get /sessions (AppUserIDRequest) returns (AppSessionList)

@@ -1,6 +1,11 @@
 Name: applet.rpc
 Mode: dev
 ListenOn: 127.0.0.1:6001
+MethodTimeouts:
+  - FullMethod: /pb.FileResourceService/UploadFile
+    Timeout: 30s
+  - FullMethod: /pb.FileResourceService/DeleteFile
+    Timeout: 30s
 Etcd:
   Hosts:
     - 127.0.0.1:2379
@@ -31,12 +36,17 @@ CasbinConf:
     m = r.sub == p.sub && keyMatch2(r.obj,p.obj) && r.act == p.act
 Default: # 默认值
   UserPassword: GoZero@2026   # 开发环境默认重置密码；生产环境通过环境变量配置
-# OSS 与 SMTP 凭证只在本服务进程内可见；API 侧不应再保留任何副本。
-Oss:                       # 全部 optional；只有当四个字段都配置后才建立 OssClient
-  Endpoint:                 # 例：https://oss-cn-hangzhou.aliyuncs.com
-  AccessKeyId:
-  AccessKeySecret:
-  BucketName:
+# 存储与 SMTP 凭证只注入业务 RPC。使用根 Compose 时由容器模板生成配置。
+Storage:
+  Endpoint: http://127.0.0.1:9000
+  ExternalEndpoint: http://127.0.0.1:9000
+  Region: us-east-1
+  AccessKeyID: GOZEROLOCALAPP
+  SecretAccessKey: go-zero-local-storage-app-change-me
+  PublicBucket: gozero-public
+  PrivateBucket: gozero-private
+  PresignTTLSeconds: 300
+  RequestTimeoutSeconds: 30
 Mail:                      # 全部 optional；未配置时 Mail.SendEmailCode 直接报 "邮件服务未配置"
   Host:                    # 例：smtp.example.com
   Port: 465                # 隐式 TLS 端口

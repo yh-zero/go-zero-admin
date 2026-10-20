@@ -13,7 +13,7 @@ AppletRPC:
   NonBlock: true
 JwtAuth:
   AccessSecret: 3fG7-go-zero-admin_p2hE
-# OSS/SMTP/Redis 业务键均已下沉到 applet RPC 服务（application/applet/rpc/etc/applet.yaml），
+# 存储/SMTP/Redis 业务配置均在 applet RPC 服务（application/applet/rpc/etc/applet.yaml），
 # API 侧不再保留任何 AccessKeySecret / SMTP 密码副本，业务键 schema 也集中管理。
 
 # Optional AI service; ordinary APIs remain available if it is offline.

@@ -7,6 +7,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
+	"go-zero-admin/application/applet/rpc/internal/logic/avatarutil"
 	maillogic "go-zero-admin/application/applet/rpc/internal/logic/mail"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
@@ -93,6 +94,9 @@ func (l *RegisterLogic) Register(in *pb.RegisterRequest) (*pb.RegisterResponse, 
 			return userError("用户名已注册")
 		}
 		if err := tx.Omit("Authority", "Authorities").Create(&user).Error; err != nil {
+			return err
+		}
+		if err := avatarutil.Sync(l.ctx, tx, l.svcCtx.Config.Storage, avatarutil.SysUser, user.ID, "", user.HeaderImg); err != nil {
 			return err
 		}
 		if err := replaceUserAuthorities(tx, user.ID, ids); err != nil {

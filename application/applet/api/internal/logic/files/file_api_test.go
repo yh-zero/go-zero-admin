@@ -32,7 +32,7 @@ func fileAPIContext() context.Context {
 	return context.WithValue(context.Background(), ctxJwt.CtxKeyJwtData, map[string]any{"ID": 10, "AuthorityId": 2, "SessionVersion": 1, "SessionID": "device-session"})
 }
 
-// The API tier no longer talks to OSS directly; the RPC owns signing and
+// The API tier no longer talks to object storage directly; the RPC owns signing and
 // deletion. These tests pin the pass-through contract: actor session and
 // file ID must be forwarded unchanged.
 func TestGetFileURLForwardsActorAndID(t *testing.T) {

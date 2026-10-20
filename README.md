@@ -31,9 +31,9 @@ docker compose ps
 docker compose logs -f api rpc ai-rpc
 ```
 
-根目录 Compose 启动 MySQL、Redis、etcd、业务 RPC、AI RPC、API 和 Swagger UI 共七个服务。API 为 `http://127.0.0.1:7001`，Swagger 为 `http://127.0.0.1:7000`；两个 RPC 的 `6001` / `6002` 仅容器内部可达，不映射到宿主机。默认配置供本机开发使用。
+根目录 Compose 启动 MySQL、Redis、etcd、业务 RPC、AI RPC、API、Swagger UI 和 RustFS 八个常驻服务，以及执行完成后退出的 `storage-init`。API 为 `http://127.0.0.1:7001`，Swagger 为 `http://127.0.0.1:7000`；两个 RPC 的 `6001` / `6002` 仅容器内部可达，不映射到宿主机。默认配置供本机开发使用。
 
-新 MySQL 数据卷会自动执行挂载的 `data/db/gozero-admin.sql`，无需手动导库；已有卷不会重新导入，也不会自动应用新增迁移，升级按下文操作。
+新 MySQL 数据卷会自动执行挂载的 `data/db/gozero-admin.sql`，无需手动导库。该生成文件在历史基线、迁移和管理员初始化脚本后依次追加 `data/db/seeds/demo.sql`、`data/db/seeds/activity.sql`，提供完整可体验的演示数据，只供空库初始化；已有卷不会重新导入，也不会自动应用新增迁移，升级按下文操作。
 
 前端在同级 `go-zero-admin-vben` 目录单独运行：
 
@@ -42,11 +42,33 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-打开 `http://localhost:5999`，用 `admin / 123456` 和图片验证码登录。
+打开 `http://localhost:5999`，用 `admin / 123456` 和图片验证码登录。全新安装提供四个后台账号：`admin`、`operator`（运营人员）、`viewer`（只读观察员）、`disabled`（停用示例）。后三者密码均为 `Demo@123456`，`disabled` 的 `enable=2`，不能登录；三个后台角色 ID 分别为 1、2、3，停用账号绑定只读角色 3。运营可读取 App 用户与会员列表，审核和维护用户状态、头像，并上传和读取本人文件，无设备撤销、会员开通或撤销、系统配置权限；只读只开放首页及 App 用户、会员列表读取，无操作按钮。
 
-停止并保留数据：`docker compose down`；再次启动或更新：`docker compose up -d --build --wait`。不要添加 `-v`，它会删除数据库卷。
+App 提供六个示例邮箱，密码均为 `Demo@123456`：`member@example.test`（普通）、`vip@example.test`（导入 UTC 时间起 30 天 VIP）、`pending@example.test`（待审核）、`disabled@example.test`（禁用）、`rejected@example.test`（拒绝）、`expired@example.test`（VIP 已过期的普通账号）。状态分布为 3 个 active、1 个 pending、1 个 disabled、1 个 rejected，仅 active 账号可登录；三条 VIP 授予分别展示有效、过期和撤销，普通账号无有效 VIP。示例邮箱的 `verified_at` 均为空，不代表真实邮箱验证；App 账号不能登录管理后台。
+
+演示数据还包含 3 个部门、2 个岗位、3 张实际 RustFS PNG（2 公开、1 私有）、1 条手工引用用于体验删除保护、3 条明确标记的内置审计，以及 1 条 AI 对话、2 条消息和 1 条已完成任务。图片素材随 `storage-init` 镜像提供，仅补齐缺失对象、不覆盖已有同键对象；不绑定用户头像或固定外部地址。AI 历史为预置内容，不调用模型、不产生费用；有效设备会话由真实登录生成。对外提供服务前应修改密码并处理不需要的示例账号。完整数据与权限说明见 [数据库文档](data/db/README.md)。
+
+仓库随附的 `data/db/backups/` 只保留最新可公开演示库快照 `gozero-admin-demo-latest.sql` 及 SHA-256 校验文件。部署脚本后续写入此目录的私有备份继续由 Git 忽略，不能提交；真实业务备份应按部署方策略存放在受控位置，不能混入公开示例快照。本机历史私有备份归档在 Git 忽略的 `.cache/db-backup-archive/`，不作为生产备份方案。
+
+停止并保留数据：`docker compose down`；再次启动或更新：`docker compose up -d --build --wait`。重置开发库前须确认目标并备份；删除持久卷属于有损操作，不用于常规更新。
 
 ## 配置
+
+文件资源使用 RustFS 1.0.3 的 S3 接口，已移除原云存储 SDK。根 Compose 会自动创建 `gozero-public` / `gozero-private` 两个 Bucket、公开读取策略、下载跨域配置和独立应用身份，不会清空已有对象。存储数据保存在 `rustfs_data` 卷，日志在 `rustfs_logs` 卷，正常停止时保留持久卷。
+
+- S3 地址：`http://127.0.0.1:9000`；控制台：`http://127.0.0.1:9001`。
+- 本地控制台默认身份 `GOZEROLOCALROOT`，密钥由根 Compose 的 `RUSTFS_SECRET_KEY` 开发默认值提供，可在忽略的 `.env` 中覆盖；正式部署必须使用独立随机值。
+- RPC 使用受限的 `STORAGE_ACCESS_KEY_ID` / `STORAGE_SECRET_ACCESS_KEY`，不接收 RustFS 管理凭据。API 和 AI RPC 不接收存储凭据。
+- `STORAGE_EXTERNAL_ENDPOINT` 必须能从浏览器访问，本地默认 `http://127.0.0.1:9000`；正式部署使用反向代理的 HTTPS 文件域名，保留 Host、路径和查询参数，不把容器服务名返回给浏览器。
+- `STORAGE_CORS_ORIGINS` 是允许下载的前端完整来源，多个用逗号分隔，本地默认 `http://localhost:5999,http://127.0.0.1:5999`。
+
+“文件资源”支持 PNG/JPEG/GIF/WebP、最大 10MB，上传后自动登记资源并刷新列表。公开文件返回稳定地址；私有文件通过数据范围校验后生成 300 秒签名链接，到期可重新获取。下载前重新申请地址，删除受业务引用保护，存储删除失败可重试。用户头像使用公开图片，默认头像为前端自带的 `/default-avatar.svg`。
+
+后台用户和 App 用户头像在保存事务中自动维护文件引用，替换或清空解除旧引用；共享图片只有所有使用者解除后才可删除。系统头像引用不能手工增删。App 用户管理新增“设置头像”（`app-members-users:avatar`）；App 接口读取 `avatarUrl`，自助资料仍只更新昵称。
+
+已有库按数据库升级流程应用 `20261020_rustfs_avatar.sql`，再应用 `20261020_user_avatar_references.sql` 新增 App 头像列、回填公开头像引用并注册权限。需给内置管理员开通新功能时执行 `data/db/operator/20261020_avatar_admin_bootstrap.sql`；其他角色按需授权。新库初始化 SQL 已包含迁移和管理员 bootstrap，历史迁移保持不变，fresh-only seed 只整理全新安装数据。
+
+自定义公开 Bucket 时，在同一迁移连接设置 `@avatar_public_bucket`；`docker/deploy.sh upgrade` 自动读取 `STORAGE_PUBLIC_BUCKET`（默认 `gozero-public`）。历史手工百分号转义地址应先规范化并重新保存头像。
 
 - [配置模板](docker/config.yaml.template)：按 `# >>> api`、`# >>> rpc`、`# >>> ai-rpc` 分段，`common` 段供两个 RPC 复用
 - [部署脚本](docker/deploy.sh)：`init` / `check` / `up` / `import` / `migrate-check` / `upgrade` / `rollback`
@@ -88,14 +110,14 @@ docker inspect <容器ID> --format '{{range .NetworkSettings.Networks}}{{println
 
 已有库通过 MySQL 客户端手工维护，Docker 不会自动升级现有库，也不要重放全量初始化 SQL：
 
-1. 执行 `docker compose stop api ai-rpc rpc`，保留 MySQL 运行。连接实际业务库，导出完整备份并核验完整性及可恢复性；保存到 `data/db/backups/`，SQL 备份及配套 SHA256 校验文件纳入 Git，Docker 构建上下文仍排除该目录。
+1. 执行 `docker compose stop api ai-rpc rpc`，保留 MySQL 运行。连接实际业务库，导出完整备份并核验完整性及可恢复性；SQL 备份及配套 SHA256 校验文件保存到 `data/db/backups/`。本机备份不属于 fresh 初始化资产，包含本地数据时不应公开；新备份默认被 Git 忽略，Docker 构建上下文也排除该目录。
 2. 核对 `schema_migrations` 的 `filename` / `checksum` 与 `data/db/migrations/`，按文件名顺序只执行未应用迁移。已应用文件的校验和不符时停止；历史记录缺失时先核实实际结构，不直接重跑。
 3. 配置客户端在 SQL 失败时立即停止，不继续后续语句或迁移，也不登记失败项；核实部分执行状态后再处理。每个文件完整成功后维护对应的 `filename`、`checksum` 和 `applied_at` 记录；校验和为文件按 UTF-8 去 BOM、将 CRLF 转为 LF 后计算的 SHA-256，保存为 64 位小写十六进制。
 4. 核验结构、数据和迁移记录后，执行 `docker compose up -d --build --wait` 并检查服务健康。
 
 2026-10-03 及更早的迁移已合并进 `data/db/baseline.sql`，独立文件随之移除；其 `schema_migrations` 记录保留为历史事实，无需再核对校验和。2026-10-07 之前部署的库不再提供升级文件，确需时从 Git 历史取回。
 
-仓库历史备份按文件名中的快照时间手工保留最新一份，配套校验文件同存；初始化 SQL 和增量迁移不参与备份轮替。
+备份及配套校验文件按部署方的保留策略存放到受控位置。数据库升级状态由迁移记录、校验和与实际结构确认，不能通过表数量判断。`seeds/demo.sql`、`seeds/activity.sql` 只用于全新安装，已有库升级不会执行它们，也不会重置已有账号或权限。
 
 App 模块依次使用 [20261019_app_members.sql](data/db/migrations/20261019_app_members.sql) 和 [20261019_app_registration_ip.sql](data/db/migrations/20261019_app_registration_ip.sql)。已有库先完成此前未应用迁移，再按序应用这两份文件并分别登记校验和；已应用的文件和校验和保持不变，新增 IP/归属地字段通过后者升级，旧账号数据保留。两份迁移都不自动授权旧角色。需要给角色 1 开通该模块时，在维护窗口明确执行 [可选管理员授权](data/db/operator/20261019_app_member_admin_bootstrap.sql)，其他角色通过现有权限编辑器分别配置菜单、按钮和 API。全新安装 SQL 已包含两份迁移及角色 1 初始化。
 
@@ -129,7 +151,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File data/scripts/verify.ps1
 | 脚本 | 用途 |
 |------|------|
 | `data/scripts/gen.ps1` | 代码生成：`api` / `rpc` / `model` / `swagger` |
-| `data/scripts/build-fresh-sql.ps1` | 由 `data/db/baseline.sql` 与尾部迁移/授权脚本重新生成 `data/db/gozero-admin.sql`；`-Check` 仅校验不写入 |
+| `data/scripts/build-fresh-sql.ps1` | 由历史基线、迁移、管理员初始化脚本及 fresh-only `seeds/demo.sql`、`seeds/activity.sql` 重新生成空库初始化 SQL；`-Check` 仅校验不写入 |
 | `data/scripts/verify.ps1` | 一键检查与测试 |
 
 ## 服务器部署

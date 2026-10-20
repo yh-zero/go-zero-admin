@@ -5,11 +5,13 @@ import (
 	"errors"
 	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/applet/rpc/internal/logic/accessutil"
+	"go-zero-admin/application/applet/rpc/internal/logic/avatarutil"
 	"go-zero-admin/application/applet/rpc/internal/model"
 	"go-zero-admin/application/applet/rpc/internal/svc"
 	"go-zero-admin/application/applet/rpc/pb"
 	"go-zero-admin/pkg/audit"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"strconv"
 )
 
@@ -31,10 +33,16 @@ func (l *DeleteUserLogic) DeleteUser(in *pb.DeleteUserRequest) (*pb.NoDataRespon
 			return err
 		}
 		var user model.SysUser
-		if err := tx.First(&user, in.UserID).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&user, in.UserID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return userError("用户不存在")
 			}
+			return err
+		}
+		if err := avatarutil.Sync(l.ctx, tx, l.svcCtx.Config.Storage, avatarutil.SysUser, user.ID, user.HeaderImg, ""); err != nil {
+			return err
+		}
+		if err := tx.Model(&user).Update("header_img", "").Error; err != nil {
 			return err
 		}
 		if err := tx.Delete(&user).Error; err != nil {

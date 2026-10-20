@@ -58,7 +58,7 @@ func (s *FileResourceServiceServer) FinishDeleteFile(ctx context.Context, in *pb
 	return l.FinishDeleteFile(in)
 }
 
-// UploadFile stores the bytes in OSS (credentials live only in this RPC) and
+// UploadFile stores the bytes in object storage (credentials live only in this RPC) and
 func (s *FileResourceServiceServer) UploadFile(ctx context.Context, in *pb.UploadFileRequest) (*pb.UploadFileResponse, error) {
 	l := fileresourceservicelogic.NewUploadFileLogic(ctx, s.svcCtx)
 	return l.UploadFile(in)
@@ -70,7 +70,7 @@ func (s *FileResourceServiceServer) GetFileURL(ctx context.Context, in *pb.FileI
 	return l.GetFileURL(in)
 }
 
-// DeleteFile is the one-shot orchestration: begin -> OSS delete -> finish.
+// DeleteFile is the one-shot orchestration: begin -> object storage delete -> finish.
 func (s *FileResourceServiceServer) DeleteFile(ctx context.Context, in *pb.FileIDRequest) (*pb.NoDataResponse, error) {
 	l := fileresourceservicelogic.NewDeleteFileLogic(ctx, s.svcCtx)
 	return l.DeleteFile(in)

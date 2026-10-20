@@ -32,6 +32,7 @@ const (
 	AppAccountService_RevokeMyAppSession_FullMethodName   = "/pb.AppAccountService/RevokeMyAppSession"
 	AppAccountService_ListAppUsers_FullMethodName         = "/pb.AppAccountService/ListAppUsers"
 	AppAccountService_SetAppUserStatus_FullMethodName     = "/pb.AppAccountService/SetAppUserStatus"
+	AppAccountService_SetAppUserAvatar_FullMethodName     = "/pb.AppAccountService/SetAppUserAvatar"
 	AppAccountService_ListAppUserSessions_FullMethodName  = "/pb.AppAccountService/ListAppUserSessions"
 	AppAccountService_RevokeAppUserSession_FullMethodName = "/pb.AppAccountService/RevokeAppUserSession"
 )
@@ -53,6 +54,7 @@ type AppAccountServiceClient interface {
 	RevokeMyAppSession(ctx context.Context, in *AppRevokeSelfRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	ListAppUsers(ctx context.Context, in *AppAdminListRequest, opts ...grpc.CallOption) (*AppUserListResponse, error)
 	SetAppUserStatus(ctx context.Context, in *AppStatusRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	SetAppUserAvatar(ctx context.Context, in *AppAvatarRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	ListAppUserSessions(ctx context.Context, in *AppAdminUserRequest, opts ...grpc.CallOption) (*AppSessionListResponse, error)
 	RevokeAppUserSession(ctx context.Context, in *AppAdminRevokeRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
@@ -195,6 +197,16 @@ func (c *appAccountServiceClient) SetAppUserStatus(ctx context.Context, in *AppS
 	return out, nil
 }
 
+func (c *appAccountServiceClient) SetAppUserAvatar(ctx context.Context, in *AppAvatarRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, AppAccountService_SetAppUserAvatar_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *appAccountServiceClient) ListAppUserSessions(ctx context.Context, in *AppAdminUserRequest, opts ...grpc.CallOption) (*AppSessionListResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AppSessionListResponse)
@@ -232,6 +244,7 @@ type AppAccountServiceServer interface {
 	RevokeMyAppSession(context.Context, *AppRevokeSelfRequest) (*NoDataResponse, error)
 	ListAppUsers(context.Context, *AppAdminListRequest) (*AppUserListResponse, error)
 	SetAppUserStatus(context.Context, *AppStatusRequest) (*NoDataResponse, error)
+	SetAppUserAvatar(context.Context, *AppAvatarRequest) (*NoDataResponse, error)
 	ListAppUserSessions(context.Context, *AppAdminUserRequest) (*AppSessionListResponse, error)
 	RevokeAppUserSession(context.Context, *AppAdminRevokeRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedAppAccountServiceServer()
@@ -282,6 +295,9 @@ func (UnimplementedAppAccountServiceServer) ListAppUsers(context.Context, *AppAd
 }
 func (UnimplementedAppAccountServiceServer) SetAppUserStatus(context.Context, *AppStatusRequest) (*NoDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetAppUserStatus not implemented")
+}
+func (UnimplementedAppAccountServiceServer) SetAppUserAvatar(context.Context, *AppAvatarRequest) (*NoDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetAppUserAvatar not implemented")
 }
 func (UnimplementedAppAccountServiceServer) ListAppUserSessions(context.Context, *AppAdminUserRequest) (*AppSessionListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAppUserSessions not implemented")
@@ -544,6 +560,24 @@ func _AppAccountService_SetAppUserStatus_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AppAccountService_SetAppUserAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AppAvatarRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppAccountServiceServer).SetAppUserAvatar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppAccountService_SetAppUserAvatar_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppAccountServiceServer).SetAppUserAvatar(ctx, req.(*AppAvatarRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AppAccountService_ListAppUserSessions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AppAdminUserRequest)
 	if err := dec(in); err != nil {
@@ -638,6 +672,10 @@ var AppAccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetAppUserStatus",
 			Handler:    _AppAccountService_SetAppUserStatus_Handler,
+		},
+		{
+			MethodName: "SetAppUserAvatar",
+			Handler:    _AppAccountService_SetAppUserAvatar_Handler,
 		},
 		{
 			MethodName: "ListAppUserSessions",
@@ -4078,13 +4116,13 @@ type FileResourceServiceClient interface {
 	RemoveFileReference(ctx context.Context, in *FileReferenceRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	BeginDeleteFile(ctx context.Context, in *FileIDRequest, opts ...grpc.CallOption) (*FileResource, error)
 	FinishDeleteFile(ctx context.Context, in *FileIDRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
-	// UploadFile stores the bytes in OSS (credentials live only in this RPC) and
+	// UploadFile stores the bytes in object storage (credentials live only in this RPC) and
 	// registers the metadata in a single call. The Data field is bounded to 10MB.
 	UploadFile(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error)
 	// GetFileURL returns a public URL for public files, or a 5-minute signed
 	// URL for private files.
 	GetFileURL(ctx context.Context, in *FileIDRequest, opts ...grpc.CallOption) (*FileURLResponse, error)
-	// DeleteFile is the one-shot orchestration: begin -> OSS delete -> finish.
+	// DeleteFile is the one-shot orchestration: begin -> object storage delete -> finish.
 	// It is safe to retry; already-deleted resources short-circuit.
 	DeleteFile(ctx context.Context, in *FileIDRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
@@ -4208,13 +4246,13 @@ type FileResourceServiceServer interface {
 	RemoveFileReference(context.Context, *FileReferenceRequest) (*NoDataResponse, error)
 	BeginDeleteFile(context.Context, *FileIDRequest) (*FileResource, error)
 	FinishDeleteFile(context.Context, *FileIDRequest) (*NoDataResponse, error)
-	// UploadFile stores the bytes in OSS (credentials live only in this RPC) and
+	// UploadFile stores the bytes in object storage (credentials live only in this RPC) and
 	// registers the metadata in a single call. The Data field is bounded to 10MB.
 	UploadFile(context.Context, *UploadFileRequest) (*UploadFileResponse, error)
 	// GetFileURL returns a public URL for public files, or a 5-minute signed
 	// URL for private files.
 	GetFileURL(context.Context, *FileIDRequest) (*FileURLResponse, error)
-	// DeleteFile is the one-shot orchestration: begin -> OSS delete -> finish.
+	// DeleteFile is the one-shot orchestration: begin -> object storage delete -> finish.
 	// It is safe to retry; already-deleted resources short-circuit.
 	DeleteFile(context.Context, *FileIDRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedFileResourceServiceServer()
