@@ -9,6 +9,25 @@
 | `backups/` | 升级前的全量备份 + SHA-256 校验文件，只保留最新一份并纳入 Git |
 | `*_test.go` | 守卫测试：逐字节校验出厂 SQL 与迁移文件一致、checksum 正确、结构可真实导入 |
 
+
+
+## 开发库过期检查
+
+开发库由 `docker-compose.yml` 挂载 `gozero-admin.sql` 到 `/docker-entrypoint-initdb.d/`，**只在新数据卷上执行一次**；
+存量卷不会随SQL 更新而变化。更新 `gozero-admin.sql` 后对比两个数字（应相等，当前为 35）：
+
+```sh
+docker exec -e MYSQL_PWD=123456 gozero-mysql mysql -uroot -N -e \
+  "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()"
+grep -c 'CREATE TABLE' data/db/gozero-admin.sql
+```
+
+不一致就重置开发库（只影响 MySQL，其他服务与前端不受影响）：
+
+```sh
+docker compose down -v mysql && docker compose up -d mysql
+```
+
 ## 新增迁移
 
 1. 在 `migrations/` 新建 `YYYYMMDD_描述.sql`，幂等编写（`IF NOT EXISTS` / `NOT EXISTS` 守卫，可安全重试）；

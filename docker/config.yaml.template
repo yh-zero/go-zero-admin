@@ -18,7 +18,7 @@ Etcd:
 DB:
   DataSource: '${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_ADDR})/${MYSQL_DATABASE}?parseTime=true&loc=Local'
   MaxIdleConns: 10
-  MaxOpenConns: 100
+  MaxOpenConns: 20
   MaxLifetime: 3600
 # <<< common
 

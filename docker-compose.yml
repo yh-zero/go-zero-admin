@@ -30,6 +30,12 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
+      - --performance_schema=OFF
+      - --innodb_buffer_pool_size=64M
+      - --table_open_cache=400
+      - --table_definition_cache=400
+      - --innodb_log_buffer_size=8M
+      - --disable-log-bin
     ports:
       - "127.0.0.1:3306:3306"
     volumes:
