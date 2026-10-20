@@ -13,8 +13,9 @@ SET @demo_password = '$2a$10$gUoFRszVNyzR45Qh1ZhtPun31tpprmsYsT82zPLzmfLIjvWe2Yq
 UPDATE sys_base_menus SET sort = CASE name
  WHEN 'index' THEN 0
  WHEN 'superAdmin' THEN 10
- WHEN 'app-members-users' THEN 20
- WHEN 'app-memberships' THEN 30
+ WHEN 'app-management' THEN 20
+ WHEN 'app-members-users' THEN 10
+ WHEN 'app-memberships' THEN 20
  WHEN 'user' THEN 10
  WHEN 'authority' THEN 20
  WHEN 'organization-departments' THEN 30
@@ -97,7 +98,7 @@ INSERT INTO casbin_rule(ptype,v0,v1,v2,v3,v4,v5)
 -- Operator: App account review/status/avatar and own file uploads. No system
 -- configuration, role changes, device revocation or membership grant/revoke.
 INSERT INTO sys_authority_menus(sys_base_menu_id,sys_authority_authority_id)
- SELECT id,2 FROM sys_base_menus WHERE name IN('index','superAdmin','files','businessTools','app-members-users','app-memberships');
+ SELECT id,2 FROM sys_base_menus WHERE name IN('index','superAdmin','files','businessTools','app-management','app-members-users','app-memberships');
 INSERT INTO sys_authority_btns(authority_id,sys_menu_id,sys_base_menu_btn_id)
  SELECT 2,sys_base_menu_id,id FROM sys_base_menu_btns
  WHERE permission_key IN('app-members-users:review','app-members-users:status','app-members-users:avatar','files:upload','businessTools:upload');
@@ -110,7 +111,7 @@ INSERT INTO casbin_rule(ptype,v0,v1,v2,v3,v4,v5)
 
 -- Viewer: App users/memberships read-only; no action buttons and no writes.
 INSERT INTO sys_authority_menus(sys_base_menu_id,sys_authority_authority_id)
- SELECT id,3 FROM sys_base_menus WHERE name IN('index','app-members-users','app-memberships');
+ SELECT id,3 FROM sys_base_menus WHERE name IN('index','app-management','app-members-users','app-memberships');
 INSERT INTO casbin_rule(ptype,v0,v1,v2,v3,v4,v5)
  SELECT 'p','3',a.path,a.method,'','','' FROM sys_apis a WHERE a.deleted_at IS NULL
  AND a.method='GET' AND a.path IN('/v1/sys/menu/getMenu','/v1/sys/app-members/users','/v1/sys/app-members/sessions','/v1/sys/app-members/plans','/v1/sys/app-members/grants');

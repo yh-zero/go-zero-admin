@@ -36,10 +36,12 @@ func TestAppFreshSQLContainsExactMigrationAndBootstrap(t *testing.T) {
 	avatar := appSQL(t, "migrations/20261020_rustfs_avatar.sql")
 	references := appSQL(t, "migrations/20261020_user_avatar_references.sql")
 	avatarBootstrap := appSQL(t, "operator/20261020_avatar_admin_bootstrap.sql")
+	management := appSQL(t, "migrations/20261020_app_management_menu.sql")
 	checksum := fmt.Sprintf("%x", sha256.Sum256([]byte(migration)))
 	registrationChecksum := fmt.Sprintf("%x", sha256.Sum256([]byte(registration)))
 	avatarChecksum := fmt.Sprintf("%x", sha256.Sum256([]byte(avatar)))
 	referencesChecksum := fmt.Sprintf("%x", sha256.Sum256([]byte(references)))
+	managementChecksum := fmt.Sprintf("%x", sha256.Sum256([]byte(management)))
 	expected := migration + "\n" + bootstrap + "\n" +
 		"INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261019_app_members.sql','" + checksum + "',NOW());\n\n" +
 		registration + "\n" +
@@ -47,7 +49,9 @@ func TestAppFreshSQLContainsExactMigrationAndBootstrap(t *testing.T) {
 		avatar + "\n" +
 		"INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261020_rustfs_avatar.sql','" + avatarChecksum + "',NOW());\n\n" +
 		references + "\n" + avatarBootstrap + "\n" +
-		"INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261020_user_avatar_references.sql','" + referencesChecksum + "',NOW());\n"
+		"INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261020_user_avatar_references.sql','" + referencesChecksum + "',NOW());\n\n" +
+		management + "\n" +
+		"INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261020_app_management_menu.sql','" + managementChecksum + "',NOW());\n"
 	seed, found := strings.CutPrefix(tail, expected+"\n-- Fresh-install demo seed; never run against an existing database.\n")
 	expectedSeed := appSQL(t, "seeds/demo.sql") + "\n" + appSQL(t, "seeds/activity.sql")
 	if !found || strings.TrimSpace(seed) != strings.TrimSpace(expectedSeed) {
@@ -101,6 +105,11 @@ func assertAppSchema(t *testing.T, db *sql.DB, name string) {
 	appCount(t, db, "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=? AND table_name='app_user_identities' AND column_name='verified_at' AND is_nullable='YES' AND data_type='datetime'", 1, name)
 	appCount(t, db, "SELECT COUNT(*) FROM app_membership_plans WHERE code='vip' AND version=1 AND enabled=1 AND JSON_CONTAINS(entitlements, JSON_QUOTE('profile.export'))", 1)
 	appCount(t, db, "SELECT COUNT(*) FROM sys_base_menus WHERE name IN('app-members-users','app-memberships') AND deleted_at IS NULL", 2)
+	appCount(t, db, "SELECT COUNT(*) FROM sys_base_menus WHERE name='app-management' AND parent_id=0 AND path='app' AND title='App 管理' AND sort=20 AND deleted_at IS NULL", 1)
+	appCount(t, db, `SELECT COUNT(*) FROM sys_base_menus m JOIN sys_base_menus p ON p.id=m.parent_id
+ WHERE p.name='app-management' AND p.deleted_at IS NULL AND m.deleted_at IS NULL
+ AND ((m.name='app-members-users' AND m.path='/app-members/users' AND m.sort=10)
+ OR (m.name='app-memberships' AND m.path='/app-members/memberships' AND m.sort=20))`, 2)
 	appCount(t, db, "SELECT COUNT(*) FROM sys_base_menu_btns WHERE permission_key IN('app-members-users:review','app-members-users:status','app-members-users:revoke-session','app-memberships:grant','app-memberships:revoke') AND deleted_at IS NULL", 5)
 	appCount(t, db, "SELECT COUNT(*) FROM sys_apis WHERE api_group='appmembers' AND deleted_at IS NULL", 9)
 }

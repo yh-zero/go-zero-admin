@@ -68,6 +68,8 @@ App 提供六个示例邮箱，密码均为 `Demo@123456`：`member@example.test
 
 已有库按数据库升级流程应用 `20261020_rustfs_avatar.sql`，再应用 `20261020_user_avatar_references.sql` 新增 App 头像列、回填公开头像引用并注册权限。需给内置管理员开通新功能时执行 `data/db/operator/20261020_avatar_admin_bootstrap.sql`；其他角色按需授权。新库初始化 SQL 已包含迁移和管理员 bootstrap，历史迁移保持不变，fresh-only seed 只整理全新安装数据。
 
+App 用户、App 会员统一位于一级“App 管理”目录，便于继续添加 App 模块。已有库使用 `20261020_app_management_menu.sql` 分组；保留原页面地址和操作权限，仅向原有 App 菜单使用角色补齐父目录。
+
 自定义公开 Bucket 时，在同一迁移连接设置 `@avatar_public_bucket`；`docker/deploy.sh upgrade` 自动读取 `STORAGE_PUBLIC_BUCKET`（默认 `gozero-public`）。历史手工百分号转义地址应先规范化并重新保存头像。
 
 - [配置模板](docker/config.yaml.template)：按 `# >>> api`、`# >>> rpc`、`# >>> ai-rpc` 分段，`common` 段供两个 RPC 复用

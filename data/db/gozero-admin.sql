@@ -846,6 +846,38 @@ COMMIT;
 
 INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261020_user_avatar_references.sql','feb049cb6932a6bf16d7066381361c944d425fb6049907eb27c4ccb39301eeb9',NOW());
 
+-- Group App modules without changing their URLs or operation permissions.
+-- Run with API/RPC writers stopped, like other permission migrations.
+SET NAMES utf8mb4 COLLATE utf8mb4_general_ci;
+START TRANSACTION;
+SELECT revision FROM sys_permission_versions WHERE id=1 FOR UPDATE;
+
+INSERT INTO sys_base_menus(created_at,updated_at,menu_level,parent_id,path,name,hidden,component,sort,active_name,keep_alive,default_menu,title,icon,close_tab)
+SELECT NOW(3),NOW(3),0,0,'app','app-management',0,'views/superAdmin/index.vue',20,'',0,0,'App 管理','lucide:smartphone',0
+WHERE NOT EXISTS(SELECT 1 FROM sys_base_menus WHERE name='app-management' AND deleted_at IS NULL);
+SET @app_management_menu_id=(SELECT id FROM sys_base_menus WHERE name='app-management' AND deleted_at IS NULL LIMIT 1);
+
+UPDATE sys_base_menus SET parent_id=@app_management_menu_id,menu_level=1,
+ path=CASE name WHEN 'app-members-users' THEN '/app-members/users' ELSE '/app-members/memberships' END,
+ sort=CASE name WHEN 'app-members-users' THEN 10 ELSE 20 END
+WHERE name IN('app-members-users','app-memberships') AND deleted_at IS NULL;
+
+-- A directory grant only makes previously granted children reachable. No new
+-- leaf, button or API grants are created for any role.
+INSERT INTO sys_authority_menus(sys_base_menu_id,sys_authority_authority_id)
+SELECT DISTINCT @app_management_menu_id,a.sys_authority_authority_id
+FROM sys_authority_menus a
+JOIN sys_base_menus m ON m.id=a.sys_base_menu_id AND m.deleted_at IS NULL
+JOIN sys_authorities r ON r.authority_id=a.sys_authority_authority_id AND r.deleted_at IS NULL
+WHERE m.name IN('app-members-users','app-memberships') AND m.parent_id=@app_management_menu_id
+AND NOT EXISTS(SELECT 1 FROM sys_authority_menus p WHERE p.sys_base_menu_id=@app_management_menu_id AND p.sys_authority_authority_id=a.sys_authority_authority_id);
+
+UPDATE sys_permission_versions SET revision=revision+1 WHERE id=1;
+COMMIT;
+SET @app_management_menu_id=NULL;
+
+INSERT INTO schema_migrations(filename,checksum,applied_at) VALUES('20261020_app_management_menu.sql','b48bb51e91a9486ff2fc3934157b5c0124c616258e1a2c8375ee81e3019b12fa',NOW());
+
 -- Fresh-install demo seed; never run against an existing database.
 -- Fresh-install demo data only. This is NOT an upgrade or reset script.
 -- Appended after all migrations/operator bootstraps by build-fresh-sql.ps1.
@@ -862,8 +894,9 @@ SET @demo_password = '$2a$10$gUoFRszVNyzR45Qh1ZhtPun31tpprmsYsT82zPLzmfLIjvWe2Yq
 UPDATE sys_base_menus SET sort = CASE name
  WHEN 'index' THEN 0
  WHEN 'superAdmin' THEN 10
- WHEN 'app-members-users' THEN 20
- WHEN 'app-memberships' THEN 30
+ WHEN 'app-management' THEN 20
+ WHEN 'app-members-users' THEN 10
+ WHEN 'app-memberships' THEN 20
  WHEN 'user' THEN 10
  WHEN 'authority' THEN 20
  WHEN 'organization-departments' THEN 30
@@ -946,7 +979,7 @@ INSERT INTO casbin_rule(ptype,v0,v1,v2,v3,v4,v5)
 -- Operator: App account review/status/avatar and own file uploads. No system
 -- configuration, role changes, device revocation or membership grant/revoke.
 INSERT INTO sys_authority_menus(sys_base_menu_id,sys_authority_authority_id)
- SELECT id,2 FROM sys_base_menus WHERE name IN('index','superAdmin','files','businessTools','app-members-users','app-memberships');
+ SELECT id,2 FROM sys_base_menus WHERE name IN('index','superAdmin','files','businessTools','app-management','app-members-users','app-memberships');
 INSERT INTO sys_authority_btns(authority_id,sys_menu_id,sys_base_menu_btn_id)
  SELECT 2,sys_base_menu_id,id FROM sys_base_menu_btns
  WHERE permission_key IN('app-members-users:review','app-members-users:status','app-members-users:avatar','files:upload','businessTools:upload');
@@ -959,7 +992,7 @@ INSERT INTO casbin_rule(ptype,v0,v1,v2,v3,v4,v5)
 
 -- Viewer: App users/memberships read-only; no action buttons and no writes.
 INSERT INTO sys_authority_menus(sys_base_menu_id,sys_authority_authority_id)
- SELECT id,3 FROM sys_base_menus WHERE name IN('index','app-members-users','app-memberships');
+ SELECT id,3 FROM sys_base_menus WHERE name IN('index','app-management','app-members-users','app-memberships');
 INSERT INTO casbin_rule(ptype,v0,v1,v2,v3,v4,v5)
  SELECT 'p','3',a.path,a.method,'','','' FROM sys_apis a WHERE a.deleted_at IS NULL
  AND a.method='GET' AND a.path IN('/v1/sys/menu/getMenu','/v1/sys/app-members/users','/v1/sys/app-members/sessions','/v1/sys/app-members/plans','/v1/sys/app-members/grants');

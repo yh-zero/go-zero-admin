@@ -78,10 +78,11 @@ func TestMySQLFreshSchema(t *testing.T) {
 	assertAppRegistrationSchema(t, db, name)
 	assertAppAuthorization(t, db, 2, 6, 9)
 	assertFreshDemoSeeds(t, db)
-	for _, filename := range []string{"20261019_app_members.sql", "20261019_app_registration_ip.sql"} {
+	for _, filename := range []string{"20261019_app_members.sql", "20261019_app_registration_ip.sql", "20261020_app_management_menu.sql"} {
 		checksum := fmt.Sprintf("%x", sha256.Sum256([]byte(appSQL(t, "migrations/"+filename))))
 		appCount(t, db, "SELECT COUNT(*) FROM schema_migrations WHERE filename=? AND checksum=?", 1, filename, checksum)
 	}
+	assertAppManagementMigration(t, db)
 }
 
 func assertFreshDemoSeeds(t *testing.T, db *sql.DB) {
@@ -199,12 +200,12 @@ func assertFreshDemoPermissions(t *testing.T, db *sql.DB) {
 	} {
 		appCount(t, db, query, 0)
 	}
-	appCount(t, db, "SELECT COUNT(*) FROM sys_authority_menus WHERE sys_authority_authority_id=2", 6)
-	appCount(t, db, "SELECT COUNT(*) FROM sys_authority_menus WHERE sys_authority_authority_id=3", 3)
+	appCount(t, db, "SELECT COUNT(*) FROM sys_authority_menus WHERE sys_authority_authority_id=2", 7)
+	appCount(t, db, "SELECT COUNT(*) FROM sys_authority_menus WHERE sys_authority_authority_id=3", 4)
 	appCount(t, db, `SELECT COUNT(*) FROM sys_authority_menus a JOIN sys_base_menus m ON m.id=a.sys_base_menu_id
- WHERE a.sys_authority_authority_id=2 AND m.name IN('index','superAdmin','files','businessTools','app-members-users','app-memberships')`, 6)
+ WHERE a.sys_authority_authority_id=2 AND m.name IN('index','superAdmin','files','businessTools','app-management','app-members-users','app-memberships')`, 7)
 	appCount(t, db, `SELECT COUNT(*) FROM sys_authority_menus a JOIN sys_base_menus m ON m.id=a.sys_base_menu_id
- WHERE a.sys_authority_authority_id=3 AND m.name IN('index','app-members-users','app-memberships')`, 3)
+ WHERE a.sys_authority_authority_id=3 AND m.name IN('index','app-management','app-members-users','app-memberships')`, 4)
 	appCount(t, db, "SELECT COUNT(*) FROM sys_authority_btns WHERE authority_id=2", 5)
 	appCount(t, db, "SELECT COUNT(DISTINCT b.permission_key) FROM sys_authority_btns a JOIN sys_base_menu_btns b ON b.id=a.sys_base_menu_btn_id WHERE a.authority_id=2", 5)
 	appCount(t, db, "SELECT COUNT(*) FROM casbin_rule WHERE ptype='p' AND v0='2'", 10)
@@ -232,4 +233,67 @@ func assertFreshDemoPermissions(t *testing.T, db *sql.DB) {
 	appCount(t, db, `SELECT COUNT(*) FROM sys_authority_btns a JOIN sys_base_menu_btns b ON b.id=a.sys_base_menu_btn_id
  WHERE a.authority_id=2 AND b.permission_key NOT IN('app-members-users:review','app-members-users:status','app-members-users:avatar','files:upload','businessTools:upload')`, 0)
 	appCount(t, db, "SELECT COUNT(*) FROM sys_role_data_scopes WHERE authority_id IN(2,3) AND scope<>'self'", 0)
+}
+
+func assertAppManagementMigration(t *testing.T, db *sql.DB) {
+	t.Helper()
+	// Reuse the fresh schema to represent roles with either leaf or no App access.
+	if _, err := db.Exec(`INSERT INTO sys_authorities(authority_id,authority_name,parent_id,default_router) VALUES
+ (9001,'migration user-only fixture',0,''),(9002,'migration membership-only fixture',0,''),(9003,'migration no-app fixture',0,'');
+ INSERT INTO sys_authority_menus(sys_base_menu_id,sys_authority_authority_id)
+ SELECT id,9001 FROM sys_base_menus WHERE name='app-members-users' AND deleted_at IS NULL;
+ INSERT INTO sys_authority_menus(sys_base_menu_id,sys_authority_authority_id)
+ SELECT id,9002 FROM sys_base_menus WHERE name='app-memberships' AND deleted_at IS NULL;`); err != nil {
+		t.Fatal(err)
+	}
+	before := appMenuPermissionState(t, db)
+	migration := appSQL(t, "migrations/20261020_app_management_menu.sql")
+	var revision int64
+	if err := db.QueryRow("SELECT revision FROM sys_permission_versions WHERE id=1").Scan(&revision); err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 2; i++ {
+		if _, err := db.Exec(migration); err != nil {
+			t.Fatal(err)
+		}
+		appCount(t, db, "SELECT COUNT(*) FROM sys_base_menus WHERE name='app-management' AND deleted_at IS NULL", 1)
+		appCount(t, db, `SELECT COUNT(*) FROM sys_authority_menus a JOIN sys_base_menus m ON m.id=a.sys_base_menu_id
+ WHERE m.name='app-management' AND a.sys_authority_authority_id IN(1,2,3,9001,9002)`, 5)
+		appCount(t, db, `SELECT COUNT(*) FROM sys_authority_menus a JOIN sys_base_menus m ON m.id=a.sys_base_menu_id
+ WHERE m.name='app-management' AND a.sys_authority_authority_id=9003`, 0)
+		appCount(t, db, "SELECT COUNT(*) FROM sys_permission_versions WHERE id=1 AND revision=?", 1, revision+int64(i)+1)
+		if after := appMenuPermissionState(t, db); after != before {
+			t.Fatal("App directory migration changed existing leaf, button or API grants")
+		}
+	}
+}
+
+func appMenuPermissionState(t *testing.T, db *sql.DB) string {
+	t.Helper()
+	var state []string
+	for _, query := range []string{
+		`SELECT JSON_ARRAY('menu',a.sys_authority_authority_id,a.sys_base_menu_id)
+ FROM sys_authority_menus a JOIN sys_base_menus m ON m.id=a.sys_base_menu_id
+ WHERE m.name<>'app-management' ORDER BY a.sys_authority_authority_id,a.sys_base_menu_id`,
+		`SELECT JSON_ARRAY('button',authority_id,sys_menu_id,sys_base_menu_btn_id)
+ FROM sys_authority_btns ORDER BY authority_id,sys_menu_id,sys_base_menu_btn_id`,
+		`SELECT JSON_ARRAY('api',id,ptype,v0,v1,v2,v3,v4,v5) FROM casbin_rule ORDER BY id`,
+	} {
+		rows, err := db.Query(query)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var row string
+			if err := rows.Scan(&row); err != nil {
+				t.Fatal(err)
+			}
+			state = append(state, row)
+		}
+		if err := rows.Err(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return strings.Join(state, "\n")
 }

@@ -33,6 +33,7 @@ $TailEntries = @(
     @{ Path = 'migrations/20261020_rustfs_avatar.sql' }
     @{ Path = 'migrations/20261020_user_avatar_references.sql' }
     @{ Path = 'operator/20261020_avatar_admin_bootstrap.sql' }
+    @{ Path = 'migrations/20261020_app_management_menu.sql' }
 )
 
 function Read-SqlText([string]$relativePath) {
