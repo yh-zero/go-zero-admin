@@ -18,7 +18,6 @@ bin-release
 test
 data/goctl/
 data/scripts/
-data/db/archive/
 data/db/backups/
 data/db/dump-*.sql*
 data/db/gozero-admin-full-*.sql*

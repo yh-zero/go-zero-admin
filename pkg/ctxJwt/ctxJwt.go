@@ -42,14 +42,3 @@ func GetJwtDataID(ctx context.Context) int64 {
 func GetJwtDataAuthorityId(ctx context.Context) int64 {
 	return GetJwtData(ctx).AuthorityId
 }
-func GetJwtDataUUID(ctx context.Context) string {
-	return GetJwtData(ctx).UUID
-}
-
-func GetJwtDataUsername(ctx context.Context) string {
-	return GetJwtData(ctx).Username
-}
-
-func GetJwtDataNickName(ctx context.Context) string {
-	return GetJwtData(ctx).NickName
-}

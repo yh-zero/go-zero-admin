@@ -1,0 +1,138 @@
+# Configuration sections rendered by docker/entrypoint.sh.
+# Each service lists its sections in CONFIG_SECTIONS; sections are concatenated
+# in that order and processed by a single envsubst pass.
+
+# >>> common
+Redis:
+  Host: '${REDIS_ADDR}'
+  Pass: '${REDIS_PASSWORD}'
+  Type: node
+  Key: go-zero-admin:${SERVICE_NAMESPACE}:tokens
+RPCAuth:
+  App: '${RPC_AUTH_APP}'
+  Token: '${RPC_AUTH_TOKEN}'
+Etcd:
+  Hosts:
+    - '${ETCD_ADDR}'
+  Key: ${ETCD_NAMESPACE}
+DB:
+  DataSource: '${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_ADDR})/${MYSQL_DATABASE}?parseTime=true&loc=Local'
+  MaxIdleConns: 10
+  MaxOpenConns: 100
+  MaxLifetime: 3600
+# <<< common
+
+# >>> api
+Name: applet-api
+Mode: pro
+Host: 0.0.0.0
+Port: 7001
+BizRedis:
+  Host: '${REDIS_ADDR}'
+  Pass: '${REDIS_PASSWORD}'
+  Type: node
+Page:
+  PageNo: 1
+  PageSize: 10
+AppletRPC:
+  App: '${RPC_AUTH_APP}'
+  Token: '${RPC_AUTH_TOKEN}'
+  Etcd:
+    Hosts:
+      - '${ETCD_ADDR}'
+    Key: applet.rpc
+  NonBlock: true
+AIRPC:
+  App: '${RPC_AUTH_APP}'
+  Token: '${RPC_AUTH_TOKEN}'
+  Etcd:
+    Hosts:
+      - '${ETCD_ADDR}'
+    Key: ai.rpc
+  NonBlock: true
+JwtAuth:
+  AccessSecret: '${JWT_ACCESS_SECRET}'
+  AccessExpire: ${JWT_ACCESS_EXPIRE}
+AppJwtAuth:
+  AccessSecret: '${APP_JWT_ACCESS_SECRET}'
+AppProxyTrustedCIDRs: '${APP_TRUSTED_PROXY_CIDRS}'
+Oss:
+  Endpoint: '${OSS_ENDPOINT}'
+  AccessKeyId: '${OSS_ACCESS_KEY_ID}'
+  AccessKeySecret: '${OSS_ACCESS_KEY_SECRET}'
+  BucketName: '${OSS_BUCKET_NAME}'
+Isdev: false
+# <<< api
+
+# >>> rpc
+Name: applet.rpc
+Mode: pro
+ListenOn: 0.0.0.0:6001
+Auth: true
+StrictControl: true
+BizRedis:
+  Host: '${REDIS_ADDR}'
+  Pass: '${REDIS_PASSWORD}'
+  Type: node
+JwtAuth:
+  AccessSecret: '${JWT_ACCESS_SECRET}'
+  AccessExpire: ${JWT_ACCESS_EXPIRE}
+AppJwtAuth:
+  AccessSecret: '${APP_JWT_ACCESS_SECRET}'
+  AccessExpire: ${APP_JWT_ACCESS_EXPIRE}
+  RefreshExpire: ${APP_JWT_REFRESH_EXPIRE}
+  EmailVerificationRequired: ${APP_EMAIL_VERIFICATION_REQUIRED}
+IPLocation:
+  IPv4Path: data/ipregion/ip2region_v4.xdb
+  IPv6Path: data/ipregion/ip2region_v6.xdb
+Mail:
+  Host: '${SMTP_HOST}'
+  Port: ${SMTP_PORT}
+  Username: '${SMTP_USER}'
+  Password: '${SMTP_PASSWORD}'
+  From: '${SMTP_FROM}'
+CasbinConf:
+  ModelText: |
+    [request_definition]
+    r = sub, obj, act
+    [policy_definition]
+    p = sub, obj, act
+    [role_definition]
+    g = _, _
+    [policy_effect]
+    e = some(where (p.eft == allow))
+    [matchers]
+    m = r.sub == p.sub && keyMatch2(r.obj,p.obj) && r.act == p.act
+Default:
+  UserPassword: '${DEFAULT_USER_PASSWORD}'
+# <<< rpc
+
+# >>> ai-rpc
+Name: ai.rpc
+Mode: pro
+ListenOn: 0.0.0.0:6002
+# 普通模型参数直接填写，API Key 仅从所选提供商的进程环境变量读取。
+AI:
+  Enabled: false
+  Provider: deepseek
+  MaxInputChars: 2000
+  MaxSteps: 6
+  MaxRunSeconds: 90
+  DeepSeek:
+    Model: ''
+    BaseURL: 'https://api.deepseek.com/v1'
+  Qwen:
+    Model: ''
+    BaseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1'
+Auth: true
+StrictControl: true
+AppletRPC:
+  Timeout: 5000
+  App: '${RPC_AUTH_APP}'
+  Token: '${RPC_AUTH_TOKEN}'
+  Etcd:
+    Hosts:
+      - '${ETCD_ADDR}'
+    Key: applet.rpc
+  NonBlock: true
+# <<< ai-rpc

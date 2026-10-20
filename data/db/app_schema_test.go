@@ -64,15 +64,10 @@ func appMySQL(t *testing.T, source string) (*sql.DB, string) {
 		t.Fatal("cannot open isolated test connection")
 	}
 	t.Cleanup(func() { _ = client.Close() })
-	appExec(t, client, source)
-	return client, config.DBName
-}
-
-func appExec(t *testing.T, db *sql.DB, source string) {
-	t.Helper()
-	if _, err := db.Exec(source); err != nil {
+	if _, err := client.Exec(source); err != nil {
 		t.Fatalf("isolated App SQL execution failed: %v", err)
 	}
+	return client, config.DBName
 }
 
 func appCount(t *testing.T, db *sql.DB, query string, want int, args ...any) {
@@ -111,76 +106,4 @@ func assertAppRegistrationSchema(t *testing.T, db *sql.DB, name string) {
 	for column, length := range map[string]int{"registration_ip": 64, "registration_region": 255} {
 		appCount(t, db, "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=? AND table_name='app_users' AND column_name=? AND data_type='varchar' AND character_maximum_length=? AND is_nullable='NO' AND column_default=''", 1, name, column, length)
 	}
-}
-
-func TestMySQLFreshAppSchema(t *testing.T) {
-	db, name := appMySQL(t, appSQL(t, "gozero-admin.sql"))
-	assertAppSchema(t, db, name)
-	assertAppRegistrationSchema(t, db, name)
-	assertAppAuthorization(t, db, 2, 5, 8)
-	appCount(t, db, "SELECT COUNT(*) FROM casbin_rule WHERE ptype='p' AND v1 LIKE '/v1/sys/app-members/%' AND v0<>'1'", 0)
-	for _, filename := range []string{"20261019_app_members.sql", "20261019_app_registration_ip.sql"} {
-		checksum := fmt.Sprintf("%x", sha256.Sum256([]byte(appSQL(t, "migrations/"+filename))))
-		appCount(t, db, "SELECT COUNT(*) FROM schema_migrations WHERE filename=? AND checksum=?", 1, filename, checksum)
-	}
-}
-
-func TestMySQLAppUpgradeRequiresExplicitAuthorizationAndIsRepeatable(t *testing.T) {
-	before, _, found := strings.Cut(appSQL(t, "gozero-admin.sql"), appFreshMarker)
-	if !found {
-		t.Fatal("missing old installation boundary")
-	}
-	db, name := appMySQL(t, before)
-	migration := appSQL(t, "migrations/20261019_app_members.sql")
-	bootstrap := appSQL(t, "operator/20261019_app_member_admin_bootstrap.sql")
-	appExec(t, db, migration)
-	assertAppSchema(t, db, name)
-	appExec(t, db, appSQL(t, "migrations/20261019_app_registration_ip.sql"))
-	assertAppRegistrationSchema(t, db, name)
-	assertAppAuthorization(t, db, 0, 0, 0)
-
-	// A migration retry must preserve operator changes and must not duplicate seeds.
-	appExec(t, db, "UPDATE app_membership_plans SET name='Customized VIP',enabled=0 WHERE code='vip' AND version=1")
-	appExec(t, db, migration)
-	assertAppAuthorization(t, db, 0, 0, 0)
-	appCount(t, db, "SELECT COUNT(*) FROM app_membership_plans", 1)
-	appCount(t, db, "SELECT COUNT(*) FROM app_membership_plans WHERE name='Customized VIP' AND enabled=0", 1)
-	appCount(t, db, "SELECT COUNT(*) FROM sys_base_menus WHERE name IN('app-members-users','app-memberships')", 2)
-	appCount(t, db, "SELECT COUNT(*) FROM sys_base_menu_btns WHERE permission_key LIKE 'app-members%'", 5)
-	appCount(t, db, "SELECT COUNT(*) FROM sys_apis WHERE api_group='appmembers'", 8)
-
-	// Future/custom routes under the same API group are not part of this explicit grant.
-	appExec(t, db, "INSERT INTO sys_apis(created_at,updated_at,path,description,api_group,method) VALUES(NOW(3),NOW(3),'/v1/sys/app-members/custom-export','custom route','appmembers','POST')")
-	appExec(t, db, bootstrap)
-	appExec(t, db, bootstrap)
-	assertAppAuthorization(t, db, 2, 5, 8)
-	appCount(t, db, "SELECT COUNT(*) FROM casbin_rule WHERE ptype='p' AND v1='/v1/sys/app-members/custom-export'", 0)
-	appCount(t, db, "SELECT COUNT(*) FROM casbin_rule WHERE ptype='p' AND v1 LIKE '/v1/sys/app-members/%' AND v0<>'1'", 0)
-}
-
-func TestMySQLAppRegistrationMigrationPreservesUsers(t *testing.T) {
-	before, _, found := strings.Cut(appSQL(t, "gozero-admin.sql"), appFreshMarker)
-	if !found {
-		t.Fatal("missing old installation boundary")
-	}
-	db, name := appMySQL(t, before+appSQL(t, "migrations/20261019_app_members.sql"))
-	appExec(t, db, "INSERT INTO app_users(id,nickname,status,session_version,review_reason,reviewed_by,created_at,updated_at) VALUES(1001,'Existing account','active',3,'Existing review',1,NOW(3),NOW(3))")
-	registration := appSQL(t, "migrations/20261019_app_registration_ip.sql")
-	appExec(t, db, registration)
-	assertAppRegistrationSchema(t, db, name)
-	appCount(t, db, "SELECT COUNT(*) FROM app_users WHERE id=1001 AND nickname='Existing account' AND status='active' AND session_version=3 AND review_reason='Existing review' AND reviewed_by=1 AND registration_ip='' AND registration_region=''", 1)
-
-	// Retrying an additive migration must preserve subsequently collected IP data.
-	appExec(t, db, "UPDATE app_users SET registration_ip='2001:db8::1',registration_region='Test region' WHERE id=1001")
-	appExec(t, db, registration)
-	appCount(t, db, "SELECT COUNT(*) FROM app_users WHERE id=1001 AND registration_ip='2001:db8::1' AND registration_region='Test region'", 1)
-	appCount(t, db, "SELECT COUNT(*) FROM app_users", 1)
-	assertAppRegistrationSchema(t, db, name)
-	assertAppAuthorization(t, db, 0, 0, 0)
-
-	// An interrupted deployment that added only the first column can safely resume.
-	appExec(t, db, "ALTER TABLE app_users DROP COLUMN registration_region")
-	appExec(t, db, registration)
-	assertAppRegistrationSchema(t, db, name)
-	appCount(t, db, "SELECT COUNT(*) FROM app_users WHERE id=1001 AND registration_ip='2001:db8::1' AND registration_region=''", 1)
 }

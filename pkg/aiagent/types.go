@@ -50,8 +50,6 @@ type Request struct {
 	Tools   []Tool
 }
 
-type RunInput = Request
-
 type Usage struct {
 	PromptTokens     int `json:"promptTokens"`
 	CompletionTokens int `json:"completionTokens"`

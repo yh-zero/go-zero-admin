@@ -48,11 +48,11 @@ pnpm dev
 
 ## 配置
 
-- [API 模板](docker/api.yaml.template)：端口、Redis、etcd、JWT、OSS
-- [业务 RPC 模板](docker/rpc.yaml.template)：MySQL、Redis、etcd、后台/App JWT、邮件、默认重置密码
-- [AI RPC 模板](docker/ai-rpc.yaml.template)：数据库、RPC 与模型参数
+- [配置模板](docker/config.yaml.template)：按 `# >>> api`、`# >>> rpc`、`# >>> ai-rpc` 分段，`common` 段供两个 RPC 复用
+- [部署脚本](docker/deploy.sh)：`init` / `check` / `up` / `import` / `migrate-check` / `upgrade` / `rollback`
+- [Swagger 反代](docker/swagger.conf.template) 与 [UI 初始化](docker/swagger-initializer.js)
 
-容器使用上述模板，由 `docker/entrypoint.sh` 通过 `envsubst` 生成 `/tmp/config.yaml`，不读取 `application/.../etc/` 下的本机 YAML。修改模板后需要重新构建相应镜像。API 与业务 RPC 的 `JwtAuth.AccessSecret` 必须一致；独立的 `AppJwtAuth.AccessSecret` 也必须在两者间一致，并使用不同于后台的 `APP_JWT_ACCESS_SECRET`（至少 32 字节）。业务 RPC 与 AI RPC 使用同一业务库。
+`docker/entrypoint.sh` 按 `CONFIG_SECTIONS` 取出对应段落，通过一次 `envsubst` 生成 `/tmp/config.yaml`，不读取 `application/.../etc/` 下的本机 YAML。修改模板后需要重新构建相应镜像。API 与业务 RPC 的 `JwtAuth.AccessSecret` 必须一致；独立的 `AppJwtAuth.AccessSecret` 也必须在两者间一致，并使用不同于后台的 `APP_JWT_ACCESS_SECRET`（至少 32 字节）。业务 RPC 与 AI RPC 使用同一业务库。
 
 ## App 用户与会员
 
@@ -80,7 +80,7 @@ docker inspect <容器ID> --format '{{range .NetworkSettings.Networks}}{{println
 
 ## AI 助手
 
-默认关闭：`docker/ai-rpc.yaml.template` 中 `AI.Enabled: false`，根 Compose 的两个模型 Key 显式为空，无 Key 也能启动 AI RPC。启用时在该模板设 `AI.Enabled: true`，选择 `Provider`（deepseek 或 qwen），填写对应 `Model` / `BaseURL`。
+默认关闭：`docker/config.yaml.template` 的 `ai-rpc` 段中 `AI.Enabled: false`，根 Compose 的两个模型 Key 显式为空，无 Key 也能启动 AI RPC。启用时在该模板设 `AI.Enabled: true`，选择 `Provider`（deepseek 或 qwen），填写对应 `Model` / `BaseURL`。
 
 仅为 `ai-rpc` 配置所选提供商的环境变量引用，例如将其 Compose `environment` 中的 DeepSeek 项改为 `API_KEY_DEEPSEEK: "${API_KEY_DEEPSEEK:-}"`，实际 Key 写入已被 Git 和 Docker 构建上下文忽略的根目录 `.env`；另一项保持为空。业务 RPC 和 API 不接收模型 Key。随后执行 `docker compose up -d --build --wait --no-deps ai-rpc`，使模板和容器环境生效。容器不使用本机 `ai.yaml` 中的 `APIKey` 兜底；仅修改本机 YAML、设置宿主机环境变量或执行 `restart` 都不会替代上述配置与重建。
 
@@ -93,7 +93,9 @@ docker inspect <容器ID> --format '{{range .NetworkSettings.Networks}}{{println
 3. 配置客户端在 SQL 失败时立即停止，不继续后续语句或迁移，也不登记失败项；核实部分执行状态后再处理。每个文件完整成功后维护对应的 `filename`、`checksum` 和 `applied_at` 记录；校验和为文件按 UTF-8 去 BOM、将 CRLF 转为 LF 后计算的 SHA-256，保存为 64 位小写十六进制。
 4. 核验结构、数据和迁移记录后，执行 `docker compose up -d --build --wait` 并检查服务健康。
 
-仓库历史备份按文件名中的快照时间手工保留最新两份，配套校验文件同存；初始化 SQL 和增量迁移不参与备份轮替。
+2026-10-03 及更早的迁移已合并进 `data/db/baseline.sql`，独立文件随之移除；其 `schema_migrations` 记录保留为历史事实，无需再核对校验和。2026-10-07 之前部署的库不再提供升级文件，确需时从 Git 历史取回。
+
+仓库历史备份按文件名中的快照时间手工保留最新一份，配套校验文件同存；初始化 SQL 和增量迁移不参与备份轮替。
 
 App 模块依次使用 [20261019_app_members.sql](data/db/migrations/20261019_app_members.sql) 和 [20261019_app_registration_ip.sql](data/db/migrations/20261019_app_registration_ip.sql)。已有库先完成此前未应用迁移，再按序应用这两份文件并分别登记校验和；已应用的文件和校验和保持不变，新增 IP/归属地字段通过后者升级，旧账号数据保留。两份迁移都不自动授权旧角色。需要给角色 1 开通该模块时，在维护窗口明确执行 [可选管理员授权](data/db/operator/20261019_app_member_admin_bootstrap.sql)，其他角色通过现有权限编辑器分别配置菜单、按钮和 API。全新安装 SQL 已包含两份迁移及角色 1 初始化。
 
@@ -127,13 +129,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File data/scripts/verify.ps1
 | 脚本 | 用途 |
 |------|------|
 | `data/scripts/gen.ps1` | 代码生成：`api` / `rpc` / `model` / `swagger` |
+| `data/scripts/build-fresh-sql.ps1` | 由 `data/db/baseline.sql` 与尾部迁移/授权脚本重新生成 `data/db/gozero-admin.sql`；`-Check` 仅校验不写入 |
 | `data/scripts/verify.ps1` | 一键检查与测试 |
 
 ## 服务器部署
 
 服务器只需 Docker 与 Docker Compose v2，同时保留后端及同级前端完整源码。独立的 `docker/deploy-compose.yml` 会在容器内构建 Go 后端和 Node/pnpm 前端，`web` 默认通过 `127.0.0.1:8080` 提供页面，并把 `/api` 转发到 `api:7001`；API 默认仅绑定 `127.0.0.1:7001`，Swagger 为 `127.0.0.1:8081`，数据库与 RPC 不发布端口。对外 HTTPS 由服务器入口转发到本机 `8080`，域名和证书按实际入口配置。
 
-部署命令统一指定 `--env-file docker/.env.deploy -f docker/deploy-compose.yml`。数据卷与本机根 Compose 分开；首次先启动依赖，向空库手动导入 SQL，再构建启动全部服务。已有库先停止 `api ai-rpc rpc`、备份与迁移。完整步骤见 [部署说明](docker/部署说明.md)。
+服务器上用 `docker/deploy.sh` 完成全部操作（`init` → `check` → `up` → `import`）；脚本内部固定使用 `--env-file docker/.env.deploy -f docker/deploy-compose.yml`。数据卷与本机根 Compose 分开；首次先启动依赖，向空库手动导入 SQL，再构建启动全部服务。已有库先停止 `api ai-rpc rpc`、备份与迁移。完整步骤见 [部署说明](docker/部署说明.md)。
 
 ## 相关文档
 

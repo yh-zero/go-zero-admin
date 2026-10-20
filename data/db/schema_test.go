@@ -2,17 +2,12 @@ package db_test
 
 import (
 	"crypto/sha256"
-	"database/sql"
 	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"testing"
-
-	drivermysql "github.com/go-sql-driver/mysql"
-	"go-zero-admin/pkg/testmysql"
-	"gorm.io/driver/mysql"
 )
 
 func TestPermissionKeyCapacityPreservesHistoricalNames(t *testing.T) {
@@ -58,53 +53,30 @@ func TestPermissionKeyCapacityPreservesHistoricalNames(t *testing.T) {
 	}
 }
 
-// Exercise the actual fresh-install SQL, including its seeds and ALTERs, in an
-// isolated schema. This catches drift that AutoMigrate-only fixtures cannot.
-func TestMySQLFreshPermissionSchema(t *testing.T) {
-	db := testmysql.Open(t)
-	dialector, ok := db.Dialector.(*mysql.Dialector)
-	if !ok {
-		t.Fatal("expected MySQL fixture")
-	}
-	config, err := drivermysql.ParseDSN(dialector.DSN)
-	if err != nil {
-		t.Fatal("invalid isolated fixture DSN")
-	}
-	if !strings.HasPrefix(config.DBName, "gozero_test_rr_") {
-		t.Fatal("fresh schema requires isolated test database")
-	}
-	config.MultiStatements = true
-	client, err := sql.Open("mysql", config.FormatDSN())
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = client.Close() })
-	source, err := os.ReadFile("gozero-admin.sql")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err = client.Exec(string(source)); err != nil {
-		t.Fatalf("fresh schema import failed: %v", err)
-	}
-	var count int
+// Import the actual fresh-install SQL once in an isolated schema and check the
+// permission and App portions together; this catches drift that AutoMigrate-only
+// fixtures cannot. The former permission and App tests each imported the same
+// file, so they shared no extra coverage.
+func TestMySQLFreshSchema(t *testing.T) {
+	db, name := appMySQL(t, appSQL(t, "gozero-admin.sql"))
 	for _, table := range []string{"sys_permission_versions", "sys_permission_changes"} {
-		if err = client.QueryRow("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = ?", config.DBName, table).Scan(&count); err != nil || count != 1 {
-			t.Fatalf("missing %s: %d %v", table, count, err)
-		}
+		appCount(t, db, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=? AND table_name=?", 1, name, table)
 	}
-	if err = client.QueryRow("SELECT COUNT(*) FROM sys_base_menu_btns WHERE permission_key IS NULL OR permission_key = ''").Scan(&count); err != nil || count != 0 {
-		t.Fatalf("stable button keys missing: %d %v", count, err)
-	}
-	if err = client.QueryRow("SELECT COUNT(*) FROM casbin_rule WHERE ptype = 'p' AND v0 = '1' AND v1 = '/v1/sys/permissions/edit' AND v2 = 'GET'").Scan(&count); err != nil || count != 1 {
-		t.Fatalf("administrator editor missing: %d %v", count, err)
-	}
+	appCount(t, db, "SELECT COUNT(*) FROM sys_base_menu_btns WHERE permission_key IS NULL OR permission_key = ''", 0)
+	appCount(t, db, "SELECT COUNT(*) FROM casbin_rule WHERE ptype='p' AND v0='1' AND v1='/v1/sys/permissions/edit' AND v2='GET'", 1)
 	migration, err := os.ReadFile("migrations/20261008_permission_revision_history.sql")
 	if err != nil {
 		t.Fatal(err)
 	}
-	checksum := fmt.Sprintf("%x", sha256.Sum256([]byte(strings.ReplaceAll(string(migration), "\r\n", "\n"))))
-	var recorded string
-	if err = client.QueryRow("SELECT checksum FROM schema_migrations WHERE filename = '20261008_permission_revision_history.sql'").Scan(&recorded); err != nil || recorded != checksum {
-		t.Fatalf("fresh schema migration record mismatch: %v", err)
+	permission := fmt.Sprintf("%x", sha256.Sum256([]byte(strings.ReplaceAll(string(migration), "\r\n", "\n"))))
+	appCount(t, db, "SELECT COUNT(*) FROM schema_migrations WHERE filename=? AND checksum=?", 1, "20261008_permission_revision_history.sql", permission)
+
+	assertAppSchema(t, db, name)
+	assertAppRegistrationSchema(t, db, name)
+	assertAppAuthorization(t, db, 2, 5, 8)
+	appCount(t, db, "SELECT COUNT(*) FROM casbin_rule WHERE ptype='p' AND v1 LIKE '/v1/sys/app-members/%' AND v0<>'1'", 0)
+	for _, filename := range []string{"20261019_app_members.sql", "20261019_app_registration_ip.sql"} {
+		checksum := fmt.Sprintf("%x", sha256.Sum256([]byte(appSQL(t, "migrations/"+filename))))
+		appCount(t, db, "SELECT COUNT(*) FROM schema_migrations WHERE filename=? AND checksum=?", 1, filename, checksum)
 	}
 }

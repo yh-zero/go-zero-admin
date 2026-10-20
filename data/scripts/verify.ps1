@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 [CmdletBinding()]
 param()
 
@@ -59,6 +59,8 @@ try {
             throw ('Required tool is unavailable: ' + $verifyTool + '. Install/configure it before running verification.')
         }
     }
+    & (Join-Path $PSScriptRoot 'build-fresh-sql.ps1') -Check
+    if ($LASTEXITCODE -ne 0) { throw 'data/db/gozero-admin.sql is stale. Run data/scripts/build-fresh-sql.ps1 and commit the result.' }
     # Use Git's ignore rules rather than recursively scanning caches or generated
     # temporary workspaces. Include both tracked files and new source files.
     $verifySources = @(& git ls-files --cached --others --exclude-standard -- '*.go')

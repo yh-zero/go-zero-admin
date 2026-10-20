@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -18,6 +19,10 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
+// baselineAgentTables extracts the checked-in production DDL for the three job
+// tables from data/db/baseline.sql, the merged fresh-install schema.
+var baselineAgentTables = regexp.MustCompile("(?s)CREATE TABLE `sys_ai_(?:conversations|messages|runs)`[^;]*;")
 
 // Only the random isolated database is opened; the DSN's original database is
 // discarded. Requires CREATE/DROP DATABASE privileges, never migrates a user DB.
@@ -81,17 +86,17 @@ func mysqlFixture(t *testing.T) *gorm.DB {
 	if err := db.AutoMigrate(&fixtureOwner{}, &audit.Event{}); err != nil {
 		t.Fatal(err)
 	}
-	// Use the immutable production migration's actual DDL rather than deriving
-	// the three job tables from GORM, so these regressions catch model/schema drift.
-	migration, err := os.ReadFile(filepath.Join("..", "..", "data", "db", "migrations", "20261003_zz_ai_agent.sql"))
+	// Use the production baseline's actual DDL rather than deriving the three
+	// job tables from GORM, so these regressions catch model/schema drift.
+	baseline, err := os.ReadFile(filepath.Join("..", "..", "data", "db", "baseline.sql"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	schemaDDL := strings.SplitN(strings.ReplaceAll(string(migration), "\r\n", "\n"), "SET NAMES utf8mb4", 2)[0]
-	for _, statement := range strings.Split(schemaDDL, ";") {
-		if strings.TrimSpace(statement) == "" {
-			continue
-		}
+	statements := baselineAgentTables.FindAllString(strings.ReplaceAll(string(baseline), "\r\n", "\n"), -1)
+	if len(statements) != 3 {
+		t.Fatalf("baseline.sql must define the three agent tables, found %d", len(statements))
+	}
+	for _, statement := range statements {
 		if err := db.Exec(statement).Error; err != nil {
 			t.Fatal("cannot apply isolated agent schema", err)
 		}

@@ -1,6 +1,7 @@
--- go-zero-admin 当前完整初始化 SQL（2026-10-09）
+-- go-zero-admin 当前完整初始化 SQL（2026-10-20）
 -- MySQL 8；在已创建且选定的空数据库中导入一次，然后启动项目。
--- 包含完整表结构、必要初始数据及截至 20261008_permission_revision_history.sql 的迁移记录。
+-- 包含完整表结构、必要初始数据及截至 20261019_app_registration_ip.sql 的迁移记录。
+-- 完整初始化 SQL 由 data/scripts/build-fresh-sql.ps1 生成（baseline.sql + 尾部迁移/授权脚本），请勿手工编辑 gozero-admin.sql。
 -- 初始管理员：admin / 123456。首次登录后修改密码。
 -- 不包含测试账号、测试角色、测试菜单、审计日志、设备会话或 AI 历史数据。
 -- 已有数据库升级使用 data/db/migrations/；不要向已有业务库导入全量 SQL。

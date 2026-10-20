@@ -197,8 +197,8 @@ services:
         condition: service_healthy
     volumes:
       - ./data/api/generated:/spec:ro
-      - ./docker/swagger/default.conf.template:/etc/swagger/default.conf.template:ro
-      - ./docker/swagger/swagger-initializer.js:/etc/swagger/swagger-initializer.js:ro
+      - ./docker/swagger.conf.template:/etc/swagger/default.conf.template:ro
+      - ./docker/swagger-initializer.js:/etc/swagger/swagger-initializer.js:ro
     # Use the official UI assets and Nginx with our same-origin API proxy.
     entrypoint: ["/bin/sh", "-ec"]
     command:
