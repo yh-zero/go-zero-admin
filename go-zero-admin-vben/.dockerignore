@@ -1,0 +1,38 @@
+# Dependencies, generated output, and local caches.
+**/node_modules
+**/dist
+**/dist.zip
+**/.turbo
+**/.cache
+**/.vite
+**/.pnpm-store
+**/coverage
+**/playwright-report
+**/test-results
+**/*.log
+
+# Local tooling and credentials do not belong in the build context.
+**/.git
+.gitignore
+**/.codex
+**/.agents
+**/.aws
+**/.ssh
+**/.docker
+**/.vscode
+**/.idea
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/id_rsa*
+**/id_ed25519*
+**/.npmrc.local
+**/.DS_Store
+**/Thumbs.db
+*.md
+
+# Only the public Vite configuration is needed for production builds.
+**/.env*
+!apps/web-antdv-next/.env
+!apps/web-antdv-next/.env.production

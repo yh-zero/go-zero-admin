@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "name": "web-antdv-next dev",
+      "request": "launch",
+      "url": "http://localhost:5999",
+      "sourceMaps": true,
+      "webRoot": "${workspaceFolder}/apps/web-antdv-next"
+    }
+  ]
+}
