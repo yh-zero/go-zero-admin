@@ -1,0 +1,113 @@
+import type { FormValues } from '@vben/common-ui';
+import type { VxeTableGridOptions } from '@vben/plugins/vxe-table';
+
+import type { ComponentPropsMap, ComponentType } from './component';
+
+import { h } from 'vue';
+
+import {
+  setupVbenVxeTable,
+  useVbenVxeGrid as useGrid,
+} from '@vben/plugins/vxe-table';
+
+import { Button, Image } from 'antdv-next';
+
+import { useVbenForm } from './form';
+
+setupVbenVxeTable({
+  configVxeTable: (vxeUI) => {
+    vxeUI.setConfig({
+      grid: {
+        align: 'center',
+        border: false,
+        columnConfig: {
+          resizable: true,
+        },
+        minHeight: 180,
+        formConfig: {
+          // 全局禁用vxe-table的表单配置，使用formOptions
+          enabled: false,
+        },
+        proxyConfig: {
+          autoLoad: true,
+          response: {
+            result: 'items',
+            total: 'total',
+            list: 'items',
+          },
+          showActiveMsg: true,
+          showResponseMsg: false,
+        },
+        round: true,
+        showOverflow: true,
+        size: 'small',
+      } as VxeTableGridOptions,
+    });
+
+    // 表格配置项可以用 cellRender: { name: 'CellImage' },
+    vxeUI.renderer.add('CellImage', {
+      renderTableDefault(renderOpts, params) {
+        const { props } = renderOpts;
+        const { column, row } = params;
+        return h(Image, { src: row[column.field], ...props });
+      },
+    });
+
+    // 表格配置项可以用 cellRender: { name: 'CellLink' },
+    vxeUI.renderer.add('CellLink', {
+      renderTableDefault(renderOpts) {
+        const { props } = renderOpts;
+        return h(
+          Button,
+          { size: 'small', type: 'link' },
+          { default: () => props?.text },
+        );
+      },
+    });
+
+    // 这里可以自行扩展 vxe-table 的全局配置，比如自定义格式化
+    // vxeUI.formats.add
+  },
+  useVbenForm,
+});
+
+export const useVbenVxeGrid = <
+  T extends Record<string, any>,
+  TFormValues extends FormValues = FormValues,
+  TSubmitValues extends FormValues = TFormValues,
+>(
+  ...rest: Parameters<
+    typeof useGrid<
+      T,
+      ComponentType,
+      ComponentPropsMap,
+      TFormValues,
+      TSubmitValues
+    >
+  >
+) => {
+  const [options] = rest;
+  const formOptions = options.formOptions;
+  const hasMultipleRows = (formOptions?.schema?.length ?? 0) >= 4;
+
+  return useGrid<
+    T,
+    ComponentType,
+    ComponentPropsMap,
+    TFormValues,
+    TSubmitValues
+  >({
+    ...options,
+    formOptions: formOptions
+      ? {
+          // 三个筛选项加操作按钮共占四列，更多筛选项时按钮另起一行。
+          wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+          actionLayout: hasMultipleRows ? 'newLine' : 'rowEnd',
+          showCollapseButton: hasMultipleRows,
+          ...formOptions,
+        }
+      : undefined,
+  });
+};
+
+export type * from '@vben/plugins/vxe-table';
