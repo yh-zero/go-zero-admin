@@ -39,7 +39,7 @@ Older installations apply [the permission schema migration](data/db/migrations/2
 
 Permission edits use consistent snapshots and mandatory revisions; menu moves require a bound impact preview. Button keys remain stable. Rollback is conservative and rejects an event after any later configuration change. User deletion retains owned resources and audit identity; resource transfer is a separate action. Optional RPC `UserResources.AIDataSource` must describe the AI service's actual MySQL network/address/schema and match the applet database before AI transfer is available. Otherwise only file transfer is available, with an explicit AI reason.
 
-Session maintenance is opt-in: `go run ./application/applet/rpc/cmd/sessioncleanup -f application/applet/rpc/etc/applet.yaml -retention-days 90 -batch-size 200` previews old terminal sessions. Add `-apply` explicitly after reviewing the result. Valid/recent sessions and audits remain; no retention schedule is created automatically.
+Device sessions are retained after expiry or revocation, and no automatic purge is scheduled. Terminal rows can be pruned manually when the table grows, for example `DELETE FROM sys_device_sessions WHERE created_at < NOW() - INTERVAL 90 DAY AND ((revoked_at IS NULL AND expires_at < NOW() - INTERVAL 90 DAY) OR (revoked_at IS NOT NULL AND revoked_at < NOW() - INTERVAL 90 DAY));`. Live and recently revoked sessions and audit records are never touched by that statement.
 
 See [README.md](README.md) for installation, startup, configuration, code generation, tests and deployment; [Docker deployment](docker/部署说明.md) for production service authentication and upgrades.
 

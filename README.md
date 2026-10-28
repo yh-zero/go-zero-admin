@@ -84,6 +84,8 @@ App 使用邮箱或手机号加密码公开注册，注册后为待审核状态�
 
 后台管理员仍保存在 `sys_users`。App 新增 `app_users`、`app_user_identities`、`app_sessions`、`app_membership_plans`、`app_membership_grants` 五张表，使用独立令牌、会话和业务授权；App 用户及 VIP 均不获得后台访问权。访问令牌默认 15 分钟，刷新令牌默认 30 天，刷新时轮换并检测旧令牌复用；退出、撤销设备、禁用账号使相应会话失效，恢复账号需重新登录。
 
+后台设备会话（`sys_device_sessions`）过期或撤销后仍然保留，系统不自动清理，也没有任何内置清理命令；需要精简时由运维手工删除终态行，例如 `DELETE FROM sys_device_sessions WHERE created_at < NOW() - INTERVAL 90 DAY AND ((revoked_at IS NULL AND expires_at < NOW() - INTERVAL 90 DAY) OR (revoked_at IS NOT NULL AND revoked_at < NOW() - INTERVAL 90 DAY));`。该语句不会影响有效会话、近期撤销的会话和审计记录。
+
 “App 会员”页面支持人工开通、续期和撤销。首版提供 `vip` 方案及 `profile.export` 权益，用于导出本人资料的完整接入示例；本人资料接口无需 VIP，会员也不能读取别人的资料。授予记录保留方案/权益快照，续期重试使用同一 `requestId`，撤销只影响指定记录。有效期实时判断，账号禁用期间会员仍按自然时间计时。本模块尚未接入支付、短信、基金业务或移动端客户端。
 
 邮箱注册复用已有 Mail RPC 的 SMTP 发送、5 分钟验证码、限流和一次性校验，使用独立的 `app_register` 场景。同一客户端 IP、同一邮箱每天各最多请求 5 次验证码，按 `Asia/Shanghai` 自然日计数。默认 `APP_EMAIL_VERIFICATION_REQUIRED=false`，允许不提交验证码后人工审核；设为 `true` 后，邮箱注册必须提交 `emailCode`，仍需管理员审核。手机号首版由管理员人工核实。审核页面会区分邮箱已验证、邮箱未验证及手机号待人工核实。
@@ -136,7 +138,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File data/scripts/gen.ps1 rpc app
 powershell -NoProfile -ExecutionPolicy Bypass -File data/scripts/gen.ps1 swagger          # Swagger 文档
 ```
 
-API 生成使用项目自定义模板 [data/goctl/api/](data/goctl/api/)（统一响应格式与 JWT 失效处理）。
+API 生成使用项目自定义模板 [data/goctl/1.10.3/api/](data/goctl/1.10.3/api/)（统一响应格式与 JWT 失效处理；goctl 按 `-home` 下的 `<分类>/<模板>.tpl` 解析，定制层为该目录下的 api/）。
 
 ## 检查与测试
 

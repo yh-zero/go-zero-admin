@@ -1,4 +1,4 @@
-﻿#requires -Version 5.1
+#requires -Version 5.1
 # go-zero-admin 代码生成入口（api / rpc / model / swagger）
 #
 #   .\data\scripts\gen.ps1 api   <module>             生成 API 代码（使用项目自定义模板）
@@ -29,13 +29,13 @@ function Join-Parts([string[]]$Parts) {
 
 function Invoke-ApiGen {
     if (-not $Name) { throw 'Usage: gen.ps1 api <module>   (example: gen.ps1 api applet)' }
-    foreach ($template in @('data/goctl/api/handler.tpl', 'data/goctl/api/main.tpl')) {
+    foreach ($template in @('data/goctl/1.10.3/api/handler.tpl', 'data/goctl/1.10.3/api/main.tpl')) {
         if (-not (Test-Path -LiteralPath $template -PathType Leaf)) { throw ('Custom template not found: ' + $template) }
     }
     Write-Host ('Generating API code for ' + $Name + '...')
     $apiFile = Join-Parts @('application', $Name, 'api', 'desc', ($Name + '.api'))
     $apiDir = Join-Parts @('application', $Name, 'api')
-    & goctl api go -api $apiFile -dir $apiDir -home data/goctl -style=go_zero
+    & goctl api go -api $apiFile -dir $apiDir -home data/goctl/1.10.3 -style=go_zero
     if ($LASTEXITCODE -ne 0) { throw 'goctl api generation failed.' }
 }
 
