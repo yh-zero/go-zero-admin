@@ -1,24 +1,6 @@
-import { request } from '../utils/request';
-import type { CaptchaResp, LoginReq, LoginResp, MenuInfo } from './types';
-
-// 注：以下为接口骨架，联调时启用（request 拦截器 + 后端地址）
-
-export async function fetchCaptcha(): Promise<CaptchaResp> {
-  const { data } = await request.get<{ result: CaptchaResp }>('/sys/auth/captcha');
-  return data.result;
-}
-
-export async function login(req: LoginReq): Promise<LoginResp> {
-  const { data } = await request.post<{ result: LoginResp }>('/sys/auth/login', req);
-  return data.result;
-}
-
-export async function fetchMyMenus(): Promise<MenuInfo[]> {
-  const { data } = await request.get<{ result: MenuInfo[] }>('/sys/menu/my');
-  return data.result;
-}
-
-export async function fetchMyPermCodes(): Promise<string[]> {
-  const { data } = await request.get<{ result: string[] }>('/sys/menu/my/perm-codes');
-  return data.result;
-}
+import { apiGet, apiPost } from '../utils/request';
+import type { CaptchaResp, LoginReq, LoginResp, MenuInfo, ListResult } from './types';
+export const fetchCaptcha = () => apiGet<CaptchaResp>('/sys/auth/captcha');
+export const login = (values: LoginReq) => apiPost<LoginResp>('/sys/auth/login', values);
+export const fetchMyMenus = async (): Promise<MenuInfo[]> => (await apiGet<ListResult<MenuInfo>>('/sys/menu/my')).list ?? [];
+export const fetchMyPermCodes = async (): Promise<string[]> => (await apiGet<{ codes: string[] }>('/sys/menu/my/perm-codes')).codes ?? [];

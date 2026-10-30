@@ -4,10 +4,11 @@
 
 ## 1. 技术栈（固定，禁止擅自新增依赖）
 
-React 19 + TypeScript（严格）+ Vite 8 + antd 5 + @ant-design/pro-components + react-router-dom 7 + @tanstack/react-query + zustand + axios + dayjs。
+React 19 + TypeScript（严格）+ Vite 8 + antd 6 + @ant-design/pro-components + react-router-dom 7 + @tanstack/react-query + zustand + axios + dayjs。
 
 - 新增依赖必须先经批准，并说明理由（同根规范 5）
 - Node `^24`，包管理 `pnpm`（`packageManager` 字段已锁定）
+- 具体版本以 `package.json`、锁文件和实际安装结果为准；当前 antd 声明为 `^6.6.8`，不得按陈旧文档擅自升降级。
 
 ## 2. React 规范
 
@@ -46,7 +47,7 @@ src/
 └── utils/       # request.ts 等
 ```
 
-- 新增页面三步：`pages/<模块>/` 建文件 → `router/index.tsx` 注册表登记（key = 后端菜单 `name`）→ 后端菜单配置 `component` 字段
+- 新增页面三步：`pages/<模块>/` 建文件 → 在 `router/registry.ts` 的 `pages` 与 `pageLinks` 登记（key 与后端菜单 `name` 一致）→ 后端菜单配置对应 `component`。`router/index.tsx` 负责组装路由，不维护页面注册表。
 
 ## 6. 安全
 

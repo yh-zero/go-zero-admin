@@ -26,7 +26,7 @@ func (l *UpdateProfileLogic) UpdateProfile(req *types.UpdateProfileReq) error {
 	actor := &adminpb.Actor{UserId: userID}
 	_, err := l.svcCtx.ProfileRpc.UpdateProfile(l.ctx, &adminpb.UpdateProfileRequest{
 		Actor: actor, Nickname: req.Nickname, RealName: req.RealName,
-		Email: req.Email, Phone: req.Phone, AvatarFileId: 0, // TODO: 前端传 file_id 后映射 Gender: req.Gender,
+		Email: req.Email, Phone: req.Phone, Gender: req.Gender,
 	})
 	return err
 }

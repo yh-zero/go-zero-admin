@@ -3,12 +3,13 @@
 #   .\data\scripts\verify.ps1
 [CmdletBinding()] param()
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'verify-helpers.ps1')
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 Push-Location $projectRoot
 try {
     Write-Host '[1/6] gofmt 检查 ...'
-    $dirty = @(gofmt -l application pkg 2>$null)
-    if ($dirty.Count -gt 0) { throw ('gofmt 未格式化: ' + ($dirty -join ', ')) }
+    $dirty = @(Get-GoFormatDifferences @('application','pkg'))
+    if ($dirty.Count -gt 0) { throw ('gofmt 未格式化（' + $dirty.Count + ' 个文件）: ' + (($dirty | Select-Object -First 5) -join ', ')) }
 
     $prevEap = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'   # PS5.1：原生命令 stderr 警告在 Stop 下会误抛
@@ -28,8 +29,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'go build failed.' }
 
         Write-Host '[4/6] go mod tidy -diff（检测未批准依赖） ...'
-        & go mod tidy -diff
-        if ($LASTEXITCODE -ne 0) { throw 'go.mod/go.sum 不整洁：可能引入了未批准依赖，见 AGENTS.md 第 2.5 条。' }
+        Assert-GoModuleTidy $projectRoot
     }
 
     Write-Host '[5/6] goctl api validate ...'

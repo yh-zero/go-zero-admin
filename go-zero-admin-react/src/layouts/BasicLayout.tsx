@@ -1,95 +1,46 @@
-import { Layout, Menu, Dropdown, Avatar, Space } from 'antd';
-import { useNavigate, Outlet, useLocation } from 'react-router-dom';
-import {
-  DashboardOutlined,
-  UserOutlined,
-  SafetyOutlined,
-  MenuOutlined,
-  PartitionOutlined,
-  BookOutlined,
-  FileOutlined,
-  FileSearchOutlined,
-  ApiOutlined,
-  LogoutOutlined,
-} from '@ant-design/icons';
 import { useEffect, useState } from 'react';
+import { Alert, Avatar, Button, Dropdown, Layout, Menu, Space, Typography } from 'antd';
+import { LogoutOutlined, UserOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { fetchMyMenus, fetchMyPermCodes } from '../api/auth';
+import { fetchProfile } from '../api/profile';
 import { useAuthStore } from '../stores/auth';
-import { fetchMyMenus } from '../api/auth';
-import type { MenuInfo } from '../api/types';
-
-// 菜单图标映射（后端存图标名字符串，前端映射组件）
-const icons: Record<string, React.ReactNode> = {
-  dashboard: <DashboardOutlined />,
-  user: <UserOutlined />,
-  role: <SafetyOutlined />,
-  menu: <MenuOutlined />,
-  dept: <PartitionOutlined />,
-  dict: <BookOutlined />,
-  file: <FileOutlined />,
-  audit: <FileSearchOutlined />,
-  api: <ApiOutlined />,
-};
-
-// 菜单树 → antd Menu items
-function toMenuItems(menus: MenuInfo[]): NonNullable<React.ComponentProps<typeof Menu>['items']> {
-  return menus
-    .filter((m) => m.visible && m.status === 1 && m.type !== 3) // 隐藏按钮类型
-    .sort((a, b) => a.sort - b.sort)
-    .map((m) => ({
-      key: m.path || String(m.id),
-      icon: icons[m.icon] || <DashboardOutlined />,
-      label: m.title,
-      children: m.children ? toMenuItems(m.children) : undefined,
-    }));
-}
+import { clearSession } from '../utils/session';
+import { pageLinks } from '../router/registry';
+import { fallbackItems, toMenuItems } from './navigation';
 
 export default function BasicLayout() {
-  const [menus, setMenus] = useState<MenuInfo[]>([]);
+  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const logout = useAuthStore((s) => s.logout);
-
+  const setPermCodes = useAuthStore(state => state.setPermCodes);
+  const clearPermissions = useAuthStore(state => state.clearPermissions);
+  const menus = useQuery({ queryKey: ['my-menus'], queryFn: fetchMyMenus });
+  const permissions = useQuery({ queryKey: ['perm-codes'], queryFn: fetchMyPermCodes });
+  const profile = useQuery({ queryKey: ['profile'], queryFn: fetchProfile });
   useEffect(() => {
-    fetchMyMenus().then(setMenus).catch(() => {});
-  }, []);
-
-  return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Layout.Sider theme="dark" width={220}>
-        <div style={{ color: '#fff', padding: 16, fontSize: 18, fontWeight: 600 }}>
-          go-zero-admin
-        </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          items={toMenuItems(menus)}
-          selectedKeys={[location.pathname]}
-          onClick={({ key }) => key.startsWith('/') && navigate(key)}
-        />
-      </Layout.Sider>
-      <Layout>
-        <Layout.Header style={{ background: '#fff', padding: '0 24px', textAlign: 'right' }}>
-          <Dropdown
-            menu={{
-              items: [{ key: 'logout', icon: <LogoutOutlined />, label: '退出登录' }],
-              onClick: ({ key }) => {
-                if (key === 'logout') {
-                  logout();
-                  navigate('/login');
-                }
-              },
-            }}
-          >
-            <Space style={{ cursor: 'pointer' }}>
-              <Avatar icon={<UserOutlined />} />
-              admin
-            </Space>
-          </Dropdown>
-        </Layout.Header>
-        <Layout.Content style={{ margin: 24 }}>
-          <Outlet />
-        </Layout.Content>
-      </Layout>
-    </Layout>
-  );
+    if (permissions.isError) clearPermissions();
+    else if (permissions.data) setPermCodes(permissions.data);
+  }, [permissions.data, permissions.isError, setPermCodes, clearPermissions]);
+  const title = pageLinks.find(page => page.path === location.pathname)?.title ?? '管理工作台';
+  const remoteItems = toMenuItems(menus.data ?? []);
+  const menuItems = remoteItems.length ? [{ key: '/dashboard', label: '工作台' }, ...remoteItems.filter(item => item?.key !== '/dashboard')] : fallbackItems;
+  return <Layout className="app-layout">
+    <Layout.Sider width={220} collapsible collapsed={collapsed} onCollapse={setCollapsed} breakpoint="lg" className="app-sider">
+      <div className="app-brand">{collapsed ? 'GZ' : 'go-zero-admin'}</div>
+      <Menu theme="dark" mode="inline" items={menuItems} selectedKeys={[location.pathname]} onClick={({ key }) => { if (key.startsWith('/')) navigate(key); }} />
+    </Layout.Sider>
+    <Layout><Layout.Header className="app-header"><Space>
+      <Button type="text" aria-label={collapsed ? '展开导航' : '收起导航'} icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} onClick={() => setCollapsed(!collapsed)} />
+      <Typography.Text strong>{title}</Typography.Text>
+    </Space><Dropdown menu={{ items: [{ key: 'profile', label: '个人中心', icon: <UserOutlined /> }, { key: 'logout', label: '退出登录', icon: <LogoutOutlined /> }], onClick: ({ key }) => { if (key === 'logout') { clearSession(); navigate('/login', { replace: true }); } else navigate('/sys/profile'); } }}>
+      <Button type="text"><Space><Avatar size="small" icon={<UserOutlined />} />{profile.data?.nickname || profile.data?.username || '当前用户'}</Space></Button>
+    </Dropdown></Layout.Header>
+    <Layout.Content className="app-content">
+      {menus.isError && <Alert className="integration-alert" type="warning" showIcon title="导航暂不可用，已显示接入页面入口；具体访问仍需后端授权。" action={<Button size="small" onClick={() => void menus.refetch()}>重试</Button>} />}
+      {permissions.isError && <Alert className="integration-alert" type="warning" showIcon title="操作权限加载失败，管理写操作已隐藏。" action={<Button size="small" onClick={() => void permissions.refetch()}>重试</Button>} />}
+      <Outlet />
+    </Layout.Content></Layout>
+  </Layout>;
 }

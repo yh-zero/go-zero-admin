@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"go-zero-admin/application/admin/api/internal/config"
 	"go-zero-admin/application/admin/api/internal/handler"
@@ -48,21 +47,21 @@ func main() {
 
 	// Casbin Authority 全局中间件（公开路由放行）
 	authority := middleware.NewAuthority(ctx.Enforcer, c.Auth.AccessSecret)
-	server.Use(func(next http.HandlerFunc) http.HandlerFunc {
+	server.Use(authorizationMiddleware(authority))
+
+	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
+	server.Start()
+}
+
+func authorizationMiddleware(authority *middleware.Authority) rest.Middleware {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		protected := authority.Handle(next)
 		return func(w http.ResponseWriter, r *http.Request) {
 			if publicPaths[r.URL.Path] {
 				next(w, r)
 				return
 			}
-			// 带 Bearer token 的走鉴权，否则也放行（让具体接口决定）
-			if strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
-				authority.Handle(next)(w, r)
-				return
-			}
-			next(w, r)
+			protected(w, r)
 		}
-	})
-
-	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
-	server.Start()
+	}
 }

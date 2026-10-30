@@ -1,56 +1,83 @@
 # go-zero-admin-react
 
-管理后台前端（React 19 + TypeScript + Vite + antd 5）。
+管理后台前端：React 19、TypeScript 严格模式、Vite 8、TanStack Query、zustand、axios、antd。沿用当前锁文件版本（目前 antd 6.6.8），未新增或升级依赖。
 
-> 骨架阶段：接口层保留类型定义与调用签名，尚未与后端联调。
+## 已接入范围
 
-## 技术栈
+现有 HTTP 注册路由共 41 项，API 函数和页面已覆盖；这表示前端实现已接入，不代表受阻后端链路全部验收通过。
 
-| 能力 | 选型 |
-|---|---|
-| 构建 | Vite 8 + React 19 + TypeScript |
-| 组件 | antd 5（+ @ant-design/icons） |
-| 效率组件 | @ant-design/pro-components（ProTable / ProForm） |
-| 路由 | react-router-dom 7（静态路由 + 后端菜单动态注入） |
-| 服务端状态 | @tanstack/react-query |
-| 客户端状态 | zustand（persist 到 localStorage） |
-| HTTP | axios |
+| 模块 | HTTP 数 | 前端能力 |
+|---|---:|---|
+| 认证 | 2 | 验证码、真实登录、会话恢复、过期退出 |
+| 用户 | 7 | 分页筛选、详情、新增、编辑、删除、重置密码、个人改密 |
+| 部门 | 4 | 扁平数据构树、筛选、新增、编辑、删除 |
+| 角色 | 6 | 筛选、详情、增改删、菜单授权 |
+| 菜单 | 8 | 列表/树、详情、增改删、我的菜单和权限码 |
+| 字典 | 5 | 筛选、按编码详情、增改删、字典项表单 |
+| API 资源 | 2 | 筛选与删除资源登记 |
+| 文件 | 3 | 筛选、访问链接、删除、引用保护 |
+| 审计 | 1 | 筛选、分页和当前返回字段详情 |
+| 个人资料 | 2 | 读取与文本资料保存；风险字段降级 |
+| 健康检查 | 1 | 工作台服务连接状态 |
 
-## 目录
+当前没有 HTTP 的上传、用户角色分配、App/AI/租户能力不添加虚构请求。
 
-```
-src/
-├── api/          接口定义 + 类型（types.ts 与后端 REST 契约一致）
-├── components/   通用组件（Auth.tsx 按钮级权限）
-├── layouts/      BasicLayout（侧边菜单 + 顶栏）
-├── pages/        业务页面（login / dashboard …）
-├── router/       路由表 + 动态路由注入器
-├── stores/       zustand（auth.ts）
-├── utils/        request.ts（axios 封装）
-├── App.tsx       Provider 组合
-└── main.tsx      入口
-```
+## 开发与检查
 
-## 约定
+Node 24，pnpm 11.28.5。依赖按锁文件安装：
 
-1. **接口契约**：REST 返回 `{ code, msg, result }`，`code === 200` 为成功；类型定义集中在 `api/types.ts`。
-2. **权限**：
-   - 菜单级 → `GET /sys/menu/my` 返回菜单树，`router.injectDynamicRoutes()` 注入路由。
-   - 按钮级 → `GET /sys/menu/my/perm-codes` 返回权限码，存 zustand，用 `<Auth code="...">` 控制渲染。
-3. **新增页面**：在 `pages/` 建文件 → 在 `router/index.tsx` 的 `pages` 注册表登记（key = 后端菜单的 `name`）。
-4. **安全**：
-   - token 只存 zustand + localStorage，请求经拦截器注入 `Authorization`。
-   - 401 统一登出并跳登录页（拦截器内实现）。
-   - 不在前端硬编码后端密钥或管理接口地址。
-5. **样式**：以 antd 组件为准，`index.css` 只做必要 reset。
-
-## 开发
-
-```bash
-pnpm install
-pnpm dev        # http://localhost:5999
-pnpm build      # 产物 dist/
-npx tsc -b      # 类型检查
+```powershell
+pnpm install --frozen-lockfile
+pnpm dev
+pnpm build
+pnpm lint
 ```
 
-后端默认地址 `http://127.0.0.1:7001`，已配在 `vite.config.ts` 的 `/v1` 代理。
+默认前端地址 http://127.0.0.1:5999，代理后端 7001。可复制 .env.example 到被忽略的 .env.local，或在当前终端指定代理目标：
+
+```powershell
+$env:VITE_API_PROXY_TARGET='http://127.0.0.1:17001'
+pnpm dev
+```
+
+VITE_API_BASE_URL 控制浏览器请求前缀，默认 /v1；VITE_API_PROXY_TARGET 控制开发服务器的 /v1 和 /ping 代理。前端环境变量均会公开到客户端，不放任何密钥。
+
+本机 7001 当前属于另一个项目。此次验收使用仓库外临时后端配置与 API 17001、MySQL3307、Redis16379、RustFS19000。后端配合修复已获用户授权，详见问题文档。当前源码 YAML 的数据库密码与独立测试库不匹配，启动前需配置正确的本地连接信息，不应误连其他项目。
+
+## 对接约定
+
+所有请求经 src/utils/request.ts：标准 Bearer、业务错误统一提示、HTTP/业务401清会话。集中兼容当前裸成功对象、空写响应和契约信封。服务端数据用 Query，写成功使相关查询失效；退出会取消实际 HTTP 请求并清缓存，迟到的旧会话响应不能注销新账号。
+
+权限仅采用后端返回的权限码，读取失败时不开放管理写操作；提交时再次检查当前权限，已打开弹窗也不能沿用失效权限。后端仍是实际授权边界。菜单采用本地组件白名单和安全内部路径，支持嵌套与刷新恢复；导航失败提供已接入页面入口及重试。
+
+用户、角色编辑先读详情并完整提交；角色菜单读取失败时禁止清空提交。后台刷新只回填未编辑字段，保留当前草稿；切换对象或关闭重开清理旧草稿。各分页列表删除后若当前页超出有效范围，会实际重新请求新的末页，并保留筛选与每页条数。
+
+部门不开放当前服务无法正确维护路径的移动操作。菜单删除已由后端改为按父子关系删除子树并清理授权，前端确认框同步说明影响范围。个人资料保存正确保留性别；不提供未接入的头像上传。
+
+## 测试数据
+
+已有独立 MySQL 容器 gozero-new-mysql，业务库 gozero_admin。导入脚本仅允许该容器与库：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/seed-test-data.ps1
+```
+
+fixture 使用 demo_ 前缀及 ID9001000–9001999，重复导入不会重复插入；逐条双向核对固定 ID 与自然身份，冲突时在持久化写入之前中止，不覆盖已有业务数据、不追加权限。所有持久化写入位于同一事务；无关表和保留区间内非 fixture 空位不被误判为冲突。
+
+本轮种子回归在独立临时 MySQL 库完成，14 项场景通过；临时测试脚本在验证后按用户要求删除。日常导入仍使用上方 `seed-test-data.ps1`。
+
+包含5部门、28用户、4角色、31菜单、75菜单关联、41条真实API资源、4字典、32条demo主体Casbin规则、12条明确标记模拟审计。账号 demo_user_01 至 demo_user_28 沿用本地种子管理员密码，每第7个账号停用；脚本从既有管理员取哈希，不写入密码/哈希或输出令牌。
+
+本次另创建3份真实存储对象及元数据：demo-readme.txt（公开）、demo-report.csv（私有）、demo-referenced.txt（被引用）。它们位于独立 gozero-integration-rustfs 容器的持久数据卷；SQL脚本不假造这些对象，单独运行SQL脚本不会重新上传文件。
+
+另将8处已精确证明为误转码的默认种子中文修回原SQL文本；账号、密码、权限、状态和更新时间未变。联调临时账号、字典与这些保留数据分开清理。
+
+固定 fixture ID 会推进自增序列，后续新增记录应继续使用明确的 demo_ 标识；不要手工把真实业务记录放入保留区间。
+
+## 后端阻塞与验收边界
+
+后端偏差、源码证据、最新修复状态和后续优化均见 [后端 API 对接问题](../ai_document/backend-api-integration-issues.md)，以文档顶部 2026-10-31 状态为准。
+
+菜单、我的权限、API资源、审计和字典详情阻塞已修复。真实浏览器使用后端返回的权限完成登录、写按钮呈现、新增用户和末页删除、资料保存；数据页面与公开/私有文件链接正常。权限刷新和并发问题已通过后端测试及真实调用验证。
+
+成功信封、其他列表部分字段别名、角色授权事务、部门移动/缓存和头像等偏差仍有保留项；未开放的 HTTP 能力没有伪造实现。删除临时测试前，前端 22 项 Node 回归已通过；TypeScript、生产构建与 lint 通过，构建仍有共享包体积提示。本轮新增的前后端临时测试代码已按用户要求清理，验证记录保留。

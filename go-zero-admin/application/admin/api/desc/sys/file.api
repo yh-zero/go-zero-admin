@@ -17,7 +17,7 @@ type (
         Visibility   string `json:"visibility"`
         RefCount     int32  `json:"ref_count"`
         UploaderId   int64  `json:"uploader_id"`
-        URL          string `json:"url,optional""`
+        URL          string `json:"url,optional"`
         CreatedAt    int64  `json:"created_at"`
     }
 
