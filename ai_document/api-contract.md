@@ -89,3 +89,28 @@
 2. 后端：改 desc/*.api 或 proto → `gen.ps1` 重新生成 → 实现 logic
 3. 前端：改 `api/types.ts` + 对应 api 模块
 4. 两端各自过自检（verify.ps1 / tsc+build）
+
+## 8. 接口实现状态矩阵
+
+> 前端联调以本表为准：✅ 已 e2e 验证；🟡 代码完成未实测。
+> 状态变更（实测通过/发现偏差）时同步更新本表。
+
+| 接口 | 后端 | 前端 | 验证状态 |
+|---|---|---|---|
+| POST /sys/auth/login | ✅ | ✅ | ✅ 已 e2e（含验证码） |
+| GET /sys/auth/captcha | ✅ | ✅ | ✅ 已 e2e |
+| GET /sys/user/list | ✅ | ⏳ | ✅ 已 e2e |
+| 用户 CRUD 其余 6 接口 | ✅ | ⏳ | 🟡 未实测 |
+| GET /sys/dept/tree | ✅ | ⏳ | ✅ 已 e2e |
+| 部门 CRUD 其余 3 接口 | ✅ | ⏳ | 🟡 未实测 |
+| GET /sys/role/list | ✅ | ⏳ | ✅ 已 e2e |
+| 角色 CRUD + 菜单授权 5 接口 | ✅ | ⏳ | 🟡 未实测 |
+| GET /sys/file/list · /:id/url · DELETE /:id | ✅ | ✅ | ✅ 已 e2e |
+| 菜单 8 接口 | ✅ | ⏳ | 🟡 未实测 |
+| 字典 5 接口 | ✅ | ⏳ | 🟡 未实测 |
+| API 资源 2 接口 | ✅ | ⏳ | 🟡 未实测 |
+| 审计 1 接口 | ✅ | ⏳ | 🟡 未实测 |
+| 个人中心 2 接口 | ✅ | ⏳ | 🟡 未实测 |
+| App / AI / 租户（RPC） | ✅ | ⏳ | 🟡 app/ai/tenant 核心链路已 e2e |
+
+**最近更新：2026-10-30**
