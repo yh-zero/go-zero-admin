@@ -1,0 +1,18 @@
+Name: admin-rpc
+ListenOn: 0.0.0.0:6001
+
+Mysql:
+  DataSource: root:123456@tcp(127.0.0.1:3307)/gozero_admin?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: 127.0.0.1:6379
+    Type: node
+
+JwtAuth:
+  AccessSecret: go-zero-admin-local-development-jwt-secret
+  AccessExpire: 7200
+
+Captcha:
+  ExpireSeconds: 120
+
+DefaultUserPassword: Admin@123456

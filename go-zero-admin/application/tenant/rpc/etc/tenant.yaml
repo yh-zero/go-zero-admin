@@ -1,0 +1,17 @@
+Name: tenant-rpc
+ListenOn: 0.0.0.0:6005
+
+# 平台控制库（tenant_registry）
+Mysql:
+  DataSource: root:123456@tcp(127.0.0.1:3307)/gozero_platform?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: 127.0.0.1:6379
+    Type: node
+
+# 租户 provisioning 配置
+Tenant:
+  StackTemplateDir: docker/tenant-stack     # 租户栈模板目录（相对仓库根）
+  NginxConfDir: docker/nginx/conf.d         # Nginx server 块输出目录
+  EdgeNetwork: gozero-edge                  # 共享 docker 网络
+  DomainSuffix: localhost                   # 子域名后缀（本地 *.localhost，生产 *.example.com）

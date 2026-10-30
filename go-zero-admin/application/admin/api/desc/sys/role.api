@@ -1,0 +1,96 @@
+syntax = "v1"
+
+info (
+	title:   "角色管理"
+	version: "v1"
+)
+
+type (
+    RoleInfo {
+        Id          int64   `json:"id"`
+        Name        string  `json:"name"`
+        Code        string  `json:"code"`
+        Description string  `json:"description"`
+        DataScope   string  `json:"data_scope"`
+        Sort        int32   `json:"sort"`
+        Status      int32   `json:"status"`
+        MenuIds     []int64 `json:"menu_ids"`
+        UserCount   int64   `json:"user_count"`
+        CreatedAt   int64   `json:"created_at"`
+        UpdatedAt   int64   `json:"updated_at"`
+    }
+
+    GetRoleListReq {
+        Page     int64  `json:"page,optional" form:"page,optional"`
+        PageSize int64  `json:"page_size,optional" form:"page_size,optional"`
+        Name     string `json:"name,optional" form:"name,optional"`
+        Code     string `json:"code,optional" form:"code,optional"`
+        Status   int32  `json:"status,optional" form:"status,optional"`
+    }
+    GetRoleListResp {
+        List  []*RoleInfo `json:"list"`
+        Total int64        `json:"total"`
+    }
+
+    GetRoleReq {
+        Id int64 `path:"id"`
+    }
+    GetRoleResp {
+        Role *RoleInfo `json:"role"`
+    }
+
+    CreateRoleReq {
+        Name        string  `json:"name"`
+        Code        string  `json:"code"`
+        Description string  `json:"description,optional"`
+        DataScope   string  `json:"data_scope,optional"`
+        Sort        int32   `json:"sort,optional"`
+        Status      int32   `json:"status,optional"`
+        MenuIds     []int64 `json:"menu_ids,optional"`
+    }
+
+    UpdateRoleReq {
+        Id          int64   `path:"id"`
+        Name        string  `json:"name,optional"`
+        Code        string  `json:"code,optional"`
+        Description string  `json:"description,optional"`
+        DataScope   string  `json:"data_scope,optional"`
+        Sort        int32   `json:"sort,optional"`
+        Status      int32   `json:"status,optional"`
+        MenuIds     []int64 `json:"menu_ids,optional"`
+    }
+
+    DeleteRoleReq {
+        Id int64 `path:"id"`
+    }
+
+    UpdateRoleMenusReq {
+        Id      int64   `path:"id"`
+        MenuIds []int64 `json:"menu_ids"`
+    }
+)
+
+@server (
+	prefix: v1/sys/role
+	group:  role
+	jwt:    Auth
+)
+service admin {
+	@handler getRoleList
+	get /list (GetRoleListReq) returns (GetRoleListResp)
+
+	@handler getRole
+	get /:id (GetRoleReq) returns (GetRoleResp)
+
+	@handler createRole
+	post /create (CreateRoleReq)
+
+	@handler updateRole
+	put /:id (UpdateRoleReq)
+
+	@handler deleteRole
+	delete /:id (DeleteRoleReq)
+
+	@handler updateRoleMenus
+	post /:id/menus (UpdateRoleMenusReq)
+}

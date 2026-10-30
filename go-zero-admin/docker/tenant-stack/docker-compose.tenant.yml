@@ -1,0 +1,62 @@
+# 租户栈模板（tenant-rpc 以 COMPOSE_PROJECT_NAME=gozero-t-${SLUG} 拉起）
+# 约定：api 在共享网络 gozero-edge 上以别名 ${SLUG}-api 注册（避免多租户服务名冲突）；
+#       不暴露任何宿主端口；migrate 一次性执行 goose 迁移与种子数据。
+name: gozero-t-${TENANT_SLUG}
+
+x-service-environment: &service-environment
+  MYSQL_ADDR: mysql:3306
+  MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero_admin}"
+  REDIS_ADDR: redis:6379
+
+services:
+  api:
+    build: { context: ., dockerfile: docker/Dockerfile, target: api }
+    networks:
+      default: {}
+      gozero-edge:
+        aliases: ["${TENANT_SLUG}-api"]
+    depends_on: [admin-rpc, app-rpc, file-rpc]
+
+  admin-rpc:
+    build: { context: ., dockerfile: docker/Dockerfile, target: admin-rpc }
+    environment: *service-environment
+    depends_on: [migrate]
+
+  app-rpc:
+    build: { context: ., dockerfile: docker/Dockerfile, target: app-rpc }
+    environment: *service-environment
+    depends_on: [migrate]
+
+  file-rpc:
+    build: { context: ., dockerfile: docker/Dockerfile, target: file-rpc }
+    environment: *service-environment
+    depends_on: [migrate]
+
+  ai-rpc:
+    build: { context: ., dockerfile: docker/Dockerfile, target: ai-rpc }
+    environment: *service-environment
+    depends_on: [migrate]
+
+  migrate:
+    build: { context: ., dockerfile: docker/Dockerfile, target: migrate }
+    environment: *service-environment
+    depends_on: [mysql]
+
+  mysql:
+    image: mysql:9.7
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero_admin}"
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:latest
+
+volumes:
+  mysql_data:
+
+networks:
+  gozero-edge:
+    external: true

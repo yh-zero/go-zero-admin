@@ -1,0 +1,116 @@
+syntax = "v1"
+
+info (
+	title:   "用户管理"
+	version: "v1"
+)
+
+type (
+    UserInfo {
+        Id           int64  `json:"id"`
+        Username     string `json:"username"`
+        Nickname     string `json:"nickname"`
+        RealName     string `json:"real_name"`
+        Email        string `json:"email"`
+        Phone        string `json:"phone"`
+        DeptId       int64  `json:"dept_id"`
+        DeptName     string `json:"dept_name"`
+        AvatarFileId int64  `json:"avatar_file_id"`
+        Gender       int32  `json:"gender"`
+        Status       int32  `json:"status"`
+        Remark       string `json:"remark"`
+        LastLoginAt  int64  `json:"last_login_at"`
+        LastLoginIp  string `json:"last_login_ip"`
+        CreatedAt    int64  `json:"created_at"`
+        UpdatedAt    int64  `json:"updated_at"`
+    }
+
+    GetUserListReq {
+        Page     int64  `json:"page,optional" form:"page,optional"`
+        PageSize int64  `json:"page_size,optional" form:"page_size,optional"`
+        Username string `json:"username,optional" form:"username,optional"`
+        Nickname string `json:"nickname,optional" form:"nickname,optional"`
+        DeptId   int64  `json:"dept_id,optional" form:"dept_id,optional"`
+        Status   int32  `json:"status,optional" form:"status,optional"`
+    }
+    GetUserListResp {
+        List  []*UserInfo `json:"list"`
+        Total int64       `json:"total"`
+    }
+
+    GetUserReq {
+        Id int64 `path:"id"`
+    }
+    GetUserResp {
+        User *UserInfo `json:"user"`
+    }
+
+    CreateUserReq {
+        Username     string `json:"username"`
+        Password     string `json:"password"`
+        Nickname     string `json:"nickname,optional"`
+        RealName     string `json:"real_name,optional"`
+        Email        string `json:"email,optional"`
+        Phone        string `json:"phone,optional"`
+        DeptId       int64  `json:"dept_id,optional"`
+        AvatarFileId int64  `json:"avatar_file_id,optional"`
+        Gender       int32  `json:"gender,optional"`
+        Status       int32  `json:"status,optional"`
+        Remark       string `json:"remark,optional"`
+    }
+
+    UpdateUserReq {
+        Id           int64  `path:"id"`
+        Nickname     string `json:"nickname,optional"`
+        RealName     string `json:"real_name,optional"`
+        Email        string `json:"email,optional"`
+        Phone        string `json:"phone,optional"`
+        DeptId       int64  `json:"dept_id,optional"`
+        AvatarFileId int64  `json:"avatar_file_id,optional"`
+        Gender       int32  `json:"gender,optional"`
+        Status       int32  `json:"status,optional"`
+        Remark       string `json:"remark,optional"`
+    }
+
+    DeleteUserReq {
+        Id int64 `path:"id"`
+    }
+
+    ResetPasswordReq {
+        Id          int64  `path:"id"`
+        NewPassword string `json:"new_password"`
+    }
+
+    ChangePasswordReq {
+        OldPassword string `json:"old_password"`
+        NewPassword string `json:"new_password"`
+    }
+)
+
+@server (
+	prefix: v1/sys/user
+	group:  user
+	jwt:    Auth
+)
+service admin {
+	@handler getUserList
+	get /list (GetUserListReq) returns (GetUserListResp)
+
+	@handler getUser
+	get /:id (GetUserReq) returns (GetUserResp)
+
+	@handler createUser
+	post /create (CreateUserReq)
+
+	@handler updateUser
+	put /:id (UpdateUserReq)
+
+	@handler deleteUser
+	delete /:id (DeleteUserReq)
+
+	@handler resetPassword
+	post /:id/password (ResetPasswordReq)
+
+	@handler changePassword
+	post /password/change (ChangePasswordReq)
+}

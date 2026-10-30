@@ -1,0 +1,9 @@
+.env
+*.exe
+/bin/
+/dist/
+/tmp/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

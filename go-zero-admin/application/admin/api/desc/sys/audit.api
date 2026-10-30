@@ -1,0 +1,47 @@
+syntax = "v1"
+
+info (
+	title:   "审计日志"
+	version: "v1"
+)
+
+type (
+    AuditLogInfo {
+        Id         int64  `json:"id"`
+        UserId     int64  `json:"user_id"`
+        Username   string `json:"username"`
+        Module     string `json:"module"`
+        Action     string `json:"action"`
+        Method     string `json:"method"`
+        Path       string `json:"path"`
+        Result     int32  `json:"result"`
+        ErrorMsg   string `json:"error_msg"`
+        Ip         string `json:"ip"`
+        DurationMs int32  `json:"duration_ms"`
+        CreatedAt  int64  `json:"created_at"`
+    }
+
+    GetAuditLogListReq {
+        Page     int64  `json:"page,optional" form:"page,optional"`
+        PageSize int64  `json:"page_size,optional" form:"page_size,optional"`
+        Module   string `json:"module,optional" form:"module,optional"`
+        Action   string `json:"action,optional" form:"action,optional"`
+        UserId   int64  `json:"user_id,optional" form:"user_id,optional"`
+        Result   int32  `json:"result,optional" form:"result,optional"`
+    }
+    GetAuditLogListResp {
+        List  []*AuditLogInfo `json:"list"`
+        Total int64           `json:"total"`
+    }
+)
+
+@server (
+	prefix: v1/sys/audit
+	group:  audit
+	jwt:    Auth
+)
+service admin {
+	@handler getAuditLogList
+	get /list (GetAuditLogListReq) returns (GetAuditLogListResp)
+
+}

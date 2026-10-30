@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+option go_package = "./aipb";
+package aipb;
+
+// ai-rpc：AI 助手平台（阶段 1 工具调用 Agent + 阶段 2 工作流编排）
+
+message PageRequest { int64 page = 1; int64 page_size = 2; }
+message PageResponse { int64 total = 1; }
+message NoDataResponse {}
+message Actor { int64 user_id = 1; string username = 2; int64 dept_id = 3; string ip = 4; string user_agent = 5; }
+
+// ========== 会话与消息（阶段 1） ==========
+message ChatMessage {
+  int64 id = 1; string role = 2; string content = 3; string tool_calls = 4; int64 tokens = 5; int64 created_at = 6;
+}
+message ConversationInfo {
+  int64 id = 1; string title = 2; int64 user_id = 3; int64 message_count = 4; int64 created_at = 5; int64 updated_at = 6;
+}
+
+message CreateConversationRequest { Actor actor = 1; string title = 2; }
+message CreateConversationResponse { ConversationInfo conversation = 1; }
+message ListConversationsRequest { Actor actor = 1; PageRequest page = 2; }
+message ListConversationsResponse { repeated ConversationInfo list = 1; PageResponse page = 2; }
+message GetConversationRequest { Actor actor = 1; int64 conversation_id = 2; }
+message GetConversationResponse { ConversationInfo conversation = 1; repeated ChatMessage messages = 2; }
+message DeleteConversationRequest { Actor actor = 1; int64 conversation_id = 2; }
+
+// SendMessage：多轮 function calling（LLM 提议工具 → 服务端执行 → 回填），最多 5 轮
+message SendMessageRequest {
+  Actor actor = 1;
+  int64 conversation_id = 2;   // 0 = 自动创建新会话
+  string content = 3;
+}
+message SendMessageResponse { ChatMessage user_message = 1; ChatMessage ai_message = 2; }
+
+// ========== 工具注册表（阶段 1） ==========
+message ToolInfo { string name = 1; string description = 2; string parameters_schema = 3; }
+message ListToolsRequest { Actor actor = 1; }
+message ListToolsResponse { repeated ToolInfo list = 1; }
+
+// ========== 工作流（阶段 2） ==========
+message WorkflowInfo {
+  int64 id = 1; string name = 2; string definition = 3; int64 interval_seconds = 4;
+  int64 enabled = 5; int64 next_run_at = 6; int64 created_by = 7; int64 created_at = 8; int64 updated_at = 9;
+}
+
+// definition JSON DSL：{"steps":[{"name":"","tool":"","input":{},"approval":true}]}
+message CreateWorkflowRequest { Actor actor = 1; string name = 2; string definition = 3; int64 interval_seconds = 4; }
+message CreateWorkflowResponse { WorkflowInfo workflow = 1; }
+message ListWorkflowsRequest { Actor actor = 1; PageRequest page = 2; }
+message ListWorkflowsResponse { repeated WorkflowInfo list = 1; PageResponse page = 2; }
+message GetWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; }
+message GetWorkflowResponse { WorkflowInfo workflow = 1; }
+message UpdateWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; string name = 3; string definition = 4; int64 interval_seconds = 5; int64 enabled = 6; }
+message DeleteWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; }
+message RunWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; string input = 3; }
+message RunWorkflowResponse { int64 task_id = 1; string status = 2; }
+
+// ========== 任务与审批（阶段 2） ==========
+message AgentTaskInfo {
+  int64 id = 1; int64 workflow_id = 2; int64 conversation_id = 3; string status = 4;
+  string input = 5; string result = 6; string error = 7; int64 approved_by = 8;
+  int64 created_at = 9; int64 completed_at = 10;
+}
+message ListAgentTasksRequest { Actor actor = 1; PageRequest page = 2; string status = 3; int64 workflow_id = 4; }
+message ListAgentTasksResponse { repeated AgentTaskInfo list = 1; PageResponse page = 2; }
+message GetAgentTaskRequest { Actor actor = 1; int64 task_id = 2; }
+message GetAgentTaskResponse { AgentTaskInfo task = 1; }
+message ApproveTaskRequest { Actor actor = 1; int64 task_id = 2; }
+message RejectTaskRequest { Actor actor = 1; int64 task_id = 2; string reason = 3; }
+
+service AiService {
+  rpc CreateConversation(CreateConversationRequest) returns (CreateConversationResponse);
+  rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse);
+  rpc GetConversation(GetConversationRequest) returns (GetConversationResponse);
+  rpc DeleteConversation(DeleteConversationRequest) returns (NoDataResponse);
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  rpc ListTools(ListToolsRequest) returns (ListToolsResponse);
+
+  rpc CreateWorkflow(CreateWorkflowRequest) returns (CreateWorkflowResponse);
+  rpc ListWorkflows(ListWorkflowsRequest) returns (ListWorkflowsResponse);
+  rpc GetWorkflow(GetWorkflowRequest) returns (GetWorkflowResponse);
+  rpc UpdateWorkflow(UpdateWorkflowRequest) returns (NoDataResponse);
+  rpc DeleteWorkflow(DeleteWorkflowRequest) returns (NoDataResponse);
+  rpc RunWorkflow(RunWorkflowRequest) returns (RunWorkflowResponse);
+
+  rpc ListAgentTasks(ListAgentTasksRequest) returns (ListAgentTasksResponse);
+  rpc GetAgentTask(GetAgentTaskRequest) returns (GetAgentTaskResponse);
+  rpc ApproveTask(ApproveTaskRequest) returns (NoDataResponse);
+  rpc RejectTask(RejectTaskRequest) returns (NoDataResponse);
+}

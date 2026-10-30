@@ -1,0 +1,112 @@
+syntax = "v1"
+
+info (
+	title:   "菜单管理"
+	version: "v1"
+)
+
+type (
+    MenuInfo {
+        Id        int64  `json:"id"`
+        ParentId  int64  `json:"parent_id"`
+        Title     string `json:"title"`
+        Name      string `json:"name"`
+        Type      int32  `json:"type"`
+        Path      string `json:"path"`
+        Component string `json:"component"`
+        PermCode  string `json:"perm_code"`
+        Icon      string `json:"icon"`
+        Sort      int32  `json:"sort"`
+        Visible   bool   `json:"visible"`
+        Status    int32  `json:"status"`
+        CreatedAt int64  `json:"created_at"`
+    }
+
+    GetMenuTreeReq {
+        Type   int32 `json:"type,optional" form:"type,optional"`
+        Status int32 `json:"status,optional" form:"status,optional"`
+    }
+    GetMenuTreeResp { List []*MenuInfo `json:"list"` }
+
+    GetMenuListReq {
+        Page     int64 `json:"page,optional" form:"page,optional"`
+        PageSize int64 `json:"page_size,optional" form:"page_size,optional"`
+        ParentId int64 `json:"parent_id,optional" form:"parent_id,optional"`
+        Type     int32 `json:"type,optional" form:"type,optional"`
+    }
+    GetMenuListResp {
+        List  []*MenuInfo `json:"list"`
+        Total int64        `json:"total"`
+    }
+
+    GetMenuReq { Id int64 `path:"id"` }
+    GetMenuResp { Menu *MenuInfo `json:"menu"` }
+
+    CreateMenuReq {
+        ParentId  int64  `json:"parent_id,optional"`
+        Title     string `json:"title"`
+        Name      string `json:"name,optional"`
+        Type      int32  `json:"type"`
+        Path      string `json:"path,optional"`
+        Component string `json:"component,optional"`
+        PermCode  string `json:"perm_code,optional"`
+        Icon      string `json:"icon,optional"`
+        Sort      int32  `json:"sort,optional"`
+        Visible   bool   `json:"visible,optional"`
+        Status    int32  `json:"status,optional"`
+    }
+
+    UpdateMenuReq {
+        Id        int64  `path:"id"`
+        ParentId  int64  `json:"parent_id,optional"`
+        Title     string `json:"title,optional"`
+        Name      string `json:"name,optional"`
+        Type      int32  `json:"type,optional"`
+        Path      string `json:"path,optional"`
+        Component string `json:"component,optional"`
+        PermCode  string `json:"perm_code,optional"`
+        Icon      string `json:"icon,optional"`
+        Sort      int32  `json:"sort,optional"`
+        Visible   bool   `json:"visible,optional"`
+        Status    int32  `json:"status,optional"`
+    }
+
+    DeleteMenuReq { Id int64 `path:"id"` }
+
+    GetMyMenusReq {}
+    GetMyMenusResp { List []*MenuInfo `json:"list"` }
+    GetMyPermCodesReq {}
+    GetMyPermCodesResp { Codes []string `json:"codes"` }
+)
+
+@server (
+	prefix: v1/sys/menu
+	group:  menu
+	jwt:    Auth
+)
+service admin {
+	@handler getMenuTree
+	get /tree (GetMenuTreeReq) returns (GetMenuTreeResp)
+
+	@handler getMenuList
+	get /list (GetMenuListReq) returns (GetMenuListResp)
+
+	@handler getMenu
+	get /:id (GetMenuReq) returns (GetMenuResp)
+
+	@handler createMenu
+	post /create (CreateMenuReq)
+
+	@handler updateMenu
+	put /:id (UpdateMenuReq)
+
+	@handler deleteMenu
+	delete /:id (DeleteMenuReq)
+
+	@handler getMyMenus
+	get /my (GetMyMenusReq) returns (GetMyMenusResp)
+
+	@handler getMyPermCodes
+	get /my/perm-codes (GetMyPermCodesReq) returns (GetMyPermCodesResp)
+
+}

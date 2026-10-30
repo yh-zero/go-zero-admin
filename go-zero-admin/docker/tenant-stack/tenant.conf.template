@@ -1,0 +1,11 @@
+# 租户 Nginx server 块模板（由 tenant-rpc 渲染 ${SLUG} 后写入 conf.d/）
+server {
+    listen 80;
+    server_name ${SLUG}.localhost;
+    location / {
+        proxy_pass http://${SLUG}-api:7001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}

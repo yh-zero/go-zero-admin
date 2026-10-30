@@ -1,0 +1,98 @@
+name: gozero-platform
+
+# 平台栈（第 0 号租户）：nginx + api + 5rpc + mysql + redis + rustfs + migrate + swagger-ui
+# 共享网络 gozero-edge 供租户栈注册别名；租户栈由 tenant-rpc 另行拉起。
+# TODO: 骨架阶段，健康检查与完整环境变量在 compose 定型时补齐
+
+x-service-environment: &service-environment
+  MYSQL_ADDR: mysql:3306
+  MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero_admin}"
+  REDIS_ADDR: redis:6379
+  JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET}"
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    ports: ["80:80"]
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    networks: [default, gozero-edge]
+    depends_on: [api]
+
+  api:
+    build: { context: ., dockerfile: docker/Dockerfile, target: api }
+    environment: *service-environment
+    depends_on: [admin-rpc, app-rpc, file-rpc, ai-rpc]
+
+  admin-rpc:
+    build: { context: ., dockerfile: docker/Dockerfile, target: admin-rpc }
+    environment: *service-environment
+    depends_on: [migrate]
+
+  app-rpc:
+    build: { context: ., dockerfile: docker/Dockerfile, target: app-rpc }
+    environment:
+      <<: *service-environment
+      SMTP_HOST: "${SMTP_HOST:-}"
+    depends_on: [migrate]
+
+  file-rpc:
+    build: { context: ., dockerfile: docker/Dockerfile, target: file-rpc }
+    environment: *service-environment
+    depends_on: [migrate, rustfs]
+
+  ai-rpc:
+    build: { context: ., dockerfile: docker/Dockerfile, target: ai-rpc }
+    environment:
+      <<: *service-environment
+      API_KEY_DEEPSEEK: "${API_KEY_DEEPSEEK:-}"
+    depends_on: [migrate]
+
+  tenant-rpc:
+    build: { context: ., dockerfile: docker/Dockerfile, target: tenant-rpc }
+    environment: *service-environment
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # 仅平台栈；等价宿主 root，注意隔离
+      - ./docker/nginx/conf.d:/nginx-conf.d
+    depends_on: [migrate]
+
+  migrate:
+    build: { context: ., dockerfile: docker/Dockerfile, target: migrate }
+    environment: *service-environment
+    depends_on: [mysql]
+
+  mysql:
+    image: mysql:9.7
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero_admin}"
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:latest
+
+  rustfs:
+    image: rustfs/rustfs:1.0.3
+    environment:
+      RUSTFS_ACCESS_KEY: "${RUSTFS_ACCESS_KEY}"
+      RUSTFS_SECRET_KEY: "${RUSTFS_SECRET_KEY}"
+      RUSTFS_VOLUMES: /data
+    volumes:
+      - rustfs_data:/data
+    networks: [default, gozero-edge]   # 平台级共享存储，租户栈按 bucket 隔离
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui:v5.33.0
+    volumes:
+      - ./data/api/generated:/spec:ro
+
+volumes:
+  mysql_data:
+  rustfs_data:
+
+networks:
+  gozero-edge:
+    name: gozero-edge

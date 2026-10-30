@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+option go_package = "./apppb";
+package apppb;
+
+// app-rpc：App 用户注册/审核/会员/会话/邮件验证码
+// 独立 JWT 体系，与后台完全隔离
+
+// 共享 message（与 admin.proto 重复定义，跨 proto 不共享）
+message PageRequest { int64 Page = 1; int64 PageSize = 2; }
+message PageResponse { int64 Total = 1; }
+message NoDataResponse {}
+message Actor {
+  int64 user_id = 1; string Username = 2; int64 DeptId = 3; string IP = 4; string UserAgent = 5;
+}
+
+// ============================================
+// App 认证
+// ============================================
+message AppUserInfo {
+  int64 id = 1; string Account = 2; string IdentityKind = 3; string Nickname = 4;
+  int64 avatar_file_id = 5; string AvatarURL = 6; string Status = 7; string ReviewReason = 8;
+  bool email_verified = 9; bool PhoneVerified = 10; int64 LastLoginAt = 11; int64 CreatedAt = 12;
+}
+
+message AppRegisterRequest {
+  string account = 1;      // 邮箱或手机号
+  string password = 2;
+  string nickname = 3;
+  string email_code = 4;    // 邮箱验证码（可选，视配置）
+  string ip = 5;
+  string user_agent = 6;
+}
+
+message AppLoginRequest {
+  string account = 1; string Password = 2; string IP = 3; string UserAgent = 4;
+}
+message AppLoginResponse {
+  string access_token = 1; int64 ExpiresAt = 2; string RefreshToken = 3; int64 RefreshExpiresAt = 4; AppUserInfo User = 5;
+}
+
+message AppRefreshRequest { string RefreshToken = 1; string IP = 2; string UserAgent = 3; }
+message AppRefreshResponse { string AccessToken = 1; int64 ExpiresAt = 2; string RefreshToken = 3; int64 RefreshExpiresAt = 4; }
+message AppLogoutRequest { string AccessToken = 1; bool AllDevices = 2; }
+message AppAccessRequest { string AccessToken = 1; }
+message AppAccessResponse { AppUserInfo User = 1; }
+
+message AppProfileRequest { string AccessToken = 1; string Nickname = 2; }
+message AppProfileResponse { AppUserInfo User = 1; }
+
+message AppAuthOptionsRequest {}
+message AppAuthOptionsResponse { bool EmailVerificationRequired = 1; bool EmailCodeEnabled = 2; bool PhoneEnabled = 3; }
+
+// 邮箱验证码
+message AppSendEmailCodeRequest { string Account = 1; string IP = 2; }
+
+// ============================================
+// 后台管理（admin 模块调用）
+// ============================================
+message AppAdminListRequest { Actor Actor = 1; PageRequest Page = 2; string Status = 3; string Account = 4; }
+message AppAdminListResponse { repeated AppUserInfo List = 1; PageResponse Page = 2; }
+
+message AppReviewRequest { Actor Actor = 1; int64 UserID = 2; string Status = 3; string Reason = 4; }
+message AppSetAvatarRequest { Actor Actor = 1; int64 UserID = 2; int64 FileID = 3; }
+
+message AppAdminRevokeRequest { Actor Actor = 1; string SessionID = 2; }
+
+// ============================================
+// 会员
+// ============================================
+message MembershipGrantInfo {
+  int64 id = 1; int64 UserID = 2; string PlanCode = 3; string Benefits = 4;
+  string request_id = 5; int64 GrantedBy = 6; bool GrantedByAdmin = 7;
+  int64 starts_at = 8; int64 ExpiresAt = 9; bool Revoked = 10; int64 RevokedAt = 11; int64 CreatedAt = 12;
+}
+
+// 当前用户有效会员（App 侧自查）
+message GetMyMembershipRequest { string AccessToken = 1; }
+message GetMyMembershipResponse { repeated MembershipGrantInfo List = 1; }
+
+// 后台管理
+message ListMembershipRequest { Actor Actor = 1; PageRequest Page = 2; int64 UserID = 3; string PlanCode = 4; bool ActiveOnly = 5; }
+message ListMembershipResponse { repeated MembershipGrantInfo List = 1; PageResponse Page = 2; }
+
+message GrantMembershipRequest {
+  Actor actor = 1; int64 UserID = 2; string PlanCode = 3;
+  string benefits = 4; string RequestID = 5;  // 幂等
+  int64 duration_days = 6;                   // 开通时长（天）
+}
+
+message RevokeMembershipRequest { Actor Actor = 1; int64 GrantID = 2; }
+
+// ============================================
+// Services
+// ============================================
+service AppAuthService {
+  rpc AppRegister(AppRegisterRequest) returns (NoDataResponse);
+  rpc AppLogin(AppLoginRequest) returns (AppLoginResponse);
+  rpc AppRefresh(AppRefreshRequest) returns (AppRefreshResponse);
+  rpc AppLogout(AppLogoutRequest) returns (NoDataResponse);
+  rpc AppAccess(AppAccessRequest) returns (AppAccessResponse);
+  rpc GetMyProfile(AppProfileRequest) returns (AppProfileResponse);
+  rpc UpdateMyProfile(AppProfileRequest) returns (AppProfileResponse);
+  rpc GetAuthOptions(AppAuthOptionsRequest) returns (AppAuthOptionsResponse);
+  rpc SendEmailCode(AppSendEmailCodeRequest) returns (NoDataResponse);
+  rpc GetMyMembership(GetMyMembershipRequest) returns (GetMyMembershipResponse);
+}
+
+service AppAdminService {
+  rpc ListAppUsers(AppAdminListRequest) returns (AppAdminListResponse);
+  rpc ReviewAppUser(AppReviewRequest) returns (NoDataResponse);
+  rpc SetAppUserAvatar(AppSetAvatarRequest) returns (NoDataResponse);
+  rpc RevokeAppSession(AppAdminRevokeRequest) returns (NoDataResponse);
+  rpc ListMemberships(ListMembershipRequest) returns (ListMembershipResponse);
+  rpc GrantMembership(GrantMembershipRequest) returns (NoDataResponse);
+  rpc RevokeMembership(RevokeMembershipRequest) returns (NoDataResponse);
+}

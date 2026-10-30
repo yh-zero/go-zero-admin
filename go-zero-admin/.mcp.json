@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "mcp-zero": {
+      "command": "mcp-zero",
+      "env": {
+        "GOCTL_PATH": "goctl"
+      }
+    }
+  }
+}

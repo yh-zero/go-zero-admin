@@ -1,0 +1,15 @@
+Name: app-rpc
+ListenOn: 0.0.0.0:6002
+
+Mysql:
+  DataSource: root:123456@tcp(127.0.0.1:3307)/gozero_admin?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: 127.0.0.1:6379
+    Type: node
+
+JwtAuth:
+  AccessSecret: go-zero-app-local-development-secret-change-me
+  AccessExpire: 900
+
+DefaultUserPassword: Demo@123456

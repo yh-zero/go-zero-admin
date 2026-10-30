@@ -1,35 +1,27 @@
-# Build and Release Folders
-bin-debug/
-bin-release/
-[Oo]bj/
-[Bb]in/
-/.tmp-go-build-*/
-/.cache/
-# Local database exports may contain credentials and personal data.
-/data/db/backups/*.sql
-/data/db/backups/*.sha256
-!/data/db/backups/gozero-admin-demo-latest.sql
-!/data/db/backups/gozero-admin-demo-latest.sql.sha256
-__pycache__/
-*.py[cod]
+# 依赖与构建产物
+node_modules/
+dist/
+.pnpm-store/
+*.tsbuildinfo
 
-# Other files and folders
-.settings/
+# Go
+*.exe
+/bin/
+/tmp/
 
-# 忽略各目录中的本地环境配置，保留示例和模板
+# 本地配置与密钥
 .env
-.env.*
-!.env.example
-!.env.*.example
-!.env.template
-!.env.*.template
+.env.local
+*.local.yaml
 
-# Executables
-*.swf
-*.air
-*.ipa
-*.apk
+# IDE
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
 
-# Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
-# should NOT be excluded as they contain compiler settings and other important
-# information for Eclipse / Flash Builder.
+# 旧前端仓库（仅保留参考，不纳入本仓库）
+go-zero-admin-old/
+
+# 日志
+*.log

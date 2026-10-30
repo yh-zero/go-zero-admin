@@ -1,0 +1,19 @@
+Name: admin-api
+Host: 0.0.0.0
+Port: 7001
+
+AdminRpc:
+  Endpoints:
+    - 127.0.0.1:6001
+
+FileRpc:
+  Endpoints:
+    - 127.0.0.1:6003
+
+Redis:
+  Host: 127.0.0.1:6379
+  Type: node
+
+Auth:
+  AccessSecret: go-zero-admin-local-development-jwt-secret
+  AccessExpire: 7200

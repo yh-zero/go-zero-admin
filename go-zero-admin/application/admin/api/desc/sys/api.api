@@ -1,0 +1,45 @@
+syntax = "v1"
+
+info (
+	title:   "API 资源管理"
+	version: "v1"
+)
+
+type (
+    ApiInfo {
+        Id        int64  `json:"id"`
+        Group     string `json:"group"`
+        Method    string `json:"method"`
+        Path      string `json:"path"`
+        Title     string `json:"title"`
+        CreatedAt int64  `json:"created_at"`
+    }
+
+    GetApiListReq {
+        Page     int64  `json:"page,optional" form:"page,optional"`
+        PageSize int64  `json:"page_size,optional" form:"page_size,optional"`
+        Group    string `json:"group,optional" form:"group,optional"`
+        Method   string `json:"method,optional" form:"method,optional"`
+        Path     string `json:"path,optional" form:"path,optional"`
+    }
+    GetApiListResp {
+        List  []*ApiInfo `json:"list"`
+        Total int64       `json:"total"`
+    }
+
+    DeleteApiReq { Id int64 `path:"id"` }
+)
+
+@server (
+	prefix: v1/sys/api
+	group:  api
+	jwt:    Auth
+)
+service admin {
+	@handler getApiList
+	get /list (GetApiListReq) returns (GetApiListResp)
+
+	@handler deleteApi
+	delete /:id (DeleteApiReq)
+
+}

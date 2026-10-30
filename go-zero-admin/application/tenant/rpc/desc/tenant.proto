@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option go_package = "./tenantpb";
+package tenantpb;
+
+// tenant-rpc：租户 provisioning / 启停 / 删除（仅平台栈部署）
+
+message PageRequest { int64 Page = 1; int64 PageSize = 2; }
+message PageResponse { int64 Total = 1; }
+message NoDataResponse {}
+message Actor { int64 UserID = 1; string Username = 2; int64 DeptId = 3; string IP = 4; string UserAgent = 5; }
+
+// ============================================
+// 租户
+// ============================================
+message TenantInfo {
+  int64 id = 1; string Slug = 2; string Domain = 3; string ComposeProject = 4;
+  string status = 5; string ErrorMsg = 6; int64 CreatedBy = 7;
+  int64 created_at = 8; int64 UpdatedAt = 9;
+  bool admin_account_ready = 10;  // 初始管理员是否就绪
+}
+
+message CreateTenantRequest {
+  Actor actor = 1;
+  string slug = 2;            // 租户标识，如 t1
+  string admin_username = 3;   // 初始管理员用户名（默认 admin）
+  string admin_password = 4;   // 初始管理员密码（默认随机生成）
+}
+message CreateTenantResponse { TenantInfo Tenant = 1; string AdminPassword = 2; }
+
+message GetTenantListRequest { Actor Actor = 1; PageRequest Page = 2; string Status = 3; }
+message GetTenantListResponse { repeated TenantInfo List = 1; PageResponse Page = 2; }
+
+message GetTenantRequest { Actor Actor = 1; int64 TenantID = 2; }
+message GetTenantResponse { TenantInfo Tenant = 1; }
+
+message StopTenantRequest { Actor Actor = 1; int64 TenantID = 2; }
+message StartTenantRequest { Actor Actor = 1; int64 TenantID = 2; }
+message DeleteTenantRequest { Actor Actor = 1; int64 TenantID = 2; string ConfirmSlug = 3; }  // 需二次确认
+
+message ResetTenantAdminRequest { Actor Actor = 1; int64 TenantID = 2; }
+message ResetTenantAdminResponse { string NewPassword = 1; }
+
+// ============================================
+// Services
+// ============================================
+service TenantService {
+  rpc CreateTenant(CreateTenantRequest) returns (CreateTenantResponse);
+  rpc GetTenantList(GetTenantListRequest) returns (GetTenantListResponse);
+  rpc GetTenant(GetTenantRequest) returns (GetTenantResponse);
+  rpc StopTenant(StopTenantRequest) returns (NoDataResponse);
+  rpc StartTenant(StartTenantRequest) returns (NoDataResponse);
+  rpc DeleteTenant(DeleteTenantRequest) returns (NoDataResponse);
+  rpc ResetTenantAdmin(ResetTenantAdminRequest) returns (ResetTenantAdminResponse);
+}

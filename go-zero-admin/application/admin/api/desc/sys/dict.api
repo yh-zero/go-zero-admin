@@ -1,0 +1,82 @@
+syntax = "v1"
+
+info (
+	title:   "字典管理"
+	version: "v1"
+)
+
+type (
+    DictItem {
+        Label string `json:"label"`
+        Value string `json:"value"`
+        Sort  int32  `json:"sort"`
+    }
+
+    DictInfo {
+        Id          int64       `json:"id"`
+        Name        string      `json:"name"`
+        Code        string      `json:"code"`
+        Items       []*DictItem `json:"items"`
+        Description string      `json:"description"`
+        Status      int32       `json:"status"`
+        CreatedAt   int64       `json:"created_at"`
+        UpdatedAt   int64       `json:"updated_at"`
+    }
+
+    GetDictListReq {
+        Page     int64  `json:"page,optional" form:"page,optional"`
+        PageSize int64  `json:"page_size,optional" form:"page_size,optional"`
+        Name     string `json:"name,optional" form:"name,optional"`
+        Code     string `json:"code,optional" form:"code,optional"`
+        Status   int32  `json:"status,optional" form:"status,optional"`
+    }
+    GetDictListResp {
+        List  []*DictInfo `json:"list"`
+        Total int64        `json:"total"`
+    }
+
+    GetDictByCodeReq { Code string `json:"code" form:"code"` }
+    GetDictByCodeResp { Dict *DictInfo `json:"dict"` }
+
+    CreateDictReq {
+        Name        string      `json:"name"`
+        Code        string      `json:"code"`
+        Items       []*DictItem `json:"items,optional"`
+        Description string      `json:"description,optional"`
+        Status      int32       `json:"status,optional"`
+    }
+
+    UpdateDictReq {
+        Id          int64       `path:"id"`
+        Name        string      `json:"name,optional"`
+        Code        string      `json:"code,optional"`
+        Items       []*DictItem `json:"items,optional"`
+        Description string      `json:"description,optional"`
+        Status      int32       `json:"status,optional"`
+    }
+
+    DeleteDictReq { Id int64 `path:"id"` }
+)
+
+@server (
+	prefix: v1/sys/dict
+	group:  dict
+	jwt:    Auth
+)
+service admin {
+	@handler getDictList
+	get /list (GetDictListReq) returns (GetDictListResp)
+
+	@handler getDictByCode
+	get /code/:code (GetDictByCodeReq) returns (GetDictByCodeResp)
+
+	@handler createDict
+	post /create (CreateDictReq)
+
+	@handler updateDict
+	put /:id (UpdateDictReq)
+
+	@handler deleteDict
+	delete /:id (DeleteDictReq)
+
+}

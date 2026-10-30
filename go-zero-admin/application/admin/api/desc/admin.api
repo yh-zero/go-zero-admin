@@ -1,0 +1,30 @@
+syntax = "v1"
+
+info (
+	title:   "go-zero-admin"
+	desc:    "管理后台统一 API 网关"
+	version: "v1"
+)
+
+import "sys/auth.api"
+import "sys/user.api"
+import "sys/dept.api"
+import "sys/role.api"
+import "sys/file.api"
+import "sys/menu.api"
+import "sys/dict.api"
+import "sys/api.api"
+import "sys/audit.api"
+import "sys/profile.api"
+
+type PingReq {}
+
+type PingResp {
+	Msg string `json:"msg"`
+}
+
+service admin {
+	@handler ping
+	get /ping (PingReq) returns (PingResp)
+}
+

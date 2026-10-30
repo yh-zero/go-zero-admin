@@ -1,0 +1,22 @@
+Name: file-rpc
+ListenOn: 0.0.0.0:6003
+
+Mysql:
+  DataSource: root:123456@tcp(127.0.0.1:3307)/gozero_admin?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: 127.0.0.1:6379
+    Type: node
+
+# 对象存储：S3 协议统一（RustFS / 阿里 OSS / 腾讯 COS 均兼容）
+# 下方为本地开发默认值（内部基础设施，同 MySQL/JWT 直接写 yaml）；换 OSS/COS 时改 Endpoint/Region/凭据
+Storage:
+  Endpoint: http://127.0.0.1:9000
+  ExternalEndpoint: http://127.0.0.1:9000
+  Region: us-east-1
+  AccessKeyID: GOZEROLOCALROOT
+  SecretAccessKey: go-zero-local-storage-root-change-me
+  PublicBucket: gozero-public
+  PrivateBucket: gozero-private
+  PresignTTLSeconds: 300
+  RequestTimeoutSeconds: 30

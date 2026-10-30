@@ -1,0 +1,608 @@
+syntax = "proto3";
+
+option go_package = "./adminpb";
+package adminpb;
+
+// admin-rpc：认证 / 用户 / 角色 / 菜单 / 部门 / 字典 / 审计 / 设备会话 / 图片验证码
+// JSON tag 全部 snake_case，对齐前端习惯
+
+// ============================================
+// 共享 message
+// ============================================
+message PageRequest { int64 Page = 1; int64 PageSize = 2; }
+message PageResponse { int64 Total = 1; }
+message NoDataResponse {}
+
+// 操作者上下文（所有管理类接口必带）
+message Actor {
+  int64 user_id = 1;
+  string username = 2;
+  int64 dept_id = 3;
+  string ip = 4;
+  string user_agent = 5;
+}
+
+// ============================================
+// 认证 / 验证码 / 会话
+// ============================================
+message CaptchaInfo { string CaptchaID = 1; string ImageBase64 = 2; int64 ExpiresAt = 3; }
+message GetCaptchaRequest {}
+message GetCaptchaResponse { CaptchaInfo Captcha = 1; }
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+  string captcha_id = 3;
+  string captcha = 4;
+  string ip = 5;
+  string user_agent = 6;
+}
+message LoginResponse {
+  string access_token = 1;
+  int64 expires_at = 2;
+  string refresh_token = 3;
+  int64 refresh_expires_at = 4;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+  string ip = 2;
+  string user_agent = 3;
+}
+message RefreshTokenResponse {
+  string access_token = 1;
+  int64 expires_at = 2;
+  string refresh_token = 3;
+  int64 refresh_expires_at = 4;
+}
+
+message LogoutRequest { string AccessToken = 1; bool AllDevices = 2; }
+
+// 设备会话
+message DeviceSessionInfo {
+  string id = 1;
+  int64 user_id = 2;
+  string device_name = 3;
+  string ip = 4;
+  string user_agent = 5;
+  int64 created_at = 6;
+  int64 last_active_at = 7;
+  int64 expires_at = 8;
+  bool current = 9;
+}
+message ListDeviceSessionsRequest {
+  Actor actor = 1;
+  PageRequest page = 2;
+}
+message ListDeviceSessionsResponse {
+  repeated DeviceSessionInfo list = 1;
+  PageResponse page = 2;
+}
+message RevokeDeviceSessionRequest {
+  Actor actor = 1;
+  string session_id = 2;
+}
+
+// ============================================
+// 用户
+// ============================================
+message UserInfo {
+  int64 id = 1;
+  string username = 2;
+  string nickname = 3;
+  string real_name = 4;
+  string email = 5;
+  string phone = 6;
+  int64 dept_id = 7;
+  string dept_name = 8;
+  int64 avatar_file_id = 9;
+  string avatar_url = 10;
+  int32 gender = 11;
+  int32 status = 12;
+  string remark = 13;
+  int64 last_login_at = 14;
+  string last_login_i_p = 15;
+  int64 created_at = 16;
+  int64 updated_at = 17;
+}
+
+message GetUserListRequest {
+  Actor actor = 1;
+  PageRequest page = 2;
+  string username = 3;
+  string nickname = 4;
+  int64 dept_id = 5;
+  int32 status = 6;
+}
+message GetUserListResponse {
+  repeated UserInfo list = 1;
+  PageResponse page = 2;
+}
+
+message GetUserRequest {
+  Actor actor = 1;
+  int64 user_id = 2;
+}
+message GetUserResponse { UserInfo User = 1; }
+
+message CreateUserRequest {
+  Actor actor = 1;
+  string username = 2;
+  string password = 3;
+  string nickname = 4;
+  string real_name = 5;
+  string email = 6;
+  string phone = 7;
+  int64 dept_id = 8;
+  int64 avatar_file_id = 9;
+  int32 gender = 10;
+  int32 status = 11;
+  string remark = 12;
+  repeated int64 role_ids = 13;
+}
+
+message UpdateUserRequest {
+  Actor actor = 1;
+  int64 user_id = 2;
+  string nickname = 3;
+  string real_name = 4;
+  string email = 5;
+  string phone = 6;
+  int64 dept_id = 7;
+  int64 avatar_file_id = 8;
+  int32 gender = 9;
+  int32 status = 10;
+  string remark = 11;
+  repeated int64 role_ids = 12;
+}
+
+message DeleteUserRequest {
+  Actor actor = 1;
+  int64 user_id = 2;
+}
+message ResetPasswordRequest {
+  Actor actor = 1;
+  int64 user_id = 2;
+  string new_password = 3;
+}
+message ChangePasswordRequest {
+  Actor actor = 1;
+  string old_password = 2;
+  string new_password = 3;
+}
+
+// 个人中心
+message GetProfileRequest {
+  Actor actor = 1;
+}
+message GetProfileResponse { UserInfo User = 1; }
+message UpdateProfileRequest {
+  Actor actor = 1;
+  string nickname = 2;
+  string real_name = 3;
+  string email = 4;
+  string phone = 5;
+  int32 gender = 6;
+  int64 avatar_file_id = 7;
+}
+
+// ============================================
+// 角色
+// ============================================
+message RoleInfo {
+  int64 id = 1;
+  string name = 2;
+  string code = 3;
+  string description = 4;
+  string data_scope = 5;
+  int32 sort = 6;
+  int32 status = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+  repeated int64 menu_ids = 10;
+  int64 user_count = 11;
+}
+
+message GetRoleListRequest {
+  Actor actor = 1;
+  PageRequest page = 2;
+  string name = 3;
+  string code = 4;
+  int32 status = 5;
+}
+message GetRoleListResponse {
+  repeated RoleInfo list = 1;
+  PageResponse page = 2;
+}
+
+message GetRoleRequest {
+  Actor actor = 1;
+  int64 role_id = 2;
+}
+message GetRoleResponse { RoleInfo Role = 1; }
+
+message CreateRoleRequest {
+  Actor actor = 1;
+  string name = 2;
+  string code = 3;
+  string description = 4;
+  string data_scope = 5;
+  int32 sort = 6;
+  int32 status = 7;
+  repeated int64 menu_ids = 8;
+}
+
+message UpdateRoleRequest {
+  Actor actor = 1;
+  int64 role_id = 2;
+  string name = 3;
+  string code = 4;
+  string description = 5;
+  string data_scope = 6;
+  int32 sort = 7;
+  int32 status = 8;
+  repeated int64 menu_ids = 9;
+}
+
+message DeleteRoleRequest {
+  Actor actor = 1;
+  int64 role_id = 2;
+}
+
+message UpdateRoleMenusRequest {
+  Actor actor = 1;
+  int64 role_id = 2;
+  repeated int64 menu_ids = 3;
+}
+
+// ============================================
+// 菜单
+// ============================================
+message MenuInfo {
+  int64 id = 1;
+  int64 parent_id = 2;
+  string title = 3;
+  string name = 4;
+  int32 type = 5;
+  string path = 6;
+  string component = 7;
+  string perm_code = 8;
+  string icon = 9;
+  int32 sort = 10;
+  bool visible = 11;
+  int32 status = 12;
+  int64 created_at = 13;
+}
+
+message GetMenuTreeRequest {
+  Actor actor = 1;
+  int32 type = 2;
+  int32 status = 3;
+}
+message GetMenuTreeResponse {
+  repeated MenuInfo list = 1;
+}
+
+message GetMenuListRequest {
+  Actor actor = 1;
+  PageRequest page = 2;
+  int64 parent_id = 3;
+  int32 type = 4;
+}
+message GetMenuListResponse {
+  repeated MenuInfo list = 1;
+  PageResponse page = 2;
+}
+
+message GetMenuRequest {
+  Actor actor = 1;
+  int64 menu_id = 2;
+}
+message GetMenuResponse { MenuInfo Menu = 1; }
+
+message CreateMenuRequest {
+  Actor actor = 1;
+  int64 parent_id = 2;
+  string title = 3;
+  string name = 4;
+  int32 type = 5;
+  string path = 6;
+  string component = 7;
+  string perm_code = 8;
+  string icon = 9;
+  int32 sort = 10;
+  bool visible = 11;
+  int32 status = 12;
+}
+
+message UpdateMenuRequest {
+  Actor actor = 1;
+  int64 menu_id = 2;
+  int64 parent_id = 3;
+  string title = 4;
+  string name = 5;
+  int32 type = 6;
+  string path = 7;
+  string component = 8;
+  string perm_code = 9;
+  string icon = 10;
+  int32 sort = 11;
+  bool visible = 12;
+  int32 status = 13;
+}
+
+message DeleteMenuRequest {
+  Actor actor = 1;
+  int64 menu_id = 2;
+}
+
+message GetMyMenusRequest {
+  Actor actor = 1;
+}
+message GetMyMenusResponse {
+  repeated MenuInfo list = 1;
+}
+message GetMyPermCodesRequest {
+  Actor actor = 1;
+}
+message GetMyPermCodesResponse { repeated string Codes = 1; }
+
+// ============================================
+// 部门
+// ============================================
+message DeptInfo {
+  int64 id = 1;
+  int64 parent_id = 2;
+  string name = 3;
+  string leader = 4;
+  string phone = 5;
+  string email = 6;
+  int32 sort = 7;
+  int32 status = 8;
+  string path = 9;
+  int64 created_at = 10;
+}
+
+message GetDeptTreeRequest {
+  Actor actor = 1;
+  int32 status = 2;
+}
+message GetDeptTreeResponse {
+  repeated DeptInfo list = 1;
+}
+
+message CreateDeptRequest {
+  Actor actor = 1;
+  int64 parent_id = 2;
+  string name = 3;
+  string leader = 4;
+  string phone = 5;
+  string email = 6;
+  int32 sort = 7;
+  int32 status = 8;
+}
+
+message UpdateDeptRequest {
+  Actor actor = 1;
+  int64 dept_id = 2;
+  int64 parent_id = 3;
+  string name = 4;
+  string leader = 5;
+  string phone = 6;
+  string email = 7;
+  int32 sort = 8;
+  int32 status = 9;
+}
+
+message DeleteDeptRequest {
+  Actor actor = 1;
+  int64 dept_id = 2;
+}
+
+// ============================================
+// 字典
+// ============================================
+message DictItem { string Label = 1; string Value = 2; int32 Sort = 3; }
+message DictInfo {
+  int64 id = 1;
+  string name = 2;
+  string code = 3;
+  repeated DictItem items = 4;
+  string description = 5;
+  int32 status = 6;
+  int64 created_at = 7;
+  int64 updated_at = 8;
+}
+
+message GetDictListRequest {
+  Actor actor = 1;
+  PageRequest page = 2;
+  string name = 3;
+  string code = 4;
+  int32 status = 5;
+}
+message GetDictListResponse {
+  repeated DictInfo list = 1;
+  PageResponse page = 2;
+}
+message GetDictByCodeRequest { string Code = 1; }
+message GetDictByCodeResponse { DictInfo Dict = 1; }
+message CreateDictRequest {
+  Actor actor = 1;
+  string name = 2;
+  string code = 3;
+  repeated DictItem items = 4;
+  string description = 5;
+  int32 status = 6;
+}
+message UpdateDictRequest {
+  Actor actor = 1;
+  int64 dict_id = 2;
+  string name = 3;
+  string code = 4;
+  repeated DictItem items = 5;
+  string description = 6;
+  int32 status = 7;
+}
+message DeleteDictRequest {
+  Actor actor = 1;
+  int64 dict_id = 2;
+}
+
+// ============================================
+// API 资源
+// ============================================
+message ApiInfo {
+  int64 id = 1;
+  string group = 2;
+  string method = 3;
+  string path = 4;
+  string title = 5;
+  int64 created_at = 6;
+}
+message GetApiListRequest {
+  Actor actor = 1;
+  PageRequest page = 2;
+  string group = 3;
+  string method = 4;
+  string path = 5;
+}
+message GetApiListResponse {
+  repeated ApiInfo list = 1;
+  PageResponse page = 2;
+}
+message DeleteApiRequest {
+  Actor actor = 1;
+  int64 api_id = 2;
+}
+message SyncApiRequest {
+  Actor actor = 1;
+}
+message SyncApiResponse {
+  int64 added = 1;
+  int64 updated = 2;
+  int64 removed = 3;
+}
+
+// ============================================
+// 审计日志
+// ============================================
+message AuditLogInfo {
+  int64 id = 1;
+  int64 user_id = 2;
+  string username = 3;
+  string module = 4;
+  string action = 5;
+  string method = 6;
+  string path = 7;
+  string params = 8;
+  int32 result = 9;
+  string error_msg = 10;
+  string ip = 11;
+  string user_agent = 12;
+  int32 duration_ms = 13;
+  int64 created_at = 14;
+}
+message GetAuditLogListRequest {
+  Actor actor = 1;
+  PageRequest page = 2;
+  string module = 3;
+  string action = 4;
+  int64 user_id = 5;
+  int32 result = 6;
+}
+message GetAuditLogListResponse {
+  repeated AuditLogInfo list = 1;
+  PageResponse page = 2;
+}
+
+// ============================================
+// Services
+// ============================================
+service AuthService {
+  rpc GetCaptcha(GetCaptchaRequest) returns (GetCaptchaResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc Logout(LogoutRequest) returns (NoDataResponse);
+  rpc ListDeviceSessions(ListDeviceSessionsRequest) returns (ListDeviceSessionsResponse);
+  rpc RevokeDeviceSession(RevokeDeviceSessionRequest) returns (NoDataResponse);
+}
+
+service UserService {
+  rpc GetUserList(GetUserListRequest) returns (GetUserListResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc CreateUser(CreateUserRequest) returns (NoDataResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (NoDataResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (NoDataResponse);
+  rpc ResetPassword(ResetPasswordRequest) returns (NoDataResponse);
+  rpc ChangePassword(ChangePasswordRequest) returns (NoDataResponse);
+}
+
+service ProfileService {
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+  rpc UpdateProfile(UpdateProfileRequest) returns (NoDataResponse);
+}
+
+service RoleService {
+  rpc GetRoleList(GetRoleListRequest) returns (GetRoleListResponse);
+  rpc GetRole(GetRoleRequest) returns (GetRoleResponse);
+  rpc CreateRole(CreateRoleRequest) returns (NoDataResponse);
+  rpc UpdateRole(UpdateRoleRequest) returns (NoDataResponse);
+  rpc DeleteRole(DeleteRoleRequest) returns (NoDataResponse);
+  rpc UpdateRoleMenus(UpdateRoleMenusRequest) returns (NoDataResponse);
+}
+
+service MenuService {
+  rpc GetMenuTree(GetMenuTreeRequest) returns (GetMenuTreeResponse);
+  rpc GetMenuList(GetMenuListRequest) returns (GetMenuListResponse);
+  rpc GetMenu(GetMenuRequest) returns (GetMenuResponse);
+  rpc CreateMenu(CreateMenuRequest) returns (NoDataResponse);
+  rpc UpdateMenu(UpdateMenuRequest) returns (NoDataResponse);
+  rpc DeleteMenu(DeleteMenuRequest) returns (NoDataResponse);
+  rpc GetMyMenus(GetMyMenusRequest) returns (GetMyMenusResponse);
+  rpc GetMyPermCodes(GetMyPermCodesRequest) returns (GetMyPermCodesResponse);
+}
+
+service DeptService {
+  rpc GetDeptTree(GetDeptTreeRequest) returns (GetDeptTreeResponse);
+  rpc CreateDept(CreateDeptRequest) returns (NoDataResponse);
+  rpc UpdateDept(UpdateDeptRequest) returns (NoDataResponse);
+  rpc DeleteDept(DeleteDeptRequest) returns (NoDataResponse);
+}
+
+service DictService {
+  rpc GetDictList(GetDictListRequest) returns (GetDictListResponse);
+  rpc GetDictByCode(GetDictByCodeRequest) returns (GetDictByCodeResponse);
+  rpc CreateDict(CreateDictRequest) returns (NoDataResponse);
+  rpc UpdateDict(UpdateDictRequest) returns (NoDataResponse);
+  rpc DeleteDict(DeleteDictRequest) returns (NoDataResponse);
+}
+
+service ApiService {
+  rpc GetApiList(GetApiListRequest) returns (GetApiListResponse);
+  rpc DeleteApi(DeleteApiRequest) returns (NoDataResponse);
+  rpc SyncApi(SyncApiRequest) returns (SyncApiResponse);
+}
+
+service AuditService {
+  rpc GetAuditLogList(GetAuditLogListRequest) returns (GetAuditLogListResponse);
+}
+
+// ============================================
+// Casbin 策略同步（API 层鉴权用，替代直连库）
+// ============================================
+message PolicyRule {
+  string Ptype = 1 [json_name = "ptype"];
+  string V0 = 2 [json_name = "v0"];
+  string V1 = 3 [json_name = "v1"];
+  string V2 = 4 [json_name = "v2"];
+  string V3 = 5 [json_name = "v3"];
+  string V4 = 6 [json_name = "v4"];
+  string V5 = 7 [json_name = "v5"];
+}
+message ListPoliciesRequest {}
+message ListPoliciesResponse { repeated PolicyRule Rules = 1 [json_name = "rules"]; }
+
+service CasbinService {
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse);
+}

@@ -1,0 +1,46 @@
+syntax = "v1"
+
+info (
+	title:   "个人中心"
+	version: "v1"
+)
+
+type (
+    ProfileInfo {
+        Id        int64  `json:"id"`
+        Username  string `json:"username"`
+        Nickname  string `json:"nickname"`
+        RealName  string `json:"real_name"`
+        Email     string `json:"email"`
+        Phone     string `json:"phone"`
+        AvatarUrl string `json:"avatar_url"`
+        Gender    int32  `json:"gender"`
+        DeptName  string `json:"dept_name"`
+    }
+
+    GetProfileReq {}
+    GetProfileResp { User *ProfileInfo `json:"user"` }
+
+    UpdateProfileReq {
+        Nickname  string `json:"nickname,optional"`
+        RealName  string `json:"real_name,optional"`
+        Email     string `json:"email,optional"`
+        Phone     string `json:"phone,optional"`
+        AvatarUrl string `json:"avatar_url,optional"`
+        Gender    int32  `json:"gender,optional"`
+    }
+)
+
+@server (
+	prefix: v1/sys/profile
+	group:  profile
+	jwt:    Auth
+)
+service admin {
+	@handler getProfile
+	get / (GetProfileReq) returns (GetProfileResp)
+
+	@handler updateProfile
+	put / (UpdateProfileReq)
+
+}

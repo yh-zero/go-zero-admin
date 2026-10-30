@@ -1,0 +1,39 @@
+syntax = "v1"
+
+info (
+	title:   "认证"
+	desc:    "验证码与登录"
+	version: "v1"
+)
+
+type (
+    GetCaptchaReq {}
+    GetCaptchaResp {
+        CaptchaID   string `json:"captcha_id"`
+        ImageBase64 string `json:"image_base64"`
+        ExpiresAt   int64  `json:"expires_at"`
+    }
+
+    LoginReq {
+        Username  string `json:"username"`
+        Password  string `json:"password"`
+        CaptchaID string `json:"captcha_id"`
+        Captcha   string `json:"captcha"`
+    }
+    LoginResp {
+        AccessToken  string `json:"access_token"`
+        ExpiresAt    int64  `json:"expires_at"`
+    }
+)
+
+@server (
+	prefix: v1/sys/auth
+	group:  auth
+)
+service admin {
+	@handler getCaptcha
+	get /captcha (GetCaptchaReq) returns (GetCaptchaResp)
+
+	@handler login
+	post /login (LoginReq) returns (LoginResp)
+}

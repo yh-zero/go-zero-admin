@@ -1,3 +1,0 @@
-*.sh text eol=lf
-data/db/migrations/*.sql text eol=lf
-data/db/backups/*.sql text eol=lf

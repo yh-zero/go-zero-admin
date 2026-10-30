@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+option go_package = "./filepb";
+package filepb;
+
+// file-rpc：文件资源 / RustFS / 头像引用
+
+message PageRequest { int64 Page = 1; int64 PageSize = 2; }
+message PageResponse { int64 Total = 1; }
+message NoDataResponse {}
+message Actor { int64 UserID = 1; string Username = 2; int64 DeptId = 3; string IP = 4; string UserAgent = 5; }
+
+// ============================================
+// 文件
+// ============================================
+message FileInfo {
+  int64 id = 1; string Bucket = 2; string ObjectKey = 3; string OriginalName = 4;
+  string ext = 5; string Mime = 6; int64 Size = 7; string Visibility = 8;
+  int32 ref_count = 9; int64 UploaderID = 10; string URL = 11;  // public 直接给地址，private 需另调 GetFileURL
+  int64 created_at = 12;
+}
+
+// 上传：api 层收 multipart，转 base64 或直接传字节流
+message UploadFileRequest {
+  Actor actor = 1;
+  bytes content = 2;
+  string original_name = 3;
+  string mime = 4;
+  string visibility = 5;   // public / private
+  string scene = 6;        // 用途标记：avatar / doc / etc.
+}
+message UploadFileResponse { FileInfo File = 1; }
+
+message GetFileListRequest {
+  Actor actor = 1; PageRequest Page = 2;
+  string visibility = 3; string Scene = 4; int64 UploaderID = 5;
+}
+message GetFileListResponse { repeated FileInfo List = 1; PageResponse Page = 2; }
+
+message GetFileURLRequest { Actor Actor = 1; int64 FileID = 2; int64 TTLSeconds = 3; }  // private 文件签名 URL
+message GetFileURLResponse { string URL = 1; int64 ExpiresAt = 2; }
+
+message DeleteFileRequest { Actor Actor = 1; int64 FileID = 2; }
+
+// 引用管理（头像等共享资源的引用计数）
+message AddFileReferenceRequest { Actor Actor = 1; int64 FileID = 2; string RefType = 3; int64 RefID = 4; }
+message RemoveFileReferenceRequest { Actor Actor = 1; int64 FileID = 2; string RefType = 3; int64 RefID = 4; }
+
+// ============================================
+// Services
+// ============================================
+service FileService {
+  rpc UploadFile(UploadFileRequest) returns (UploadFileResponse);
+  rpc GetFileList(GetFileListRequest) returns (GetFileListResponse);
+  rpc GetFileURL(GetFileURLRequest) returns (GetFileURLResponse);
+  rpc DeleteFile(DeleteFileRequest) returns (NoDataResponse);
+  rpc AddFileReference(AddFileReferenceRequest) returns (NoDataResponse);
+  rpc RemoveFileReference(RemoveFileReferenceRequest) returns (NoDataResponse);
+}
