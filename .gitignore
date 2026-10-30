@@ -1,4 +1,4 @@
-# 依赖与构建产�?node_modules/
+# 依赖与构建产�?node_modules/
 dist/
 .pnpm-store/
 *.tsbuildinfo
@@ -8,7 +8,6 @@ dist/
 /bin/
 /tmp/
 
-# 本地配置与密�?.env
 .env.local
 *.local.yaml
 
@@ -17,8 +16,6 @@ dist/
 .vscode/
 .DS_Store
 Thumbs.db
-
-# 旧前端仓库（仅保留参考，不纳入本仓库�?go-zero-admin-old/
 
 # 日志
 *.log
