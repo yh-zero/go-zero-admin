@@ -1,0 +1,32 @@
+.dashboard-page .connection-status { display: flex; align-items: center; gap: 7px; padding: 4px 11px; border: 0; margin: 0; }
+.dashboard-page .stat-card { height: 100%; overflow: hidden; }
+.dashboard-page .stat-card .ant-card-body { padding: 22px 24px 18px; }
+.stat-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.stat-label { color: #738199; font-size: 13px; }
+.stat-icon { display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 12px; font-size: 21px; }
+.stat-blue .stat-icon { color: #4378e8; background: #edf3ff; }
+.stat-violet .stat-icon { color: #8170cc; background: #f1effb; }
+.stat-teal .stat-icon { color: #2d9f95; background: #eaf8f5; }
+.stat-amber .stat-icon { color: #cf9641; background: #fff7e9; }
+.dashboard-page .stat-card .ant-statistic-content { color: #1d3456; font-size: 34px; line-height: 1.5; font-weight: 600; letter-spacing: -1px; }
+.stat-card-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 13px; border-top: 1px solid #f0f3f8; }
+.stat-card-bottom .ant-typography { font-size: 11px; color: #8b98ab; }
+.stat-card-bottom a { display: inline-flex; justify-content: center; align-items: center; width: 28px; height: 24px; color: #8ba0bc; border-radius: 5px; }
+.stat-card-bottom a:hover { color: #2563eb; background: #eef4ff; }
+.dashboard-lower { display: grid; grid-template-columns: minmax(0, 2.15fr) minmax(265px, 1fr); gap: 20px; align-items: start; }
+.dashboard-audit { min-width: 0; }
+.dashboard-page .dashboard-audit .ant-table-tbody > tr > td { padding-block: 20px; }
+.section-link { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: #7b8ca5; font-weight: normal; }
+.section-link:hover { color: #2563eb; }
+.shortcut-card > .ant-card-body { padding: 8px 16px 14px; }
+.shortcut-card > .ant-card-head { border-bottom: none; }
+.shortcut-list { display: grid; }
+.shortcut-item { display: flex; align-items: center; gap: 12px; padding: 12px 8px; border-radius: 8px; transition: background 150ms; }
+.shortcut-item:hover { background: #f4f7fc; }
+.shortcut-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #f1f5fb; color: #6080ad; border-radius: 9px; font-size: 17px; }
+.shortcut-copy { display: grid; gap: 2px; }
+.shortcut-copy strong { font-size: 13px; color: #354d6d; font-weight: 500; }
+.shortcut-copy small { font-size: 11px; color: #95a0b1; }
+.shortcut-arrow { margin-left: auto; font-size: 11px; color: #b3bfd0; }
+@media (max-width: 1199px) { .dashboard-lower { grid-template-columns: minmax(0, 1fr); } .shortcut-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 767px) { .dashboard-lower { gap: 16px; } .shortcut-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } .shortcut-item { gap: 8px; } .shortcut-copy small { display: none; } .shortcut-arrow { display: none; } }

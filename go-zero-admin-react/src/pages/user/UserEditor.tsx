@@ -4,6 +4,7 @@ import { createUser, fetchUser, updateUser } from '../../api/user';
 import type { CreateUserReq, DeptInfo } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { useFormDraft } from '../../hooks/useFormDraft';
+import { invalidateUserData } from '../../utils/queryInvalidation';
 import { UserFormFields } from './UserFormFields';
 
 interface Props { id?: number; depts: DeptInfo[]; onClose: () => void }
@@ -22,20 +23,17 @@ export function UserEditor({ id, depts, onClose }: Props) {
       status: values.status, remark: values.remark,
     }),
     onSuccess: async () => {
-      await Promise.all([
-        client.invalidateQueries({ queryKey: ['users'] }),
-        client.invalidateQueries({ queryKey: ['user', id] }),
-      ]);
+      await invalidateUserData(client);
       message.success(id === undefined ? '用户已创建' : '用户已更新');
       onClose();
     },
   });
   const unavailable = id !== undefined && (!user.data || user.isError || user.isFetching);
-  return <Modal open title={id === undefined ? '新增用户' : '编辑用户'} onCancel={onClose}
+  return <Modal open width={680} title={id === undefined ? '新增用户' : '编辑用户'} onCancel={onClose}
     onOk={() => form.submit()} confirmLoading={save.isPending} okButtonProps={{ disabled: unavailable }}
-    cancelButtonProps={{ disabled: save.isPending }} closable={!save.isPending} maskClosable={!save.isPending}>
+    cancelButtonProps={{ disabled: save.isPending }} closable={!save.isPending} mask={{ closable: !save.isPending }}>
     {id !== undefined && <QueryState isPending={user.isPending} error={user.error} onRetry={() => void user.refetch()} />}
-    <Form name="user-editor" form={form} layout="vertical" disabled={unavailable || save.isPending} onFinish={(values) => save.mutate(values)}
+    <Form name="user-editor" className="editor-grid" form={form} layout="vertical" disabled={unavailable || save.isPending} onFinish={(values) => save.mutate(values)}
       initialValues={defaults}>
       <UserFormFields editing={id !== undefined} depts={depts} currentDeptId={user.data?.dept_id} currentDeptName={user.data?.dept_name} />
     </Form>

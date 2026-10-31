@@ -1,5 +1,6 @@
 import { Col, Form, Input, InputNumber, Row, Select, Switch } from 'antd';
 import { menuTypeOptions } from './menuOptions';
+import { statusOptions } from '../../utils/formOptions';
 
 export function MenuFields() {
   return <>
@@ -13,7 +14,7 @@ export function MenuFields() {
       <Col xs={24} sm={12}><Form.Item name="perm_code" label="权限码" extra="按钮权限，例如 sys:menu:add"><Input maxLength={128} /></Form.Item></Col>
       <Col xs={24} sm={12}><Form.Item name="icon" label="图标标识"><Input maxLength={64} /></Form.Item></Col>
       <Col xs={24} sm={8}><Form.Item name="sort" label="排序"><InputNumber precision={0} /></Form.Item></Col>
-      <Col xs={24} sm={8}><Form.Item name="status" label="状态"><Select options={[{ value: 1, label: '启用' }, { value: 2, label: '停用' }]} /></Form.Item></Col>
+      <Col xs={24} sm={8}><Form.Item name="status" label="状态"><Select options={statusOptions} /></Form.Item></Col>
       <Col xs={24} sm={8}><Form.Item name="visible" label="侧栏显示" valuePropName="checked"><Switch /></Form.Item></Col>
     </Row>
   </>;

@@ -5,6 +5,7 @@ import type { CreateDeptReq, DeptInfo } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { useFormDraft } from '../../hooks/useFormDraft';
 import { buildTree } from '../../utils/tree';
+import { statusOptions } from '../../utils/formOptions';
 
 interface DeptFormProps {
   open: boolean;
@@ -37,14 +38,15 @@ export default function DeptForm({ open, dept, departments, departmentsPending,
   useFormDraft(form, { open, entityKey: dept?.id ?? 'new', values: dept ?? defaults });
 
   return (
-    <Modal title={dept ? '编辑部门' : '新增部门'} open={open} onCancel={onCancel}
+    <Modal title={dept ? '编辑部门' : '新增部门'} width={680} open={open} onCancel={() => { if (!save.isPending) onCancel(); }}
       onOk={() => form.submit()} confirmLoading={save.isPending}
       okButtonProps={{ disabled: departmentsPending || Boolean(departmentsError) }}
-      cancelButtonProps={{ disabled: save.isPending }} destroyOnHidden>
+      cancelButtonProps={{ disabled: save.isPending }} closable={!save.isPending}
+      mask={{ closable: !save.isPending }} keyboard={!save.isPending} destroyOnHidden>
       <QueryState isPending={departmentsPending} error={departmentsError} onRetry={onRetryDepartments} />
-      <Form name="dept-editor" form={form} layout="vertical" disabled={save.isPending || departmentsPending || Boolean(departmentsError)}
+      <Form name="dept-editor" className="editor-grid" form={form} layout="vertical" disabled={save.isPending || departmentsPending || Boolean(departmentsError)}
         onFinish={(values) => save.mutate(values)}>
-        {dept && <Alert type="info" showIcon title="上级部门暂不支持调整。" />}
+        {dept && <Alert className="field-full" type="info" showIcon title="上级部门暂不支持调整。" />}
         <Form.Item name="parent_id" label="上级部门" rules={[{ required: true }]}>
           <TreeSelect treeData={[{ id: 0, name: '顶级部门', children: buildTree(departments) }]}
             fieldNames={{ label: 'name', value: 'id', children: 'children' }}
@@ -60,7 +62,7 @@ export default function DeptForm({ open, dept, departments, departmentsPending,
         </Form.Item>
         <Form.Item name="sort" label="排序"><InputNumber min={0} precision={0} /></Form.Item>
         <Form.Item name="status" label="状态" rules={[{ required: true }]}>
-          <Select options={[{ label: '启用', value: 1 }, { label: '停用', value: 2 }]} />
+          <Select options={statusOptions} />
         </Form.Item>
       </Form>
     </Modal>

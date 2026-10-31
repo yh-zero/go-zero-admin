@@ -11,6 +11,7 @@ import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { buildTree } from '../../utils/tree';
 import { formatTime } from '../../utils/format';
+import { statusOptions } from '../../utils/formOptions';
 import DeptForm from './DeptForm';
 
 export default function DeptList() {
@@ -32,7 +33,7 @@ export default function DeptList() {
   const onCreate = () => { setEditing(undefined); setFormOpen(true); };
   const onEdit = (dept: DeptInfo) => { setEditing(dept); setFormOpen(true); };
   const columns: TableColumnsType<DeptInfo> = [
-    { title: '部门名称', dataIndex: 'name', key: 'name' },
+    { title: '部门名称', dataIndex: 'name', key: 'name', render: (value: string) => <span className="table-primary">{value}</span> },
     { title: '负责人', dataIndex: 'leader', key: 'leader' },
     { title: '联系电话', dataIndex: 'phone', key: 'phone' },
     { title: '邮箱', dataIndex: 'email', key: 'email' },
@@ -53,21 +54,21 @@ export default function DeptList() {
   ];
 
   return (
-    <Space orientation="vertical" size="middle" className="page-stack">
+    <div className="page-stack">
       <PageHeader title="部门管理" description="维护组织层级与部门联系信息" extra={
         <Auth code="sys:dept:add"><Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>新增部门</Button></Auth>
       } />
-      <Card>
-        <Form name="dept-filter" form={filterForm} layout="inline" onFinish={setParams}>
+      <Card className="filter-card">
+        <Form name="dept-filter" className="filter-form" form={filterForm} layout="inline" onFinish={setParams}>
           <Form.Item name="status" label="状态"><Select allowClear placeholder="全部状态" className="filter-select"
-            options={[{ label: '启用', value: 1 }, { label: '停用', value: 2 }]} /></Form.Item>
+            options={statusOptions} /></Form.Item>
           <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button>
             <Button onClick={() => { filterForm.resetFields(); setParams({}); }}>重置</Button>
             <Button icon={<ReloadOutlined />} onClick={() => void query.refetch()}>刷新</Button>
           </Space></Form.Item>
         </Form>
       </Card>
-      <Card>
+      <Card className="data-card" title="部门结构">
         <QueryState isPending={query.isPending} error={query.error} onRetry={() => void query.refetch()} />
         {!query.isPending && !query.error && <Table rowKey="id" columns={columns}
           dataSource={buildTree(query.data?.list ?? [])} pagination={false} scroll={{ x: 950 }} />}
@@ -76,6 +77,6 @@ export default function DeptList() {
         departmentsPending={allDepts.isPending} departmentsError={allDepts.error}
         onRetryDepartments={() => void allDepts.refetch()}
         onCancel={() => setFormOpen(false)} onSaved={() => setFormOpen(false)} />
-    </Space>
+    </div>
   );
 }

@@ -1,0 +1,54 @@
+.profile-page .profile-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); align-items: start; gap: 24px; }
+.profile-page .profile-summary { overflow: hidden; }
+.profile-page .profile-summary .ant-card-body { padding: 0; }
+.profile-page .profile-identity { padding: 36px 24px 28px; text-align: center; background: linear-gradient(180deg, #f1f5ff 0, #fff 78%); }
+.profile-page .profile-avatar { border: 4px solid #fff; color: var(--app-primary, #2563eb); background: #e5edff; box-shadow: 0 4px 16px #2563eb12; }
+.profile-page .profile-identity h2 { margin: 18px 0 4px; color: var(--app-text, #172b4d); font-size: 21px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
+.profile-page .profile-username { margin: 0 0 14px; color: var(--app-muted, #6b7a90); font-size: 13px; overflow-wrap: anywhere; }
+.profile-page .profile-account-label { display: inline-block; padding: 3px 10px; border-radius: 6px; color: var(--app-primary, #2563eb); background: #eef4ff; font-size: 11px; }
+.profile-page .profile-facts { margin: 0; padding: 8px 24px 18px; }
+.profile-page .profile-facts > div { display: grid; grid-template-columns: 100px minmax(0, 1fr); align-items: baseline; gap: 12px; padding: 16px 0; border-top: 1px solid var(--app-border, #e6ebf2); }
+.profile-page .profile-facts dt { display: flex; align-items: center; gap: 8px; color: var(--app-muted, #6b7a90); font-size: 13px; }
+.profile-page .profile-facts dt .anticon { color: #8d9bb0; }
+.profile-page .profile-facts dd { margin: 0; color: var(--app-text, #172b4d); font-size: 13px; text-align: right; overflow-wrap: anywhere; }
+.profile-page .profile-facts .ant-tag { margin-inline-end: 0; }
+.profile-page .profile-editor-card .ant-card-head { padding: 24px 28px; }
+.profile-page .profile-section-heading > span { color: var(--app-text, #172b4d); font-size: 16px; font-weight: 600; }
+.profile-page .profile-section-heading p { margin: 6px 0 0; color: var(--app-muted, #6b7a90); font-size: 13px; font-weight: 400; white-space: normal; }
+.profile-page .profile-editor-card .ant-card-body { padding: 28px; }
+.profile-page .profile-form { max-width: none; }
+.profile-page .profile-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.profile-page .profile-fields .ant-form-item { min-width: 0; margin-bottom: 24px; }
+.profile-page .profile-fields .ant-form-item-label > label { color: var(--app-text, #172b4d); font-size: 13px; font-weight: 500; }
+.profile-page .profile-fields .ant-input-prefix { margin-inline-end: 8px; color: #8d9bb0; }
+.profile-page .profile-form-actions { margin-top: 8px; padding-top: 24px; border-top: 1px solid var(--app-border, #e6ebf2); }
+.profile-page .profile-form-actions .ant-btn { min-width: 116px; }
+
+@media (max-width: 1199px) {
+  .profile-page .profile-grid { grid-template-columns: 260px minmax(0, 1fr); gap: 20px; }
+  .profile-page .profile-facts { padding-inline: 20px; }
+  .profile-page .profile-editor-card .ant-card-head { padding: 22px 24px; }
+  .profile-page .profile-editor-card .ant-card-body { padding: 24px; }
+  .profile-page .profile-fields { gap: 0 20px; }
+}
+
+@media (max-width: 959px) {
+  .profile-page .profile-grid { grid-template-columns: 1fr; }
+  .profile-page .profile-summary .ant-card-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; }
+  .profile-page .profile-identity { padding: 28px 24px; }
+  .profile-page .profile-facts { padding: 24px; }
+  .profile-page .profile-facts > div:first-child { border-top: none; }
+}
+
+@media (max-width: 575px) {
+  .profile-page .profile-grid { gap: 16px; }
+  .profile-page .profile-summary .ant-card-body { display: block; }
+  .profile-page .profile-identity { padding: 24px 16px; }
+  .profile-page .profile-facts { padding: 0 20px 8px; }
+  .profile-page .profile-facts > div:first-child { border-top: 1px solid var(--app-border, #e6ebf2); }
+  .profile-page .profile-fields { grid-template-columns: 1fr; }
+  .profile-page .profile-editor-card .ant-card-head { padding: 18px 20px; }
+  .profile-page .profile-editor-card .ant-card-body { padding: 20px; }
+  .profile-page .profile-fields .ant-form-item { margin-bottom: 20px; }
+  .profile-page .profile-form-actions { padding-top: 20px; }
+}

@@ -52,8 +52,7 @@ request.interceptors.response.use((response) => {
   try { decodeResponse(body); } catch (businessError) {
     if (businessError instanceof ApiError) return rejectRequest(businessError, requestToken);
   }
-  const text = status === 401 ? '登录已过期，请重新登录'
-    : status === 403 ? '没有访问权限'
+  const text = status === 403 ? '没有访问权限'
     : status ? '请求失败（HTTP ' + status + '）'
     : error.code === 'ECONNABORTED' ? '请求超时，请稍后重试' : '无法连接服务，请确认服务已启动';
   return rejectRequest(new ApiError(status ?? 500, text), requestToken);

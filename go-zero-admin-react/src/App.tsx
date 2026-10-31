@@ -8,6 +8,7 @@ import 'dayjs/locale/zh-cn';
 import { router } from './router';
 import { queryClient } from './utils/queryClient';
 import { setRequestErrorReporter } from './utils/request';
+import { appTheme } from './theme';
 
 dayjs.locale('zh-cn');
 function RequestFeedback() {
@@ -19,7 +20,7 @@ function RequestFeedback() {
   return null;
 }
 export default function App() {
-  return <ConfigProvider locale={zhCN}><AntdApp><QueryClientProvider client={queryClient}>
+  return <ConfigProvider locale={zhCN} theme={appTheme}><AntdApp><QueryClientProvider client={queryClient}>
     <RequestFeedback /><RouterProvider router={router} />
   </QueryClientProvider></AntdApp></ConfigProvider>;
 }

@@ -4,6 +4,7 @@ import { createDict, fetchDictByCode, updateDict } from '../../api/dict';
 import type { CreateDictReq } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { useFormDraft } from '../../hooks/useFormDraft';
+import { statusOptions } from '../../utils/formOptions';
 import { DictItemsFields } from './DictItemsFields';
 
 interface DictFormProps { open: boolean; editingCode: string | null; onClose: () => void }
@@ -34,14 +35,14 @@ export function DictForm({ open, editingCode, onClose }: DictFormProps) {
   return <Modal title={editingCode === null ? '新增字典' : '编辑字典'} open={open} width={800}
     onCancel={() => { if (!save.isPending) onClose(); }} onOk={() => form.submit()}
     confirmLoading={save.isPending} okButtonProps={{ disabled: blocked || loading }}
-    cancelButtonProps={{ disabled: save.isPending }} closable={!save.isPending} maskClosable={!save.isPending} destroyOnHidden>
+    cancelButtonProps={{ disabled: save.isPending }} closable={!save.isPending} mask={{ closable: !save.isPending }} destroyOnHidden>
     {editingCode !== null && <QueryState isPending={loading} error={detail.error} onRetry={() => { void detail.refetch(); }} />}
     <Form name="dict-editor" form={form} layout="vertical" initialValues={defaults} disabled={save.isPending || blocked || loading}
       onFinish={(values) => { if (!blocked && !loading && !save.isPending) save.mutate(values); }}>
       <Row gutter={16}>
         <Col xs={24} sm={12}><Form.Item name="name" label="字典名称" rules={[{ required: true, whitespace: true, message: '请输入字典名称' }]}><Input maxLength={64} /></Form.Item></Col>
         <Col xs={24} sm={12}><Form.Item name="code" label="字典编码" rules={[{ required: true, whitespace: true, message: '请输入字典编码' }]}><Input maxLength={64} /></Form.Item></Col>
-        <Col xs={24} sm={12}><Form.Item name="status" label="状态"><Select options={[{ value: 1, label: '启用' }, { value: 2, label: '停用' }]} /></Form.Item></Col>
+        <Col xs={24} sm={12}><Form.Item name="status" label="状态"><Select options={statusOptions} /></Form.Item></Col>
         <Col span={24}><Form.Item name="description" label="描述"><Input.TextArea maxLength={512} showCount rows={2} /></Form.Item></Col>
       </Row>
       <DictItemsFields />

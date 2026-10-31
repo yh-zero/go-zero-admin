@@ -9,6 +9,8 @@ import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
+import { invalidateRoleData } from '../../utils/queryInvalidation';
+import { statusOptions } from '../../utils/formOptions';
 import { RoleEditor } from './RoleEditor';
 import { RoleDetails } from './RoleDetails';
 import { RoleMenuDialog } from './RoleMenuDialog';
@@ -25,29 +27,27 @@ export default function RoleList() {
   const roles = usePagedQuery({ params, setParams, queryKey: ['roles', params], queryFn: () => fetchRoles(params) });
   const remove = useMutation({
     mutationFn: deleteRole,
-    onSuccess: async () => { await client.invalidateQueries({ queryKey: ['roles'] }); message.success('角色已删除'); },
+    onSuccess: async () => { await invalidateRoleData(client); message.success('角色已删除'); },
   });
-  return <Space orientation="vertical" className="page-stack" size="large">
+  return <div className="page-stack">
     <PageHeader title="角色管理" description="配置角色资料、数据范围和菜单授权" extra={<Auth code="sys:role:add">
       <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增角色</Button>
     </Auth>} />
-    <Card><Form name="role-filter" form={form} layout="inline" onFinish={(values) => setParams({ ...values, page: 1, page_size: params.page_size })}>
+    <Card className="filter-card"><Form name="role-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setParams({ ...values, page: 1, page_size: params.page_size })}>
       <Form.Item name="name" label="角色名称"><Input allowClear placeholder="搜索角色名称" /></Form.Item>
       <Form.Item name="code" label="角色编码"><Input allowClear placeholder="搜索角色编码" /></Form.Item>
-      <Form.Item name="status" label="状态"><Select className="filter-select" allowClear placeholder="全部" options={[
-        { label: '启用', value: 1 }, { label: '停用', value: 2 },
-      ]} /></Form.Item>
+      <Form.Item name="status" label="状态"><Select className="filter-select" allowClear placeholder="全部" options={statusOptions} /></Form.Item>
       <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button><Button onClick={() => {
         form.resetFields(); setParams({ page: 1, page_size: params.page_size });
       }}>重置</Button><Button aria-label="刷新角色列表" icon={<ReloadOutlined />} onClick={() => void roles.refetch()} /></Space></Form.Item>
     </Form></Card>
-    <Card>
+    <Card className="data-card" title="角色列表">
       <QueryState isPending={roles.isPending} error={roles.error} onRetry={() => void roles.refetch()} />
       <Table<RoleInfo> rowKey="id" dataSource={roles.data?.list ?? []} loading={roles.isFetching} scroll={{ x: 1050 }}
         pagination={{ current: params.page, pageSize: params.page_size, total: roles.data?.total ?? 0, showSizeChanger: true,
           showTotal: (total) => `共 ${total} 个角色`, onChange: (page, page_size) => setParams({ ...params, page, page_size }) }} columns={[
-          { title: '角色名称', dataIndex: 'name', key: 'name', render: (value: string, row) => <Button type="link" onClick={() => setDetailId(row.id)}>{value}</Button> },
-          { title: '角色编码', dataIndex: 'code', key: 'code' },
+          { title: '角色名称', dataIndex: 'name', key: 'name', render: (value: string, row) => <Button type="link" className="table-primary" onClick={() => setDetailId(row.id)}>{value}</Button> },
+          { title: '角色编码', dataIndex: 'code', key: 'code', render: (value: string) => <span className="code-text">{value}</span> },
           { title: '说明', dataIndex: 'description', key: 'description', ellipsis: true, render: (value: string) => value || '—' },
           { title: '数据范围', dataIndex: 'data_scope', key: 'data_scope', render: (value: string) => dataScopeOptions.find((item) => item.value === value)?.label ?? value },
           { title: '排序', dataIndex: 'sort', key: 'sort' },
@@ -66,5 +66,5 @@ export default function RoleList() {
     {editor && <RoleEditor key={editor.id ?? 'new'} id={editor.id} onClose={() => setEditor(null)} />}
     {detailId !== null && <RoleDetails id={detailId} onClose={() => setDetailId(null)} />}
     {menuRoleId !== null && <RoleMenuDialog id={menuRoleId} onClose={() => setMenuRoleId(null)} />}
-  </Space>;
+  </div>;
 }

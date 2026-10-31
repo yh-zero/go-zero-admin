@@ -10,6 +10,8 @@ import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
+import { invalidateUserData } from '../../utils/queryInvalidation';
+import { statusOptions } from '../../utils/formOptions';
 import { UserDetails } from './UserDetails';
 import { UserEditor } from './UserEditor';
 import { ResetPasswordDialog } from './ResetPasswordDialog';
@@ -26,29 +28,29 @@ export default function UserList() {
   const departments = useQuery({ queryKey: ['depts', {}], queryFn: () => fetchDeptTree() });
   const remove = useMutation({
     mutationFn: deleteUser,
-    onSuccess: async () => { await client.invalidateQueries({ queryKey: ['users'] }); message.success('用户已删除'); },
+    onSuccess: async () => { await invalidateUserData(client); message.success('用户已删除'); },
   });
   const submitFilters = (values: GetUserListReq) => setParams({ ...values, page: 1, page_size: params.page_size });
-  return <Space orientation="vertical" size="large" className="page-stack">
+  return <div className="page-stack">
     <PageHeader title="用户管理" description="管理用户资料、部门和账号状态" extra={<Auth code="sys:user:add">
       <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增用户</Button>
     </Auth>} />
-    <Card><Form name="user-filter" form={filterForm} layout="inline" onFinish={submitFilters}>
+    <Card className="filter-card"><Form name="user-filter" className="filter-form" form={filterForm} layout="inline" onFinish={submitFilters}>
       <Form.Item name="username" label="用户名"><Input allowClear placeholder="搜索用户名" /></Form.Item>
       <Form.Item name="nickname" label="昵称"><Input allowClear placeholder="搜索昵称" /></Form.Item>
       <Form.Item name="dept_id" label="部门"><Select className="filter-select" allowClear placeholder="全部部门" popupMatchSelectWidth={false}
         options={departments.data?.list.map((dept) => ({ label: dept.name, value: dept.id }))} showSearch optionFilterProp="label" /></Form.Item>
-      <Form.Item name="status" label="状态"><Select className="filter-select" allowClear placeholder="全部" options={[{ label: '启用', value: 1 }, { label: '停用', value: 2 }]} /></Form.Item>
+      <Form.Item name="status" label="状态"><Select className="filter-select" allowClear placeholder="全部" options={statusOptions} /></Form.Item>
       <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button><Button onClick={() => {
         filterForm.resetFields(); setParams({ page: 1, page_size: params.page_size });
       }}>重置</Button><Button aria-label="刷新用户列表" icon={<ReloadOutlined />} onClick={() => void users.refetch()} /></Space></Form.Item>
     </Form></Card>
-    <Card>
+    <Card className="data-card" title="用户列表">
       <QueryState isPending={users.isPending} error={users.error} onRetry={() => void users.refetch()} />
       <Table<UserInfo> rowKey="id" dataSource={users.data?.list ?? []} loading={users.isFetching} scroll={{ x: 1100 }}
         pagination={{ current: params.page, pageSize: params.page_size, total: users.data?.total ?? 0, showSizeChanger: true,
           showTotal: (total) => `共 ${total} 位用户`, onChange: (page, page_size) => setParams({ ...params, page, page_size }) }} columns={[
-          { title: '用户名', dataIndex: 'username', key: 'username', render: (value: string, row) => <Button type="link" onClick={() => setDetailId(row.id)}>{value}</Button> },
+          { title: '用户名', dataIndex: 'username', key: 'username', render: (value: string, row) => <Button type="link" className="table-primary" onClick={() => setDetailId(row.id)}>{value}</Button> },
           { title: '昵称', dataIndex: 'nickname', key: 'nickname', render: (value: string) => value || '—' },
           { title: '真实姓名', dataIndex: 'real_name', key: 'real_name', render: (value: string) => value || '—' },
           { title: '邮箱', dataIndex: 'email', key: 'email', render: (value: string) => value || '—' },
@@ -68,5 +70,5 @@ export default function UserList() {
     {editor && <UserEditor key={editor.id ?? 'new'} id={editor.id} depts={departments.data?.list ?? []} onClose={() => setEditor(null)} />}
     {detailId !== null && <UserDetails id={detailId} onClose={() => setDetailId(null)} />}
     {resetTarget && <ResetPasswordDialog user={resetTarget} onClose={() => setResetTarget(null)} />}
-  </Space>;
+  </div>;
 }

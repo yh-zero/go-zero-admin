@@ -20,24 +20,26 @@ export default function ApiPage() {
     await queryClient.invalidateQueries({ queryKey: ['api-resources'] });
     message.success('API 资源登记已删除');
   } });
-  return <>
+  return <div className="page-stack">
     <PageHeader title="API 资源" description="维护接口资源目录，支持按分组、方法和路径查询。" />
-    <Card>
-      <Form name="api-filter" form={form} layout="inline" onFinish={(values) => setFilters({ ...values, page: 1, page_size: filters.page_size })}>
+    <Card className="filter-card">
+      <Form name="api-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setFilters({ ...values, page: 1, page_size: filters.page_size })}>
         <Form.Item name="group" label="分组"><Input allowClear placeholder="例如 sys/user" /></Form.Item>
-        <Form.Item name="method" label="方法"><Select allowClear placeholder="全部" style={{ minWidth: 120 }}
+        <Form.Item name="method" label="方法"><Select className="filter-select" allowClear placeholder="全部"
           options={['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'].map((method) => ({ label: method, value: method }))} /></Form.Item>
         <Form.Item name="path" label="路径"><Input allowClear placeholder="按路径搜索" /></Form.Item>
         <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button><Button onClick={() => { form.resetFields(); setFilters({ page: 1, page_size: 20 }); }}>重置</Button>
           <Button icon={<ReloadOutlined />} loading={query.isFetching} onClick={() => { void query.refetch(); }}>刷新</Button></Space></Form.Item>
       </Form>
+    </Card>
+    <Card className="data-card" title="API 资源目录">
       <QueryState isPending={query.isPending} error={query.error} onRetry={() => { void query.refetch(); }} />
       {!query.isPending && !query.error && <Table<ApiInfo> rowKey="id" dataSource={query.data?.list ?? []} scroll={{ x: 950 }}
         pagination={{ current: filters.page, pageSize: filters.page_size, total: query.data?.total ?? 0, showSizeChanger: true,
           onChange: (page, pageSize) => setFilters({ ...filters, page, page_size: pageSize }) }} columns={[
-          { title: 'ID', dataIndex: 'id', width: 70 }, { title: '分组', dataIndex: 'group', width: 150 },
+          { title: 'ID', dataIndex: 'id', width: 70 }, { title: '分组', dataIndex: 'group', width: 150, render: (value: string) => <span className="table-primary">{value}</span> },
           { title: '方法', dataIndex: 'method', width: 110, render: (method: string) => <Tag>{method}</Tag> },
-          { title: '路径', dataIndex: 'path', ellipsis: true }, { title: '说明', dataIndex: 'title', ellipsis: true },
+          { title: '路径', dataIndex: 'path', ellipsis: true, render: (value: string) => <span className="code-text">{value}</span> }, { title: '说明', dataIndex: 'title', ellipsis: true },
           { title: '创建时间', dataIndex: 'created_at', width: 170, render: formatTime },
           { title: '操作', key: 'actions', width: 90, fixed: 'right', render: (_, record) => <Auth code="sys:api:delete">
             <Popconfirm title="删除 API 资源登记？" description="只删除目录登记，不会移除后端实际接口。" onConfirm={() => remove.mutate(record.id)} okButtonProps={{ loading: remove.isPending }}>
@@ -46,5 +48,5 @@ export default function ApiPage() {
           </Auth> },
         ]} />}
     </Card>
-  </>;
+  </div>;
 }

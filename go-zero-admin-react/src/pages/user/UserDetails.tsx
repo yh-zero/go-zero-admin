@@ -4,6 +4,7 @@ import { fetchUser } from '../../api/user';
 import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { formatTime } from '../../utils/format';
+import { formatGender } from '../../utils/formOptions';
 
 interface Props { id: number; onClose: () => void }
 
@@ -20,7 +21,7 @@ export function UserDetails({ id, onClose }: Props) {
       { key: 'email', label: '邮箱', children: data.email || '—' },
       { key: 'phone', label: '手机号', children: data.phone || '—' },
       { key: 'dept', label: '部门', children: data.dept_name || (data.dept_id ? `部门 ${data.dept_id}` : '未分配') },
-      { key: 'gender', label: '性别', children: ['未知', '男', '女'][data.gender] || '未知' },
+      { key: 'gender', label: '性别', children: formatGender(data.gender) },
       { key: 'status', label: '状态', children: <StatusTag status={data.status} /> },
       { key: 'last_login_at', label: '最近登录', children: formatTime(data.last_login_at) },
       { key: 'last_login_ip', label: '最近登录 IP', children: data.last_login_ip || '—' },

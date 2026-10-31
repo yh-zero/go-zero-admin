@@ -13,12 +13,12 @@ interface MenuTableProps {
 
 export function MenuTable({ rows, pagination, deleting, onDetails, onEdit, onDelete }: MenuTableProps) {
   return <Table<MenuInfo> rowKey="id" dataSource={rows} pagination={pagination} scroll={{ x: 1100 }} columns={[
-    { title: '标题', dataIndex: 'title', fixed: 'left', width: 180 },
+    { title: '标题', dataIndex: 'title', fixed: 'left', width: 180, render: (value: string) => <span className="table-primary">{value}</span> },
     { title: 'ID', dataIndex: 'id', width: 70 },
     { title: '类型', dataIndex: 'type', width: 90, render: (type: number) => <Tag>{menuTypeOptions.find((item) => item.value === type)?.label ?? type}</Tag> },
-    { title: '页面名称', dataIndex: 'name', width: 130 },
-    { title: '访问路径', dataIndex: 'path', ellipsis: true },
-    { title: '权限码', dataIndex: 'perm_code', ellipsis: true },
+    { title: '页面名称', dataIndex: 'name', width: 130, render: (value: string) => <span className="code-text">{value || '—'}</span> },
+    { title: '访问路径', dataIndex: 'path', ellipsis: true, render: (value: string) => <span className="code-text">{value || '—'}</span> },
+    { title: '权限码', dataIndex: 'perm_code', ellipsis: true, render: (value: string) => <span className="code-text">{value || '—'}</span> },
     { title: '排序', dataIndex: 'sort', width: 70 },
     { title: '显示', dataIndex: 'visible', width: 80, render: (value: boolean) => value ? '显示' : '隐藏' },
     { title: '状态', dataIndex: 'status', width: 90, render: (status: number) => <StatusTag status={status} /> },

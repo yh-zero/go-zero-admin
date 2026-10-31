@@ -1,71 +1,63 @@
-# 后端 API 待整改清单
+# 本轮后端对接问题（2026-10-31）
 
-更新：2026-10-31。后端已回退至 `1fad38b`（回退提交 `b534a82`），前端保留 `215dc46`。以下 **13 项未修复、3 项待确认**，记录不代表修复授权；接口契约见 [api-contract.md](api-contract.md)。
+本文件按用户要求清空后重新记录，仅包含本轮发现。后端基线为 [`84245c4`](https://github.com/yh-zero/go-zero-admin/commit/84245c40bd1470ef0f662fdecb2d17a9e11998fb)；历史问题及修复见 [该提交中的原记录](https://github.com/yh-zero/go-zero-admin/blob/84245c40bd1470ef0f662fdecb2d17a9e11998fb/ai_document/backend-api-integration-issues.md)，不恢复历史问题正文。本轮没有修改后端源文件、配置、表结构、生成物或依赖。
 
-## 2026-10-31 修复验收（三批全部完成，真实调用通过）
+## 1. 验证范围
 
-环境：compose 全栈（gozero-platform），verify.ps1 六项全过。
+当前注册 **41 个 HTTP 路由，全部至少一次正常路径真实调用通过**；本轮脚本验收批次共记录 **127 次 HTTP 请求、9 次预期拒绝**。权限使用真实 Bearer 和 Casbin，未替换权限响应。该结果不代表全部字段、异常、并发或权限组合已验收，也不代表下述问题已修复。
 
-| 编号 | 状态 | 验收证据 |
+预期拒绝包括缺失/非法 token 401、受限账号访问用户列表 403、错误旧密码 10007、引用文件删除 400、已删除文件链接 404。临时账号首次自助改密因无角色返回 403 的原始失败仍保留；按授权补入该临时主体专属最小策略后，改密及资料链路通过。该测试授权不等于产品已提供用户角色分配功能。
+
+## 2. 已真实复现
+
+| 编号 | 路由与输入条件 | 实际结果与前端影响 | 代码依据及本轮处理 |
+|---|---|---|---|
+| B01 | `PUT /v1/sys/profile/`；临时账号原 `gender=2` 且姓名、邮箱非空，仅发送 `nickname` | 写操作 HTTP 200；随后读取 `gender=0`、姓名和邮箱为空。可选字段被按零值覆盖，部分保存会丢资料。 | [Profile RPC](../go-zero-admin/application/admin/rpc/internal/logic/profileservice/update_profile_logic.go) 直接覆盖文本与性别；API 已转发 Gender，旧“丢弃性别”问题没有恢复。前端完整提交全部可编辑字段；探测后已恢复临时账号完整资料。 |
+| B02 | 同一临时角色，`GET /v1/sys/role/list` 与 `GET /v1/sys/role/9010002` | 均 HTTP 200；列表 `user_count=1`，详情 `user_count=0`。详情默认值不能表示真实人数。 | [详情逻辑](../go-zero-admin/application/admin/rpc/internal/logic/roleservice/get_role_logic.go) 没有填人数，[列表逻辑](../go-zero-admin/application/admin/rpc/internal/logic/roleservice/get_role_list_logic.go) 才统计；前端角色详情不展示该默认值。测试角色已清理。 |
+| B03 | `GET /v1/sys/file/9001905/url`；专用公开对象 | HTTP 200，返回可下载的无签名公开 URL，但 `expires_at` 为未来时间。直接展示会把公开链接误报为临时链接。 | [GetFileURL](../go-zero-admin/application/file/rpc/internal/logic/fileservice/get_file_u_r_l_logic.go) 自行计算过期时间；[存储层](../go-zero-admin/pkg/objectstorage/storage.go) 公开 URL 无签名期限。前端按 `visibility` 展示公开链接长期有效。测试对象及元数据已清理。 |
+
+本轮私有文件的签名期限与返回期限未发现不一致，不将其他配置下的可能偏差写成已复现。
+
+运维实测：并发执行 `docker compose restart` 重启全部 11 个服务时，Nginx 因 `host not found in upstream "api" in /etc/nginx/nginx.conf:16` 退出 1；API/RPC 稳定后执行 `docker compose start nginx` 恢复，11 个容器均 running，`7001/ping`、`5999/`（前端根页面）、`80/ping` 均返回 200。属于重启依赖就绪时序问题，本轮未修改配置，不能泛化为服务无法启动。
+
+## 3. 静态确认的残留限制
+
+下表依据当前代码，不作为本轮已经触发的故障。普通增改删或正常路径通过不能代替这些限制的修复。
+
+| 范围 | 代码确认与影响 | 前端边界 / 未覆盖项 |
 |---|---|---|
-| R01 | ✅ | deny-by-default 白名单制（仅 captcha/login/ping）；无 token/坏 token → 401；demo_all(GET 通配)用户 POST user/create → 403；路由级 jwt 已移除（消除双重解析） |
-| R02+R03 | ✅ | 弃用 CachedEnforcer，`pkg/casbinauth.Holder` 原子替换；中间件经 Holder 取值不再固化旧引用；Redis 订阅 + 60s 定时兜底 + 断线重订阅；热更新日志实测 "casbin policies refreshed" |
-| R04 | ✅ | menu list/tree/my/perm-codes 由 505 变为正常返回；IN 切片改占位符展开；时间列 UNIX_TIMESTAMP+AS；查询下沉 model 扩展 |
-| R05 | ✅ | SoftDeleteSubtree 按 parent_id 递归 + 事务 + 删 sys_role_menu + 清缓存；实测父删子随删、role_menu 零残留、其他角色授权不受影响；测试数据已物理清理 |
-| R06 | ✅ | dict.api 补 `path:"code"`（/dict/code/demo_priority 实测返回完整数据）；file.api 双引号 typo 修复；均经 gen.ps1 重新生成 |
-| R07 | ✅ | api/list、audit/list 由 505 变为正常返回；total 吞错已修；audit user_id/params COALESCE |
-| R08 | ✅ | API 层补转发 Gender；实测 gender=1 保存后不再被文本更新清零（注意：proto3 无法区分"省略"与 0，前端表单需全量提交） |
-| R09 | ✅ | gofmt 改临时副本 CRLF→LF 归一比较；go list 非零退出即失败；go.mod/go.sum 行尾已归一为 LF |
-| R10 | ✅ | user/list 实测 dept_id=9001002（原静默归零），时间戳非零 |
-| R11 | ✅ | update_role_menus 事务化 + 去重 + 错误检查；role/list 实测 super_admin menus=31 users=1 |
-| R12 | ✅（别名部分） | dept/tree created_at 实测非零；移动部门未开放，防环不在本次范围 |
-| R13 | ✅（别名部分） | file/list 实测 uploader_id=1；`expires_at` 与签名期限一致性（ttl 参数未生效）**遗留**，改动小待下轮 |
+| 部门移动与缓存 | [更新](../go-zero-admin/application/admin/rpc/internal/logic/deptservice/update_dept_logic.go) 缓存读取后裸 SQL 改 `parent_id`，未维护自身/后代 `path` 或校验循环；[删除](../go-zero-admin/application/admin/rpc/internal/logic/deptservice/delete_dept_logic.go) 同样未失效详情缓存。 | 本轮仅验证不移动的增改删；前端保持禁止调整上级部门。 |
+| 普通角色编辑的授权写入 | [UpdateRole](../go-zero-admin/application/admin/rpc/internal/logic/roleservice/update_role_logic.go) 在改角色后删除并逐条重建授权，未包事务且忽略关联 SQL 错误；缺省 `menu_ids` 会清空授权。[CreateRole](../go-zero-admin/application/admin/rpc/internal/logic/roleservice/create_role_logic.go) 同样忽略授权插入错误。 | 编辑时保留完整授权 ID；本轮未注入数据库故障。独立 `POST /:id/menus` 已有事务和去重，并已实测通过，不能与此问题混同。 |
+| 用户部分更新与清除关联 | [UpdateUser](../go-zero-admin/application/admin/rpc/internal/logic/userservice/update_user_logic.go) 全量覆盖文本、性别、状态；部门和头像仅在 ID 大于 0 时更新，传 0 不能清除既有绑定。 | 前端完整提交资料并保留关联；本轮未宣称“清空部门/头像”可用。 |
+| 统一响应与错误码 | 成功 handler 直接 `OkJsonCtx` 或 `Ok`，尚未统一成功信封；[xerr.Handler](../go-zero-admin/pkg/xerr/handler.go) 的框架解析错误返回 HTTP 400，普通 gRPC 错误也可能落为 gRPC 数字码。[errcode.go](../go-zero-admin/pkg/xerr/errcode.go) 另有 402、505、506，文件逻辑使用 404，目标契约表尚未完整列出。 | 前端兼容裸成功、空响应、null 列表和错误信封；本轮未重定义目标响应或错误码。框架解析与普通 gRPC 退化分支未作为本轮故障触发。 |
+| 部门上下文 | [Authority](../go-zero-admin/application/admin/api/internal/middleware/authority.go) 的 `X-Dept-Id` 只改变 Casbin domain，写入 context 的部门仍来自 JWT。 | 缺少当前用户部门清单 HTTP，前端不开放伪造的部门切换；跨部门一致性未实测。 |
+| 租户表结构与查询 | 本轮只读查询 `information_schema.COLUMNS` 确认实际 `gozero_platform.tenant_registry` 缺少 `admin_account_ready`；[来源迁移](../go-zero-admin/data/db/migrations/platform/00001_tenant_registry.sql) 也未定义该列，但 [列表](../go-zero-admin/application/tenant/rpc/internal/logic/tenantservice/get_tenant_list_logic.go) 和 [详情](../go-zero-admin/application/tenant/rpc/internal/logic/tenantservice/get_tenant_logic.go) SQL 均读取 `COALESCE(admin_account_ready,0)`。 | 属于实际表结构与代码查询不一致；未调用租户 RPC，不记为 RPC 实测失败。未修改表结构或后端。 |
+| `/ping` | [PingLogic](../go-zero-admin/application/admin/api/internal/logic/ping_logic.go) 仍为空实现。 | HTTP 200 只证明 API 可达，不证明数据库、Redis、RPC 或对象存储健康。 |
 
-待确认 C01-C03 维持不变。遗留小项：R13 的 ttl 透传、verify.ps1 白名单与规范 §2.4 的措辞对齐（.agents/.claude 等工具目录）。
+## 4. 无 HTTP 入口或尚未接通的能力
 
-### 2026-10-31 复审追加修复（第二轮）
+以 [已注册路由](../go-zero-admin/application/admin/api/internal/handler/routes.go) 和生成类型为准，不能根据 RPC 名称或前端菜单伪造接口。
 
-| 项 | 状态 | 验收证据 |
-|---|---|---|
-| 菜单 parent_id 成环死循环 | ✅ | SoftDeleteSubtree 收集加 visited 防环；update_menu 挂载前校验"不能挂到自身/后代"，实测两种成环场景均 400，正常移动与子树删除回归通过 |
-| user_count 误计角色继承 | ✅ | CountUsersByRoleCodes 加 `v0 LIKE 'user:%'` 过滤 |
-| 角色列表 N+1 | ✅ | 改批量 `ListMenuIdsByRoleIds`，实测 super_admin=31menus/1users 不变 |
-| RPC in.Page 空指针 | ✅ | 全部 13 处改 `in.GetPage().GetPage()` nil 安全访问器（含既有未重写文件） |
-| verify.ps1 robocopy 假通过 | ✅ | 拷贝退出码 ≥8 即失败 |
+| 能力 | 当前证据与阻塞 |
+|---|---|
+| App 用户、审核、会员、会话 | [app.proto](../go-zero-admin/application/app/rpc/desc/app.proto) 有 RPC，没有 HTTP；本轮仅保留演示数据，未验证 RPC。 |
+| AI 对话、工具、工作流、任务审批 | [ai.proto](../go-zero-admin/application/ai/rpc/desc/ai.proto) 有 RPC，没有 HTTP；未执行外部模型或工作流。 |
+| 租户创建、启停、删除、管理员重置 | [tenant.proto](../go-zero-admin/application/tenant/rpc/desc/tenant.proto) 有 RPC，没有 HTTP；未部署或操作租户栈。 |
+| 文件上传与引用维护 | [file.proto](../go-zero-admin/application/file/rpc/desc/file.proto) 有上传/引用 RPC；HTTP 仅列表、链接、删除。测试对象使用独立 S3 夹具准备，不代表上传页面已接通。 |
+| 个人头像 | [资料 API](../go-zero-admin/application/admin/api/internal/logic/profile/update_profile_logic.go) 接受 `avatar_url` 但固定传 `AvatarFileId: 0`；[GetProfile](../go-zero-admin/application/admin/rpc/internal/logic/profileservice/get_profile_logic.go) 没有解析头像 URL。现有字段不能完成头像保存。 |
+| 用户分配角色 | [HTTP 生成类型](../go-zero-admin/application/admin/api/internal/types/types.go) 的新增/更新用户请求没有 `role_ids`；RPC 虽声明字段，当前创建/更新逻辑没有处理绑定。临时 SQL 授权已随验收清理。 |
+| API 同步 | 未注册同步 HTTP；[SyncApi](../go-zero-admin/application/admin/rpc/internal/logic/apiservice/sync_api_logic.go) 仍返回全零的占位结果。 |
+| 认证刷新、服务端退出、设备会话 | [admin.proto](../go-zero-admin/application/admin/rpc/desc/admin.proto) 声明 RPC，HTTP 未开放，HTTP 登录也不返回刷新令牌；本轮未验收这些 RPC。前端退出只清本地会话。 |
 
-另发现既有拼写缺陷未动：`xerr.REUQEST_PARAM_ERROR`（REUQEST→REQUEST 拼错），改名波及面大，待专门处理。
+## 5. 证据与清理
 
-前端字典路径参数、菜单子树删除和资料性别保存仍受旧后端影响，整体对接尚未通过。
+本机证据目录：`%LOCALAPPDATA%/go-zero-admin/frontend-integration-20261031-152116/`。
 
-## 待整改
+- `http-results.json`：脱敏 HTTP 方法、路径、状态码、预期拒绝及实测偏差；保留初次 403。
+- `http-coverage.json` / `http-coverage.md`：逐条 41 路由正向覆盖矩阵、保留数据计数及验证边界。
+- `temporary-records.json`：本轮前缀 `fe_check_20261031_152116` 与登记 ID，最终 `cleaned=true`。
+- 执行命令为 `node .tmp_integration-http.mjs <分组>`，按 `auth`、`user`、`user-resume`、`dept`、`role-menu`、`dict-api-audit`、`file`、`cleanup`、`summary` 分组推进；认证信息仅由环境变量提供，未写入结果。临时脚本和临时 SQL 已删除。
 
-| 编号 | 位置 | 待改内容 |
-|---|---|---|
-| R01 | [鉴权入口](../go-zero-admin/application/admin/api/admin.go) | 非公开路由统一鉴权，避免 token 格式差异跳过 Casbin；验证缺失、过期、无权限和合法请求。 |
-| R02 | [Casbin 缓存](../go-zero-admin/pkg/casbinauth/enforcer.go) | 缓存过期曾触发并发崩溃，改用现有依赖中的并发安全实现，覆盖命中、未命中和过期。 |
-| R03 | [策略刷新](../go-zero-admin/application/admin/api/internal/svc/service_context.go) | 修复中间件持有旧引用；完整构建后原子更新，补偿订阅窗口、断线及刷新失败，即使无后续通知也能恢复。 |
-| R04 | [菜单查询](../go-zero-admin/application/admin/rpc/internal/logic/menuservice/) | 查询移入 model 扩展，修复时间/row 映射、直扫 pb 和 IN 参数；区分数据库错误与无角色/权限，核对非空数据及软删除过滤。 |
-| R05 | [菜单写入](../go-zero-admin/application/admin/rpc/internal/logic/menuservice/) | 按 `parent_id` 事务删除子树及角色关联；编辑限定有效行，清理相关缓存。验证子树边界、删改并发、无变化更新与回滚。 |
-| R06 | [字典](../go-zero-admin/application/admin/api/desc/sys/dict.api)、[文件](../go-zero-admin/application/admin/api/desc/sys/file.api) | 补字典 `path:"code"`、修复文件 URL 标签引号后重新生成；字典列表补 row tag、时间转换和别名，验证路径查询及增改删。 |
-| R07 | [API 列表](../go-zero-admin/application/admin/rpc/internal/logic/apiservice/get_api_list_logic.go)、[审计列表](../go-zero-admin/application/admin/rpc/internal/logic/auditservice/get_audit_log_list_logic.go) | 查询移入 model 扩展，修复时间扫描及审计 `user_id/params` 的 NULL 处理；核对非空数据、筛选和分页。 |
-| R08 | [个人资料](../go-zero-admin/application/admin/api/internal/logic/profile/update_profile_logic.go) | API 补转发 Gender，避免保存文本资料时将非零性别覆盖为零。 |
-| R09 | [自检脚本](../go-zero-admin/data/scripts/verify.ps1) | 检查 gofmt/go list 退出码；CRLF 仅在只读比较或临时副本归一，不能掩盖格式、依赖和校验和差异。 |
-| R10 | [用户列表](../go-zero-admin/application/admin/rpc/internal/logic/userservice/get_user_list_logic.go) | 补部门、头像文件 ID、登录及创建/更新时间的 SQL 别名，以非零数据库值核对响应。 |
-| R11 | [角色管理](../go-zero-admin/application/admin/rpc/internal/logic/roleservice/) | 补时间别名、明确统计字段；菜单授权改为事务并处理错误、回滚和缓存，覆盖重复/空菜单。部分更新语义待确认。 |
-| R12 | [部门管理](../go-zero-admin/application/admin/rpc/internal/logic/deptservice/) | 补时间别名与缓存失效；若开放移动，需事务维护后代路径并防环。当前前端禁移，扁平 tree 本身不是缺陷。 |
-| R13 | [文件服务](../go-zero-admin/application/file/rpc/internal/logic/fileservice/) | 补上传者/时间别名，使 `expires_at` 与实际签名期限一致；验证非默认 TTL、公开/私有对象及引用删除限制。 |
+清理结果：登记的临时数据库行、专用 S3 对象和带本轮前缀的 Redis 键均为 **0**，没有全库清理或全量清缓存。原保留文件 `9001901–9001903` 共 **3** 条仍在；扩展种子按固定 ID 验证共 **45** 条：角色 1、字典 1、App 用户 8、会员 6、会话 4、消息 12、工作流 3、任务 7、租户 3，全部保留。
 
-判断边界：R01 不等于无 token 绕过 JWT；R06 缺 tag 不足以断言查询必败；旧菜单更新未写 `deleted_at`，不能认定会复活记录。已撤回的 `DeleteSubtree` 漏清角色菜单主键/唯一索引缓存，重做须覆盖，但尚未证明因此越权。
-
-## 待确认
-
-- **C01 响应规范**：成功信封、HTTP/业务错误码及迁移方式；前端目前兼容裸数据、空成功体和信封。
-- **C02 资料更新**：头像用文件 ID 还是 URL，省略字段表示保留还是清空；明确文件授权后同步两端。头像编辑尚未开放，R08 是独立缺陷。
-- **C03 缺失能力**：API 同步、文件上传、用户分配角色、App/AI/租户 HTTP 接口。`SyncApi` RPC 目前仅发通知并返回零计数，补路由不等于实现同步。
-
-## 执行与历史
-
-- 确认范围后逐模块修复并真实调用；契约先更新、生成物从来源生成、不擅自升级依赖。验收覆盖非空/NULL、权限、事务回滚和缓存；生成 CRUD 有限制时先确认方案。
-- 新增后端测试放 `go-zero-admin/test/`，临时测试用完删除并保留命令/结果；原有测试、正式导入器和联调数据保留。
-- 历史验证：原 `verify.ps1` 在 CRLF 工作区失败，隔离副本自检及前端构建曾通过；回退前联调未覆盖全部异常/权限，未运行 race detector。这些结果不能代替当前整改验收，本次仅简化文档。
-- [完整源码证据、详细验收及历史记录（固定版本 b534a82）](https://github.com/yh-zero/go-zero-admin/blob/b534a820a85d39750dc4116d889599ff17178f39/ai_document/backend-api-integration-issues.md)：保留历史流程违规、当时仓库规则偏离及测试清理记录，不等同于 go-zero 官方限制。
+本记录限于上述 HTTP 与静态核对。浏览器、重启及前端自检结果见 [本轮计划](frontend-integration-plan.md)，未运行的后端自检或 RPC 验收不计为通过。

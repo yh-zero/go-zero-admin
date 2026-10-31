@@ -4,6 +4,7 @@ import { createMenu, fetchMenu, updateMenu } from '../../api/menu';
 import type { CreateMenuReq } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { useFormDraft } from '../../hooks/useFormDraft';
+import { invalidateMenuData } from '../../utils/queryInvalidation';
 import { MenuFields } from './MenuFields';
 
 interface MenuFormProps { open: boolean; editingId: number | null; onClose: () => void }
@@ -28,11 +29,7 @@ export function MenuForm({ open, editingId, onClose }: MenuFormProps) {
       return editingId === null ? createMenu(data) : updateMenu(editingId, data);
     },
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['menus'] }),
-        queryClient.invalidateQueries({ queryKey: ['my-menus'] }),
-        queryClient.invalidateQueries({ queryKey: ['perm-codes'] }),
-      ]);
+      await invalidateMenuData(queryClient);
       message.success(editingId === null ? '菜单已创建' : '菜单已更新');
       onClose();
     },
@@ -42,7 +39,7 @@ export function MenuForm({ open, editingId, onClose }: MenuFormProps) {
   return <Modal title={editingId === null ? '新增菜单' : '编辑菜单'} open={open} width={760}
     onCancel={() => { if (!save.isPending) onClose(); }} onOk={() => form.submit()}
     confirmLoading={save.isPending} okButtonProps={{ disabled: blocked || loadingDetail }}
-    cancelButtonProps={{ disabled: save.isPending }} closable={!save.isPending} maskClosable={!save.isPending} destroyOnHidden>
+    cancelButtonProps={{ disabled: save.isPending }} closable={!save.isPending} mask={{ closable: !save.isPending }} destroyOnHidden>
     {editingId !== null && <QueryState isPending={loadingDetail} error={detail.error} onRetry={() => { void detail.refetch(); }} />}
     <Form name="menu-editor" form={form} layout="vertical" initialValues={defaults}
       disabled={save.isPending || blocked || loadingDetail}
