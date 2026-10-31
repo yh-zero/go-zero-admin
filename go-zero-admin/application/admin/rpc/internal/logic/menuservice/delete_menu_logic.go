@@ -2,14 +2,11 @@ package menuservicelogic
 
 import (
 	"context"
-	"errors"
 
 	"github.com/zeromicro/go-zero/core/logx"
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
-	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
-	"go-zero-admin/pkg/xerr"
 )
 
 type DeleteMenuLogic struct {
@@ -23,14 +20,13 @@ func NewDeleteMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeleteMenuLogic) DeleteMenu(in *adminpb.DeleteMenuRequest) (*adminpb.NoDataResponse, error) {
-	if err := l.svcCtx.SysMenuModel.DeleteSubtree(l.ctx, uint64(in.MenuId)); err != nil {
-		if errors.Is(err, model.ErrNotFound) {
-			return nil, xerr.NewErrCode(xerr.MENU_NOT_FOUND)
-		}
-		if errors.Is(err, model.ErrMenuHierarchy) {
-			return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, err.Error())
-		}
-		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	// 级联软删子菜单（通过 path 前缀）
+	var path string
+	_ = l.svcCtx.DB.QueryRowCtx(l.ctx, &path, "SELECT path FROM sys_menu WHERE id=?", in.MenuId)
+	if path != "" {
+		_, _ = l.svcCtx.DB.ExecCtx(l.ctx, "UPDATE sys_menu SET deleted_at=NOW() WHERE path LIKE ? AND deleted_at IS NULL", path+"%")
+	} else {
+		_, _ = l.svcCtx.DB.ExecCtx(l.ctx, "UPDATE sys_menu SET deleted_at=NOW() WHERE id=?", in.MenuId)
 	}
 	l.svcCtx.PublishPolicyChanged(l.ctx)
 	return &adminpb.NoDataResponse{}, nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/casbin/casbin/v2"
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc"
@@ -31,7 +32,7 @@ type ServiceContext struct {
 	Config      config.Config
 	AdminRpc    zrpc.Client
 	FileRpcConn zrpc.Client
-	Enforcer    *casbinauth.PolicyHolder
+	Enforcer    *casbin.CachedEnforcer
 	AuthRpc     authserviceclient.AuthService
 	UserRpc     userserviceclient.UserService
 	DeptRpc     deptserviceclient.DeptService
@@ -65,7 +66,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	for _, r := range resp.Rules {
 		rules = append(rules, casbinauth.PolicyRule{Ptype: r.Ptype, V0: r.V0, V1: r.V1, V2: r.V2, V3: r.V3, V4: r.V4, V5: r.V5})
 	}
-	enforcer, err := casbinauth.NewPolicyHolder(rules)
+	enforcer, err := casbinauth.NewEnforcer(rules)
 	if err != nil {
 		panic("create enforcer failed: " + err.Error())
 	}
@@ -109,10 +110,12 @@ func (s *ServiceContext) watchPolicyChanges() {
 		for _, r := range resp.Rules {
 			rules = append(rules, casbinauth.PolicyRule{Ptype: r.Ptype, V0: r.V0, V1: r.V1, V2: r.V2, V3: r.V3, V4: r.V4, V5: r.V5})
 		}
-		if err := s.Enforcer.Refresh(rules); err != nil {
+		newEnforcer, err := casbinauth.NewEnforcer(rules)
+		if err != nil {
 			logx.Errorf("rebuild enforcer error: %v", err)
 			continue
 		}
+		s.Enforcer = newEnforcer
 		logx.Info("casbin policies refreshed")
 	}
 }

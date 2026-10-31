@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/casbin/casbin/v2"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/httpx"
 
-	"go-zero-admin/pkg/casbinauth"
 	"go-zero-admin/pkg/jwtx"
 	"go-zero-admin/pkg/xerr"
 )
@@ -25,11 +25,11 @@ const (
 
 // Authority Casbin 接口鉴权中间件
 type Authority struct {
-	enforcer casbinauth.Enforcer
+	enforcer *casbin.CachedEnforcer
 	secret   string
 }
 
-func NewAuthority(enforcer casbinauth.Enforcer, jwtSecret string) *Authority {
+func NewAuthority(enforcer *casbin.CachedEnforcer, jwtSecret string) *Authority {
 	return &Authority{enforcer: enforcer, secret: jwtSecret}
 }
 

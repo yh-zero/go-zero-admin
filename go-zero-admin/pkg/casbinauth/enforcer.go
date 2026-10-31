@@ -8,7 +8,6 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	"github.com/casbin/casbin/v2/persist"
-	"github.com/casbin/casbin/v2/persist/cache"
 )
 
 // ModelText Casbin domains 模型（dom = 部门）
@@ -47,18 +46,13 @@ type sliceAdapter struct {
 
 func (a *sliceAdapter) LoadPolicy(m model.Model) error {
 	for _, r := range a.rules {
-		if r.Ptype != "p" && r.Ptype != "g" {
-			return fmt.Errorf("unsupported policy type: %q", r.Ptype)
-		}
 		line := r.Ptype
 		for _, v := range []string{r.V0, r.V1, r.V2, r.V3, r.V4, r.V5} {
 			if v != "" {
 				line += ", " + v
 			}
 		}
-		if err := persist.LoadPolicyLine(line, m); err != nil {
-			return err
-		}
+		persist.LoadPolicyLine(line, m)
 	}
 	return nil
 }
@@ -85,12 +79,6 @@ func NewEnforcer(rules []PolicyRule) (*casbin.CachedEnforcer, error) {
 	if err != nil {
 		return nil, err
 	}
-	decisionCache, err := cache.NewSyncCache()
-	if err != nil {
-		return nil, err
-	}
-	// 默认缓存在 Get 发现过期时会写 map，不能依赖 CachedEnforcer 的读锁。
-	enforcer.SetCache(decisionCache)
 	enforcer.SetExpireTime(300 * time.Second)
 	return enforcer, nil
 }

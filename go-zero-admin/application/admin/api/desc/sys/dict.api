@@ -35,7 +35,7 @@ type (
         Total int64        `json:"total"`
     }
 
-    GetDictByCodeReq { Code string `path:"code"` }
+    GetDictByCodeReq { Code string `json:"code" form:"code"` }
     GetDictByCodeResp { Dict *DictInfo `json:"dict"` }
 
     CreateDictReq {

@@ -2,12 +2,10 @@ package menuservicelogic
 
 import (
 	"context"
-	"errors"
 
 	"github.com/zeromicro/go-zero/core/logx"
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
-	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
 	"go-zero-admin/pkg/xerr"
 )
@@ -23,18 +21,14 @@ func NewUpdateMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 }
 
 func (l *UpdateMenuLogic) UpdateMenu(in *adminpb.UpdateMenuRequest) (*adminpb.NoDataResponse, error) {
-	menu := &model.SysMenu{
-		Id: uint64(in.MenuId), ParentId: uint64(in.ParentId), Title: in.Title, Name: in.Name,
-		Type: int64(in.Type), Path: in.Path, Component: in.Component, PermCode: in.PermCode,
-		Icon: in.Icon, Sort: int64(in.Sort), Status: int64(in.Status),
-	}
+	visible := int64(0)
 	if in.Visible {
-		menu.Visible = 1
+		visible = 1
 	}
-	if err := l.svcCtx.SysMenuModel.UpdateActive(l.ctx, menu); err != nil {
-		if errors.Is(err, model.ErrNotFound) {
-			return nil, xerr.NewErrCode(xerr.MENU_NOT_FOUND)
-		}
+	_, err := l.svcCtx.DB.ExecCtx(l.ctx,
+		"UPDATE sys_menu SET parent_id=?, title=?, name=?, type=?, path=?, component=?, perm_code=?, icon=?, sort=?, visible=?, status=? WHERE id=?",
+		in.ParentId, in.Title, in.Name, in.Type, in.Path, in.Component, in.PermCode, in.Icon, in.Sort, visible, in.Status, in.MenuId)
+	if err != nil {
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)
 	}
 	l.svcCtx.PublishPolicyChanged(l.ctx)
