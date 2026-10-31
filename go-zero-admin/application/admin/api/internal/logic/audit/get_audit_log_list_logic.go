@@ -33,7 +33,7 @@ func (l *GetAuditLogListLogic) GetAuditLogList(req *types.GetAuditLogListReq) (r
 		list = append(list, &types.AuditLogInfo{
 			Id: a.Id, UserId: a.UserId, Username: a.Username, Module: a.Module, Action: a.Action,
 			Method: a.Method, Path: a.Path, Result: a.Result, ErrorMsg: a.ErrorMsg,
-			Ip: a.Ip, DurationMs: a.DurationMs, CreatedAt: a.CreatedAt,
+			Ip: a.Ip, UserAgent: a.UserAgent, DurationMs: a.DurationMs, CreatedAt: a.CreatedAt,
 		})
 	}
 	return &types.GetAuditLogListResp{List: list, Total: rpcResp.Page.Total}, nil

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/stores/redis"
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
 	"go-zero-admin/application/admin/rpc/internal/svc"
@@ -40,17 +39,13 @@ func (l *GetCaptchaLogic) GetCaptcha(in *adminpb.GetCaptchaRequest) (*adminpb.Ge
 		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
 	}
 
-	// 存 Redis，120 秒过期
-	rdb := redis.MustNewRedis(redis.RedisConf{
-		Host: l.svcCtx.Config.CacheRedis[0].Host,
-		Type: l.svcCtx.Config.CacheRedis[0].Type,
-	})
+	// 存 Redis（复用 svc 连接池；旧实现每请求新建客户端且从不关闭，持续累积句柄）
 	key := "captcha:" + id
 	expire := l.svcCtx.Config.Captcha.ExpireSeconds
 	if expire <= 0 {
 		expire = 120
 	}
-	err = rdb.Setex(key, code, expire)
+	err = l.svcCtx.Redis.SetexCtx(l.ctx, key, code, expire)
 	if err != nil {
 		l.Errorf("save captcha error: %v", err)
 		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)

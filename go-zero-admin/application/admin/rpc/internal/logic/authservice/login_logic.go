@@ -8,7 +8,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 
 	"github.com/zeromicro/go-zero/core/limit"
@@ -100,16 +99,12 @@ func (l *LoginLogic) verifyCaptcha(captchaID, captcha string) error {
 	if captchaID == "" || captcha == "" {
 		return xerr.NewErrCode(xerr.CAPTCHA_WRONG)
 	}
-	rdb := redis.MustNewRedis(redis.RedisConf{
-		Host: l.svcCtx.Config.CacheRedis[0].Host,
-		Type: l.svcCtx.Config.CacheRedis[0].Type,
-	})
 	key := "captcha:" + captchaID
-	stored, err := rdb.Get(key)
+	stored, err := l.svcCtx.Redis.GetCtx(l.ctx, key)
 	if err != nil || stored == "" {
 		return xerr.NewErrCode(xerr.CAPTCHA_EXPIRED)
 	}
-	_, _ = rdb.Del(key)
+	_, _ = l.svcCtx.Redis.DelCtx(l.ctx, key)
 	if stored != captcha {
 		return xerr.NewErrCode(xerr.CAPTCHA_WRONG)
 	}

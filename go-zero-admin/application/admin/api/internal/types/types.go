@@ -23,6 +23,7 @@ type AuditLogInfo struct {
 	Result     int32  `json:"result"`
 	ErrorMsg   string `json:"error_msg"`
 	Ip         string `json:"ip"`
+	UserAgent  string `json:"user_agent"`
 	DurationMs int32  `json:"duration_ms"`
 	CreatedAt  int64  `json:"created_at"`
 }

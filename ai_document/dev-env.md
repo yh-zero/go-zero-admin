@@ -49,9 +49,15 @@ go run ./application/admin/rpc -f application/admin/rpc/etc/admin.yaml   # 其�
 
 注意：宿主 `go run` 与 compose 同时跑同一服务会抢端口（尤其 api 的 7001），二选一。
 
-### 数据恢复（首次或数据卷被删后）
+### 数据初始化（首次克隆）
 
-`gozero_platform` 控制库只经备份恢复（migrate 只管业务库）。使用 `data/db/backup/` 下**最新**目录：
+`data/db/init/mysql-all.sql` 是随仓库分发的完整初始化库（admin 全量演示数据 + platform 含 3 条演示租户行），compose 已把它挂到 MySQL 的 `/docker-entrypoint-initdb.d`——**空卷首次 `docker compose up -d` 自动导入，无需手动操作**。已有数据卷不会重复执行；想重置就 `docker compose down -v` 后再 `up -d`。
+
+初始化账号：`admin` / `Admin@123456`（仅本地开发，生产必改）；DB root 统一 `123456`。
+
+### 数据恢复（本地快照）
+
+`data/db/backup/` 是**本地**快照目录（已 gitignore，含口令哈希不进仓库）。恢复用**最新**目录：
 
 ```powershell
 docker cp data/db/backup/<最新目录>/mysql-all.sql gozero-new-mysql:/tmp/
@@ -60,7 +66,7 @@ docker exec -e MYSQL_PWD=123456 gozero-new-mysql sh -c "mysql -uroot < /tmp/mysq
 
 > 2026-10-31 之前的旧备份（如 20261031-112912）内含随机 root 密码，导入会把 root 锁死；之后的备份 root 统一为本地约定 `123456`，导入即用。
 
-从零初始化（无备份）时在宿主跑迁移与种子：
+从零初始化（无备份、想从头跑迁移）时在宿主执行迁移与种子：
 
 ```powershell
 goose -dir data/db/migrations/business mysql "root:123456@tcp(127.0.0.1:3307)/gozero_admin" up

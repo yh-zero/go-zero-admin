@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Handler httpx.SetErrorHandlerCtx 的回调：统一错误翻译
+// Handler httpx.SetErrorHandlerCtx 的回调：统一错误信封（契约：一律 HTTP 200 + code/msg）
 func Handler(ctx context.Context, err error) (int, interface{}) {
 	// 1. 进程内业务错误
 	if ce, ok := AsCodeError(err); ok {
@@ -19,10 +19,11 @@ func Handler(ctx context.Context, err error) (int, interface{}) {
 		if code, msg, found := FromGRPCError(err); found {
 			return http.StatusOK, map[string]interface{}{"code": code, "msg": msg}
 		}
-		return http.StatusOK, map[string]interface{}{"code": uint32(st.Code()), "msg": st.Message()}
+		// 非业务 gRPC 错误（对端不可用、超时等）统一 505，避免传输层数字码泄漏进业务码空间
+		return http.StatusOK, map[string]interface{}{"code": uint32(SERVER_COMMON_ERROR), "msg": st.Message()}
 	}
-	// 3. 参数解析等框架错误
-	return http.StatusBadRequest, map[string]interface{}{"code": REUQEST_PARAM_ERROR, "msg": err.Error()}
+	// 3. 参数解析等框架错误：同样走信封，不再返回裸 HTTP 400
+	return http.StatusOK, map[string]interface{}{"code": uint32(REUQEST_PARAM_ERROR), "msg": err.Error()}
 }
 
 // Unauthorized JWT 失败回调

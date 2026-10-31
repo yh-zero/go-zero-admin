@@ -10,6 +10,8 @@ name: gozero-platform
 services:
   nginx:
     image: nginx:1.27-alpine
+    # restart 与 compose restart 并行重启时可能先于 api 解析域名而退出，靠重启策略自愈
+    restart: on-failure
     ports: ["80:80"]
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -84,6 +86,8 @@ services:
       TZ: Asia/Shanghai
     volumes:
       - mysql_data:/var/lib/mysql
+      # 开源开箱即用：空卷时自动导入完整初始化库（已有数据卷不重复执行）
+      - ./data/db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysqladmin ping -h 127.0.0.1 -uroot --silent"]
       interval: 3s
@@ -118,7 +122,7 @@ services:
       - ./data/api/generated:/spec:ro
 
 volumes:
-  # 复用本地既有数据卷（已含备份数据）；删除卷后按 dev-env.md 恢复备份
+  # 复用本地既有数据卷；卷被删除时自动从 data/db/init 导入完整初始化库
   mysql_data:
     name: gozero-new-mysql-data
   rustfs_data:

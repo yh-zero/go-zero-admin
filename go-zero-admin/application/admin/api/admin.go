@@ -45,6 +45,9 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
 
+	// 请求元数据（真实 IP/UA 供登录限流与溯源）
+	server.Use(middleware.RequestMeta)
+
 	// Casbin Authority 全局中间件：deny-by-default，仅 publicPaths 白名单放行
 	authority := middleware.NewAuthority(ctx.Enforcer, c.Auth.AccessSecret)
 	server.Use(func(next http.HandlerFunc) http.HandlerFunc {
