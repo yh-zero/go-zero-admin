@@ -35,8 +35,8 @@ func (l *ListAppUsersLogic) ListAppUsers(in *apppb.AppAdminListRequest) (*apppb.
 	var total int64
 	_ = l.svcCtx.DB.QueryRowCtx(l.ctx, &total, "SELECT COUNT(*) FROM app_user WHERE "+where, args...)
 
-	page := in.Page.Page
-	pageSize := in.Page.PageSize
+	page := in.GetPage().GetPage()
+	pageSize := in.GetPage().GetPageSize()
 	if page <= 0 {
 		page = 1
 	}

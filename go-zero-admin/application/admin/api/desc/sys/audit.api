@@ -38,7 +38,6 @@ type (
 @server (
 	prefix: v1/sys/audit
 	group:  audit
-	jwt:    Auth
 )
 service admin {
 	@handler getAuditLogList

@@ -25,8 +25,8 @@ func (l *ListConversationsLogic) ListConversations(in *aipb.ListConversationsReq
 	var total int64
 	_ = l.svcCtx.DB.QueryRowCtx(l.ctx, &total,
 		"SELECT COUNT(*) FROM ai_conversation WHERE user_id=? AND deleted_at IS NULL", in.Actor.UserId)
-	page := in.Page.Page
-	pageSize := in.Page.PageSize
+	page := in.GetPage().GetPage()
+	pageSize := in.GetPage().GetPageSize()
 	if page <= 0 {
 		page = 1
 	}

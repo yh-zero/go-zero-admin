@@ -6,14 +6,35 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 Push-Location $projectRoot
 try {
-    Write-Host '[1/6] gofmt 检查 ...'
-    $dirty = @(gofmt -l application pkg 2>$null)
-    if ($dirty.Count -gt 0) { throw ('gofmt 未格式化: ' + ($dirty -join ', ')) }
+    Write-Host '[1/6] gofmt 检查（CRLF 工作区经临时副本归一为 LF 后比较） ...'
+    # gofmt 输出为 LF，CRLF 检出的工作区会被整体误判；归一临时副本只用于只读比较
+    $tmp = Join-Path $env:TEMP ('gofmt-' + [guid]::NewGuid().ToString('N'))
+    try {
+        foreach ($d in @('application', 'pkg')) {
+            robocopy $d (Join-Path $tmp $d) /E /NFL /NDL /NJH /NJS | Out-Null
+            if ($LASTEXITCODE -ge 8) { throw ('robocopy 拷贝 ' + $d + ' 失败，退出码 ' + $LASTEXITCODE) }
+        }
+        Get-ChildItem -Recurse -Filter *.go $tmp | ForEach-Object {
+            $t = [IO.File]::ReadAllText($_.FullName)
+            if ($t.Contains("`r`n")) { [IO.File]::WriteAllText($_.FullName, ($t -replace "`r`n", "`n")) }
+        }
+        Push-Location $tmp
+        try {
+            $dirty = @(gofmt -l application pkg 2>$null)
+            if ($dirty.Count -gt 0) { throw ('gofmt 未格式化: ' + ($dirty -join ', ')) }
+        } finally {
+            Pop-Location
+        }
+    } finally {
+        Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
+    }
 
     $prevEap = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'   # PS5.1：原生命令 stderr 警告在 Stop 下会误抛
     $pkgs = @(& go list ./... 2>$null)
+    $listExit = $LASTEXITCODE
     $ErrorActionPreference = $prevEap
+    if ($listExit -ne 0) { throw 'go list ./... 失败：不得当作骨架阶段静默跳过，先修复模块加载错误。' }
     if ($pkgs.Count -eq 0) {
         Write-Host '[2/6] go vet —— 跳过（骨架阶段，尚无 Go 包）'
         Write-Host '[3/6] go build —— 跳过（骨架阶段，尚无 Go 包）'

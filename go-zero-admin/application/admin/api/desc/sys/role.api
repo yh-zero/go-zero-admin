@@ -73,7 +73,6 @@ type (
 @server (
 	prefix: v1/sys/role
 	group:  role
-	jwt:    Auth
 )
 service admin {
 	@handler getRoleList

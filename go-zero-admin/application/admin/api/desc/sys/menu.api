@@ -82,7 +82,6 @@ type (
 @server (
 	prefix: v1/sys/menu
 	group:  menu
-	jwt:    Auth
 )
 service admin {
 	@handler getMenuTree

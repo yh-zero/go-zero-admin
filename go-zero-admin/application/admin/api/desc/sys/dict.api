@@ -35,7 +35,7 @@ type (
         Total int64        `json:"total"`
     }
 
-    GetDictByCodeReq { Code string `json:"code" form:"code"` }
+    GetDictByCodeReq { Code string `path:"code"` }
     GetDictByCodeResp { Dict *DictInfo `json:"dict"` }
 
     CreateDictReq {
@@ -61,7 +61,6 @@ type (
 @server (
 	prefix: v1/sys/dict
 	group:  dict
-	jwt:    Auth
 )
 service admin {
 	@handler getDictList

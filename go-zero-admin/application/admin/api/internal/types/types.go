@@ -206,7 +206,7 @@ type GetDeptTreeResp struct {
 }
 
 type GetDictByCodeReq struct {
-	Code string `json:"code" form:"code"`
+	Code string `path:"code"`
 }
 
 type GetDictByCodeResp struct {

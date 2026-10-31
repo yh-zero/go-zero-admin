@@ -55,7 +55,6 @@ type (
 @server (
 	prefix: v1/sys/dept
 	group:  dept
-	jwt:    Auth
 )
 service admin {
 	@handler getDeptTree

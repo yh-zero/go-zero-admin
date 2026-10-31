@@ -34,7 +34,6 @@ type (
 @server (
 	prefix: v1/sys/profile
 	group:  profile
-	jwt:    Auth
 )
 service admin {
 	@handler getProfile

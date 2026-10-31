@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"go-zero-admin/application/admin/api/internal/config"
 	"go-zero-admin/application/admin/api/internal/handler"
@@ -46,7 +45,7 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
 
-	// Casbin Authority 全局中间件（公开路由放行）
+	// Casbin Authority 全局中间件：deny-by-default，仅 publicPaths 白名单放行
 	authority := middleware.NewAuthority(ctx.Enforcer, c.Auth.AccessSecret)
 	server.Use(func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
@@ -54,12 +53,7 @@ func main() {
 				next(w, r)
 				return
 			}
-			// 带 Bearer token 的走鉴权，否则也放行（让具体接口决定）
-			if strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
-				authority.Handle(next)(w, r)
-				return
-			}
-			next(w, r)
+			authority.Handle(next)(w, r)
 		}
 	})
 

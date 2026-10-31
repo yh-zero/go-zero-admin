@@ -33,7 +33,6 @@ type (
 @server (
 	prefix: v1/sys/api
 	group:  api
-	jwt:    Auth
 )
 service admin {
 	@handler getApiList

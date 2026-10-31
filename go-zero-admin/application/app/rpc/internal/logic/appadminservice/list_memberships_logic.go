@@ -59,8 +59,8 @@ func (l *ListMembershipsLogic) ListMemberships(in *apppb.ListMembershipRequest) 
 
 	var total int64
 	_ = l.svcCtx.DB.QueryRowCtx(l.ctx, &total, "SELECT COUNT(*) FROM app_membership_grant WHERE "+where, args...)
-	page := in.Page.Page
-	pageSize := in.Page.PageSize
+	page := in.GetPage().GetPage()
+	pageSize := in.GetPage().GetPageSize()
 	if page <= 0 {
 		page = 1
 	}

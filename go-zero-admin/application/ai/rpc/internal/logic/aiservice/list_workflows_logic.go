@@ -24,8 +24,8 @@ func NewListWorkflowsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Lis
 func (l *ListWorkflowsLogic) ListWorkflows(in *aipb.ListWorkflowsRequest) (*aipb.ListWorkflowsResponse, error) {
 	var total int64
 	_ = l.svcCtx.DB.QueryRowCtx(l.ctx, &total, "SELECT COUNT(*) FROM ai_workflow WHERE deleted_at IS NULL")
-	page := in.Page.Page
-	pageSize := in.Page.PageSize
+	page := in.GetPage().GetPage()
+	pageSize := in.GetPage().GetPageSize()
 	if page <= 0 {
 		page = 1
 	}

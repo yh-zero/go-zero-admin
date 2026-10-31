@@ -34,8 +34,8 @@ func (l *ListAgentTasksLogic) ListAgentTasks(in *aipb.ListAgentTasksRequest) (*a
 	}
 	var total int64
 	_ = l.svcCtx.DB.QueryRowCtx(l.ctx, &total, "SELECT COUNT(*) FROM ai_task WHERE "+where, args...)
-	page := in.Page.Page
-	pageSize := in.Page.PageSize
+	page := in.GetPage().GetPage()
+	pageSize := in.GetPage().GetPageSize()
 	if page <= 0 {
 		page = 1
 	}

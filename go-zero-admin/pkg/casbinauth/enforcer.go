@@ -3,7 +3,7 @@ package casbinauth
 
 import (
 	"fmt"
-	"time"
+	"sync/atomic"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
@@ -68,17 +68,44 @@ func (a *sliceAdapter) RemoveFilteredPolicy(string, string, int, ...string) erro
 	return fmt.Errorf("not implemented")
 }
 
-// NewEnforcer 用给定规则创建 CachedEnforcer
-func NewEnforcer(rules []PolicyRule) (*casbin.CachedEnforcer, error) {
+// Holder 并发安全持有当前 enforcer。
+// 刷新语义为全量构建+原子替换，读路径无锁；
+// 不用 casbin.CachedEnforcer：其缓存带过期时间的并发实现出过事故，
+// 且整体替换语义下实例内缓存没有意义。
+type Holder struct {
+	ptr atomic.Pointer[casbin.Enforcer]
+}
+
+// NewHolder 以初始规则创建 Holder
+func NewHolder(rules []PolicyRule) (*Holder, error) {
+	e, err := buildEnforcer(rules)
+	if err != nil {
+		return nil, err
+	}
+	h := &Holder{}
+	h.ptr.Store(e)
+	return h, nil
+}
+
+// Enforce 对当前实例执行鉴权（纯内存，微秒级）
+func (h *Holder) Enforce(sub, dom, obj, act string) (bool, error) {
+	return h.ptr.Load().Enforce(sub, dom, obj, act)
+}
+
+// Swap 原子替换 enforcer（策略全量刷新时调用）
+func (h *Holder) Swap(rules []PolicyRule) error {
+	e, err := buildEnforcer(rules)
+	if err != nil {
+		return err
+	}
+	h.ptr.Store(e)
+	return nil
+}
+
+func buildEnforcer(rules []PolicyRule) (*casbin.Enforcer, error) {
 	m, err := model.NewModelFromString(ModelText)
 	if err != nil {
 		return nil, err
 	}
-	adapter := &sliceAdapter{rules: rules}
-	enforcer, err := casbin.NewCachedEnforcer(m, adapter)
-	if err != nil {
-		return nil, err
-	}
-	enforcer.SetExpireTime(300 * time.Second)
-	return enforcer, nil
+	return casbin.NewEnforcer(m, &sliceAdapter{rules: rules})
 }

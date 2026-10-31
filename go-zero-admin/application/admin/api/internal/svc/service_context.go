@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/casbin/casbin/v2"
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc"
@@ -32,7 +31,7 @@ type ServiceContext struct {
 	Config      config.Config
 	AdminRpc    zrpc.Client
 	FileRpcConn zrpc.Client
-	Enforcer    *casbin.CachedEnforcer
+	Enforcer    *casbinauth.Holder
 	AuthRpc     authserviceclient.AuthService
 	UserRpc     userserviceclient.UserService
 	DeptRpc     deptserviceclient.DeptService
@@ -66,7 +65,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	for _, r := range resp.Rules {
 		rules = append(rules, casbinauth.PolicyRule{Ptype: r.Ptype, V0: r.V0, V1: r.V1, V2: r.V2, V3: r.V3, V4: r.V4, V5: r.V5})
 	}
-	enforcer, err := casbinauth.NewEnforcer(rules)
+	holder, err := casbinauth.NewHolder(rules)
 	if err != nil {
 		panic("create enforcer failed: " + err.Error())
 	}
@@ -74,7 +73,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	svcCtx := &ServiceContext{
 		Config:     c,
 		AdminRpc:   adminRpc,
-		Enforcer:   enforcer,
+		Enforcer:   holder,
 		AuthRpc:    authserviceclient.NewAuthService(adminRpc),
 		UserRpc:    userserviceclient.NewUserService(adminRpc),
 		DeptRpc:    deptserviceclient.NewDeptService(adminRpc),
@@ -94,28 +93,48 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	return svcCtx
 }
 
-// watchPolicyChanges 订阅 Redis 频道，策略变更时刷新 enforcer
+// watchPolicyChanges 订阅 Redis 频道刷新策略；pub/sub 丢失消息不可恢复，另有定时全量兜底
 func (s *ServiceContext) watchPolicyChanges() {
-	pubSub := s.Redis.Subscribe(context.Background(), PolicySyncChannel)
-	ch := pubSub.Channel()
-	for range ch {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		resp, err := s.CasbinRpc.ListPolicies(ctx, &adminpb.ListPoliciesRequest{})
-		cancel()
-		if err != nil {
-			logx.Errorf("refresh policies error: %v", err)
-			continue
+	for {
+		pubSub := s.Redis.Subscribe(context.Background(), PolicySyncChannel)
+		ch := pubSub.Channel()
+		ticker := time.NewTicker(60 * time.Second)
+	Loop:
+		for {
+			select {
+			case _, ok := <-ch:
+				if !ok {
+					// 订阅通道断开（Redis 重启等），退避后重订阅
+					logx.Error("casbin policy channel closed, resubscribing")
+					break Loop
+				}
+				s.refreshPolicies()
+			case <-ticker.C:
+				s.refreshPolicies()
+			}
 		}
-		rules := make([]casbinauth.PolicyRule, 0, len(resp.Rules))
-		for _, r := range resp.Rules {
-			rules = append(rules, casbinauth.PolicyRule{Ptype: r.Ptype, V0: r.V0, V1: r.V1, V2: r.V2, V3: r.V3, V4: r.V4, V5: r.V5})
-		}
-		newEnforcer, err := casbinauth.NewEnforcer(rules)
-		if err != nil {
-			logx.Errorf("rebuild enforcer error: %v", err)
-			continue
-		}
-		s.Enforcer = newEnforcer
-		logx.Info("casbin policies refreshed")
+		ticker.Stop()
+		_ = pubSub.Close()
+		time.Sleep(5 * time.Second)
 	}
+}
+
+// refreshPolicies 全量拉取并原子替换 enforcer；失败保留旧实例
+func (s *ServiceContext) refreshPolicies() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	resp, err := s.CasbinRpc.ListPolicies(ctx, &adminpb.ListPoliciesRequest{})
+	if err != nil {
+		logx.Errorf("refresh policies error: %v", err)
+		return
+	}
+	rules := make([]casbinauth.PolicyRule, 0, len(resp.Rules))
+	for _, r := range resp.Rules {
+		rules = append(rules, casbinauth.PolicyRule{Ptype: r.Ptype, V0: r.V0, V1: r.V1, V2: r.V2, V3: r.V3, V4: r.V4, V5: r.V5})
+	}
+	if err := s.Enforcer.Swap(rules); err != nil {
+		logx.Errorf("rebuild enforcer error: %v", err)
+		return
+	}
+	logx.Info("casbin policies refreshed")
 }
