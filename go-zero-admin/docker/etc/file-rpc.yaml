@@ -1,0 +1,21 @@
+Name: file-rpc
+ListenOn: 0.0.0.0:6003
+
+Mysql:
+  DataSource: root:123456@tcp(mysql:3306)/gozero_admin?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: redis:6379
+    Type: node
+
+# 对象存储：Endpoint 走容器网络；ExternalEndpoint 给浏览器/宿主预签名 URL，必须是宿主可达地址
+Storage:
+  Endpoint: http://rustfs:9000
+  ExternalEndpoint: http://127.0.0.1:19000
+  Region: us-east-1
+  AccessKeyID: GOZEROLOCALROOT
+  SecretAccessKey: go-zero-local-storage-root-change-me
+  PublicBucket: gozero-public
+  PrivateBucket: gozero-private
+  PresignTTLSeconds: 300
+  RequestTimeoutSeconds: 30

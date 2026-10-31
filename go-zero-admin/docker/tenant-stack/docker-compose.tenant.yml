@@ -52,7 +52,7 @@ services:
       - mysql_data:/var/lib/mysql
 
   redis:
-    image: redis:latest
+    image: redis:8
 
 volumes:
   mysql_data:

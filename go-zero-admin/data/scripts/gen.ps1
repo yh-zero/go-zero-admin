@@ -14,7 +14,7 @@ param(
     [Parameter(Position = 0)][ValidateSet('api', 'rpc', 'model', 'db', 'swagger')][string]$Command,
     [Parameter(Position = 1)][string]$Name,
     [Parameter(Position = 2)][string]$Arg,
-    [string]$Dsn = 'root:123456@tcp(127.0.0.1:3306)/gozero_admin'
+    [string]$Dsn = 'root:123456@tcp(127.0.0.1:3307)/gozero_admin'
 )
 
 $ErrorActionPreference = 'Stop'

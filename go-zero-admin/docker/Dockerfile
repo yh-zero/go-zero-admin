@@ -1,54 +1,34 @@
-# syntax=docker/dockerfile:1
-# 多阶段构建：api / admin-rpc / app-rpc / file-rpc / ai-rpc / tenant-rpc / migrate
-# TODO: 骨架阶段，待代码生成后验证构建
+# 打包镜像：api / admin-rpc / app-rpc / file-rpc / ai-rpc / tenant-rpc（迁移在宿主跑 goose，见 dev-env.md §2）
+# 离线约束：Docker Hub 不可达，二进制由 data/scripts/build-images.ps1 在宿主交叉编译到 docker/.build/
+# 基础镜像只用本地已有的 alpine:3.24.2；CA 证书从本地 golang:1.27.1-alpine 复制（ai-rpc 出站 HTTPS 需要）
 
-FROM golang:1.27.3-bookworm AS builder
-WORKDIR /build
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN set -e \
- && CGO_ENABLED=0 go build -ldflags='-s -w' -o /out/api        ./application/admin/api \
- && CGO_ENABLED=0 go build -ldflags='-s -w' -o /out/admin-rpc  ./application/admin/rpc \
- && CGO_ENABLED=0 go build -ldflags='-s -w' -o /out/app-rpc    ./application/app/rpc \
- && CGO_ENABLED=0 go build -ldflags='-s -w' -o /out/file-rpc   ./application/file/rpc \
- && CGO_ENABLED=0 go build -ldflags='-s -w' -o /out/ai-rpc     ./application/ai/rpc \
- && CGO_ENABLED=0 go build -ldflags='-s -w' -o /out/tenant-rpc ./application/tenant/rpc
-
-FROM golang:1.27.3-bookworm AS tools
-RUN go install github.com/pressly/goose/v3/cmd/goose@v3.24.3
-
-FROM debian:bookworm-slim AS base
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl netcat-openbsd \
- && rm -rf /var/lib/apt/lists/*
+FROM alpine:3.24.2 AS base
+COPY --from=golang:1.27.1-alpine /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# DSN loc=Asia/Shanghai 需要时区库；alpine 无 tzdata，复用 Go 发行版自带 zoneinfo.zip
+COPY --from=golang:1.27.1-alpine /usr/local/go/lib/time/zoneinfo.zip /usr/share/zoneinfo.zip
+ENV ZONEINFO=/usr/share/zoneinfo.zip
 WORKDIR /app
 
 FROM base AS api
-COPY --from=builder /out/api /app/api
+COPY docker/.build/api /app/api
 ENTRYPOINT ["/app/api", "-f", "etc/admin.yaml"]
 
 FROM base AS admin-rpc
-COPY --from=builder /out/admin-rpc /app/admin-rpc
+COPY docker/.build/admin-rpc /app/admin-rpc
 ENTRYPOINT ["/app/admin-rpc", "-f", "etc/admin.yaml"]
 
 FROM base AS app-rpc
-COPY --from=builder /out/app-rpc /app/app-rpc
+COPY docker/.build/app-rpc /app/app-rpc
 ENTRYPOINT ["/app/app-rpc", "-f", "etc/app.yaml"]
 
 FROM base AS file-rpc
-COPY --from=builder /out/file-rpc /app/file-rpc
+COPY docker/.build/file-rpc /app/file-rpc
 ENTRYPOINT ["/app/file-rpc", "-f", "etc/file.yaml"]
 
 FROM base AS ai-rpc
-COPY --from=builder /out/ai-rpc /app/ai-rpc
+COPY docker/.build/ai-rpc /app/ai-rpc
 ENTRYPOINT ["/app/ai-rpc", "-f", "etc/ai.yaml"]
 
 FROM base AS tenant-rpc
-COPY --from=builder /out/tenant-rpc /app/tenant-rpc
+COPY docker/.build/tenant-rpc /app/tenant-rpc
 ENTRYPOINT ["/app/tenant-rpc", "-f", "etc/tenant.yaml"]
-
-FROM base AS migrate
-COPY --from=tools /go/bin/goose /usr/local/bin/goose
-COPY data/db/migrations /migrations
-COPY data/db/seeds /seeds
-ENTRYPOINT ["goose", "-dir", "/migrations/business", "mysql", "root:${MYSQL_ROOT_PASSWORD}@tcp(mysql:3306)/${MYSQL_DATABASE}", "up"]

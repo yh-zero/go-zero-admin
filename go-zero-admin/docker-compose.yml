@@ -1,14 +1,11 @@
 name: gozero-platform
 
-# 平台栈（第 0 号租户）：nginx + api + 5rpc + mysql + redis + rustfs + migrate + swagger-ui
-# 共享网络 gozero-edge 供租户栈注册别名；租户栈由 tenant-rpc 另行拉起。
-# TODO: 骨架阶段，健康检查与完整环境变量在 compose 定型时补齐
-
-x-service-environment: &service-environment
-  MYSQL_ADDR: mysql:3306
-  MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero_admin}"
-  REDIS_ADDR: redis:6379
-  JWT_ACCESS_SECRET: "${JWT_ACCESS_SECRET}"
+# 平台栈（第 0 号租户）：nginx + api + 5rpc + mysql + redis + rustfs + swagger-ui（迁移在宿主跑 goose）
+# 一键启动全部后端：docker compose up -d --build
+# 配置双套：容器内服务读 docker/etc/*.yaml（卷挂载，容器网络地址）；
+#           宿主 go run 开发读 application/*/etc/*.yaml（127.0.0.1 + 宿主映射端口）。
+# 数据卷复用本地既有卷（gozero-new-mysql-data / gozero-integration-rustfs-data），首次为空卷时
+# 需按 dev-env.md §2 导入 data/db/backup/ 下最新备份（gozero_platform 库仅靠备份恢复）。
 
 services:
   nginx:
@@ -22,63 +19,94 @@ services:
 
   api:
     build: { context: ., dockerfile: docker/Dockerfile, target: api }
-    environment: *service-environment
-    depends_on: [admin-rpc, app-rpc, file-rpc, ai-rpc]
+    ports: ["127.0.0.1:7001:7001"]
+    volumes:
+      - ./docker/etc/admin-api.yaml:/app/etc/admin.yaml:ro
+    # 启动时经 admin-rpc 加载 Casbin 策略，rpc 未就绪会 panic，靠 restart 自愈
+    restart: on-failure
+    depends_on:
+      admin-rpc: { condition: service_started }
+      file-rpc: { condition: service_started }
 
   admin-rpc:
     build: { context: ., dockerfile: docker/Dockerfile, target: admin-rpc }
-    environment: *service-environment
-    depends_on: [migrate]
+    volumes:
+      - ./docker/etc/admin-rpc.yaml:/app/etc/admin.yaml:ro
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
 
   app-rpc:
     build: { context: ., dockerfile: docker/Dockerfile, target: app-rpc }
+    volumes:
+      - ./docker/etc/app-rpc.yaml:/app/etc/app.yaml:ro
     environment:
-      <<: *service-environment
       SMTP_HOST: "${SMTP_HOST:-}"
-    depends_on: [migrate]
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
 
   file-rpc:
     build: { context: ., dockerfile: docker/Dockerfile, target: file-rpc }
-    environment: *service-environment
-    depends_on: [migrate, rustfs]
+    volumes:
+      - ./docker/etc/file-rpc.yaml:/app/etc/file.yaml:ro
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rustfs: { condition: service_started }
 
   ai-rpc:
     build: { context: ., dockerfile: docker/Dockerfile, target: ai-rpc }
-    environment:
-      <<: *service-environment
-      API_KEY_DEEPSEEK: "${API_KEY_DEEPSEEK:-}"
-    depends_on: [migrate]
+    volumes:
+      - ./docker/etc/ai-rpc.yaml:/app/etc/ai.yaml:ro
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
 
   tenant-rpc:
     build: { context: ., dockerfile: docker/Dockerfile, target: tenant-rpc }
-    environment: *service-environment
     volumes:
+      - ./docker/etc/tenant-rpc.yaml:/app/etc/tenant.yaml:ro
       - /var/run/docker.sock:/var/run/docker.sock   # 仅平台栈；等价宿主 root，注意隔离
       - ./docker/nginx/conf.d:/nginx-conf.d
-    depends_on: [migrate]
-
-  migrate:
-    build: { context: ., dockerfile: docker/Dockerfile, target: migrate }
-    environment: *service-environment
-    depends_on: [mysql]
+      - ./docker/tenant-stack:/app/tenant-stack:ro
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
 
   mysql:
     image: mysql:9.7
+    container_name: gozero-new-mysql
+    ports: ["127.0.0.1:3307:3306"]
     environment:
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-123456}"   # 本地开发约定，与各 yaml 声明一致
       MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero_admin}"
       TZ: Asia/Shanghai
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysqladmin ping -h 127.0.0.1 -uroot --silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
 
   redis:
-    image: redis:latest
+    image: redis:8
+    container_name: gozero-redis8
+    ports: ["127.0.0.1:16379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
 
   rustfs:
     image: rustfs/rustfs:1.0.3
+    container_name: gozero-integration-rustfs
+    ports: ["127.0.0.1:19000:9000", "127.0.0.1:19001:9001"]
     environment:
-      RUSTFS_ACCESS_KEY: "${RUSTFS_ACCESS_KEY}"
-      RUSTFS_SECRET_KEY: "${RUSTFS_SECRET_KEY}"
+      RUSTFS_ACCESS_KEY: "${RUSTFS_ACCESS_KEY:-GOZEROLOCALROOT}"
+      RUSTFS_SECRET_KEY: "${RUSTFS_SECRET_KEY:-go-zero-local-storage-root-change-me}"
       RUSTFS_VOLUMES: /data
     volumes:
       - rustfs_data:/data
@@ -90,8 +118,11 @@ services:
       - ./data/api/generated:/spec:ro
 
 volumes:
+  # 复用本地既有数据卷（已含备份数据）；删除卷后按 dev-env.md 恢复备份
   mysql_data:
+    name: gozero-new-mysql-data
   rustfs_data:
+    name: gozero-integration-rustfs-data
 
 networks:
   gozero-edge:

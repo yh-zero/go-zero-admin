@@ -6,7 +6,7 @@ Mysql:
   DataSource: root:123456@tcp(127.0.0.1:3307)/gozero_platform?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai
 
 CacheRedis:
-  - Host: 127.0.0.1:6379
+  - Host: 127.0.0.1:16379
     Type: node
 
 # 租户 provisioning 配置

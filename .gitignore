@@ -5,8 +5,12 @@ dist/
 
 # Go
 *.exe
+go-zero-admin/docker/.build/
 /bin/
 /tmp/
+
+# 本地数据库备份（含口令哈希，不入库）
+go-zero-admin/data/db/backup/
 
 .env.local
 *.local.yaml
