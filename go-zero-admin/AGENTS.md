@@ -5,7 +5,7 @@
 
 ## 1. 项目速览
 
-- 技术栈：Go 1.27.3 / go-zero v1.10.3 / goctl v1.10.2 / MySQL 9.7 / Redis 8 / Casbin
+- 技术栈：Go 1.27.3（`go 1.27.0` + `toolchain go1.27.3`）/ go-zero v1.10.3 / goctl v1.10.2 / MySQL 9.7 / Redis 8（compose 已锁 `redis:8`）/ Casbin
 - 架构：单 API（`application/admin/api`）+ 5 RPC（admin/app/file/ai/tenant）
 - 数据层：**goctl model `--cache true`**——禁止 GORM、禁止 sqlx 之外的数据库库
 - 鉴权：Casbin domains 模型（`dom` = 部门）+ Redis 策略热更新；接口级 Casbin + 行级 SQL 数据范围
@@ -29,9 +29,10 @@
 8. **sqlx 扫描纪律**：`QueryRowsCtx`/`QueryRowCtx` 必须配带 `db` tag 的本地 row struct，禁止直扫 pb；时间字段 SQL 层 `UNIX_TIMESTAMP()` 转 int64。
 9. **命名规范**：RPC client 字段 `XxxRpc`；缩写词小写派（`Id`/`Url`/`Rpc`/`Ip`）。
 10. **proto package 唯一性**：package 与模块同名（`adminpb`/`apppb`/`filepb`/`aipb`/`tenantpb`），禁止都用 `pb`。
-11. **e2e 纪律**：每完成一个模块对接立即真实调用验证，禁止积攒。
+11. **e2e 纪律**：每完成一个模块对接立即真实调用验证，禁止积攒；完成定义同根规范 §7。
 12. **pkg 定位**：≥2 服务使用或为公共基础设施；pkg 禁止 import 任何 `internal/` 包。
-13. **配置**：直接写 `etc/<模块>.yaml`；AI Key 留空走环境变量注入。
+13. **配置**：直接写 `etc/<模块>.yaml`；AI Key 留空走环境变量注入，命名约定 `API_KEY_<PROVIDER>`（现有 `API_KEY_DEEPSEEK` / `API_KEY_QWEN`）。
+14. **事故索引**：动手涉及 Casbin domains、多租户栈、goctl 生成、sqlx 数据层前，先查 `../ai_document/pitfalls.md` 对应条目。
 
 ## 3. 禁止事项速查
 

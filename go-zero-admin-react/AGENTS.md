@@ -7,7 +7,7 @@
 React 19 + TypeScript（严格）+ Vite 8 + antd 6 + @ant-design/pro-components + react-router-dom 7 + @tanstack/react-query + zustand + axios + dayjs。
 
 - 新增依赖必须先经批准，并说明理由（同根规范 5）
-- Node `^24`，包管理 `pnpm`（`packageManager` 字段已锁定）
+- Node `^24`（`package.json` 的 `engines` 已锁定），包管理 `pnpm`（`packageManager` 字段已锁定）
 - 具体版本以 `package.json`、锁文件和实际安装结果为准；当前 antd 声明为 `^6.6.8`，不得按陈旧文档擅自升降级。
 
 ## 2. React 规范
@@ -16,7 +16,7 @@ React 19 + TypeScript（严格）+ Vite 8 + antd 6 + @ant-design/pro-components 
 2. 组件文件 `PascalCase`（`UserList.tsx`）；hooks 文件 `useXxx.ts`；工具函数 `camelCase.ts`
 3. props 必须显式类型；事件回调命名 `onXxx`；列表渲染 key 用稳定 id，**禁止 index 作 key**
 4. 副作用进 `useEffect` 并保持纯净；自定义 hook 封装可复用逻辑
-5. 组件超 ~100 行或嵌套超 3 层 → 拆分
+5. 组件行数超标（标准同根规范 §6）或嵌套超 3 层 → 拆分
 
 ## 3. 对接铁律（契约见 ../ai_document/api-contract.md）
 
@@ -62,9 +62,17 @@ src/
 - 图标用 `@ant-design/icons`，禁止 emoji 当图标
 - 注释解释"为什么"；提交前删掉调试代码/console.log
 
-## 8. 提交前自检（必过）
+## 8. 禁止事项速查
+
+- ❌ 组件内裸 axios/fetch、useEffect 里裸请求、自造与契约不符的类型
+- ❌ index 作 key、useState 镜像表单值、手动 setState 同步服务端列表
+- ❌ `dangerouslySetInnerHTML` 渲染后端内容、emoji 当图标、提交残留 console.log
+
+## 9. 提交前自检（必过）
+
+工作目录为 `go-zero-admin-react/`：
 
 ```powershell
-npx tsc -b        # 类型零错误
-npx vite build    # 构建成功
+pnpm exec tsc -b      # 类型零错误
+pnpm exec vite build  # 构建成功
 ```

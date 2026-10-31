@@ -28,7 +28,7 @@ cd go-zero-admin
 docker compose up -d --build --wait   # MySQL 9.7 / Redis / RustFS / 全服务
 ```
 
-本地开发（依赖：Go 1.27.3 / MySQL 9.7 / Redis，端口见各 etc/*.yaml）：
+本地开发（依赖：Go 1.27.3（`go 1.27.0` + `toolchain go1.27.3`）/ MySQL 9.7 / Redis 8，端口见各 etc/*.yaml）：
 
 ```powershell
 go run ./application/admin/rpc -f application/admin/rpc/etc/admin.yaml
