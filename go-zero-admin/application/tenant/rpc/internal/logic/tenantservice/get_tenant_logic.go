@@ -2,12 +2,11 @@ package tenantservicelogic
 
 import (
 	"context"
-
+	"errors"
 	"github.com/zeromicro/go-zero/core/logx"
-
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"go-zero-admin/application/tenant/rpc/internal/svc"
 	"go-zero-admin/application/tenant/rpc/tenantpb"
-
 	"go-zero-admin/pkg/xerr"
 )
 
@@ -17,17 +16,25 @@ type GetTenantLogic struct {
 	logx.Logger
 }
 
-func NewGetTenantLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetTenantLogic {
-	return &GetTenantLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
+func NewGetTenantLogic(ctx context.Context, s *svc.ServiceContext) *GetTenantLogic {
+	return &GetTenantLogic{ctx: ctx, svcCtx: s, Logger: logx.WithContext(ctx)}
 }
-
 func (l *GetTenantLogic) GetTenant(in *tenantpb.GetTenantRequest) (*tenantpb.GetTenantResponse, error) {
-	var r tenantRow
-	err := l.svcCtx.DB.QueryRowCtx(l.ctx, &r,
-		"SELECT id, slug, domain, compose_project, status, error_msg, created_by, UNIX_TIMESTAMP(created_at), UNIX_TIMESTAMP(updated_at), COALESCE(admin_account_ready,0) FROM tenant_registry WHERE id=? AND deleted_at IS NULL",
-		in.TenantID)
-	if err != nil {
-		return nil, xerr.NewErrCodeMsg(404, "租户不存在")
+	if in.Actor == nil || in.Actor.UserID <= 0 {
+		return nil, xerr.NewErrCode(xerr.PERMISSION_DENIED)
 	}
-	return &tenantpb.GetTenantResponse{Tenant: mapTenant(&r)}, nil
+	if in.TenantID <= 0 {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
+	r, err := l.svcCtx.TenantRegistryModel.FindOne(l.ctx, uint64(in.TenantID))
+	if errors.Is(err, sqlx.ErrNotFound) {
+		return nil, xerr.NewErrCode(xerr.NOT_FOUND)
+	}
+	if err != nil {
+		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	}
+	if r.DeletedAt.Valid {
+		return nil, xerr.NewErrCode(xerr.NOT_FOUND)
+	}
+	return &tenantpb.GetTenantResponse{Tenant: mapTenant(r)}, nil
 }

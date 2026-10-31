@@ -2,6 +2,9 @@ package model
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"sort"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -16,12 +19,58 @@ type (
 		sysApiModel
 		// ListApiPage 分页查接口
 		ListApiPage(ctx context.Context, f ApiListFilter, page, pageSize int64) ([]*ApiRow, int64, error)
+		SyncRoutes(ctx context.Context, routes []ApiRouteInput) (int64, int64, error)
 	}
 
 	customSysApiModel struct {
 		*defaultSysApiModel
 	}
 )
+
+type ApiRouteInput struct{ Method, Path, Group, Title string }
+
+// SyncRoutes 只同步实际路由，不删除来源未知的手工资源或覆盖人工标题。
+func (m *customSysApiModel) SyncRoutes(ctx context.Context, routes []ApiRouteInput) (int64, int64, error) {
+	sort.Slice(routes, func(i, j int) bool { return routes[i].Method+routes[i].Path < routes[j].Method+routes[j].Path })
+	var added, updated int64
+	keys := make([]string, 0, len(routes)*2)
+	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
+		for _, route := range routes {
+			var row struct {
+				Id    int64  `db:"id"`
+				Group string `db:"group_name"`
+			}
+			err := s.QueryRowCtx(ctx, &row, "SELECT id,group_name FROM sys_api WHERE method=? AND path=? FOR UPDATE", route.Method, route.Path)
+			if errors.Is(err, sqlx.ErrNotFound) {
+				result, insertErr := s.ExecCtx(ctx, "INSERT INTO sys_api (group_name,method,path,title) VALUES (?,?,?,?)", route.Group, route.Method, route.Path, route.Title)
+				if insertErr != nil {
+					return insertErr
+				}
+				row.Id, err = result.LastInsertId()
+				if err != nil {
+					return err
+				}
+				added++
+			} else if err != nil {
+				return err
+			} else if row.Group != route.Group {
+				if _, err := s.ExecCtx(ctx, "UPDATE sys_api SET group_name=? WHERE id=?", route.Group, row.Id); err != nil {
+					return err
+				}
+				updated++
+			}
+			keys = append(keys, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysApiIdPrefix, row.Id), fmt.Sprintf("%s%s:%s", cacheGozeroAdminNewSysApiMethodPathPrefix, route.Method, route.Path))
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, 0, err
+	}
+	if len(keys) > 0 {
+		err = m.DelCacheCtx(ctx, keys...)
+	}
+	return added, updated, err
+}
 
 // ApiListFilter 接口列表筛选（空值不过滤）
 type ApiListFilter struct {

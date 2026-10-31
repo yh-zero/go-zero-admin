@@ -21,11 +21,11 @@ func ResetPasswordHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := user.NewResetPasswordLogic(r.Context(), svcCtx)
-		err := l.ResetPassword(&req)
+		resp, err := l.ResetPassword(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

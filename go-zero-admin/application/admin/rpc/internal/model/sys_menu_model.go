@@ -28,7 +28,7 @@ type (
 		// ListPermCodesByRoleCodes 按角色码查按钮权限码（type=3）
 		ListPermCodesByRoleCodes(ctx context.Context, roleCodes []string) ([]string, error)
 		// ListRoleCodesByUser 查用户角色码（casbin g 规则 v0=user:N）
-		ListRoleCodesByUser(ctx context.Context, userId int64) ([]string, error)
+		ListRoleCodesByUser(ctx context.Context, userId, deptId int64) ([]string, error)
 		// SoftDeleteSubtree 事务软删菜单子树（按 parent_id 递归），连带删 sys_role_menu 关联并清 id 缓存；返回删除行数
 		SoftDeleteSubtree(ctx context.Context, rootId uint64) (int64, error)
 		// CollectSubtreeIds 收集子树全部 id（含 root，带防环 visited 集合）；root 不存在或已删时返回 sqlx.ErrNotFound
@@ -136,7 +136,7 @@ func (m *customSysMenuModel) ListMenusByRoleCodes(ctx context.Context, roleCodes
 	err := m.QueryRowsNoCacheCtx(ctx, &rows,
 		"SELECT DISTINCT m.id, m.parent_id, m.title, m.name, m.type, m.path, m.component, m.perm_code, m.icon, m.sort, m.visible, m.status, UNIX_TIMESTAMP(m.created_at) AS created_at "+
 			"FROM sys_menu m JOIN sys_role_menu rm ON m.id=rm.menu_id JOIN sys_role r ON rm.role_id=r.id "+
-			"WHERE r.code IN ("+inPlaceholders(len(roleCodes))+") AND m.deleted_at IS NULL AND r.deleted_at IS NULL ORDER BY m.sort, m.id",
+			"WHERE r.code IN ("+inPlaceholders(len(roleCodes))+") AND m.deleted_at IS NULL AND r.deleted_at IS NULL AND m.status=1 AND r.status=1 ORDER BY m.sort, m.id",
 		args...)
 	return rows, err
 }
@@ -150,10 +150,16 @@ func (m *customSysMenuModel) ListPermCodesByRoleCodes(ctx context.Context, roleC
 		args = append(args, code)
 	}
 	codes := make([]string, 0)
-	err := m.QueryRowsNoCacheCtx(ctx, &codes,
-		"SELECT DISTINCT m.perm_code FROM sys_menu m JOIN sys_role_menu rm ON m.id=rm.menu_id JOIN sys_role r ON rm.role_id=r.id "+
-			"WHERE r.code IN ("+inPlaceholders(len(roleCodes))+") AND m.type=3 AND m.perm_code != '' AND m.deleted_at IS NULL",
+	var rows []struct {
+		Code string `db:"perm_code"`
+	}
+	err := m.QueryRowsNoCacheCtx(ctx, &rows,
+		"SELECT DISTINCT m.perm_code AS perm_code FROM sys_menu m JOIN sys_role_menu rm ON m.id=rm.menu_id JOIN sys_role r ON rm.role_id=r.id "+
+			"WHERE r.code IN ("+inPlaceholders(len(roleCodes))+") AND m.type=3 AND m.perm_code != '' AND m.deleted_at IS NULL AND m.status=1 AND r.status=1 AND r.deleted_at IS NULL",
 		args...)
+	for _, row := range rows {
+		codes = append(codes, row.Code)
+	}
 	return codes, err
 }
 
@@ -226,9 +232,15 @@ func (m *customSysMenuModel) SoftDeleteSubtree(ctx context.Context, rootId uint6
 	return int64(len(ids)), nil
 }
 
-func (m *customSysMenuModel) ListRoleCodesByUser(ctx context.Context, userId int64) ([]string, error) {
+func (m *customSysMenuModel) ListRoleCodesByUser(ctx context.Context, userId, deptId int64) ([]string, error) {
 	codes := make([]string, 0)
-	err := m.QueryRowsNoCacheCtx(ctx, &codes,
-		"SELECT v1 FROM casbin_rule WHERE ptype='g' AND v0=?", "user:"+strconv.FormatInt(userId, 10))
+	var rows []struct {
+		Code string `db:"code"`
+	}
+	err := m.QueryRowsNoCacheCtx(ctx, &rows,
+		"SELECT DISTINCT g.v1 AS code FROM casbin_rule g JOIN sys_role r ON r.code=g.v1 WHERE g.ptype='g' AND g.v0=? AND (g.v2=? OR g.v2='*') AND r.status=1 AND r.deleted_at IS NULL", "user:"+strconv.FormatInt(userId, 10), "dept:"+strconv.FormatInt(deptId, 10))
+	for _, row := range rows {
+		codes = append(codes, row.Code)
+	}
 	return codes, err
 }

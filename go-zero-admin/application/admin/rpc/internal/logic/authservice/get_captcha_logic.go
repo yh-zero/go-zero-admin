@@ -2,15 +2,13 @@ package authservicelogic
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
-	"fmt"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
 	"go-zero-admin/application/admin/rpc/internal/svc"
+	"go-zero-admin/pkg/jwtx"
 	"go-zero-admin/pkg/xerr"
 )
 
@@ -24,22 +22,26 @@ func NewGetCaptchaLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetCap
 	return &GetCaptchaLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// GetCaptcha 生成图片验证码（简版：返回文本验证码，生产可换图片库）
+// GetCaptcha 生成一次性图片验证码。
 func (l *GetCaptchaLogic) GetCaptcha(in *adminpb.GetCaptchaRequest) (*adminpb.GetCaptchaResponse, error) {
 	// 生成 4 位数字验证码
-	code, err := l.generateCode(4)
+	code, err := randomDigits(4)
 	if err != nil {
 		l.Errorf("generate captcha error: %v", err)
 		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
 	}
 
 	// 生成唯一 ID
-	id, err := l.generateCode(16)
+	id, err := jwtx.RandomToken()
 	if err != nil {
 		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
 	}
 
-	// 存 Redis（复用 svc 连接池；旧实现每请求新建客户端且从不关闭，持续累积句柄）
+	imageBase64, err := captchaImage(code)
+	if err != nil {
+		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
+	}
+	// 先完成图片绘制，再保存一次性答案。
 	key := "captcha:" + id
 	expire := l.svcCtx.Config.Captcha.ExpireSeconds
 	if expire <= 0 {
@@ -51,9 +53,6 @@ func (l *GetCaptchaLogic) GetCaptcha(in *adminpb.GetCaptchaRequest) (*adminpb.Ge
 		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
 	}
 
-	// 简版：直接返回文本，生产环境换成 base64 图片
-	imageBase64 := base64.StdEncoding.EncodeToString([]byte(code))
-
 	return &adminpb.GetCaptchaResponse{
 		Captcha: &adminpb.CaptchaInfo{
 			CaptchaID:   id,
@@ -61,17 +60,4 @@ func (l *GetCaptchaLogic) GetCaptcha(in *adminpb.GetCaptchaRequest) (*adminpb.Ge
 			ExpiresAt:   time.Now().Unix() + int64(expire),
 		},
 	}, nil
-}
-
-// generateCode 生成指定长度的随机数字字符串
-func (l *GetCaptchaLogic) generateCode(length int) (string, error) {
-	b := make([]byte, length)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	code := ""
-	for _, v := range b {
-		code += fmt.Sprintf("%d", int(v)%10)
-	}
-	return code, nil
 }

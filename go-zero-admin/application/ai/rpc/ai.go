@@ -11,6 +11,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -23,6 +24,17 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
+	// 对话内容、工具参数和个人字段不进入默认 RPC/SQL 内容日志。
+	sqlx.DisableLog()
+	services := aipb.File_application_ai_rpc_desc_ai_proto.Services()
+	for i := 0; i < services.Len(); i++ {
+		service := services.Get(i)
+		for j := 0; j < service.Methods().Len(); j++ {
+			method := "/" + string(service.FullName()) + "/" + string(service.Methods().Get(j).Name())
+			c.Middlewares.StatConf.IgnoreContentMethods = append(c.Middlewares.StatConf.IgnoreContentMethods, method)
+			zrpc.DontLogClientContentForMethod(method)
+		}
+	}
 	ctx := svc.NewServiceContext(c)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {

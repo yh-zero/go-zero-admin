@@ -21,9 +21,9 @@ func NewDeleteDictLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 	return &DeleteDictLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *DeleteDictLogic) DeleteDict(req *types.DeleteDictReq) error {
+func (l *DeleteDictLogic) DeleteDict(req *types.DeleteDictReq) (*types.EmptyResp, error) {
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	actor := &adminpb.Actor{UserId: userID}
 	_, err := l.svcCtx.DictRpc.DeleteDict(l.ctx, &adminpb.DeleteDictRequest{Actor: actor, DictId: req.Id})
-	return err
+	return &types.EmptyResp{}, err
 }

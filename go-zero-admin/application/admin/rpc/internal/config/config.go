@@ -13,10 +13,12 @@ type Config struct {
 	}
 
 	CacheRedis cache.CacheConf
+	FileRpc    zrpc.RpcClientConf
 
 	JwtAuth struct {
-		AccessSecret string
-		AccessExpire int64
+		AccessSecret  string
+		AccessExpire  int64
+		RefreshExpire int64 `json:",default=2592000"`
 	}
 
 	Captcha struct {

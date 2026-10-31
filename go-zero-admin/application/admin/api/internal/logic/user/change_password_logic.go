@@ -21,14 +21,14 @@ func NewChangePasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ch
 	return &ChangePasswordLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *ChangePasswordLogic) ChangePassword(req *types.ChangePasswordReq) error {
+func (l *ChangePasswordLogic) ChangePassword(req *types.ChangePasswordReq) (*types.EmptyResp, error) {
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	_, err := l.svcCtx.UserRpc.ChangePassword(l.ctx, &adminpb.ChangePasswordRequest{
 		Actor:       &adminpb.Actor{UserId: userID},
 		OldPassword: req.OldPassword, NewPassword: req.NewPassword,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &types.EmptyResp{}, nil
 }

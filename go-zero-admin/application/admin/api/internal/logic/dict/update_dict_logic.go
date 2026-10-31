@@ -21,12 +21,12 @@ func NewUpdateDictLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 	return &UpdateDictLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *UpdateDictLogic) UpdateDict(req *types.UpdateDictReq) error {
+func (l *UpdateDictLogic) UpdateDict(req *types.UpdateDictReq) (*types.EmptyResp, error) {
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	actor := &adminpb.Actor{UserId: userID}
 	_, err := l.svcCtx.DictRpc.UpdateDict(l.ctx, &adminpb.UpdateDictRequest{
 		Actor: actor, DictId: req.Id, Name: req.Name, Code: req.Code, Items: mapDictItems(req.Items),
 		Description: req.Description, Status: req.Status,
 	})
-	return err
+	return &types.EmptyResp{}, err
 }

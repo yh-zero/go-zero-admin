@@ -1,5 +1,6 @@
 Name: ai-rpc
 ListenOn: 0.0.0.0:6004
+Timeout: 120000
 
 Mysql:
   DataSource: root:123456@tcp(mysql:3306)/gozero_admin?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai
@@ -9,12 +10,12 @@ CacheRedis:
     Type: node
 
 AI:
-  Enabled: false                 # 启用 AI 助手需置 true 并配置下方密钥
+  Enabled: false                 # 启用后通过 API_KEY_<PROVIDER> 环境变量注入密钥
   Provider: deepseek             # deepseek / qwen
   Model: deepseek-chat
   BaseURL: https://api.deepseek.com/v1
   TimeoutSeconds: 60
 
-  # 模型密钥：在此填入你的 API Key（注意：环境变量注入尚未实现，见 dev-env.md）
+  # 兼容历史配置字段，保持空值；运行时只读取 API_KEY_DEEPSEEK / API_KEY_QWEN。
   DeepSeekKey:
   QwenKey:

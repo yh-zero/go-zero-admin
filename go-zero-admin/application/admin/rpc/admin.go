@@ -12,6 +12,7 @@ import (
 	casbinserviceServer "go-zero-admin/application/admin/rpc/internal/server/casbinservice"
 	deptserviceServer "go-zero-admin/application/admin/rpc/internal/server/deptservice"
 	dictserviceServer "go-zero-admin/application/admin/rpc/internal/server/dictservice"
+	healthserviceServer "go-zero-admin/application/admin/rpc/internal/server/healthservice"
 	menuserviceServer "go-zero-admin/application/admin/rpc/internal/server/menuservice"
 	profileserviceServer "go-zero-admin/application/admin/rpc/internal/server/profileservice"
 	roleserviceServer "go-zero-admin/application/admin/rpc/internal/server/roleservice"
@@ -20,6 +21,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -32,9 +34,20 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
+	// SQL 默认日志会展开参数，关闭普通及慢查询内容，避免密码摘要和个人字段泄漏。
+	sqlx.DisableLog()
+	// 保留方法耗时与指标，但不让默认 RPC 统计日志记录密码、令牌和用户资料。
+	services := adminpb.File_application_admin_rpc_desc_admin_proto.Services()
+	for i := 0; i < services.Len(); i++ {
+		service := services.Get(i)
+		for j := 0; j < service.Methods().Len(); j++ {
+			c.Middlewares.StatConf.IgnoreContentMethods = append(c.Middlewares.StatConf.IgnoreContentMethods, "/"+string(service.FullName())+"/"+string(service.Methods().Get(j).Name()))
+		}
+	}
 	ctx := svc.NewServiceContext(c)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+		adminpb.RegisterHealthServiceServer(grpcServer, healthserviceServer.NewHealthServiceServer(ctx))
 		adminpb.RegisterAuthServiceServer(grpcServer, authserviceServer.NewAuthServiceServer(ctx))
 		adminpb.RegisterUserServiceServer(grpcServer, userserviceServer.NewUserServiceServer(ctx))
 		adminpb.RegisterProfileServiceServer(grpcServer, profileserviceServer.NewProfileServiceServer(ctx))

@@ -21,11 +21,11 @@ func DeleteApiHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := api.NewDeleteApiLogic(r.Context(), svcCtx)
-		err := l.DeleteApi(&req)
+		resp, err := l.DeleteApi(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

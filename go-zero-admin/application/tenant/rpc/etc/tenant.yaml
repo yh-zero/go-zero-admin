@@ -1,5 +1,6 @@
 Name: tenant-rpc
 ListenOn: 0.0.0.0:6005
+Timeout: 120000
 
 # 平台控制库（tenant_registry）
 Mysql:
@@ -11,6 +12,10 @@ CacheRedis:
 
 # 租户 provisioning 配置
 Tenant:
+  StateDir: docker/tenant-stack/state
+  InitSQLPath: data/db/init/mysql-all.sql
+  StorageConfigPath: docker/etc/file-rpc.yaml
+  NginxContainer: gozero-platform-nginx-1
   StackTemplateDir: docker/tenant-stack     # 租户栈模板目录（相对仓库根）
   NginxConfDir: docker/nginx/conf.d         # Nginx server 块输出目录
   EdgeNetwork: gozero-edge                  # 共享 docker 网络

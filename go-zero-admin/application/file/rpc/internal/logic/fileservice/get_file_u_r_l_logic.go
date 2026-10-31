@@ -2,10 +2,8 @@ package fileservicelogic
 
 import (
 	"context"
-	"errors"
 
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/stores/sqlx"
 
 	filepb "go-zero-admin/application/file/rpc/filepb"
 	"go-zero-admin/application/file/rpc/internal/svc"
@@ -23,22 +21,21 @@ func NewGetFileURLLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetFil
 }
 
 func (l *GetFileURLLogic) GetFileURL(in *filepb.GetFileURLRequest) (*filepb.GetFileURLResponse, error) {
-	var row struct {
-		Visibility string `db:"visibility"`
-		ObjectKey  string `db:"object_key"`
+	if !in.PublicOnly && in.GetActor().GetUserID() <= 0 {
+		return nil, xerr.NewErrCode(xerr.PERMISSION_DENIED)
 	}
-	err := l.svcCtx.DB.QueryRowCtx(l.ctx, &row,
-		"SELECT visibility, object_key FROM sys_file WHERE id=? AND deleted_at IS NULL", in.FileID)
+	if in.FileID <= 0 {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
+	row, err := l.svcCtx.SysFileModel.FindLive(l.ctx, in.FileID)
 	if err != nil {
-		// 未找到与数据库故障分开报告，不再把故障伪装成 404
-		if errors.Is(err, sqlx.ErrNotFound) || row.ObjectKey == "" {
-			return nil, xerr.NewErrCodeMsg(404, "文件不存在")
-		}
-		l.Errorf("query file error: %v", err)
-		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+		return nil, fileModelError(err)
 	}
-	if row.ObjectKey == "" {
-		return nil, xerr.NewErrCodeMsg(404, "文件不存在")
+	if in.PublicOnly && row.Visibility != "public" {
+		return nil, xerr.NewErrCode(xerr.PERMISSION_DENIED)
+	}
+	if row.Visibility != "public" && (!row.UploaderId.Valid || row.UploaderId.Int64 != in.Actor.UserID) {
+		return nil, xerr.NewErrCode(xerr.PERMISSION_DENIED)
 	}
 	if l.svcCtx.Store == nil {
 		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
@@ -46,7 +43,7 @@ func (l *GetFileURLLogic) GetFileURL(in *filepb.GetFileURLRequest) (*filepb.GetF
 	// 期限以存储层真实签名为准：公开文件永久有效返回 0，私有返回实际签名 TTL
 	urlStr, expiresAt, err := l.svcCtx.Store.URL(l.ctx, row.ObjectKey, row.Visibility)
 	if err != nil {
-		l.Errorf("generate file url error: %v", err)
+		l.Error("文件链接生成失败")
 		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
 	}
 	return &filepb.GetFileURLResponse{URL: urlStr, ExpiresAt: expiresAt}, nil

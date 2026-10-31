@@ -21,7 +21,7 @@ export function RoleDetails({ id, onClose }: Props) {
       { key: 'data_scope', label: '数据范围', children: dataScopeOptions.find((item) => item.value === data.data_scope)?.label ?? data.data_scope },
       { key: 'status', label: '状态', children: <StatusTag status={data.status} /> },
       { key: 'sort', label: '排序', children: data.sort },
-      { key: 'menus', label: '已分配菜单 ID', children: (data.menu_ids ?? []).length ? data.menu_ids.map((id) => <Tag key={id}>{id}</Tag>) : '未分配' },
+      { key: 'menus', label: '已授权资源 ID', children: (data.menu_ids ?? []).length ? data.menu_ids.map((id) => <Tag key={id}>{id}</Tag>) : '未授权' },
       { key: 'created_at', label: '创建时间', children: formatTime(data.created_at) },
       { key: 'updated_at', label: '更新时间', children: formatTime(data.updated_at) },
     ]} />}

@@ -2,6 +2,7 @@ package dept
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -20,7 +21,7 @@ func NewDeleteDeptLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 	return &DeleteDeptLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *DeleteDeptLogic) DeleteDept(req *types.DeleteDeptReq) error {
-	_, err := l.svcCtx.DeptRpc.DeleteDept(l.ctx, &adminpb.DeleteDeptRequest{DeptId: req.Id})
-	return err
+func (l *DeleteDeptLogic) DeleteDept(req *types.DeleteDeptReq) (*types.EmptyResp, error) {
+	_, err := l.svcCtx.DeptRpc.DeleteDept(l.ctx, &adminpb.DeleteDeptRequest{Actor: middleware.ActorFromContext(l.ctx), DeptId: req.Id})
+	return &types.EmptyResp{}, err
 }

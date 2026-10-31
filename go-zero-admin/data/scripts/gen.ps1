@@ -1,20 +1,19 @@
 ﻿#requires -Version 5.1
-# go-zero-admin 代码生成入口（api / rpc / model / db / swagger）
+# go-zero-admin 代码生成入口（api / rpc / model / swagger）
 #
 #   .\data\scripts\gen.ps1 api                  生成 API 代码（官方默认模板，无 -home）
 #   .\data\scripts\gen.ps1 rpc <module>         生成 RPC 代码（admin|app|file|ai|tenant）
-#   .\data\scripts\gen.ps1 model <module> <table>  生成数据层（goctl model，带缓存；需先 db up）
-#   .\data\scripts\gen.ps1 db up                执行 goose 迁移
-#   .\data\scripts\gen.ps1 db create <name>     新建迁移文件
+#   .\data\scripts\gen.ps1 model <module> <table>  生成数据层（goctl model，带缓存；需先导入完整初始化 SQL）
 #   .\data\scripts\gen.ps1 swagger              生成 Swagger（官方原生输出）
 #
-# 前提：goctl v1.10.2、goose 已安装，本地开发库已启动。生成后请检查差异，保留手写业务逻辑。
+# 前提：goctl v1.10.2 已安装，本地开发库已导入 data/db/init/mysql-all.sql。生成后请检查差异，保留手写业务逻辑。
 [CmdletBinding()]
 param(
-    [Parameter(Position = 0)][ValidateSet('api', 'rpc', 'model', 'db', 'swagger')][string]$Command,
+    [Parameter(Position = 0)][ValidateSet('api', 'rpc', 'model', 'swagger')][string]$Command,
     [Parameter(Position = 1)][string]$Name,
     [Parameter(Position = 2)][string]$Arg,
-    [string]$Dsn = 'root:123456@tcp(127.0.0.1:3307)/gozero_admin'
+    [string]$Dsn = 'root:123456@tcp(127.0.0.1:3307)/gozero_admin',
+    [string[]]$RefreshHandlers = @()
 )
 
 $ErrorActionPreference = 'Stop'
@@ -25,8 +24,30 @@ Push-Location $projectRoot
 try {
     switch ($Command) {
         'api' {
-            & goctl api go -api application/admin/api/desc/admin.api -dir application/admin/api -style go_zero
-            if ($LASTEXITCODE -ne 0) { throw 'goctl api generation failed.' }
+            # goctl 跳过已有 handler；接口返回签名变化时，只刷新显式列出的入口。
+            $handlerRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot 'application/admin/api/internal/handler'))
+            $originals = @{}
+            foreach ($relativePath in $RefreshHandlers) {
+                if ([IO.Path]::IsPathRooted($relativePath)) { throw 'RefreshHandlers 必须是 handler 目录下的相对路径。' }
+                $target = [IO.Path]::GetFullPath((Join-Path $handlerRoot $relativePath))
+                if (-not $target.StartsWith($handlerRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -or
+                    -not $target.EndsWith('_handler.go', [StringComparison]::Ordinal) -or
+                    -not (Test-Path -LiteralPath $target -PathType Leaf)) {
+                    throw ('不允许刷新 handler: ' + $relativePath)
+                }
+                $originals[$target] = [IO.File]::ReadAllBytes($target)
+            }
+            try {
+                foreach ($target in $originals.Keys) { Remove-Item -LiteralPath $target }
+                & goctl api go -api application/admin/api/desc/admin.api -dir application/admin/api -style go_zero
+                if ($LASTEXITCODE -ne 0) { throw 'goctl api generation failed.' }
+                foreach ($target in $originals.Keys) {
+                    if (-not (Test-Path -LiteralPath $target -PathType Leaf)) { throw ('handler 未重新生成: ' + $target) }
+                }
+            } catch {
+                foreach ($target in $originals.Keys) { [IO.File]::WriteAllBytes($target, $originals[$target]) }
+                throw
+            }
         }
         'rpc' {
             if ($modules -notcontains $Name) { throw ('Usage: gen.ps1 rpc <module>  (' + ($modules -join '|') + ')') }
@@ -39,7 +60,7 @@ try {
             if (-not (Test-Path $mainFile)) { $mainFile = Join-Path $rpcDir 'pb.go' }
             $before = @{}
             if (Test-Path $mainFile) {
-                foreach ($m in [regex]::Matches((Get-Content $mainFile -Raw), 'Register(w+)Server')) { $before[$m.Groups[1].Value] = $true }
+                foreach ($m in [regex]::Matches((Get-Content $mainFile -Raw), 'Register(\w+)Server')) { $before[$m.Groups[1].Value] = $true }
             }
 
             & goctl rpc protoc $proto --go_out=$rpcDir --go-grpc_out=$rpcDir --zrpc_out=$rpcDir -m --style go_zero --name-from-filename
@@ -70,27 +91,12 @@ try {
             & goctl model mysql datasource --dir $modelDir --table $Arg --cache true -style go_zero --url $Dsn
             if ($LASTEXITCODE -ne 0) { throw 'goctl model generation failed.' }
         }
-        'db' {
-            # 迁移集：business（租户业务库，默认）/ platform（平台控制库）
-            $set = if ($Arg -and $Name -ne 'create') { $Arg } elseif ($Name -eq 'create' -and $env:DB_SET) { $env:DB_SET } else { 'business' }
-            if ($Name -eq 'up') {
-                $setDir = 'data/db/migrations/' + $(if ($Arg) { $Arg } else { 'business' })
-                & goose -dir $setDir mysql $Dsn up
-            } elseif ($Name -eq 'create') {
-                if (-not $Arg) { throw 'Usage: gen.ps1 db create <name> [business|platform]' }
-                $createSet = 'business'
-                & goose -dir ('data/db/migrations/' + $createSet) create $Arg sql
-            } else {
-                throw 'Usage: gen.ps1 db up [business|platform] | db create <name>'
-            }
-            if ($LASTEXITCODE -ne 0) { throw 'goose failed.' }
-        }
         'swagger' {
             & goctl api swagger --api application/admin/api/desc/admin.api --dir data/api/generated
             if ($LASTEXITCODE -ne 0) { throw 'goctl swagger generation failed.' }
         }
         default {
-            Write-Host 'Usage: gen.ps1 <api|rpc|model|db|swagger> [args...]'
+            Write-Host 'Usage: gen.ps1 <api|rpc|model|swagger> [args...]'
             exit 1
         }
     }

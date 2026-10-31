@@ -6,6 +6,7 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
 	"go-zero-admin/pkg/xerr"
 )
@@ -21,8 +22,11 @@ func NewGetUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUserLo
 }
 
 func (l *GetUserLogic) GetUser(in *adminpb.GetUserRequest) (*adminpb.GetUserResponse, error) {
-	user, err := l.svcCtx.SysUserModel.FindOne(l.ctx, uint64(in.UserId))
+	user, err := l.svcCtx.SysUserModel.FindScopedUser(l.ctx, in.UserId, model.UserActor{UserId: in.GetActor().GetUserId(), DeptId: in.GetActor().GetDeptId()})
 	if err != nil {
+		return nil, passwordMutationError(err)
+	}
+	if user.DeletedAt.Valid {
 		return nil, xerr.NewErrCode(xerr.USER_NOT_FOUND)
 	}
 	var deptID, avatarID int64
@@ -45,6 +49,16 @@ func (l *GetUserLogic) GetUser(in *adminpb.GetUserRequest) (*adminpb.GetUserResp
 		info.LastLoginAt = user.LastLoginAt.Time.Unix()
 	}
 	info.LastLoginIP = user.LastLoginIp
+	roles, err := l.svcCtx.SysUserModel.ListUserRoleIds(l.ctx, []int64{in.UserId})
+	if err != nil {
+		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	}
+	info.RoleIds = roles[in.UserId]
+	info.IsSuperAdmin, err = l.svcCtx.SysUserModel.IsSuperAdmin(l.ctx, int64(user.Id))
+	if err != nil {
+		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	}
+	info.AvatarUrl = ResolveAvatarURL(l.ctx, l.svcCtx, avatarID, in.GetActor())
 	// 查部门名
 	if deptID > 0 {
 		dept, err := l.svcCtx.SysDeptModel.FindOne(l.ctx, uint64(deptID))

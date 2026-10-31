@@ -21,10 +21,23 @@ func NewRemoveFileReferenceLogic(ctx context.Context, svcCtx *svc.ServiceContext
 }
 
 func (l *RemoveFileReferenceLogic) RemoveFileReference(in *filepb.RemoveFileReferenceRequest) (*filepb.NoDataResponse, error) {
-	_, err := l.svcCtx.DB.ExecCtx(l.ctx,
-		"UPDATE sys_file SET ref_count = GREATEST(ref_count - 1, 0) WHERE id=? AND deleted_at IS NULL", in.FileID)
-	if err != nil {
-		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	if in.KeepFileId != nil {
+		if in.FileID != 0 || *in.KeepFileId < 0 {
+			return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+		}
+		if err := validateReference(in.GetActor().GetUserID(), 1, in.RefType, in.RefID); err != nil {
+			return nil, err
+		}
+		if err := l.svcCtx.SysFileReferenceModel.ReconcileReferences(l.ctx, in.GetActor().GetUserID(), in.RefType, in.RefID, *in.KeepFileId); err != nil {
+			return nil, fileModelError(err)
+		}
+		return &filepb.NoDataResponse{}, nil
+	}
+	if err := validateReference(in.GetActor().GetUserID(), in.FileID, in.RefType, in.RefID); err != nil {
+		return nil, err
+	}
+	if err := l.svcCtx.SysFileReferenceModel.RemoveReference(l.ctx, in.FileID, in.Actor.UserID, in.RefType, in.RefID); err != nil {
+		return nil, fileModelError(err)
 	}
 	return &filepb.NoDataResponse{}, nil
 }

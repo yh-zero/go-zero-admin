@@ -1,62 +1,70 @@
 import { useState } from 'react';
-import { App, Button, Card, Form, InputNumber, Segmented, Select, Space } from 'antd';
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { App, Button, Card, Form, Input, Select, Space } from 'antd';
+import { ApartmentOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { deleteMenu, fetchMenus, fetchMenuTree } from '../../api/menu';
-import type { GetMenuListReq, GetMenuTreeReq } from '../../api/types';
+import { deleteMenu, fetchMenuTree } from '../../api/menu';
 import { Auth } from '../../components/Auth';
 import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
-import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { buildTree } from '../../utils/tree';
 import { invalidateMenuData } from '../../utils/queryInvalidation';
 import { statusOptions } from '../../utils/formOptions';
 import { MenuDetails } from './MenuDetails';
-import { menuTypeOptions } from './menuOptions';
 import { MenuForm } from './MenuForm';
+import type { MenuEditorState } from './MenuForm';
 import { MenuTable } from './MenuTable';
+import { OperationPermissions } from './OperationPermissions';
+import { filterNavigationMenus, getUnassignedPermissions } from './menuResources';
+import styles from './MenuPage.module.css';
+
+interface MenuFilters { keyword?: string; status?: number }
 
 export default function MenuPage() {
   const { message } = App.useApp();
-  const [mode, setMode] = useState<'list' | 'tree'>('list');
-  const [filters, setFilters] = useState<GetMenuListReq>({ page: 1, page_size: 20 });
-  const [treeStatus, setTreeStatus] = useState<number>();
-  const [editing, setEditing] = useState<{ open: boolean; id: number | null }>({ open: false, id: null });
+  const [filters, setFilters] = useState<MenuFilters>({});
+  const [editing, setEditing] = useState<MenuEditorState | null>(null);
   const [detailId, setDetailId] = useState<number | null>(null);
-  const [filterForm] = Form.useForm<GetMenuListReq & GetMenuTreeReq>();
+  const [pageId, setPageId] = useState<number | null>(null);
+  const [filterForm] = Form.useForm<MenuFilters>();
   const queryClient = useQueryClient();
-  const list = usePagedQuery({ params: filters, setParams: setFilters, queryKey: ['menus', 'list', filters], queryFn: () => fetchMenus(filters), enabled: mode === 'list' });
-  const tree = useQuery({ queryKey: ['menus', 'tree', filters.type, treeStatus], queryFn: () => fetchMenuTree({ type: filters.type, status: treeStatus }), enabled: mode === 'tree' });
-  const current = mode === 'list' ? list : tree;
+  const query = useQuery({ queryKey: ['menus', 'resources'], queryFn: () => fetchMenuTree() });
+  const resources = query.data?.list ?? [];
+  const ready = query.isSuccess && !query.isFetching;
+  const unassignedCount = getUnassignedPermissions(resources).length;
   const remove = useMutation({ mutationFn: deleteMenu, onSuccess: async () => {
     await invalidateMenuData(queryClient);
     message.success('菜单已删除');
   } });
-  return <div className="page-stack">
-    <PageHeader title="菜单管理" description="维护导航目录、页面和按钮权限，支持列表与树形查看。"
-      extra={<Auth code="sys:menu:add"><Button type="primary" icon={<PlusOutlined />} onClick={() => setEditing({ open: true, id: null })}>新增菜单</Button></Auth>} />
-    <Card className="filter-card">
-      <Form name="menu-filter" className="filter-form" form={filterForm} layout="inline" onFinish={({ status, ...values }) => {
-        setTreeStatus(status); setFilters({ ...values, page: 1, page_size: filters.page_size });
-      }}>
-        <Form.Item name="type" label="类型"><Select className="filter-select" allowClear placeholder="全部类型" options={menuTypeOptions} /></Form.Item>
-        {mode === 'list' && <Form.Item name="parent_id" label="父菜单 ID"><InputNumber min={1} precision={0} placeholder="全部" /></Form.Item>}
-        {mode === 'tree' && <Form.Item name="status" label="状态"><Select className="filter-select" allowClear placeholder="全部" options={statusOptions} /></Form.Item>}
-        <Form.Item><Space><Button htmlType="submit" type="primary">查询</Button><Button onClick={() => { filterForm.resetFields(); setTreeStatus(undefined); setFilters({ page: 1, page_size: 20 }); }}>重置</Button>
-          <Button icon={<ReloadOutlined />} loading={current.isFetching} onClick={() => { void current.refetch(); }}>刷新</Button>
-        </Space></Form.Item>
-      </Form>
+  const busy = query.isFetching || remove.isPending;
+  return <div className={`page-stack ${pageId !== null ? styles.withPermissions : ''}`}>
+    <PageHeader title="菜单管理" description="维护目录与页面，操作权限按页面单独管理。" extra={
+      <Auth code="sys:menu:add"><Button type="primary" icon={<PlusOutlined />} disabled={!ready}
+        onClick={() => setEditing({ id: null, kind: 'navigation' })}>新增菜单</Button></Auth>
+    } />
+    <Card className={`filter-card ${styles.filterCard}`}><Form name="menu-filter" className="filter-form" form={filterForm} layout="inline" onFinish={setFilters}>
+      <Form.Item name="keyword" label="菜单名称"><Input allowClear prefix={<SearchOutlined />} placeholder="搜索菜单名称" /></Form.Item>
+      <Form.Item name="status" label="状态"><Select className="filter-select" allowClear placeholder="全部状态" options={statusOptions} /></Form.Item>
+      <Form.Item><Space><Button htmlType="submit" type="primary">查询</Button>
+        <Button onClick={() => { filterForm.resetFields(); setFilters({}); }}>重置</Button>
+        <Button icon={<ReloadOutlined />} loading={query.isFetching} onClick={() => { void query.refetch(); }}>刷新</Button>
+      </Space></Form.Item>
+    </Form></Card>
+    <Card className={`data-card ${styles.menuCard}`} title={<div className={styles.structureHeading}>
+      <span className={styles.structureHeadingIcon}><ApartmentOutlined /></span><span>菜单结构</span>
+      {query.isSuccess && <span className={styles.structureCount}>{resources.filter(menu => menu.type === 1).length} 个目录 · {resources.filter(menu => menu.type === 2).length} 个页面</span>}
+    </div>} extra={unassignedCount > 0 &&
+      <Button type="link" disabled={busy} onClick={() => setPageId(0)}>其他操作权限（{unassignedCount}）</Button>}>
+      <QueryState isPending={query.isPending} error={query.error} onRetry={() => { void query.refetch(); }} />
+      {query.isSuccess && <MenuTable key={`${filters.keyword ?? ''}:${filters.status ?? ''}`}
+        rows={buildTree(filterNavigationMenus(resources, filters.keyword ?? '', filters.status))} resources={resources}
+        selectedId={pageId} busy={busy} onDetails={setDetailId}
+        onEdit={id => setEditing({ id, kind: 'navigation' })} onDelete={id => remove.mutate(id)} onPermissions={setPageId} />}
+      <div className={styles.tableHint}>操作权限在对应页面中管理，点击菜单名称可查看完整配置。</div>
     </Card>
-    <Card className="data-card" title={mode === 'list' ? '菜单列表' : '菜单结构'} extra={
-      <Segmented value={mode} options={[{ label: '分页列表', value: 'list' }, { label: '菜单树', value: 'tree' }]} onChange={(value) => setMode(value as 'list' | 'tree')} />
-    }>
-      <QueryState isPending={current.isPending} error={current.error} onRetry={() => { void current.refetch(); }} />
-      {!current.isPending && !current.error && <MenuTable rows={mode === 'list' ? list.data?.list ?? [] : buildTree(tree.data?.list ?? [])}
-        pagination={mode === 'tree' ? false : { current: filters.page, pageSize: filters.page_size, total: list.data?.total ?? 0, showSizeChanger: true,
-          onChange: (page, pageSize) => setFilters({ ...filters, page, page_size: pageSize }) }}
-        deleting={remove.isPending} onDetails={setDetailId} onEdit={(id) => setEditing({ open: true, id })} onDelete={(id) => remove.mutate(id)} />}
-    </Card>
-    <MenuForm open={editing.open} editingId={editing.id} onClose={() => setEditing({ open: false, id: null })} />
+    <OperationPermissions pageId={pageId} resources={resources} ready={ready} deleting={remove.isPending}
+      onClose={() => setPageId(null)} onEdit={setEditing} onDelete={id => remove.mutate(id)} />
+    {editing && <MenuForm key={`${editing.kind}:${editing.id ?? 'new'}:${editing.parentId ?? ''}`}
+      editor={editing} resources={resources} resourcesReady={ready} onClose={() => setEditing(null)} />}
     <MenuDetails id={detailId} onClose={() => setDetailId(null)} />
   </div>;
 }

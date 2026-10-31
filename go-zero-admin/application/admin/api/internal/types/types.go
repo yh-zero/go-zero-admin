@@ -3,6 +3,154 @@
 
 package types
 
+type AiChatMessage struct {
+	Id        int64  `json:"id"`
+	Role      string `json:"role"`
+	Content   string `json:"content"`
+	ToolCalls string `json:"tool_calls"`
+	Tokens    int64  `json:"tokens"`
+	CreatedAt int64  `json:"created_at"`
+}
+
+type AiConversationInfo struct {
+	Id           int64  `json:"id"`
+	Title        string `json:"title"`
+	UserId       int64  `json:"user_id"`
+	MessageCount int64  `json:"message_count"`
+	CreatedAt    int64  `json:"created_at"`
+	UpdatedAt    int64  `json:"updated_at"`
+}
+
+type AiConversationResp struct {
+	Conversation *AiConversationInfo `json:"conversation"`
+}
+
+type AiCreateConversationReq struct {
+	Title string `json:"title,optional"`
+}
+
+type AiCreateWorkflowReq struct {
+	Name            string `json:"name"`
+	Definition      string `json:"definition"`
+	IntervalSeconds int64  `json:"interval_seconds,optional"`
+}
+
+type AiGetConversationResp struct {
+	Conversation *AiConversationInfo `json:"conversation"`
+	Messages     []*AiChatMessage    `json:"messages"`
+}
+
+type AiIdReq struct {
+	Id int64 `path:"id"`
+}
+
+type AiListConversationsResp struct {
+	List  []*AiConversationInfo `json:"list"`
+	Total int64                 `json:"total"`
+}
+
+type AiListTasksReq struct {
+	Page       int64  `form:"page,optional"`
+	PageSize   int64  `form:"page_size,optional"`
+	Status     string `form:"status,optional"`
+	WorkflowId int64  `form:"workflow_id,optional"`
+}
+
+type AiListTasksResp struct {
+	List  []*AiTaskInfo `json:"list"`
+	Total int64         `json:"total"`
+}
+
+type AiListToolsReq struct {
+}
+
+type AiListToolsResp struct {
+	List []*AiToolInfo `json:"list"`
+}
+
+type AiListWorkflowsResp struct {
+	List  []*AiWorkflowInfo `json:"list"`
+	Total int64             `json:"total"`
+}
+
+type AiPageReq struct {
+	Page     int64 `form:"page,optional"`
+	PageSize int64 `form:"page_size,optional"`
+}
+
+type AiRejectTaskReq struct {
+	Id     int64  `path:"id"`
+	Reason string `json:"reason"`
+}
+
+type AiRunWorkflowReq struct {
+	Id    int64  `path:"id"`
+	Input string `json:"input,optional"`
+}
+
+type AiRunWorkflowResp struct {
+	TaskId int64  `json:"task_id"`
+	Status string `json:"status"`
+}
+
+type AiSendMessageReq struct {
+	ConversationId int64  `json:"conversation_id"`
+	Content        string `json:"content"`
+}
+
+type AiSendMessageResp struct {
+	ConversationId int64          `json:"conversation_id"`
+	UserMessage    *AiChatMessage `json:"user_message"`
+	AiMessage      *AiChatMessage `json:"ai_message"`
+}
+
+type AiTaskInfo struct {
+	Id             int64  `json:"id"`
+	WorkflowId     int64  `json:"workflow_id"`
+	ConversationId int64  `json:"conversation_id"`
+	Status         string `json:"status"`
+	Input          string `json:"input"`
+	Result         string `json:"result"`
+	Error          string `json:"error"`
+	ApprovedBy     int64  `json:"approved_by"`
+	CreatedAt      int64  `json:"created_at"`
+	CompletedAt    int64  `json:"completed_at"`
+}
+
+type AiTaskResp struct {
+	Task *AiTaskInfo `json:"task"`
+}
+
+type AiToolInfo struct {
+	Name             string `json:"name"`
+	Description      string `json:"description"`
+	ParametersSchema string `json:"parameters_schema"`
+}
+
+type AiUpdateWorkflowReq struct {
+	Id              int64   `path:"id"`
+	Name            *string `json:"name,optional"`
+	Definition      *string `json:"definition,optional"`
+	IntervalSeconds *int64  `json:"interval_seconds,optional"`
+	Enabled         *int64  `json:"enabled,optional"`
+}
+
+type AiWorkflowInfo struct {
+	Id              int64  `json:"id"`
+	Name            string `json:"name"`
+	Definition      string `json:"definition"`
+	IntervalSeconds int64  `json:"interval_seconds"`
+	Enabled         int64  `json:"enabled"`
+	NextRunAt       int64  `json:"next_run_at"`
+	CreatedBy       int64  `json:"created_by"`
+	CreatedAt       int64  `json:"created_at"`
+	UpdatedAt       int64  `json:"updated_at"`
+}
+
+type AiWorkflowResp struct {
+	Workflow *AiWorkflowInfo `json:"workflow"`
+}
+
 type ApiInfo struct {
 	Id        int64  `json:"id"`
 	Group     string `json:"group"`
@@ -10,6 +158,125 @@ type ApiInfo struct {
 	Path      string `json:"path"`
 	Title     string `json:"title"`
 	CreatedAt int64  `json:"created_at"`
+}
+
+type AppAdminListReq struct {
+	Page     int64  `form:"page,default=1"`
+	PageSize int64  `form:"page_size,default=20"`
+	Status   string `form:"status,optional"`
+	Account  string `form:"account,optional"`
+}
+
+type AppAdminListResp struct {
+	List  []AppUserInfo `json:"list"`
+	Total int64         `json:"total"`
+}
+
+type AppAdminRevokeReq struct {
+	Id        int64  `path:"id"`
+	SessionId string `path:"session_id"`
+}
+
+type AppAuthOptionsResp struct {
+	EmailVerificationRequired bool `json:"email_verification_required"`
+	EmailCodeEnabled          bool `json:"email_code_enabled"`
+	PhoneEnabled              bool `json:"phone_enabled"`
+}
+
+type AppGrantMembershipReq struct {
+	UserId       int64  `json:"user_id"`
+	PlanCode     string `json:"plan_code"`
+	Benefits     string `json:"benefits,optional"`
+	RequestId    string `json:"request_id"`
+	DurationDays int64  `json:"duration_days"`
+}
+
+type AppListMembershipReq struct {
+	Page       int64  `form:"page,default=1"`
+	PageSize   int64  `form:"page_size,default=20"`
+	UserId     int64  `form:"user_id,optional"`
+	PlanCode   string `form:"plan_code,optional"`
+	ActiveOnly bool   `form:"active_only,optional"`
+}
+
+type AppListMembershipResp struct {
+	List  []MembershipGrantInfo `json:"list"`
+	Total int64                 `json:"total"`
+}
+
+type AppLoginReq struct {
+	Account  string `json:"account"`
+	Password string `json:"password"`
+}
+
+type AppLogoutReq struct {
+	AllDevices bool `json:"all_devices,optional"`
+}
+
+type AppMyMembershipResp struct {
+	List []MembershipGrantInfo `json:"list"`
+}
+
+type AppProfileResp struct {
+	User AppUserInfo `json:"user"`
+}
+
+type AppRefreshReq struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+type AppRegisterReq struct {
+	Account   string `json:"account"`
+	Password  string `json:"password"`
+	Nickname  string `json:"nickname,optional"`
+	EmailCode string `json:"email_code,optional"`
+}
+
+type AppReviewReq struct {
+	Id     int64  `path:"id"`
+	Status string `json:"status"`
+	Reason string `json:"reason,optional"`
+}
+
+type AppRevokeMembershipReq struct {
+	Id int64 `path:"id"`
+}
+
+type AppSendEmailCodeReq struct {
+	Account string `json:"account"`
+}
+
+type AppSetAvatarReq struct {
+	Id     int64 `path:"id"`
+	FileId int64 `json:"file_id"`
+}
+
+type AppTokenResp struct {
+	AccessToken      string      `json:"access_token"`
+	ExpiresAt        int64       `json:"expires_at"`
+	RefreshToken     string      `json:"refresh_token"`
+	RefreshExpiresAt int64       `json:"refresh_expires_at"`
+	SessionId        string      `json:"session_id"`
+	User             AppUserInfo `json:"user"`
+}
+
+type AppUpdateProfileReq struct {
+	Nickname *string `json:"nickname,optional"`
+}
+
+type AppUserInfo struct {
+	Id            int64  `json:"id"`
+	Account       string `json:"account"`
+	IdentityKind  string `json:"identity_kind"`
+	Nickname      string `json:"nickname"`
+	AvatarFileId  int64  `json:"avatar_file_id"`
+	AvatarUrl     string `json:"avatar_url"`
+	Status        string `json:"status"`
+	ReviewReason  string `json:"review_reason"`
+	EmailVerified bool   `json:"email_verified"`
+	PhoneVerified bool   `json:"phone_verified"`
+	LastLoginAt   int64  `json:"last_login_at"`
+	CreatedAt     int64  `json:"created_at"`
 }
 
 type AuditLogInfo struct {
@@ -75,18 +342,30 @@ type CreateRoleReq struct {
 	MenuIds     []int64 `json:"menu_ids,optional"`
 }
 
+type CreateTenantReq struct {
+	Slug          string `json:"slug"`
+	AdminUsername string `json:"admin_username,optional"`
+	AdminPassword string `json:"admin_password,optional"`
+}
+
+type CreateTenantResp struct {
+	Tenant        *TenantInfo `json:"tenant"`
+	AdminPassword string      `json:"admin_password"`
+}
+
 type CreateUserReq struct {
-	Username     string `json:"username"`
-	Password     string `json:"password"`
-	Nickname     string `json:"nickname,optional"`
-	RealName     string `json:"real_name,optional"`
-	Email        string `json:"email,optional"`
-	Phone        string `json:"phone,optional"`
-	DeptId       int64  `json:"dept_id,optional"`
-	AvatarFileId int64  `json:"avatar_file_id,optional"`
-	Gender       int32  `json:"gender,optional"`
-	Status       int32  `json:"status,optional"`
-	Remark       string `json:"remark,optional"`
+	Username     string  `json:"username"`
+	Password     string  `json:"password"`
+	Nickname     string  `json:"nickname,optional"`
+	RealName     string  `json:"real_name,optional"`
+	Email        string  `json:"email,optional"`
+	Phone        string  `json:"phone,optional"`
+	DeptId       int64   `json:"dept_id,optional"`
+	AvatarFileId int64   `json:"avatar_file_id,optional"`
+	Gender       int32   `json:"gender,optional"`
+	Status       int32   `json:"status,optional"`
+	Remark       string  `json:"remark,optional"`
+	RoleIds      []int64 `json:"role_ids,optional"`
 }
 
 type DeleteApiReq struct {
@@ -113,6 +392,11 @@ type DeleteRoleReq struct {
 	Id int64 `path:"id"`
 }
 
+type DeleteTenantReq struct {
+	Id          int64  `path:"id"`
+	ConfirmSlug string `json:"confirm_slug"`
+}
+
 type DeleteUserReq struct {
 	Id int64 `path:"id"`
 }
@@ -130,6 +414,17 @@ type DeptInfo struct {
 	CreatedAt int64  `json:"created_at"`
 }
 
+type DeviceSession struct {
+	Id         string `json:"id"`
+	DeviceName string `json:"device_name"`
+	Ip         string `json:"ip"`
+	UserAgent  string `json:"user_agent"`
+	CreatedAt  int64  `json:"created_at"`
+	LastSeenAt int64  `json:"last_seen_at"`
+	ExpiresAt  int64  `json:"expires_at"`
+	IsCurrent  bool   `json:"is_current"`
+}
+
 type DictInfo struct {
 	Id          int64       `json:"id"`
 	Name        string      `json:"name"`
@@ -145,6 +440,9 @@ type DictItem struct {
 	Label string `json:"label"`
 	Value string `json:"value"`
 	Sort  int32  `json:"sort"`
+}
+
+type EmptyResp struct {
 }
 
 type FileInfo struct {
@@ -277,6 +575,13 @@ type GetMenuTreeResp struct {
 	List []*MenuInfo `json:"list"`
 }
 
+type GetMyDeptsReq struct {
+}
+
+type GetMyDeptsResp struct {
+	List []*DeptInfo `json:"list"`
+}
+
 type GetMyMenusReq struct {
 }
 
@@ -319,6 +624,21 @@ type GetRoleResp struct {
 	Role *RoleInfo `json:"role"`
 }
 
+type GetTenantListReq struct {
+	Page     int64  `form:"page,default=1"`
+	PageSize int64  `form:"page_size,default=20"`
+	Status   string `form:"status,optional"`
+}
+
+type GetTenantListResp struct {
+	List  []*TenantInfo `json:"list"`
+	Total int64         `json:"total"`
+}
+
+type GetTenantResp struct {
+	Tenant *TenantInfo `json:"tenant"`
+}
+
 type GetUserListReq struct {
 	Page     int64  `json:"page,optional" form:"page,optional"`
 	PageSize int64  `json:"page_size,optional" form:"page_size,optional"`
@@ -341,6 +661,13 @@ type GetUserResp struct {
 	User *UserInfo `json:"user"`
 }
 
+type ListDeviceSessionsReq struct {
+}
+
+type ListDeviceSessionsResp struct {
+	List []DeviceSession `json:"list"`
+}
+
 type LoginReq struct {
 	Username  string `json:"username"`
 	Password  string `json:"password"`
@@ -349,8 +676,30 @@ type LoginReq struct {
 }
 
 type LoginResp struct {
-	AccessToken string `json:"access_token"`
-	ExpiresAt   int64  `json:"expires_at"`
+	AccessToken      string `json:"access_token"`
+	ExpiresAt        int64  `json:"expires_at"`
+	RefreshToken     string `json:"refresh_token"`
+	RefreshExpiresAt int64  `json:"refresh_expires_at"`
+	SessionId        string `json:"session_id"`
+}
+
+type LogoutReq struct {
+	AllDevices bool `json:"all_devices,optional"`
+}
+
+type MembershipGrantInfo struct {
+	Id             int64  `json:"id"`
+	UserId         int64  `json:"user_id"`
+	PlanCode       string `json:"plan_code"`
+	Benefits       string `json:"benefits"`
+	RequestId      string `json:"request_id"`
+	GrantedBy      int64  `json:"granted_by"`
+	GrantedByAdmin bool   `json:"granted_by_admin"`
+	StartsAt       int64  `json:"starts_at"`
+	ExpiresAt      int64  `json:"expires_at"`
+	Revoked        bool   `json:"revoked"`
+	RevokedAt      int64  `json:"revoked_at"`
+	CreatedAt      int64  `json:"created_at"`
 }
 
 type MenuInfo struct {
@@ -377,20 +726,38 @@ type PingResp struct {
 }
 
 type ProfileInfo struct {
-	Id        int64  `json:"id"`
-	Username  string `json:"username"`
-	Nickname  string `json:"nickname"`
-	RealName  string `json:"real_name"`
-	Email     string `json:"email"`
-	Phone     string `json:"phone"`
-	AvatarUrl string `json:"avatar_url"`
-	Gender    int32  `json:"gender"`
-	DeptName  string `json:"dept_name"`
+	Id           int64  `json:"id"`
+	Username     string `json:"username"`
+	Nickname     string `json:"nickname"`
+	RealName     string `json:"real_name"`
+	Email        string `json:"email"`
+	Phone        string `json:"phone"`
+	AvatarUrl    string `json:"avatar_url"`
+	AvatarFileId int64  `json:"avatar_file_id"`
+	IsSuperAdmin bool   `json:"is_super_admin"`
+	Gender       int32  `json:"gender"`
+	DeptName     string `json:"dept_name"`
+}
+
+type ReadyResp struct {
+	Ready bool `json:"ready"`
+}
+
+type RefreshTokenReq struct {
+	RefreshToken string `json:"refresh_token"`
 }
 
 type ResetPasswordReq struct {
 	Id          int64  `path:"id"`
 	NewPassword string `json:"new_password"`
+}
+
+type ResetTenantAdminResp struct {
+	NewPassword string `json:"new_password"`
+}
+
+type RevokeDeviceSessionReq struct {
+	Id string `path:"id"`
 }
 
 type RoleInfo struct {
@@ -407,15 +774,41 @@ type RoleInfo struct {
 	UpdatedAt   int64   `json:"updated_at"`
 }
 
+type SyncApiReq struct {
+}
+
+type SyncApiResp struct {
+	Added   int64 `json:"added"`
+	Updated int64 `json:"updated"`
+	Removed int64 `json:"removed"`
+}
+
+type TenantIdReq struct {
+	Id int64 `path:"id"`
+}
+
+type TenantInfo struct {
+	Id                int64  `json:"id"`
+	Slug              string `json:"slug"`
+	Domain            string `json:"domain"`
+	ComposeProject    string `json:"compose_project"`
+	Status            string `json:"status"`
+	ErrorMsg          string `json:"error_msg"`
+	CreatedBy         int64  `json:"created_by"`
+	CreatedAt         int64  `json:"created_at"`
+	UpdatedAt         int64  `json:"updated_at"`
+	AdminAccountReady bool   `json:"admin_account_ready"`
+}
+
 type UpdateDeptReq struct {
-	Id       int64  `path:"id"`
-	ParentId int64  `json:"parent_id,optional"`
-	Name     string `json:"name,optional"`
-	Leader   string `json:"leader,optional"`
-	Phone    string `json:"phone,optional"`
-	Email    string `json:"email,optional"`
-	Sort     int32  `json:"sort,optional"`
-	Status   int32  `json:"status,optional"`
+	Id       int64   `path:"id"`
+	ParentId *int64  `json:"parent_id,optional"`
+	Name     *string `json:"name,optional"`
+	Leader   *string `json:"leader,optional"`
+	Phone    *string `json:"phone,optional"`
+	Email    *string `json:"email,optional"`
+	Sort     *int32  `json:"sort,optional"`
+	Status   *int32  `json:"status,optional"`
 }
 
 type UpdateDictReq struct {
@@ -443,12 +836,12 @@ type UpdateMenuReq struct {
 }
 
 type UpdateProfileReq struct {
-	Nickname  string `json:"nickname,optional"`
-	RealName  string `json:"real_name,optional"`
-	Email     string `json:"email,optional"`
-	Phone     string `json:"phone,optional"`
-	AvatarUrl string `json:"avatar_url,optional"`
-	Gender    int32  `json:"gender,optional"`
+	Nickname     *string `json:"nickname,optional"`
+	RealName     *string `json:"real_name,optional"`
+	Email        *string `json:"email,optional"`
+	Phone        *string `json:"phone,optional"`
+	AvatarFileId *int64  `json:"avatar_file_id,optional"`
+	Gender       *int32  `json:"gender,optional"`
 }
 
 type UpdateRoleMenusReq struct {
@@ -468,33 +861,47 @@ type UpdateRoleReq struct {
 }
 
 type UpdateUserReq struct {
-	Id           int64  `path:"id"`
-	Nickname     string `json:"nickname,optional"`
-	RealName     string `json:"real_name,optional"`
-	Email        string `json:"email,optional"`
-	Phone        string `json:"phone,optional"`
-	DeptId       int64  `json:"dept_id,optional"`
-	AvatarFileId int64  `json:"avatar_file_id,optional"`
-	Gender       int32  `json:"gender,optional"`
-	Status       int32  `json:"status,optional"`
-	Remark       string `json:"remark,optional"`
+	Id           int64   `path:"id"`
+	Nickname     *string `json:"nickname,optional"`
+	RealName     *string `json:"real_name,optional"`
+	Email        *string `json:"email,optional"`
+	Phone        *string `json:"phone,optional"`
+	DeptId       *int64  `json:"dept_id,optional"`
+	AvatarFileId *int64  `json:"avatar_file_id,optional"`
+	Gender       *int32  `json:"gender,optional"`
+	Status       *int32  `json:"status,optional"`
+	Remark       *string `json:"remark,optional"`
+	RoleIds      []int64 `json:"role_ids,optional"`
+}
+
+type UploadFileReq struct {
+	Name          string `json:"name"`
+	ContentBase64 string `json:"content_base64"`
+	Scene         string `json:"scene,default=common"`
+	Visibility    string `json:"visibility,default=private"`
+}
+
+type UploadFileResp struct {
+	File *FileInfo `json:"file"`
 }
 
 type UserInfo struct {
-	Id           int64  `json:"id"`
-	Username     string `json:"username"`
-	Nickname     string `json:"nickname"`
-	RealName     string `json:"real_name"`
-	Email        string `json:"email"`
-	Phone        string `json:"phone"`
-	DeptId       int64  `json:"dept_id"`
-	DeptName     string `json:"dept_name"`
-	AvatarFileId int64  `json:"avatar_file_id"`
-	Gender       int32  `json:"gender"`
-	Status       int32  `json:"status"`
-	Remark       string `json:"remark"`
-	LastLoginAt  int64  `json:"last_login_at"`
-	LastLoginIp  string `json:"last_login_ip"`
-	CreatedAt    int64  `json:"created_at"`
-	UpdatedAt    int64  `json:"updated_at"`
+	Id           int64   `json:"id"`
+	Username     string  `json:"username"`
+	Nickname     string  `json:"nickname"`
+	RealName     string  `json:"real_name"`
+	Email        string  `json:"email"`
+	Phone        string  `json:"phone"`
+	DeptId       int64   `json:"dept_id"`
+	DeptName     string  `json:"dept_name"`
+	AvatarFileId int64   `json:"avatar_file_id"`
+	AvatarUrl    string  `json:"avatar_url"`
+	Gender       int32   `json:"gender"`
+	Status       int32   `json:"status"`
+	Remark       string  `json:"remark"`
+	LastLoginAt  int64   `json:"last_login_at"`
+	LastLoginIp  string  `json:"last_login_ip"`
+	CreatedAt    int64   `json:"created_at"`
+	UpdatedAt    int64   `json:"updated_at"`
+	RoleIds      []int64 `json:"role_ids"`
 }

@@ -21,11 +21,11 @@ func DeleteDeptHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := dept.NewDeleteDeptLogic(r.Context(), svcCtx)
-		err := l.DeleteDept(&req)
+		resp, err := l.DeleteDept(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

@@ -10,15 +10,21 @@ import { QueryState } from '../../components/QueryState';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { formatBytes, formatTime } from '../../utils/format';
 import { FileLinkDialog } from './FileLinkDialog';
+import { FileUploadButton } from '../../components/FileUploadButton';
 export default function FileList() {
   const [form] = Form.useForm<GetFileListReq>();
+  const [uploadVisibility, setUploadVisibility] = useState<'public' | 'private'>('private');
   const [params, setParams] = useState<GetFileListReq>({ page: 1, page_size: 20 });
   const [linkFile, setLinkFile] = useState<Pick<FileInfo, 'id' | 'visibility'> | null>(null);
   const client = useQueryClient();
   const { message } = App.useApp();
   const query = usePagedQuery({ params, setParams, queryKey: ['files', params], queryFn: () => fetchFiles(params) });
   const remove = useMutation({ mutationFn: deleteFile, onSuccess: async () => { await client.invalidateQueries({ queryKey: ['files'] }); void message.success('文件已删除'); } });
-  return <div className="page-stack"><PageHeader title="文件管理" description="查询文件资源、获取访问链接和管理引用" />
+  return <div className="page-stack"><PageHeader title="文件管理" description="查询文件资源、获取访问链接和管理引用" extra={<Space wrap>
+    <Select aria-label="上传文件可见性" value={uploadVisibility} onChange={setUploadVisibility}
+      options={[{ value: 'private', label: '私有文件' }, { value: 'public', label: '公开文件' }]} />
+    <FileUploadButton visibility={uploadVisibility} />
+  </Space>} />
     <Card className="filter-card"><Form name="file-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setParams({ ...values, page: 1, page_size: params.page_size })}>
       <Form.Item name="visibility" label="可见性"><Select allowClear className="filter-select" placeholder="全部" options={[{ value: 'public', label: '公开' }, { value: 'private', label: '私有' }]} /></Form.Item>
       <Form.Item name="uploader_id" label="上传者 ID"><InputNumber min={1} precision={0} /></Form.Item>

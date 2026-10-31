@@ -1,4 +1,4 @@
-package authlogic
+package auth
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/pkg/jwtx"
 )
 
 type LoginLogic struct {
@@ -35,8 +36,14 @@ func (l *LoginLogic) Login(req *types.LoginReq) (resp *types.LoginResp, err erro
 	if err != nil {
 		return nil, err
 	}
+	if claims, parseErr := jwtx.ParseAccessToken(l.svcCtx.Config.Auth.AccessSecret, rpcResp.AccessToken); parseErr == nil {
+		middleware.MarkAuditIdentity(l.ctx, claims.UserID, claims.Username, claims.DeptId)
+	}
 	return &types.LoginResp{
-		AccessToken: rpcResp.AccessToken,
-		ExpiresAt:   rpcResp.ExpiresAt,
+		AccessToken:      rpcResp.AccessToken,
+		ExpiresAt:        rpcResp.ExpiresAt,
+		RefreshToken:     rpcResp.RefreshToken,
+		RefreshExpiresAt: rpcResp.RefreshExpiresAt,
+		SessionId:        rpcResp.SessionId,
 	}, nil
 }

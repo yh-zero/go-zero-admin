@@ -1,4 +1,4 @@
-# 打包镜像：api / admin-rpc / app-rpc / file-rpc / ai-rpc / tenant-rpc（迁移在宿主跑 goose，见 dev-env.md §2）
+# 打包镜像：api / admin-rpc / app-rpc / file-rpc / ai-rpc / tenant-rpc（数据库完整初始化见 dev-env.md §2）
 # 离线约束：Docker Hub 不可达，二进制由 data/scripts/build-images.ps1 在宿主交叉编译到 docker/.build/
 # 基础镜像只用本地已有的 alpine:3.24.2；CA 证书从本地 golang:1.27.1-alpine 复制（ai-rpc 出站 HTTPS 需要）
 
@@ -30,5 +30,8 @@ COPY docker/.build/ai-rpc /app/ai-rpc
 ENTRYPOINT ["/app/ai-rpc", "-f", "etc/ai.yaml"]
 
 FROM base AS tenant-rpc
+COPY --from=docker@sha256:6fae2214c3121a28d5aa639d09032f61310b7c9c75ffbad1025f261a1b621800 /usr/local/bin/docker /usr/local/bin/docker
+COPY --from=docker@sha256:6fae2214c3121a28d5aa639d09032f61310b7c9c75ffbad1025f261a1b621800 /usr/local/libexec/docker/cli-plugins/docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
+COPY data/db/init/mysql-all.sql /app/init.sql
 COPY docker/.build/tenant-rpc /app/tenant-rpc
 ENTRYPOINT ["/app/tenant-rpc", "-f", "etc/tenant.yaml"]

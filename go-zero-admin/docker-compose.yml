@@ -1,11 +1,11 @@
 name: gozero-platform
 
-# 平台栈（第 0 号租户）：nginx + api + 5rpc + mysql + redis + rustfs + swagger-ui（迁移在宿主跑 goose）
+# 平台栈（第 0 号租户）：nginx + api + 5rpc + mysql + redis + rustfs + swagger-ui
 # 一键启动全部后端：docker compose up -d --build
 # 配置双套：容器内服务读 docker/etc/*.yaml（卷挂载，容器网络地址）；
 #           宿主 go run 开发读 application/*/etc/*.yaml（127.0.0.1 + 宿主映射端口）。
-# 数据卷复用本地既有卷（gozero-new-mysql-data / gozero-integration-rustfs-data），首次为空卷时
-# 需按 dev-env.md §2 导入 data/db/backup/ 下最新备份（gozero_platform 库仅靠备份恢复）。
+# 数据卷复用本地既有卷（gozero-new-mysql-data / gozero-integration-rustfs-data），MySQL 空卷首次启动时
+# 自动从 data/db/init/mysql-all.sql 导入业务库与平台控制库，见 dev-env.md §2。
 
 services:
   nginx:
@@ -22,6 +22,9 @@ services:
   api:
     build: { context: ., dockerfile: docker/Dockerfile, target: api }
     ports: ["127.0.0.1:7001:7001"]
+    networks:
+      default:
+        aliases: ["platform-api"]
     volumes:
       - ./docker/etc/admin-api.yaml:/app/etc/admin.yaml:ro
     # 启动时经 admin-rpc 加载 Casbin 策略，rpc 未就绪会 panic，靠 restart 自愈
@@ -44,6 +47,10 @@ services:
       - ./docker/etc/app-rpc.yaml:/app/etc/app.yaml:ro
     environment:
       SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USERNAME: "${SMTP_USERNAME:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_FROM: "${SMTP_FROM:-}"
     depends_on:
       mysql: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -61,6 +68,9 @@ services:
     build: { context: ., dockerfile: docker/Dockerfile, target: ai-rpc }
     volumes:
       - ./docker/etc/ai-rpc.yaml:/app/etc/ai.yaml:ro
+    environment:
+      API_KEY_DEEPSEEK: "${API_KEY_DEEPSEEK:-}"
+      API_KEY_QWEN: "${API_KEY_QWEN:-}"
     depends_on:
       mysql: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -72,6 +82,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock   # 仅平台栈；等价宿主 root，注意隔离
       - ./docker/nginx/conf.d:/nginx-conf.d
       - ./docker/tenant-stack:/app/tenant-stack:ro
+      - ./docker/etc/file-rpc.yaml:/app/file-storage.yaml:ro
+      - tenant_state:/app/tenant-state
     depends_on:
       mysql: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -122,6 +134,7 @@ services:
       - ./data/api/generated:/spec:ro
 
 volumes:
+  tenant_state:
   # 复用本地既有数据卷；卷被删除时自动从 data/db/init 导入完整初始化库
   mysql_data:
     name: gozero-new-mysql-data

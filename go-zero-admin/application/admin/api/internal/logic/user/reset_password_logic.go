@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -20,12 +21,13 @@ func NewResetPasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Res
 	return &ResetPasswordLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *ResetPasswordLogic) ResetPassword(req *types.ResetPasswordReq) error {
+func (l *ResetPasswordLogic) ResetPassword(req *types.ResetPasswordReq) (*types.EmptyResp, error) {
 	_, err := l.svcCtx.UserRpc.ResetPassword(l.ctx, &adminpb.ResetPasswordRequest{
+		Actor:  middleware.ActorFromContext(l.ctx),
 		UserId: req.Id, NewPassword: req.NewPassword,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &types.EmptyResp{}, nil
 }

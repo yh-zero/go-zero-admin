@@ -23,6 +23,11 @@ func NewAuditServiceServer(svcCtx *svc.ServiceContext) *AuditServiceServer {
 	}
 }
 
+func (s *AuditServiceServer) CreateAuditLog(ctx context.Context, in *adminpb.CreateAuditLogRequest) (*adminpb.NoDataResponse, error) {
+	l := auditservicelogic.NewCreateAuditLogLogic(ctx, s.svcCtx)
+	return l.CreateAuditLog(in)
+}
+
 func (s *AuditServiceServer) GetAuditLogList(ctx context.Context, in *adminpb.GetAuditLogListRequest) (*adminpb.GetAuditLogListResponse, error) {
 	l := auditservicelogic.NewGetAuditLogListLogic(ctx, s.svcCtx)
 	return l.GetAuditLogList(in)

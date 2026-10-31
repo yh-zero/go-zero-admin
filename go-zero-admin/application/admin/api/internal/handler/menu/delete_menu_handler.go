@@ -21,11 +21,11 @@ func DeleteMenuHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := menu.NewDeleteMenuLogic(r.Context(), svcCtx)
-		err := l.DeleteMenu(&req)
+		resp, err := l.DeleteMenu(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

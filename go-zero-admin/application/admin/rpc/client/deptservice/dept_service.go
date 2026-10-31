@@ -20,10 +20,13 @@ type (
 	DeptInfo            = adminpb.DeptInfo
 	GetDeptTreeRequest  = adminpb.GetDeptTreeRequest
 	GetDeptTreeResponse = adminpb.GetDeptTreeResponse
+	GetMyDeptsRequest   = adminpb.GetMyDeptsRequest
+	GetMyDeptsResponse  = adminpb.GetMyDeptsResponse
 	NoDataResponse      = adminpb.NoDataResponse
 	UpdateDeptRequest   = adminpb.UpdateDeptRequest
 
 	DeptService interface {
+		GetMyDepts(ctx context.Context, in *GetMyDeptsRequest, opts ...grpc.CallOption) (*GetMyDeptsResponse, error)
 		GetDeptTree(ctx context.Context, in *GetDeptTreeRequest, opts ...grpc.CallOption) (*GetDeptTreeResponse, error)
 		CreateDept(ctx context.Context, in *CreateDeptRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		UpdateDept(ctx context.Context, in *UpdateDeptRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
@@ -39,6 +42,11 @@ func NewDeptService(cli zrpc.Client) DeptService {
 	return &defaultDeptService{
 		cli: cli,
 	}
+}
+
+func (m *defaultDeptService) GetMyDepts(ctx context.Context, in *GetMyDeptsRequest, opts ...grpc.CallOption) (*GetMyDeptsResponse, error) {
+	client := adminpb.NewDeptServiceClient(m.cli.Conn())
+	return client.GetMyDepts(ctx, in, opts...)
 }
 
 func (m *defaultDeptService) GetDeptTree(ctx context.Context, in *GetDeptTreeRequest, opts ...grpc.CallOption) (*GetDeptTreeResponse, error) {

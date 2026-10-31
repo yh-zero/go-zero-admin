@@ -5,14 +5,16 @@ import { useNavigate } from 'react-router-dom';
 import { changePassword } from '../../api/profile';
 import type { ChangePasswordReq } from '../../api/types';
 import { clearSession } from '../../utils/session';
+import { useAuthStore } from '../../stores/auth';
 import { createPasswordConfirmationRules, newPasswordRules } from '../../utils/passwordRules';
 export function ChangePasswordDialog({ onClose }: { onClose: () => void }) {
   const [form] = Form.useForm<ChangePasswordReq & { confirm_password: string }>();
   const submitting = useRef(false);
   const { message } = App.useApp();
   const navigate = useNavigate();
-  const mutation = useMutation({ mutationFn: changePassword, onSuccess: () => {
-    void message.success('密码已修改，请重新登录'); clearSession(); navigate('/login', { replace: true });
+  const mutation = useMutation({ mutationFn: changePassword, onMutate: () => useAuthStore.getState(), onSuccess: async (_, __, session) => {
+    void message.success('密码已修改，请重新登录');
+    if (session && await clearSession({ sessionVersion: session.sessionVersion, sessionId: session.sessionId })) navigate('/login', { replace: true });
   }, onSettled: () => { submitting.current = false; } });
   return <Modal open title="修改密码" onCancel={() => { if (!submitting.current) onClose(); }}
     onOk={() => form.submit()} confirmLoading={mutation.isPending} destroyOnHidden

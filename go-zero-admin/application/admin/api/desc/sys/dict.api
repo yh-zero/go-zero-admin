@@ -70,12 +70,12 @@ service admin {
 	get /code/:code (GetDictByCodeReq) returns (GetDictByCodeResp)
 
 	@handler createDict
-	post /create (CreateDictReq)
+	post /create (CreateDictReq) returns (EmptyResp)
 
 	@handler updateDict
-	put /:id (UpdateDictReq)
+	put /:id (UpdateDictReq) returns (EmptyResp)
 
 	@handler deleteDict
-	delete /:id (DeleteDictReq)
+	delete /:id (DeleteDictReq) returns (EmptyResp)
 
 }

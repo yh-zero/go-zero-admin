@@ -2,11 +2,13 @@ package userservicelogic
 
 import (
 	"context"
-	"time"
+	"errors"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 
 	"github.com/zeromicro/go-zero/core/logx"
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
 	"go-zero-admin/pkg/xerr"
 )
@@ -22,16 +24,24 @@ func NewDeleteUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeleteUserLogic) DeleteUser(in *adminpb.DeleteUserRequest) (*adminpb.NoDataResponse, error) {
-	_, err := l.svcCtx.SysUserModel.FindOne(l.ctx, uint64(in.UserId))
-	if err != nil {
-		return nil, xerr.NewErrCode(xerr.USER_NOT_FOUND)
+	if in.GetActor().GetUserId() <= 0 {
+		return nil, xerr.NewErrCode(xerr.PERMISSION_DENIED)
 	}
-	// 软删除
-	now := time.Now()
-	_, err = l.svcCtx.DB.ExecCtx(l.ctx, "UPDATE sys_user SET deleted_at=? WHERE id=?", now, in.UserId)
-	if err != nil {
-		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	err := l.svcCtx.SysUserModel.DeleteWithRoles(l.ctx, in.UserId, model.UserActor{UserId: in.GetActor().GetUserId(), DeptId: in.GetActor().GetDeptId()})
+	if err != nil && !errors.Is(err, sqlx.ErrNotFound) {
+		return nil, userMutationError(err)
 	}
+	revokeErr := l.svcCtx.Sessions.RevokeAll(l.ctx, in.UserId)
 	l.svcCtx.PublishPolicyChanged(l.ctx)
+	cleanupErr := ReconcileUserAvatar(l.ctx, l.svcCtx, in.UserId, in.GetActor())
+	if revokeErr != nil {
+		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
+	}
+	if cleanupErr != nil {
+		return nil, cleanupErr
+	}
+	if err != nil {
+		return nil, userMutationError(err)
+	}
 	return &adminpb.NoDataResponse{}, nil
 }

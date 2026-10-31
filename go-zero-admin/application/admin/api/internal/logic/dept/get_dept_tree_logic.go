@@ -2,6 +2,7 @@ package dept
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -21,7 +22,7 @@ func NewGetDeptTreeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetDe
 }
 
 func (l *GetDeptTreeLogic) GetDeptTree(req *types.GetDeptTreeReq) (resp *types.GetDeptTreeResp, err error) {
-	rpcResp, err := l.svcCtx.DeptRpc.GetDeptTree(l.ctx, &adminpb.GetDeptTreeRequest{Status: req.Status})
+	rpcResp, err := l.svcCtx.DeptRpc.GetDeptTree(l.ctx, &adminpb.GetDeptTreeRequest{Actor: middleware.ActorFromContext(l.ctx), Status: req.Status})
 	if err != nil {
 		return nil, err
 	}

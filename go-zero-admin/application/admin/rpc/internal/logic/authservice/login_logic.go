@@ -2,7 +2,7 @@ package authservicelogic
 
 import (
 	"context"
-	"database/sql"
+	"errors"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -12,6 +12,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/limit"
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
 	"go-zero-admin/pkg/jwtx"
 	"go-zero-admin/pkg/xerr"
@@ -31,11 +32,15 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 func (l *LoginLogic) Login(in *adminpb.LoginRequest) (*adminpb.LoginResponse, error) {
 	// 限流：IP 维度 20 次/分钟 + 账号维度 10 次/分钟（go-zero PeriodLimit，Lua 原子）
 	limiterIP := limit.NewPeriodLimit(60, 20, l.svcCtx.Redis, "admin:login:ip:")
-	if code, err := limiterIP.TakeCtx(l.ctx, in.Ip); err == nil && code == limit.OverQuota {
+	if code, err := limiterIP.TakeCtx(l.ctx, in.Ip); err != nil {
+		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
+	} else if code == limit.OverQuota {
 		return nil, xerr.NewErrCodeMsg(400, "登录过于频繁，请稍后再试")
 	}
 	limiterAcct := limit.NewPeriodLimit(60, 10, l.svcCtx.Redis, "admin:login:acct:")
-	if code, err := limiterAcct.TakeCtx(l.ctx, in.Username); err == nil && code == limit.OverQuota {
+	if code, err := limiterAcct.TakeCtx(l.ctx, in.Username); err != nil {
+		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
+	} else if code == limit.OverQuota {
 		return nil, xerr.NewErrCodeMsg(400, "登录尝试过多，请稍后再试")
 	}
 
@@ -55,6 +60,9 @@ func (l *LoginLogic) Login(in *adminpb.LoginRequest) (*adminpb.LoginResponse, er
 	}
 
 	// 3. 校验状态
+	if user.DeletedAt.Valid {
+		return nil, xerr.NewErrCode(xerr.USER_NOT_FOUND)
+	}
 	if user.Status != 1 {
 		return nil, xerr.NewErrCode(xerr.USER_DISABLED)
 	}
@@ -64,23 +72,37 @@ func (l *LoginLogic) Login(in *adminpb.LoginRequest) (*adminpb.LoginResponse, er
 		return nil, xerr.NewErrCode(xerr.USER_PASSWORD_ERROR)
 	}
 
-	// 5. 提取部门 ID（处理 NULL）
-	var deptID int64
-	if user.DeptId.Valid {
-		deptID = user.DeptId.Int64
-	}
-
-	// 6. 签发 JWT
+	// 5. 在用户行锁内核对密码/状态快照并创建会话，避免并发改密后签发旧凭据。
 	expire := l.svcCtx.Config.JwtAuth.AccessExpire
-	token, err := jwtx.GenerateAccessToken(
-		l.svcCtx.Config.JwtAuth.AccessSecret,
-		int64(user.Id),
-		user.Username,
-		deptID,
-		expire,
-	)
+	var session *jwtx.Session
+	var refresh string
+	err = l.svcCtx.SysUserModel.WithLoginUser(l.ctx, user.Id, user.PasswordHash, func(ctx context.Context, current *model.SysUser) error {
+		var createErr error
+		session, refresh, createErr = l.svcCtx.Sessions.Create(ctx, int64(current.Id), current.Username, current.DeptId.Int64, in.Ip, in.UserAgent, time.Duration(l.svcCtx.Config.JwtAuth.RefreshExpire)*time.Second)
+		if createErr != nil {
+			return sessionError(createErr)
+		}
+		return nil
+	})
 	if err != nil {
-		l.Errorf("generate token error: %v", err)
+		l.revokeCreatedSession(session)
+		if errors.Is(err, model.ErrPasswordChanged) {
+			return nil, xerr.NewErrCode(xerr.USER_PASSWORD_ERROR)
+		}
+		if errors.Is(err, model.ErrUserDisabled) {
+			return nil, xerr.NewErrCode(xerr.USER_DISABLED)
+		}
+		if errors.Is(err, sqlx.ErrNotFound) {
+			return nil, xerr.NewErrCode(xerr.USER_NOT_FOUND)
+		}
+		if business, ok := xerr.AsCodeError(err); ok {
+			return nil, business
+		}
+		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	}
+	token, err := jwtx.GenerateSessionAccessToken(l.svcCtx.Config.JwtAuth.AccessSecret, session, expire)
+	if err != nil {
+		l.revokeCreatedSession(session)
 		return nil, xerr.NewErrCode(xerr.TOKEN_GENERATE_ERROR)
 	}
 
@@ -90,9 +112,19 @@ func (l *LoginLogic) Login(in *adminpb.LoginRequest) (*adminpb.LoginResponse, er
 	return &adminpb.LoginResponse{
 		AccessToken:      token,
 		ExpiresAt:        time.Now().Unix() + expire,
-		RefreshToken:     "",
-		RefreshExpiresAt: 0,
+		RefreshToken:     refresh,
+		RefreshExpiresAt: session.ExpiresAt,
+		SessionId:        session.Id,
 	}, nil
+}
+
+func (l *LoginLogic) revokeCreatedSession(session *jwtx.Session) {
+	if session == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(l.ctx), time.Second)
+	defer cancel()
+	_ = l.svcCtx.Sessions.Revoke(ctx, session.UserId, session.Id)
 }
 
 func (l *LoginLogic) verifyCaptcha(captchaID, captcha string) error {
@@ -100,23 +132,26 @@ func (l *LoginLogic) verifyCaptcha(captchaID, captcha string) error {
 		return xerr.NewErrCode(xerr.CAPTCHA_WRONG)
 	}
 	key := "captcha:" + captchaID
-	stored, err := l.svcCtx.Redis.GetCtx(l.ctx, key)
-	if err != nil || stored == "" {
+	stored, err := l.svcCtx.Redis.GetDelCtx(l.ctx, key)
+	if err != nil {
+		return xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
+	}
+	if stored == "" {
 		return xerr.NewErrCode(xerr.CAPTCHA_EXPIRED)
 	}
-	_, _ = l.svcCtx.Redis.DelCtx(l.ctx, key)
 	if stored != captcha {
 		return xerr.NewErrCode(xerr.CAPTCHA_WRONG)
 	}
 	return nil
 }
 
-func (l *LoginLogic) updateLastLogin(userID int64, ip string) {
-	user, err := l.svcCtx.SysUserModel.FindOne(l.ctx, uint64(userID))
-	if err != nil {
-		return
+func sessionError(err error) error {
+	if errors.Is(err, jwtx.ErrSessionInvalid) {
+		return xerr.NewErrCode(xerr.TOKEN_EXPIRE_ERROR)
 	}
-	user.LastLoginAt = sql.NullTime{Time: time.Now(), Valid: true}
-	user.LastLoginIp = ip
-	_ = l.svcCtx.SysUserModel.Update(l.ctx, user)
+	return xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
+}
+
+func (l *LoginLogic) updateLastLogin(userID int64, ip string) {
+	_ = l.svcCtx.SysUserModel.UpdateLastLogin(l.ctx, uint64(userID), ip)
 }

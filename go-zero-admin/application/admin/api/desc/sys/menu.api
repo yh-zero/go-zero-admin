@@ -94,13 +94,13 @@ service admin {
 	get /:id (GetMenuReq) returns (GetMenuResp)
 
 	@handler createMenu
-	post /create (CreateMenuReq)
+	post /create (CreateMenuReq) returns (EmptyResp)
 
 	@handler updateMenu
-	put /:id (UpdateMenuReq)
+	put /:id (UpdateMenuReq) returns (EmptyResp)
 
 	@handler deleteMenu
-	delete /:id (DeleteMenuReq)
+	delete /:id (DeleteMenuReq) returns (EmptyResp)
 
 	@handler getMyMenus
 	get /my (GetMyMenusReq) returns (GetMyMenusResp)

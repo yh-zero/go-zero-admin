@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { App, Button, Card, Form, Input, Popconfirm, Select, Space, Table, Tag } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { deleteApiResource, fetchApiResources } from '../../api/resource';
+import { ReloadOutlined, SyncOutlined } from '@ant-design/icons';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { deleteApiResource, fetchApiResources, syncApiResources } from '../../api/resource';
+import { fetchProfile } from '../../api/profile';
 import type { ApiInfo, GetApiListReq } from '../../api/types';
 import { Auth } from '../../components/Auth';
 import { PageHeader } from '../../components/PageHeader';
@@ -15,13 +16,19 @@ export default function ApiPage() {
   const [filters, setFilters] = useState<GetApiListReq>({ page: 1, page_size: 20 });
   const [form] = Form.useForm<GetApiListReq>();
   const queryClient = useQueryClient();
+  const profile = useQuery({ queryKey: ['profile'], queryFn: fetchProfile });
   const query = usePagedQuery({ params: filters, setParams: setFilters, queryKey: ['api-resources', filters], queryFn: () => fetchApiResources(filters) });
   const remove = useMutation({ mutationFn: deleteApiResource, onSuccess: async () => {
     await queryClient.invalidateQueries({ queryKey: ['api-resources'] });
     message.success('API 资源登记已删除');
   } });
+  const sync = useMutation({ mutationFn: syncApiResources, onSuccess: async result => {
+    await queryClient.invalidateQueries({ queryKey: ['api-resources'] });
+    void message.success(`同步完成：新增 ${result.added}，更新 ${result.updated}，移除 ${result.removed}`);
+  } });
   return <div className="page-stack">
-    <PageHeader title="API 资源" description="维护接口资源目录，支持按分组、方法和路径查询。" />
+    <PageHeader title="API 资源" description="维护接口资源目录，支持按分组、方法和路径查询。" extra={profile.data?.is_super_admin &&
+      <Button type="primary" icon={<SyncOutlined />} loading={sync.isPending} onClick={() => sync.mutate()}>同步接口</Button>} />
     <Card className="filter-card">
       <Form name="api-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setFilters({ ...values, page: 1, page_size: filters.page_size })}>
         <Form.Item name="group" label="分组"><Input allowClear placeholder="例如 sys/user" /></Form.Item>

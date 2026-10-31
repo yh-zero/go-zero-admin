@@ -1,5 +1,6 @@
 Name: app-rpc
 ListenOn: 0.0.0.0:6002
+Timeout: 12000
 
 Mysql:
   DataSource: root:123456@tcp(127.0.0.1:3307)/gozero_admin?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai
@@ -11,5 +12,20 @@ CacheRedis:
 JwtAuth:
   AccessSecret: go-zero-app-local-development-secret-change-me
   AccessExpire: 900
+  RefreshExpire: 2592000
+
+FileRpc:
+  Endpoints:
+    - 127.0.0.1:6003
+  NonBlock: true
+
+EmailVerificationRequired: true
+SMTP:
+  Host: ""
+  Port: 587
+  Username: ""
+  Password: ""
+  From: ""
+  ImplicitTLS: false
 
 DefaultUserPassword: Demo@123456

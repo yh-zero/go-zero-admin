@@ -8,23 +8,24 @@ async function invalidateData(client: QueryClient, roots: string[]): Promise<voi
 }
 
 export function invalidateUserData(client: QueryClient): Promise<void> {
-  return invalidateData(client, ['users', 'user', 'profile']);
+  return invalidateAccessData(client, ['users', 'user', 'profile', 'files', 'roles', 'role', 'my-depts', 'my-menus', 'perm-codes']);
 }
 
 async function invalidateAccessData(client: QueryClient, roots: string[]): Promise<void> {
-  const token = useAuthStore.getState().token;
+  const { sessionVersion, departmentVersion } = useAuthStore.getState();
   useAuthStore.getState().clearPermissions();
   await invalidateData(client, roots);
   const permissions = client.getQueryState<string[]>(['perm-codes']);
   // 只有当前会话的完整刷新成功后恢复写权限；未激活或失败的查询继续禁写。
-  if (token === useAuthStore.getState().token && permissions?.status === 'success'
+  const current = useAuthStore.getState();
+  if (sessionVersion === current.sessionVersion && departmentVersion === current.departmentVersion && permissions?.status === 'success'
     && permissions.fetchStatus === 'idle' && !permissions.isInvalidated && permissions.data) {
     useAuthStore.getState().setPermCodes(permissions.data);
   }
 }
 
 export function invalidateRoleData(client: QueryClient): Promise<void> {
-  return invalidateAccessData(client, ['roles', 'role', 'my-menus', 'perm-codes']);
+  return invalidateAccessData(client, ['roles', 'role', 'role-options', 'profile', 'my-depts', 'my-menus', 'perm-codes']);
 }
 
 export function invalidateMenuData(client: QueryClient): Promise<void> {

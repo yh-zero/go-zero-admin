@@ -22,8 +22,7 @@ func NewGetMyPermCodesLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ge
 }
 
 func (l *GetMyPermCodesLogic) GetMyPermCodes(req *types.GetMyPermCodesReq) (resp *types.GetMyPermCodesResp, err error) {
-	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
-	actor := &adminpb.Actor{UserId: userID}
+	actor := middleware.ActorFromContext(l.ctx)
 	rpcResp, err := l.svcCtx.MenuRpc.GetMyPermCodes(l.ctx, &adminpb.GetMyPermCodesRequest{Actor: actor})
 	if err != nil {
 		return nil, err

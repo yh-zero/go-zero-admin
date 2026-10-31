@@ -11,8 +11,19 @@ type Config struct {
 	Mysql      struct{ DataSource string }
 	CacheRedis cache.CacheConf
 	JwtAuth    struct {
-		AccessSecret string
-		AccessExpire int64
+		AccessSecret  string
+		AccessExpire  int64
+		RefreshExpire int64 `json:",default=2592000"`
+	}
+	FileRpc                   *zrpc.RpcClientConf `json:",optional"`
+	EmailVerificationRequired bool                `json:",default=true"`
+	SMTP                      struct {
+		Host        string `json:",optional"`
+		Port        int    `json:",default=587"`
+		Username    string `json:",optional"`
+		Password    string `json:",optional"`
+		From        string `json:",optional"`
+		ImplicitTLS bool   `json:",default=false"`
 	}
 	DefaultUserPassword string `json:",optional"`
 }

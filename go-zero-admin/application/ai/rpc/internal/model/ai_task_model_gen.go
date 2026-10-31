@@ -41,16 +41,19 @@ type (
 	}
 
 	AiTask struct {
-		Id             uint64         `db:"id"`              // 主键
-		WorkflowId     sql.NullInt64  `db:"workflow_id"`     // 工作流ID（对话触发的任务为空）
-		ConversationId sql.NullInt64  `db:"conversation_id"` // 会话ID
-		Status         string         `db:"status"`          // 状态：pending/running/pending_approval/succeeded/failed/rejected
-		Input          sql.NullString `db:"input"`           // 输入（JSON）
-		Result         sql.NullString `db:"result"`          // 执行结果
-		Error          string         `db:"error"`           // 错误信息
-		ApprovedBy     sql.NullInt64  `db:"approved_by"`     // 审批人ID
-		CreatedAt      time.Time      `db:"created_at"`
-		CompletedAt    sql.NullTime   `db:"completed_at"` // 完成时间
+		Id               uint64         `db:"id"`              // 主键
+		WorkflowId       sql.NullInt64  `db:"workflow_id"`     // 工作流ID（对话触发的任务为空）
+		ConversationId   sql.NullInt64  `db:"conversation_id"` // 会话ID
+		Status           string         `db:"status"`          // 状态：pending/running/pending_approval/succeeded/failed/rejected
+		Input            sql.NullString `db:"input"`           // 输入（JSON）
+		Result           sql.NullString `db:"result"`          // 执行结果
+		Error            string         `db:"error"`           // 错误信息
+		ApprovedBy       sql.NullInt64  `db:"approved_by"`     // 审批人ID
+		CreatedAt        time.Time      `db:"created_at"`
+		CompletedAt      sql.NullTime   `db:"completed_at"`      // 完成时间
+		CreatedBy        uint64         `db:"created_by"`        // 任务所属用户，0表示历史归属待确认
+		NextStep         uint64         `db:"next_step"`         // 下一待执行步骤索引
+		WorkflowSnapshot sql.NullString `db:"workflow_snapshot"` // 执行时工作流定义快照
 	}
 )
 
@@ -90,8 +93,8 @@ func (m *defaultAiTaskModel) FindOne(ctx context.Context, id uint64) (*AiTask, e
 func (m *defaultAiTaskModel) Insert(ctx context.Context, data *AiTask) (sql.Result, error) {
 	gozeroAdminAiTaskIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiTaskIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?)", m.table, aiTaskRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.WorkflowId, data.ConversationId, data.Status, data.Input, data.Result, data.Error, data.ApprovedBy, data.CompletedAt)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, aiTaskRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.WorkflowId, data.ConversationId, data.Status, data.Input, data.Result, data.Error, data.ApprovedBy, data.CompletedAt, data.CreatedBy, data.NextStep, data.WorkflowSnapshot)
 	}, gozeroAdminAiTaskIdKey)
 	return ret, err
 }
@@ -100,7 +103,7 @@ func (m *defaultAiTaskModel) Update(ctx context.Context, data *AiTask) error {
 	gozeroAdminAiTaskIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiTaskIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, aiTaskRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.WorkflowId, data.ConversationId, data.Status, data.Input, data.Result, data.Error, data.ApprovedBy, data.CompletedAt, data.Id)
+		return conn.ExecCtx(ctx, query, data.WorkflowId, data.ConversationId, data.Status, data.Input, data.Result, data.Error, data.ApprovedBy, data.CompletedAt, data.CreatedBy, data.NextStep, data.WorkflowSnapshot, data.Id)
 	}, gozeroAdminAiTaskIdKey)
 	return err
 }

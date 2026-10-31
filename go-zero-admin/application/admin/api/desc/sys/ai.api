@@ -1,0 +1,159 @@
+syntax = "v1"
+
+info (
+    title: "AI 会话与工作流"
+    version: "v1"
+)
+
+type (
+    AiConversationInfo {
+        Id int64 `json:"id"`
+        Title string `json:"title"`
+        UserId int64 `json:"user_id"`
+        MessageCount int64 `json:"message_count"`
+        CreatedAt int64 `json:"created_at"`
+        UpdatedAt int64 `json:"updated_at"`
+    }
+    AiChatMessage {
+        Id int64 `json:"id"`
+        Role string `json:"role"`
+        Content string `json:"content"`
+        ToolCalls string `json:"tool_calls"`
+        Tokens int64 `json:"tokens"`
+        CreatedAt int64 `json:"created_at"`
+    }
+    AiWorkflowInfo {
+        Id int64 `json:"id"`
+        Name string `json:"name"`
+        Definition string `json:"definition"`
+        IntervalSeconds int64 `json:"interval_seconds"`
+        Enabled int64 `json:"enabled"`
+        NextRunAt int64 `json:"next_run_at"`
+        CreatedBy int64 `json:"created_by"`
+        CreatedAt int64 `json:"created_at"`
+        UpdatedAt int64 `json:"updated_at"`
+    }
+    AiTaskInfo {
+        Id int64 `json:"id"`
+        WorkflowId int64 `json:"workflow_id"`
+        ConversationId int64 `json:"conversation_id"`
+        Status string `json:"status"`
+        Input string `json:"input"`
+        Result string `json:"result"`
+        Error string `json:"error"`
+        ApprovedBy int64 `json:"approved_by"`
+        CreatedAt int64 `json:"created_at"`
+        CompletedAt int64 `json:"completed_at"`
+    }
+    AiToolInfo {
+        Name string `json:"name"`
+        Description string `json:"description"`
+        ParametersSchema string `json:"parameters_schema"`
+    }
+    AiIdReq { Id int64 `path:"id"` }
+    AiPageReq {
+        Page int64 `form:"page,optional"`
+        PageSize int64 `form:"page_size,optional"`
+    }
+    AiCreateConversationReq { Title string `json:"title,optional"` }
+    AiConversationResp { Conversation *AiConversationInfo `json:"conversation"` }
+    AiGetConversationResp {
+        Conversation *AiConversationInfo `json:"conversation"`
+        Messages []*AiChatMessage `json:"messages"`
+    }
+    AiListConversationsResp {
+        List []*AiConversationInfo `json:"list"`
+        Total int64 `json:"total"`
+    }
+    AiSendMessageReq {
+        ConversationId int64 `json:"conversation_id"`
+        Content string `json:"content"`
+    }
+    AiSendMessageResp {
+        ConversationId int64 `json:"conversation_id"`
+        UserMessage *AiChatMessage `json:"user_message"`
+        AiMessage *AiChatMessage `json:"ai_message"`
+    }
+    AiListToolsReq {}
+    AiListToolsResp { List []*AiToolInfo `json:"list"` }
+    AiCreateWorkflowReq {
+        Name string `json:"name"`
+        Definition string `json:"definition"`
+        IntervalSeconds int64 `json:"interval_seconds,optional"`
+    }
+    AiUpdateWorkflowReq {
+        Id int64 `path:"id"`
+        Name *string `json:"name,optional"`
+        Definition *string `json:"definition,optional"`
+        IntervalSeconds *int64 `json:"interval_seconds,optional"`
+        Enabled *int64 `json:"enabled,optional"`
+    }
+    AiWorkflowResp { Workflow *AiWorkflowInfo `json:"workflow"` }
+    AiListWorkflowsResp {
+        List []*AiWorkflowInfo `json:"list"`
+        Total int64 `json:"total"`
+    }
+    AiRunWorkflowReq {
+        Id int64 `path:"id"`
+        Input string `json:"input,optional"`
+    }
+    AiRunWorkflowResp {
+        TaskId int64 `json:"task_id"`
+        Status string `json:"status"`
+    }
+    AiListTasksReq {
+        Page int64 `form:"page,optional"`
+        PageSize int64 `form:"page_size,optional"`
+        Status string `form:"status,optional"`
+        WorkflowId int64 `form:"workflow_id,optional"`
+    }
+    AiListTasksResp {
+        List []*AiTaskInfo `json:"list"`
+        Total int64 `json:"total"`
+    }
+    AiTaskResp { Task *AiTaskInfo `json:"task"` }
+    AiRejectTaskReq {
+        Id int64 `path:"id"`
+        Reason string `json:"reason"`
+    }
+)
+
+@server (
+    prefix: v1/sys/ai
+    group: ai
+    timeout: 120s
+)
+service admin {
+    @handler createConversation
+    post /conversations (AiCreateConversationReq) returns (AiConversationResp)
+    @handler listConversations
+    get /conversations (AiPageReq) returns (AiListConversationsResp)
+    @handler getConversation
+    get /conversations/:id (AiIdReq) returns (AiGetConversationResp)
+    @handler deleteConversation
+    delete /conversations/:id (AiIdReq) returns (EmptyResp)
+    @handler sendMessage
+    post /messages (AiSendMessageReq) returns (AiSendMessageResp)
+    @handler listTools
+    get /tools (AiListToolsReq) returns (AiListToolsResp)
+    @handler createWorkflow
+    post /workflows (AiCreateWorkflowReq) returns (AiWorkflowResp)
+    @handler listWorkflows
+    get /workflows (AiPageReq) returns (AiListWorkflowsResp)
+    @handler getWorkflow
+    get /workflows/:id (AiIdReq) returns (AiWorkflowResp)
+    @handler updateWorkflow
+    put /workflows/:id (AiUpdateWorkflowReq) returns (EmptyResp)
+    @handler deleteWorkflow
+    delete /workflows/:id (AiIdReq) returns (EmptyResp)
+    @handler runWorkflow
+    post /workflows/:id/run (AiRunWorkflowReq) returns (AiRunWorkflowResp)
+    @handler listAgentTasks
+    get /tasks (AiListTasksReq) returns (AiListTasksResp)
+    @handler getAgentTask
+    get /tasks/:id (AiIdReq) returns (AiTaskResp)
+    @handler approveTask
+    post /tasks/:id/approve (AiIdReq) returns (EmptyResp)
+    @handler rejectTask
+    post /tasks/:id/reject (AiRejectTaskReq) returns (EmptyResp)
+}

@@ -53,14 +53,3 @@ func FromGRPCError(err error) (uint32, string, bool) {
 	}
 	return 0, st.Message(), false
 }
-
-// Wrap 将业务错误包成带 details 的 gRPC status error（RPC 边界调用）
-func Wrap(err error) error {
-	if err == nil {
-		return nil
-	}
-	if ce, ok := AsCodeError(err); ok {
-		return ce.GRPCStatus().Err()
-	}
-	return err
-}

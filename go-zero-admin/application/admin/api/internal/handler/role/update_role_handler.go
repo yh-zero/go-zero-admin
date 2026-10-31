@@ -21,11 +21,11 @@ func UpdateRoleHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := role.NewUpdateRoleLogic(r.Context(), svcCtx)
-		err := l.UpdateRole(&req)
+		resp, err := l.UpdateRole(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

@@ -21,10 +21,10 @@ func NewDeleteFileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 	return &DeleteFileLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *DeleteFileLogic) DeleteFile(req *types.DeleteFileReq) error {
+func (l *DeleteFileLogic) DeleteFile(req *types.DeleteFileReq) (*types.EmptyResp, error) {
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	_, err := l.svcCtx.FileRpc.DeleteFile(l.ctx, &filepb.DeleteFileRequest{
 		Actor: &filepb.Actor{UserID: userID}, FileID: req.Id,
 	})
-	return err
+	return &types.EmptyResp{}, err
 }

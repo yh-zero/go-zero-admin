@@ -21,11 +21,11 @@ func CreateUserHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := user.NewCreateUserLogic(r.Context(), svcCtx)
-		err := l.CreateUser(&req)
+		resp, err := l.CreateUser(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

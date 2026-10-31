@@ -4,7 +4,13 @@ export interface PageParams { page?: number; page_size?: number }
 export interface PageResult<T> { list: T[]; total: number }
 export interface ListResult<T> { list: T[] }
 export interface LoginReq { username: string; password: string; captcha_id: string; captcha: string }
-export interface LoginResp { access_token: string; expires_at: number }
+export interface LoginResp {
+  access_token: string; expires_at: number; refresh_token: string; refresh_expires_at: number; session_id: string;
+}
+export interface DeviceSession {
+  id: string; device_name: string; ip: string; user_agent: string;
+  created_at: number; last_seen_at: number; expires_at: number; is_current: boolean;
+}
 export interface CaptchaResp { captcha_id: string; image_base64: string; expires_at: number }
 export interface MenuInfo {
   id: number; parent_id: number; title: string; name: string; type: number;
@@ -20,12 +26,13 @@ export interface GetMenuListReq extends PageParams { parent_id?: number; type?: 
 export interface GetMenuTreeReq { type?: number; status?: number }
 export interface UserInfo {
   id: number; username: string; nickname: string; real_name: string; email: string; phone: string;
-  dept_id: number; dept_name: string; avatar_file_id: number; gender: number; status: number;
+  dept_id: number; dept_name: string; avatar_file_id: number; avatar_url: string; gender: number; status: number;
   remark: string; last_login_at: number; last_login_ip: string; created_at: number; updated_at: number;
+  role_ids: number[];
 }
 export interface UpdateUserReq {
   nickname?: string; real_name?: string; email?: string; phone?: string; dept_id?: number;
-  avatar_file_id?: number; gender?: number; status?: number; remark?: string;
+  avatar_file_id?: number; gender?: number; status?: number; remark?: string; role_ids?: number[];
 }
 export interface CreateUserReq extends UpdateUserReq { username: string; password: string }
 export interface GetUserListReq extends PageParams { username?: string; nickname?: string; dept_id?: number; status?: number }
@@ -37,7 +44,7 @@ export interface DeptInfo {
 export interface CreateDeptReq {
   parent_id?: number; name: string; leader?: string; phone?: string; email?: string; sort?: number; status?: number;
 }
-export type UpdateDeptReq = CreateDeptReq;
+export type UpdateDeptReq = Partial<CreateDeptReq>;
 export interface GetDeptTreeReq { status?: number }
 export interface RoleInfo {
   id: number; name: string; code: string; description: string; data_scope: string; sort: number;
@@ -58,12 +65,17 @@ export type UpdateDictReq = CreateDictReq;
 export interface GetDictListReq extends PageParams { name?: string; code?: string; status?: number }
 export interface ApiInfo { id: number; group: string; method: string; path: string; title: string; created_at: number }
 export interface GetApiListReq extends PageParams { group?: string; method?: string; path?: string }
+export interface SyncApiResp { added: number; updated: number; removed: number }
 export interface FileInfo {
   id: number; bucket: string; object_key: string; original_name: string; ext: string; mime: string; size: number;
   visibility: string; ref_count: number; uploader_id: number; url?: string; created_at: number;
 }
 export interface GetFileListReq extends PageParams { visibility?: string; uploader_id?: number }
 export interface FileURLResp { url: string; expires_at: number }
+export interface UploadFileReq {
+  name: string; content_base64: string; scene: 'common' | 'avatar' | 'doc'; visibility: 'public' | 'private';
+}
+export interface UploadFileResp { file: FileInfo }
 export interface AuditLogInfo {
   id: number; user_id: number; username: string; module: string; action: string; method: string;
   path: string; result: number; error_msg: string; ip: string; duration_ms: number; created_at: number;
@@ -71,8 +83,8 @@ export interface AuditLogInfo {
 export interface GetAuditLogListReq extends PageParams { module?: string; action?: string; user_id?: number; result?: number }
 export interface ProfileInfo {
   id: number; username: string; nickname: string; real_name: string; email: string;
-  phone: string; avatar_url: string; gender: number; dept_name: string;
+  phone: string; avatar_url: string; avatar_file_id: number; gender: number; dept_name: string; is_super_admin: boolean;
 }
 export interface UpdateProfileReq {
-  nickname?: string; real_name?: string; email?: string; phone?: string; avatar_url?: string; gender?: number;
+  nickname?: string; real_name?: string; email?: string; phone?: string; avatar_file_id?: number; gender?: number;
 }

@@ -82,14 +82,14 @@ service admin {
 	get /:id (GetRoleReq) returns (GetRoleResp)
 
 	@handler createRole
-	post /create (CreateRoleReq)
+	post /create (CreateRoleReq) returns (EmptyResp)
 
 	@handler updateRole
-	put /:id (UpdateRoleReq)
+	put /:id (UpdateRoleReq) returns (EmptyResp)
 
 	@handler deleteRole
-	delete /:id (DeleteRoleReq)
+	delete /:id (DeleteRoleReq) returns (EmptyResp)
 
 	@handler updateRoleMenus
-	post /:id/menus (UpdateRoleMenusReq)
+	post /:id/menus (UpdateRoleMenusReq) returns (EmptyResp)
 }

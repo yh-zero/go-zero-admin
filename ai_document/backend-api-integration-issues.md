@@ -1,36 +1,144 @@
 # 后端对接待办（2026-10-31）
 
-仅记录**未关闭**事项。已修复历史见 git 提交（84245c4 / b22f359 / b258a2d）。前端联调详情见 [frontend-integration-plan.md](frontend-integration-plan.md)。
+记录问题来源、实施进度和验证边界。下方历史复核保留原始失败证据；当前状态以最新日期的复查记录为准。此前修复见 git 提交（84245c4 / b22f359 / b258a2d）。前端联调详情见 [frontend-integration-plan.md](frontend-integration-plan.md)。
 
-## 待修复
+## 实现后复查（2026-11-01）
 
-### 接口语义
+中间件文件整理：经用户确认，将后台鉴权文件重命名为 `admin_auth_middleware.go`，把原请求元信息常量及函数完整移入 `audit_middleware.go`，保留 `app_auth_middleware.go`，目录收敛为三个文件。修改前后文本比对确认后台/App 鉴权、请求元信息、审计函数及 `admin.go` 注册入口不变；请求元信息仍覆盖所有方法，审计仍跳过 GET/HEAD/OPTIONS。相关文档引用同步更新，旧文件名引用为 0。后端 `verify.ps1` 六项通过、`git diff --check` 通过，无依赖变更；本次仅整理文件，没有重启服务或新增运行时测试。
+
+健康接口分组整理：按用户要求先在 `application/admin/api/desc/admin.api` 声明 `group: health`，再执行 `data/scripts/gen.ps1 api`（退出 0），由 goctl 生成 `handler/health`、`logic/health` 的四个文件及路由。仅在新 logic 中接入原有 pong 和 Redis/HealthRpc 就绪检查，删除旧目录下四个文件并修正文档链接。`/ping`、`/ready` 的 URL、公开访问和响应不变，不修改前端或依赖。整理后后端 `verify.ps1` 六项全部通过，Linux API 构建及本地容器更新成功；7001 直连与 Nginx 的四次健康请求均断言 HTTP/code 200、pong/ready=true。第一次 PowerShell 请求 localhost:80 超时，不计通过；随后用 curl 明确绕过代理、访问 127.0.0.1 并指定 Host:localhost，两个端点均通过。未做依赖故障注入；旧逻辑等价性另经静态核对。
+
+本次范围是上轮实现的正确性及 go-zero 分层复查，修复确认问题；没有提交、推送、新增依赖或另建报告文件。上轮 198 项断言仍是历史覆盖，不能证明本次新增并发场景已通过。
+
+| 问题 | 来源与处理 | 本次证据 |
+|---|---|---|
+| 登录与改密/启停竞态 | 新会话实现：密码验证后独立创建会话，可能越过改密撤销；后台/App 改为用户行锁内重验凭据/状态并签发，改密/审核同锁撤销 | 后台修复前持锁登录仍签发、改密后旧快照仍成功两项真实失败；修复后 admin/App 回归通过 |
+| 删除角色缓存与复活 | 既有问题，本轮角色保护改动未覆盖；角色删除、编辑与关系维护放入现有 model 扩展事务，精确失效缓存，编辑不写 deleted_at | 修复前删除后仍可查、可编辑并恢复 deleted_at 三项真实失败；无效菜单的字段/关系回滚和已删角色拒绝修改也已验证 |
+| AI 多审批点并发 | 本轮新增：仅按 pending_approval 领取会让迟到请求执行旧步骤；领取和拒绝增加 next_step 比较 | SQL 红→绿；真实 RPC 12/12：双请求一胜一拒、两步各一次、迟到批准/拒绝不影响下一点、完成后重复审批拒绝 |
+| 前端多标签页刷新/退出 | 本轮新增：页内 Promise 不保护其他页面；登录、刷新、主动清理共用原生 Web Locks；外部快照同步只改内存，清理核对原会话 | Node VM 加载实际 zustand/axios/项目 TS 模块，模拟网络与共享浏览器锁：8 组回归通过；不是双窗口真实浏览器验收 |
+| Nginx 上传限制 | 新上传链路遗漏代理默认 1 MiB；改 14 MiB JSON 限制，原文件仍 10 MiB | 原 413 已复现；临时账号经 Nginx 上传 1 MiB TXT、逐字节下载、删除、对象 404、元数据软删共 5/5 通过 |
+| 外部调用超时 | 既有 go-zero RPC 2 秒默认值未随新链路调整；AI RPC 120 秒、App RPC 12 秒/客户端 15 秒/HTTP 20 秒，代理读取 125 秒 | API 经 gen.ps1 重新生成；App/AI 运行配置读回；AI 持锁 2.3 秒、App 持锁 3 秒的真实 RPC 完成。未运行 60–120 秒外部调用，SMTP/模型外发仍待配置 |
+| 租户平台标识与上游别名 | 既有潜在问题在租户链路启用后仍存在；保留 platform，拒绝平台域名被租户占用，平台使用 platform-api 独有别名 | 保留标识真实请求拒绝通过；Compose config、Nginx -t/reload、实际配置与别名解析通过。本次未重复完整租户生命周期或多租户并存 DNS 测试 |
+
+前端 `pnpm exec tsc -b`、`pnpm exec vite build`、`pnpm exec oxlint` 均退出 0；保留既有侧栏 effect 警告和大分包提示。首轮 tsc 发现新增同步函数可空值未收窄，修正后重跑通过。前端自动刷新依赖支持 Web Locks 的 HTTPS/本机上下文，缺能力时明确提示，不用有竞态的本地存储锁替代。
+
+结构核对依据：[go-zero 官方项目结构与职责](https://go-zero.dev/concepts/project-structure/)。本轮通过现有 gen.ps1 调用官方 goctl 生成路由，API 调 RPC，事务/复杂 SQL 放 model 扩展，统一 xerr 出口；未改依赖。ServiceContext 新增的用户/头像业务编排已移回现有 userservice logic，个人资料调用同步调整；svc 保留依赖组装及策略通知。仓库仍有本轮未改的历史结构偏差：字典列表/删除、菜单创建、API 资源删除在 RPC logic 直接执行 SQL；因此不能把本次自检通过描述为全仓完全符合分层规范。这些历史模块未在本次做全面重构或故障回归。
+
+本次后端真实回归 **38/38**（admin 11、App 9、租户保留标识 1、AI 12、Nginx 上传 5），不是完整路由数。admin 修复前 8 个失败断言全部转绿；App 同时覆盖账号 128/129 字节边界。前端 8 组覆盖并发刷新、旧页面状态写入、迟到 401、刷新期间退出、同步快照读后竞争、空快照竞争、旧到期回调、新登录与旧刷新提交竞争。
+
+临时 `rv_lock_`/`rv_upload_` 用户、角色、App 用户、AI 工作流/任务、文件与审计按 ID 清理，残留查询均为 0；唯一 `test/rpc_probe.go`、宿主和容器内测试二进制已删除。未启动额外监听进程，既有开发服务保留运行。验证命令包括按 admin/app/ai RPC 模块分别运行的 `go test -mod=readonly`（对应模块无永久测试文件，仅证明编译）、临时探针实际 RPC/HTTP 断言、`node --experimental-vm-modules -` 内存回归，以及上述前端自检。
+
+最终自检：临时探针删除后运行 `data/scripts/verify.ps1`，gofmt、go vet、go build、tidy-diff、API validate、目录白名单六项全部通过，退出 0；`go.mod/go.sum` 无差异。最终前端 tsc/build/lint 退出 0，`git diff --check` 退出 0；本地 API 重建后 `/ready` 返回 code 200、ready=true。本轮没有修改 package.json/锁文件，工作区已有的 Rive 依赖改动来自此前用户授权的猫咪功能。
+
+保留边界：真实 SMTP 和模型调用、浏览器文件上传、所有数据库/缓存故障及进程中断场景仍未覆盖。
+
+## 本轮实施与原始问题
+
+### 本轮实施进度（2026-10-31）
+
+用户已确认全部清单及具体新增文件，允许通过 `gen.ps1` / goctl 生成代码；不新增依赖，清单外新增文件另行确认。既有前端工作保留，不自动提交或推送。
+
+1. 已实现并回归：共享契约、统一响应、验证码、会话/刷新/退出、审计、健康检查及前端认证配合。最终运行版本的认证 18 项断言通过；前端 tsc/build/lint 与此前 10 项内存并发/失败场景通过。SQL/RPC 内容日志屏蔽为静态检查；未注入中间件 panic 或依赖故障。
+2. 部分更新、用户角色和部门路径已实现，最终回归 17 项真实断言通过（省略/null 保留、空值解绑、角色去重/清空、无效角色事务回滚、子树移动和防环）。API 同步 5 项通过，新增 48 条真实路由，更新/删除均为 0；合法路由登记保留，人工标题测试已恢复。角色编码保护、密码专列更新及部门迁移授权已实测。
+3. 上传/引用/头像与前端入口已实现。上传、公开/私有下载、格式/大小限制、跨用户拒绝和删除等 19 项真实断言通过；修复私有链接把 TTL 错当到期时间戳的问题。后台/App 头像绑定、重试、替换、解绑、引用计数、删除保护和越权拒绝 16 项通过。
+4. 租户表结构、生命周期 HTTP、Docker/Compose 工具和模板已实现，24 项真实断言通过：创建独立库、自定义管理员、就绪、登录、重置后旧密码/会话失效、启停、Host 隔离及删除。测试租户的容器/卷/网络/桶/配置全部清理，原有 3 个展示记录保持不变。
+5. App 16 个 HTTP 接口已实现，31 项真实断言通过（独立身份、资料更新、会员幂等/时效/撤销、刷新/退出/设备撤销、审核停用）。SMTP 缺配置明确返回业务码 503；真实邮件及成功邮箱注册链路待配置验收。
+6. AI 16 个 HTTP 接口、对象归属、审批快照/断点及失败状态已实现，33 项本地真实断言通过：CRUD、归属隔离、审批前不执行、并发审批只执行一次、快照续跑、拒绝与工具失败状态。真实模型调用待配置。
+7. 用户数据范围及附带会话保护 35 项通过：四种范围、多角色并集、部门切换、越界读写/创建、合法与越界重置密码、密码 CAS、并发用户名唯一性、后台启停旧令牌失效及 App 有效期边界。首轮发现 ResetPassword API 漏传 Actor，修复并重建后完整重跑通过。
+8. 各模块累计 **198 项接口断言**（按分组相加，不代表 198 个独立路由或请求数）。前端最终 tsc/build/lint 退出 0，保留既有侧栏 effect 警告和大分包提示。临时探针清理后，后端 `verify.ps1` 六项全部通过，退出 0；`go mod tidy -diff` 为空，`go.mod/go.sum` 未改动。
+
+各项仅在对应真实调用完成后更新状态；环境缺少真实邮件或模型凭据时单独记录阻塞，不以静态检查代替。
+
+用户已确认：邮件与 AI 本轮先实现并验证本地逻辑，真实邮件发送和外部模型调用待补充配置后验收。
+
+用户补充确认的数据范围已实现并实测：ALL/DEPT/DEPT_AND_CHILDREN/SELF 按当前验证部门取有效角色并集，无有效角色拒绝，超级管理员全部；范围用于用户查询、编辑、删除和重置密码。个人资料固定本人，内部身份读取不经过用户管理的数据范围。
+
+浏览器：用户完成验证码登录后，已检查文件上传入口、头像表单、当前设备列表，以及切换部门后重新加载并恢复默认部门。实际选择文件被 Chrome 扩展未授权本地文件访问阻止，因此不宣称浏览器上传/保存闭环通过；对应后端上传/头像真实链路已通过。
+
+清理：本轮 `it_auth_` 测试用户、角色、部门、App 用户、文件、审计、工作流和会话记录查询均为 0；测试租户资源由生命周期检查确认清空。`test/rpc_probe.go` 和 `docker/.build/probe-check.exe` 已删除，隔离 MySQL `codex-db-verify-20261031` 及其匿名卷已删除，13307 端口释放。既有服务继续运行；已构建的服务二进制保留供当前 Docker 环境使用。原有 `test/login_e2e.ps1` 已改为独立脚本且解析检查通过，本轮未单独运行它，不用探针结果冒充该脚本通过。
+
+第一阶段真实断言：`/ping`、`/ready`、错误验证码拒绝、验证码一次性消费、PNG 与令牌字段、本人会话列表、刷新轮换、刷新重放拒绝、旧访问令牌拒绝、并发刷新单赢家、退出、退出后访问/刷新令牌失效、撤销本人另一设备及其访问拒绝、全部设备退出及失效、成功/失败审计记录且不保存请求体。仅创建本轮 `it_auth_` 临时账号，测试结束精确删除账号、审计、验证码及对应会话/缓存。未做数据库/Redis 故障注入。
+
+### 原始问题：接口语义
 
 | 编号 | 问题 | 处理建议 |
 |---|---|---|
-| B01 | `PUT /v1/sys/profile` 与 [UpdateUser](../go-zero-admin/application/admin/rpc/internal/logic/userservice/update_user_logic.go) 为全量覆盖语义：只提交昵称会清空姓名/邮箱、性别归零；部门/头像传 `0` 不能解绑 | 需 proto/desc 层 optional 改造支持部分更新；前端已全量提交暂无实际痛点，随契约版本一起做 |
+| B01 | `PUT /v1/sys/profile/` 与 [UpdateUser](../go-zero-admin/application/admin/rpc/internal/logic/userservice/update_user_logic.go) 混合使用全量覆盖与正数才更新的语义：只提交昵称会清空姓名/邮箱、性别归零；普通用户 `status` 还会变成 `0`；部门/头像传 `0` 不能解绑 | 必须明确更新契约并处理清空语义。可保留完整 PUT 并校验完整字段；需要部分更新时，再同时改 HTTP desc、proto 和 logic 保留字段存在性。`optional` 不是 go-zero 强制要求 |
 
-### 静态确认的限制
+### 原始问题：数据、权限与运行限制
 
 | 范围 | 问题 | 边界 |
 |---|---|---|
-| 部门 | 移动部门不维护自身/后代 `path`（创建时维护）；[更新](../go-zero-admin/application/admin/rpc/internal/logic/deptservice/update_dept_logic.go)已补防环与缓存一致性，但开放"调整上级"必须连带做 path 重算 | 随部门移动功能一起 |
-| 部门上下文 | [Authority](../go-zero-admin/application/admin/api/internal/middleware/authority.go) 的 `X-Dept-Id` 只改 Casbin domain，context 部门仍取 JWT；缺"当前用户部门清单"HTTP | 开放部门切换前必须补 |
-| 响应与错误码 | 信封已统一，但[契约](api-contract.md)未列出实际使用的 402/404/505/506；文件模块 404 暂为无名常量 | 补契约错误码表时一并命名 |
-| 租户表结构 | `gozero_platform.tenant_registry` 实测 13 列、无 `admin_account_ready`，proto/列表/详情四处读该列，调用即报错；[来源迁移](../go-zero-admin/data/db/migrations/platform/00001_tenant_registry.sql)同样缺列 | 随租户生命周期功能做列迁移（新增 goose migration） |
-| 健康检查 | [`/ping`](../go-zero-admin/application/admin/api/internal/logic/ping_logic.go) 为 goctl 空桩，HTTP 200 仅证明 API 进程可达 | 上生产前实现 DB+Redis+RPC 探活 |
+| 部门 | 移动部门不维护自身/后代 `path`（创建时维护）；现有 HTTP 仍接受父级变更，前端禁用不能阻止直接请求 | 现在至少后端拒绝移动；需要开放时再以事务重算自身/后代路径、防环并失效相关缓存 |
+| 部门上下文 | [Authority](../go-zero-admin/application/admin/api/internal/middleware/admin_auth_middleware.go) 已接受 `X-Dept-Id`，但只改 Casbin domain，context 部门仍取 JWT；缺当前用户部门清单 HTTP | 现在统一经校验的部门身份，或暂拒绝切换 Header；完整切换还须明确 RPC 身份传递与数据范围。未据此认定实际数据越权 |
+| 响应与错误码 | 已接统一错误出口，成功裸响应仍存在；[契约](api-contract.md)未列出实际使用的 402/404/505/506；文件模块 404 暂为无名常量 | 修正文档与错误码表；统一成功出口按契约单独完成，不能宣称全部信封已统一 |
+| 租户表结构 | `gozero_platform.tenant_registry` 运行库实查 13 列、无 `admin_account_ready`；列表 RPC 返回 505，已存在租户详情误报 404；[初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql)同样缺列 | 启用租户模块前补齐初始化 SQL，并用新建库验证；同时核对 SQL 别名/NULL 扫描，不能只补列就关闭问题 |
+| 健康检查 | 修复前 `/ping` 为空实现，实际 HTTP 200 + `null`，仅证明 API 路径可达；[当前实现](../go-zero-admin/application/admin/api/internal/logic/health/ping_logic.go) 已补齐并迁至 health 分组 | 上生产前按需区分存活与就绪探针；关键依赖检查放就绪探针，不因可选 AI 故障判整个进程死亡 |
 
-### 尚未接通的功能（有 RPC 无 HTTP / 能力缺失）
+### 原始问题：未接通的功能（实现状态见上方进度）
 
-- App、AI、租户：有 RPC 无 HTTP 入口；租户 RPC 因缺列当前不可调用（见上）
+- App、AI、租户：有 RPC 无 HTTP 入口；租户列表/详情因缺列失败，其他生命周期 RPC 未在本轮调用，不能概括为所有 RPC 都不可用
 - 文件上传、引用维护：仅 RPC；HTTP 只有列表、链接、删除
 - 个人头像：资料 API 接受 `avatar_url` 却固定 `AvatarFileId: 0`；资料查询未解析头像 URL
 - 用户分配角色：HTTP 新增/更新请求无 `role_ids`，RPC 创建/更新未处理绑定
 - API 同步：无 HTTP；`SyncApi` 返回全零占位结果
-- 认证刷新、服务端退出、设备会话：有 RPC 无 HTTP；登录不返回刷新令牌，前端退出仅清理本地会话
-- 验证码为文本后门（`image_base64` 即答案，[get_captcha_logic.go](../go-zero-admin/application/admin/rpc/internal/logic/authservice/get_captcha_logic.go) 自述"简版"）；审计日志（`sys_audit_log`）只有读接口、无任何写入方
+- 认证刷新、服务端退出、设备会话：没有 HTTP 入口；登录不返回刷新令牌，刷新 RPC 固定返回过期；退出 RPC 只解析令牌并返回成功，未实现失效机制，前端退出仅清理本地会话
+- 验证码是开发占位（`image_base64` 可直接解出答案，[get_captcha_logic.go](../go-zero-admin/application/admin/rpc/internal/logic/authservice/get_captcha_logic.go) 自述“简版”），不能承担生产防机器人校验；审计日志（`sys_audit_log`）只有读接口，未发现运行写入方
 - 代码卫生：`xerr.REUQEST_PARAM_ERROR` 拼写（REUQEST→REQUEST，改名波及面大）、`xerr.Wrap` 死代码——合并为一个 `refactor:` 提交处理
 
-## 验证边界
+## 运行时复核（2026-10-31 22:38，Asia/Shanghai）
 
-- 后端 `verify.ps1` 已在最近三轮修复提交前六项通过；App/AI/租户 RPC 调用与数据库/Redis 故障注入仍未执行，不计为验证通过。
+复用当前 `gozero-platform` 的 API/RPC 与数据库，未重建镜像、重启服务或修改业务代码。完成 **24 次 HTTP 业务请求、6 次 RPC 调用**，另单独检查 `/ping` 与数据库元数据；以业务码和实际持久化结果判断，不把 HTTP 200 等同于业务正确。
+
+| 问题 | 复核结论 | 实际证据 / 边界 |
+|---|---|---|
+| B01 个人资料部分提交 | **已复现** | 临时用户只提交昵称后，姓名/邮箱变空，性别由 1 变 0 |
+| B01 普通用户部分提交 | **已复现，影响比原记录更大** | 只提交昵称后姓名/邮箱变空、性别为 0，`status` 也由 1 变 0 |
+| 部门 ID 清空 | **已复现** | 完整更新中提交 `dept_id:0`，读取仍保留原部门；头像 ID 传 0 的解绑分支本轮只静态确认 |
+| 部门移动路径 | **已复现** | 临时树 A→C→D 中将 C 移至 B，`parent_id` 已改 B，但 C/D 的 path 仍含 A |
+| 用户角色分配 | **已复现** | HTTP 额外提交 `role_ids` 未绑定；另直接调用 RPC `UpdateUser(RoleIds=[临时角色])` 返回成功，`casbin_rule` 对应 g 关系仍为 0 条 |
+| 个人头像 | **已复现** | HTTP 接受非空 `avatar_url`，随后查询仍为空，临时用户头像文件 ID 仍为 NULL |
+| 退出令牌失效 | **已复现** | 对临时用户有效 token 调 `Logout` RPC 返回成功，同一 token 随后仍能 HTTP 读取个人资料 |
+| 认证刷新 | **部分实测 + 代码确认未实现** | 登录无 refresh token；无效刷新令牌调用返回 401。仅此无效令牌结果不证明所有刷新流程，未实现判断来自 RPC 固定返回过期的代码 |
+| 验证码 | **已复现** | `image_base64` 解码后直接是四位数字答案；测试输出未打印答案或 token |
+| 审计写入 | **已复现于本轮场景** | 按临时用户/本轮 User-Agent 和审计起始 ID 查询，登录、资料修改等操作新增匹配审计行数为 0；不外推为所有未来模块均无审计 |
+| API 同步 | **实测与占位代码一致** | `SyncApi` 返回 added/updated/removed 均 0，API 资源数 41→41；结合源码无同步逻辑判定，不单凭零增量判断缺陷 |
+| 租户缺列 | **已复现** | information_schema：13 列、缺失列计数 0；列表返回业务码 505；数据库已存在的租户 9010701 查询返回 404。RPC 日志确认 `Unknown column 'admin_account_ready' in 'field list'` |
+| 成功信封 | **已复现未统一** | 登录、验证码仍返回裸对象；缺失 token 请求正确得到 HTTP 200 + 业务码 401，不能将已工作的错误出口也说成失效 |
+| 部门 Header/context | **Header 实测，context 偏差代码确认** | 临时用户在授权部门 Header 下返回 200，另一未授权部门返回 403；说明 Header 参与鉴权且本用例拒绝生效。context 仍取 JWT 的偏差未通过运行时读取验证，也未复现跨部门数据泄漏 |
+| `/ping` | **已实测空响应；依赖故障未测** | HTTP 200，body 为 `null`。未停止 DB/Redis/RPC，不能据正常响应判断依赖故障时行为 |
+| 缺失 HTTP / 代码卫生 | **静态确认仍存在** | 以实际生成路由和描述文件为证据；没有用猜测 URL 的 403 推断接口不存在。拼写及无调用的 Wrap 仅代码搜索核对 |
+
+### 夹具与清理
+
+- 本轮唯一前缀：`rv_1793457504350_ab4789`。
+- 临时用户 9001153、临时角色 9010007、临时部门 9001009–9001012；个人资料测试仅操作临时用户。
+- 角色分配失败后，为个人资料测试临时加入仅该用户、该部门、`/v1/sys/profile/` GET/PUT 的策略；没有给其他用户加权限。
+- 按唯一名称/ID 删除夹具、测试策略与对应缓存，未执行清库或全局 Redis 清空。用户/角色/部门剩余计数均为 0；管理账号本轮登录元数据按前后快照条件恢复。
+- 临时 HTTP 脚本、Go 探针、结果文件及容器内本轮探针在记录结果后删除；原有服务保持运行。
+
+## 原始处理建议与 go-zero 规范
+
+1. **现在应处理**：明确 B01 的完整/部分更新与清空语义；后端阻止不完整的部门移动；关闭或补齐部门切换上下文；纠正文档的成功信封/错误码描述。用户角色分配是当前后台多人使用前的功能闭环。
+2. **生产使用前处理**：有效验证码方案、关键业务审计、合理的就绪探针；若要求退出后旧 token 立即失效，还须完成服务端失效校验，单接一个退出 HTTP 不够。
+3. **启用对应功能前处理**：租户表结构、头像上传链路、API 同步、App/AI HTTP、刷新令牌与设备会话。未计划使用时可暂缓；文件引用维护宜由业务 RPC 调用，无需机械增加公开 HTTP。
+
+以上处理可遵循现有 go-zero 架构：契约/desc → `gen.ps1` 生成 → API logic 调 RPC → RPC logic/model 做业务、事务与缓存维护。不要手改 PB/生成 model/routes。统一错误处理使用已存在的 `httpx.SetErrorHandlerCtx` 入口；API 不直连数据库是**本仓库的分层约束**，不是声称 go-zero 禁止所有 API 项目访问数据库。
+
+- go-zero 官方：[RPC 与 API 调用](https://go-zero.dev/guides/quickstart/rpc-service/)、[统一错误处理入口](https://go-zero.dev/guides/http/server/error/)。框架不要求每个 RPC 都有 HTTP，也不强制业务码编号。
+- 部分更新可使用字段存在性或 FieldMask；保留完整 PUT 同样可行，不必为了框架规范强行改为 `optional`。[Protobuf 字段存在性](https://protobuf.dev/programming-guides/field_presence/)、[PUT 语义](https://www.rfc-editor.org/rfc/rfc9110.html#section-9.3.4)。
+- 存活探针与就绪探针应按运维目的区分，依赖故障通常影响就绪，不应直接让所有服务反复重启；探针还要让 HTTP 状态码正确反映就绪结果，不能只在 HTTP 200 内放业务错误码。[官方探针说明](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)。
+
+## 修复前复核的验证边界（历史）
+
+- 后端 `verify.ps1` 在历史三轮修复提交前六项通过；本轮是问题复核，未改业务代码，未重新执行该构建自检，历史结果不作为本次运行行为正确的依据。
+- App/AI 业务 RPC、租户创建/启停/删除/重置、文件真实上传/引用写入、有效刷新令牌流、全部并发/故障场景及 DB/Redis 故障注入仍未执行，不计为验证通过。
+
+## 本轮最终边界
+
+- 真实 SMTP 投递、成功邮箱验证注册和外部模型响应仍待配置验收；缺配置拒绝、认证本地逻辑与 AI 本地工作流已实测。
+- SMTP 从 `SMTP_HOST/SMTP_PORT/SMTP_USERNAME/SMTP_PASSWORD/SMTP_FROM` 环境变量注入 App RPC；模型需在现有 AI YAML 启用并填写 Provider/Model/BaseURL，密钥只从 `API_KEY_<PROVIDER>` 环境读取。平台 Compose 已传递 `API_KEY_DEEPSEEK/API_KEY_QWEN`，其他供应商需显式配置对应环境变量；不要把真实密钥写入版本库。
+- 未覆盖数据库/Redis 故障注入、最后一个管理员的并发移除、租户非空大桶分页删除及创建中断恢复；不把正常链路通过扩大为所有故障场景通过。
+- 工作流仅支持手动运行，非零调度间隔明确拒绝；历史归属不明任务不开放，缺失快照的旧任务不自动续跑，进程中断的 running 任务不自动重放。
+- 用户创建后再设置头像；已有用户同一头像重复保存可对账多余引用，连续存储故障或进程中断并未按所有组合验证。
+- 浏览器上传闭环受扩展权限限制；已完成的页面读取、部门切换以及后端上传/头像链路分别记录，不相互替代。

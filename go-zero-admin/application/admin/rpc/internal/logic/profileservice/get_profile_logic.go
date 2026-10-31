@@ -2,6 +2,7 @@ package profileservicelogic
 
 import (
 	"context"
+	userservicelogic "go-zero-admin/application/admin/rpc/internal/logic/userservice"
 
 	"github.com/zeromicro/go-zero/core/logx"
 
@@ -21,8 +22,11 @@ func NewGetProfileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetPro
 }
 
 func (l *GetProfileLogic) GetProfile(in *adminpb.GetProfileRequest) (*adminpb.GetProfileResponse, error) {
-	user, err := l.svcCtx.SysUserModel.FindOne(l.ctx, uint64(in.Actor.UserId))
+	user, err := l.svcCtx.SysUserModel.FindOne(l.ctx, uint64(in.GetActor().GetUserId()))
 	if err != nil {
+		return nil, xerr.NewErrCode(xerr.USER_NOT_FOUND)
+	}
+	if user.DeletedAt.Valid {
 		return nil, xerr.NewErrCode(xerr.USER_NOT_FOUND)
 	}
 	var deptID, avatarID int64
@@ -44,6 +48,11 @@ func (l *GetProfileLogic) GetProfile(in *adminpb.GetProfileRequest) (*adminpb.Ge
 		info.LastLoginAt = user.LastLoginAt.Time.Unix()
 	}
 	info.LastLoginIP = user.LastLoginIp
+	info.AvatarUrl = userservicelogic.ResolveAvatarURL(l.ctx, l.svcCtx, avatarID, in.GetActor())
+	info.IsSuperAdmin, err = l.svcCtx.SysUserModel.IsSuperAdmin(l.ctx, int64(user.Id))
+	if err != nil {
+		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	}
 	if deptID > 0 {
 		dept, err := l.svcCtx.SysDeptModel.FindOne(l.ctx, uint64(deptID))
 		if err == nil {

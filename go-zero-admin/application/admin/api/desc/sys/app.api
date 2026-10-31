@@ -1,0 +1,65 @@
+syntax = "v1"
+type (
+ AppAdminListReq {
+  Page int64 `form:"page,default=1"`
+  PageSize int64 `form:"page_size,default=20"`
+  Status string `form:"status,optional"`
+  Account string `form:"account,optional"`
+ }
+ AppAdminListResp {
+  List []AppUserInfo `json:"list"`
+  Total int64 `json:"total"`
+ }
+ AppReviewReq {
+  Id int64 `path:"id"`
+  Status string `json:"status"`
+  Reason string `json:"reason,optional"`
+ }
+ AppSetAvatarReq {
+  Id int64 `path:"id"`
+  FileId int64 `json:"file_id"`
+ }
+ AppAdminRevokeReq {
+  Id int64 `path:"id"`
+  SessionId string `path:"session_id"`
+ }
+ AppListMembershipReq {
+  Page int64 `form:"page,default=1"`
+  PageSize int64 `form:"page_size,default=20"`
+  UserId int64 `form:"user_id,optional"`
+  PlanCode string `form:"plan_code,optional"`
+  ActiveOnly bool `form:"active_only,optional"`
+ }
+ AppListMembershipResp {
+  List []MembershipGrantInfo `json:"list"`
+  Total int64 `json:"total"`
+ }
+ AppGrantMembershipReq {
+  UserId int64 `json:"user_id"`
+  PlanCode string `json:"plan_code"`
+  Benefits string `json:"benefits,optional"`
+  RequestId string `json:"request_id"`
+  DurationDays int64 `json:"duration_days"`
+ }
+ AppRevokeMembershipReq { Id int64 `path:"id"` }
+)
+@server (
+ prefix: v1/sys/app
+ group: appadmin
+)
+service admin {
+ @handler listAppUsers
+ get /users (AppAdminListReq) returns (AppAdminListResp)
+ @handler reviewAppUser
+ post /users/:id/review (AppReviewReq) returns (EmptyResp)
+ @handler setAppUserAvatar
+ put /users/:id/avatar (AppSetAvatarReq) returns (EmptyResp)
+ @handler revokeAppSession
+ delete /users/:id/sessions/:session_id (AppAdminRevokeReq) returns (EmptyResp)
+ @handler listMemberships
+ get /memberships (AppListMembershipReq) returns (AppListMembershipResp)
+ @handler grantMembership
+ post /memberships (AppGrantMembershipReq) returns (EmptyResp)
+ @handler revokeMembership
+ delete /memberships/:id (AppRevokeMembershipReq) returns (EmptyResp)
+}

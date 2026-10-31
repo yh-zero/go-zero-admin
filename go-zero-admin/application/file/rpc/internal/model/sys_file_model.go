@@ -2,6 +2,8 @@ package model
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -16,10 +18,13 @@ type (
 		sysFileModel
 		// ListFilePage 分页查有效文件
 		ListFilePage(ctx context.Context, f FileListFilter, page, pageSize int64) ([]*FileRow, int64, error)
+		FindLive(ctx context.Context, id int64) (*SysFile, error)
+		MarkDeletedIfUnused(ctx context.Context, id, actorId int64) (*SysFile, error)
 	}
 
 	customSysFileModel struct {
 		*defaultSysFileModel
+		conn sqlx.SqlConn
 	}
 )
 
@@ -48,7 +53,55 @@ type FileRow struct {
 func NewSysFileModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) SysFileModel {
 	return &customSysFileModel{
 		defaultSysFileModel: newSysFileModel(conn, c, opts...),
+		conn:                conn,
 	}
+}
+
+var (
+	ErrFileForbidden  = errors.New("file access denied")
+	ErrFileReferenced = errors.New("file is referenced")
+	ErrFileNotAvatar  = errors.New("file is not an avatar")
+)
+
+// FindLive 不缓存授权相关状态，避免删除或引用事务后的旧缓存扩大访问范围。
+func (m *customSysFileModel) FindLive(ctx context.Context, id int64) (*SysFile, error) {
+	var row SysFile
+	err := m.QueryRowNoCacheCtx(ctx, &row, "SELECT "+sysFileRows+" FROM sys_file WHERE id=? AND deleted_at IS NULL", id)
+	return &row, err
+}
+
+// MarkDeletedIfUnused 先持久化删除状态；对象存储失败后重复删除可继续清理，期间拒绝新增引用。
+func (m *customSysFileModel) MarkDeletedIfUnused(ctx context.Context, id, actorId int64) (*SysFile, error) {
+	var row SysFile
+	err := m.conn.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
+		if err := session.QueryRowCtx(ctx, &row, "SELECT "+sysFileRows+" FROM sys_file WHERE id=? FOR UPDATE", id); err != nil {
+			return err
+		}
+		if !row.UploaderId.Valid || row.UploaderId.Int64 != actorId {
+			return ErrFileForbidden
+		}
+		var count struct {
+			Total int64 `db:"total"`
+		}
+		if err := session.QueryRowCtx(ctx, &count, "SELECT COUNT(*) AS total FROM sys_file_reference WHERE file_id=?", id); err != nil {
+			return err
+		}
+		if row.RefCount != 0 || count.Total != 0 {
+			return ErrFileReferenced
+		}
+		if row.DeletedAt.Valid {
+			return nil
+		}
+		_, err := session.ExecCtx(ctx, "UPDATE sys_file SET deleted_at=NOW() WHERE id=?", id)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err := m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminSysFileIdPrefix, id)); err != nil {
+		return nil, err
+	}
+	return &row, nil
 }
 
 func (m *customSysFileModel) ListFilePage(ctx context.Context, f FileListFilter, page, pageSize int64) ([]*FileRow, int64, error) {

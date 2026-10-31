@@ -11,6 +11,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -23,6 +24,11 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
+	sqlx.DisableLog()
+	serviceDesc := tenantpb.File_application_tenant_rpc_desc_tenant_proto.Services().Get(0)
+	for i := 0; i < serviceDesc.Methods().Len(); i++ {
+		c.Middlewares.StatConf.IgnoreContentMethods = append(c.Middlewares.StatConf.IgnoreContentMethods, "/"+string(serviceDesc.FullName())+"/"+string(serviceDesc.Methods().Get(i).Name()))
+	}
 	ctx := svc.NewServiceContext(c)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {

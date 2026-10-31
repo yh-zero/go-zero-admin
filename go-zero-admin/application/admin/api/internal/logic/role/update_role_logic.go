@@ -20,10 +20,10 @@ func NewUpdateRoleLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 	return &UpdateRoleLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *UpdateRoleLogic) UpdateRole(req *types.UpdateRoleReq) error {
+func (l *UpdateRoleLogic) UpdateRole(req *types.UpdateRoleReq) (*types.EmptyResp, error) {
 	_, err := l.svcCtx.RoleRpc.UpdateRole(l.ctx, &adminpb.UpdateRoleRequest{
 		RoleId: req.Id, Name: req.Name, Code: req.Code, Description: req.Description,
 		DataScope: req.DataScope, Sort: req.Sort, Status: req.Status, MenuIds: req.MenuIds,
 	})
-	return err
+	return &types.EmptyResp{}, err
 }

@@ -7,6 +7,7 @@ import (
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
 	"go-zero-admin/application/admin/rpc/internal/svc"
+	"go-zero-admin/pkg/xerr"
 )
 
 type ListDeviceSessionsLogic struct {
@@ -20,6 +21,16 @@ func NewListDeviceSessionsLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 }
 
 func (l *ListDeviceSessionsLogic) ListDeviceSessions(in *adminpb.ListDeviceSessionsRequest) (*adminpb.ListDeviceSessionsResponse, error) {
-	// 简版：设备会话基于 Redis，未实现则返回空
-	return &adminpb.ListDeviceSessionsResponse{List: []*adminpb.DeviceSessionInfo{}, Page: &adminpb.PageResponse{Total: 0}}, nil
+	if in.Actor == nil || in.Actor.UserId <= 0 {
+		return nil, xerr.NewErrCode(xerr.TOKEN_EXPIRE_ERROR)
+	}
+	sessions, err := l.svcCtx.Sessions.List(l.ctx, in.Actor.UserId)
+	if err != nil {
+		return nil, sessionError(err)
+	}
+	list := make([]*adminpb.DeviceSessionInfo, 0, len(sessions))
+	for _, session := range sessions {
+		list = append(list, &adminpb.DeviceSessionInfo{Id: session.Id, UserId: session.UserId, DeviceName: session.DeviceName, Ip: session.Ip, UserAgent: session.UserAgent, CreatedAt: session.CreatedAt, LastActiveAt: session.LastSeenAt, ExpiresAt: session.ExpiresAt, Current: session.Id == in.CurrentSessionId})
+	}
+	return &adminpb.ListDeviceSessionsResponse{List: list, Page: &adminpb.PageResponse{Total: int64(len(list))}}, nil
 }

@@ -14,6 +14,23 @@ Redis:
   Host: 127.0.0.1:16379
   Type: node
 
+TenantRpc:
+  Endpoints:
+    - 127.0.0.1:6005
+  Timeout: 120000
+
+AppRpc:
+  Endpoints:
+    - 127.0.0.1:6002
+  NonBlock: true
+  Timeout: 15000
+
+AiRpc:
+  Endpoints:
+    - 127.0.0.1:6004
+  NonBlock: true
+  Timeout: 120000
+
 Auth:
   AccessSecret: go-zero-admin-local-development-jwt-secret
   AccessExpire: 7200

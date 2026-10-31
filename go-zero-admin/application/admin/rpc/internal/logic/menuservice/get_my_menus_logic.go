@@ -21,7 +21,7 @@ func NewGetMyMenusLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMyM
 }
 
 func (l *GetMyMenusLogic) GetMyMenus(in *adminpb.GetMyMenusRequest) (*adminpb.GetMyMenusResponse, error) {
-	roleCodes, err := l.svcCtx.SysMenuModel.ListRoleCodesByUser(l.ctx, in.Actor.UserId)
+	roleCodes, err := l.svcCtx.SysMenuModel.ListRoleCodesByUser(l.ctx, in.GetActor().GetUserId(), in.GetActor().GetDeptId())
 	if err != nil {
 		l.Errorf("query user roles error: %v", err)
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)

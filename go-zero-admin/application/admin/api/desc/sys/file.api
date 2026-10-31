@@ -43,13 +43,27 @@ type (
     DeleteFileReq {
         Id int64 `path:"id"`
     }
+
+    UploadFileReq {
+        Name          string `json:"name"`
+        ContentBase64 string `json:"content_base64"`
+        Scene         string `json:"scene,default=common"`
+        Visibility    string `json:"visibility,default=private"`
+    }
+    UploadFileResp {
+        File *FileInfo `json:"file"`
+    }
 )
 
 @server (
 	prefix: v1/sys/file
 	group:  file
+	maxBytes: 14680064
 )
 service admin {
+	@handler uploadFile
+	post /upload (UploadFileReq) returns (UploadFileResp)
+
 	@handler getFileList
 	get /list (GetFileListReq) returns (GetFileListResp)
 
@@ -57,6 +71,6 @@ service admin {
 	get /:id/url (GetFileURLReq) returns (GetFileURLResp)
 
 	@handler deleteFile
-	delete /:id (DeleteFileReq)
+	delete /:id (DeleteFileReq) returns (EmptyResp)
 
 }

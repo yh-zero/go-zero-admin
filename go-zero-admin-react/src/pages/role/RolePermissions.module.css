@@ -1,0 +1,23 @@
+.groups { display: grid; gap: 18px; }
+.table { border: 1px solid var(--app-border); border-radius: 12px; overflow: hidden; }
+.table :global(.ant-table-thead > tr > th) { padding: 14px 18px; color: #65748b; background: #f5f7fb; font-size: 12px; font-weight: 600; }
+.table :global(.ant-table-tbody > tr > td) { padding: 16px 18px; vertical-align: middle; border-bottom-color: #edf0f5; }
+.directoryRow > td { background: #fafbfe; }
+.pageRow > td { background: #fff; }
+.resource { display: inline-flex; align-items: center; gap: 10px; max-width: calc(100% - 40px); vertical-align: middle; }
+.resourceIcon { flex-shrink: 0; }
+.resourceContent { display: grid; gap: 5px; min-width: 0; }
+.resourceName { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; line-height: 1.5; }
+.resource :global(.ant-tag) { margin-inline-end: 0; }
+.resource .resourceMeta { color: #687990; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.entry { padding-block: 6px; white-space: nowrap; font-size: 12px; }
+.operations { display: flex; flex-wrap: wrap; gap: 8px; padding-block: 2px; }
+.operations .operation { margin-inline-start: 0; padding: 5px 9px; align-items: center; border: 1px solid #e8ecf3; border-radius: 6px; background: #fafbfe; font-size: 12px; transition: background 0.15s, border-color 0.15s; }
+.operations .operation:global(.ant-checkbox-wrapper-checked) { color: #2458b4; background: #eff5ff; border-color: #c9dcff; }
+.operations .operation:not(:global(.ant-checkbox-wrapper-disabled)):hover { border-color: #9bbcf8; }
+.operationLabel { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+.operationLabel :global(.ant-tag) { margin-inline-end: 0; }
+.otherGroup { border-radius: 10px; }
+.otherGroup :global(.ant-card-head-title) { color: #435773; font-size: 13px; }
+.sectionHint { margin-bottom: 14px !important; font-size: 12px; }
+.summary { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }

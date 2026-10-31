@@ -26,7 +26,12 @@ try {
             Pop-Location
         }
     } finally {
-        Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
+        $resolvedTempRoot = [IO.Path]::GetFullPath($env:TEMP).TrimEnd('\') + '\'
+        $resolvedTempTarget = [IO.Path]::GetFullPath($tmp)
+        if (-not $resolvedTempTarget.StartsWith($resolvedTempRoot + 'gofmt-', [StringComparison]::OrdinalIgnoreCase)) {
+            throw '临时格式检查目录越界，拒绝清理。'
+        }
+        Remove-Item -LiteralPath $resolvedTempTarget -Recurse -Force -ErrorAction SilentlyContinue
     }
 
     $prevEap = $ErrorActionPreference

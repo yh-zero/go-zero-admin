@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -22,6 +23,10 @@ type (
 		ListMenuIdsByRoleIds(ctx context.Context, roleIds []int64) (map[int64][]int64, error)
 		// CountUsersByRoleCodes 按角色码统计用户数（casbin g 规则）
 		CountUsersByRoleCodes(ctx context.Context, roleCodes []string) (map[string]int64, error)
+		CreateWithMenus(ctx context.Context, role *SysRole, menuIds []int64) error
+		UpdateWithMenus(ctx context.Context, role *SysRole, menuIds []int64) error
+		ReplaceMenus(ctx context.Context, roleId uint64, menuIds []int64) error
+		SoftDeleteWithRelations(ctx context.Context, roleId uint64) error
 	}
 
 	customSysRoleModel struct {
@@ -54,6 +59,134 @@ func NewSysRoleModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option)
 	return &customSysRoleModel{
 		defaultSysRoleModel: newSysRoleModel(conn, c, opts...),
 	}
+}
+
+func lockRole(ctx context.Context, s sqlx.Session, roleId uint64) (*SysRole, error) {
+	var role SysRole
+	if err := s.QueryRowCtx(ctx, &role, "SELECT "+sysRoleRows+" FROM sys_role WHERE id=? AND deleted_at IS NULL FOR UPDATE", roleId); err != nil {
+		return nil, err
+	}
+	return &role, nil
+}
+
+func replaceRoleMenus(ctx context.Context, s sqlx.Session, roleId uint64, menuIds []int64) error {
+	seen := make(map[int64]bool, len(menuIds))
+	ids := make([]int64, 0, len(menuIds))
+	for _, id := range menuIds {
+		if id <= 0 {
+			return fmt.Errorf("%w: 菜单不存在", ErrInvalidMutation)
+		}
+		if !seen[id] {
+			seen[id] = true
+			ids = append(ids, id)
+		}
+	}
+	if len(ids) > 0 {
+		var rows []struct {
+			Id int64 `db:"id"`
+		}
+		args := make([]any, 0, len(ids))
+		for _, id := range ids {
+			args = append(args, id)
+		}
+		if err := s.QueryRowsCtx(ctx, &rows, "SELECT id FROM sys_menu WHERE id IN ("+inPlaceholders(len(ids))+") AND deleted_at IS NULL ORDER BY id FOR UPDATE", args...); err != nil {
+			return err
+		}
+		if len(rows) != len(ids) {
+			return fmt.Errorf("%w: 菜单不存在", ErrInvalidMutation)
+		}
+	}
+	if _, err := s.ExecCtx(ctx, "DELETE FROM sys_role_menu WHERE role_id=?", roleId); err != nil {
+		return err
+	}
+	for _, id := range ids {
+		if _, err := s.ExecCtx(ctx, "INSERT INTO sys_role_menu (role_id,menu_id) VALUES (?,?)", roleId, id); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *customSysRoleModel) invalidateRole(ctx context.Context, role *SysRole) error {
+	return m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysRoleIdPrefix, role.Id), cacheGozeroAdminNewSysRoleCodePrefix+role.Code)
+}
+
+func (m *customSysRoleModel) CreateWithMenus(ctx context.Context, role *SysRole, menuIds []int64) error {
+	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
+		result, err := s.ExecCtx(ctx, "INSERT INTO sys_role (name,code,description,data_scope,sort,status) VALUES (?,?,?,?,?,?)", role.Name, role.Code, role.Description, role.DataScope, role.Sort, role.Status)
+		if err != nil {
+			return err
+		}
+		id, err := result.LastInsertId()
+		if err != nil {
+			return err
+		}
+		role.Id = uint64(id)
+		return replaceRoleMenus(ctx, s, role.Id, menuIds)
+	})
+	if err != nil {
+		return err
+	}
+	return m.invalidateRole(ctx, role)
+}
+
+func (m *customSysRoleModel) UpdateWithMenus(ctx context.Context, role *SysRole, menuIds []int64) error {
+	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
+		current, err := lockRole(ctx, s, role.Id)
+		if err != nil {
+			return err
+		}
+		if role.Code != current.Code {
+			return fmt.Errorf("%w: 角色标识创建后不能修改", ErrInvalidMutation)
+		}
+		if current.Code == "super_admin" && role.Status != 1 {
+			return fmt.Errorf("%w: 超级管理员角色不能停用", ErrInvalidMutation)
+		}
+		// 只更新可编辑列，不将查询快照中的 deleted_at 写回。
+		if _, err = s.ExecCtx(ctx, "UPDATE sys_role SET name=?,description=?,data_scope=?,sort=?,status=? WHERE id=? AND deleted_at IS NULL", role.Name, role.Description, role.DataScope, role.Sort, role.Status, role.Id); err != nil {
+			return err
+		}
+		return replaceRoleMenus(ctx, s, role.Id, menuIds)
+	})
+	if err != nil {
+		return err
+	}
+	return m.invalidateRole(ctx, role)
+}
+
+func (m *customSysRoleModel) ReplaceMenus(ctx context.Context, roleId uint64, menuIds []int64) error {
+	return m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
+		if _, err := lockRole(ctx, s, roleId); err != nil {
+			return err
+		}
+		return replaceRoleMenus(ctx, s, roleId, menuIds)
+	})
+}
+
+func (m *customSysRoleModel) SoftDeleteWithRelations(ctx context.Context, roleId uint64) error {
+	var role *SysRole
+	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
+		var err error
+		role, err = lockRole(ctx, s, roleId)
+		if err != nil {
+			return err
+		}
+		if role.Code == "super_admin" {
+			return fmt.Errorf("%w: 超级管理员角色不能删除", ErrInvalidMutation)
+		}
+		if _, err = s.ExecCtx(ctx, "UPDATE sys_role SET deleted_at=NOW() WHERE id=? AND deleted_at IS NULL", roleId); err != nil {
+			return err
+		}
+		if _, err = s.ExecCtx(ctx, "DELETE FROM sys_role_menu WHERE role_id=?", roleId); err != nil {
+			return err
+		}
+		_, err = s.ExecCtx(ctx, "DELETE FROM casbin_rule WHERE (ptype='p' AND v0=?) OR (ptype='g' AND v1=?)", role.Code, role.Code)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	return m.invalidateRole(ctx, role)
 }
 
 func (m *customSysRoleModel) ListRolePage(ctx context.Context, f RoleListFilter, page, pageSize int64) ([]*RoleRow, int64, error) {

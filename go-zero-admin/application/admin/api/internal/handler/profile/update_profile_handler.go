@@ -21,11 +21,11 @@ func UpdateProfileHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := profile.NewUpdateProfileLogic(r.Context(), svcCtx)
-		err := l.UpdateProfile(&req)
+		resp, err := l.UpdateProfile(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

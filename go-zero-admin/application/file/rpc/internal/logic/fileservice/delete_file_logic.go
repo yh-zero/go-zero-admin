@@ -2,8 +2,6 @@ package fileservicelogic
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"github.com/zeromicro/go-zero/core/logx"
 
@@ -23,27 +21,22 @@ func NewDeleteFileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeleteFileLogic) DeleteFile(in *filepb.DeleteFileRequest) (*filepb.NoDataResponse, error) {
-	var refCount int32
-	var visibility, objectKey string
-	err := l.svcCtx.DB.QueryRowCtx(l.ctx, &refCount,
-		"SELECT ref_count FROM sys_file WHERE id=? AND deleted_at IS NULL", in.FileID)
-	if err == nil && refCount > 0 {
-		return nil, xerr.NewErrCodeMsg(400, fmt.Sprintf("文件被 %d 处引用，无法删除", refCount))
+	if in.GetActor().GetUserID() <= 0 {
+		return nil, xerr.NewErrCode(xerr.PERMISSION_DENIED)
 	}
-	_ = l.svcCtx.DB.QueryRowCtx(l.ctx, &visibility,
-		"SELECT visibility FROM sys_file WHERE id=?", in.FileID)
-	_ = l.svcCtx.DB.QueryRowCtx(l.ctx, &objectKey,
-		"SELECT object_key FROM sys_file WHERE id=?", in.FileID)
-	if strings.TrimSpace(objectKey) == "" {
-		return nil, xerr.NewErrCodeMsg(404, "文件不存在或已删除")
+	if in.FileID <= 0 {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
-
-	if l.svcCtx.Store != nil {
-		if err := l.svcCtx.Store.Delete(l.ctx, objectKey, visibility); err != nil {
-			l.Errorf("store delete error: %v", err)
-			return nil, xerr.NewErrCodeMsg(500, "存储删除失败")
-		}
+	if l.svcCtx.Store == nil {
+		return nil, xerr.NewErrCodeMsg(xerr.SERVICE_UNAVAILABLE, "对象存储未配置")
 	}
-	_, _ = l.svcCtx.DB.ExecCtx(l.ctx, "UPDATE sys_file SET deleted_at=NOW() WHERE id=?", in.FileID)
+	row, err := l.svcCtx.SysFileModel.MarkDeletedIfUnused(l.ctx, in.FileID, in.Actor.UserID)
+	if err != nil {
+		return nil, fileModelError(err)
+	}
+	if err := l.svcCtx.Store.Delete(l.ctx, row.ObjectKey, row.Visibility); err != nil {
+		l.Error("文件对象删除失败，元数据已软删除，可重试清理")
+		return nil, xerr.NewErrCodeMsg(xerr.SERVER_COMMON_ERROR, "存储清理失败，请重试删除")
+	}
 	return &filepb.NoDataResponse{}, nil
 }

@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -21,7 +22,7 @@ func NewGetUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUserLo
 }
 
 func (l *GetUserLogic) GetUser(req *types.GetUserReq) (resp *types.GetUserResp, err error) {
-	rpcResp, err := l.svcCtx.UserRpc.GetUser(l.ctx, &adminpb.GetUserRequest{UserId: req.Id})
+	rpcResp, err := l.svcCtx.UserRpc.GetUser(l.ctx, &adminpb.GetUserRequest{Actor: middleware.ActorFromContext(l.ctx), UserId: req.Id})
 	if err != nil {
 		return nil, err
 	}
@@ -30,8 +31,8 @@ func (l *GetUserLogic) GetUser(req *types.GetUserReq) (resp *types.GetUserResp, 
 		Id: u.Id, Username: u.Username, Nickname: u.Nickname,
 		RealName: u.RealName, Email: u.Email, Phone: u.Phone,
 		DeptId: u.DeptId, DeptName: u.DeptName,
-		AvatarFileId: u.AvatarFileId, Gender: u.Gender, Status: u.Status,
+		AvatarFileId: u.AvatarFileId, AvatarUrl: u.AvatarUrl, Gender: u.Gender, Status: u.Status,
 		Remark: u.Remark, LastLoginAt: u.LastLoginAt, LastLoginIp: u.LastLoginIP,
-		CreatedAt: u.CreatedAt, UpdatedAt: u.UpdatedAt,
+		CreatedAt: u.CreatedAt, UpdatedAt: u.UpdatedAt, RoleIds: append([]int64{}, u.RoleIds...),
 	}}, nil
 }

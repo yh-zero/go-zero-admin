@@ -20,7 +20,7 @@ func NewDeleteRoleLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 	return &DeleteRoleLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *DeleteRoleLogic) DeleteRole(req *types.DeleteRoleReq) error {
+func (l *DeleteRoleLogic) DeleteRole(req *types.DeleteRoleReq) (*types.EmptyResp, error) {
 	_, err := l.svcCtx.RoleRpc.DeleteRole(l.ctx, &adminpb.DeleteRoleRequest{RoleId: req.Id})
-	return err
+	return &types.EmptyResp{}, err
 }

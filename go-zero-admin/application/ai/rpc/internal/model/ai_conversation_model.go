@@ -1,8 +1,12 @@
 package model
 
 import (
+	"context"
+	"database/sql"
+	"fmt"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"time"
 )
 
 var _ AiConversationModel = (*customAiConversationModel)(nil)
@@ -12,10 +16,15 @@ type (
 	// and implement the added methods in customAiConversationModel.
 	AiConversationModel interface {
 		aiConversationModel
+		FindOwned(ctx context.Context, id, ownerId int64) (*ConversationRow, error)
+		ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*ConversationRow, int64, error)
+		DeleteOwned(ctx context.Context, id, ownerId int64) error
+		AppendTurn(ctx context.Context, id, ownerId int64, userContent, assistantContent, toolCalls string, tokens int64) (int64, int64, error)
 	}
 
 	customAiConversationModel struct {
 		*defaultAiConversationModel
+		conn sqlx.SqlConn
 	}
 )
 
@@ -23,5 +32,88 @@ type (
 func NewAiConversationModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) AiConversationModel {
 	return &customAiConversationModel{
 		defaultAiConversationModel: newAiConversationModel(conn, c, opts...),
+		conn:                       conn,
 	}
+}
+
+type ConversationRow struct {
+	Id           int64  `db:"id"`
+	UserId       int64  `db:"user_id"`
+	Title        string `db:"title"`
+	MessageCount int64  `db:"message_count"`
+	CreatedAt    int64  `db:"created_at"`
+	UpdatedAt    int64  `db:"updated_at"`
+}
+
+const conversationSelect = "SELECT c.id,c.user_id,c.title,(SELECT COUNT(*) FROM ai_message m WHERE m.conversation_id=c.id) AS message_count,UNIX_TIMESTAMP(c.created_at) AS created_at,UNIX_TIMESTAMP(c.updated_at) AS updated_at FROM ai_conversation c "
+
+func (m *customAiConversationModel) FindOwned(ctx context.Context, id, ownerId int64) (*ConversationRow, error) {
+	var row ConversationRow
+	err := m.QueryRowNoCacheCtx(ctx, &row, conversationSelect+"WHERE c.id=? AND c.user_id=? AND c.deleted_at IS NULL", id, ownerId)
+	return &row, err
+}
+
+func (m *customAiConversationModel) ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*ConversationRow, int64, error) {
+	var count struct {
+		Total int64 `db:"total"`
+	}
+	if err := m.QueryRowNoCacheCtx(ctx, &count, "SELECT COUNT(*) AS total FROM ai_conversation WHERE user_id=? AND deleted_at IS NULL", ownerId); err != nil {
+		return nil, 0, err
+	}
+	rows := make([]*ConversationRow, 0)
+	err := m.QueryRowsNoCacheCtx(ctx, &rows, conversationSelect+"WHERE c.user_id=? AND c.deleted_at IS NULL ORDER BY c.updated_at DESC,c.id DESC LIMIT ? OFFSET ?", ownerId, pageSize, (page-1)*pageSize)
+	return rows, count.Total, err
+}
+
+func (m *customAiConversationModel) DeleteOwned(ctx context.Context, id, ownerId int64) error {
+	result, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (sql.Result, error) {
+		return conn.ExecCtx(ctx, "UPDATE ai_conversation SET deleted_at=NOW() WHERE id=? AND user_id=? AND deleted_at IS NULL", id, ownerId)
+	}, fmt.Sprintf("%s%d", cacheGozeroAdminAiConversationIdPrefix, id))
+	if err != nil {
+		return err
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// AppendTurn 将本轮两条消息一起提交；模型失败不留下半轮对话。
+func (m *customAiConversationModel) AppendTurn(ctx context.Context, id, ownerId int64, userContent, assistantContent, toolCalls string, tokens int64) (int64, int64, error) {
+	var userId, assistantId int64
+	err := m.conn.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
+		var owner struct {
+			Id int64 `db:"id"`
+		}
+		if err := session.QueryRowCtx(ctx, &owner, "SELECT id FROM ai_conversation WHERE id=? AND user_id=? AND deleted_at IS NULL FOR UPDATE", id, ownerId); err != nil {
+			return err
+		}
+		result, err := session.ExecCtx(ctx, "INSERT INTO ai_message (conversation_id,role,content) VALUES (?,'user',?)", id, userContent)
+		if err != nil {
+			return err
+		}
+		userId, err = result.LastInsertId()
+		if err != nil {
+			return err
+		}
+		result, err = session.ExecCtx(ctx, "INSERT INTO ai_message (conversation_id,role,content,tool_calls,tokens) VALUES (?,'assistant',?,?,?)", id, assistantContent, toolCalls, tokens)
+		if err != nil {
+			return err
+		}
+		assistantId, err = result.LastInsertId()
+		if err != nil {
+			return err
+		}
+		_, err = session.ExecCtx(ctx, "UPDATE ai_conversation SET updated_at=? WHERE id=?", time.Now(), id)
+		return err
+	})
+	if err != nil {
+		return 0, 0, err
+	}
+	err = m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminAiConversationIdPrefix, id))
+	return userId, assistantId, err
 }

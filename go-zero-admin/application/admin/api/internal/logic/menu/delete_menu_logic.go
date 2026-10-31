@@ -21,9 +21,9 @@ func NewDeleteMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 	return &DeleteMenuLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *DeleteMenuLogic) DeleteMenu(req *types.DeleteMenuReq) error {
+func (l *DeleteMenuLogic) DeleteMenu(req *types.DeleteMenuReq) (*types.EmptyResp, error) {
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	actor := &adminpb.Actor{UserId: userID}
 	_, err := l.svcCtx.MenuRpc.DeleteMenu(l.ctx, &adminpb.DeleteMenuRequest{Actor: actor, MenuId: req.Id})
-	return err
+	return &types.EmptyResp{}, err
 }

@@ -32,7 +32,7 @@ message SendMessageRequest {
   int64 conversation_id = 2;   // 0 = 自动创建新会话
   string content = 3;
 }
-message SendMessageResponse { ChatMessage user_message = 1; ChatMessage ai_message = 2; }
+message SendMessageResponse { ChatMessage user_message = 1; ChatMessage ai_message = 2; int64 conversation_id = 3; }
 
 // ========== 工具注册表（阶段 1） ==========
 message ToolInfo { string name = 1; string description = 2; string parameters_schema = 3; }
@@ -52,7 +52,7 @@ message ListWorkflowsRequest { Actor actor = 1; PageRequest page = 2; }
 message ListWorkflowsResponse { repeated WorkflowInfo list = 1; PageResponse page = 2; }
 message GetWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; }
 message GetWorkflowResponse { WorkflowInfo workflow = 1; }
-message UpdateWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; string name = 3; string definition = 4; int64 interval_seconds = 5; int64 enabled = 6; }
+message UpdateWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; optional string name = 3; optional string definition = 4; optional int64 interval_seconds = 5; optional int64 enabled = 6; }
 message DeleteWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; }
 message RunWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; string input = 3; }
 message RunWorkflowResponse { int64 task_id = 1; string status = 2; }

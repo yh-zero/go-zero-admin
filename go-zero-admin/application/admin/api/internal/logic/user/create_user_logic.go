@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -20,15 +21,16 @@ func NewCreateUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 	return &CreateUserLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *CreateUserLogic) CreateUser(req *types.CreateUserReq) error {
+func (l *CreateUserLogic) CreateUser(req *types.CreateUserReq) (*types.EmptyResp, error) {
 	_, err := l.svcCtx.UserRpc.CreateUser(l.ctx, &adminpb.CreateUserRequest{
+		Actor: middleware.ActorFromContext(l.ctx), RoleIds: req.RoleIds,
 		Username: req.Username, Password: req.Password, Nickname: req.Nickname,
 		RealName: req.RealName, Email: req.Email, Phone: req.Phone,
 		DeptId: req.DeptId, AvatarFileId: req.AvatarFileId,
 		Gender: req.Gender, Status: req.Status, Remark: req.Remark,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &types.EmptyResp{}, nil
 }

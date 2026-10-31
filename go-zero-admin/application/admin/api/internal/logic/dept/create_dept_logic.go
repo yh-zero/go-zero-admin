@@ -2,6 +2,7 @@ package dept
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -20,10 +21,11 @@ func NewCreateDeptLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 	return &CreateDeptLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *CreateDeptLogic) CreateDept(req *types.CreateDeptReq) error {
+func (l *CreateDeptLogic) CreateDept(req *types.CreateDeptReq) (*types.EmptyResp, error) {
 	_, err := l.svcCtx.DeptRpc.CreateDept(l.ctx, &adminpb.CreateDeptRequest{
+		Actor:    middleware.ActorFromContext(l.ctx),
 		ParentId: req.ParentId, Name: req.Name, Leader: req.Leader,
 		Phone: req.Phone, Email: req.Email, Sort: req.Sort, Status: req.Status,
 	})
-	return err
+	return &types.EmptyResp{}, err
 }

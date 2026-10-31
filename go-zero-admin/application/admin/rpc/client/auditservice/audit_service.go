@@ -16,12 +16,15 @@ import (
 type (
 	Actor                   = adminpb.Actor
 	AuditLogInfo            = adminpb.AuditLogInfo
+	CreateAuditLogRequest   = adminpb.CreateAuditLogRequest
 	GetAuditLogListRequest  = adminpb.GetAuditLogListRequest
 	GetAuditLogListResponse = adminpb.GetAuditLogListResponse
+	NoDataResponse          = adminpb.NoDataResponse
 	PageRequest             = adminpb.PageRequest
 	PageResponse            = adminpb.PageResponse
 
 	AuditService interface {
+		CreateAuditLog(ctx context.Context, in *CreateAuditLogRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		GetAuditLogList(ctx context.Context, in *GetAuditLogListRequest, opts ...grpc.CallOption) (*GetAuditLogListResponse, error)
 	}
 
@@ -34,6 +37,11 @@ func NewAuditService(cli zrpc.Client) AuditService {
 	return &defaultAuditService{
 		cli: cli,
 	}
+}
+
+func (m *defaultAuditService) CreateAuditLog(ctx context.Context, in *CreateAuditLogRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := adminpb.NewAuditServiceClient(m.cli.Conn())
+	return client.CreateAuditLog(ctx, in, opts...)
 }
 
 func (m *defaultAuditService) GetAuditLogList(ctx context.Context, in *GetAuditLogListRequest, opts ...grpc.CallOption) (*GetAuditLogListResponse, error) {

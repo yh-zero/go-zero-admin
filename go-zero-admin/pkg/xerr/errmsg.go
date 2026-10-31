@@ -6,7 +6,7 @@ func MapErrMsg(errcode uint32) string {
 		return "操作成功"
 	case SERVER_COMMON_ERROR:
 		return "服务器繁忙，请稍后再试"
-	case REUQEST_PARAM_ERROR:
+	case REQUEST_PARAM_ERROR:
 		return "参数错误"
 	case TOKEN_EXPIRE_ERROR:
 		return "登录已过期，请重新登录"
@@ -14,6 +14,10 @@ func MapErrMsg(errcode uint32) string {
 		return "令牌生成失败"
 	case PERMISSION_DENIED:
 		return "没有接口权限"
+	case NOT_FOUND:
+		return "资源不存在"
+	case SERVICE_UNAVAILABLE:
+		return "服务尚未就绪"
 	case DB_ERROR:
 		return "数据库错误"
 	case DB_UPDATE_AFFECTED_ZERO:

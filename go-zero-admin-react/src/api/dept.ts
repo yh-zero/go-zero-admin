@@ -11,6 +11,8 @@ export function fetchDeptTree(params: GetDeptTreeReq = {}) {
   return apiGet<ListResult<DeptInfo>>('/sys/dept/tree', params);
 }
 
+export const fetchMyDepts = async (): Promise<DeptInfo[]> => (await apiGet<ListResult<DeptInfo>>('/sys/dept/my')).list ?? [];
+
 export function createDept(data: CreateDeptReq) {
   return apiPost('/sys/dept/create', data);
 }

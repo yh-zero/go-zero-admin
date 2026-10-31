@@ -2,12 +2,14 @@ package profileservicelogic
 
 import (
 	"context"
-	"database/sql"
-	"time"
+	"errors"
+	userservicelogic "go-zero-admin/application/admin/rpc/internal/logic/userservice"
 
 	"github.com/zeromicro/go-zero/core/logx"
 
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
 	"go-zero-admin/pkg/xerr"
 )
@@ -23,21 +25,21 @@ func NewUpdateProfileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Upd
 }
 
 func (l *UpdateProfileLogic) UpdateProfile(in *adminpb.UpdateProfileRequest) (*adminpb.NoDataResponse, error) {
-	user, err := l.svcCtx.SysUserModel.FindOne(l.ctx, uint64(in.Actor.UserId))
+	userId := in.GetActor().GetUserId()
+	err := userservicelogic.UpdateUserWithAvatar(l.ctx, l.svcCtx, userId, in.GetActor(), model.UserPatch{
+		OwnAccount: true,
+		Nickname:   in.Nickname, RealName: in.RealName, Email: in.Email, Phone: in.Phone, Gender: in.Gender, AvatarFileId: in.AvatarFileId,
+	})
 	if err != nil {
-		return nil, xerr.NewErrCode(xerr.USER_NOT_FOUND)
-	}
-	user.Nickname = in.Nickname
-	user.Gender = int64(in.Gender)
-	user.UpdatedAt = time.Now()
-	user.RealName = in.RealName
-	user.Email = in.Email
-	user.Phone = in.Phone
-	if in.AvatarFileId > 0 {
-		user.AvatarFileId = sql.NullInt64{Int64: in.AvatarFileId, Valid: true}
-	}
-	err = l.svcCtx.SysUserModel.Update(l.ctx, user)
-	if err != nil {
+		if business, ok := xerr.AsCodeError(err); ok {
+			return nil, business
+		}
+		if errors.Is(err, model.ErrInvalidMutation) {
+			return nil, xerr.NewErrCodeMsg(xerr.REQUEST_PARAM_ERROR, err.Error())
+		}
+		if errors.Is(err, sqlx.ErrNotFound) {
+			return nil, xerr.NewErrCode(xerr.USER_NOT_FOUND)
+		}
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)
 	}
 	return &adminpb.NoDataResponse{}, nil

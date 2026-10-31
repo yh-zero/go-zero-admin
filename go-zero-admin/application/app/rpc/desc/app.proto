@@ -37,15 +37,16 @@ message AppLoginRequest {
 }
 message AppLoginResponse {
   string access_token = 1; int64 ExpiresAt = 2; string RefreshToken = 3; int64 RefreshExpiresAt = 4; AppUserInfo User = 5;
+  string session_id = 6;
 }
 
 message AppRefreshRequest { string RefreshToken = 1; string IP = 2; string UserAgent = 3; }
-message AppRefreshResponse { string AccessToken = 1; int64 ExpiresAt = 2; string RefreshToken = 3; int64 RefreshExpiresAt = 4; }
+message AppRefreshResponse { string AccessToken = 1; int64 ExpiresAt = 2; string RefreshToken = 3; int64 RefreshExpiresAt = 4; string session_id = 5; AppUserInfo user = 6; }
 message AppLogoutRequest { string AccessToken = 1; bool AllDevices = 2; }
 message AppAccessRequest { string AccessToken = 1; }
 message AppAccessResponse { AppUserInfo User = 1; }
 
-message AppProfileRequest { string AccessToken = 1; string Nickname = 2; }
+message AppProfileRequest { string AccessToken = 1; optional string Nickname = 2; }
 message AppProfileResponse { AppUserInfo User = 1; }
 
 message AppAuthOptionsRequest {}
@@ -63,7 +64,7 @@ message AppAdminListResponse { repeated AppUserInfo List = 1; PageResponse Page 
 message AppReviewRequest { Actor Actor = 1; int64 UserID = 2; string Status = 3; string Reason = 4; }
 message AppSetAvatarRequest { Actor Actor = 1; int64 UserID = 2; int64 FileID = 3; }
 
-message AppAdminRevokeRequest { Actor Actor = 1; string SessionID = 2; }
+message AppAdminRevokeRequest { Actor Actor = 1; string SessionID = 2; int64 user_id = 3; }
 
 // ============================================
 // 会员

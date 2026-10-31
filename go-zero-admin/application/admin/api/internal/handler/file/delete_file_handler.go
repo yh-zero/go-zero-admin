@@ -21,11 +21,11 @@ func DeleteFileHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := file.NewDeleteFileLogic(r.Context(), svcCtx)
-		err := l.DeleteFile(&req)
+		resp, err := l.DeleteFile(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

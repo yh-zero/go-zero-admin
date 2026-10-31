@@ -3,6 +3,7 @@ package authservicelogic
 import (
 	"context"
 	"go-zero-admin/pkg/jwtx"
+	"go-zero-admin/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/core/logx"
 
@@ -21,12 +22,20 @@ func NewLogoutLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LogoutLogi
 }
 
 func (l *LogoutLogic) Logout(in *adminpb.LogoutRequest) (*adminpb.NoDataResponse, error) {
-	// 解析 token 拿 jti 加黑名单
 	claims, err := jwtx.ParseAccessToken(l.svcCtx.Config.JwtAuth.AccessSecret, in.AccessToken)
 	if err != nil {
-		return &adminpb.NoDataResponse{}, nil
-	} // token 无效也允许登出
-	// 简版：直接返回（完整实现需 Redis 黑名单）
-	_ = claims
+		return nil, xerr.NewErrCode(xerr.TOKEN_EXPIRE_ERROR)
+	}
+	if _, err := l.svcCtx.Sessions.Validate(l.ctx, claims.SessionId, claims.UserID, claims.ID); err != nil {
+		return nil, sessionError(err)
+	}
+	if in.AllDevices {
+		err = l.svcCtx.Sessions.RevokeAll(l.ctx, claims.UserID)
+	} else {
+		err = l.svcCtx.Sessions.Revoke(l.ctx, claims.UserID, claims.SessionId)
+	}
+	if err != nil {
+		return nil, sessionError(err)
+	}
 	return &adminpb.NoDataResponse{}, nil
 }

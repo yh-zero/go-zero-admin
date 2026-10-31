@@ -1,0 +1,86 @@
+syntax = "v1"
+
+type (
+ AppUserInfo {
+  Id int64 `json:"id"`
+  Account string `json:"account"`
+  IdentityKind string `json:"identity_kind"`
+  Nickname string `json:"nickname"`
+  AvatarFileId int64 `json:"avatar_file_id"`
+  AvatarUrl string `json:"avatar_url"`
+  Status string `json:"status"`
+  ReviewReason string `json:"review_reason"`
+  EmailVerified bool `json:"email_verified"`
+  PhoneVerified bool `json:"phone_verified"`
+  LastLoginAt int64 `json:"last_login_at"`
+  CreatedAt int64 `json:"created_at"`
+ }
+ AppRegisterReq {
+  Account string `json:"account"`
+  Password string `json:"password"`
+  Nickname string `json:"nickname,optional"`
+  EmailCode string `json:"email_code,optional"`
+ }
+ AppLoginReq {
+  Account string `json:"account"`
+  Password string `json:"password"`
+ }
+ AppTokenResp {
+  AccessToken string `json:"access_token"`
+  ExpiresAt int64 `json:"expires_at"`
+  RefreshToken string `json:"refresh_token"`
+  RefreshExpiresAt int64 `json:"refresh_expires_at"`
+  SessionId string `json:"session_id"`
+  User AppUserInfo `json:"user"`
+ }
+ AppRefreshReq { RefreshToken string `json:"refresh_token"` }
+ AppLogoutReq { AllDevices bool `json:"all_devices,optional"` }
+ AppProfileResp { User AppUserInfo `json:"user"` }
+ AppUpdateProfileReq { Nickname *string `json:"nickname,optional"` }
+ AppAuthOptionsResp {
+  EmailVerificationRequired bool `json:"email_verification_required"`
+  EmailCodeEnabled bool `json:"email_code_enabled"`
+  PhoneEnabled bool `json:"phone_enabled"`
+ }
+ AppSendEmailCodeReq { Account string `json:"account"` }
+ MembershipGrantInfo {
+  Id int64 `json:"id"`
+  UserId int64 `json:"user_id"`
+  PlanCode string `json:"plan_code"`
+  Benefits string `json:"benefits"`
+  RequestId string `json:"request_id"`
+  GrantedBy int64 `json:"granted_by"`
+  GrantedByAdmin bool `json:"granted_by_admin"`
+  StartsAt int64 `json:"starts_at"`
+  ExpiresAt int64 `json:"expires_at"`
+  Revoked bool `json:"revoked"`
+  RevokedAt int64 `json:"revoked_at"`
+  CreatedAt int64 `json:"created_at"`
+ }
+ AppMyMembershipResp { List []MembershipGrantInfo `json:"list"` }
+)
+@server (
+ prefix: v1/app
+ group: appauth
+ timeout: 20s
+)
+service admin {
+ @handler appRegister
+ post /auth/register (AppRegisterReq) returns (EmptyResp)
+ @handler appLogin
+ post /auth/login (AppLoginReq) returns (AppTokenResp)
+ @handler appRefresh
+ post /auth/refresh (AppRefreshReq) returns (AppTokenResp)
+ @handler appLogout
+ post /auth/logout (AppLogoutReq) returns (EmptyResp)
+ @handler getAuthOptions
+ get /auth/options returns (AppAuthOptionsResp)
+ @handler sendEmailCode
+ post /auth/email-code (AppSendEmailCodeReq) returns (EmptyResp)
+ @handler getMyProfile
+ get /profile returns (AppProfileResp)
+ @handler updateMyProfile
+ put /profile (AppUpdateProfileReq) returns (AppProfileResp)
+ @handler getMyMembership
+ get /membership returns (AppMyMembershipResp)
+}

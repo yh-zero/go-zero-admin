@@ -21,11 +21,11 @@ func CreateDictHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := dict.NewCreateDictLogic(r.Context(), svcCtx)
-		err := l.CreateDict(&req)
+		resp, err := l.CreateDict(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

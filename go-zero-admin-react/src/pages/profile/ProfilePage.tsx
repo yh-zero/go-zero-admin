@@ -8,6 +8,7 @@ import { QueryState } from '../../components/QueryState';
 import { formatGender } from '../../utils/formOptions';
 import { ProfileEditor } from './ProfileEditor';
 import { ChangePasswordDialog } from './ChangePasswordDialog';
+import { DeviceSessions } from './DeviceSessions';
 import './profile.css';
 export default function ProfilePage() {
   const [passwordOpen, setPasswordOpen] = useState(false);
@@ -32,6 +33,7 @@ export default function ProfilePage() {
         <ProfileEditor key={user.id} profile={user} />
       </Card>
     </div>}
+    <DeviceSessions />
     {passwordOpen && <ChangePasswordDialog onClose={() => setPasswordOpen(false)} />}
   </div>;
 }

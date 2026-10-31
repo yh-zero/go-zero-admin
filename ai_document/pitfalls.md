@@ -14,7 +14,7 @@
 
 6. **`QueryRowsCtx` 直扫 pb 类型**（事故 ×7）：pb 无 `db` tag，运行时 `not matching destination to scan`。对策：本地 row struct 过渡。
 7. **DATETIME 直扫 int64**：dept/role 报"数据库错误"根因。对策：SQL 层 `UNIX_TIMESTAMP()`。
-8. **goctl model 缓存幽灵数据**：直接改库后 `FindOneByAccount` 命中旧缓存。对策：改库后 `FLUSHALL`（dev-env.md §3.2）。
+8. **goctl model 缓存幽灵数据**：直接改库后 `FindOneByAccount` 命中旧缓存。对策：按生成 model 的键规则失效本次记录的 ID/唯一索引缓存；禁止用全局清空代替精确清理（dev-env.md §3.2）。
 
 ## 环境/工具链
 

@@ -16,15 +16,31 @@ import "sys/dict.api"
 import "sys/api.api"
 import "sys/audit.api"
 import "sys/profile.api"
+import "sys/tenant.api"
+import "app/app.api"
+import "sys/app.api"
+import "sys/ai.api"
 
 type PingReq {}
+
+type EmptyResp {}
+
+type ReadyResp {
+	Ready bool `json:"ready"`
+}
 
 type PingResp {
 	Msg string `json:"msg"`
 }
 
+@server (
+	group: health
+)
 service admin {
 	@handler ping
 	get /ping (PingReq) returns (PingResp)
+
+	@handler ready
+	get /ready returns (ReadyResp)
 }
 

@@ -21,11 +21,11 @@ func UpdateDeptHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := dept.NewUpdateDeptLogic(r.Context(), svcCtx)
-		err := l.UpdateDept(&req)
+		resp, err := l.UpdateDept(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

@@ -22,8 +22,7 @@ func NewGetMyMenusLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMyM
 }
 
 func (l *GetMyMenusLogic) GetMyMenus(req *types.GetMyMenusReq) (resp *types.GetMyMenusResp, err error) {
-	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
-	actor := &adminpb.Actor{UserId: userID}
+	actor := middleware.ActorFromContext(l.ctx)
 	rpcResp, err := l.svcCtx.MenuRpc.GetMyMenus(l.ctx, &adminpb.GetMyMenusRequest{Actor: actor})
 	if err != nil {
 		return nil, err

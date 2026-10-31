@@ -37,14 +37,14 @@ message GetFileListRequest {
 }
 message GetFileListResponse { repeated FileInfo List = 1; PageResponse Page = 2; }
 
-message GetFileURLRequest { Actor Actor = 1; int64 FileID = 2; int64 TTLSeconds = 3; }  // private 文件签名 URL
+message GetFileURLRequest { Actor Actor = 1; int64 FileID = 2; int64 TTLSeconds = 3; bool public_only = 4; }  // private 文件签名 URL
 message GetFileURLResponse { string URL = 1; int64 ExpiresAt = 2; }
 
 message DeleteFileRequest { Actor Actor = 1; int64 FileID = 2; }
 
 // 引用管理（头像等共享资源的引用计数）
 message AddFileReferenceRequest { Actor Actor = 1; int64 FileID = 2; string RefType = 3; int64 RefID = 4; }
-message RemoveFileReferenceRequest { Actor Actor = 1; int64 FileID = 2; string RefType = 3; int64 RefID = 4; }
+message RemoveFileReferenceRequest { Actor Actor = 1; int64 FileID = 2; string RefType = 3; int64 RefID = 4; optional int64 keep_file_id = 5; }
 
 // ============================================
 // Services

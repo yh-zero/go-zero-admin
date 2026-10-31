@@ -2,14 +2,11 @@ package tenantservicelogic
 
 import (
 	"context"
-	"os/exec"
-
 	"github.com/zeromicro/go-zero/core/logx"
-
 	"go-zero-admin/application/tenant/rpc/internal/svc"
 	"go-zero-admin/application/tenant/rpc/tenantpb"
-
 	"go-zero-admin/pkg/xerr"
+	"time"
 )
 
 type StopTenantLogic struct {
@@ -18,20 +15,25 @@ type StopTenantLogic struct {
 	logx.Logger
 }
 
-func NewStopTenantLogic(ctx context.Context, svcCtx *svc.ServiceContext) *StopTenantLogic {
-	return &StopTenantLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
+func NewStopTenantLogic(ctx context.Context, s *svc.ServiceContext) *StopTenantLogic {
+	return &StopTenantLogic{ctx: ctx, svcCtx: s, Logger: logx.WithContext(ctx)}
 }
-
 func (l *StopTenantLogic) StopTenant(in *tenantpb.StopTenantRequest) (*tenantpb.NoDataResponse, error) {
-	tenant, err := l.svcCtx.TenantRegistryModel.FindOne(l.ctx, uint64(in.TenantID))
+	tenant, release, err := managedTenant(l.ctx, l.svcCtx, in.Actor, in.TenantID)
 	if err != nil {
-		return nil, xerr.NewErrCodeMsg(404, "租户不存在")
+		return nil, err
 	}
-	cmd := exec.Command("docker", "compose", "-p", tenant.ComposeProject, "stop")
-	if out, err := cmd.CombinedOutput(); err != nil {
-		l.Errorf("stop tenant %s: %v %s", tenant.Slug, err, out)
-		return nil, xerr.NewErrCodeMsg(500, "停用失败")
+	defer release()
+	ctx, cancel := context.WithTimeout(l.ctx, 90*time.Second)
+	defer cancel()
+	if err = routeTenant(ctx, l.svcCtx, tenant, false); err != nil {
+		return nil, tenantFailure(l.svcCtx, tenant, "停用租户路由失败")
 	}
-	_, _ = l.svcCtx.DB.ExecCtx(l.ctx, "UPDATE tenant_registry SET status='stopped', updated_at=NOW() WHERE id=?", in.TenantID)
+	if _, err = compose(ctx, l.svcCtx, tenant, nil, "stop", "--timeout", "10"); err != nil {
+		return nil, tenantFailure(l.svcCtx, tenant, "停止租户服务失败")
+	}
+	if err = l.svcCtx.TenantRegistryModel.SetState(ctx, tenant, "stopped", "", tenant.AdminAccountReady == 1); err != nil {
+		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	}
 	return &tenantpb.NoDataResponse{}, nil
 }

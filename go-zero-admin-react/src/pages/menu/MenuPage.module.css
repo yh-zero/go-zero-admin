@@ -1,0 +1,45 @@
+.resourceName { display: inline-flex; max-width: calc(100% - 30px); vertical-align: middle; gap: 10px !important; }
+.resourceTitle { color: #263d5e; font-size: 13px !important; font-weight: 550; padding-inline: 0 !important; white-space: normal; text-align: left; }
+.menuTable :global(.ant-table-thead > tr > th) { padding: 14px; color: #5f728e; font-size: 12px; background: #f6f8fc; border-bottom-color: #edf1f7; }
+.menuTable :global(.ant-table-tbody > tr > td) { padding: 14px; border-bottom-color: #edf1f7; }
+.directoryRow > td { background: #fafbff; }
+.directoryRow .resourceTitle { color: #273b60; font-weight: 650; }
+.routeChip { display: inline-block; max-width: 100%; padding: 3px 8px; overflow: hidden; border: 1px solid #edf0f5; border-radius: 6px; color: #5b6f8c; background: #f8fafd; font: 11px/1.7 "Cascadia Code", Consolas, monospace; text-overflow: ellipsis; vertical-align: middle; }
+.muted, .orderNumber { color: #64748b; font-size: 12px; }
+.orderNumber { font-variant-numeric: tabular-nums; }
+.visibilityTag { margin-inline-end: 0; padding-inline: 7px; border-radius: 5px; color: #5e718d; background: #f2f5fa; }
+.menuTable :global(.status-tag) { margin-inline-end: 0; padding-inline: 7px; border-radius: 5px; }
+.rowActions { gap: 4px !important; }
+.rowActions :global(.ant-btn) { height: 30px; padding: 4px 6px; border-radius: 6px; font-size: 12px; gap: 5px; }
+.editAction { color: #5b6f8c; }
+.permissionAction { color: #4569db; background: #f2f5ff; }
+.permissionCount { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding-inline: 4px; border-radius: 5px; color: #3f5cc2; background: #e6edff; font-size: 10px; font-variant-numeric: tabular-nums; }
+.deleteAction { color: #b64c5e; }
+.rowActions .editAction:hover { color: #4569db; background: #eef3ff; }
+.rowActions .permissionAction:hover { color: #3158d2; background: #e8efff; }
+.rowActions .deleteAction:hover { color: #dc4c5b; background: #fff0f1; }
+.rowActions :global(.ant-btn:disabled) { color: #b8c1ce; background: transparent; }
+.structureHeading { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.structureHeadingIcon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; color: #6176ca; background: #f0f3ff; font-size: 14px; }
+.structureCount { color: #63748d; font-size: 11px; font-weight: 400; }
+.menuCard, .filterCard { border-color: #e9edf5; box-shadow: 0 3px 14px #182f6203; }
+.selectedRow > td { background: #edf4ff !important; }
+.tableHint { padding: 16px 0; color: var(--app-muted); font-size: 12px; }
+.permissionHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 22px; }
+.permissionContext { display: grid; gap: 7px; min-width: 0; }
+.permissionCaption { color: var(--app-muted); font-size: 12px; }
+.permissionTable :global(.ant-table-cell) { overflow-wrap: anywhere; }
+.permissionTable :global(.ant-btn-link) { padding-inline: 3px; }
+.permissionName { color: var(--app-text); font-weight: 500; }
+.permissionCode { display: block; margin-top: 5px; color: var(--app-muted); font-size: 12px; font-family: "Cascadia Code", Consolas, monospace; }
+.permissionFooter { display: flex; justify-content: flex-end; }
+.permissionsDrawer { top: 72px !important; }
+@media (min-width: 1500px) {
+  .withPermissions { padding-right: 536px; }
+}
+@media (max-width: 767px) {
+  .permissionsDrawer { top: 62px !important; }
+}
+@media (max-width: 575px) {
+  .permissionHeader { flex-wrap: wrap; }
+}

@@ -4,11 +4,8 @@ import (
 	"context"
 
 	"github.com/zeromicro/go-zero/core/logx"
-
 	"go-zero-admin/application/ai/rpc/aipb"
 	"go-zero-admin/application/ai/rpc/internal/svc"
-
-	"go-zero-admin/pkg/xerr"
 )
 
 type DeleteConversationLogic struct {
@@ -20,12 +17,12 @@ type DeleteConversationLogic struct {
 func NewDeleteConversationLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteConversationLogic {
 	return &DeleteConversationLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
-
 func (l *DeleteConversationLogic) DeleteConversation(in *aipb.DeleteConversationRequest) (*aipb.NoDataResponse, error) {
-	_, err := l.svcCtx.DB.ExecCtx(l.ctx,
-		"UPDATE ai_conversation SET deleted_at=NOW() WHERE id=? AND user_id=?", in.ConversationId, in.Actor.UserId)
-	if err != nil {
-		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	if err := requireAiActor(in.Actor); err != nil {
+		return nil, err
+	}
+	if err := l.svcCtx.AiConversationModel.DeleteOwned(l.ctx, in.ConversationId, in.Actor.UserId); err != nil {
+		return nil, aiModelError(err)
 	}
 	return &aipb.NoDataResponse{}, nil
 }

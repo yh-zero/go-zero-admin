@@ -16,12 +16,12 @@ React 19 + TypeScript（严格）+ Vite 8 + antd 6 + @ant-design/pro-components 
 2. 组件文件 `PascalCase`（`UserList.tsx`）；hooks 文件 `useXxx.ts`；工具函数 `camelCase.ts`
 3. props 必须显式类型；事件回调命名 `onXxx`；列表渲染 key 用稳定 id，**禁止 index 作 key**
 4. 副作用进 `useEffect` 并保持纯净；自定义 hook 封装可复用逻辑
-5. 组件行数超标（标准同根规范 §6）或嵌套超 3 层 → 拆分
+5. 组件超过约 100 行或嵌套超 3 层时，审查职责与可读性，再决定是否拆分；不按行数或层数机械拆分。
 
 ## 3. 对接铁律（契约见 ../ai_document/api-contract.md）
 
 1. **所有请求走 `src/utils/request.ts`**，禁止组件内裸 axios/fetch
-2. **类型只从 `src/api/types.ts` 导入**，禁止自造与后端不符的类型；后端字段以 api-contract.md 为准
+2. **接口请求/响应类型统一从 `src/api/types.ts` 导入**；当前按共享契约及核对后的后端类型手工维护，没有现成的 TypeScript 类型生成入口。禁止自造与契约不符的接口类型；组件 Props、UI 状态类型可在所属组件或模块定义。
 3. 错误处理：拦截器已统一弹错 + 401 跳登录；组件内 catch **只做降级**（如按钮恢复），不重复 `message.error`
 4. 写操作成功后调用 `queryClient.invalidateQueries` 刷新相关列表，禁止手动 setState 同步列表
 5. 分页/过滤参数与契约 §4 一致（`page`/`page_size` → `list`/`total`）
@@ -68,7 +68,7 @@ src/
 - ❌ index 作 key、useState 镜像表单值、手动 setState 同步服务端列表
 - ❌ `dangerouslySetInnerHTML` 渲染后端内容、emoji 当图标、提交残留 console.log
 
-## 9. 提交前自检（必过）
+## 9. 代码提交前自检（必过）
 
 工作目录为 `go-zero-admin-react/`：
 
@@ -76,3 +76,7 @@ src/
 pnpm exec tsc -b      # 类型零错误
 pnpm exec vite build  # 构建成功
 ```
+
+类型检查和构建不代替实际浏览器交互验收；按根规范 §7 对受影响行为验证。认证改动关注多标签同步、迟到响应和退出；UI 改动覆盖相关的拖拽、双击、折叠等状态。
+
+纯文档或规则修改按根规范检查内容一致性、路径引用和差异，不要求运行上述构建。

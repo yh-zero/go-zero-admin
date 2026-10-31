@@ -23,6 +23,11 @@ func NewDeptServiceServer(svcCtx *svc.ServiceContext) *DeptServiceServer {
 	}
 }
 
+func (s *DeptServiceServer) GetMyDepts(ctx context.Context, in *adminpb.GetMyDeptsRequest) (*adminpb.GetMyDeptsResponse, error) {
+	l := deptservicelogic.NewGetMyDeptsLogic(ctx, s.svcCtx)
+	return l.GetMyDepts(in)
+}
+
 func (s *DeptServiceServer) GetDeptTree(ctx context.Context, in *adminpb.GetDeptTreeRequest) (*adminpb.GetDeptTreeResponse, error) {
 	l := deptservicelogic.NewGetDeptTreeLogic(ctx, s.svcCtx)
 	return l.GetDeptTree(in)

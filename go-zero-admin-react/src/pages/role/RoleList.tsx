@@ -30,7 +30,7 @@ export default function RoleList() {
     onSuccess: async () => { await invalidateRoleData(client); message.success('角色已删除'); },
   });
   return <div className="page-stack">
-    <PageHeader title="角色管理" description="配置角色资料、数据范围和菜单授权" extra={<Auth code="sys:role:add">
+    <PageHeader title="角色管理" description="配置角色资料、数据范围和功能授权" extra={<Auth code="sys:role:add">
       <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增角色</Button>
     </Auth>} />
     <Card className="filter-card"><Form name="role-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setParams({ ...values, page: 1, page_size: params.page_size })}>
@@ -55,7 +55,7 @@ export default function RoleList() {
           { title: '操作', key: 'actions', width: 280, render: (_, row) => <Space wrap>
             <Button type="link" onClick={() => setDetailId(row.id)}>详情</Button>
             <Auth code="sys:role:edit"><Button type="link" onClick={() => setEditor({ id: row.id })}>编辑</Button></Auth>
-            <Auth code="sys:role:menus"><Button type="link" onClick={() => setMenuRoleId(row.id)}>分配菜单</Button></Auth>
+            <Auth code="sys:role:menus"><Button type="link" onClick={() => setMenuRoleId(row.id)}>功能授权</Button></Auth>
             <Auth code="sys:role:delete"><Popconfirm title={`确认删除角色 ${row.name}？`} description="关联的菜单授权和权限规则也会移除。"
               onConfirm={() => remove.mutateAsync(row.id).catch(() => undefined)} okButtonProps={{ loading: remove.isPending }}>
               <Button type="link" danger disabled={remove.isPending}>删除</Button>

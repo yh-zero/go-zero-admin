@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -26,6 +27,7 @@ func NewGetUserListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUs
 
 func (l *GetUserListLogic) GetUserList(req *types.GetUserListReq) (resp *types.GetUserListResp, err error) {
 	rpcResp, err := l.svcCtx.UserRpc.GetUserList(l.ctx, &adminpb.GetUserListRequest{
+		Actor:    middleware.ActorFromContext(l.ctx),
 		Page:     &adminpb.PageRequest{Page: req.Page, PageSize: req.PageSize},
 		Username: req.Username,
 		Nickname: req.Nickname,
@@ -41,9 +43,9 @@ func (l *GetUserListLogic) GetUserList(req *types.GetUserListReq) (resp *types.G
 			Id: u.Id, Username: u.Username, Nickname: u.Nickname,
 			RealName: u.RealName, Email: u.Email, Phone: u.Phone,
 			DeptId: u.DeptId, DeptName: u.DeptName,
-			AvatarFileId: u.AvatarFileId, Gender: u.Gender, Status: u.Status,
+			AvatarFileId: u.AvatarFileId, AvatarUrl: u.AvatarUrl, Gender: u.Gender, Status: u.Status,
 			Remark: u.Remark, LastLoginAt: u.LastLoginAt, LastLoginIp: u.LastLoginIP,
-			CreatedAt: u.CreatedAt, UpdatedAt: u.UpdatedAt,
+			CreatedAt: u.CreatedAt, UpdatedAt: u.UpdatedAt, RoleIds: append([]int64{}, u.RoleIds...),
 		})
 	}
 	return &types.GetUserListResp{List: list, Total: rpcResp.Page.Total}, nil

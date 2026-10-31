@@ -21,12 +21,12 @@ func NewCreateDictLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 	return &CreateDictLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *CreateDictLogic) CreateDict(req *types.CreateDictReq) error {
+func (l *CreateDictLogic) CreateDict(req *types.CreateDictReq) (*types.EmptyResp, error) {
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	actor := &adminpb.Actor{UserId: userID}
 	_, err := l.svcCtx.DictRpc.CreateDict(l.ctx, &adminpb.CreateDictRequest{
 		Actor: actor, Name: req.Name, Code: req.Code, Items: mapDictItems(req.Items),
 		Description: req.Description, Status: req.Status,
 	})
-	return err
+	return &types.EmptyResp{}, err
 }

@@ -20,10 +20,10 @@ func NewCreateRoleLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 	return &CreateRoleLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *CreateRoleLogic) CreateRole(req *types.CreateRoleReq) error {
+func (l *CreateRoleLogic) CreateRole(req *types.CreateRoleReq) (*types.EmptyResp, error) {
 	_, err := l.svcCtx.RoleRpc.CreateRole(l.ctx, &adminpb.CreateRoleRequest{
 		Name: req.Name, Code: req.Code, Description: req.Description,
 		DataScope: req.DataScope, Sort: req.Sort, Status: req.Status, MenuIds: req.MenuIds,
 	})
-	return err
+	return &types.EmptyResp{}, err
 }

@@ -21,7 +21,7 @@ func NewUpdateMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 	return &UpdateMenuLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *UpdateMenuLogic) UpdateMenu(req *types.UpdateMenuReq) error {
+func (l *UpdateMenuLogic) UpdateMenu(req *types.UpdateMenuReq) (*types.EmptyResp, error) {
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	actor := &adminpb.Actor{UserId: userID}
 	_, err := l.svcCtx.MenuRpc.UpdateMenu(l.ctx, &adminpb.UpdateMenuRequest{
@@ -29,5 +29,5 @@ func (l *UpdateMenuLogic) UpdateMenu(req *types.UpdateMenuReq) error {
 		Type: req.Type, Path: req.Path, Component: req.Component, PermCode: req.PermCode,
 		Icon: req.Icon, Sort: req.Sort, Visible: req.Visible, Status: req.Status,
 	})
-	return err
+	return &types.EmptyResp{}, err
 }

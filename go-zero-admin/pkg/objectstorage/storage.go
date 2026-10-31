@@ -162,7 +162,15 @@ func (c *Client) URL(ctx context.Context, key, visibility string) (string, int64
 	if err != nil {
 		return "", 0, storageError(ctx, "sign URL", err)
 	}
-	return request.URL, c.config.PresignTTLSeconds, nil
+	signedURL, err := url.Parse(request.URL)
+	if err != nil {
+		return "", 0, fmt.Errorf("object storage signed URL invalid")
+	}
+	signedAt, err := time.Parse("20060102T150405Z", signedURL.Query().Get("X-Amz-Date"))
+	if err != nil {
+		return "", 0, fmt.Errorf("object storage signing time invalid")
+	}
+	return request.URL, signedAt.Add(time.Duration(c.config.PresignTTLSeconds) * time.Second).Unix(), nil
 }
 
 // S3 error bodies can reflect request credentials. Preserve cancellation while

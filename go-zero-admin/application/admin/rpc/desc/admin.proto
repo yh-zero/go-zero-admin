@@ -42,6 +42,7 @@ message LoginResponse {
   int64 expires_at = 2;
   string refresh_token = 3;
   int64 refresh_expires_at = 4;
+  string session_id = 5;
 }
 
 message RefreshTokenRequest {
@@ -54,6 +55,7 @@ message RefreshTokenResponse {
   int64 expires_at = 2;
   string refresh_token = 3;
   int64 refresh_expires_at = 4;
+  string session_id = 5;
 }
 
 message LogoutRequest { string AccessToken = 1; bool AllDevices = 2; }
@@ -73,6 +75,7 @@ message DeviceSessionInfo {
 message ListDeviceSessionsRequest {
   Actor actor = 1;
   PageRequest page = 2;
+  string current_session_id = 3;
 }
 message ListDeviceSessionsResponse {
   repeated DeviceSessionInfo list = 1;
@@ -104,6 +107,8 @@ message UserInfo {
   string last_login_i_p = 15;
   int64 created_at = 16;
   int64 updated_at = 17;
+  repeated int64 role_ids = 18;
+  bool is_super_admin = 19;
 }
 
 message GetUserListRequest {
@@ -144,16 +149,17 @@ message CreateUserRequest {
 message UpdateUserRequest {
   Actor actor = 1;
   int64 user_id = 2;
-  string nickname = 3;
-  string real_name = 4;
-  string email = 5;
-  string phone = 6;
-  int64 dept_id = 7;
-  int64 avatar_file_id = 8;
-  int32 gender = 9;
-  int32 status = 10;
-  string remark = 11;
+  optional string nickname = 3;
+  optional string real_name = 4;
+  optional string email = 5;
+  optional string phone = 6;
+  optional int64 dept_id = 7;
+  optional int64 avatar_file_id = 8;
+  optional int32 gender = 9;
+  optional int32 status = 10;
+  optional string remark = 11;
   repeated int64 role_ids = 12;
+  bool update_roles = 13;
 }
 
 message DeleteUserRequest {
@@ -178,12 +184,12 @@ message GetProfileRequest {
 message GetProfileResponse { UserInfo User = 1; }
 message UpdateProfileRequest {
   Actor actor = 1;
-  string nickname = 2;
-  string real_name = 3;
-  string email = 4;
-  string phone = 5;
-  int32 gender = 6;
-  int64 avatar_file_id = 7;
+  optional string nickname = 2;
+  optional string real_name = 3;
+  optional string email = 4;
+  optional string phone = 5;
+  optional int32 gender = 6;
+  optional int64 avatar_file_id = 7;
 }
 
 // ============================================
@@ -385,14 +391,17 @@ message CreateDeptRequest {
 message UpdateDeptRequest {
   Actor actor = 1;
   int64 dept_id = 2;
-  int64 parent_id = 3;
-  string name = 4;
-  string leader = 5;
-  string phone = 6;
-  string email = 7;
-  int32 sort = 8;
-  int32 status = 9;
+  optional int64 parent_id = 3;
+  optional string name = 4;
+  optional string leader = 5;
+  optional string phone = 6;
+  optional string email = 7;
+  optional int32 sort = 8;
+  optional int32 status = 9;
 }
+
+message GetMyDeptsRequest { Actor actor = 1; }
+message GetMyDeptsResponse { repeated DeptInfo list = 1; }
 
 message DeleteDeptRequest {
   Actor actor = 1;
@@ -477,6 +486,13 @@ message DeleteApiRequest {
 }
 message SyncApiRequest {
   Actor actor = 1;
+  repeated ApiRoute routes = 2;
+}
+message ApiRoute {
+  string method = 1;
+  string path = 2;
+  string group = 3;
+  string title = 4;
 }
 message SyncApiResponse {
   int64 added = 1;
@@ -564,6 +580,7 @@ service MenuService {
 }
 
 service DeptService {
+  rpc GetMyDepts(GetMyDeptsRequest) returns (GetMyDeptsResponse);
   rpc GetDeptTree(GetDeptTreeRequest) returns (GetDeptTreeResponse);
   rpc CreateDept(CreateDeptRequest) returns (NoDataResponse);
   rpc UpdateDept(UpdateDeptRequest) returns (NoDataResponse);
@@ -584,7 +601,25 @@ service ApiService {
   rpc SyncApi(SyncApiRequest) returns (SyncApiResponse);
 }
 
+message CreateAuditLogRequest {
+  Actor actor = 1;
+  string module = 2;
+  string action = 3;
+  string method = 4;
+  string path = 5;
+  int32 result = 6;
+  string error_msg = 7;
+  int64 duration_ms = 8;
+}
+
+message CheckHealthRequest {}
+message CheckHealthResponse { bool ready = 1; }
+service HealthService {
+  rpc CheckHealth(CheckHealthRequest) returns (CheckHealthResponse);
+}
+
 service AuditService {
+  rpc CreateAuditLog(CreateAuditLogRequest) returns (NoDataResponse);
   rpc GetAuditLogList(GetAuditLogListRequest) returns (GetAuditLogListResponse);
 }
 

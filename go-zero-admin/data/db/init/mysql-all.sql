@@ -117,6 +117,9 @@ CREATE TABLE `ai_task` (
   `approved_by` bigint unsigned DEFAULT NULL COMMENT '审批人ID',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `completed_at` datetime DEFAULT NULL COMMENT '完成时间',
+  `created_by` bigint unsigned NOT NULL DEFAULT '0' COMMENT '任务所属用户，0表示历史归属待确认',
+  `next_step` int unsigned NOT NULL DEFAULT '0' COMMENT '下一待执行步骤索引',
+  `workflow_snapshot` json DEFAULT NULL COMMENT '执行时工作流定义快照',
   PRIMARY KEY (`id`),
   KEY `idx_workflow` (`workflow_id`),
   KEY `idx_status` (`status`)
@@ -129,7 +132,7 @@ CREATE TABLE `ai_task` (
 
 LOCK TABLES `ai_task` WRITE;
 /*!40000 ALTER TABLE `ai_task` DISABLE KEYS */;
-INSERT INTO `ai_task` VALUES (9010601,9010502,NULL,'pending','{\"fixture\":\"sample\",\"case\":\"pending\"}','','',NULL,'2026-10-31 09:10:01',NULL),(9010602,9010502,NULL,'running','{\"fixture\":\"sample\",\"case\":\"running\"}','','',NULL,'2026-10-31 09:10:02',NULL),(9010603,9010503,NULL,'pending_approval','{\"fixture\":\"sample\",\"case\":\"approve\"}','模拟审批通过','',NULL,'2026-10-31 09:10:03',NULL),(9010604,9010502,9010301,'succeeded','{\"fixture\":\"sample\",\"case\":\"succeeded\"}','模拟执行成功','',1,'2026-10-31 09:10:04','2026-10-31 09:11:04'),(9010605,9010502,9010302,'failed','{\"fixture\":\"sample\",\"case\":\"failed\"}','','模拟工具失败，不代表真实调用',NULL,'2026-10-31 09:10:05','2026-10-31 09:11:05'),(9010606,9010503,NULL,'rejected','{\"fixture\":\"sample\",\"case\":\"rejected\"}','模拟审批拒绝','',1,'2026-10-31 09:10:06','2026-10-31 09:11:06'),(9010607,9010503,9010303,'pending_approval','{\"fixture\":\"sample\",\"case\":\"reject\"}','模拟第二条审批拒绝','',NULL,'2026-10-31 09:10:07',NULL);
+INSERT INTO `ai_task` (`id`,`workflow_id`,`conversation_id`,`status`,`input`,`result`,`error`,`approved_by`,`created_at`,`completed_at`) VALUES (9010601,9010502,NULL,'pending','{\"fixture\":\"sample\",\"case\":\"pending\"}','','',NULL,'2026-10-31 09:10:01',NULL),(9010602,9010502,NULL,'running','{\"fixture\":\"sample\",\"case\":\"running\"}','','',NULL,'2026-10-31 09:10:02',NULL),(9010603,9010503,NULL,'pending_approval','{\"fixture\":\"sample\",\"case\":\"approve\"}','模拟审批通过','',NULL,'2026-10-31 09:10:03',NULL),(9010604,9010502,9010301,'succeeded','{\"fixture\":\"sample\",\"case\":\"succeeded\"}','模拟执行成功','',1,'2026-10-31 09:10:04','2026-10-31 09:11:04'),(9010605,9010502,9010302,'failed','{\"fixture\":\"sample\",\"case\":\"failed\"}','','模拟工具失败，不代表真实调用',NULL,'2026-10-31 09:10:05','2026-10-31 09:11:05'),(9010606,9010503,NULL,'rejected','{\"fixture\":\"sample\",\"case\":\"rejected\"}','模拟审批拒绝','',1,'2026-10-31 09:10:06','2026-10-31 09:11:06'),(9010607,9010503,9010303,'pending_approval','{\"fixture\":\"sample\",\"case\":\"reject\"}','模拟第二条审批拒绝','',NULL,'2026-10-31 09:10:07',NULL);
 /*!40000 ALTER TABLE `ai_task` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -477,6 +480,24 @@ INSERT INTO `sys_file` VALUES (9001901,'gozero-public','demo/frontend/demo-readm
 UNLOCK TABLES;
 
 --
+-- Table structure for table `sys_file_reference`
+--
+
+-- 文件引用明细；不回填历史 ref_count，无法追溯的历史引用继续阻止删除。
+DROP TABLE IF EXISTS `sys_file_reference`;
+CREATE TABLE `sys_file_reference` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `file_id` bigint unsigned NOT NULL COMMENT '文件ID',
+  `ref_type` varchar(32) NOT NULL COMMENT '业务引用类型：admin_avatar/app_avatar',
+  `ref_id` bigint unsigned NOT NULL COMMENT '业务对象ID',
+  `created_by` bigint unsigned NOT NULL COMMENT '建立引用的操作者ID',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_file_ref` (`file_id`,`ref_type`,`ref_id`),
+  KEY `idx_ref_subject` (`ref_type`,`ref_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文件业务引用明细';
+
+--
 -- Table structure for table `sys_menu`
 --
 
@@ -697,6 +718,7 @@ CREATE TABLE `tenant_registry` (
   `mysql_root_password` varchar(128) NOT NULL COMMENT '该租户 MySQL root 密码（随机生成）',
   `jwt_access_secret` varchar(128) NOT NULL COMMENT '该租户后台 JWT 密钥（随机生成）',
   `app_jwt_access_secret` varchar(128) NOT NULL COMMENT '该租户 App JWT 密钥（随机生成）',
+  `admin_account_ready` tinyint NOT NULL DEFAULT '0' COMMENT '初始管理员是否就绪',
   `error_msg` varchar(512) NOT NULL DEFAULT '' COMMENT '最近一次错误信息',
   `created_by` bigint unsigned DEFAULT NULL COMMENT '创建操作员ID',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -715,7 +737,7 @@ CREATE TABLE `tenant_registry` (
 
 LOCK TABLES `tenant_registry` WRITE;
 /*!40000 ALTER TABLE `tenant_registry` DISABLE KEYS */;
-INSERT INTO `tenant_registry` VALUES (9010701,'stopped','stopped.example.test','gozero-tenant-stopped','stopped','EE42CBCACB3690C26A1994CFBE2883AE710234C86F551A00D8989DFEFF03EE56','E1C90B3C2802DC1881D7C99E117F85E707DBDBF97E32B0CD5FE06BB84BE2AE42','2A00452BA1DF67E102CBB4F5DAFF8CA8798865C74BB40D89E357AAFBDB82D62D','纯测试展示，未部署容器；禁止启停、删除栈或重置管理员密码。',1,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010702,'error','error.example.test','gozero-tenant-error','error','697CF020CC3CE2A6DAB85CB93C601BAFA88DF3CFFEB5E1425566AF841D061D15','DE11ACF182BF5B8C215B282A9266EC5EF598C487882704C0C44243322CFB1928','403E53A57CE3F9A2EDE6201A3B05A090E39858DD11AF6D3328E48C153A12DFD4','模拟部署失败；纯测试展示，未部署容器，禁止生命周期操作。',1,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010703,'idle','idle.example.test','gozero-tenant-idle','stopped','D1292122EEA2A8BDF2F13C769FC65D1CAE0292137175274D5EF854C7A0AEFFA7','20B1965040D1E088D1127E52C125741E1055D4CA5B6B2CA0133F5D4FE5246173','34904873CBF1773084BEC2FD00F6773B0EE07A457FC4B487445887A50756FAA1','空闲展示样例，未部署容器；禁止生命周期操作。',NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL);
+INSERT INTO `tenant_registry` (`id`,`slug`,`domain`,`compose_project`,`status`,`mysql_root_password`,`jwt_access_secret`,`app_jwt_access_secret`,`error_msg`,`created_by`,`created_at`,`updated_at`,`deleted_at`) VALUES (9010701,'stopped','stopped.example.test','gozero-tenant-stopped','stopped','EE42CBCACB3690C26A1994CFBE2883AE710234C86F551A00D8989DFEFF03EE56','E1C90B3C2802DC1881D7C99E117F85E707DBDBF97E32B0CD5FE06BB84BE2AE42','2A00452BA1DF67E102CBB4F5DAFF8CA8798865C74BB40D89E357AAFBDB82D62D','纯测试展示，未部署容器；禁止启停、删除栈或重置管理员密码。',1,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010702,'error','error.example.test','gozero-tenant-error','error','697CF020CC3CE2A6DAB85CB93C601BAFA88DF3CFFEB5E1425566AF841D061D15','DE11ACF182BF5B8C215B282A9266EC5EF598C487882704C0C44243322CFB1928','403E53A57CE3F9A2EDE6201A3B05A090E39858DD11AF6D3328E48C153A12DFD4','模拟部署失败；纯测试展示，未部署容器，禁止生命周期操作。',1,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010703,'idle','idle.example.test','gozero-tenant-idle','stopped','D1292122EEA2A8BDF2F13C769FC65D1CAE0292137175274D5EF854C7A0AEFFA7','20B1965040D1E088D1127E52C125741E1055D4CA5B6B2CA0133F5D4FE5246173','34904873CBF1773084BEC2FD00F6773B0EE07A457FC4B487445887A50756FAA1','空闲展示样例，未部署容器；禁止生命周期操作。',NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL);
 /*!40000 ALTER TABLE `tenant_registry` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

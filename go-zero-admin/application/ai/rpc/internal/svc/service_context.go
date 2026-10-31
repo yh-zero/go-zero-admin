@@ -1,6 +1,11 @@
 package svc
 
 import (
+	"net/url"
+	"os"
+	"regexp"
+	"strings"
+
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 
@@ -25,13 +30,21 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	rdb := redis.MustNewRedis(c.CacheRedis[0].RedisConf)
 
-	// 密钥经环境变量注入（compose environment 或 shell），yaml 留空
+	// 仅从约定环境变量读取密钥；不从 YAML 回退，避免误将凭据提交仓库。
 	var llmClient *llm.Client
 	if c.AI.Enabled {
-		apiKey := c.AI.DeepSeekKey
-		if c.AI.Provider == "qwen" {
-			apiKey = c.AI.QwenKey
+		provider := strings.ToUpper(strings.TrimSpace(c.AI.Provider))
+		if !regexp.MustCompile(`^[A-Z][A-Z0-9_]*$`).MatchString(provider) {
+			panic("AI.Provider 配置无效")
 		}
+		endpoint, err := url.Parse(c.AI.BaseURL)
+		if err != nil || endpoint.Hostname() == "" || (endpoint.Scheme != "http" && endpoint.Scheme != "https") || endpoint.User != nil || endpoint.RawQuery != "" || endpoint.Fragment != "" || strings.TrimSpace(c.AI.Model) == "" {
+			panic("AI 模型或地址配置无效")
+		}
+		if c.AI.TimeoutSeconds < 1 || c.AI.TimeoutSeconds > 90 {
+			panic("AI.TimeoutSeconds 必须为 1..90")
+		}
+		apiKey := strings.TrimSpace(os.Getenv("API_KEY_" + provider))
 		if apiKey != "" {
 			var err error
 			llmClient, err = llm.New(llm.Config{
@@ -41,7 +54,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 				Timeout: c.AI.TimeoutSeconds,
 			})
 			if err != nil {
-				panic("init llm client failed: " + err.Error())
+				panic("AI 客户端初始化失败，请检查配置")
 			}
 		}
 	}

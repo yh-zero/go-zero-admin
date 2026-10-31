@@ -21,11 +21,11 @@ func CreateMenuHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := menu.NewCreateMenuLogic(r.Context(), svcCtx)
-		err := l.CreateMenu(&req)
+		resp, err := l.CreateMenu(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

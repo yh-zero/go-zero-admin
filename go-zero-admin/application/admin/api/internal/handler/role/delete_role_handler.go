@@ -21,11 +21,11 @@ func DeleteRoleHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := role.NewDeleteRoleLogic(r.Context(), svcCtx)
-		err := l.DeleteRole(&req)
+		resp, err := l.DeleteRole(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

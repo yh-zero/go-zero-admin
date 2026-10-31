@@ -1,62 +1,107 @@
-# 租户栈模板（tenant-rpc 以 COMPOSE_PROJECT_NAME=gozero-t-${SLUG} 拉起）
-# 约定：api 在共享网络 gozero-edge 上以别名 ${SLUG}-api 注册（避免多租户服务名冲突）；
-#       不暴露任何宿主端口；migrate 一次性执行 goose 迁移与种子数据。
+# 只复用本机已构建镜像。配置通过环境解码到容器内，避免嵌套 Docker 的宿主挂载路径歧义。
 name: gozero-t-${TENANT_SLUG}
 
-x-service-environment: &service-environment
-  MYSQL_ADDR: mysql:3306
-  MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero_admin}"
-  REDIS_ADDR: redis:6379
+x-app: &app
+  restart: on-failure
+  entrypoint: ["/bin/sh", "-ec"]
 
 services:
   api:
-    build: { context: ., dockerfile: docker/Dockerfile, target: api }
+    <<: *app
+    image: gozero-platform-api
+    environment:
+      CONFIG_B64: "${API_CONFIG_B64}"
+    command: ['umask 077; printf "%s" "$${CONFIG_B64}" | base64 -d > /tmp/service.yaml; exec /app/api -f /tmp/service.yaml']
     networks:
       default: {}
       gozero-edge:
         aliases: ["${TENANT_SLUG}-api"]
-    depends_on: [admin-rpc, app-rpc, file-rpc]
+    depends_on: [admin-rpc, file-rpc]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:7001/ready"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
 
   admin-rpc:
-    build: { context: ., dockerfile: docker/Dockerfile, target: admin-rpc }
-    environment: *service-environment
-    depends_on: [migrate]
+    <<: *app
+    image: gozero-platform-admin-rpc
+    environment:
+      CONFIG_B64: "${ADMIN_CONFIG_B64}"
+    command: ['umask 077; printf "%s" "$${CONFIG_B64}" | base64 -d > /tmp/service.yaml; exec /app/admin-rpc -f /tmp/service.yaml']
+    networks:
+      default:
+        aliases: ["${TENANT_SLUG}-admin-rpc"]
+    depends_on:
+      mysql: {condition: service_healthy}
+      redis: {condition: service_healthy}
 
   app-rpc:
-    build: { context: ., dockerfile: docker/Dockerfile, target: app-rpc }
-    environment: *service-environment
-    depends_on: [migrate]
+    <<: *app
+    image: gozero-platform-app-rpc
+    environment:
+      CONFIG_B64: "${APP_CONFIG_B64}"
+    command: ['umask 077; printf "%s" "$${CONFIG_B64}" | base64 -d > /tmp/service.yaml; exec /app/app-rpc -f /tmp/service.yaml']
+    depends_on:
+      mysql: {condition: service_healthy}
+      redis: {condition: service_healthy}
 
   file-rpc:
-    build: { context: ., dockerfile: docker/Dockerfile, target: file-rpc }
-    environment: *service-environment
-    depends_on: [migrate]
+    <<: *app
+    image: gozero-platform-file-rpc
+    environment:
+      CONFIG_B64: "${FILE_CONFIG_B64}"
+    command: ['umask 077; printf "%s" "$${CONFIG_B64}" | base64 -d > /tmp/service.yaml; exec /app/file-rpc -f /tmp/service.yaml']
+    networks:
+      default:
+        aliases: ["${TENANT_SLUG}-file-rpc"]
+      gozero-edge: {}
+    depends_on:
+      mysql: {condition: service_healthy}
+      redis: {condition: service_healthy}
 
   ai-rpc:
-    build: { context: ., dockerfile: docker/Dockerfile, target: ai-rpc }
-    environment: *service-environment
-    depends_on: [migrate]
-
-  migrate:
-    build: { context: ., dockerfile: docker/Dockerfile, target: migrate }
-    environment: *service-environment
-    depends_on: [mysql]
+    <<: *app
+    image: gozero-platform-ai-rpc
+    environment:
+      CONFIG_B64: "${AI_CONFIG_B64}"
+    command: ['umask 077; printf "%s" "$${CONFIG_B64}" | base64 -d > /tmp/service.yaml; exec /app/ai-rpc -f /tmp/service.yaml']
+    depends_on:
+      mysql: {condition: service_healthy}
+      redis: {condition: service_healthy}
 
   mysql:
     image: mysql:9.7
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
-      MYSQL_DATABASE: "${MYSQL_DATABASE:-gozero_admin}"
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: gozero_admin
       TZ: Asia/Shanghai
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", 'MYSQL_PWD="$${MYSQL_ROOT_PASSWORD}" mysqladmin ping -h 127.0.0.1 -uroot --silent']
+      interval: 3s
+      timeout: 3s
+      retries: 30
 
   redis:
     image: redis:8
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
 
 volumes:
   mysql_data:
+  redis_data:
 
 networks:
   gozero-edge:
     external: true
+    name: "${EDGE_NETWORK}"

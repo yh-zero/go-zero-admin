@@ -5,16 +5,22 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
+	ai "go-zero-admin/application/admin/api/internal/handler/ai"
 	api "go-zero-admin/application/admin/api/internal/handler/api"
+	appadmin "go-zero-admin/application/admin/api/internal/handler/appadmin"
+	appauth "go-zero-admin/application/admin/api/internal/handler/appauth"
 	audit "go-zero-admin/application/admin/api/internal/handler/audit"
 	auth "go-zero-admin/application/admin/api/internal/handler/auth"
 	dept "go-zero-admin/application/admin/api/internal/handler/dept"
 	dict "go-zero-admin/application/admin/api/internal/handler/dict"
 	file "go-zero-admin/application/admin/api/internal/handler/file"
+	health "go-zero-admin/application/admin/api/internal/handler/health"
 	menu "go-zero-admin/application/admin/api/internal/handler/menu"
 	profile "go-zero-admin/application/admin/api/internal/handler/profile"
 	role "go-zero-admin/application/admin/api/internal/handler/role"
+	tenant "go-zero-admin/application/admin/api/internal/handler/tenant"
 	user "go-zero-admin/application/admin/api/internal/handler/user"
 	"go-zero-admin/application/admin/api/internal/svc"
 
@@ -25,11 +31,88 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				Method:  http.MethodPost,
+				Path:    "/conversations",
+				Handler: ai.CreateConversationHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodGet,
-				Path:    "/ping",
-				Handler: pingHandler(serverCtx),
+				Path:    "/conversations",
+				Handler: ai.ListConversationsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/conversations/:id",
+				Handler: ai.GetConversationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/conversations/:id",
+				Handler: ai.DeleteConversationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/messages",
+				Handler: ai.SendMessageHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/tasks",
+				Handler: ai.ListAgentTasksHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/tasks/:id",
+				Handler: ai.GetAgentTaskHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/tasks/:id/approve",
+				Handler: ai.ApproveTaskHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/tasks/:id/reject",
+				Handler: ai.RejectTaskHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/tools",
+				Handler: ai.ListToolsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/workflows",
+				Handler: ai.CreateWorkflowHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/workflows",
+				Handler: ai.ListWorkflowsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/workflows/:id",
+				Handler: ai.GetWorkflowHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/workflows/:id",
+				Handler: ai.UpdateWorkflowHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/workflows/:id",
+				Handler: ai.DeleteWorkflowHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/workflows/:id/run",
+				Handler: ai.RunWorkflowHandler(serverCtx),
 			},
 		},
+		rest.WithPrefix("/v1/sys/ai"),
+		rest.WithTimeout(120000*time.Millisecond),
 	)
 
 	server.AddRoutes(
@@ -44,8 +127,106 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/list",
 				Handler: api.GetApiListHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/sync",
+				Handler: api.SyncApiHandler(serverCtx),
+			},
 		},
 		rest.WithPrefix("/v1/sys/api"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/memberships",
+				Handler: appadmin.ListMembershipsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/memberships",
+				Handler: appadmin.GrantMembershipHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/memberships/:id",
+				Handler: appadmin.RevokeMembershipHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/users",
+				Handler: appadmin.ListAppUsersHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/users/:id/avatar",
+				Handler: appadmin.SetAppUserAvatarHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/users/:id/review",
+				Handler: appadmin.ReviewAppUserHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/users/:id/sessions/:session_id",
+				Handler: appadmin.RevokeAppSessionHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v1/sys/app"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/auth/email-code",
+				Handler: appauth.SendEmailCodeHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/auth/login",
+				Handler: appauth.AppLoginHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/auth/logout",
+				Handler: appauth.AppLogoutHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/auth/options",
+				Handler: appauth.GetAuthOptionsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/auth/refresh",
+				Handler: appauth.AppRefreshHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/auth/register",
+				Handler: appauth.AppRegisterHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/membership",
+				Handler: appauth.GetMyMembershipHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/profile",
+				Handler: appauth.GetMyProfileHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/profile",
+				Handler: appauth.UpdateMyProfileHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v1/app"),
+		rest.WithTimeout(20000*time.Millisecond),
 	)
 
 	server.AddRoutes(
@@ -71,6 +252,26 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/login",
 				Handler: auth.LoginHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/logout",
+				Handler: auth.LogoutHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/refresh",
+				Handler: auth.RefreshTokenHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/sessions",
+				Handler: auth.ListDeviceSessionsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/sessions/:id",
+				Handler: auth.RevokeDeviceSessionHandler(serverCtx),
+			},
 		},
 		rest.WithPrefix("/v1/sys/auth"),
 	)
@@ -91,6 +292,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/create",
 				Handler: dept.CreateDeptHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/my",
+				Handler: dept.GetMyDeptsHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,
@@ -149,8 +355,29 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/list",
 				Handler: file.GetFileListHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/upload",
+				Handler: file.UploadFileHandler(serverCtx),
+			},
 		},
 		rest.WithPrefix("/v1/sys/file"),
+		rest.WithMaxBytes(14680064),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/ping",
+				Handler: health.PingHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/ready",
+				Handler: health.ReadyHandler(serverCtx),
+			},
+		},
 	)
 
 	server.AddRoutes(
@@ -249,6 +476,48 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 		},
 		rest.WithPrefix("/v1/sys/role"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/:id",
+				Handler: tenant.GetTenantHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/:id",
+				Handler: tenant.DeleteTenantHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/:id/reset-admin",
+				Handler: tenant.ResetTenantAdminHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/:id/start",
+				Handler: tenant.StartTenantHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/:id/stop",
+				Handler: tenant.StopTenantHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/create",
+				Handler: tenant.CreateTenantHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/list",
+				Handler: tenant.GetTenantListHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v1/sys/tenant"),
+		rest.WithTimeout(120000*time.Millisecond),
 	)
 
 	server.AddRoutes(

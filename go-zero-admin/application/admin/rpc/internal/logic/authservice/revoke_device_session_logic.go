@@ -7,6 +7,7 @@ import (
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
 	"go-zero-admin/application/admin/rpc/internal/svc"
+	"go-zero-admin/pkg/xerr"
 )
 
 type RevokeDeviceSessionLogic struct {
@@ -20,6 +21,11 @@ func NewRevokeDeviceSessionLogic(ctx context.Context, svcCtx *svc.ServiceContext
 }
 
 func (l *RevokeDeviceSessionLogic) RevokeDeviceSession(in *adminpb.RevokeDeviceSessionRequest) (*adminpb.NoDataResponse, error) {
-	// 简版：Redis 会话撤销未实现
+	if in.Actor == nil || in.Actor.UserId <= 0 {
+		return nil, xerr.NewErrCode(xerr.TOKEN_EXPIRE_ERROR)
+	}
+	if err := l.svcCtx.Sessions.Revoke(l.ctx, in.Actor.UserId, in.SessionId); err != nil {
+		return nil, sessionError(err)
+	}
 	return &adminpb.NoDataResponse{}, nil
 }

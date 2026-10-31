@@ -1,53 +1,179 @@
-# 登录闭环端到端测试
-# 前提：
-#   1. MySQL 9.7 容器运行中（gozero-new-mysql，3307 端口）
-#   2. Redis 运行中（gozero-redis 容器或本地 6379）
-#   3. admin-rpc 已启动（:6001）
-#   4. admin-api 已启动（:7001）
+﻿#requires -Version 5.1
+<#
+独立认证 HTTP 验证，仅使用调用者提供的专用测试账号，不读取数据库或临时 probe。
+先通过正常验证码流程取得 captcha_id，并人工识别图片得到 captcha；验证码一次有效，
+每次运行须重新取得。可通过同名参数或 LOGIN_E2E_* 环境变量提供以下值：
+BASE_URL、USERNAME、PASSWORD、CAPTCHA_ID、CAPTCHA。
+BASE_URL 是 API 服务根地址（不包含 /v1）。建议通过环境变量传凭据，避免命令历史记录。
+脚本不打印凭据、验证码、token 或响应正文；只退出本次创建的会话，不退出其他设备。
+#>
+[CmdletBinding()]
+param(
+    [string]$BaseUrl = $env:LOGIN_E2E_BASE_URL,
+    [string]$Username = $env:LOGIN_E2E_USERNAME,
+    [string]$Password = $env:LOGIN_E2E_PASSWORD,
+    [string]$CaptchaId = $env:LOGIN_E2E_CAPTCHA_ID,
+    [string]$Captcha = $env:LOGIN_E2E_CAPTCHA
+)
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$apiBase = 'http://127.0.0.1:7001'
+$ProgressPreference = 'SilentlyContinue'
+$script:CheckCount = 0
+$script:CurrentStep = '参数检查'
+$script:Failure = '发生未预期错误'
+$activeAccess = ''
+$logoutConfirmed = $false
+$testExitCode = 0
 
-Write-Host '=== Step 1: 获取验证码 ===' -ForegroundColor Cyan
-$captchaResp = Invoke-RestMethod -Uri "$apiBase/v1/sys/auth/captcha" -Method Get
-$captchaResp | ConvertTo-Json -Depth 5
-
-$captchaID   = $captchaResp.captcha_id
-$imageBase64 = $captchaResp.image_base64
-
-# 简版验证码：ImageBase64 就是验证码文本的 base64
-$captchaCode = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($imageBase64))
-Write-Host "验证码: $captchaCode (ID: $captchaID)" -ForegroundColor Yellow
-
-Write-Host ''
-Write-Host '=== Step 2: 登录 ===' -ForegroundColor Cyan
-$loginBody = @{
-    username   = 'admin'
-    password   = 'Admin@123456'
-    captcha_id = $captchaID
-    captcha    = $captchaCode
-} | ConvertTo-Json
-
-try {
-    $loginResp = Invoke-RestMethod -Uri "$apiBase/v1/sys/auth/login" -Method Post -Body $loginBody -ContentType 'application/json'
-    Write-Host '登录成功!' -ForegroundColor Green
-    $loginResp | ConvertTo-Json -Depth 5
-    $token = $loginResp.access_token
-    Write-Host ''
-    Write-Host "AccessToken: $($token.Substring(0, [Math]::Min(40, $token.Length)))..." -ForegroundColor Green
-} catch {
-    Write-Host "登录失败: $($_.Exception.Message)" -ForegroundColor Red
-    if ($_.ErrorDetails) { $_.ErrorDetails.Message | ConvertFrom-Json | ConvertTo-Json -Depth 5 }
-    exit 1
+function Stop-Test([string]$Reason) {
+    $script:Failure = $Reason
+    throw 'Authentication E2E assertion failed.'
 }
 
-Write-Host ''
-Write-Host '=== Step 3: 验证 Ping（需 JWT，预期 401） ===' -ForegroundColor Cyan
-try {
-    Invoke-RestMethod -Uri "$apiBase/ping" -Method Get -Headers @{ Authorization = "Bearer $token" }
-} catch {
-    Write-Host "Ping 状态: $($_.Exception.Response.StatusCode.value__) (JWT 中间件尚未接入 Ping，属预期)" -ForegroundColor Yellow
+function Assert-Test([bool]$Condition, [string]$Reason) {
+    if (-not $Condition) { Stop-Test $Reason }
+    $script:CheckCount++
 }
 
-Write-Host ''
-Write-Host '=== 登录闭环测试通过 ===' -ForegroundColor Green
+function Read-StringField($Object, [string]$Name) {
+    if ($null -eq $Object -or $Object.PSObject.Properties.Name -notcontains $Name) { return '' }
+    $value = $Object.$Name
+    if ($value -isnot [string]) { return '' }
+    return $value
+}
+
+function Invoke-TestApi {
+    param(
+        [string]$Step,
+        [string]$Method,
+        [string]$Path,
+        [hashtable]$Body = $null,
+        [string]$Token = '',
+        [int]$ExpectedCode = 200
+    )
+    $script:CurrentStep = $Step
+    $script:Failure = '请求或响应处理失败'
+    $requestArgs = @{
+        Uri = $script:ApiRoot + $Path
+        Method = $Method
+        UseBasicParsing = $true
+        TimeoutSec = 20
+        ErrorAction = 'Stop'
+        Headers = @{ Accept = 'application/json' }
+    }
+    if ($Token) { $requestArgs.Headers.Authorization = 'Bearer ' + $Token }
+    if ($null -ne $Body) {
+        $requestArgs.ContentType = 'application/json; charset=utf-8'
+        $requestArgs.Body = [Text.Encoding]::UTF8.GetBytes(($Body | ConvertTo-Json -Depth 8 -Compress))
+    }
+    try { $response = Invoke-WebRequest @requestArgs }
+    catch { Stop-Test '未收到正常 HTTP 响应；网络错误和 HTTP 错误不能视为预期拒绝' }
+    Assert-Test ([int]$response.StatusCode -eq 200) '业务接口应返回 HTTP 200 统一信封'
+    try { $envelope = $response.Content | ConvertFrom-Json }
+    catch { Stop-Test '响应不是有效 JSON' }
+    Assert-Test ($null -ne $envelope -and $envelope.PSObject.Properties.Name -contains 'code' -and $envelope.PSObject.Properties.Name -contains 'msg') '统一信封缺少 code 或 msg'
+    Assert-Test (($envelope.code -is [int] -or $envelope.code -is [long]) -and $envelope.msg -is [string]) '统一信封字段类型不正确'
+    Assert-Test ($envelope.code -eq $ExpectedCode) ('业务码与预期不符；预期为 ' + $ExpectedCode)
+    if ($ExpectedCode -eq 200) {
+        Assert-Test ($envelope.msg -ceq '操作成功') '成功信封 msg 不正确'
+        Assert-Test ($envelope.PSObject.Properties.Name -contains 'result' -and $null -ne $envelope.result) '成功信封缺少 result'
+    }
+    return $envelope
+}
+
+function Assert-LoginFields($Result) {
+    foreach ($name in @('access_token', 'refresh_token', 'session_id')) {
+        Assert-Test (-not [string]::IsNullOrWhiteSpace((Read-StringField $Result $name))) ('登录结果缺少 ' + $name)
+    }
+    foreach ($name in @('expires_at', 'refresh_expires_at')) {
+        Assert-Test ($Result.PSObject.Properties.Name -contains $name) ('登录结果缺少 ' + $name)
+        Assert-Test ($Result.$name -is [int] -or $Result.$name -is [long]) ('登录期限字段不是整数：' + $name)
+    }
+    $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+    Assert-Test ($Result.expires_at -gt $now) '访问令牌期限无效'
+    Assert-Test ($Result.refresh_expires_at -ge $Result.expires_at) '刷新令牌期限不应早于访问令牌'
+}
+
+function Assert-CurrentSession($Result, [string]$SessionId) {
+    Assert-Test ($Result.PSObject.Properties.Name -contains 'list' -and $null -ne $Result.list) '设备会话结果缺少 list'
+    $sessions = @($Result.list)
+    $matching = @($sessions | Where-Object { $_.id -ceq $SessionId })
+    $current = @($sessions | Where-Object { $_.is_current -eq $true })
+    Assert-Test ($matching.Count -eq 1) '本人设备列表必须包含本次登录会话且无重复'
+    Assert-Test ($current.Count -eq 1 -and $current[0].id -ceq $SessionId) '当前会话标记不正确'
+}
+
+try {
+    foreach ($required in @($BaseUrl, $Username, $Password, $CaptchaId, $Captcha)) {
+        if ([string]::IsNullOrWhiteSpace($required)) { Stop-Test '缺少参数；请提供服务根地址、测试账号及本次正常流程取得的验证码' }
+    }
+    $targetUri = $null
+    Assert-Test ([Uri]::TryCreate($BaseUrl, [UriKind]::Absolute, [ref]$targetUri)) '服务根地址不是有效 URI'
+    Assert-Test ($targetUri.Scheme -in @('http', 'https') -and -not $targetUri.UserInfo -and -not $targetUri.Query -and -not $targetUri.Fragment -and $targetUri.AbsolutePath -eq '/') '服务根地址必须使用 HTTP(S)，且不含凭据、路径、查询或片段'
+    $script:ApiRoot = $BaseUrl.TrimEnd('/')
+
+    $ping = Invoke-TestApi '存活检查' 'GET' '/ping'
+    Assert-Test ($ping.result.msg -ceq 'pong') 'ping 内容不是 pong'
+    $ready = Invoke-TestApi '就绪检查' 'GET' '/ready'
+    Assert-Test ($ready.result.ready -is [bool] -and $ready.result.ready) 'ready 未确认服务就绪'
+
+    $login = Invoke-TestApi '账号登录' 'POST' '/v1/sys/auth/login' @{
+        username = $Username; password = $Password; captcha_id = $CaptchaId; captcha = $Captcha
+    }
+    $activeAccess = Read-StringField $login.result 'access_token'
+    Assert-LoginFields $login.result
+    $firstAccess = $activeAccess
+    $firstRefresh = $login.result.refresh_token
+    $sessionId = $login.result.session_id
+
+    $sessions = Invoke-TestApi '本人设备会话' 'GET' '/v1/sys/auth/sessions' -Token $activeAccess
+    Assert-CurrentSession $sessions.result $sessionId
+
+    $rotated = Invoke-TestApi '刷新令牌轮换' 'POST' '/v1/sys/auth/refresh' @{ refresh_token = $firstRefresh }
+    $activeAccess = Read-StringField $rotated.result 'access_token'
+    Assert-LoginFields $rotated.result
+    Assert-Test ($rotated.result.session_id -ceq $sessionId) '刷新不应创建另一会话'
+    Assert-Test ($rotated.result.access_token -cne $firstAccess) '访问令牌未轮换'
+    Assert-Test ($rotated.result.refresh_token -cne $firstRefresh) '刷新令牌未轮换'
+
+    $null = Invoke-TestApi '拒绝轮换前访问令牌' 'GET' '/v1/sys/auth/sessions' -Token $firstAccess -ExpectedCode 401
+    $null = Invoke-TestApi '拒绝重复使用刷新令牌' 'POST' '/v1/sys/auth/refresh' @{ refresh_token = $firstRefresh } -ExpectedCode 401
+    $sessions = Invoke-TestApi '轮换后会话仍有效' 'GET' '/v1/sys/auth/sessions' -Token $activeAccess
+    Assert-CurrentSession $sessions.result $sessionId
+
+    $null = Invoke-TestApi '退出当前会话' 'POST' '/v1/sys/auth/logout' @{ all_devices = $false } -Token $activeAccess
+    $logoutConfirmed = $true
+    $null = Invoke-TestApi '退出后访问令牌失效' 'GET' '/v1/sys/auth/sessions' -Token $activeAccess -ExpectedCode 401
+    $null = Invoke-TestApi '退出后刷新令牌失效' 'POST' '/v1/sys/auth/refresh' @{ refresh_token = $rotated.result.refresh_token } -ExpectedCode 401
+}
+catch {
+    $testExitCode = 1
+    [Console]::Error.WriteLine('认证验证失败（步骤：' + $script:CurrentStep + '）：' + $script:Failure)
+}
+finally {
+    if ($activeAccess -and -not $logoutConfirmed) {
+        # 失败也尝试退出本次会话；不输出异常对象，防止请求正文或令牌出现在诊断信息中。
+        try {
+            $cleanupArgs = @{
+                Uri = $script:ApiRoot + '/v1/sys/auth/logout'; Method = 'POST'; UseBasicParsing = $true
+                TimeoutSec = 10; ErrorAction = 'Stop'; ContentType = 'application/json'
+                Headers = @{ Authorization = 'Bearer ' + $activeAccess }; Body = '{"all_devices":false}'
+            }
+            $cleanupResponse = Invoke-WebRequest @cleanupArgs
+            $cleanupEnvelope = $cleanupResponse.Content | ConvertFrom-Json
+            if ([int]$cleanupResponse.StatusCode -ne 200 -or $cleanupEnvelope.code -notin @(200, 401)) {
+                throw 'Session cleanup not confirmed.'
+            }
+        }
+        catch {
+            $testExitCode = 1
+            [Console]::Error.WriteLine('未确认测试会话已清理，请通过测试账号的设备会话页面检查；本次不能记作通过。')
+        }
+    }
+    $Password = $Captcha = $activeAccess = $null
+    $firstAccess = $firstRefresh = $login = $rotated = $sessions = $null
+}
+
+if ($testExitCode -eq 0) { Write-Host ('认证 HTTP 验证通过，共 ' + $script:CheckCount + ' 项断言。') }
+exit $testExitCode

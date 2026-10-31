@@ -15,7 +15,8 @@ type ServiceContext struct {
 	Redis  *redis.Redis
 	Store  *objectstorage.Client
 
-	SysFileModel model.SysFileModel
+	SysFileModel          model.SysFileModel
+	SysFileReferenceModel model.SysFileReferenceModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -32,10 +33,11 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 
 	return &ServiceContext{
-		Config:       c,
-		DB:           conn,
-		Redis:        rdb,
-		Store:        store,
-		SysFileModel: model.NewSysFileModel(conn, c.CacheRedis),
+		Config:                c,
+		DB:                    conn,
+		Redis:                 rdb,
+		Store:                 store,
+		SysFileModel:          model.NewSysFileModel(conn, c.CacheRedis),
+		SysFileReferenceModel: model.NewSysFileReferenceModel(conn, c.CacheRedis),
 	}
 }

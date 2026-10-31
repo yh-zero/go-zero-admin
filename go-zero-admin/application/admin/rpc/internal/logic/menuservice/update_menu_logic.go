@@ -43,7 +43,7 @@ func (l *UpdateMenuLogic) UpdateMenu(in *adminpb.UpdateMenuRequest) (*adminpb.No
 		}
 		for _, id := range subtree {
 			if id == in.ParentId {
-				return nil, xerr.NewErrCodeMsg(xerr.REUQEST_PARAM_ERROR, "不能挂载到自身或子菜单下")
+				return nil, xerr.NewErrCodeMsg(xerr.REQUEST_PARAM_ERROR, "不能挂载到自身或子菜单下")
 			}
 		}
 	}

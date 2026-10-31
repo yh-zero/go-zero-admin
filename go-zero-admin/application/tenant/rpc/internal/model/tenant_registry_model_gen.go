@@ -53,6 +53,7 @@ type (
 		MysqlRootPassword  string        `db:"mysql_root_password"`   // 该租户 MySQL root 密码（随机生成）
 		JwtAccessSecret    string        `db:"jwt_access_secret"`     // 该租户后台 JWT 密钥（随机生成）
 		AppJwtAccessSecret string        `db:"app_jwt_access_secret"` // 该租户 App JWT 密钥（随机生成）
+		AdminAccountReady  int64         `db:"admin_account_ready"`   // 初始管理员是否就绪
 		ErrorMsg           string        `db:"error_msg"`             // 最近一次错误信息
 		CreatedBy          sql.NullInt64 `db:"created_by"`            // 创建操作员ID
 		CreatedAt          time.Time     `db:"created_at"`
@@ -146,8 +147,8 @@ func (m *defaultTenantRegistryModel) Insert(ctx context.Context, data *TenantReg
 	gozeroPlatformTenantRegistryIdKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistryIdPrefix, data.Id)
 	gozeroPlatformTenantRegistrySlugKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistrySlugPrefix, data.Slug)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, tenantRegistryRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Slug, data.Domain, data.ComposeProject, data.Status, data.MysqlRootPassword, data.JwtAccessSecret, data.AppJwtAccessSecret, data.ErrorMsg, data.CreatedBy, data.DeletedAt)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, tenantRegistryRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Slug, data.Domain, data.ComposeProject, data.Status, data.MysqlRootPassword, data.JwtAccessSecret, data.AppJwtAccessSecret, data.AdminAccountReady, data.ErrorMsg, data.CreatedBy, data.DeletedAt)
 	}, gozeroPlatformTenantRegistryDomainKey, gozeroPlatformTenantRegistryIdKey, gozeroPlatformTenantRegistrySlugKey)
 	return ret, err
 }
@@ -163,7 +164,7 @@ func (m *defaultTenantRegistryModel) Update(ctx context.Context, newData *Tenant
 	gozeroPlatformTenantRegistrySlugKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistrySlugPrefix, data.Slug)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, tenantRegistryRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.Slug, newData.Domain, newData.ComposeProject, newData.Status, newData.MysqlRootPassword, newData.JwtAccessSecret, newData.AppJwtAccessSecret, newData.ErrorMsg, newData.CreatedBy, newData.DeletedAt, newData.Id)
+		return conn.ExecCtx(ctx, query, newData.Slug, newData.Domain, newData.ComposeProject, newData.Status, newData.MysqlRootPassword, newData.JwtAccessSecret, newData.AppJwtAccessSecret, newData.AdminAccountReady, newData.ErrorMsg, newData.CreatedBy, newData.DeletedAt, newData.Id)
 	}, gozeroPlatformTenantRegistryDomainKey, gozeroPlatformTenantRegistryIdKey, gozeroPlatformTenantRegistrySlugKey)
 	return err
 }

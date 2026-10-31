@@ -2,10 +2,13 @@ package roleservicelogic
 
 import (
 	"context"
+	"errors"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
 	"go-zero-admin/pkg/xerr"
 )
@@ -21,17 +24,19 @@ func NewDeleteRoleLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeleteRoleLogic) DeleteRole(in *adminpb.DeleteRoleRequest) (*adminpb.NoDataResponse, error) {
-	role, err := l.svcCtx.SysRoleModel.FindOne(l.ctx, uint64(in.RoleId))
-	if err != nil {
-		return nil, xerr.NewErrCode(xerr.ROLE_NOT_FOUND)
+	if err := l.svcCtx.SysRoleModel.SoftDeleteWithRelations(l.ctx, uint64(in.RoleId)); err != nil {
+		return nil, roleMutationError(err)
 	}
-	// 软删角色
-	_, _ = l.svcCtx.DB.ExecCtx(l.ctx, "UPDATE sys_role SET deleted_at=NOW() WHERE id=?", in.RoleId)
-	// 删 role_menu
-	_, _ = l.svcCtx.DB.ExecCtx(l.ctx, "DELETE FROM sys_role_menu WHERE role_id=?", in.RoleId)
-	// 删 casbin 规则（p: v0=role code; g: v1=role code）
-	_, _ = l.svcCtx.DB.ExecCtx(l.ctx, "DELETE FROM casbin_rule WHERE (ptype='p' AND v0=?) OR (ptype='g' AND v1=?)", role.Code, role.Code)
-	// 通知 API 层刷新策略
-	_, _ = l.svcCtx.Redis.Publish("casbin:policy:changed", role.Code)
+	l.svcCtx.PublishPolicyChanged(l.ctx)
 	return &adminpb.NoDataResponse{}, nil
+}
+
+func roleMutationError(err error) error {
+	if errors.Is(err, sqlx.ErrNotFound) {
+		return xerr.NewErrCode(xerr.ROLE_NOT_FOUND)
+	}
+	if errors.Is(err, model.ErrInvalidMutation) {
+		return xerr.NewErrCodeMsg(xerr.REQUEST_PARAM_ERROR, err.Error())
+	}
+	return xerr.NewErrCode(xerr.DB_ERROR)
 }

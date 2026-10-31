@@ -8,7 +8,7 @@
 
 | 组件 | 容器 | 宿主地址 | 说明 |
 |---|---|---|---|
-| MySQL 9.7 | `gozero-new-mysql` | `127.0.0.1:3307` | 业务库 `gozero_admin` + 控制库 `gozero_platform`；迁移用 `goose -dir data/db/migrations/<business|platform>` |
+| MySQL 9.7 | `gozero-new-mysql` | `127.0.0.1:3307` | 业务库 `gozero_admin` + 控制库 `gozero_platform`；统一导入 [初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql) |
 | Redis 8 | `gozero-redis8` | `127.0.0.1:16379` | 缓存 + Casbin 策略通知频道 |
 | RustFS | `gozero-integration-rustfs` | `127.0.0.1:19000`（控制台 :19001） | S3 兼容对象存储 |
 | admin-rpc | `gozero-platform-admin-rpc-1` | 仅容器网络 :6001 | |
@@ -51,27 +51,13 @@ go run ./application/admin/rpc -f application/admin/rpc/etc/admin.yaml   # 其�
 
 ### 数据初始化（首次克隆）
 
-`data/db/init/mysql-all.sql` 是随仓库分发的完整初始化库（admin 全量演示数据 + platform 含 3 条演示租户行），compose 已把它挂到 MySQL 的 `/docker-entrypoint-initdb.d`——**空卷首次 `docker compose up -d` 自动导入，无需手动操作**。已有数据卷不会重复执行；想重置就 `docker compose down -v` 后再 `up -d`。
+[data/db/init/mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql) 是数据库初始化唯一入口，包含业务库和控制库的完整结构与开发数据。每次新建库均完整导入该文件，不维护增量升级流程。Compose 已将其目录挂到 MySQL 的 `/docker-entrypoint-initdb.d`，**空数据卷首次 `docker compose up -d` 自动导入，无需手动操作**；已有数据卷不会重复执行，也不会自动更新结构。
 
 初始化账号：`admin` / `Admin@123456`（仅本地开发，生产必改）；DB root 统一 `123456`。
 
-### 数据恢复（本地快照）
+从零初始化统一导入上述完整 SQL。需要手工导入时，在新建库环境中使用 MySQL 客户端执行同一文件。
 
-`data/db/backup/` 是**本地**快照目录（已 gitignore，含口令哈希不进仓库）。恢复用**最新**目录：
-
-```powershell
-docker cp data/db/backup/<最新目录>/mysql-all.sql gozero-new-mysql:/tmp/
-docker exec -e MYSQL_PWD=123456 gozero-new-mysql sh -c "mysql -uroot < /tmp/mysql-all.sql"
-````
-
-> 2026-10-31 之前的旧备份（如 20261031-112912）内含随机 root 密码，导入会把 root 锁死；之后的备份 root 统一为本地约定 `123456`，导入即用。
-
-从零初始化（无备份、想从头跑迁移）时在宿主执行迁移与种子：
-
-```powershell
-goose -dir data/db/migrations/business mysql "root:123456@tcp(127.0.0.1:3307)/gozero_admin" up
-goose -dir data/db/migrations/platform mysql "root:123456@tcp(127.0.0.1:3307)/gozero_platform" up
-```
+生成数据模型前，先将完整 SQL 导入开发库，再执行 `data/scripts/gen.ps1 model <模块> <表>`；goctl model 仍从已导入的开发库反射表结构。
 
 ## 3. 故障排查（按命中率排序）
 
@@ -87,9 +73,9 @@ docker stop gozero-api   # 暂停旧项目容器；联调完记得 docker start 
 ````
 
 ### ③ 登录报"账号未激活"/数据改了不生效
-goctl model 带 Redis 缓存，**直接改库后必须清缓存**（仅限本地排障；会连带清 Casbin 通知频道键，任务数据清理不适用，见根规范 §7.6）：
+goctl model 带 Redis 缓存，直接修改开发库后只失效本次记录对应的缓存键。先查看对应 `*_model_gen.go` 的 ID/唯一索引键前缀，再按确切 ID 和旧、新唯一值删除；授权变化通过现有策略通知触发刷新。不要清空共享 Redis，参见根规范 §7.6：
 ```powershell
-docker exec gozero-redis8 redis-cli FLUSHALL
+docker exec gozero-redis8 redis-cli DEL '<本次记录的精确缓存键>'
 ````
 
 ### ④ docker exec 里中文乱码 / 输出被吞
@@ -101,10 +87,7 @@ docker exec gozero-redis8 redis-cli FLUSHALL
 - 续行符是反引号 ` 不是反斜杠 \
 - 执行策略拦截：`powershell -NoProfile -ExecutionPolicy Bypass -File <脚本>`
 
-### ⑥ goose 找不到
-GOPATH 随 toolchain 切换会变。用绝对路径或重新 `go install github.com/pressly/goose/v3/cmd/goose@latest`。
-
-### ⑦ AI 密钥
+### ⑥ AI 密钥
 ai-rpc 的 `AI.Enabled=false` 时无需密钥；启用时目前**只能写进 yaml**（`docker/etc/ai-rpc.yaml` 或宿主 `application/ai/rpc/etc/ai.yaml`）——环境变量注入（`API_KEY_DEEPSEEK` 等）代码尚未实现，属已知缺陷。
 
 ## 4. 联调后清理（任务完成定义的一部分）

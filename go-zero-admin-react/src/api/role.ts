@@ -2,6 +2,14 @@ import { apiDelete, apiGet, apiPost, apiPut } from '../utils/request';
 import type { CreateRoleReq, GetRoleListReq, ListResult, MenuInfo, PageResult, RoleInfo, UpdateRoleReq } from './types';
 
 export const fetchRoles = (params: GetRoleListReq) => apiGet<PageResult<RoleInfo>>('/sys/role/list', params);
+export async function fetchRoleOptions(): Promise<RoleInfo[]> {
+  const roles: RoleInfo[] = [];
+  for (let page = 1; ; page++) {
+    const result = await fetchRoles({ page, page_size: 100 });
+    roles.push(...result.list);
+    if (roles.length >= result.total || result.list.length === 0) return roles;
+  }
+}
 export async function fetchRole(id: number): Promise<RoleInfo> {
   return (await apiGet<{ role: RoleInfo }>(`/sys/role/${id}`)).role;
 }

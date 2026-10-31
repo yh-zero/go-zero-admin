@@ -3,6 +3,8 @@ package llm
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/cloudwego/eino-ext/components/model/openai"
 	"github.com/cloudwego/eino/components/model"
@@ -11,7 +13,8 @@ import (
 
 // Client LLM 客户端（eino ChatModel 封装）
 type Client struct {
-	model model.ChatModel
+	model   model.ChatModel
+	timeout time.Duration
 }
 
 // Config LLM 配置
@@ -32,11 +35,17 @@ func New(cfg Config) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Client{model: m}, nil
+	timeout := time.Duration(cfg.Timeout) * time.Second
+	if timeout <= 0 {
+		timeout = 60 * time.Second
+	}
+	return &Client{model: m, timeout: timeout}, nil
 }
 
 // Chat 对话（eino 统一接口，自动处理 function calling 协议）
 func (c *Client) Chat(ctx context.Context, messages []*schema.Message, tools []*schema.ToolInfo) (*schema.Message, *schema.TokenUsage, error) {
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
 	opts := []model.Option{}
 	if len(tools) > 0 {
 		opts = append(opts, model.WithTools(tools))
@@ -44,6 +53,12 @@ func (c *Client) Chat(ctx context.Context, messages []*schema.Message, tools []*
 	resp, err := c.model.Generate(ctx, messages, opts...)
 	if err != nil {
 		return nil, nil, err
+	}
+	if resp == nil {
+		return nil, nil, errors.New("模型响应为空")
+	}
+	if resp.ResponseMeta == nil {
+		return resp, nil, nil
 	}
 	return resp, resp.ResponseMeta.Usage, nil
 }

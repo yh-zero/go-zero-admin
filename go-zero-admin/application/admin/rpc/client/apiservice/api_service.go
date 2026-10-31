@@ -16,6 +16,7 @@ import (
 type (
 	Actor              = adminpb.Actor
 	ApiInfo            = adminpb.ApiInfo
+	ApiRoute           = adminpb.ApiRoute
 	DeleteApiRequest   = adminpb.DeleteApiRequest
 	GetApiListRequest  = adminpb.GetApiListRequest
 	GetApiListResponse = adminpb.GetApiListResponse

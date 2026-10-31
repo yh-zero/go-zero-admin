@@ -10,15 +10,14 @@
 - go-zero `v1.10.3` / goctl `v1.10.2`（2026-10 核实）
 - jwt/v5 `v5.3.1` / x/crypto `v0.58.0`
 - MySQL `9.7`
-- goose（版本待锁定）
 
 ## 目录
 
 - `application/<模块>/api|rpc` —— 业务模块（admin / app / file / ai / tenant）
-- `data/db/migrations` —— goose 迁移（结构唯一事实源）
+- `data/db/init/mysql-all.sql` —— 完整数据库初始化入口（业务库与平台控制库）
 - `data/scripts/gen.ps1` —— 生成命令入口
 - `docker/` —— Dockerfile、Nginx 与租户栈模板
-- `docker/Dockerfile` —— 多阶段构建（api / 各 rpc / migrate）
+- `docker/Dockerfile` —— 多阶段构建（api / 各 rpc）
 
 ## 生成命令
 
@@ -26,9 +25,10 @@
 .\data\scripts\gen.ps1 api              # API（官方默认模板）
 .\data\scripts\gen.ps1 rpc admin        # RPC（admin|app|file|ai|tenant）
 .\data\scripts\gen.ps1 model admin sys_user  # 数据层（goctl model，带缓存）
-.\data\scripts\gen.ps1 db up            # goose 迁移
 .\data\scripts\gen.ps1 swagger          # Swagger（官方原生）
 ```
+
+数据层生成前，先在新开发库导入 `data/db/init/mysql-all.sql`；Compose 的 MySQL 空卷首次启动时会自动导入。初始化方式见 [本地开发环境](../ai_document/dev-env.md)。
 
 > 骨架阶段：`internal/`、`etc/`、`pb/`、`client/` 由 goctl 生成，当前仅含 desc 契约与部署骨架。
 

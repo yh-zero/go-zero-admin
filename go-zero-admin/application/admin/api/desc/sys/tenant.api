@@ -1,0 +1,63 @@
+syntax = "v1"
+
+type (
+    TenantInfo {
+        Id int64 `json:"id"`
+        Slug string `json:"slug"`
+        Domain string `json:"domain"`
+        ComposeProject string `json:"compose_project"`
+        Status string `json:"status"`
+        ErrorMsg string `json:"error_msg"`
+        CreatedBy int64 `json:"created_by"`
+        CreatedAt int64 `json:"created_at"`
+        UpdatedAt int64 `json:"updated_at"`
+        AdminAccountReady bool `json:"admin_account_ready"`
+    }
+    CreateTenantReq {
+        Slug string `json:"slug"`
+        AdminUsername string `json:"admin_username,optional"`
+        AdminPassword string `json:"admin_password,optional"`
+    }
+    CreateTenantResp {
+        Tenant *TenantInfo `json:"tenant"`
+        AdminPassword string `json:"admin_password"`
+    }
+    GetTenantListReq {
+        Page int64 `form:"page,default=1"`
+        PageSize int64 `form:"page_size,default=20"`
+        Status string `form:"status,optional"`
+    }
+    GetTenantListResp {
+        List []*TenantInfo `json:"list"`
+        Total int64 `json:"total"`
+    }
+    TenantIdReq { Id int64 `path:"id"` }
+    GetTenantResp { Tenant *TenantInfo `json:"tenant"` }
+    DeleteTenantReq {
+        Id int64 `path:"id"`
+        ConfirmSlug string `json:"confirm_slug"`
+    }
+    ResetTenantAdminResp { NewPassword string `json:"new_password"` }
+)
+
+@server (
+    prefix: v1/sys/tenant
+    group: tenant
+    timeout: 120s
+)
+service admin {
+    @handler createTenant
+    post /create (CreateTenantReq) returns (CreateTenantResp)
+    @handler getTenantList
+    get /list (GetTenantListReq) returns (GetTenantListResp)
+    @handler getTenant
+    get /:id (TenantIdReq) returns (GetTenantResp)
+    @handler startTenant
+    post /:id/start (TenantIdReq) returns (EmptyResp)
+    @handler stopTenant
+    post /:id/stop (TenantIdReq) returns (EmptyResp)
+    @handler deleteTenant
+    delete /:id (DeleteTenantReq) returns (EmptyResp)
+    @handler resetTenantAdmin
+    post /:id/reset-admin (TenantIdReq) returns (ResetTenantAdminResp)
+}

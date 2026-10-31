@@ -21,11 +21,11 @@ func UpdateRoleMenusHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := role.NewUpdateRoleMenusLogic(r.Context(), svcCtx)
-		err := l.UpdateRoleMenus(&req)
+		resp, err := l.UpdateRoleMenus(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

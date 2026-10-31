@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -20,15 +21,16 @@ func NewUpdateUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 	return &UpdateUserLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *UpdateUserLogic) UpdateUser(req *types.UpdateUserReq) error {
+func (l *UpdateUserLogic) UpdateUser(req *types.UpdateUserReq) (*types.EmptyResp, error) {
 	_, err := l.svcCtx.UserRpc.UpdateUser(l.ctx, &adminpb.UpdateUserRequest{
+		Actor: middleware.ActorFromContext(l.ctx), RoleIds: req.RoleIds, UpdateRoles: req.RoleIds != nil,
 		UserId: req.Id, Nickname: req.Nickname,
 		RealName: req.RealName, Email: req.Email, Phone: req.Phone,
 		DeptId: req.DeptId, AvatarFileId: req.AvatarFileId,
 		Gender: req.Gender, Status: req.Status, Remark: req.Remark,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &types.EmptyResp{}, nil
 }

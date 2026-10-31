@@ -28,6 +28,12 @@ type (
     }
 
     DeleteApiReq { Id int64 `path:"id"` }
+    SyncApiReq {}
+    SyncApiResp {
+        Added int64 `json:"added"`
+        Updated int64 `json:"updated"`
+        Removed int64 `json:"removed"`
+    }
 )
 
 @server (
@@ -35,10 +41,13 @@ type (
 	group:  api
 )
 service admin {
+    @handler syncApi
+    post /sync (SyncApiReq) returns (SyncApiResp)
+
 	@handler getApiList
 	get /list (GetApiListReq) returns (GetApiListResp)
 
 	@handler deleteApi
-	delete /:id (DeleteApiReq)
+	delete /:id (DeleteApiReq) returns (EmptyResp)
 
 }

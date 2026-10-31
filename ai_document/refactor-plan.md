@@ -26,7 +26,7 @@
 | 租户创建入口 | **新建 tenant-rpc，在平台后台页面操作** | 平台栈 = 第 0 号租户 + tenant-rpc + docker socket / nginx 配置卷 |
 | HTTP 响应格式 | **go-zero 官方默认**：成功直返数据体；错误由 `httpx.SetErrorHandlerCtx` 统一输出 | 删除自定义模板与信封；swagger 用官方原生输出 |
 | 服务发现 | **直连 Endpoints，去掉 etcd** | compose 少一个容器；配置写死 RPC 地址 |
-| 数据库迁移 | **goose** | `data/db/migrations/*.sql` 是结构唯一事实源；goctl model 从迁移后的开发库反射生成 |
+| 数据库初始化 | **完整 SQL 导入** | [data/db/init/mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql) 是建库唯一入口；每次新建库导入完整 SQL，不维护增量升级；goctl model 从已导入的开发库反射生成 |
 | 数据层 | **goctl model + `--cache true`**（go-zero `sqlx`/`sqlc` 缓存包） | 弃 GORM；CRUD 零 SQL、自带 Redis 行级缓存；复杂查询手写 sqlx |
 | 功能范围 | 全部保留：核心 RBAC、字典、组织（部门/岗位）、文件管理、审计日志、AI 助手、App 用户/会员、设备会话。**确认废弃**：权限版本历史/回滚、IP 归属地 | 简化落在接口与表结构重设计 |
 
@@ -157,7 +157,9 @@ go-zero-admin/
 │   │   │       ├── logic/<group>/            # goctl 生成骨架，业务手写
 │   │   │       ├── casbin/                   # enforcer 构建 + 官方 redis-watcher 热刷新（单服务自用）
 │   │   │       ├── middleware/
-│   │   │       │   └── authority.go          # Casbin 接口鉴权（进程内 enforcer）
+│   │   │       │   ├── admin_auth_middleware.go # 后台会话与 Casbin 接口鉴权
+│   │   │       │   ├── app_auth_middleware.go   # App 用户认证
+│   │   │       │   └── audit_middleware.go      # 请求元信息与写操作审计
 │   │   │       ├── svc/service_context.go    # 聚合各 RPC client、Redis、Enforcer
 │   │   │       └── types/types.go            # goctl 生成
 │   │   └── rpc/                              # admin-rpc（:6001）认证/用户/角色/菜单/权限/组织/字典/审计/会话
@@ -188,14 +190,12 @@ go-zero-admin/
 │       └── rpc/                              # tenant-rpc（:6005）租户管理，仅平台栈部署，结构同 admin/rpc
 ├── data/
 │   ├── db/
-│   │   ├── migrations/                       # goose：00001_init.sql（业务库 12 表）、00001_tenant_registry.sql（控制库 1 表）
-│   │   └── seeds/
-│   │       ├── admin.sql                     # 初始管理员/角色/菜单/casbin 策略
-│   │       └── demo.sql                      # 演示数据（可选加载）
+│   │   └── init/
+│   │       └── mysql-all.sql                 # 完整初始化 SQL：新建库唯一入口，含结构与开发数据
 │   └── scripts/
 │       └── gen.ps1                           # 生成命令入口（见第 5 节）
 ├── docker/                                   # 构建与部署编排（旧项目风格，统一部署物）
-│   ├── Dockerfile                            # 多阶段：api/admin-rpc/app-rpc/file-rpc/ai-rpc/tenant-rpc/migrate
+│   ├── Dockerfile                            # 多阶段：api/admin-rpc/app-rpc/file-rpc/ai-rpc/tenant-rpc
 │   ├── nginx/
 │   │   ├── nginx.conf                        # 主配置
 │   │   └── conf.d/                           # tenant-rpc 生成的租户 server 块（卷挂载）
@@ -238,16 +238,12 @@ gen rpc admin
 #     --go_out=application/admin/rpc --go-grpc_out=application/admin/rpc `
 #     --zrpc_out=application/admin/rpc -m --style go_zero
 
-# 3. Model —— goctl model（go-zero sqlx + sqlc 缓存）；需先 gen db up 应用到开发库
+# 3. Model —— goctl model（go-zero sqlx + sqlc 缓存）；需先导入 data/db/init/mysql-all.sql 到开发库
 gen model admin sys_user
 #   goctl model mysql datasource --dir application/admin/rpc/internal/model `
 #     --table sys_user --cache true -style go_zero --url root:123456@tcp(127.0.0.1:3306)/gozero_admin
 
-# 4. DB —— goose
-gen db up            # goose -dir data/db/migrations mysql <dsn> up
-gen db create <name> # goose -dir data/db/migrations create <name> sql
-
-# 5. Swagger —— 官方原生输出，零修补
+# 4. Swagger —— 官方原生输出，零修补
 gen swagger
 #   goctl api swagger --api application/admin/api/desc/admin.api --dir data/api/generated
 ```
@@ -256,7 +252,7 @@ gen swagger
 
 ### 5.1 goctl model 约定
 
-- **生成顺序**：写 migration → `gen db up` 应用到本地开发库 → `gen model <模块> <表>`（goctl model 从活库反射表结构）。
+- **生成顺序**：更新 [完整初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql) → 新建开发库并导入该文件 → `gen model <模块> <表>`（goctl model 从已导入的开发库反射表结构）。Compose 使用空数据卷首次启动会自动导入；已有卷不会自动更新。
 - **缓存**：固定 `--cache true`，生成基于 go-zero `sqlc` 包（sqlx + Redis 行级缓存）的代码；缓存节点在各 RPC 的 `etc/*.yaml` 配置（`CacheRedis`）。
 - **产物**：`<table>_model_gen.go`（生成，勿改）、`<table>_model.go`（自定义扩展，手写复杂查询 sqlx）、`vars.go`。
 - **复杂查询**（部门数据范围、JOIN、统计）写在 `*_model.go` 扩展文件，不塞进 logic。
@@ -304,7 +300,7 @@ server := rest.MustNewServer(c.RestConf,
 3. `tenant_registry` 插入记录（slug、domain、compose_project、密钥、status=active）
 4. 渲染 `docker/tenant-stack/env.template` → 生成租户专属 `.env`
 5. 执行 `docker compose -p gozero-t-t1 -f docker/tenant-stack/docker-compose.tenant.yml --env-file <租户.env> up -d --build --wait`
-6. 租户栈内 migrate job 自动执行 `goose up`（00001_init.sql）+ seeds（初始管理员）
+6. 租户数据库初始化待接通：模板中的 `migrate` 服务仍是占位，尚未实现完整初始化 SQL 导入，不能据此认定租户建库完成。
 7. 渲染 `docker/tenant-stack/tenant.conf.template` → 写入 `docker/nginx/conf.d/t1.conf`
 8. `docker exec <nginx> nginx -s reload`
 9. 更新 `tenant_registry.status = active`；失败则记 `error_msg`
@@ -323,7 +319,7 @@ server := rest.MustNewServer(c.RestConf,
 | 项 | 默认 |
 |---|---|
 | 平台栈 | nginx + api（仅租户管理接口）+ tenant-rpc + 控制库 MySQL + rustfs；不跑业务 RPC |
-| 租户栈 | 完整 api + 4 RPC + MySQL + Redis + migrate（见 docker/tenant-stack/） |
+| 租户栈 | api + 4 RPC + MySQL + Redis；模板仍有 `migrate` 占位服务，数据库自动初始化尚未接通（见 docker/tenant-stack/） |
 | RustFS | 平台级共享，每租户独立 bucket |
 | 本地开发 | `*.localhost`（127.0.0.1 泛解析） |
 | 生产域名 | 泛解析 DNS `*.example.com` + 泛域名证书 |
@@ -332,9 +328,10 @@ server := rest.MustNewServer(c.RestConf,
 
 ## 8. 数据库重构方向
 
-- **控制库**（平台栈）：库名 `gozero_platform`，仅 `tenant_registry` 一张表（见 00001_tenant_registry.sql）。
+- **控制库**（平台栈）：库名 `gozero_platform`，仅 `tenant_registry` 一张表，定义见 [初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql)。
 - **业务库**（每租户）：库名 `gozero_admin`，12 张表（见下）；每租户独立 MySQL 9.7 容器 + 独立卷；collation `utf8mb4_0900_ai_ci`。
-- 初始化 = goose migrations + seeds，由栈内 migrate job 在首次启动时执行。
+- **初始化唯一入口**：[data/db/init/mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql)，包含建库结构与开发数据。每次新建库完整导入，不维护增量升级流程；平台 Compose 将其目录挂到 MySQL 的 `/docker-entrypoint-initdb.d`，空数据卷首次启动时自动导入，已有卷不会重复执行。
+- **租户初始化边界**：租户模板的 `migrate` 服务仍为占位，尚未接入该 SQL 的导入；租户建库仍是待办。`tenant_registry` 缺少 `admin_account_ready` 的既有问题同样保留，见 [后端对接问题](backend-api-integration-issues.md)。
 
 ### 表清单（12 张）
 
@@ -399,10 +396,10 @@ server := rest.MustNewServer(c.RestConf,
 ## 9. 落地顺序
 
 1. ✅ 需求与架构确认（本文档）
-2. 表结构设计（migrations 初稿）+ proto/api 契约设计
+2. 表结构设计（完整初始化 SQL）+ proto/api 契约设计
 3. 搭骨架：api + admin-rpc，打通登录 / JWT / Casbin 最小闭环
 4. 逐个实现 app-rpc、file-rpc、ai-rpc
-5. 平台栈 compose（去 etcd、含 migrate job）+ tenant-rpc + Nginx 模板
+5. 平台栈 compose（去 etcd、空卷自动导入初始化 SQL）+ tenant-rpc + Nginx 模板
 6. 租户栈模板 + provisioning 联调
 7. README 与运维文档
 

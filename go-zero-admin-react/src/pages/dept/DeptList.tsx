@@ -26,7 +26,7 @@ export default function DeptList() {
   const remove = useMutation({
     mutationFn: deleteDept,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['depts'] });
+      await Promise.all(['depts', 'my-depts'].map(key => queryClient.invalidateQueries({ queryKey: [key] })));
       message.success('部门已删除');
     },
   });

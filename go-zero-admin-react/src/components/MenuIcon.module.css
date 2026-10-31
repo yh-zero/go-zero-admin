@@ -1,0 +1,14 @@
+.plain { display: inline-flex; align-items: center; justify-content: center; color: inherit; font-size: inherit; vertical-align: -0.12em; }
+.badge { display: inline-flex; flex: 0 0 32px; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9px; font-size: 17px; line-height: 1; }
+.blue { color: #3b6ae8; background: #edf3ff; }
+.violet { color: #8352d4; background: #f3eeff; }
+.indigo { color: #5861d8; background: #eff0ff; }
+.cyan { color: #16899c; background: #e9f8fa; }
+.amber { color: #ad7d16; background: #fff7e4; }
+.green { color: #229870; background: #eaf8f2; }
+.slate { color: #57738e; background: #eef4f8; }
+.expandToggle, .expandSpacer { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 28px; margin-right: 6px; vertical-align: middle; }
+.expandToggle { padding: 0; border: 0; border-radius: 6px; color: #73849e; background: transparent; cursor: pointer; }
+.expandToggle :global(.anticon) { font-size: 10px; transition: transform 160ms ease; }
+.expandToggle:hover { color: #4567d5; background: #edf2ff; }
+.expanded :global(.anticon) { transform: rotate(90deg); }

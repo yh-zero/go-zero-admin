@@ -16,6 +16,7 @@ type (
         DeptId       int64  `json:"dept_id"`
         DeptName     string `json:"dept_name"`
         AvatarFileId int64  `json:"avatar_file_id"`
+        AvatarUrl    string `json:"avatar_url"`
         Gender       int32  `json:"gender"`
         Status       int32  `json:"status"`
         Remark       string `json:"remark"`
@@ -23,6 +24,7 @@ type (
         LastLoginIp  string `json:"last_login_ip"`
         CreatedAt    int64  `json:"created_at"`
         UpdatedAt    int64  `json:"updated_at"`
+        RoleIds      []int64 `json:"role_ids"`
     }
 
     GetUserListReq {
@@ -57,19 +59,21 @@ type (
         Gender       int32  `json:"gender,optional"`
         Status       int32  `json:"status,optional"`
         Remark       string `json:"remark,optional"`
+        RoleIds      []int64 `json:"role_ids,optional"`
     }
 
     UpdateUserReq {
         Id           int64  `path:"id"`
-        Nickname     string `json:"nickname,optional"`
-        RealName     string `json:"real_name,optional"`
-        Email        string `json:"email,optional"`
-        Phone        string `json:"phone,optional"`
-        DeptId       int64  `json:"dept_id,optional"`
-        AvatarFileId int64  `json:"avatar_file_id,optional"`
-        Gender       int32  `json:"gender,optional"`
-        Status       int32  `json:"status,optional"`
-        Remark       string `json:"remark,optional"`
+        Nickname     *string `json:"nickname,optional"`
+        RealName     *string `json:"real_name,optional"`
+        Email        *string `json:"email,optional"`
+        Phone        *string `json:"phone,optional"`
+        DeptId       *int64  `json:"dept_id,optional"`
+        AvatarFileId *int64  `json:"avatar_file_id,optional"`
+        Gender       *int32  `json:"gender,optional"`
+        Status       *int32  `json:"status,optional"`
+        Remark       *string `json:"remark,optional"`
+        RoleIds      []int64 `json:"role_ids,optional"`
     }
 
     DeleteUserReq {
@@ -99,17 +103,17 @@ service admin {
 	get /:id (GetUserReq) returns (GetUserResp)
 
 	@handler createUser
-	post /create (CreateUserReq)
+	post /create (CreateUserReq) returns (EmptyResp)
 
 	@handler updateUser
-	put /:id (UpdateUserReq)
+	put /:id (UpdateUserReq) returns (EmptyResp)
 
 	@handler deleteUser
-	delete /:id (DeleteUserReq)
+	delete /:id (DeleteUserReq) returns (EmptyResp)
 
 	@handler resetPassword
-	post /:id/password (ResetPasswordReq)
+	post /:id/password (ResetPasswordReq) returns (EmptyResp)
 
 	@handler changePassword
-	post /password/change (ChangePasswordReq)
+	post /password/change (ChangePasswordReq) returns (EmptyResp)
 }

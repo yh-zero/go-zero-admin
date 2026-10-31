@@ -14,6 +14,8 @@ type (
         Email     string `json:"email"`
         Phone     string `json:"phone"`
         AvatarUrl string `json:"avatar_url"`
+        AvatarFileId int64 `json:"avatar_file_id"`
+        IsSuperAdmin bool `json:"is_super_admin"`
         Gender    int32  `json:"gender"`
         DeptName  string `json:"dept_name"`
     }
@@ -22,12 +24,12 @@ type (
     GetProfileResp { User *ProfileInfo `json:"user"` }
 
     UpdateProfileReq {
-        Nickname  string `json:"nickname,optional"`
-        RealName  string `json:"real_name,optional"`
-        Email     string `json:"email,optional"`
-        Phone     string `json:"phone,optional"`
-        AvatarUrl string `json:"avatar_url,optional"`
-        Gender    int32  `json:"gender,optional"`
+        Nickname  *string `json:"nickname,optional"`
+        RealName  *string `json:"real_name,optional"`
+        Email     *string `json:"email,optional"`
+        Phone     *string `json:"phone,optional"`
+        AvatarFileId *int64 `json:"avatar_file_id,optional"`
+        Gender    *int32  `json:"gender,optional"`
     }
 )
 
@@ -40,6 +42,6 @@ service admin {
 	get / (GetProfileReq) returns (GetProfileResp)
 
 	@handler updateProfile
-	put / (UpdateProfileReq)
+	put / (UpdateProfileReq) returns (EmptyResp)
 
 }

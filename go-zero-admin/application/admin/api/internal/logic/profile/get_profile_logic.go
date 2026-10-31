@@ -22,8 +22,7 @@ func NewGetProfileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetPro
 }
 
 func (l *GetProfileLogic) GetProfile(req *types.GetProfileReq) (resp *types.GetProfileResp, err error) {
-	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
-	actor := &adminpb.Actor{UserId: userID}
+	actor := middleware.ActorFromContext(l.ctx)
 	rpcResp, err := l.svcCtx.ProfileRpc.GetProfile(l.ctx, &adminpb.GetProfileRequest{Actor: actor})
 	if err != nil {
 		return nil, err
@@ -32,5 +31,6 @@ func (l *GetProfileLogic) GetProfile(req *types.GetProfileReq) (resp *types.GetP
 	return &types.GetProfileResp{User: &types.ProfileInfo{
 		Id: u.Id, Username: u.Username, Nickname: u.Nickname, RealName: u.RealName,
 		Email: u.Email, Phone: u.Phone, AvatarUrl: u.AvatarUrl, Gender: u.Gender, DeptName: u.DeptName,
+		AvatarFileId: u.AvatarFileId, IsSuperAdmin: u.IsSuperAdmin,
 	}}, nil
 }

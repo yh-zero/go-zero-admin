@@ -1,6 +1,12 @@
 Name: admin-rpc
 ListenOn: 0.0.0.0:6001
 
+FileRpc:
+  Endpoints:
+    - file-rpc:6003
+  NonBlock: true
+  Timeout: 1500
+
 Mysql:
   DataSource: root:123456@tcp(mysql:3306)/gozero_admin?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai
 

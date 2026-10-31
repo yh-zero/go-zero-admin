@@ -21,7 +21,7 @@ func NewCreateMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 	return &CreateMenuLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *CreateMenuLogic) CreateMenu(req *types.CreateMenuReq) error {
+func (l *CreateMenuLogic) CreateMenu(req *types.CreateMenuReq) (*types.EmptyResp, error) {
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	actor := &adminpb.Actor{UserId: userID}
 	_, err := l.svcCtx.MenuRpc.CreateMenu(l.ctx, &adminpb.CreateMenuRequest{
@@ -29,5 +29,5 @@ func (l *CreateMenuLogic) CreateMenu(req *types.CreateMenuReq) error {
 		Path: req.Path, Component: req.Component, PermCode: req.PermCode, Icon: req.Icon,
 		Sort: req.Sort, Visible: req.Visible, Status: req.Status,
 	})
-	return err
+	return &types.EmptyResp{}, err
 }
