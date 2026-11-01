@@ -6,6 +6,7 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
 	"go-zero-admin/pkg/xerr"
 )
@@ -21,13 +22,19 @@ func NewCreateMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 }
 
 func (l *CreateMenuLogic) CreateMenu(in *adminpb.CreateMenuRequest) (*adminpb.NoDataResponse, error) {
+	// 保留原有负数父 ID 写入失败的语义，避免无符号转换后插入极大值。
+	if in.ParentId < 0 {
+		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	}
 	visible := int64(0)
 	if in.Visible {
 		visible = 1
 	}
-	_, err := l.svcCtx.DB.ExecCtx(l.ctx,
-		"INSERT INTO sys_menu (parent_id, title, name, type, path, component, perm_code, icon, sort, visible, status) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-		in.ParentId, in.Title, in.Name, in.Type, in.Path, in.Component, in.PermCode, in.Icon, in.Sort, visible, in.Status)
+	err := l.svcCtx.SysMenuModel.Create(l.ctx, &model.SysMenu{
+		ParentId: uint64(in.ParentId), Title: in.Title, Name: in.Name, Type: int64(in.Type),
+		Path: in.Path, Component: in.Component, PermCode: in.PermCode, Icon: in.Icon,
+		Sort: int64(in.Sort), Visible: visible, Status: int64(in.Status),
+	})
 	if err != nil {
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)
 	}

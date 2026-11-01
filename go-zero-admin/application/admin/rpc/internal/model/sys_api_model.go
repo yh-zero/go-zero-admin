@@ -17,6 +17,7 @@ type (
 	// and implement the added methods in customSysApiModel.
 	SysApiModel interface {
 		sysApiModel
+		DeleteWithCache(ctx context.Context, id int64) error
 		// ListApiPage 分页查接口
 		ListApiPage(ctx context.Context, f ApiListFilter, page, pageSize int64) ([]*ApiRow, int64, error)
 		SyncRoutes(ctx context.Context, routes []ApiRouteInput) (int64, int64, error)
@@ -94,6 +95,34 @@ func NewSysApiModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) 
 	return &customSysApiModel{
 		defaultSysApiModel: newSysApiModel(conn, c, opts...),
 	}
+}
+
+func (m *customSysApiModel) DeleteWithCache(ctx context.Context, id int64) error {
+	var row struct {
+		Method string `db:"method"`
+		Path   string `db:"path"`
+	}
+	found := false
+	err := m.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
+		err := session.QueryRowCtx(ctx, &row, "SELECT method,path FROM sys_api WHERE id=? FOR UPDATE", id)
+		if errors.Is(err, sqlx.ErrNotFound) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		found = true
+		_, err = session.ExecCtx(ctx, "DELETE FROM sys_api WHERE id=?", id)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	keys := []string{fmt.Sprintf("%s%d", cacheGozeroAdminNewSysApiIdPrefix, id)}
+	if found {
+		keys = append(keys, fmt.Sprintf("%s%s:%s", cacheGozeroAdminNewSysApiMethodPathPrefix, row.Method, row.Path))
+	}
+	return m.DelCacheCtx(ctx, keys...)
 }
 
 func (m *customSysApiModel) ListApiPage(ctx context.Context, f ApiListFilter, page, pageSize int64) ([]*ApiRow, int64, error) {

@@ -28,7 +28,10 @@ func (l *CreateDeptLogic) CreateDept(in *adminpb.CreateDeptRequest) (*adminpb.No
 	if status == 0 {
 		status = 1
 	}
-	err := l.svcCtx.SysDeptModel.CreateDepartment(l.ctx, &model.DeptRow{ParentId: in.ParentId, Name: in.Name, Leader: in.Leader, Phone: in.Phone, Email: in.Email, Sort: in.Sort, Status: status})
+	err := l.svcCtx.SysDeptModel.CreateDepartment(l.ctx, &model.DeptRow{
+		ParentId: in.ParentId, Name: in.Name, Leader: in.Leader, LeaderUserId: in.LeaderUserId,
+		Phone: in.Phone, Email: in.Email, Sort: in.Sort, Status: status,
+	}, model.UserActor{UserId: in.GetActor().GetUserId(), DeptId: in.GetActor().GetDeptId()})
 	if err != nil {
 		return nil, deptMutationError(err)
 	}
@@ -36,6 +39,9 @@ func (l *CreateDeptLogic) CreateDept(in *adminpb.CreateDeptRequest) (*adminpb.No
 	return &adminpb.NoDataResponse{}, nil
 }
 func deptMutationError(err error) error {
+	if errors.Is(err, model.ErrDataScopeDenied) {
+		return xerr.NewErrCode(xerr.PERMISSION_DENIED)
+	}
 	if errors.Is(err, model.ErrInvalidMutation) {
 		return xerr.NewErrCodeMsg(xerr.REQUEST_PARAM_ERROR, err.Error())
 	}

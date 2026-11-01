@@ -24,6 +24,9 @@ func NewGetCaptchaLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetCap
 
 // GetCaptcha 生成一次性图片验证码。
 func (l *GetCaptchaLogic) GetCaptcha(in *adminpb.GetCaptchaRequest) (*adminpb.GetCaptchaResponse, error) {
+	if !l.svcCtx.Config.Captcha.Enabled {
+		return &adminpb.GetCaptchaResponse{Captcha: &adminpb.CaptchaInfo{Enabled: false}}, nil
+	}
 	// 生成 4 位数字验证码
 	code, err := randomDigits(4)
 	if err != nil {
@@ -55,6 +58,7 @@ func (l *GetCaptchaLogic) GetCaptcha(in *adminpb.GetCaptchaRequest) (*adminpb.Ge
 
 	return &adminpb.GetCaptchaResponse{
 		Captcha: &adminpb.CaptchaInfo{
+			Enabled:     true,
 			CaptchaID:   id,
 			ImageBase64: imageBase64,
 			ExpiresAt:   time.Now().Unix() + int64(expire),

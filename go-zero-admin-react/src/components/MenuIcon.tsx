@@ -1,7 +1,7 @@
 import {
-  ApiOutlined, AppstoreOutlined, ApartmentOutlined, AuditOutlined, BookOutlined,
+  ApiOutlined, AppstoreOutlined, ApartmentOutlined, AuditOutlined, BookOutlined, CrownOutlined,
   DashboardOutlined, FileTextOutlined, FolderOpenOutlined, FolderOutlined,
-  IdcardOutlined, MenuOutlined, RightOutlined, SafetyCertificateOutlined, SettingOutlined,
+  IdcardOutlined, MenuOutlined, MessageOutlined, RightOutlined, SafetyCertificateOutlined, SettingOutlined,
   TeamOutlined, UserOutlined,
 } from '@ant-design/icons';
 import type { MouseEvent } from 'react';
@@ -22,6 +22,10 @@ const icons: Record<string, IconEntry> = {
   audit: { icon: AuditOutlined, tone: 'slate' },
   profile: { icon: IdcardOutlined, tone: 'violet' },
   system: { icon: SettingOutlined, tone: 'indigo' },
+  app: { icon: AppstoreOutlined, tone: 'cyan' },
+  appuser: { icon: TeamOutlined, tone: 'blue' },
+  membership: { icon: CrownOutlined, tone: 'amber' },
+  message: { icon: MessageOutlined, tone: 'cyan' },
 };
 const aliases: Record<string, string> = {
   home: 'dashboard', users: 'user', safety: 'role', safetycertificate: 'role',

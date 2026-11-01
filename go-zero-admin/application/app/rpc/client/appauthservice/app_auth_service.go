@@ -14,24 +14,30 @@ import (
 )
 
 type (
-	AppAccessRequest        = apppb.AppAccessRequest
-	AppAccessResponse       = apppb.AppAccessResponse
-	AppAuthOptionsRequest   = apppb.AppAuthOptionsRequest
-	AppAuthOptionsResponse  = apppb.AppAuthOptionsResponse
-	AppLoginRequest         = apppb.AppLoginRequest
-	AppLoginResponse        = apppb.AppLoginResponse
-	AppLogoutRequest        = apppb.AppLogoutRequest
-	AppProfileRequest       = apppb.AppProfileRequest
-	AppProfileResponse      = apppb.AppProfileResponse
-	AppRefreshRequest       = apppb.AppRefreshRequest
-	AppRefreshResponse      = apppb.AppRefreshResponse
-	AppRegisterRequest      = apppb.AppRegisterRequest
-	AppSendEmailCodeRequest = apppb.AppSendEmailCodeRequest
-	AppUserInfo             = apppb.AppUserInfo
-	GetMyMembershipRequest  = apppb.GetMyMembershipRequest
-	GetMyMembershipResponse = apppb.GetMyMembershipResponse
-	MembershipGrantInfo     = apppb.MembershipGrantInfo
-	NoDataResponse          = apppb.NoDataResponse
+	AppAccessRequest         = apppb.AppAccessRequest
+	AppAccessResponse        = apppb.AppAccessResponse
+	AppAuthOptionsRequest    = apppb.AppAuthOptionsRequest
+	AppAuthOptionsResponse   = apppb.AppAuthOptionsResponse
+	AppContentListRequest    = apppb.AppContentListRequest
+	AppFeedbackInfo          = apppb.AppFeedbackInfo
+	AppFeedbackListResponse  = apppb.AppFeedbackListResponse
+	AppLoginRequest          = apppb.AppLoginRequest
+	AppLoginResponse         = apppb.AppLoginResponse
+	AppLogoutRequest         = apppb.AppLogoutRequest
+	AppProfileRequest        = apppb.AppProfileRequest
+	AppProfileResponse       = apppb.AppProfileResponse
+	AppRefreshRequest        = apppb.AppRefreshRequest
+	AppRefreshResponse       = apppb.AppRefreshResponse
+	AppRegisterRequest       = apppb.AppRegisterRequest
+	AppSendEmailCodeRequest  = apppb.AppSendEmailCodeRequest
+	AppSubmitFeedbackRequest = apppb.AppSubmitFeedbackRequest
+	AppUserInfo              = apppb.AppUserInfo
+	GetMyMembershipRequest   = apppb.GetMyMembershipRequest
+	GetMyMembershipResponse  = apppb.GetMyMembershipResponse
+	MembershipGrantInfo      = apppb.MembershipGrantInfo
+	NoDataResponse           = apppb.NoDataResponse
+	PageRequest              = apppb.PageRequest
+	PageResponse             = apppb.PageResponse
 
 	AppAuthService interface {
 		AppRegister(ctx context.Context, in *AppRegisterRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
@@ -44,6 +50,8 @@ type (
 		GetAuthOptions(ctx context.Context, in *AppAuthOptionsRequest, opts ...grpc.CallOption) (*AppAuthOptionsResponse, error)
 		SendEmailCode(ctx context.Context, in *AppSendEmailCodeRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		GetMyMembership(ctx context.Context, in *GetMyMembershipRequest, opts ...grpc.CallOption) (*GetMyMembershipResponse, error)
+		SubmitAppFeedback(ctx context.Context, in *AppSubmitFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		ListMyFeedback(ctx context.Context, in *AppContentListRequest, opts ...grpc.CallOption) (*AppFeedbackListResponse, error)
 	}
 
 	defaultAppAuthService struct {
@@ -105,4 +113,14 @@ func (m *defaultAppAuthService) SendEmailCode(ctx context.Context, in *AppSendEm
 func (m *defaultAppAuthService) GetMyMembership(ctx context.Context, in *GetMyMembershipRequest, opts ...grpc.CallOption) (*GetMyMembershipResponse, error) {
 	client := apppb.NewAppAuthServiceClient(m.cli.Conn())
 	return client.GetMyMembership(ctx, in, opts...)
+}
+
+func (m *defaultAppAuthService) SubmitAppFeedback(ctx context.Context, in *AppSubmitFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := apppb.NewAppAuthServiceClient(m.cli.Conn())
+	return client.SubmitAppFeedback(ctx, in, opts...)
+}
+
+func (m *defaultAppAuthService) ListMyFeedback(ctx context.Context, in *AppContentListRequest, opts ...grpc.CallOption) (*AppFeedbackListResponse, error) {
+	client := apppb.NewAppAuthServiceClient(m.cli.Conn())
+	return client.ListMyFeedback(ctx, in, opts...)
 }

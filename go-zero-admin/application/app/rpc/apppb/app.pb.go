@@ -1201,9 +1201,149 @@ func (x *AppAdminListRequest) GetAccount() string {
 	return ""
 }
 
+type AppAdminUserInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Account       string                 `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	IdentityKind  string                 `protobuf:"bytes,3,opt,name=identity_kind,json=identityKind,proto3" json:"identity_kind,omitempty"`
+	Nickname      string                 `protobuf:"bytes,4,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	AvatarFileId  int64                  `protobuf:"varint,5,opt,name=avatar_file_id,json=avatarFileId,proto3" json:"avatar_file_id,omitempty"`
+	AvatarUrl     string                 `protobuf:"bytes,6,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	Status        string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	ReviewReason  string                 `protobuf:"bytes,8,opt,name=review_reason,json=reviewReason,proto3" json:"review_reason,omitempty"`
+	EmailVerified bool                   `protobuf:"varint,9,opt,name=email_verified,json=emailVerified,proto3" json:"email_verified,omitempty"`
+	PhoneVerified bool                   `protobuf:"varint,10,opt,name=phone_verified,json=phoneVerified,proto3" json:"phone_verified,omitempty"`
+	LastLoginAt   int64                  `protobuf:"varint,11,opt,name=last_login_at,json=lastLoginAt,proto3" json:"last_login_at,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Remark        string                 `protobuf:"bytes,13,opt,name=remark,proto3" json:"remark,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppAdminUserInfo) Reset() {
+	*x = AppAdminUserInfo{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppAdminUserInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppAdminUserInfo) ProtoMessage() {}
+
+func (x *AppAdminUserInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppAdminUserInfo.ProtoReflect.Descriptor instead.
+func (*AppAdminUserInfo) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *AppAdminUserInfo) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *AppAdminUserInfo) GetAccount() string {
+	if x != nil {
+		return x.Account
+	}
+	return ""
+}
+
+func (x *AppAdminUserInfo) GetIdentityKind() string {
+	if x != nil {
+		return x.IdentityKind
+	}
+	return ""
+}
+
+func (x *AppAdminUserInfo) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+func (x *AppAdminUserInfo) GetAvatarFileId() int64 {
+	if x != nil {
+		return x.AvatarFileId
+	}
+	return 0
+}
+
+func (x *AppAdminUserInfo) GetAvatarUrl() string {
+	if x != nil {
+		return x.AvatarUrl
+	}
+	return ""
+}
+
+func (x *AppAdminUserInfo) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *AppAdminUserInfo) GetReviewReason() string {
+	if x != nil {
+		return x.ReviewReason
+	}
+	return ""
+}
+
+func (x *AppAdminUserInfo) GetEmailVerified() bool {
+	if x != nil {
+		return x.EmailVerified
+	}
+	return false
+}
+
+func (x *AppAdminUserInfo) GetPhoneVerified() bool {
+	if x != nil {
+		return x.PhoneVerified
+	}
+	return false
+}
+
+func (x *AppAdminUserInfo) GetLastLoginAt() int64 {
+	if x != nil {
+		return x.LastLoginAt
+	}
+	return 0
+}
+
+func (x *AppAdminUserInfo) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *AppAdminUserInfo) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
 type AppAdminListResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	List          []*AppUserInfo         `protobuf:"bytes,1,rep,name=List,proto3" json:"List,omitempty"`
+	List          []*AppAdminUserInfo    `protobuf:"bytes,1,rep,name=List,proto3" json:"List,omitempty"`
 	Page          *PageResponse          `protobuf:"bytes,2,opt,name=Page,proto3" json:"Page,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1211,7 +1351,7 @@ type AppAdminListResponse struct {
 
 func (x *AppAdminListResponse) Reset() {
 	*x = AppAdminListResponse{}
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[19]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1223,7 +1363,7 @@ func (x *AppAdminListResponse) String() string {
 func (*AppAdminListResponse) ProtoMessage() {}
 
 func (x *AppAdminListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[19]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1236,10 +1376,10 @@ func (x *AppAdminListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AppAdminListResponse.ProtoReflect.Descriptor instead.
 func (*AppAdminListResponse) Descriptor() ([]byte, []int) {
-	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{19}
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{20}
 }
 
-func (x *AppAdminListResponse) GetList() []*AppUserInfo {
+func (x *AppAdminListResponse) GetList() []*AppAdminUserInfo {
 	if x != nil {
 		return x.List
 	}
@@ -1251,6 +1391,170 @@ func (x *AppAdminListResponse) GetPage() *PageResponse {
 		return x.Page
 	}
 	return nil
+}
+
+type AppAdminUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppAdminUserRequest) Reset() {
+	*x = AppAdminUserRequest{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppAdminUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppAdminUserRequest) ProtoMessage() {}
+
+func (x *AppAdminUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppAdminUserRequest.ProtoReflect.Descriptor instead.
+func (*AppAdminUserRequest) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *AppAdminUserRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *AppAdminUserRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type AppAdminUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          *AppAdminUserInfo      `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppAdminUserResponse) Reset() {
+	*x = AppAdminUserResponse{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppAdminUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppAdminUserResponse) ProtoMessage() {}
+
+func (x *AppAdminUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppAdminUserResponse.ProtoReflect.Descriptor instead.
+func (*AppAdminUserResponse) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *AppAdminUserResponse) GetUser() *AppAdminUserInfo {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
+type AppUpdateUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Nickname      *string                `protobuf:"bytes,3,opt,name=nickname,proto3,oneof" json:"nickname,omitempty"`
+	Remark        *string                `protobuf:"bytes,4,opt,name=remark,proto3,oneof" json:"remark,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppUpdateUserRequest) Reset() {
+	*x = AppUpdateUserRequest{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppUpdateUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppUpdateUserRequest) ProtoMessage() {}
+
+func (x *AppUpdateUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppUpdateUserRequest.ProtoReflect.Descriptor instead.
+func (*AppUpdateUserRequest) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *AppUpdateUserRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *AppUpdateUserRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *AppUpdateUserRequest) GetNickname() string {
+	if x != nil && x.Nickname != nil {
+		return *x.Nickname
+	}
+	return ""
+}
+
+func (x *AppUpdateUserRequest) GetRemark() string {
+	if x != nil && x.Remark != nil {
+		return *x.Remark
+	}
+	return ""
 }
 
 type AppReviewRequest struct {
@@ -1265,7 +1569,7 @@ type AppReviewRequest struct {
 
 func (x *AppReviewRequest) Reset() {
 	*x = AppReviewRequest{}
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[20]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1277,7 +1581,7 @@ func (x *AppReviewRequest) String() string {
 func (*AppReviewRequest) ProtoMessage() {}
 
 func (x *AppReviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[20]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1290,7 +1594,7 @@ func (x *AppReviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AppReviewRequest.ProtoReflect.Descriptor instead.
 func (*AppReviewRequest) Descriptor() ([]byte, []int) {
-	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{20}
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *AppReviewRequest) GetActor() *Actor {
@@ -1332,7 +1636,7 @@ type AppSetAvatarRequest struct {
 
 func (x *AppSetAvatarRequest) Reset() {
 	*x = AppSetAvatarRequest{}
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[21]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1344,7 +1648,7 @@ func (x *AppSetAvatarRequest) String() string {
 func (*AppSetAvatarRequest) ProtoMessage() {}
 
 func (x *AppSetAvatarRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[21]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1357,7 +1661,7 @@ func (x *AppSetAvatarRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AppSetAvatarRequest.ProtoReflect.Descriptor instead.
 func (*AppSetAvatarRequest) Descriptor() ([]byte, []int) {
-	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{21}
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *AppSetAvatarRequest) GetActor() *Actor {
@@ -1392,7 +1696,7 @@ type AppAdminRevokeRequest struct {
 
 func (x *AppAdminRevokeRequest) Reset() {
 	*x = AppAdminRevokeRequest{}
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[22]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1404,7 +1708,7 @@ func (x *AppAdminRevokeRequest) String() string {
 func (*AppAdminRevokeRequest) ProtoMessage() {}
 
 func (x *AppAdminRevokeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[22]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1417,7 +1721,7 @@ func (x *AppAdminRevokeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AppAdminRevokeRequest.ProtoReflect.Descriptor instead.
 func (*AppAdminRevokeRequest) Descriptor() ([]byte, []int) {
-	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{22}
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AppAdminRevokeRequest) GetActor() *Actor {
@@ -1439,6 +1743,194 @@ func (x *AppAdminRevokeRequest) GetUserId() int64 {
 		return x.UserId
 	}
 	return 0
+}
+
+type ListAppSessionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAppSessionsRequest) Reset() {
+	*x = ListAppSessionsRequest{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAppSessionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAppSessionsRequest) ProtoMessage() {}
+
+func (x *ListAppSessionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAppSessionsRequest.ProtoReflect.Descriptor instead.
+func (*ListAppSessionsRequest) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *ListAppSessionsRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *ListAppSessionsRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type AppDeviceSession struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	DeviceName    string                 `protobuf:"bytes,2,opt,name=device_name,json=deviceName,proto3" json:"device_name,omitempty"`
+	Ip            string                 `protobuf:"bytes,3,opt,name=ip,proto3" json:"ip,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,4,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	LastSeenAt    int64                  `protobuf:"varint,6,opt,name=last_seen_at,json=lastSeenAt,proto3" json:"last_seen_at,omitempty"`
+	ExpiresAt     int64                  `protobuf:"varint,7,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppDeviceSession) Reset() {
+	*x = AppDeviceSession{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppDeviceSession) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppDeviceSession) ProtoMessage() {}
+
+func (x *AppDeviceSession) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppDeviceSession.ProtoReflect.Descriptor instead.
+func (*AppDeviceSession) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *AppDeviceSession) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AppDeviceSession) GetDeviceName() string {
+	if x != nil {
+		return x.DeviceName
+	}
+	return ""
+}
+
+func (x *AppDeviceSession) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *AppDeviceSession) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *AppDeviceSession) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *AppDeviceSession) GetLastSeenAt() int64 {
+	if x != nil {
+		return x.LastSeenAt
+	}
+	return 0
+}
+
+func (x *AppDeviceSession) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+type ListAppSessionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*AppDeviceSession    `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAppSessionsResponse) Reset() {
+	*x = ListAppSessionsResponse{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAppSessionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAppSessionsResponse) ProtoMessage() {}
+
+func (x *ListAppSessionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAppSessionsResponse.ProtoReflect.Descriptor instead.
+func (*ListAppSessionsResponse) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *ListAppSessionsResponse) GetList() []*AppDeviceSession {
+	if x != nil {
+		return x.List
+	}
+	return nil
 }
 
 // ============================================
@@ -1464,7 +1956,7 @@ type MembershipGrantInfo struct {
 
 func (x *MembershipGrantInfo) Reset() {
 	*x = MembershipGrantInfo{}
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[23]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1476,7 +1968,7 @@ func (x *MembershipGrantInfo) String() string {
 func (*MembershipGrantInfo) ProtoMessage() {}
 
 func (x *MembershipGrantInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[23]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1489,7 +1981,7 @@ func (x *MembershipGrantInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MembershipGrantInfo.ProtoReflect.Descriptor instead.
 func (*MembershipGrantInfo) Descriptor() ([]byte, []int) {
-	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{23}
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *MembershipGrantInfo) GetId() int64 {
@@ -1586,7 +2078,7 @@ type GetMyMembershipRequest struct {
 
 func (x *GetMyMembershipRequest) Reset() {
 	*x = GetMyMembershipRequest{}
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[24]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1598,7 +2090,7 @@ func (x *GetMyMembershipRequest) String() string {
 func (*GetMyMembershipRequest) ProtoMessage() {}
 
 func (x *GetMyMembershipRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[24]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1611,7 +2103,7 @@ func (x *GetMyMembershipRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMyMembershipRequest.ProtoReflect.Descriptor instead.
 func (*GetMyMembershipRequest) Descriptor() ([]byte, []int) {
-	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{24}
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetMyMembershipRequest) GetAccessToken() string {
@@ -1630,7 +2122,7 @@ type GetMyMembershipResponse struct {
 
 func (x *GetMyMembershipResponse) Reset() {
 	*x = GetMyMembershipResponse{}
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[25]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1642,7 +2134,7 @@ func (x *GetMyMembershipResponse) String() string {
 func (*GetMyMembershipResponse) ProtoMessage() {}
 
 func (x *GetMyMembershipResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[25]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1655,7 +2147,7 @@ func (x *GetMyMembershipResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMyMembershipResponse.ProtoReflect.Descriptor instead.
 func (*GetMyMembershipResponse) Descriptor() ([]byte, []int) {
-	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{25}
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetMyMembershipResponse) GetList() []*MembershipGrantInfo {
@@ -1679,7 +2171,7 @@ type ListMembershipRequest struct {
 
 func (x *ListMembershipRequest) Reset() {
 	*x = ListMembershipRequest{}
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[26]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1691,7 +2183,7 @@ func (x *ListMembershipRequest) String() string {
 func (*ListMembershipRequest) ProtoMessage() {}
 
 func (x *ListMembershipRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[26]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1704,7 +2196,7 @@ func (x *ListMembershipRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMembershipRequest.ProtoReflect.Descriptor instead.
 func (*ListMembershipRequest) Descriptor() ([]byte, []int) {
-	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{26}
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListMembershipRequest) GetActor() *Actor {
@@ -1752,7 +2244,7 @@ type ListMembershipResponse struct {
 
 func (x *ListMembershipResponse) Reset() {
 	*x = ListMembershipResponse{}
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[27]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1764,7 +2256,7 @@ func (x *ListMembershipResponse) String() string {
 func (*ListMembershipResponse) ProtoMessage() {}
 
 func (x *ListMembershipResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[27]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1777,7 +2269,7 @@ func (x *ListMembershipResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMembershipResponse.ProtoReflect.Descriptor instead.
 func (*ListMembershipResponse) Descriptor() ([]byte, []int) {
-	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{27}
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListMembershipResponse) GetList() []*MembershipGrantInfo {
@@ -1808,7 +2300,7 @@ type GrantMembershipRequest struct {
 
 func (x *GrantMembershipRequest) Reset() {
 	*x = GrantMembershipRequest{}
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[28]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1820,7 +2312,7 @@ func (x *GrantMembershipRequest) String() string {
 func (*GrantMembershipRequest) ProtoMessage() {}
 
 func (x *GrantMembershipRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[28]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1833,7 +2325,7 @@ func (x *GrantMembershipRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantMembershipRequest.ProtoReflect.Descriptor instead.
 func (*GrantMembershipRequest) Descriptor() ([]byte, []int) {
-	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{28}
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GrantMembershipRequest) GetActor() *Actor {
@@ -1888,7 +2380,7 @@ type RevokeMembershipRequest struct {
 
 func (x *RevokeMembershipRequest) Reset() {
 	*x = RevokeMembershipRequest{}
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[29]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1900,7 +2392,7 @@ func (x *RevokeMembershipRequest) String() string {
 func (*RevokeMembershipRequest) ProtoMessage() {}
 
 func (x *RevokeMembershipRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_app_rpc_desc_app_proto_msgTypes[29]
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1913,7 +2405,7 @@ func (x *RevokeMembershipRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeMembershipRequest.ProtoReflect.Descriptor instead.
 func (*RevokeMembershipRequest) Descriptor() ([]byte, []int) {
-	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{29}
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *RevokeMembershipRequest) GetActor() *Actor {
@@ -1928,6 +2420,409 @@ func (x *RevokeMembershipRequest) GetGrantID() int64 {
 		return x.GrantID
 	}
 	return 0
+}
+
+// ============================================
+// Services
+// ============================================
+type AppContentListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	Page          *PageRequest           `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppContentListRequest) Reset() {
+	*x = AppContentListRequest{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppContentListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppContentListRequest) ProtoMessage() {}
+
+func (x *AppContentListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppContentListRequest.ProtoReflect.Descriptor instead.
+func (*AppContentListRequest) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *AppContentListRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *AppContentListRequest) GetPage() *PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type AppFeedbackInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Account       string                 `protobuf:"bytes,3,opt,name=account,proto3" json:"account,omitempty"`
+	Nickname      string                 `protobuf:"bytes,4,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	Content       string                 `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`
+	Reply         string                 `protobuf:"bytes,6,opt,name=reply,proto3" json:"reply,omitempty"`
+	Status        string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppFeedbackInfo) Reset() {
+	*x = AppFeedbackInfo{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppFeedbackInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppFeedbackInfo) ProtoMessage() {}
+
+func (x *AppFeedbackInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppFeedbackInfo.ProtoReflect.Descriptor instead.
+func (*AppFeedbackInfo) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *AppFeedbackInfo) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *AppFeedbackInfo) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *AppFeedbackInfo) GetAccount() string {
+	if x != nil {
+		return x.Account
+	}
+	return ""
+}
+
+func (x *AppFeedbackInfo) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+func (x *AppFeedbackInfo) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *AppFeedbackInfo) GetReply() string {
+	if x != nil {
+		return x.Reply
+	}
+	return ""
+}
+
+func (x *AppFeedbackInfo) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *AppFeedbackInfo) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *AppFeedbackInfo) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+type AppFeedbackListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	Page          *PageRequest           `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	UserId        int64                  `protobuf:"varint,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppFeedbackListRequest) Reset() {
+	*x = AppFeedbackListRequest{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppFeedbackListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppFeedbackListRequest) ProtoMessage() {}
+
+func (x *AppFeedbackListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppFeedbackListRequest.ProtoReflect.Descriptor instead.
+func (*AppFeedbackListRequest) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *AppFeedbackListRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *AppFeedbackListRequest) GetPage() *PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+func (x *AppFeedbackListRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *AppFeedbackListRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type AppFeedbackListResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*AppFeedbackInfo     `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	Page          *PageResponse          `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppFeedbackListResponse) Reset() {
+	*x = AppFeedbackListResponse{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppFeedbackListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppFeedbackListResponse) ProtoMessage() {}
+
+func (x *AppFeedbackListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppFeedbackListResponse.ProtoReflect.Descriptor instead.
+func (*AppFeedbackListResponse) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *AppFeedbackListResponse) GetList() []*AppFeedbackInfo {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+func (x *AppFeedbackListResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type AppUpdateFeedbackRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	FeedbackId    int64                  `protobuf:"varint,2,opt,name=feedback_id,json=feedbackId,proto3" json:"feedback_id,omitempty"`
+	Reply         *string                `protobuf:"bytes,3,opt,name=reply,proto3,oneof" json:"reply,omitempty"`
+	Status        *string                `protobuf:"bytes,4,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppUpdateFeedbackRequest) Reset() {
+	*x = AppUpdateFeedbackRequest{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppUpdateFeedbackRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppUpdateFeedbackRequest) ProtoMessage() {}
+
+func (x *AppUpdateFeedbackRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppUpdateFeedbackRequest.ProtoReflect.Descriptor instead.
+func (*AppUpdateFeedbackRequest) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *AppUpdateFeedbackRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *AppUpdateFeedbackRequest) GetFeedbackId() int64 {
+	if x != nil {
+		return x.FeedbackId
+	}
+	return 0
+}
+
+func (x *AppUpdateFeedbackRequest) GetReply() string {
+	if x != nil && x.Reply != nil {
+		return *x.Reply
+	}
+	return ""
+}
+
+func (x *AppUpdateFeedbackRequest) GetStatus() string {
+	if x != nil && x.Status != nil {
+		return *x.Status
+	}
+	return ""
+}
+
+type AppSubmitFeedbackRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AppSubmitFeedbackRequest) Reset() {
+	*x = AppSubmitFeedbackRequest{}
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppSubmitFeedbackRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppSubmitFeedbackRequest) ProtoMessage() {}
+
+func (x *AppSubmitFeedbackRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_app_rpc_desc_app_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppSubmitFeedbackRequest.ProtoReflect.Descriptor instead.
+func (*AppSubmitFeedbackRequest) Descriptor() ([]byte, []int) {
+	return file_application_app_rpc_desc_app_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *AppSubmitFeedbackRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *AppSubmitFeedbackRequest) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
 }
 
 var File_application_app_rpc_desc_app_proto protoreflect.FileDescriptor
@@ -2022,10 +2917,39 @@ const file_application_app_rpc_desc_app_proto_rawDesc = "" +
 	"\x05Actor\x18\x01 \x01(\v2\f.apppb.ActorR\x05Actor\x12&\n" +
 	"\x04Page\x18\x02 \x01(\v2\x12.apppb.PageRequestR\x04Page\x12\x16\n" +
 	"\x06Status\x18\x03 \x01(\tR\x06Status\x12\x18\n" +
-	"\aAccount\x18\x04 \x01(\tR\aAccount\"g\n" +
-	"\x14AppAdminListResponse\x12&\n" +
-	"\x04List\x18\x01 \x03(\v2\x12.apppb.AppUserInfoR\x04List\x12'\n" +
-	"\x04Page\x18\x02 \x01(\v2\x13.apppb.PageResponseR\x04Page\"~\n" +
+	"\aAccount\x18\x04 \x01(\tR\aAccount\"\xa8\x03\n" +
+	"\x10AppAdminUserInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x18\n" +
+	"\aaccount\x18\x02 \x01(\tR\aaccount\x12#\n" +
+	"\ridentity_kind\x18\x03 \x01(\tR\fidentityKind\x12\x1a\n" +
+	"\bnickname\x18\x04 \x01(\tR\bnickname\x12$\n" +
+	"\x0eavatar_file_id\x18\x05 \x01(\x03R\favatarFileId\x12\x1d\n" +
+	"\n" +
+	"avatar_url\x18\x06 \x01(\tR\tavatarUrl\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\x12#\n" +
+	"\rreview_reason\x18\b \x01(\tR\freviewReason\x12%\n" +
+	"\x0eemail_verified\x18\t \x01(\bR\remailVerified\x12%\n" +
+	"\x0ephone_verified\x18\n" +
+	" \x01(\bR\rphoneVerified\x12\"\n" +
+	"\rlast_login_at\x18\v \x01(\x03R\vlastLoginAt\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\f \x01(\x03R\tcreatedAt\x12\x16\n" +
+	"\x06remark\x18\r \x01(\tR\x06remark\"l\n" +
+	"\x14AppAdminListResponse\x12+\n" +
+	"\x04List\x18\x01 \x03(\v2\x17.apppb.AppAdminUserInfoR\x04List\x12'\n" +
+	"\x04Page\x18\x02 \x01(\v2\x13.apppb.PageResponseR\x04Page\"R\n" +
+	"\x13AppAdminUserRequest\x12\"\n" +
+	"\x05actor\x18\x01 \x01(\v2\f.apppb.ActorR\x05actor\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"C\n" +
+	"\x14AppAdminUserResponse\x12+\n" +
+	"\x04user\x18\x01 \x01(\v2\x17.apppb.AppAdminUserInfoR\x04user\"\xa9\x01\n" +
+	"\x14AppUpdateUserRequest\x12\"\n" +
+	"\x05actor\x18\x01 \x01(\v2\f.apppb.ActorR\x05actor\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x1f\n" +
+	"\bnickname\x18\x03 \x01(\tH\x00R\bnickname\x88\x01\x01\x12\x1b\n" +
+	"\x06remark\x18\x04 \x01(\tH\x01R\x06remark\x88\x01\x01B\v\n" +
+	"\t_nicknameB\t\n" +
+	"\a_remark\"~\n" +
 	"\x10AppReviewRequest\x12\"\n" +
 	"\x05Actor\x18\x01 \x01(\v2\f.apppb.ActorR\x05Actor\x12\x16\n" +
 	"\x06UserID\x18\x02 \x01(\x03R\x06UserID\x12\x16\n" +
@@ -2038,7 +2962,25 @@ const file_application_app_rpc_desc_app_proto_rawDesc = "" +
 	"\x15AppAdminRevokeRequest\x12\"\n" +
 	"\x05Actor\x18\x01 \x01(\v2\f.apppb.ActorR\x05Actor\x12\x1c\n" +
 	"\tSessionID\x18\x02 \x01(\tR\tSessionID\x12\x17\n" +
-	"\auser_id\x18\x03 \x01(\x03R\x06userId\"\xeb\x02\n" +
+	"\auser_id\x18\x03 \x01(\x03R\x06userId\"U\n" +
+	"\x16ListAppSessionsRequest\x12\"\n" +
+	"\x05actor\x18\x01 \x01(\v2\f.apppb.ActorR\x05actor\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"\xd2\x01\n" +
+	"\x10AppDeviceSession\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
+	"\vdevice_name\x18\x02 \x01(\tR\n" +
+	"deviceName\x12\x0e\n" +
+	"\x02ip\x18\x03 \x01(\tR\x02ip\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x04 \x01(\tR\tuserAgent\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\x03R\tcreatedAt\x12 \n" +
+	"\flast_seen_at\x18\x06 \x01(\x03R\n" +
+	"lastSeenAt\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\a \x01(\x03R\texpiresAt\"F\n" +
+	"\x17ListAppSessionsResponse\x12+\n" +
+	"\x04list\x18\x01 \x03(\v2\x17.apppb.AppDeviceSessionR\x04list\"\xeb\x02\n" +
 	"\x13MembershipGrantInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x16\n" +
 	"\x06UserID\x18\x02 \x01(\x03R\x06UserID\x12\x1a\n" +
@@ -2078,7 +3020,41 @@ const file_application_app_rpc_desc_app_proto_rawDesc = "" +
 	"\rduration_days\x18\x06 \x01(\x03R\fdurationDays\"W\n" +
 	"\x17RevokeMembershipRequest\x12\"\n" +
 	"\x05Actor\x18\x01 \x01(\v2\f.apppb.ActorR\x05Actor\x12\x18\n" +
-	"\aGrantID\x18\x02 \x01(\x03R\aGrantID2\xc4\x05\n" +
+	"\aGrantID\x18\x02 \x01(\x03R\aGrantID\"b\n" +
+	"\x15AppContentListRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12&\n" +
+	"\x04page\x18\x02 \x01(\v2\x12.apppb.PageRequestR\x04page\"\xf6\x01\n" +
+	"\x0fAppFeedbackInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x18\n" +
+	"\aaccount\x18\x03 \x01(\tR\aaccount\x12\x1a\n" +
+	"\bnickname\x18\x04 \x01(\tR\bnickname\x12\x18\n" +
+	"\acontent\x18\x05 \x01(\tR\acontent\x12\x14\n" +
+	"\x05reply\x18\x06 \x01(\tR\x05reply\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\b \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\t \x01(\x03R\tupdatedAt\"\x95\x01\n" +
+	"\x16AppFeedbackListRequest\x12\"\n" +
+	"\x05actor\x18\x01 \x01(\v2\f.apppb.ActorR\x05actor\x12&\n" +
+	"\x04page\x18\x02 \x01(\v2\x12.apppb.PageRequestR\x04page\x12\x17\n" +
+	"\auser_id\x18\x03 \x01(\x03R\x06userId\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\"n\n" +
+	"\x17AppFeedbackListResponse\x12*\n" +
+	"\x04list\x18\x01 \x03(\v2\x16.apppb.AppFeedbackInfoR\x04list\x12'\n" +
+	"\x04page\x18\x02 \x01(\v2\x13.apppb.PageResponseR\x04page\"\xac\x01\n" +
+	"\x18AppUpdateFeedbackRequest\x12\"\n" +
+	"\x05actor\x18\x01 \x01(\v2\f.apppb.ActorR\x05actor\x12\x1f\n" +
+	"\vfeedback_id\x18\x02 \x01(\x03R\n" +
+	"feedbackId\x12\x19\n" +
+	"\x05reply\x18\x03 \x01(\tH\x00R\x05reply\x88\x01\x01\x12\x1b\n" +
+	"\x06status\x18\x04 \x01(\tH\x01R\x06status\x88\x01\x01B\b\n" +
+	"\x06_replyB\t\n" +
+	"\a_status\"W\n" +
+	"\x18AppSubmitFeedbackRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x18\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent2\xe1\x06\n" +
 	"\x0eAppAuthService\x12?\n" +
 	"\vAppRegister\x12\x19.apppb.AppRegisterRequest\x1a\x15.apppb.NoDataResponse\x12;\n" +
 	"\bAppLogin\x12\x16.apppb.AppLoginRequest\x1a\x17.apppb.AppLoginResponse\x12A\n" +
@@ -2090,15 +3066,23 @@ const file_application_app_rpc_desc_app_proto_rawDesc = "" +
 	"\x0fUpdateMyProfile\x12\x18.apppb.AppProfileRequest\x1a\x19.apppb.AppProfileResponse\x12M\n" +
 	"\x0eGetAuthOptions\x12\x1c.apppb.AppAuthOptionsRequest\x1a\x1d.apppb.AppAuthOptionsResponse\x12F\n" +
 	"\rSendEmailCode\x12\x1e.apppb.AppSendEmailCodeRequest\x1a\x15.apppb.NoDataResponse\x12P\n" +
-	"\x0fGetMyMembership\x12\x1d.apppb.GetMyMembershipRequest\x1a\x1e.apppb.GetMyMembershipResponse2\x8f\x04\n" +
+	"\x0fGetMyMembership\x12\x1d.apppb.GetMyMembershipRequest\x1a\x1e.apppb.GetMyMembershipResponse\x12K\n" +
+	"\x11SubmitAppFeedback\x12\x1f.apppb.AppSubmitFeedbackRequest\x1a\x15.apppb.NoDataResponse\x12N\n" +
+	"\x0eListMyFeedback\x12\x1c.apppb.AppContentListRequest\x1a\x1e.apppb.AppFeedbackListResponse2\x8c\a\n" +
 	"\x0fAppAdminService\x12G\n" +
-	"\fListAppUsers\x12\x1a.apppb.AppAdminListRequest\x1a\x1b.apppb.AppAdminListResponse\x12?\n" +
+	"\fListAppUsers\x12\x1a.apppb.AppAdminListRequest\x1a\x1b.apppb.AppAdminListResponse\x12E\n" +
+	"\n" +
+	"GetAppUser\x12\x1a.apppb.AppAdminUserRequest\x1a\x1b.apppb.AppAdminUserResponse\x12C\n" +
+	"\rUpdateAppUser\x12\x1b.apppb.AppUpdateUserRequest\x1a\x15.apppb.NoDataResponse\x12?\n" +
 	"\rReviewAppUser\x12\x17.apppb.AppReviewRequest\x1a\x15.apppb.NoDataResponse\x12E\n" +
-	"\x10SetAppUserAvatar\x12\x1a.apppb.AppSetAvatarRequest\x1a\x15.apppb.NoDataResponse\x12G\n" +
+	"\x10SetAppUserAvatar\x12\x1a.apppb.AppSetAvatarRequest\x1a\x15.apppb.NoDataResponse\x12P\n" +
+	"\x0fListAppSessions\x12\x1d.apppb.ListAppSessionsRequest\x1a\x1e.apppb.ListAppSessionsResponse\x12G\n" +
 	"\x10RevokeAppSession\x12\x1c.apppb.AppAdminRevokeRequest\x1a\x15.apppb.NoDataResponse\x12N\n" +
 	"\x0fListMemberships\x12\x1c.apppb.ListMembershipRequest\x1a\x1d.apppb.ListMembershipResponse\x12G\n" +
 	"\x0fGrantMembership\x12\x1d.apppb.GrantMembershipRequest\x1a\x15.apppb.NoDataResponse\x12I\n" +
-	"\x10RevokeMembership\x12\x1e.apppb.RevokeMembershipRequest\x1a\x15.apppb.NoDataResponseB\tZ\a./apppbb\x06proto3"
+	"\x10RevokeMembership\x12\x1e.apppb.RevokeMembershipRequest\x1a\x15.apppb.NoDataResponse\x12P\n" +
+	"\x0fListAppFeedback\x12\x1d.apppb.AppFeedbackListRequest\x1a\x1e.apppb.AppFeedbackListResponse\x12K\n" +
+	"\x11UpdateAppFeedback\x12\x1f.apppb.AppUpdateFeedbackRequest\x1a\x15.apppb.NoDataResponseB\tZ\a./apppbb\x06proto3"
 
 var (
 	file_application_app_rpc_desc_app_proto_rawDescOnce sync.Once
@@ -2112,38 +3096,51 @@ func file_application_app_rpc_desc_app_proto_rawDescGZIP() []byte {
 	return file_application_app_rpc_desc_app_proto_rawDescData
 }
 
-var file_application_app_rpc_desc_app_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
+var file_application_app_rpc_desc_app_proto_msgTypes = make([]protoimpl.MessageInfo, 43)
 var file_application_app_rpc_desc_app_proto_goTypes = []any{
-	(*PageRequest)(nil),             // 0: apppb.PageRequest
-	(*PageResponse)(nil),            // 1: apppb.PageResponse
-	(*NoDataResponse)(nil),          // 2: apppb.NoDataResponse
-	(*Actor)(nil),                   // 3: apppb.Actor
-	(*AppUserInfo)(nil),             // 4: apppb.AppUserInfo
-	(*AppRegisterRequest)(nil),      // 5: apppb.AppRegisterRequest
-	(*AppLoginRequest)(nil),         // 6: apppb.AppLoginRequest
-	(*AppLoginResponse)(nil),        // 7: apppb.AppLoginResponse
-	(*AppRefreshRequest)(nil),       // 8: apppb.AppRefreshRequest
-	(*AppRefreshResponse)(nil),      // 9: apppb.AppRefreshResponse
-	(*AppLogoutRequest)(nil),        // 10: apppb.AppLogoutRequest
-	(*AppAccessRequest)(nil),        // 11: apppb.AppAccessRequest
-	(*AppAccessResponse)(nil),       // 12: apppb.AppAccessResponse
-	(*AppProfileRequest)(nil),       // 13: apppb.AppProfileRequest
-	(*AppProfileResponse)(nil),      // 14: apppb.AppProfileResponse
-	(*AppAuthOptionsRequest)(nil),   // 15: apppb.AppAuthOptionsRequest
-	(*AppAuthOptionsResponse)(nil),  // 16: apppb.AppAuthOptionsResponse
-	(*AppSendEmailCodeRequest)(nil), // 17: apppb.AppSendEmailCodeRequest
-	(*AppAdminListRequest)(nil),     // 18: apppb.AppAdminListRequest
-	(*AppAdminListResponse)(nil),    // 19: apppb.AppAdminListResponse
-	(*AppReviewRequest)(nil),        // 20: apppb.AppReviewRequest
-	(*AppSetAvatarRequest)(nil),     // 21: apppb.AppSetAvatarRequest
-	(*AppAdminRevokeRequest)(nil),   // 22: apppb.AppAdminRevokeRequest
-	(*MembershipGrantInfo)(nil),     // 23: apppb.MembershipGrantInfo
-	(*GetMyMembershipRequest)(nil),  // 24: apppb.GetMyMembershipRequest
-	(*GetMyMembershipResponse)(nil), // 25: apppb.GetMyMembershipResponse
-	(*ListMembershipRequest)(nil),   // 26: apppb.ListMembershipRequest
-	(*ListMembershipResponse)(nil),  // 27: apppb.ListMembershipResponse
-	(*GrantMembershipRequest)(nil),  // 28: apppb.GrantMembershipRequest
-	(*RevokeMembershipRequest)(nil), // 29: apppb.RevokeMembershipRequest
+	(*PageRequest)(nil),              // 0: apppb.PageRequest
+	(*PageResponse)(nil),             // 1: apppb.PageResponse
+	(*NoDataResponse)(nil),           // 2: apppb.NoDataResponse
+	(*Actor)(nil),                    // 3: apppb.Actor
+	(*AppUserInfo)(nil),              // 4: apppb.AppUserInfo
+	(*AppRegisterRequest)(nil),       // 5: apppb.AppRegisterRequest
+	(*AppLoginRequest)(nil),          // 6: apppb.AppLoginRequest
+	(*AppLoginResponse)(nil),         // 7: apppb.AppLoginResponse
+	(*AppRefreshRequest)(nil),        // 8: apppb.AppRefreshRequest
+	(*AppRefreshResponse)(nil),       // 9: apppb.AppRefreshResponse
+	(*AppLogoutRequest)(nil),         // 10: apppb.AppLogoutRequest
+	(*AppAccessRequest)(nil),         // 11: apppb.AppAccessRequest
+	(*AppAccessResponse)(nil),        // 12: apppb.AppAccessResponse
+	(*AppProfileRequest)(nil),        // 13: apppb.AppProfileRequest
+	(*AppProfileResponse)(nil),       // 14: apppb.AppProfileResponse
+	(*AppAuthOptionsRequest)(nil),    // 15: apppb.AppAuthOptionsRequest
+	(*AppAuthOptionsResponse)(nil),   // 16: apppb.AppAuthOptionsResponse
+	(*AppSendEmailCodeRequest)(nil),  // 17: apppb.AppSendEmailCodeRequest
+	(*AppAdminListRequest)(nil),      // 18: apppb.AppAdminListRequest
+	(*AppAdminUserInfo)(nil),         // 19: apppb.AppAdminUserInfo
+	(*AppAdminListResponse)(nil),     // 20: apppb.AppAdminListResponse
+	(*AppAdminUserRequest)(nil),      // 21: apppb.AppAdminUserRequest
+	(*AppAdminUserResponse)(nil),     // 22: apppb.AppAdminUserResponse
+	(*AppUpdateUserRequest)(nil),     // 23: apppb.AppUpdateUserRequest
+	(*AppReviewRequest)(nil),         // 24: apppb.AppReviewRequest
+	(*AppSetAvatarRequest)(nil),      // 25: apppb.AppSetAvatarRequest
+	(*AppAdminRevokeRequest)(nil),    // 26: apppb.AppAdminRevokeRequest
+	(*ListAppSessionsRequest)(nil),   // 27: apppb.ListAppSessionsRequest
+	(*AppDeviceSession)(nil),         // 28: apppb.AppDeviceSession
+	(*ListAppSessionsResponse)(nil),  // 29: apppb.ListAppSessionsResponse
+	(*MembershipGrantInfo)(nil),      // 30: apppb.MembershipGrantInfo
+	(*GetMyMembershipRequest)(nil),   // 31: apppb.GetMyMembershipRequest
+	(*GetMyMembershipResponse)(nil),  // 32: apppb.GetMyMembershipResponse
+	(*ListMembershipRequest)(nil),    // 33: apppb.ListMembershipRequest
+	(*ListMembershipResponse)(nil),   // 34: apppb.ListMembershipResponse
+	(*GrantMembershipRequest)(nil),   // 35: apppb.GrantMembershipRequest
+	(*RevokeMembershipRequest)(nil),  // 36: apppb.RevokeMembershipRequest
+	(*AppContentListRequest)(nil),    // 37: apppb.AppContentListRequest
+	(*AppFeedbackInfo)(nil),          // 38: apppb.AppFeedbackInfo
+	(*AppFeedbackListRequest)(nil),   // 39: apppb.AppFeedbackListRequest
+	(*AppFeedbackListResponse)(nil),  // 40: apppb.AppFeedbackListResponse
+	(*AppUpdateFeedbackRequest)(nil), // 41: apppb.AppUpdateFeedbackRequest
+	(*AppSubmitFeedbackRequest)(nil), // 42: apppb.AppSubmitFeedbackRequest
 }
 var file_application_app_rpc_desc_app_proto_depIdxs = []int32{
 	4,  // 0: apppb.AppLoginResponse.User:type_name -> apppb.AppUserInfo
@@ -2152,57 +3149,82 @@ var file_application_app_rpc_desc_app_proto_depIdxs = []int32{
 	4,  // 3: apppb.AppProfileResponse.User:type_name -> apppb.AppUserInfo
 	3,  // 4: apppb.AppAdminListRequest.Actor:type_name -> apppb.Actor
 	0,  // 5: apppb.AppAdminListRequest.Page:type_name -> apppb.PageRequest
-	4,  // 6: apppb.AppAdminListResponse.List:type_name -> apppb.AppUserInfo
+	19, // 6: apppb.AppAdminListResponse.List:type_name -> apppb.AppAdminUserInfo
 	1,  // 7: apppb.AppAdminListResponse.Page:type_name -> apppb.PageResponse
-	3,  // 8: apppb.AppReviewRequest.Actor:type_name -> apppb.Actor
-	3,  // 9: apppb.AppSetAvatarRequest.Actor:type_name -> apppb.Actor
-	3,  // 10: apppb.AppAdminRevokeRequest.Actor:type_name -> apppb.Actor
-	23, // 11: apppb.GetMyMembershipResponse.List:type_name -> apppb.MembershipGrantInfo
-	3,  // 12: apppb.ListMembershipRequest.Actor:type_name -> apppb.Actor
-	0,  // 13: apppb.ListMembershipRequest.Page:type_name -> apppb.PageRequest
-	23, // 14: apppb.ListMembershipResponse.List:type_name -> apppb.MembershipGrantInfo
-	1,  // 15: apppb.ListMembershipResponse.Page:type_name -> apppb.PageResponse
-	3,  // 16: apppb.GrantMembershipRequest.actor:type_name -> apppb.Actor
-	3,  // 17: apppb.RevokeMembershipRequest.Actor:type_name -> apppb.Actor
-	5,  // 18: apppb.AppAuthService.AppRegister:input_type -> apppb.AppRegisterRequest
-	6,  // 19: apppb.AppAuthService.AppLogin:input_type -> apppb.AppLoginRequest
-	8,  // 20: apppb.AppAuthService.AppRefresh:input_type -> apppb.AppRefreshRequest
-	10, // 21: apppb.AppAuthService.AppLogout:input_type -> apppb.AppLogoutRequest
-	11, // 22: apppb.AppAuthService.AppAccess:input_type -> apppb.AppAccessRequest
-	13, // 23: apppb.AppAuthService.GetMyProfile:input_type -> apppb.AppProfileRequest
-	13, // 24: apppb.AppAuthService.UpdateMyProfile:input_type -> apppb.AppProfileRequest
-	15, // 25: apppb.AppAuthService.GetAuthOptions:input_type -> apppb.AppAuthOptionsRequest
-	17, // 26: apppb.AppAuthService.SendEmailCode:input_type -> apppb.AppSendEmailCodeRequest
-	24, // 27: apppb.AppAuthService.GetMyMembership:input_type -> apppb.GetMyMembershipRequest
-	18, // 28: apppb.AppAdminService.ListAppUsers:input_type -> apppb.AppAdminListRequest
-	20, // 29: apppb.AppAdminService.ReviewAppUser:input_type -> apppb.AppReviewRequest
-	21, // 30: apppb.AppAdminService.SetAppUserAvatar:input_type -> apppb.AppSetAvatarRequest
-	22, // 31: apppb.AppAdminService.RevokeAppSession:input_type -> apppb.AppAdminRevokeRequest
-	26, // 32: apppb.AppAdminService.ListMemberships:input_type -> apppb.ListMembershipRequest
-	28, // 33: apppb.AppAdminService.GrantMembership:input_type -> apppb.GrantMembershipRequest
-	29, // 34: apppb.AppAdminService.RevokeMembership:input_type -> apppb.RevokeMembershipRequest
-	2,  // 35: apppb.AppAuthService.AppRegister:output_type -> apppb.NoDataResponse
-	7,  // 36: apppb.AppAuthService.AppLogin:output_type -> apppb.AppLoginResponse
-	9,  // 37: apppb.AppAuthService.AppRefresh:output_type -> apppb.AppRefreshResponse
-	2,  // 38: apppb.AppAuthService.AppLogout:output_type -> apppb.NoDataResponse
-	12, // 39: apppb.AppAuthService.AppAccess:output_type -> apppb.AppAccessResponse
-	14, // 40: apppb.AppAuthService.GetMyProfile:output_type -> apppb.AppProfileResponse
-	14, // 41: apppb.AppAuthService.UpdateMyProfile:output_type -> apppb.AppProfileResponse
-	16, // 42: apppb.AppAuthService.GetAuthOptions:output_type -> apppb.AppAuthOptionsResponse
-	2,  // 43: apppb.AppAuthService.SendEmailCode:output_type -> apppb.NoDataResponse
-	25, // 44: apppb.AppAuthService.GetMyMembership:output_type -> apppb.GetMyMembershipResponse
-	19, // 45: apppb.AppAdminService.ListAppUsers:output_type -> apppb.AppAdminListResponse
-	2,  // 46: apppb.AppAdminService.ReviewAppUser:output_type -> apppb.NoDataResponse
-	2,  // 47: apppb.AppAdminService.SetAppUserAvatar:output_type -> apppb.NoDataResponse
-	2,  // 48: apppb.AppAdminService.RevokeAppSession:output_type -> apppb.NoDataResponse
-	27, // 49: apppb.AppAdminService.ListMemberships:output_type -> apppb.ListMembershipResponse
-	2,  // 50: apppb.AppAdminService.GrantMembership:output_type -> apppb.NoDataResponse
-	2,  // 51: apppb.AppAdminService.RevokeMembership:output_type -> apppb.NoDataResponse
-	35, // [35:52] is the sub-list for method output_type
-	18, // [18:35] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	3,  // 8: apppb.AppAdminUserRequest.actor:type_name -> apppb.Actor
+	19, // 9: apppb.AppAdminUserResponse.user:type_name -> apppb.AppAdminUserInfo
+	3,  // 10: apppb.AppUpdateUserRequest.actor:type_name -> apppb.Actor
+	3,  // 11: apppb.AppReviewRequest.Actor:type_name -> apppb.Actor
+	3,  // 12: apppb.AppSetAvatarRequest.Actor:type_name -> apppb.Actor
+	3,  // 13: apppb.AppAdminRevokeRequest.Actor:type_name -> apppb.Actor
+	3,  // 14: apppb.ListAppSessionsRequest.actor:type_name -> apppb.Actor
+	28, // 15: apppb.ListAppSessionsResponse.list:type_name -> apppb.AppDeviceSession
+	30, // 16: apppb.GetMyMembershipResponse.List:type_name -> apppb.MembershipGrantInfo
+	3,  // 17: apppb.ListMembershipRequest.Actor:type_name -> apppb.Actor
+	0,  // 18: apppb.ListMembershipRequest.Page:type_name -> apppb.PageRequest
+	30, // 19: apppb.ListMembershipResponse.List:type_name -> apppb.MembershipGrantInfo
+	1,  // 20: apppb.ListMembershipResponse.Page:type_name -> apppb.PageResponse
+	3,  // 21: apppb.GrantMembershipRequest.actor:type_name -> apppb.Actor
+	3,  // 22: apppb.RevokeMembershipRequest.Actor:type_name -> apppb.Actor
+	0,  // 23: apppb.AppContentListRequest.page:type_name -> apppb.PageRequest
+	3,  // 24: apppb.AppFeedbackListRequest.actor:type_name -> apppb.Actor
+	0,  // 25: apppb.AppFeedbackListRequest.page:type_name -> apppb.PageRequest
+	38, // 26: apppb.AppFeedbackListResponse.list:type_name -> apppb.AppFeedbackInfo
+	1,  // 27: apppb.AppFeedbackListResponse.page:type_name -> apppb.PageResponse
+	3,  // 28: apppb.AppUpdateFeedbackRequest.actor:type_name -> apppb.Actor
+	5,  // 29: apppb.AppAuthService.AppRegister:input_type -> apppb.AppRegisterRequest
+	6,  // 30: apppb.AppAuthService.AppLogin:input_type -> apppb.AppLoginRequest
+	8,  // 31: apppb.AppAuthService.AppRefresh:input_type -> apppb.AppRefreshRequest
+	10, // 32: apppb.AppAuthService.AppLogout:input_type -> apppb.AppLogoutRequest
+	11, // 33: apppb.AppAuthService.AppAccess:input_type -> apppb.AppAccessRequest
+	13, // 34: apppb.AppAuthService.GetMyProfile:input_type -> apppb.AppProfileRequest
+	13, // 35: apppb.AppAuthService.UpdateMyProfile:input_type -> apppb.AppProfileRequest
+	15, // 36: apppb.AppAuthService.GetAuthOptions:input_type -> apppb.AppAuthOptionsRequest
+	17, // 37: apppb.AppAuthService.SendEmailCode:input_type -> apppb.AppSendEmailCodeRequest
+	31, // 38: apppb.AppAuthService.GetMyMembership:input_type -> apppb.GetMyMembershipRequest
+	42, // 39: apppb.AppAuthService.SubmitAppFeedback:input_type -> apppb.AppSubmitFeedbackRequest
+	37, // 40: apppb.AppAuthService.ListMyFeedback:input_type -> apppb.AppContentListRequest
+	18, // 41: apppb.AppAdminService.ListAppUsers:input_type -> apppb.AppAdminListRequest
+	21, // 42: apppb.AppAdminService.GetAppUser:input_type -> apppb.AppAdminUserRequest
+	23, // 43: apppb.AppAdminService.UpdateAppUser:input_type -> apppb.AppUpdateUserRequest
+	24, // 44: apppb.AppAdminService.ReviewAppUser:input_type -> apppb.AppReviewRequest
+	25, // 45: apppb.AppAdminService.SetAppUserAvatar:input_type -> apppb.AppSetAvatarRequest
+	27, // 46: apppb.AppAdminService.ListAppSessions:input_type -> apppb.ListAppSessionsRequest
+	26, // 47: apppb.AppAdminService.RevokeAppSession:input_type -> apppb.AppAdminRevokeRequest
+	33, // 48: apppb.AppAdminService.ListMemberships:input_type -> apppb.ListMembershipRequest
+	35, // 49: apppb.AppAdminService.GrantMembership:input_type -> apppb.GrantMembershipRequest
+	36, // 50: apppb.AppAdminService.RevokeMembership:input_type -> apppb.RevokeMembershipRequest
+	39, // 51: apppb.AppAdminService.ListAppFeedback:input_type -> apppb.AppFeedbackListRequest
+	41, // 52: apppb.AppAdminService.UpdateAppFeedback:input_type -> apppb.AppUpdateFeedbackRequest
+	2,  // 53: apppb.AppAuthService.AppRegister:output_type -> apppb.NoDataResponse
+	7,  // 54: apppb.AppAuthService.AppLogin:output_type -> apppb.AppLoginResponse
+	9,  // 55: apppb.AppAuthService.AppRefresh:output_type -> apppb.AppRefreshResponse
+	2,  // 56: apppb.AppAuthService.AppLogout:output_type -> apppb.NoDataResponse
+	12, // 57: apppb.AppAuthService.AppAccess:output_type -> apppb.AppAccessResponse
+	14, // 58: apppb.AppAuthService.GetMyProfile:output_type -> apppb.AppProfileResponse
+	14, // 59: apppb.AppAuthService.UpdateMyProfile:output_type -> apppb.AppProfileResponse
+	16, // 60: apppb.AppAuthService.GetAuthOptions:output_type -> apppb.AppAuthOptionsResponse
+	2,  // 61: apppb.AppAuthService.SendEmailCode:output_type -> apppb.NoDataResponse
+	32, // 62: apppb.AppAuthService.GetMyMembership:output_type -> apppb.GetMyMembershipResponse
+	2,  // 63: apppb.AppAuthService.SubmitAppFeedback:output_type -> apppb.NoDataResponse
+	40, // 64: apppb.AppAuthService.ListMyFeedback:output_type -> apppb.AppFeedbackListResponse
+	20, // 65: apppb.AppAdminService.ListAppUsers:output_type -> apppb.AppAdminListResponse
+	22, // 66: apppb.AppAdminService.GetAppUser:output_type -> apppb.AppAdminUserResponse
+	2,  // 67: apppb.AppAdminService.UpdateAppUser:output_type -> apppb.NoDataResponse
+	2,  // 68: apppb.AppAdminService.ReviewAppUser:output_type -> apppb.NoDataResponse
+	2,  // 69: apppb.AppAdminService.SetAppUserAvatar:output_type -> apppb.NoDataResponse
+	29, // 70: apppb.AppAdminService.ListAppSessions:output_type -> apppb.ListAppSessionsResponse
+	2,  // 71: apppb.AppAdminService.RevokeAppSession:output_type -> apppb.NoDataResponse
+	34, // 72: apppb.AppAdminService.ListMemberships:output_type -> apppb.ListMembershipResponse
+	2,  // 73: apppb.AppAdminService.GrantMembership:output_type -> apppb.NoDataResponse
+	2,  // 74: apppb.AppAdminService.RevokeMembership:output_type -> apppb.NoDataResponse
+	40, // 75: apppb.AppAdminService.ListAppFeedback:output_type -> apppb.AppFeedbackListResponse
+	2,  // 76: apppb.AppAdminService.UpdateAppFeedback:output_type -> apppb.NoDataResponse
+	53, // [53:77] is the sub-list for method output_type
+	29, // [29:53] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_application_app_rpc_desc_app_proto_init() }
@@ -2211,13 +3233,15 @@ func file_application_app_rpc_desc_app_proto_init() {
 		return
 	}
 	file_application_app_rpc_desc_app_proto_msgTypes[13].OneofWrappers = []any{}
+	file_application_app_rpc_desc_app_proto_msgTypes[23].OneofWrappers = []any{}
+	file_application_app_rpc_desc_app_proto_msgTypes[41].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_application_app_rpc_desc_app_proto_rawDesc), len(file_application_app_rpc_desc_app_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   30,
+			NumMessages:   43,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

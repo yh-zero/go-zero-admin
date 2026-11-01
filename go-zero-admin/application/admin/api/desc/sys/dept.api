@@ -17,6 +17,9 @@ type (
         Status    int32  `json:"status"`
         Path      string `json:"path"`
         CreatedAt int64  `json:"created_at"`
+        LeaderUserId int64 `json:"leader_user_id"`
+        MemberCount int64 `json:"member_count"`
+        MembersVisible bool `json:"members_visible"`
     }
 
     GetDeptTreeReq {
@@ -30,6 +33,7 @@ type (
         ParentId int64  `json:"parent_id,optional"`
         Name     string `json:"name"`
         Leader   string `json:"leader,optional"`
+        LeaderUserId int64 `json:"leader_user_id,optional"`
         Phone    string `json:"phone,optional"`
         Email    string `json:"email,optional"`
         Sort     int32  `json:"sort,optional"`
@@ -41,6 +45,7 @@ type (
         ParentId *int64  `json:"parent_id,optional"`
         Name     *string `json:"name,optional"`
         Leader   *string `json:"leader,optional"`
+        LeaderUserId *int64 `json:"leader_user_id,optional"`
         Phone    *string `json:"phone,optional"`
         Email    *string `json:"email,optional"`
         Sort     *int32  `json:"sort,optional"`

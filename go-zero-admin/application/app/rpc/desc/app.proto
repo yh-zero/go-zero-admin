@@ -59,12 +59,27 @@ message AppSendEmailCodeRequest { string Account = 1; string IP = 2; }
 // 后台管理（admin 模块调用）
 // ============================================
 message AppAdminListRequest { Actor Actor = 1; PageRequest Page = 2; string Status = 3; string Account = 4; }
-message AppAdminListResponse { repeated AppUserInfo List = 1; PageResponse Page = 2; }
+message AppAdminUserInfo {
+  int64 id = 1; string account = 2; string identity_kind = 3; string nickname = 4;
+  int64 avatar_file_id = 5; string avatar_url = 6; string status = 7; string review_reason = 8;
+  bool email_verified = 9; bool phone_verified = 10; int64 last_login_at = 11; int64 created_at = 12;
+  string remark = 13;
+}
+message AppAdminListResponse { repeated AppAdminUserInfo List = 1; PageResponse Page = 2; }
+message AppAdminUserRequest { Actor actor = 1; int64 user_id = 2; }
+message AppAdminUserResponse { AppAdminUserInfo user = 1; }
+message AppUpdateUserRequest { Actor actor = 1; int64 user_id = 2; optional string nickname = 3; optional string remark = 4; }
 
 message AppReviewRequest { Actor Actor = 1; int64 UserID = 2; string Status = 3; string Reason = 4; }
 message AppSetAvatarRequest { Actor Actor = 1; int64 UserID = 2; int64 FileID = 3; }
 
 message AppAdminRevokeRequest { Actor Actor = 1; string SessionID = 2; int64 user_id = 3; }
+message ListAppSessionsRequest { Actor actor = 1; int64 user_id = 2; }
+message AppDeviceSession {
+  string id = 1; string device_name = 2; string ip = 3; string user_agent = 4;
+  int64 created_at = 5; int64 last_seen_at = 6; int64 expires_at = 7;
+}
+message ListAppSessionsResponse { repeated AppDeviceSession list = 1; }
 
 // ============================================
 // 会员
@@ -94,6 +109,16 @@ message RevokeMembershipRequest { Actor Actor = 1; int64 GrantID = 2; }
 // ============================================
 // Services
 // ============================================
+message AppContentListRequest { string access_token = 1; PageRequest page = 2; }
+message AppFeedbackInfo {
+  int64 id = 1; int64 user_id = 2; string account = 3; string nickname = 4;
+  string content = 5; string reply = 6; string status = 7; int64 created_at = 8; int64 updated_at = 9;
+}
+message AppFeedbackListRequest { Actor actor = 1; PageRequest page = 2; int64 user_id = 3; string status = 4; }
+message AppFeedbackListResponse { repeated AppFeedbackInfo list = 1; PageResponse page = 2; }
+message AppUpdateFeedbackRequest { Actor actor = 1; int64 feedback_id = 2; optional string reply = 3; optional string status = 4; }
+message AppSubmitFeedbackRequest { string access_token = 1; string content = 2; }
+
 service AppAuthService {
   rpc AppRegister(AppRegisterRequest) returns (NoDataResponse);
   rpc AppLogin(AppLoginRequest) returns (AppLoginResponse);
@@ -105,14 +130,21 @@ service AppAuthService {
   rpc GetAuthOptions(AppAuthOptionsRequest) returns (AppAuthOptionsResponse);
   rpc SendEmailCode(AppSendEmailCodeRequest) returns (NoDataResponse);
   rpc GetMyMembership(GetMyMembershipRequest) returns (GetMyMembershipResponse);
+  rpc SubmitAppFeedback(AppSubmitFeedbackRequest) returns (NoDataResponse);
+  rpc ListMyFeedback(AppContentListRequest) returns (AppFeedbackListResponse);
 }
 
 service AppAdminService {
   rpc ListAppUsers(AppAdminListRequest) returns (AppAdminListResponse);
+  rpc GetAppUser(AppAdminUserRequest) returns (AppAdminUserResponse);
+  rpc UpdateAppUser(AppUpdateUserRequest) returns (NoDataResponse);
   rpc ReviewAppUser(AppReviewRequest) returns (NoDataResponse);
   rpc SetAppUserAvatar(AppSetAvatarRequest) returns (NoDataResponse);
+  rpc ListAppSessions(ListAppSessionsRequest) returns (ListAppSessionsResponse);
   rpc RevokeAppSession(AppAdminRevokeRequest) returns (NoDataResponse);
   rpc ListMemberships(ListMembershipRequest) returns (ListMembershipResponse);
   rpc GrantMembership(GrantMembershipRequest) returns (NoDataResponse);
   rpc RevokeMembership(RevokeMembershipRequest) returns (NoDataResponse);
+  rpc ListAppFeedback(AppFeedbackListRequest) returns (AppFeedbackListResponse);
+  rpc UpdateAppFeedback(AppUpdateFeedbackRequest) returns (NoDataResponse);
 }

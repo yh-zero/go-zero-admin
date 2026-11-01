@@ -3,7 +3,7 @@ export interface ApiResp<T = unknown> { code: number; msg: string; result?: T }
 export interface PageParams { page?: number; page_size?: number }
 export interface PageResult<T> { list: T[]; total: number }
 export interface ListResult<T> { list: T[] }
-export interface LoginReq { username: string; password: string; captcha_id: string; captcha: string }
+export interface LoginReq { username: string; password: string; captcha_id?: string; captcha?: string }
 export interface LoginResp {
   access_token: string; expires_at: number; refresh_token: string; refresh_expires_at: number; session_id: string;
 }
@@ -11,7 +11,7 @@ export interface DeviceSession {
   id: string; device_name: string; ip: string; user_agent: string;
   created_at: number; last_seen_at: number; expires_at: number; is_current: boolean;
 }
-export interface CaptchaResp { captcha_id: string; image_base64: string; expires_at: number }
+export interface CaptchaResp { enabled: boolean; captcha_id: string; image_base64: string; expires_at: number }
 export interface MenuInfo {
   id: number; parent_id: number; title: string; name: string; type: number;
   path: string; component: string; perm_code: string; icon: string;
@@ -38,11 +38,13 @@ export interface CreateUserReq extends UpdateUserReq { username: string; passwor
 export interface GetUserListReq extends PageParams { username?: string; nickname?: string; dept_id?: number; status?: number }
 export interface ChangePasswordReq { old_password: string; new_password: string }
 export interface DeptInfo {
-  id: number; parent_id: number; name: string; leader: string; phone: string; email: string;
+  id: number; parent_id: number; name: string; leader: string; leader_user_id: number;
+  member_count: number; members_visible: boolean; phone: string; email: string;
   sort: number; status: number; path: string; created_at: number;
 }
 export interface CreateDeptReq {
-  parent_id?: number; name: string; leader?: string; phone?: string; email?: string; sort?: number; status?: number;
+  parent_id?: number; name: string; leader?: string; leader_user_id?: number;
+  phone?: string; email?: string; sort?: number; status?: number;
 }
 export type UpdateDeptReq = Partial<CreateDeptReq>;
 export interface GetDeptTreeReq { status?: number }
@@ -88,3 +90,32 @@ export interface ProfileInfo {
 export interface UpdateProfileReq {
   nickname?: string; real_name?: string; email?: string; phone?: string; avatar_file_id?: number; gender?: number;
 }
+export type AppUserStatus = 'pending' | 'active' | 'disabled' | 'rejected';
+export interface AppUserInfo {
+  id: number; account: string; identity_kind: string; nickname: string;
+  avatar_file_id: number; avatar_url: string; status: AppUserStatus; review_reason: string;
+  email_verified: boolean; phone_verified: boolean; last_login_at: number; created_at: number;
+}
+export interface AppAdminUserInfo extends AppUserInfo { remark: string }
+export interface UpdateAppUserReq { nickname?: string; remark?: string }
+export interface AppMembershipPlan { label: string; value: string }
+export interface GetAppUserListReq extends PageParams { account?: string; status?: AppUserStatus }
+export interface ReviewAppUserReq { status: AppUserStatus; reason?: string }
+export interface AppMembershipInfo {
+  id: number; user_id: number; plan_code: string; benefits: string; request_id: string;
+  granted_by: number; granted_by_admin: boolean; starts_at: number; expires_at: number;
+  revoked: boolean; revoked_at: number; created_at: number;
+}
+export interface GetAppMembershipListReq extends PageParams {
+  user_id?: number; plan_code?: string; active_only?: boolean;
+}
+export interface GrantAppMembershipReq {
+  user_id: number; plan_code: string; benefits?: string; request_id: string; duration_days: number;
+}
+export type AppFeedbackStatus = 'pending' | 'resolved';
+export interface AppFeedbackInfo {
+  id: number; user_id: number; account: string; nickname: string; content: string; reply: string;
+  status: AppFeedbackStatus; created_at: number; updated_at: number;
+}
+export interface GetAppFeedbackListReq extends PageParams { user_id?: number; status?: AppFeedbackStatus }
+export interface UpdateAppFeedbackReq { reply?: string; status?: AppFeedbackStatus }

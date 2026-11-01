@@ -213,7 +213,7 @@ func renderTenantEnv(s *svc.ServiceContext, t *model.TenantRegistry, storage obj
 	}
 	admin := rpc("admin-rpc", 6001)
 	admin["JwtAuth"] = map[string]any{"AccessSecret": t.JwtAccessSecret, "AccessExpire": 7200, "RefreshExpire": 2592000}
-	admin["Captcha"] = map[string]any{"ExpireSeconds": 120}
+	admin["Captcha"] = map[string]any{"Enabled": true, "ExpireSeconds": 120}
 	admin["FileRpc"] = map[string]any{"Endpoints": []string{"file-rpc:6003"}, "NonBlock": true, "Timeout": 1500}
 	app := rpc("app-rpc", 6002)
 	app["Timeout"] = 12000

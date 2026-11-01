@@ -18,7 +18,7 @@
 | nginx | `gozero-platform-nginx-1` | :80 | 多租户子域名路由 |
 | 前端 dev | `go-zero-admin-react` → http://localhost:5999 | `/v1` 已代理到 7001 | 宿主 pnpm dev，不进 compose |
 
-种子账号：`admin / Admin@123456`（登录需填写页面上的一次性图片验证码；`image_base64` 编码的是 PNG 图片，解码后不会直接得到答案文本）。
+种子账号：`admin / Admin@123456`（默认需填写一次性图片验证码；由 admin-rpc 的 `Captcha.Enabled` 控制，修改后重启该服务。`image_base64` 编码的是 PNG 图片，解码后不会直接得到答案文本）。
 
 **配置双套制**（改配置时注意是否两套都要同步）：
 - 容器内服务读 `docker/etc/*.yaml`（compose 卷挂载；地址为容器网络服务名 `mysql:3306` / `redis:6379` / `rustfs:9000`）
@@ -92,8 +92,29 @@ docker exec gozero-redis8 redis-cli DEL '<本次记录的精确缓存键>'
 - 续行符是反引号 ` 不是反斜杠 \
 - 执行策略拦截：`powershell -NoProfile -ExecutionPolicy Bypass -File <脚本>`
 
-### ⑥ AI 密钥
-ai-rpc 的 `AI.Enabled=false` 时无需密钥；启用时在 YAML（`docker/etc/ai-rpc.yaml` 或宿主 `application/ai/rpc/etc/ai.yaml`）设置 `Enabled/Provider/Model/BaseURL` 等非敏感配置，密钥只从 `API_KEY_<PROVIDER>` 环境变量读取，供应商名称转为大写，不回退读取 YAML 密钥。平台 Compose 已传递 `API_KEY_DEEPSEEK` 和 `API_KEY_QWEN`；其他供应商需显式配置对应环境变量，宿主运行则直接设置进程环境变量。真实密钥不要写入版本库。
+### ⑥ AI 与邮件：极简 env
+
+原 YAML 保留完整默认配置。在后端目录的 `.env.local` 填写以下三项（该文件已被 Git 忽略，空值表示尚未配置）：
+
+```dotenv
+AI_DEEPSEEK_KEY=
+APP_SMTP_USERNAME=
+APP_SMTP_PASSWORD=
+```
+
+环境变量按“模块 + YAML 配置层级”命名，如 `APP_SMTP_PASSWORD` 对应 App 的 `SMTP.Password`，`AI_DEEPSEEK_KEY` 对应 AI 的 `AI.DeepSeekKey`（同名 AI 节点不重复）。旧名称需同步改名，值保持不变。
+
+AI 按 YAML 的 Provider 读取 `AI_<PROVIDER>_KEY`：非空即启用，缺失/空白则关闭，覆盖原 Enabled 开关；模型、地址和超时仍取 YAML。当前 Provider 为 deepseek，平台 Compose 已传递 DeepSeek/Qwen 的 Key，其他供应商需另补对应映射。
+
+邮件服务器地址在 YAML 的 `SMTP.Host` 维护：容器使用 `docker/etc/app-rpc.yaml`，宿主使用 `application/app/rpc/etc/app.yaml`，按实际服务商配置。env 只需填写账号和授权码；发件邮箱依次取 YAML From、可选 `APP_SMTP_FROM`、`APP_SMTP_USERNAME`。YAML 的 `SMTP.FromName` 设置显示名称（示例“帅浩”），`SMTP.ValidSeconds` 设置验证码有效秒数（默认 600）；到期自动失效、匹配成功后删除，输错不删除。可选的 `APP_SMTP_HOST` 回退通道保留，但不列入极简模板。当前默认为 587 + STARTTLS；465 + 隐式 TLS 需另行接入，不属于此最小方案。真实密钥与授权码不要写入版本库。
+
+首次使用先按 §2 编译，再在后端目录启动或更新对应容器：
+
+```powershell
+docker compose --env-file .env.local up -d --build --force-recreate ai-rpc app-rpc
+```
+
+`.env.local` 不会被 Go 自动读取，宿主运行时须先设置进程环境变量；env 修改后需重新创建对应容器，单独 restart 不会更新其环境。租户模板未传递这些变量，平台配置不会自动共享给租户。
 
 ## 4. 联调后清理（任务完成定义的一部分）
 

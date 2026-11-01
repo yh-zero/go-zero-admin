@@ -37,6 +37,8 @@ func (l *GetCaptchaLogic) GetCaptcha(req *types.GetCaptchaReq) (resp *types.GetC
 		return nil, err
 	}
 	return &types.GetCaptchaResp{
+		// 兼容尚未升级的 RPC：旧响应没有 Enabled 字段，但仍返回验证码。
+		Enabled:     rpcResp.Captcha.Enabled || rpcResp.Captcha.CaptchaID != "" || rpcResp.Captcha.ImageBase64 != "",
 		CaptchaID:   rpcResp.Captcha.CaptchaID,
 		ImageBase64: rpcResp.Captcha.ImageBase64,
 		ExpiresAt:   rpcResp.Captcha.ExpiresAt,

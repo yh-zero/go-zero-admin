@@ -3,7 +3,6 @@ package appadmin
 import (
 	"context"
 	"github.com/zeromicro/go-zero/core/logx"
-	"go-zero-admin/application/admin/api/internal/logic/appauth"
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -29,11 +28,21 @@ func (l *ListAppUsersLogic) ListAppUsers(req *types.AppAdminListReq) (*types.App
 	if err != nil {
 		return nil, err
 	}
-	list := make([]types.AppUserInfo, 0, len(r.List))
+	list := make([]types.AppAdminUserInfo, 0, len(r.List))
 	for _, u := range r.List {
-		list = append(list, appauth.MapAppUser(u))
+		list = append(list, mapAdminAppUser(u))
 	}
 	return &types.AppAdminListResp{List: list, Total: r.GetPage().GetTotal()}, nil
+}
+
+func mapAdminAppUser(user *apppb.AppAdminUserInfo) types.AppAdminUserInfo {
+	return types.AppAdminUserInfo{
+		Id: user.GetId(), Account: user.GetAccount(), IdentityKind: user.GetIdentityKind(),
+		Nickname: user.GetNickname(), AvatarFileId: user.GetAvatarFileId(), AvatarUrl: user.GetAvatarUrl(),
+		Status: user.GetStatus(), ReviewReason: user.GetReviewReason(), EmailVerified: user.GetEmailVerified(),
+		PhoneVerified: user.GetPhoneVerified(), LastLoginAt: user.GetLastLoginAt(),
+		CreatedAt: user.GetCreatedAt(), Remark: user.GetRemark(),
+	}
 }
 
 func appAdminActor(ctx context.Context) *apppb.Actor {

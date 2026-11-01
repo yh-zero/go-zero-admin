@@ -21,7 +21,7 @@ func NewDeleteDictLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeleteDictLogic) DeleteDict(in *adminpb.DeleteDictRequest) (*adminpb.NoDataResponse, error) {
-	_, err := l.svcCtx.DB.ExecCtx(l.ctx, "UPDATE sys_dict SET deleted_at=NOW() WHERE id=?", in.DictId)
+	err := l.svcCtx.SysDictModel.SoftDelete(l.ctx, in.DictId)
 	if err != nil {
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)
 	}

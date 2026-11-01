@@ -21,7 +21,7 @@ func NewDeleteApiLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteA
 }
 
 func (l *DeleteApiLogic) DeleteApi(in *adminpb.DeleteApiRequest) (*adminpb.NoDataResponse, error) {
-	_, err := l.svcCtx.DB.ExecCtx(l.ctx, "DELETE FROM sys_api WHERE id=?", in.ApiId)
+	err := l.svcCtx.SysApiModel.DeleteWithCache(l.ctx, in.ApiId)
 	if err != nil {
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)
 	}

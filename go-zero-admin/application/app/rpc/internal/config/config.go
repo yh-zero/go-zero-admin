@@ -18,12 +18,14 @@ type Config struct {
 	FileRpc                   *zrpc.RpcClientConf `json:",optional"`
 	EmailVerificationRequired bool                `json:",default=true"`
 	SMTP                      struct {
-		Host        string `json:",optional"`
-		Port        int    `json:",default=587"`
-		Username    string `json:",optional"`
-		Password    string `json:",optional"`
-		From        string `json:",optional"`
-		ImplicitTLS bool   `json:",default=false"`
+		Host         string `json:",optional"`
+		Port         int    `json:",default=587"`
+		Username     string `json:",optional"`
+		Password     string `json:",optional"`
+		From         string `json:",optional"`
+		FromName     string `json:",optional"`
+		ValidSeconds int    `json:",default=600,range=[1:]"`
+		ImplicitTLS  bool   `json:",default=false"`
 	}
 	DefaultUserPassword string `json:",optional"`
 }

@@ -25,7 +25,7 @@ message Actor {
 // ============================================
 // 认证 / 验证码 / 会话
 // ============================================
-message CaptchaInfo { string CaptchaID = 1; string ImageBase64 = 2; int64 ExpiresAt = 3; }
+message CaptchaInfo { string CaptchaID = 1; string ImageBase64 = 2; int64 ExpiresAt = 3; bool enabled = 4; }
 message GetCaptchaRequest {}
 message GetCaptchaResponse { CaptchaInfo Captcha = 1; }
 
@@ -367,11 +367,15 @@ message DeptInfo {
   int32 status = 8;
   string path = 9;
   int64 created_at = 10;
+  int64 leader_user_id = 11;
+  int64 member_count = 12;
+  bool members_visible = 13;
 }
 
 message GetDeptTreeRequest {
   Actor actor = 1;
   int32 status = 2;
+  bool include_members = 3;
 }
 message GetDeptTreeResponse {
   repeated DeptInfo list = 1;
@@ -386,6 +390,7 @@ message CreateDeptRequest {
   string email = 6;
   int32 sort = 7;
   int32 status = 8;
+  int64 leader_user_id = 9;
 }
 
 message UpdateDeptRequest {
@@ -398,6 +403,7 @@ message UpdateDeptRequest {
   optional string email = 7;
   optional int32 sort = 8;
   optional int32 status = 9;
+  optional int64 leader_user_id = 10;
 }
 
 message GetMyDeptsRequest { Actor actor = 1; }

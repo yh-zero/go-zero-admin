@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"strings"
 	"time"
 )
 
@@ -20,6 +21,8 @@ type (
 		List(context.Context, string, string, int64, int64) ([]AppUserRow, int64, error)
 		WithLoginUser(context.Context, uint64, string, func(context.Context) error) error
 		SetNickname(context.Context, uint64, string) error
+		PatchAdminProfile(context.Context, uint64, *string, *string) error
+		FindAdminProfile(context.Context, uint64) (*AppUserRow, error)
 		SetReview(context.Context, uint64, string, string, func(context.Context) error) error
 		SetAvatar(context.Context, uint64, int64, func(context.Context, int64, int64) error) error
 		ReconcileAvatar(context.Context, uint64, func(context.Context, int64) error) error
@@ -52,8 +55,9 @@ func (m *customAppUserModel) updateFields(ctx context.Context, id uint64, assign
 }
 
 var (
-	ErrAppLoginChanged = errors.New("app user credentials changed")
-	ErrAppUserInactive = errors.New("app user is not active")
+	ErrAppLoginChanged            = errors.New("app user credentials changed")
+	ErrAppUserInactive            = errors.New("app user is not active")
+	ErrCommittedCacheInvalidation = errors.New("business update committed but cache invalidation failed")
 )
 
 // WithLoginUser 把会话创建与审核串行化，缓存中的旧密码或状态不能签发新会话。
@@ -88,6 +92,35 @@ func (m *customAppUserModel) WithLoginUser(ctx context.Context, id uint64, expec
 }
 func (m *customAppUserModel) SetNickname(ctx context.Context, id uint64, name string) error {
 	return m.updateFields(ctx, id, "nickname=?", name)
+}
+
+func (m *customAppUserModel) PatchAdminProfile(ctx context.Context, id uint64, nickname, remark *string) error {
+	var account string
+	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
+		if err := s.QueryRowCtx(ctx, &account, "SELECT account FROM app_user WHERE id=? AND deleted_at IS NULL FOR UPDATE", id); err != nil {
+			return err
+		}
+		var assignments []string
+		var args []any
+		if nickname != nil {
+			assignments, args = append(assignments, "nickname=?"), append(args, *nickname)
+		}
+		if remark != nil {
+			assignments, args = append(assignments, "remark=?"), append(args, *remark)
+		}
+		if len(assignments) == 0 {
+			return nil
+		}
+		_, err := s.ExecCtx(ctx, "UPDATE app_user SET "+strings.Join(assignments, ",")+" WHERE id=? AND deleted_at IS NULL", append(args, id)...)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	if err := m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminAppUserIdPrefix, id), cacheGozeroAdminAppUserAccountPrefix+account); err != nil {
+		return fmt.Errorf("%w: %v", ErrCommittedCacheInvalidation, err)
+	}
+	return nil
 }
 func (m *customAppUserModel) SetReview(ctx context.Context, id uint64, status, reason string, revoke func(context.Context) error) error {
 	var account string
@@ -160,6 +193,7 @@ type AppUserRow struct {
 	Account       string `db:"account"`
 	IdentityKind  string `db:"identity_kind"`
 	Nickname      string `db:"nickname"`
+	Remark        string `db:"remark"`
 	AvatarFileId  int64  `db:"avatar_file_id"`
 	Status        string `db:"status"`
 	ReviewReason  string `db:"review_reason"`
@@ -167,6 +201,14 @@ type AppUserRow struct {
 	PhoneVerified bool   `db:"phone_verified"`
 	LastLoginAt   int64  `db:"last_login_at"`
 	CreatedAt     int64  `db:"created_at"`
+}
+
+const appAdminUserColumns = "id,account,identity_kind,nickname,remark,COALESCE(avatar_file_id,0) AS avatar_file_id,status,review_reason,email_verified_at IS NOT NULL AS email_verified,phone_verified_at IS NOT NULL AS phone_verified,COALESCE(UNIX_TIMESTAMP(last_login_at),0) AS last_login_at,UNIX_TIMESTAMP(created_at) AS created_at"
+
+func (m *customAppUserModel) FindAdminProfile(ctx context.Context, id uint64) (*AppUserRow, error) {
+	var row AppUserRow
+	err := m.QueryRowNoCacheCtx(ctx, &row, "SELECT "+appAdminUserColumns+" FROM app_user WHERE id=? AND deleted_at IS NULL", id)
+	return &row, err
 }
 
 func (m *customAppUserModel) List(ctx context.Context, status, account string, page, size int64) ([]AppUserRow, int64, error) {
@@ -187,7 +229,7 @@ func (m *customAppUserModel) List(ctx context.Context, status, account string, p
 		return nil, 0, err
 	}
 	rows := []AppUserRow{}
-	query := "SELECT id,account,identity_kind,nickname,COALESCE(avatar_file_id,0) AS avatar_file_id,status,review_reason,email_verified_at IS NOT NULL AS email_verified,phone_verified_at IS NOT NULL AS phone_verified,COALESCE(UNIX_TIMESTAMP(last_login_at),0) AS last_login_at,UNIX_TIMESTAMP(created_at) AS created_at FROM app_user WHERE " + where + " ORDER BY id DESC LIMIT ? OFFSET ?"
+	query := "SELECT " + appAdminUserColumns + " FROM app_user WHERE " + where + " ORDER BY id DESC LIMIT ? OFFSET ?"
 	if err := m.QueryRowsNoCacheCtx(ctx, &rows, query, append(args, size, (page-1)*size)...); err != nil {
 		return nil, 0, err
 	}

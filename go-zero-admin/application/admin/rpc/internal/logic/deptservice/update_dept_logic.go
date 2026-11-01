@@ -22,7 +22,10 @@ func (l *UpdateDeptLogic) UpdateDept(in *adminpb.UpdateDeptRequest) (*adminpb.No
 	if in.GetActor().GetUserId() <= 0 {
 		return nil, xerr.NewErrCode(xerr.PERMISSION_DENIED)
 	}
-	err := l.svcCtx.SysDeptModel.UpdateDepartment(l.ctx, in.DeptId, model.DeptPatch{ParentId: in.ParentId, Name: in.Name, Leader: in.Leader, Phone: in.Phone, Email: in.Email, Sort: in.Sort, Status: in.Status})
+	err := l.svcCtx.SysDeptModel.UpdateDepartment(l.ctx, in.DeptId, model.DeptPatch{
+		ParentId: in.ParentId, Name: in.Name, Leader: in.Leader, LeaderUserId: in.LeaderUserId,
+		Phone: in.Phone, Email: in.Email, Sort: in.Sort, Status: in.Status,
+	}, model.UserActor{UserId: in.GetActor().GetUserId(), DeptId: in.GetActor().GetDeptId()})
 	if err != nil {
 		return nil, deptMutationError(err)
 	}

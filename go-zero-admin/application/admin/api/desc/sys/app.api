@@ -1,5 +1,32 @@
 syntax = "v1"
 type (
+ AppAdminUserInfo {
+  Id int64 `json:"id"`
+  Account string `json:"account"`
+  IdentityKind string `json:"identity_kind"`
+  Nickname string `json:"nickname"`
+  AvatarFileId int64 `json:"avatar_file_id"`
+  AvatarUrl string `json:"avatar_url"`
+  Status string `json:"status"`
+  ReviewReason string `json:"review_reason"`
+  EmailVerified bool `json:"email_verified"`
+  PhoneVerified bool `json:"phone_verified"`
+  LastLoginAt int64 `json:"last_login_at"`
+  CreatedAt int64 `json:"created_at"`
+  Remark string `json:"remark"`
+ }
+ AppAdminUserReq { Id int64 `path:"id"` }
+ AppAdminUserResp { User AppAdminUserInfo `json:"user"` }
+ AppUpdateUserReq {
+  Id int64 `path:"id"`
+  Nickname *string `json:"nickname,optional"`
+  Remark *string `json:"remark,optional"`
+ }
+ AppMembershipPlanInfo {
+  Label string `json:"label"`
+  Value string `json:"value"`
+ }
+ AppMembershipPlansResp { List []AppMembershipPlanInfo `json:"list"` }
  AppAdminListReq {
   Page int64 `form:"page,default=1"`
   PageSize int64 `form:"page_size,default=20"`
@@ -7,7 +34,7 @@ type (
   Account string `form:"account,optional"`
  }
  AppAdminListResp {
-  List []AppUserInfo `json:"list"`
+  List []AppAdminUserInfo `json:"list"`
   Total int64 `json:"total"`
  }
  AppReviewReq {
@@ -23,6 +50,7 @@ type (
   Id int64 `path:"id"`
   SessionId string `path:"session_id"`
  }
+ AppListSessionsReq { Id int64 `path:"id"` }
  AppListMembershipReq {
   Page int64 `form:"page,default=1"`
   PageSize int64 `form:"page_size,default=20"`
@@ -42,6 +70,17 @@ type (
   DurationDays int64 `json:"duration_days"`
  }
  AppRevokeMembershipReq { Id int64 `path:"id"` }
+ AppFeedbackListReq {
+  Page int64 `form:"page,default=1"`
+  PageSize int64 `form:"page_size,default=20"`
+  UserId int64 `form:"user_id,optional"`
+  Status string `form:"status,optional"`
+ }
+ AppUpdateFeedbackReq {
+  Id int64 `path:"id"`
+  Reply *string `json:"reply,optional"`
+  Status *string `json:"status,optional"`
+ }
 )
 @server (
  prefix: v1/sys/app
@@ -50,10 +89,18 @@ type (
 service admin {
  @handler listAppUsers
  get /users (AppAdminListReq) returns (AppAdminListResp)
+ @handler getAppUser
+ get /users/:id (AppAdminUserReq) returns (AppAdminUserResp)
+ @handler updateAppUser
+ put /users/:id (AppUpdateUserReq) returns (EmptyResp)
+ @handler listAppMembershipPlans
+ get /membership-plans returns (AppMembershipPlansResp)
  @handler reviewAppUser
  post /users/:id/review (AppReviewReq) returns (EmptyResp)
  @handler setAppUserAvatar
  put /users/:id/avatar (AppSetAvatarReq) returns (EmptyResp)
+ @handler listAppSessions
+ get /users/:id/sessions (AppListSessionsReq) returns (ListDeviceSessionsResp)
  @handler revokeAppSession
  delete /users/:id/sessions/:session_id (AppAdminRevokeReq) returns (EmptyResp)
  @handler listMemberships
@@ -62,4 +109,8 @@ service admin {
  post /memberships (AppGrantMembershipReq) returns (EmptyResp)
  @handler revokeMembership
  delete /memberships/:id (AppRevokeMembershipReq) returns (EmptyResp)
+ @handler listAppFeedback
+ get /feedback (AppFeedbackListReq) returns (AppFeedbackListResp)
+ @handler updateAppFeedback
+ put /feedback/:id (AppUpdateFeedbackReq) returns (EmptyResp)
 }

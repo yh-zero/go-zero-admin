@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Button, Form, Input, Typography } from 'antd';
+import { Alert, Button, Form, Input, Typography } from 'antd';
 import { ArrowRightOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -33,7 +33,8 @@ export default function LoginPage() {
   const auth = useAuthStore();
   const feedback = useLoginFeedback();
   const captcha = useQuery({ queryKey: ['captcha'], queryFn: fetchCaptcha, staleTime: 0, gcTime: 0, refetchInterval: 90_000 });
-  useEffect(() => { form.setFieldValue('captcha', ''); }, [captcha.data?.captcha_id, form]);
+  const captchaEnabled = captcha.data?.enabled !== false;
+  useEffect(() => { form.setFieldValue('captcha', ''); }, [captcha.data?.captcha_id, captcha.data?.enabled, form]);
   const mutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
@@ -49,11 +50,12 @@ export default function LoginPage() {
   if (auth.token) return <Navigate to="/dashboard" replace />;
   const submit = (values: LoginReq) => {
     if (mutation.isPending || mutation.isSuccess) return;
-    if (!captcha.data || captcha.data.expires_at * 1000 <= Date.now()) {
+    if (!captcha.isSuccess || !captcha.data || captcha.isFetching) { void captcha.refetch(); return; }
+    if (captchaEnabled && captcha.data.expires_at * 1000 <= Date.now()) {
       form.setFields([{ name: 'captcha', errors: ['验证码已过期，请刷新后重试'] }]); feedback.showFailure(); void captcha.refetch(); return;
     }
     feedback.reset();
-    mutation.mutate({ ...values, captcha_id: captcha.data.captcha_id });
+    mutation.mutate(captchaEnabled ? { ...values, captcha_id: captcha.data.captcha_id } : { username: values.username, password: values.password });
   };
   return <main className="login-page">
     <div className="login-shell">
@@ -75,15 +77,16 @@ export default function LoginPage() {
             <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}>
               <Input.Password prefix={<LockOutlined />} autoComplete="current-password" placeholder="请输入密码" onFocus={() => feedback.setPasswordFocused(true)} onBlur={() => feedback.setPasswordFocused(false)} />
             </Form.Item>
-            <Form.Item label="验证码" required>
+            {captchaEnabled && <Form.Item label="验证码" required>
               <div className="captcha-row">
-                <Form.Item name="captcha" noStyle rules={[{ required: true, message: '请输入验证码' }]}>
+                <Form.Item name="captcha" noStyle preserve={false} rules={[{ required: true, message: '请输入验证码' }]}>
                   <Input autoComplete="off" placeholder="请输入验证码" maxLength={8} />
                 </Form.Item>
                 <CaptchaField data={captcha.data} loading={captcha.isFetching} onReload={() => void captcha.refetch()} />
               </div>
-            </Form.Item>
-            <Button className="login-submit" block type="primary" htmlType="submit" loading={mutation.isPending || mutation.isSuccess} disabled={!captcha.data || captcha.isFetching || mutation.isSuccess}>
+            </Form.Item>}
+            {captcha.isError && <Form.Item><Alert type="error" title="登录配置加载失败" action={<Button size="small" onClick={() => void captcha.refetch()}>重试</Button>} /></Form.Item>}
+            <Button className="login-submit" block type="primary" htmlType="submit" loading={mutation.isPending || mutation.isSuccess} disabled={!captcha.isSuccess || captcha.isFetching || mutation.isSuccess}>
               {mutation.isSuccess ? '登录成功，正在进入' : '登录工作台'}<ArrowRightOutlined />
             </Button>
           </Form>

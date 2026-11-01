@@ -3,8 +3,10 @@ package dictservicelogic
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
 	"go-zero-admin/application/admin/rpc/internal/svc"
@@ -23,7 +25,13 @@ func NewGetDictByCodeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get
 
 func (l *GetDictByCodeLogic) GetDictByCode(in *adminpb.GetDictByCodeRequest) (*adminpb.GetDictByCodeResponse, error) {
 	dict, err := l.svcCtx.SysDictModel.FindOneByCode(l.ctx, in.Code)
+	if errors.Is(err, sqlx.ErrNotFound) {
+		return nil, xerr.NewErrCode(xerr.DICT_NOT_FOUND)
+	}
 	if err != nil {
+		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	}
+	if dict.DeletedAt.Valid {
 		return nil, xerr.NewErrCode(xerr.DICT_NOT_FOUND)
 	}
 	var items []*adminpb.DictItem

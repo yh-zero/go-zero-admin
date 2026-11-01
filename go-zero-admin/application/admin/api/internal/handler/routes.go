@@ -140,6 +140,21 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		[]rest.Route{
 			{
 				Method:  http.MethodGet,
+				Path:    "/feedback",
+				Handler: appadmin.ListAppFeedbackHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/feedback/:id",
+				Handler: appadmin.UpdateAppFeedbackHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/membership-plans",
+				Handler: appadmin.ListAppMembershipPlansHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
 				Path:    "/memberships",
 				Handler: appadmin.ListMembershipsHandler(serverCtx),
 			},
@@ -159,6 +174,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: appadmin.ListAppUsersHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodGet,
+				Path:    "/users/:id",
+				Handler: appadmin.GetAppUserHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/users/:id",
+				Handler: appadmin.UpdateAppUserHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodPut,
 				Path:    "/users/:id/avatar",
 				Handler: appadmin.SetAppUserAvatarHandler(serverCtx),
@@ -167,6 +192,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/users/:id/review",
 				Handler: appadmin.ReviewAppUserHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/users/:id/sessions",
+				Handler: appadmin.ListAppSessionsHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodDelete,
@@ -208,6 +238,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/auth/register",
 				Handler: appauth.AppRegisterHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/feedback",
+				Handler: appauth.SubmitAppFeedbackHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/feedback",
+				Handler: appauth.ListMyFeedbackHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,

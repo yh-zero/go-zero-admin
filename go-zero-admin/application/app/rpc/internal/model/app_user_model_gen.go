@@ -48,6 +48,7 @@ type (
 		IdentityKind    string        `db:"identity_kind"`     // 账号类型：email/phone
 		PasswordHash    string        `db:"password_hash"`     // 密码哈希（bcrypt）
 		Nickname        string        `db:"nickname"`          // 昵称
+		Remark          string        `db:"remark"`            // 仅后台可见的内部备注
 		AvatarFileId    sql.NullInt64 `db:"avatar_file_id"`    // 头像文件ID
 		Status          string        `db:"status"`            // 状态：pending/active/disabled/rejected
 		ReviewReason    string        `db:"review_reason"`     // 审核备注
@@ -123,8 +124,8 @@ func (m *defaultAppUserModel) Insert(ctx context.Context, data *AppUser) (sql.Re
 	gozeroAdminAppUserAccountKey := fmt.Sprintf("%s%v", cacheGozeroAdminAppUserAccountPrefix, data.Account)
 	gozeroAdminAppUserIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAppUserIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, appUserRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Account, data.IdentityKind, data.PasswordHash, data.Nickname, data.AvatarFileId, data.Status, data.ReviewReason, data.EmailVerifiedAt, data.PhoneVerifiedAt, data.LastLoginAt, data.DeletedAt)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, appUserRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Account, data.IdentityKind, data.PasswordHash, data.Nickname, data.Remark, data.AvatarFileId, data.Status, data.ReviewReason, data.EmailVerifiedAt, data.PhoneVerifiedAt, data.LastLoginAt, data.DeletedAt)
 	}, gozeroAdminAppUserAccountKey, gozeroAdminAppUserIdKey)
 	return ret, err
 }
@@ -139,7 +140,7 @@ func (m *defaultAppUserModel) Update(ctx context.Context, newData *AppUser) erro
 	gozeroAdminAppUserIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAppUserIdPrefix, data.Id)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, appUserRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.Account, newData.IdentityKind, newData.PasswordHash, newData.Nickname, newData.AvatarFileId, newData.Status, newData.ReviewReason, newData.EmailVerifiedAt, newData.PhoneVerifiedAt, newData.LastLoginAt, newData.DeletedAt, newData.Id)
+		return conn.ExecCtx(ctx, query, newData.Account, newData.IdentityKind, newData.PasswordHash, newData.Nickname, newData.Remark, newData.AvatarFileId, newData.Status, newData.ReviewReason, newData.EmailVerifiedAt, newData.PhoneVerifiedAt, newData.LastLoginAt, newData.DeletedAt, newData.Id)
 	}, gozeroAdminAppUserAccountKey, gozeroAdminAppUserIdKey)
 	return err
 }

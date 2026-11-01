@@ -17,7 +17,7 @@ type Config struct {
 		Model          string `json:",optional"`
 		BaseURL        string `json:",optional"`
 		TimeoutSeconds int64  `json:",default=60"`
-		// 兼容旧 YAML 字段但不读取其值；密钥统一使用 API_KEY_<PROVIDER> 环境变量。
+		// 兼容旧 YAML 字段但不读取其值；密钥统一使用 AI_<PROVIDER>_KEY 环境变量。
 		DeepSeekKey string `json:",optional"`
 		QwenKey     string `json:",optional"`
 	}

@@ -1,8 +1,8 @@
 ﻿#requires -Version 5.1
 <#
 独立认证 HTTP 验证，仅使用调用者提供的专用测试账号，不读取数据库或临时 probe。
-先通过正常验证码流程取得 captcha_id，并人工识别图片得到 captcha；验证码一次有效，
-每次运行须重新取得。可通过同名参数或 LOGIN_E2E_* 环境变量提供以下值：
+验证码启用时，先通过正常流程取得 captcha_id，并人工识别图片得到 captcha；一次有效，
+每次运行须重新取得。关闭时只需账号密码。可通过同名参数或 LOGIN_E2E_* 环境变量提供以下值：
 BASE_URL、USERNAME、PASSWORD、CAPTCHA_ID、CAPTCHA。
 BASE_URL 是 API 服务根地址（不包含 /v1）。建议通过环境变量传凭据，避免命令历史记录。
 脚本不打印凭据、验证码、token 或响应正文；只退出本次创建的会话，不退出其他设备。
@@ -105,8 +105,8 @@ function Assert-CurrentSession($Result, [string]$SessionId) {
 }
 
 try {
-    foreach ($required in @($BaseUrl, $Username, $Password, $CaptchaId, $Captcha)) {
-        if ([string]::IsNullOrWhiteSpace($required)) { Stop-Test '缺少参数；请提供服务根地址、测试账号及本次正常流程取得的验证码' }
+    foreach ($required in @($BaseUrl, $Username, $Password)) {
+        if ([string]::IsNullOrWhiteSpace($required)) { Stop-Test '缺少参数；请提供服务根地址和测试账号' }
     }
     $targetUri = $null
     Assert-Test ([Uri]::TryCreate($BaseUrl, [UriKind]::Absolute, [ref]$targetUri)) '服务根地址不是有效 URI'
@@ -118,9 +118,17 @@ try {
     $ready = Invoke-TestApi '就绪检查' 'GET' '/ready'
     Assert-Test ($ready.result.ready -is [bool] -and $ready.result.ready) 'ready 未确认服务就绪'
 
-    $login = Invoke-TestApi '账号登录' 'POST' '/v1/sys/auth/login' @{
-        username = $Username; password = $Password; captcha_id = $CaptchaId; captcha = $Captcha
+    $captchaOptions = Invoke-TestApi '验证码配置' 'GET' '/v1/sys/auth/captcha'
+    Assert-Test ($captchaOptions.result.PSObject.Properties.Name -contains 'enabled' -and $captchaOptions.result.enabled -is [bool]) '验证码配置缺少 enabled 布尔值'
+    $loginBody = @{ username = $Username; password = $Password }
+    if ($captchaOptions.result.enabled) {
+        if ([string]::IsNullOrWhiteSpace($CaptchaId) -or [string]::IsNullOrWhiteSpace($Captcha)) { Stop-Test '验证码已启用；请提供本次正常流程取得的验证码' }
+        $loginBody.captcha_id = $CaptchaId
+        $loginBody.captcha = $Captcha
+    } else {
+        Assert-Test ($captchaOptions.result.captcha_id -ceq '' -and $captchaOptions.result.image_base64 -ceq '' -and $captchaOptions.result.expires_at -eq 0) '关闭验证码时不应生成验证码'
     }
+    $login = Invoke-TestApi '账号登录' 'POST' '/v1/sys/auth/login' $loginBody
     $activeAccess = Read-StringField $login.result 'access_token'
     Assert-LoginFields $login.result
     $firstAccess = $activeAccess

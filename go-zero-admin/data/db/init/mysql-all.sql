@@ -7,7 +7,7 @@
 --   2. 手动导入：mysql -h 127.0.0.1 -P 3307 -u root -p < mysql-all.sql
 --
 -- 内容：
---   gozero_admin    全量：17 张表结构 + 完整演示数据（菜单/角色/部门/用户/
+--   gozero_admin    全量：完整表结构 + 演示数据（菜单/角色/部门/用户/
 --                         字典/API/Casbin 规则/文件登记/AI 与 App 演示行）
 --   gozero_platform 全量：tenant_registry 含 3 条演示租户行（stopped/error/idle，
 --                         其密钥列均为本地演示值，仅用于联调租户列表展示）
@@ -207,6 +207,24 @@ INSERT INTO `app_membership_grant` VALUES (9010201,9010101,'vip','profile.export
 UNLOCK TABLES;
 
 --
+-- Table structure for table `app_feedback`
+--
+
+DROP TABLE IF EXISTS `app_feedback`;
+CREATE TABLE `app_feedback` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` bigint unsigned NOT NULL COMMENT '提交用户',
+  `content` text NOT NULL COMMENT '纯文字反馈内容',
+  `reply` text NOT NULL COMMENT '后台回复，空字符串为未回复',
+  `status` varchar(16) NOT NULL DEFAULT 'pending' COMMENT 'pending/resolved',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`,`id`),
+  KEY `idx_status_id` (`status`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='App 意见反馈';
+
+--
 -- Table structure for table `app_user`
 --
 
@@ -219,6 +237,7 @@ CREATE TABLE `app_user` (
   `identity_kind` varchar(16) NOT NULL COMMENT '账号类型：email/phone',
   `password_hash` varchar(128) NOT NULL COMMENT '密码哈希（bcrypt）',
   `nickname` varchar(64) NOT NULL DEFAULT '' COMMENT '昵称',
+  `remark` varchar(500) NOT NULL DEFAULT '' COMMENT '仅后台可见的内部备注',
   `avatar_file_id` bigint unsigned DEFAULT NULL COMMENT '头像文件ID',
   `status` varchar(16) NOT NULL DEFAULT 'pending' COMMENT '状态：pending/active/disabled/rejected',
   `review_reason` varchar(512) NOT NULL DEFAULT '' COMMENT '审核备注',
@@ -240,7 +259,7 @@ CREATE TABLE `app_user` (
 
 LOCK TABLES `app_user` WRITE;
 /*!40000 ALTER TABLE `app_user` DISABLE KEYS */;
-INSERT INTO `app_user` VALUES (9010101,'active@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱已激活',NULL,'active','测试样例：已审核','2026-10-31 15:28:18',NULL,'2026-10-31 15:28:18','2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010102,'pending@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱待审核',NULL,'pending','',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010103,'disabled@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱已停用',NULL,'disabled','测试样例：账号停用','2026-10-31 15:28:18',NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010104,'rejected@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱已驳回',NULL,'rejected','测试样例：审核资料不完整',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010105,'0009010105','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机已激活',NULL,'active','测试样例：已审核',NULL,'2026-10-31 15:28:18','2026-10-31 15:28:18','2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010106,'0009010106','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机待审核',NULL,'pending','',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010107,'0009010107','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机已停用',NULL,'disabled','测试样例：账号停用',NULL,'2026-10-31 15:28:18',NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010108,'0009010108','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机已驳回',NULL,'rejected','测试样例：审核资料不完整',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL);
+INSERT INTO `app_user` (`id`,`account`,`identity_kind`,`password_hash`,`nickname`,`avatar_file_id`,`status`,`review_reason`,`email_verified_at`,`phone_verified_at`,`last_login_at`,`created_at`,`updated_at`,`deleted_at`) VALUES (9010101,'active@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱已激活',NULL,'active','测试样例：已审核','2026-10-31 15:28:18',NULL,'2026-10-31 15:28:18','2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010102,'pending@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱待审核',NULL,'pending','',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010103,'disabled@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱已停用',NULL,'disabled','测试样例：账号停用','2026-10-31 15:28:18',NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010104,'rejected@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱已驳回',NULL,'rejected','测试样例：审核资料不完整',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010105,'0009010105','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机已激活',NULL,'active','测试样例：已审核',NULL,'2026-10-31 15:28:18','2026-10-31 15:28:18','2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010106,'0009010106','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机待审核',NULL,'pending','',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010107,'0009010107','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机已停用',NULL,'disabled','测试样例：账号停用',NULL,'2026-10-31 15:28:18',NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010108,'0009010108','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机已驳回',NULL,'rejected','测试样例：审核资料不完整',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL);
 /*!40000 ALTER TABLE `app_user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -331,6 +350,24 @@ CREATE TABLE `sys_api` (
 LOCK TABLES `sys_api` WRITE;
 /*!40000 ALTER TABLE `sys_api` DISABLE KEYS */;
 INSERT INTO `sys_api` VALUES (9001500,'sys/auth','GET','/v1/sys/auth/captcha','获取验证码','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001501,'sys/auth','POST','/v1/sys/auth/login','登录','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001502,'sys/user','GET','/v1/sys/user/list','查询用户','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001503,'sys/user','GET','/v1/sys/user/:id','用户详情','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001504,'sys/user','POST','/v1/sys/user/create','新增用户','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001505,'sys/user','PUT','/v1/sys/user/:id','编辑用户','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001506,'sys/user','DELETE','/v1/sys/user/:id','删除用户','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001507,'sys/user','POST','/v1/sys/user/:id/password','重置密码','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001508,'sys/user','POST','/v1/sys/user/password/change','修改本人密码','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001509,'sys/dept','GET','/v1/sys/dept/tree','部门树','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001510,'sys/dept','POST','/v1/sys/dept/create','新增部门','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001511,'sys/dept','PUT','/v1/sys/dept/:id','编辑部门','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001512,'sys/dept','DELETE','/v1/sys/dept/:id','删除部门','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001513,'sys/role','GET','/v1/sys/role/list','查询角色','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001514,'sys/role','GET','/v1/sys/role/:id','角色详情','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001515,'sys/role','POST','/v1/sys/role/create','新增角色','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001516,'sys/role','PUT','/v1/sys/role/:id','编辑角色','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001517,'sys/role','DELETE','/v1/sys/role/:id','删除角色','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001518,'sys/role','POST','/v1/sys/role/:id/menus','角色菜单授权','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001519,'sys/menu','GET','/v1/sys/menu/list','查询菜单','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001520,'sys/menu','GET','/v1/sys/menu/:id','菜单详情','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001521,'sys/menu','GET','/v1/sys/menu/tree','菜单树','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001522,'sys/menu','GET','/v1/sys/menu/my','本人菜单','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001523,'sys/menu','GET','/v1/sys/menu/my/perm-codes','本人权限码','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001524,'sys/menu','POST','/v1/sys/menu/create','新增菜单','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001525,'sys/menu','PUT','/v1/sys/menu/:id','编辑菜单','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001526,'sys/menu','DELETE','/v1/sys/menu/:id','删除菜单','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001527,'sys/dict','GET','/v1/sys/dict/list','查询字典','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001528,'sys/dict','GET','/v1/sys/dict/code/:code','字典详情','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001529,'sys/dict','POST','/v1/sys/dict/create','新增字典','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001530,'sys/dict','PUT','/v1/sys/dict/:id','编辑字典','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001531,'sys/dict','DELETE','/v1/sys/dict/:id','删除字典','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001532,'sys/api','GET','/v1/sys/api/list','查询 API','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001533,'sys/api','DELETE','/v1/sys/api/:id','删除 API','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001534,'sys/file','GET','/v1/sys/file/list','查询文件','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001535,'sys/file','GET','/v1/sys/file/:id/url','获取文件链接','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001536,'sys/file','DELETE','/v1/sys/file/:id','删除文件','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001537,'sys/audit','GET','/v1/sys/audit/list','查询审计日志','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001538,'sys/profile','GET','/v1/sys/profile/','本人资料','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001539,'sys/profile','PUT','/v1/sys/profile/','更新本人资料','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001540,'system','GET','/ping','健康检查','2026-10-30 09:00:00','2026-10-31 18:31:03');
+-- APP 后台管理接口；路径与 desc/sys/app.api 保持一致。
+INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
+(9001600,'sys/app','GET','/v1/sys/app/users','查询 APP 用户'),
+(9001601,'sys/app','POST','/v1/sys/app/users/:id/review','审核 APP 用户'),
+(9001602,'sys/app','PUT','/v1/sys/app/users/:id/avatar','设置 APP 用户头像'),
+(9001603,'sys/app','GET','/v1/sys/app/users/:id/sessions','查询 APP 登录设备'),
+(9001604,'sys/app','DELETE','/v1/sys/app/users/:id/sessions/:session_id','撤销 APP 登录设备'),
+(9001605,'sys/app','GET','/v1/sys/app/memberships','查询 APP 会员'),
+(9001606,'sys/app','POST','/v1/sys/app/memberships','授予 APP 会员'),
+(9001607,'sys/app','DELETE','/v1/sys/app/memberships/:id','撤销 APP 会员');
+INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
+(9001610,'sys/app','GET','/v1/sys/app/users/:id','APP 用户详情'),
+(9001611,'sys/app','PUT','/v1/sys/app/users/:id','编辑 APP 用户资料'),
+(9001612,'sys/app','GET','/v1/sys/app/membership-plans','APP 会员套餐选项'),
+(9001613,'sys/app','GET','/v1/sys/app/feedback','查询 APP 反馈'),
+(9001614,'sys/app','PUT','/v1/sys/app/feedback/:id','处理 APP 反馈'),
+(9001615,'app','GET','/v1/app/feedback','本人 APP 反馈'),
+(9001616,'app','POST','/v1/app/feedback','提交 APP 反馈');
 /*!40000 ALTER TABLE `sys_api` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -385,6 +422,7 @@ CREATE TABLE `sys_dept` (
   `parent_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '父部门ID，0=根',
   `name` varchar(64) NOT NULL COMMENT '部门名称',
   `leader` varchar(64) NOT NULL DEFAULT '' COMMENT '负责人',
+  `leader_user_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '负责人账号ID，0=未关联',
   `phone` varchar(20) NOT NULL DEFAULT '' COMMENT '联系电话',
   `email` varchar(128) NOT NULL DEFAULT '' COMMENT '邮箱',
   `sort` int NOT NULL DEFAULT '0' COMMENT '排序（小在前）',
@@ -405,7 +443,7 @@ CREATE TABLE `sys_dept` (
 
 LOCK TABLES `sys_dept` WRITE;
 /*!40000 ALTER TABLE `sys_dept` DISABLE KEYS */;
-INSERT INTO `sys_dept` VALUES (1,0,'总部','','','',0,1,'/1/','2026-10-30 14:07:15','2026-10-30 14:07:15',NULL),(9001000,1,'研发中心','示例负责人甲','000-0000-0001','rd@example.test',10,1,'/1/9001000/','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001001,9001000,'平台研发组','示例负责人乙','000-0000-0002','platform@example.test',20,1,'/1/9001000/9001001/','2026-10-30 09:00:00','2026-10-31 18:32:47',NULL),(9001002,9001000,'测试组','','','',0,0,'/1/9001000/9001002/','2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001003,1,'客户服务中心','示例负责人丁','000-0000-0004','service@example.test',40,1,'/1/9001003/','2026-10-30 09:00:00','2026-10-31 18:32:47',NULL),(9001004,9001003,'停用示例组','示例负责人戊','000-0000-0005','disabled@example.test',50,2,'/1/9001003/9001004/','2026-10-30 09:00:00','2026-10-31 18:32:47',NULL);
+INSERT INTO `sys_dept` (`id`,`parent_id`,`name`,`leader`,`phone`,`email`,`sort`,`status`,`path`,`created_at`,`updated_at`,`deleted_at`) VALUES (1,0,'总部','','','',0,1,'/1/','2026-10-30 14:07:15','2026-10-30 14:07:15',NULL),(9001000,1,'研发中心','示例负责人甲','000-0000-0001','rd@example.test',10,1,'/1/9001000/','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001001,9001000,'平台研发组','示例负责人乙','000-0000-0002','platform@example.test',20,1,'/1/9001000/9001001/','2026-10-30 09:00:00','2026-10-31 18:32:47',NULL),(9001002,9001000,'测试组','','','',0,0,'/1/9001000/9001002/','2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001003,1,'客户服务中心','示例负责人丁','000-0000-0004','service@example.test',40,1,'/1/9001003/','2026-10-30 09:00:00','2026-10-31 18:32:47',NULL),(9001004,9001003,'停用示例组','示例负责人戊','000-0000-0005','disabled@example.test',50,2,'/1/9001003/9001004/','2026-10-30 09:00:00','2026-10-31 18:32:47',NULL);
 /*!40000 ALTER TABLE `sys_dept` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -437,6 +475,8 @@ CREATE TABLE `sys_dict` (
 
 LOCK TABLES `sys_dict` WRITE;
 /*!40000 ALTER TABLE `sys_dict` DISABLE KEYS */;
+INSERT INTO `sys_dict` (`name`,`code`,`items`,`description`,`status`) VALUES
+('APP会员套餐','app_membership_plan','[{"label":"基础会员","value":"basic","sort":0},{"label":"专业会员","value":"pro","sort":1}]','APP 后台开通会员时的套餐选择',1);
 INSERT INTO `sys_dict` VALUES (9001600,'启停状态','user_status','[{\"sort\": 0, \"label\": \"启用\", \"value\": \"1\"}, {\"sort\": 1, \"label\": \"停用\", \"value\": \"2\"}]','前端联调字典',1,'2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001601,'用户性别','user_gender','[{\"sort\": 0, \"label\": \"未知\", \"value\": \"0\"}, {\"sort\": 1, \"label\": \"男\", \"value\": \"1\"}, {\"sort\": 2, \"label\": \"女\", \"value\": \"2\"}]','前端联调字典',1,'2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001602,'数据范围','data_scope','[{\"sort\": 0, \"label\": \"全部\", \"value\": \"ALL\"}, {\"sort\": 1, \"label\": \"本部门及下级\", \"value\": \"DEPT_AND_CHILDREN\"}, {\"sort\": 2, \"label\": \"本部门\", \"value\": \"DEPT\"}, {\"sort\": 3, \"label\": \"本人\", \"value\": \"SELF\"}]','前端联调字典',1,'2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001603,'工单优先级','priority','[{\"sort\": 0, \"label\": \"低\", \"value\": \"low\"}, {\"sort\": 1, \"label\": \"中\", \"value\": \"normal\"}, {\"sort\": 2, \"label\": \"高\", \"value\": \"high\"}]','前端联调字典',2,'2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9010010,'空字典','empty_dict','[]','全模块联调：空字典项边界',1,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL);
 /*!40000 ALTER TABLE `sys_dict` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -533,6 +573,22 @@ CREATE TABLE `sys_menu` (
 LOCK TABLES `sys_menu` WRITE;
 /*!40000 ALTER TABLE `sys_menu` DISABLE KEYS */;
 INSERT INTO `sys_menu` VALUES (9001300,0,'系统管理','system',1,'/sys','','','system',10,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001301,0,'工作台','dashboard',2,'/dashboard','dashboard','','dashboard',0,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001302,9001300,'用户管理','user',2,'/sys/user','user','','user',20,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001303,9001300,'角色管理','role',2,'/sys/role','role','','role',21,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001304,9001300,'菜单管理','menu',2,'/sys/menu','menu','','menu',22,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001305,9001300,'部门管理','dept',2,'/sys/dept','dept','','dept',23,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001306,9001300,'字典管理','dict',2,'/sys/dict','dict','','dict',24,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001307,9001300,'API 资源','api',2,'/sys/api','api','','api',25,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001308,9001300,'文件管理','file',2,'/sys/file','file','','file',26,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001309,9001300,'审计日志','audit',2,'/sys/audit','audit','','audit',27,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001310,9001300,'个人中心','profile',2,'/sys/profile','profile','','profile',28,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001320,9001302,'新增用户','user_add',3,'','','sys:user:add','',0,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001321,9001302,'编辑用户','user_edit',3,'','','sys:user:edit','',1,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001322,9001302,'删除用户','user_delete',3,'','','sys:user:delete','',2,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001323,9001302,'重置密码','user_reset_password',3,'','','sys:user:reset-password','',3,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001324,9001303,'新增角色','role_add',3,'','','sys:role:add','',4,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001325,9001303,'编辑角色','role_edit',3,'','','sys:role:edit','',5,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001326,9001303,'删除角色','role_delete',3,'','','sys:role:delete','',6,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001327,9001303,'分配菜单','role_menus',3,'','','sys:role:menus','',7,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001328,9001304,'新增菜单','menu_add',3,'','','sys:menu:add','',8,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001329,9001304,'编辑菜单','menu_edit',3,'','','sys:menu:edit','',9,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001330,9001304,'删除菜单','menu_delete',3,'','','sys:menu:delete','',10,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001331,9001305,'新增部门','dept_add',3,'','','sys:dept:add','',11,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001332,9001305,'编辑部门','dept_edit',3,'','','sys:dept:edit','',12,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001333,9001305,'删除部门','dept_delete',3,'','','sys:dept:delete','',13,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001334,9001306,'新增字典','dict_add',3,'','','sys:dict:add','',14,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001335,9001306,'编辑字典','dict_edit',3,'','','sys:dict:edit','',15,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001336,9001306,'删除字典','dict_delete',3,'','','sys:dict:delete','',16,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001337,9001307,'删除 API','api_delete',3,'','','sys:api:delete','',17,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001338,9001308,'删除文件','file_delete',3,'','','sys:file:delete','',18,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001339,9001310,'编辑资料','profile_edit',3,'','','sys:profile:edit','',19,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL);
+-- APP管理与系统管理同级，操作权限挂在对应页面下。
+INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component`,`perm_code`,`icon`,`sort`,`visible`,`status`) VALUES
+(9001360,0,'APP管理','app',1,'/app','','','app',20,1,1),
+(9001361,9001360,'APP用户','app_user',2,'/app/users','app_user','','app_user',0,1,1),
+(9001362,9001360,'会员管理','app_membership',2,'/app/memberships','app_membership','','membership',1,1,1),
+(9001363,9001361,'审核用户','app_user_review',3,'','','sys:app:user:review','',0,0,1),
+(9001364,9001361,'设置头像','app_user_avatar',3,'','','sys:app:user:avatar','',1,0,1),
+(9001365,9001361,'查看登录设备','app_session_list',3,'','','sys:app:session:list','',2,0,1),
+(9001366,9001361,'撤销登录设备','app_session_revoke',3,'','','sys:app:session:revoke','',3,0,1),
+(9001367,9001362,'授予会员','app_membership_grant',3,'','','sys:app:membership:grant','',0,0,1),
+(9001368,9001362,'撤销会员','app_membership_revoke',3,'','','sys:app:membership:revoke','',1,0,1),
+(9001369,9001308,'上传文件','file_upload',3,'','','sys:file:upload','',0,0,1);
+INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component`,`perm_code`,`icon`,`sort`,`visible`,`status`) VALUES
+(9001370,9001361,'编辑资料','app_user_edit',3,'','','sys:app:user:edit','',4,0,1),
+(9001371,9001360,'意见反馈','app_feedback',2,'/app/feedback','app_feedback','','message',2,1,1),
+(9001372,9001371,'处理反馈','app_feedback_reply',3,'','','sys:app:feedback:reply','',0,0,1);
 /*!40000 ALTER TABLE `sys_menu` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -597,6 +653,11 @@ LOCK TABLES `sys_role_menu` WRITE;
 INSERT INTO `sys_role_menu` VALUES (9001400,1,9001300,'2026-10-30 09:00:00'),(9001401,1,9001301,'2026-10-30 09:00:00'),(9001402,1,9001302,'2026-10-30 09:00:00'),(9001403,1,9001303,'2026-10-30 09:00:00'),(9001404,1,9001304,'2026-10-30 09:00:00'),(9001405,1,9001305,'2026-10-30 09:00:00'),(9001406,1,9001306,'2026-10-30 09:00:00'),(9001407,1,9001307,'2026-10-30 09:00:00'),(9001408,1,9001308,'2026-10-30 09:00:00'),(9001409,1,9001309,'2026-10-30 09:00:00'),(9001410,1,9001310,'2026-10-30 09:00:00'),(9001411,1,9001320,'2026-10-30 09:00:00'),(9001412,1,9001321,'2026-10-30 09:00:00'),(9001413,1,9001322,'2026-10-30 09:00:00'),(9001414,1,9001323,'2026-10-30 09:00:00'),(9001415,1,9001324,'2026-10-30 09:00:00'),(9001416,1,9001325,'2026-10-30 09:00:00'),(9001417,1,9001326,'2026-10-30 09:00:00'),(9001418,1,9001327,'2026-10-30 09:00:00'),(9001419,1,9001328,'2026-10-30 09:00:00'),(9001420,1,9001329,'2026-10-30 09:00:00'),(9001421,1,9001330,'2026-10-30 09:00:00'),(9001422,1,9001331,'2026-10-30 09:00:00'),(9001423,1,9001332,'2026-10-30 09:00:00'),(9001424,1,9001333,'2026-10-30 09:00:00'),(9001425,1,9001334,'2026-10-30 09:00:00'),(9001426,1,9001335,'2026-10-30 09:00:00'),(9001427,1,9001336,'2026-10-30 09:00:00'),(9001428,1,9001337,'2026-10-30 09:00:00'),(9001429,1,9001338,'2026-10-30 09:00:00'),(9001430,1,9001339,'2026-10-30 09:00:00'),(9001451,9001201,9001300,'2026-10-30 09:00:00'),(9001452,9001201,9001301,'2026-10-30 09:00:00'),(9001453,9001201,9001302,'2026-10-30 09:00:00'),(9001454,9001201,9001303,'2026-10-30 09:00:00'),(9001455,9001201,9001304,'2026-10-30 09:00:00'),(9001456,9001201,9001305,'2026-10-30 09:00:00'),(9001457,9001201,9001306,'2026-10-30 09:00:00'),(9001458,9001201,9001307,'2026-10-30 09:00:00'),(9001459,9001201,9001308,'2026-10-30 09:00:00'),(9001460,9001201,9001309,'2026-10-30 09:00:00'),(9001461,9001201,9001310,'2026-10-30 09:00:00'),(9001462,9001202,9001300,'2026-10-30 09:00:00'),(9001463,9001202,9001301,'2026-10-30 09:00:00'),(9001464,9001202,9001302,'2026-10-30 09:00:00'),(9001465,9001202,9001303,'2026-10-30 09:00:00'),(9001466,9001202,9001304,'2026-10-30 09:00:00'),(9001467,9001202,9001305,'2026-10-30 09:00:00'),(9001468,9001202,9001306,'2026-10-30 09:00:00'),(9001469,9001202,9001307,'2026-10-30 09:00:00'),(9001470,9001202,9001308,'2026-10-30 09:00:00'),(9001471,9001202,9001309,'2026-10-30 09:00:00'),(9001472,9001202,9001310,'2026-10-30 09:00:00'),(9001473,9001203,9001300,'2026-10-30 09:00:00'),(9001474,9001203,9001301,'2026-10-30 09:00:00'),(9001475,9001203,9001302,'2026-10-30 09:00:00'),(9001476,9001203,9001303,'2026-10-30 09:00:00'),(9001477,9001203,9001304,'2026-10-30 09:00:00'),(9001478,9001203,9001305,'2026-10-30 09:00:00'),(9001479,9001203,9001306,'2026-10-30 09:00:00'),(9001480,9001203,9001307,'2026-10-30 09:00:00'),(9001481,9001203,9001308,'2026-10-30 09:00:00'),(9001482,9001203,9001309,'2026-10-30 09:00:00'),(9001483,9001203,9001310,'2026-10-30 09:00:00'),(9001490,9001200,9001300,'2026-10-31 17:09:17'),(9001491,9001200,9001301,'2026-10-31 17:09:17'),(9001492,9001200,9001302,'2026-10-31 17:09:17'),(9001493,9001200,9001303,'2026-10-31 17:09:17'),(9001494,9001200,9001304,'2026-10-31 17:09:17'),(9001495,9001200,9001305,'2026-10-31 17:09:17'),(9001496,9001200,9001306,'2026-10-31 17:09:17'),(9001497,9001200,9001307,'2026-10-31 17:09:17'),(9001498,9001200,9001308,'2026-10-31 17:09:17'),(9001499,9001200,9001309,'2026-10-31 17:09:17'),(9001500,9001200,9001310,'2026-10-31 17:09:17');
 /*!40000 ALTER TABLE `sys_role_menu` ENABLE KEYS */;
 UNLOCK TABLES;
+-- 默认仅超级管理员获得新增入口；菜单授权不替代 Casbin 接口鉴权。
+INSERT INTO `sys_role_menu` (`role_id`,`menu_id`)
+SELECT r.id,m.id FROM `sys_role` r CROSS JOIN `sys_menu` m
+WHERE r.code='super_admin' AND r.deleted_at IS NULL
+  AND m.id IN (9001360,9001361,9001362,9001363,9001364,9001365,9001366,9001367,9001368,9001369,9001370,9001371,9001372);
 
 --
 -- Table structure for table `sys_user`

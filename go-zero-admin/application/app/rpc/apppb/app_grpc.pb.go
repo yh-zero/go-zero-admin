@@ -19,25 +19,23 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AppAuthService_AppRegister_FullMethodName     = "/apppb.AppAuthService/AppRegister"
-	AppAuthService_AppLogin_FullMethodName        = "/apppb.AppAuthService/AppLogin"
-	AppAuthService_AppRefresh_FullMethodName      = "/apppb.AppAuthService/AppRefresh"
-	AppAuthService_AppLogout_FullMethodName       = "/apppb.AppAuthService/AppLogout"
-	AppAuthService_AppAccess_FullMethodName       = "/apppb.AppAuthService/AppAccess"
-	AppAuthService_GetMyProfile_FullMethodName    = "/apppb.AppAuthService/GetMyProfile"
-	AppAuthService_UpdateMyProfile_FullMethodName = "/apppb.AppAuthService/UpdateMyProfile"
-	AppAuthService_GetAuthOptions_FullMethodName  = "/apppb.AppAuthService/GetAuthOptions"
-	AppAuthService_SendEmailCode_FullMethodName   = "/apppb.AppAuthService/SendEmailCode"
-	AppAuthService_GetMyMembership_FullMethodName = "/apppb.AppAuthService/GetMyMembership"
+	AppAuthService_AppRegister_FullMethodName       = "/apppb.AppAuthService/AppRegister"
+	AppAuthService_AppLogin_FullMethodName          = "/apppb.AppAuthService/AppLogin"
+	AppAuthService_AppRefresh_FullMethodName        = "/apppb.AppAuthService/AppRefresh"
+	AppAuthService_AppLogout_FullMethodName         = "/apppb.AppAuthService/AppLogout"
+	AppAuthService_AppAccess_FullMethodName         = "/apppb.AppAuthService/AppAccess"
+	AppAuthService_GetMyProfile_FullMethodName      = "/apppb.AppAuthService/GetMyProfile"
+	AppAuthService_UpdateMyProfile_FullMethodName   = "/apppb.AppAuthService/UpdateMyProfile"
+	AppAuthService_GetAuthOptions_FullMethodName    = "/apppb.AppAuthService/GetAuthOptions"
+	AppAuthService_SendEmailCode_FullMethodName     = "/apppb.AppAuthService/SendEmailCode"
+	AppAuthService_GetMyMembership_FullMethodName   = "/apppb.AppAuthService/GetMyMembership"
+	AppAuthService_SubmitAppFeedback_FullMethodName = "/apppb.AppAuthService/SubmitAppFeedback"
+	AppAuthService_ListMyFeedback_FullMethodName    = "/apppb.AppAuthService/ListMyFeedback"
 )
 
 // AppAuthServiceClient is the client API for AppAuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// ============================================
-// Services
-// ============================================
 type AppAuthServiceClient interface {
 	AppRegister(ctx context.Context, in *AppRegisterRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	AppLogin(ctx context.Context, in *AppLoginRequest, opts ...grpc.CallOption) (*AppLoginResponse, error)
@@ -49,6 +47,8 @@ type AppAuthServiceClient interface {
 	GetAuthOptions(ctx context.Context, in *AppAuthOptionsRequest, opts ...grpc.CallOption) (*AppAuthOptionsResponse, error)
 	SendEmailCode(ctx context.Context, in *AppSendEmailCodeRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	GetMyMembership(ctx context.Context, in *GetMyMembershipRequest, opts ...grpc.CallOption) (*GetMyMembershipResponse, error)
+	SubmitAppFeedback(ctx context.Context, in *AppSubmitFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	ListMyFeedback(ctx context.Context, in *AppContentListRequest, opts ...grpc.CallOption) (*AppFeedbackListResponse, error)
 }
 
 type appAuthServiceClient struct {
@@ -159,13 +159,29 @@ func (c *appAuthServiceClient) GetMyMembership(ctx context.Context, in *GetMyMem
 	return out, nil
 }
 
+func (c *appAuthServiceClient) SubmitAppFeedback(ctx context.Context, in *AppSubmitFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, AppAuthService_SubmitAppFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appAuthServiceClient) ListMyFeedback(ctx context.Context, in *AppContentListRequest, opts ...grpc.CallOption) (*AppFeedbackListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AppFeedbackListResponse)
+	err := c.cc.Invoke(ctx, AppAuthService_ListMyFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppAuthServiceServer is the server API for AppAuthService service.
 // All implementations must embed UnimplementedAppAuthServiceServer
 // for forward compatibility.
-//
-// ============================================
-// Services
-// ============================================
 type AppAuthServiceServer interface {
 	AppRegister(context.Context, *AppRegisterRequest) (*NoDataResponse, error)
 	AppLogin(context.Context, *AppLoginRequest) (*AppLoginResponse, error)
@@ -177,6 +193,8 @@ type AppAuthServiceServer interface {
 	GetAuthOptions(context.Context, *AppAuthOptionsRequest) (*AppAuthOptionsResponse, error)
 	SendEmailCode(context.Context, *AppSendEmailCodeRequest) (*NoDataResponse, error)
 	GetMyMembership(context.Context, *GetMyMembershipRequest) (*GetMyMembershipResponse, error)
+	SubmitAppFeedback(context.Context, *AppSubmitFeedbackRequest) (*NoDataResponse, error)
+	ListMyFeedback(context.Context, *AppContentListRequest) (*AppFeedbackListResponse, error)
 	mustEmbedUnimplementedAppAuthServiceServer()
 }
 
@@ -216,6 +234,12 @@ func (UnimplementedAppAuthServiceServer) SendEmailCode(context.Context, *AppSend
 }
 func (UnimplementedAppAuthServiceServer) GetMyMembership(context.Context, *GetMyMembershipRequest) (*GetMyMembershipResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMyMembership not implemented")
+}
+func (UnimplementedAppAuthServiceServer) SubmitAppFeedback(context.Context, *AppSubmitFeedbackRequest) (*NoDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SubmitAppFeedback not implemented")
+}
+func (UnimplementedAppAuthServiceServer) ListMyFeedback(context.Context, *AppContentListRequest) (*AppFeedbackListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyFeedback not implemented")
 }
 func (UnimplementedAppAuthServiceServer) mustEmbedUnimplementedAppAuthServiceServer() {}
 func (UnimplementedAppAuthServiceServer) testEmbeddedByValue()                        {}
@@ -418,6 +442,42 @@ func _AppAuthService_GetMyMembership_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AppAuthService_SubmitAppFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AppSubmitFeedbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppAuthServiceServer).SubmitAppFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppAuthService_SubmitAppFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppAuthServiceServer).SubmitAppFeedback(ctx, req.(*AppSubmitFeedbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppAuthService_ListMyFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AppContentListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppAuthServiceServer).ListMyFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppAuthService_ListMyFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppAuthServiceServer).ListMyFeedback(ctx, req.(*AppContentListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AppAuthService_ServiceDesc is the grpc.ServiceDesc for AppAuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -465,19 +525,32 @@ var AppAuthService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetMyMembership",
 			Handler:    _AppAuthService_GetMyMembership_Handler,
 		},
+		{
+			MethodName: "SubmitAppFeedback",
+			Handler:    _AppAuthService_SubmitAppFeedback_Handler,
+		},
+		{
+			MethodName: "ListMyFeedback",
+			Handler:    _AppAuthService_ListMyFeedback_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "application/app/rpc/desc/app.proto",
 }
 
 const (
-	AppAdminService_ListAppUsers_FullMethodName     = "/apppb.AppAdminService/ListAppUsers"
-	AppAdminService_ReviewAppUser_FullMethodName    = "/apppb.AppAdminService/ReviewAppUser"
-	AppAdminService_SetAppUserAvatar_FullMethodName = "/apppb.AppAdminService/SetAppUserAvatar"
-	AppAdminService_RevokeAppSession_FullMethodName = "/apppb.AppAdminService/RevokeAppSession"
-	AppAdminService_ListMemberships_FullMethodName  = "/apppb.AppAdminService/ListMemberships"
-	AppAdminService_GrantMembership_FullMethodName  = "/apppb.AppAdminService/GrantMembership"
-	AppAdminService_RevokeMembership_FullMethodName = "/apppb.AppAdminService/RevokeMembership"
+	AppAdminService_ListAppUsers_FullMethodName      = "/apppb.AppAdminService/ListAppUsers"
+	AppAdminService_GetAppUser_FullMethodName        = "/apppb.AppAdminService/GetAppUser"
+	AppAdminService_UpdateAppUser_FullMethodName     = "/apppb.AppAdminService/UpdateAppUser"
+	AppAdminService_ReviewAppUser_FullMethodName     = "/apppb.AppAdminService/ReviewAppUser"
+	AppAdminService_SetAppUserAvatar_FullMethodName  = "/apppb.AppAdminService/SetAppUserAvatar"
+	AppAdminService_ListAppSessions_FullMethodName   = "/apppb.AppAdminService/ListAppSessions"
+	AppAdminService_RevokeAppSession_FullMethodName  = "/apppb.AppAdminService/RevokeAppSession"
+	AppAdminService_ListMemberships_FullMethodName   = "/apppb.AppAdminService/ListMemberships"
+	AppAdminService_GrantMembership_FullMethodName   = "/apppb.AppAdminService/GrantMembership"
+	AppAdminService_RevokeMembership_FullMethodName  = "/apppb.AppAdminService/RevokeMembership"
+	AppAdminService_ListAppFeedback_FullMethodName   = "/apppb.AppAdminService/ListAppFeedback"
+	AppAdminService_UpdateAppFeedback_FullMethodName = "/apppb.AppAdminService/UpdateAppFeedback"
 )
 
 // AppAdminServiceClient is the client API for AppAdminService service.
@@ -485,12 +558,17 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AppAdminServiceClient interface {
 	ListAppUsers(ctx context.Context, in *AppAdminListRequest, opts ...grpc.CallOption) (*AppAdminListResponse, error)
+	GetAppUser(ctx context.Context, in *AppAdminUserRequest, opts ...grpc.CallOption) (*AppAdminUserResponse, error)
+	UpdateAppUser(ctx context.Context, in *AppUpdateUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	ReviewAppUser(ctx context.Context, in *AppReviewRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	SetAppUserAvatar(ctx context.Context, in *AppSetAvatarRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	ListAppSessions(ctx context.Context, in *ListAppSessionsRequest, opts ...grpc.CallOption) (*ListAppSessionsResponse, error)
 	RevokeAppSession(ctx context.Context, in *AppAdminRevokeRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	ListMemberships(ctx context.Context, in *ListMembershipRequest, opts ...grpc.CallOption) (*ListMembershipResponse, error)
 	GrantMembership(ctx context.Context, in *GrantMembershipRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	RevokeMembership(ctx context.Context, in *RevokeMembershipRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	ListAppFeedback(ctx context.Context, in *AppFeedbackListRequest, opts ...grpc.CallOption) (*AppFeedbackListResponse, error)
+	UpdateAppFeedback(ctx context.Context, in *AppUpdateFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
 
 type appAdminServiceClient struct {
@@ -511,6 +589,26 @@ func (c *appAdminServiceClient) ListAppUsers(ctx context.Context, in *AppAdminLi
 	return out, nil
 }
 
+func (c *appAdminServiceClient) GetAppUser(ctx context.Context, in *AppAdminUserRequest, opts ...grpc.CallOption) (*AppAdminUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AppAdminUserResponse)
+	err := c.cc.Invoke(ctx, AppAdminService_GetAppUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appAdminServiceClient) UpdateAppUser(ctx context.Context, in *AppUpdateUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, AppAdminService_UpdateAppUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *appAdminServiceClient) ReviewAppUser(ctx context.Context, in *AppReviewRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(NoDataResponse)
@@ -525,6 +623,16 @@ func (c *appAdminServiceClient) SetAppUserAvatar(ctx context.Context, in *AppSet
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, AppAdminService_SetAppUserAvatar_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appAdminServiceClient) ListAppSessions(ctx context.Context, in *ListAppSessionsRequest, opts ...grpc.CallOption) (*ListAppSessionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAppSessionsResponse)
+	err := c.cc.Invoke(ctx, AppAdminService_ListAppSessions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -571,17 +679,42 @@ func (c *appAdminServiceClient) RevokeMembership(ctx context.Context, in *Revoke
 	return out, nil
 }
 
+func (c *appAdminServiceClient) ListAppFeedback(ctx context.Context, in *AppFeedbackListRequest, opts ...grpc.CallOption) (*AppFeedbackListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AppFeedbackListResponse)
+	err := c.cc.Invoke(ctx, AppAdminService_ListAppFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appAdminServiceClient) UpdateAppFeedback(ctx context.Context, in *AppUpdateFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, AppAdminService_UpdateAppFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppAdminServiceServer is the server API for AppAdminService service.
 // All implementations must embed UnimplementedAppAdminServiceServer
 // for forward compatibility.
 type AppAdminServiceServer interface {
 	ListAppUsers(context.Context, *AppAdminListRequest) (*AppAdminListResponse, error)
+	GetAppUser(context.Context, *AppAdminUserRequest) (*AppAdminUserResponse, error)
+	UpdateAppUser(context.Context, *AppUpdateUserRequest) (*NoDataResponse, error)
 	ReviewAppUser(context.Context, *AppReviewRequest) (*NoDataResponse, error)
 	SetAppUserAvatar(context.Context, *AppSetAvatarRequest) (*NoDataResponse, error)
+	ListAppSessions(context.Context, *ListAppSessionsRequest) (*ListAppSessionsResponse, error)
 	RevokeAppSession(context.Context, *AppAdminRevokeRequest) (*NoDataResponse, error)
 	ListMemberships(context.Context, *ListMembershipRequest) (*ListMembershipResponse, error)
 	GrantMembership(context.Context, *GrantMembershipRequest) (*NoDataResponse, error)
 	RevokeMembership(context.Context, *RevokeMembershipRequest) (*NoDataResponse, error)
+	ListAppFeedback(context.Context, *AppFeedbackListRequest) (*AppFeedbackListResponse, error)
+	UpdateAppFeedback(context.Context, *AppUpdateFeedbackRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedAppAdminServiceServer()
 }
 
@@ -595,11 +728,20 @@ type UnimplementedAppAdminServiceServer struct{}
 func (UnimplementedAppAdminServiceServer) ListAppUsers(context.Context, *AppAdminListRequest) (*AppAdminListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAppUsers not implemented")
 }
+func (UnimplementedAppAdminServiceServer) GetAppUser(context.Context, *AppAdminUserRequest) (*AppAdminUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAppUser not implemented")
+}
+func (UnimplementedAppAdminServiceServer) UpdateAppUser(context.Context, *AppUpdateUserRequest) (*NoDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAppUser not implemented")
+}
 func (UnimplementedAppAdminServiceServer) ReviewAppUser(context.Context, *AppReviewRequest) (*NoDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReviewAppUser not implemented")
 }
 func (UnimplementedAppAdminServiceServer) SetAppUserAvatar(context.Context, *AppSetAvatarRequest) (*NoDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetAppUserAvatar not implemented")
+}
+func (UnimplementedAppAdminServiceServer) ListAppSessions(context.Context, *ListAppSessionsRequest) (*ListAppSessionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAppSessions not implemented")
 }
 func (UnimplementedAppAdminServiceServer) RevokeAppSession(context.Context, *AppAdminRevokeRequest) (*NoDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RevokeAppSession not implemented")
@@ -612,6 +754,12 @@ func (UnimplementedAppAdminServiceServer) GrantMembership(context.Context, *Gran
 }
 func (UnimplementedAppAdminServiceServer) RevokeMembership(context.Context, *RevokeMembershipRequest) (*NoDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RevokeMembership not implemented")
+}
+func (UnimplementedAppAdminServiceServer) ListAppFeedback(context.Context, *AppFeedbackListRequest) (*AppFeedbackListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAppFeedback not implemented")
+}
+func (UnimplementedAppAdminServiceServer) UpdateAppFeedback(context.Context, *AppUpdateFeedbackRequest) (*NoDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAppFeedback not implemented")
 }
 func (UnimplementedAppAdminServiceServer) mustEmbedUnimplementedAppAdminServiceServer() {}
 func (UnimplementedAppAdminServiceServer) testEmbeddedByValue()                         {}
@@ -652,6 +800,42 @@ func _AppAdminService_ListAppUsers_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AppAdminService_GetAppUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AppAdminUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppAdminServiceServer).GetAppUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppAdminService_GetAppUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppAdminServiceServer).GetAppUser(ctx, req.(*AppAdminUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppAdminService_UpdateAppUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AppUpdateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppAdminServiceServer).UpdateAppUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppAdminService_UpdateAppUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppAdminServiceServer).UpdateAppUser(ctx, req.(*AppUpdateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AppAdminService_ReviewAppUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AppReviewRequest)
 	if err := dec(in); err != nil {
@@ -684,6 +868,24 @@ func _AppAdminService_SetAppUserAvatar_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppAdminServiceServer).SetAppUserAvatar(ctx, req.(*AppSetAvatarRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppAdminService_ListAppSessions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAppSessionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppAdminServiceServer).ListAppSessions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppAdminService_ListAppSessions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppAdminServiceServer).ListAppSessions(ctx, req.(*ListAppSessionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -760,6 +962,42 @@ func _AppAdminService_RevokeMembership_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AppAdminService_ListAppFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AppFeedbackListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppAdminServiceServer).ListAppFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppAdminService_ListAppFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppAdminServiceServer).ListAppFeedback(ctx, req.(*AppFeedbackListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppAdminService_UpdateAppFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AppUpdateFeedbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppAdminServiceServer).UpdateAppFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppAdminService_UpdateAppFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppAdminServiceServer).UpdateAppFeedback(ctx, req.(*AppUpdateFeedbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AppAdminService_ServiceDesc is the grpc.ServiceDesc for AppAdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -772,12 +1010,24 @@ var AppAdminService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AppAdminService_ListAppUsers_Handler,
 		},
 		{
+			MethodName: "GetAppUser",
+			Handler:    _AppAdminService_GetAppUser_Handler,
+		},
+		{
+			MethodName: "UpdateAppUser",
+			Handler:    _AppAdminService_UpdateAppUser_Handler,
+		},
+		{
 			MethodName: "ReviewAppUser",
 			Handler:    _AppAdminService_ReviewAppUser_Handler,
 		},
 		{
 			MethodName: "SetAppUserAvatar",
 			Handler:    _AppAdminService_SetAppUserAvatar_Handler,
+		},
+		{
+			MethodName: "ListAppSessions",
+			Handler:    _AppAdminService_ListAppSessions_Handler,
 		},
 		{
 			MethodName: "RevokeAppSession",
@@ -794,6 +1044,14 @@ var AppAdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RevokeMembership",
 			Handler:    _AppAdminService_RevokeMembership_Handler,
+		},
+		{
+			MethodName: "ListAppFeedback",
+			Handler:    _AppAdminService_ListAppFeedback_Handler,
+		},
+		{
+			MethodName: "UpdateAppFeedback",
+			Handler:    _AppAdminService_UpdateAppFeedback_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

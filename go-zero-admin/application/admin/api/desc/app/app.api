@@ -58,6 +58,26 @@ type (
   CreatedAt int64 `json:"created_at"`
  }
  AppMyMembershipResp { List []MembershipGrantInfo `json:"list"` }
+ AppContentListReq {
+  Page int64 `form:"page,default=1"`
+  PageSize int64 `form:"page_size,default=20"`
+ }
+ AppSubmitFeedbackReq { Content string `json:"content"` }
+ AppFeedbackInfo {
+  Id int64 `json:"id"`
+  UserId int64 `json:"user_id"`
+  Account string `json:"account"`
+  Nickname string `json:"nickname"`
+  Content string `json:"content"`
+  Reply string `json:"reply"`
+  Status string `json:"status"`
+  CreatedAt int64 `json:"created_at"`
+  UpdatedAt int64 `json:"updated_at"`
+ }
+ AppFeedbackListResp {
+  List []AppFeedbackInfo `json:"list"`
+  Total int64 `json:"total"`
+ }
 )
 @server (
  prefix: v1/app
@@ -83,4 +103,8 @@ service admin {
  put /profile (AppUpdateProfileReq) returns (AppProfileResp)
  @handler getMyMembership
  get /membership returns (AppMyMembershipResp)
+ @handler submitAppFeedback
+ post /feedback (AppSubmitFeedbackReq) returns (EmptyResp)
+ @handler listMyFeedback
+ get /feedback (AppContentListReq) returns (AppFeedbackListResp)
 }

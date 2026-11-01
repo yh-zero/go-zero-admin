@@ -370,7 +370,7 @@ server := rest.MustNewServer(c.RestConf,
 ### 阶段 1 设计（已实现）
 
 - **表**：`ai_conversation`（会话）、`ai_message`（消息，含 tool_calls JSON）
-- **LLM 接入**：OpenAI 兼容 chat completions 协议，stdlib `net/http` 直连（零新增依赖）；配置 `AI.Enabled` / `Provider` / `Model` / `BaseURL`，密钥经 `API_KEY_DEEPSEEK` / `API_KEY_QWEN` 环境变量注入
+- **LLM 接入**：复用现有 Eino/OpenAI 兼容客户端；Provider、Model、BaseURL 和超时取 YAML，当前 Provider 对应的 `AI_<PROVIDER>_KEY` 非空即启用，缺失/空白则关闭，运行时覆盖旧 Enabled 开关；本次不新增依赖
 - **工具注册表**（`internal/tools`）：内置 `get_current_time`、`text_stats` 演示工具；新增工具实现 `Tool` 接口注册即可；工具在服务端执行，LLM 只产出调用意图
 - **多轮循环**：`SendMessage` 内最多 5 轮 function calling（LLM 提议 → 服务端执行 → 结果回填），超限兜底返回文本
 
@@ -415,3 +415,14 @@ server := rest.MustNewServer(c.RestConf,
 | `docker/config.yaml.template` 分段 envsubst | 各服务独立 `etc/*.yaml` + compose 环境变量 |
 | 权限版本历史/回滚（permission_version/change 表） | 无（确认废弃） |
 | IP 归属地（ip2region） | 无（确认废弃） |
+
+## 11. 本轮 APP 管理页面（2026-11-01）
+
+已完成完整管理方案：顶层“APP管理”与“系统管理”同级，提供“APP用户”和“会员管理”两个页面。复用现有接口与页面风格，详情抽屉展示资料，列表提供审核、头像弹窗与登录设备抽屉；会员授予保留幂等请求号，失败重试不重复开通。仅接现有接口的方案缺少设备列表和头像显示，未采用。
+
+- [x] 后端：先维护契约及 `.api/.proto`，经 `gen.ps1` 生成设备列表 API/RPC；现有 logic 补公开头像 URL，复用会话存储，不新增依赖或架构层。
+- [x] 导航：登记 APP 顶层目录、两个页面、操作码与 API 资源；初始化 SQL 和运行库同步，只给超级管理员默认菜单，不扩大其他角色写权限。
+- [x] 前端：新增 App API/类型、用户列表与筛选、审核/启停、头像、设备下线、会员列表与授予/撤销，统一请求、Query、Auth 与表单规范。
+- [x] 验收：后端 55 项定向检查及六项自检通过；浏览器验证筛选、分页、审核、下线、会员开通/撤销，用户手动上传后核验头像保存/刷新/移除；前端类型、构建和 lint 退出 0，测试资源已清理。
+
+记录沿用本文件与现有剩余事项，不另建方案、报告或永久测试脚本；本轮不发送真实邮件或调用付费模型，不改此前邮件配置待办。

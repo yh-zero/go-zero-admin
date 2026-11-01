@@ -1,4 +1,4 @@
-import { Card } from 'antd';
+import { Card, Empty } from 'antd';
 import { ArrowRightOutlined, FileOutlined, MenuOutlined, PartitionOutlined, SafetyOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 
@@ -11,10 +11,11 @@ const shortcuts = [
   { title: '个人中心', description: '资料与账号设置', path: '/sys/profile', icon: <UserOutlined /> },
 ];
 
-export function DashboardShortcuts() {
+export function DashboardShortcuts({ allowedPaths }: { allowedPaths: ReadonlySet<string> }) {
+  const available = shortcuts.filter(item => allowedPaths.has(item.path));
   return <Card className="shortcut-card" title="常用入口"><div className="shortcut-list">
-    {shortcuts.map(item => <Link className="shortcut-item" key={item.path} to={item.path}>
+    {available.map(item => <Link className="shortcut-item" key={item.path} to={item.path}>
       <span className="shortcut-icon">{item.icon}</span><span className="shortcut-copy"><strong>{item.title}</strong><small>{item.description}</small></span><ArrowRightOutlined className="shortcut-arrow" />
     </Link>)}
-  </div></Card>;
+  </div>{available.length === 0 && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="当前部门暂无常用入口" />}</Card>;
 }

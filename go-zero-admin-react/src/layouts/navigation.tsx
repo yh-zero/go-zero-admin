@@ -2,7 +2,6 @@ import type { ComponentProps } from 'react';
 import { Menu } from 'antd';
 import { MenuIcon } from '../components/MenuIcon';
 import type { MenuInfo } from '../api/types';
-import { pageLinks } from '../router/registry';
 import { flattenMenus, safeMenuPath } from '../router/menuRoutes';
 import { buildTree } from '../utils/tree';
 type Items = NonNullable<ComponentProps<typeof Menu>['items']>;
@@ -29,4 +28,3 @@ export function toMenuItems(menus: MenuInfo[]): Items {
   });
   return convert(buildTree(flattenMenus(menus)));
 }
-export const fallbackItems: Items = pageLinks.map(page => ({ key: page.path, label: page.title, icon: <MenuIcon menu={{ ...page, type: 2 }} /> }));

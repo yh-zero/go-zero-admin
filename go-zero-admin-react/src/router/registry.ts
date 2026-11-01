@@ -5,6 +5,9 @@ export const pages = {
   menu: lazy(() => import('../pages/menu')), dict: lazy(() => import('../pages/dict')),
   api: lazy(() => import('../pages/api')), file: lazy(() => import('../pages/file')),
   audit: lazy(() => import('../pages/audit')), profile: lazy(() => import('../pages/profile')),
+  app_user: lazy(() => import('../pages/app/AppUserList')),
+  app_membership: lazy(() => import('../pages/app/AppMembershipList')),
+  app_feedback: lazy(() => import('../pages/app/AppFeedbackList')),
 };
 export const pageLinks = [
   { name: 'dashboard', path: '/dashboard', title: '工作台', icon: 'dashboard' },
@@ -17,4 +20,7 @@ export const pageLinks = [
   { name: 'file', path: '/sys/file', title: '文件管理', icon: 'file' },
   { name: 'audit', path: '/sys/audit', title: '审计日志', icon: 'audit' },
   { name: 'profile', path: '/sys/profile', title: '个人中心', icon: 'user' },
+  { name: 'app_user', path: '/app/users', title: 'APP用户', icon: 'appuser' },
+  { name: 'app_membership', path: '/app/memberships', title: '会员管理', icon: 'membership' },
+  { name: 'app_feedback', path: '/app/feedback', title: '意见反馈', icon: 'message' },
 ] as const;

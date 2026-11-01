@@ -44,9 +44,11 @@ func (l *LoginLogic) Login(in *adminpb.LoginRequest) (*adminpb.LoginResponse, er
 		return nil, xerr.NewErrCodeMsg(400, "登录尝试过多，请稍后再试")
 	}
 
-	// 1. 校验验证码
-	if err := l.verifyCaptcha(in.CaptchaId, in.Captcha); err != nil {
-		return nil, err
+	// 1. 按服务端配置校验验证码
+	if l.svcCtx.Config.Captcha.Enabled {
+		if err := l.verifyCaptcha(in.CaptchaId, in.Captcha); err != nil {
+			return nil, err
+		}
 	}
 
 	// 2. 查用户

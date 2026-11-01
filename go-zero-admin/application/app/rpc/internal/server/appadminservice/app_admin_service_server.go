@@ -28,6 +28,16 @@ func (s *AppAdminServiceServer) ListAppUsers(ctx context.Context, in *apppb.AppA
 	return l.ListAppUsers(in)
 }
 
+func (s *AppAdminServiceServer) GetAppUser(ctx context.Context, in *apppb.AppAdminUserRequest) (*apppb.AppAdminUserResponse, error) {
+	l := appadminservicelogic.NewGetAppUserLogic(ctx, s.svcCtx)
+	return l.GetAppUser(in)
+}
+
+func (s *AppAdminServiceServer) UpdateAppUser(ctx context.Context, in *apppb.AppUpdateUserRequest) (*apppb.NoDataResponse, error) {
+	l := appadminservicelogic.NewUpdateAppUserLogic(ctx, s.svcCtx)
+	return l.UpdateAppUser(in)
+}
+
 func (s *AppAdminServiceServer) ReviewAppUser(ctx context.Context, in *apppb.AppReviewRequest) (*apppb.NoDataResponse, error) {
 	l := appadminservicelogic.NewReviewAppUserLogic(ctx, s.svcCtx)
 	return l.ReviewAppUser(in)
@@ -36,6 +46,11 @@ func (s *AppAdminServiceServer) ReviewAppUser(ctx context.Context, in *apppb.App
 func (s *AppAdminServiceServer) SetAppUserAvatar(ctx context.Context, in *apppb.AppSetAvatarRequest) (*apppb.NoDataResponse, error) {
 	l := appadminservicelogic.NewSetAppUserAvatarLogic(ctx, s.svcCtx)
 	return l.SetAppUserAvatar(in)
+}
+
+func (s *AppAdminServiceServer) ListAppSessions(ctx context.Context, in *apppb.ListAppSessionsRequest) (*apppb.ListAppSessionsResponse, error) {
+	l := appadminservicelogic.NewListAppSessionsLogic(ctx, s.svcCtx)
+	return l.ListAppSessions(in)
 }
 
 func (s *AppAdminServiceServer) RevokeAppSession(ctx context.Context, in *apppb.AppAdminRevokeRequest) (*apppb.NoDataResponse, error) {
@@ -56,4 +71,14 @@ func (s *AppAdminServiceServer) GrantMembership(ctx context.Context, in *apppb.G
 func (s *AppAdminServiceServer) RevokeMembership(ctx context.Context, in *apppb.RevokeMembershipRequest) (*apppb.NoDataResponse, error) {
 	l := appadminservicelogic.NewRevokeMembershipLogic(ctx, s.svcCtx)
 	return l.RevokeMembership(in)
+}
+
+func (s *AppAdminServiceServer) ListAppFeedback(ctx context.Context, in *apppb.AppFeedbackListRequest) (*apppb.AppFeedbackListResponse, error) {
+	l := appadminservicelogic.NewListAppFeedbackLogic(ctx, s.svcCtx)
+	return l.ListAppFeedback(in)
+}
+
+func (s *AppAdminServiceServer) UpdateAppFeedback(ctx context.Context, in *apppb.AppUpdateFeedbackRequest) (*apppb.NoDataResponse, error) {
+	l := appadminservicelogic.NewUpdateAppFeedbackLogic(ctx, s.svcCtx)
+	return l.UpdateAppFeedback(in)
 }

@@ -14,30 +14,45 @@ import (
 )
 
 type (
-	Actor                   = apppb.Actor
-	AppAdminListRequest     = apppb.AppAdminListRequest
-	AppAdminListResponse    = apppb.AppAdminListResponse
-	AppAdminRevokeRequest   = apppb.AppAdminRevokeRequest
-	AppReviewRequest        = apppb.AppReviewRequest
-	AppSetAvatarRequest     = apppb.AppSetAvatarRequest
-	AppUserInfo             = apppb.AppUserInfo
-	GrantMembershipRequest  = apppb.GrantMembershipRequest
-	ListMembershipRequest   = apppb.ListMembershipRequest
-	ListMembershipResponse  = apppb.ListMembershipResponse
-	MembershipGrantInfo     = apppb.MembershipGrantInfo
-	NoDataResponse          = apppb.NoDataResponse
-	PageRequest             = apppb.PageRequest
-	PageResponse            = apppb.PageResponse
-	RevokeMembershipRequest = apppb.RevokeMembershipRequest
+	Actor                    = apppb.Actor
+	AppAdminListRequest      = apppb.AppAdminListRequest
+	AppAdminListResponse     = apppb.AppAdminListResponse
+	AppAdminRevokeRequest    = apppb.AppAdminRevokeRequest
+	AppAdminUserInfo         = apppb.AppAdminUserInfo
+	AppAdminUserRequest      = apppb.AppAdminUserRequest
+	AppAdminUserResponse     = apppb.AppAdminUserResponse
+	AppDeviceSession         = apppb.AppDeviceSession
+	AppFeedbackInfo          = apppb.AppFeedbackInfo
+	AppFeedbackListRequest   = apppb.AppFeedbackListRequest
+	AppFeedbackListResponse  = apppb.AppFeedbackListResponse
+	AppReviewRequest         = apppb.AppReviewRequest
+	AppSetAvatarRequest      = apppb.AppSetAvatarRequest
+	AppUpdateFeedbackRequest = apppb.AppUpdateFeedbackRequest
+	AppUpdateUserRequest     = apppb.AppUpdateUserRequest
+	GrantMembershipRequest   = apppb.GrantMembershipRequest
+	ListAppSessionsRequest   = apppb.ListAppSessionsRequest
+	ListAppSessionsResponse  = apppb.ListAppSessionsResponse
+	ListMembershipRequest    = apppb.ListMembershipRequest
+	ListMembershipResponse   = apppb.ListMembershipResponse
+	MembershipGrantInfo      = apppb.MembershipGrantInfo
+	NoDataResponse           = apppb.NoDataResponse
+	PageRequest              = apppb.PageRequest
+	PageResponse             = apppb.PageResponse
+	RevokeMembershipRequest  = apppb.RevokeMembershipRequest
 
 	AppAdminService interface {
 		ListAppUsers(ctx context.Context, in *AppAdminListRequest, opts ...grpc.CallOption) (*AppAdminListResponse, error)
+		GetAppUser(ctx context.Context, in *AppAdminUserRequest, opts ...grpc.CallOption) (*AppAdminUserResponse, error)
+		UpdateAppUser(ctx context.Context, in *AppUpdateUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		ReviewAppUser(ctx context.Context, in *AppReviewRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		SetAppUserAvatar(ctx context.Context, in *AppSetAvatarRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		ListAppSessions(ctx context.Context, in *ListAppSessionsRequest, opts ...grpc.CallOption) (*ListAppSessionsResponse, error)
 		RevokeAppSession(ctx context.Context, in *AppAdminRevokeRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		ListMemberships(ctx context.Context, in *ListMembershipRequest, opts ...grpc.CallOption) (*ListMembershipResponse, error)
 		GrantMembership(ctx context.Context, in *GrantMembershipRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		RevokeMembership(ctx context.Context, in *RevokeMembershipRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		ListAppFeedback(ctx context.Context, in *AppFeedbackListRequest, opts ...grpc.CallOption) (*AppFeedbackListResponse, error)
+		UpdateAppFeedback(ctx context.Context, in *AppUpdateFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	}
 
 	defaultAppAdminService struct {
@@ -56,6 +71,16 @@ func (m *defaultAppAdminService) ListAppUsers(ctx context.Context, in *AppAdminL
 	return client.ListAppUsers(ctx, in, opts...)
 }
 
+func (m *defaultAppAdminService) GetAppUser(ctx context.Context, in *AppAdminUserRequest, opts ...grpc.CallOption) (*AppAdminUserResponse, error) {
+	client := apppb.NewAppAdminServiceClient(m.cli.Conn())
+	return client.GetAppUser(ctx, in, opts...)
+}
+
+func (m *defaultAppAdminService) UpdateAppUser(ctx context.Context, in *AppUpdateUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := apppb.NewAppAdminServiceClient(m.cli.Conn())
+	return client.UpdateAppUser(ctx, in, opts...)
+}
+
 func (m *defaultAppAdminService) ReviewAppUser(ctx context.Context, in *AppReviewRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := apppb.NewAppAdminServiceClient(m.cli.Conn())
 	return client.ReviewAppUser(ctx, in, opts...)
@@ -64,6 +89,11 @@ func (m *defaultAppAdminService) ReviewAppUser(ctx context.Context, in *AppRevie
 func (m *defaultAppAdminService) SetAppUserAvatar(ctx context.Context, in *AppSetAvatarRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := apppb.NewAppAdminServiceClient(m.cli.Conn())
 	return client.SetAppUserAvatar(ctx, in, opts...)
+}
+
+func (m *defaultAppAdminService) ListAppSessions(ctx context.Context, in *ListAppSessionsRequest, opts ...grpc.CallOption) (*ListAppSessionsResponse, error) {
+	client := apppb.NewAppAdminServiceClient(m.cli.Conn())
+	return client.ListAppSessions(ctx, in, opts...)
 }
 
 func (m *defaultAppAdminService) RevokeAppSession(ctx context.Context, in *AppAdminRevokeRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
@@ -84,4 +114,14 @@ func (m *defaultAppAdminService) GrantMembership(ctx context.Context, in *GrantM
 func (m *defaultAppAdminService) RevokeMembership(ctx context.Context, in *RevokeMembershipRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := apppb.NewAppAdminServiceClient(m.cli.Conn())
 	return client.RevokeMembership(ctx, in, opts...)
+}
+
+func (m *defaultAppAdminService) ListAppFeedback(ctx context.Context, in *AppFeedbackListRequest, opts ...grpc.CallOption) (*AppFeedbackListResponse, error) {
+	client := apppb.NewAppAdminServiceClient(m.cli.Conn())
+	return client.ListAppFeedback(ctx, in, opts...)
+}
+
+func (m *defaultAppAdminService) UpdateAppFeedback(ctx context.Context, in *AppUpdateFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := apppb.NewAppAdminServiceClient(m.cli.Conn())
+	return client.UpdateAppFeedback(ctx, in, opts...)
 }

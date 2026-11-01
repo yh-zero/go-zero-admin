@@ -9,6 +9,7 @@ info (
 type (
     GetCaptchaReq {}
     GetCaptchaResp {
+        Enabled     bool   `json:"enabled"`
         CaptchaID   string `json:"captcha_id"`
         ImageBase64 string `json:"image_base64"`
         ExpiresAt   int64  `json:"expires_at"`
@@ -17,8 +18,8 @@ type (
     LoginReq {
         Username  string `json:"username"`
         Password  string `json:"password"`
-        CaptchaID string `json:"captcha_id"`
-        Captcha   string `json:"captcha"`
+        CaptchaID string `json:"captcha_id,optional"`
+        Captcha   string `json:"captcha,optional"`
     }
     LoginResp {
         AccessToken  string `json:"access_token"`

@@ -3,7 +3,6 @@ package appauthservicelogic
 import (
 	"context"
 	"crypto/sha256"
-	"crypto/subtle"
 	"database/sql"
 	"encoding/hex"
 	"errors"
@@ -58,12 +57,17 @@ func (l *AppRegisterLogic) AppRegister(in *apppb.AppRegisterRequest) (*apppb.NoD
 		if !smtpEnabled(l.svcCtx) {
 			return nil, xerr.NewErrCodeMsg(xerr.SERVICE_UNAVAILABLE, "邮箱验证服务未配置")
 		}
-		expected, readErr := l.svcCtx.Redis.GetDelCtx(l.ctx, codeKey(account))
-		if readErr != nil {
+		// 比较和删除必须原子执行，输错保留原码，并发请求最多消费一次。
+		const consumeCode = `
+if redis.call("GET", KEYS[1]) == ARGV[1] then
+    return redis.call("DEL", KEYS[1])
+end
+return 0`
+		consumed, verifyErr := l.svcCtx.Redis.EvalCtx(l.ctx, consumeCode, []string{codeKey(account)}, codeDigest(account, in.EmailCode))
+		if verifyErr != nil {
 			return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
 		}
-		actual := codeDigest(account, in.EmailCode)
-		if expected == "" || subtle.ConstantTimeCompare([]byte(expected), []byte(actual)) != 1 {
+		if consumed != int64(1) {
 			return nil, xerr.NewErrCodeMsg(400, "验证码错误或已过期")
 		}
 		verified = true

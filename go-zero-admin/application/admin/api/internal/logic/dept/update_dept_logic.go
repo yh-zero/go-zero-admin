@@ -22,10 +22,17 @@ func NewUpdateDeptLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 }
 
 func (l *UpdateDeptLogic) UpdateDept(req *types.UpdateDeptReq) (*types.EmptyResp, error) {
+	actor := middleware.ActorFromContext(l.ctx)
+	if req.LeaderUserId != nil {
+		if err := checkDepartmentLeaderAccess(l.svcCtx, actor, *req.LeaderUserId); err != nil {
+			return nil, err
+		}
+	}
 	_, err := l.svcCtx.DeptRpc.UpdateDept(l.ctx, &adminpb.UpdateDeptRequest{
-		Actor:  middleware.ActorFromContext(l.ctx),
+		Actor:  actor,
 		DeptId: req.Id, ParentId: req.ParentId, Name: req.Name, Leader: req.Leader,
 		Phone: req.Phone, Email: req.Email, Sort: req.Sort, Status: req.Status,
+		LeaderUserId: req.LeaderUserId,
 	})
 	return &types.EmptyResp{}, err
 }

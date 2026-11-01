@@ -8,7 +8,7 @@ async function invalidateData(client: QueryClient, roots: string[]): Promise<voi
 }
 
 export function invalidateUserData(client: QueryClient): Promise<void> {
-  return invalidateAccessData(client, ['users', 'user', 'profile', 'files', 'roles', 'role', 'my-depts', 'my-menus', 'perm-codes']);
+  return invalidateAccessData(client, ['users', 'user', 'profile', 'files', 'roles', 'role', 'depts', 'my-depts', 'my-menus', 'perm-codes']);
 }
 
 async function invalidateAccessData(client: QueryClient, roots: string[]): Promise<void> {
@@ -30,4 +30,8 @@ export function invalidateRoleData(client: QueryClient): Promise<void> {
 
 export function invalidateMenuData(client: QueryClient): Promise<void> {
   return invalidateAccessData(client, ['menus', 'role-menu-options', 'roles', 'role', 'my-menus', 'perm-codes']);
+}
+
+export function invalidateAppData(client: QueryClient): Promise<void> {
+  return invalidateData(client, ['app-users', 'app-user', 'app-user-options', 'app-sessions', 'app-memberships', 'app-feedback', 'files']);
 }

@@ -22,6 +22,7 @@ type Config struct {
 	}
 
 	Captcha struct {
+		Enabled       bool `json:",default=true"`
 		ExpireSeconds int
 	}
 

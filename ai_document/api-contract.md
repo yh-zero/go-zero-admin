@@ -33,7 +33,7 @@
 ## 3. 鉴权
 
 - 请求头：`Authorization: Bearer <access_token>`
-- 登录：`POST /v1/sys/auth/login`（需先 `GET /v1/sys/auth/captcha` 取验证码）
+- 登录：`POST /v1/sys/auth/login`；先调用 `GET /v1/sys/auth/captcha` 获取验证码开关及启用时的图片。
 - 权限码格式：`sys:<模块>:<动作>`（如 `sys:user:add`），按钮级控制由后端下发，前端只做渲染判断
 - 部门上下文：多部门用户可用请求头 `X-Dept-Id` 切换（可选）
 
@@ -113,12 +113,16 @@
 - `POST /v1/sys/auth/refresh`：请求 `refresh_token`，返回与登录相同的令牌字段；刷新令牌一次性轮换。
 - `POST /v1/sys/auth/logout`：认证必需，请求 `all_devices`（默认 false）；默认撤销当前会话，true 撤销本人全部会话。
 - `GET /v1/sys/auth/sessions`：返回 `list`，每项 `id/device_name/ip/user_agent/created_at/last_seen_at/expires_at/is_current`。`DELETE /v1/sys/auth/sessions/:id` 仅撤销本人会话。
+- 登录验证码开关（✅ 两端已实现并联调通过）：admin-rpc 的 `Captcha.Enabled` 默认 true。`GET /v1/sys/auth/captcha` 新增 `enabled` 布尔值；启用时返回原有 `captcha_id/image_base64/expires_at`，关闭时这三项分别为空字符串、空字符串、0，不生成或保存验证码。登录请求的 `captcha_id/captcha` 可省略，但启用时服务端仍强制验证；关闭时忽略这两项，用户名、密码、用户状态和登录限流照常校验。前端仅在明确收到 `enabled:false` 时隐藏验证码，配置请求失败时不放行登录。已验证显式开关、遗漏默认值、限流及新 API/旧 RPC 兼容；浏览器完成关闭模式登录成功/失败、退出、恢复验证码与配置失败重试。
 - 验证码 `image_base64` 为 PNG data URL，答案只保存在服务端，校验时原子消费；不再返回可直接解出答案的文本。
 - `/ping` 返回存活状态；`/ready` 检查必要 RPC、数据库及 Redis，就绪返回 HTTP 200，未就绪 HTTP 503；不依赖可选 AI 外部模型。
 - 健康检查代码使用 `health` 分组：由 `desc/admin.api` 的 `@server(group: health)` 经 `gen.ps1 api` 生成 `handler/health`、`logic/health`，业务实现补入 logic；HTTP 路径、响应字段和公开访问规则保持不变。
 - 用户及个人资料更新采用部分更新：省略字段保持原值，显式空字符串/0 清空对应允许清空的字段；`role_ids` 省略保持授权，空数组清空。头像使用 `avatar_file_id`，`avatar_url` 为只读查询结果。禁止客户端传入可信操作者身份。
 - 创建后台用户时 `avatar_file_id` 仅允许省略或 0，正值/负值返回 400，先创建成功再通过用户编辑设置头像。已有用户头像按稳定用户 ID 对账；本轮未验证进程崩溃和跨服务连续故障的全部恢复路径，不声称跨库原子提交。
 - `GET /v1/sys/dept/my` 返回当前用户允许选择的部门 `list`。`X-Dept-Id` 必须属于服务端验证的部门身份，鉴权、context 和下游 Actor 使用同一个部门；部门移动事务维护后代路径并拒绝环。
+- 极简部门管理（✅ 两端已实现并联调通过）：沿用现有部门及用户接口，不新增 HTTP/RPC 方法。`DeptInfo` 增加 `leader_user_id`、`member_count`、`members_visible`。负责人 ID 为 0 表示未关联账号，`leader` 保留历史文本及只读显示名兼容；关联账号时显示其真实姓名、昵称或用户名，并标注已停用/已删除状态，不自动授予角色。部门创建/编辑增加 `leader_user_id`，省略或 null 保持编辑原值，编辑显式 0 清空关联和历史负责人文本，正值必须为当前操作者数据范围内的启用账号，且操作者具有用户列表读取权限。创建时正负责人 ID、编辑时任意显式负责人 ID，均不能与非空历史 `leader` 同时提交；创建时省略或 0 保留旧客户端文字录入兼容。历史文本仅在未关联账号时允许维护。
+- 部门直属成员复用 `GET /v1/sys/user/list?dept_id=...`，保持接口读取权限及 Actor 数据范围。部门树的 `member_count` 仅统计当前身份可查询、未删除的直属用户（包含停用用户）；有用户列表读取权限且数据范围有效时 `members_visible=true`，否则 false、人数为 0，前端显示“—”，不将不可读取解释为部门无人。`/dept/my` 不附带成员统计。搜索及状态筛选在前端保留匹配节点的祖先，不改变组织层级。
+- 部门停用与删除沿用现有更新/删除接口：存在未删除子部门、归属用户或部门域成员授权时拒绝，提示先处理关联关系，不自动级联停用或转移。校验与写入在同一事务中执行；负责人关联不是成员授权，不授予部门身份。第一期仅展示直属成员，不实现兼职、专门调岗流程或独立影响预览。
 - `POST /v1/sys/api/sync` 使用实际注册路由同步 API 资源，返回 `added/updated/removed`。
 - API 同步采用增量 upsert：保留已有人工标题和非本服务资源，本轮 `removed` 固定为 0；新增标题采用 `METHOD /path`。无来源标记时不自动删除其他资源。
 - `POST /v1/sys/file/upload` 接收 `name/content_base64/scene/visibility`，原文件最大 10 MiB；服务端检查内容、类型及场景。引用增减仅由内部业务 RPC 调用，按业务类型及 ID 幂等维护。
@@ -131,13 +135,18 @@
 - 审计通过 RPC 写现有审计表，记录操作者、路径、结果和耗时，不记录密码、令牌及完整请求体。
 - App 使用独立认证域：公开端点仅 register/login/options/email-code；refresh 校验刷新令牌；其余 App 请求校验有效 App 会话和用户当前状态。后台 App 管理、AI、租户接口仍受后台权限控制。
 - App 认证（🚧）：`POST /v1/app/auth/register` 接收 account/password/nickname/email_code；当前仅开放邮箱注册，默认要求一次性邮箱验证码，注册后为 pending，后台审核 active 后才能登录。`POST /auth/login` 接收 account/password；`POST /auth/refresh` 接收 refresh_token；二者返回 access_token/expires_at/refresh_token/refresh_expires_at/session_id/user，刷新原子轮换。`POST /auth/logout` 接收 all_devices（默认 false）。App 与后台使用不同 JWT 密钥、签发者及 Redis 会话命名空间，不能交叉访问。
-- `GET /v1/app/auth/options` 返回 email_verification_required/email_code_enabled/phone_enabled；`POST /auth/email-code` 接收 account。验证码使用标准库 SMTP 发送，五分钟失效、一次性消费、邮箱/IP 限流；缺 SMTP 配置明确返回不可用，不返回验证码或伪造发送成功。本轮没有真实 SMTP，外发验收待配置。
+- `GET /v1/app/auth/options` 返回 email_verification_required/email_code_enabled/phone_enabled；`POST /auth/email-code` 接收 account。验证码使用标准库 SMTP 发送，有效期由 YAML `SMTP.ValidSeconds` 配置（默认 600 秒，必须大于 0），到期自动失效、匹配成功后原子消费，输错不删除；邮箱/IP 限流保持。`SMTP.FromName` 设置收件人看到的发件人名称，未配置时仅显示发件邮箱。缺 SMTP 配置明确返回不可用，不返回验证码或伪造发送成功。已通过本地 SMTP 桩与隔离 RPC 验证；2026-11-01 临时使用 465 + 隐式 TLS 的真实 SMTP 发信通过，TTL 符合 600 秒配置，指定收件人确认收到且显示正常。真实邮箱验证码注册仍未覆盖，正式配置同步见剩余事项。
 - `GET /v1/app/profile` 返回 user；`PUT /v1/app/profile` 接收可选 nickname，省略/null 保持、空字符串清空。user 字段为 id/account/identity_kind/nickname/avatar_file_id/avatar_url/status/review_reason/email_verified/phone_verified/last_login_at/created_at。`GET /v1/app/membership` 返回当前用户有效会员 list；不接受客户端 user_id 或 access_token 字段，访问令牌只从 Bearer 头读取。AppAccess 仅内部 RPC。
-- 后台 App 管理（🚧）：`GET /v1/sys/app/users` 接收 page/page_size/status/account；`POST /users/:id/review` 接收 status/reason（pending/active/disabled/rejected）；`PUT /users/:id/avatar` 接收 file_id（0 解绑）；`DELETE /users/:id/sessions/:session_id` 撤销该用户会话。所有请求使用服务端后台身份和接口权限；不能伪造 Actor，目标用户必须存在且未删除，停用/驳回撤销旧会话。
-- 后台会员：`GET /v1/sys/app/memberships` 接收 page/page_size/user_id/plan_code/active_only；`POST /memberships` 接收 user_id/plan_code/benefits/request_id/duration_days（1..3650），request_id 必填且幂等，重复键参数不一致拒绝；`DELETE /memberships/:id` 撤销。列表项为 id/user_id/plan_code/benefits/request_id/granted_by/granted_by_admin/starts_at/expires_at/revoked/revoked_at/created_at，有效期为 starts_at <= 当前时间 < expires_at 且未撤销。
+- 后台 App 管理（✅ 两端已实现并联调通过）：`GET /v1/sys/app/users` 接收 page/page_size/status/account，公开头像返回 avatar_url；`POST /users/:id/review` 接收 status/reason（pending/active/disabled/rejected）；`PUT /users/:id/avatar` 接收 file_id（0 解绑）；`GET /users/:id/sessions` 返回 list，复用登录设备字段 id/device_name/ip/user_agent/created_at/last_seen_at/expires_at/is_current（管理其他 App 用户时固定 false），最多 20 条有效会话；`DELETE /users/:id/sessions/:session_id` 撤销该用户会话。所有请求使用服务端后台身份和接口权限；不能伪造 Actor，目标用户必须存在且未删除，停用/驳回撤销旧会话。仅展示安全设备字段，不返回令牌、摘要等内部会话字段。
+- 后台会员（✅ 两端已实现并联调通过）：`GET /v1/sys/app/memberships` 接收 page/page_size/user_id/plan_code/active_only；`POST /memberships` 接收 user_id/plan_code/benefits/request_id/duration_days（1..3650），request_id 必填且幂等，重复键参数不一致拒绝；`DELETE /memberships/:id` 撤销。列表项为 id/user_id/plan_code/benefits/request_id/granted_by/granted_by_admin/starts_at/expires_at/revoked/revoked_at/created_at，有效期为 starts_at <= 当前时间 < expires_at 且未撤销。
+- APP 通用管理五项（✅ 两端已实现并联调通过）：后台用户详情整合资料/会员/设备页签，审核与启停分入口，继续复用原审核及会话撤销规则。`GET /v1/sys/app/users/:id` 返回 `{user: AppAdminUserInfo}`；后台用户列表也改为 `AppAdminUserInfo`，在原用户字段上增加 `remark`。`PUT /users/:id` 仅允许可选 `nickname/remark`，省略/null 保持，空字符串清空，昵称最多 64 字符、备注最多 500 字符；账户、身份、审核状态由原专用接口维护。内部备注仅随后台用户响应返回，不出现在 App 注册、登录、刷新、个人资料及其他 App 侧响应中。
+- `GET /v1/sys/app/membership-plans` 返回 `{list:[{label,value}]}`，仅从启用的 `app_membership_plan` 字典读取有效名称与编码，不开放任意字典读取，不新增套餐销售系统；开通字段和历史自由套餐编码兼容，后台新增开通使用下拉选择。此入口有独立后台接口授权，不要求开放全部字典权限。
+- 反馈（✅ 两端已实现并联调通过）：App 登录用户 `POST /v1/app/feedback` 接收 `content`（非空纯文字，最多 2000 字符），服务端从有效 App 会话确定用户，初始 pending；`GET /v1/app/feedback` 分页读取本人反馈，不接受其他 user_id 授权。后台 `GET /v1/sys/app/feedback` 接收 `page/page_size/user_id/status`，`PUT /feedback/:id` 接收可选 `reply/status`；回复最多 2000 字符，空字符串清空，省略/null 保持；状态仅 pending/resolved，至少修改一项。列表返回 `list/total`，每项 `id/user_id/account/nickname/content/reply/status/created_at/updated_at`，App 侧仅含本人项。首版不实现附件、工单分配或实时客服。新分页默认 1/20、最大 100，非法 ID/状态/字段长度拒绝；后台使用可信 Actor 与 Casbin，App 使用独立令牌，不互相放行。
+- APP 五项验收（2026-11-01）：124 项真实 HTTP 断言通过；后台浏览器验证详情、会员开通、设备读取、资料保存与清空、启停、反馈回复与状态、空结果、切换反馈草稿、窄屏及只读按钮。
+- 后台导航（✅ 已实现并经浏览器验证）：顶层“APP管理”与“系统管理”同级，下设“APP用户”（/app/users）、“会员管理”（/app/memberships）和“意见反馈”（/app/feedback）。操作码为 sys:app:user:edit、sys:app:user:review、sys:app:user:avatar、sys:app:session:revoke、sys:app:membership:grant、sys:app:membership:revoke、sys:app:feedback:reply；读取登录设备使用 sys:app:session:list，头像上传复用文件管理的 sys:file:upload。新增菜单默认只关联超级管理员；菜单可见性与服务端 Casbin 接口授权独立，沿用既有普通角色读取策略。
 - 租户新增 HTTP 对接现有生命周期 RPC，保留现有数据，补齐缺列及 NULL/别名扫描。AI 审批在步骤执行前暂停，批准后续跑，失败不得标成功；会话/工作流/任务均检查归属。
 - 租户路由（后台超级管理员）：`POST /v1/sys/tenant/create` 接收 slug、可选 admin_username/admin_password；`GET /v1/sys/tenant/list` 接收 page/page_size/status；`GET /v1/sys/tenant/:id`；`POST /:id/start`、`POST /:id/stop`、`DELETE /:id`（请求体 confirm_slug 必须匹配）、`POST /:id/reset-admin`。创建返回 tenant/admin_password，重置返回 new_password，仅当次响应展示；列表/详情不返回密钥。创建异步进入 creating，初始账号与探针确认成功后才为 active/admin_account_ready=true；失败显示不含敏感信息的原因。
-- App/AI/租户本轮交付后端与 HTTP 接口，不新增模块前端页面。当前后台同步角色分配、上传/头像、刷新/退出/设备会话、部门切换及 API 同步入口。
+- APP 后台管理页面已补齐用户、头像、登录设备与会员管理；AI、租户仍提供后端与 HTTP 接口。当前后台保留角色分配、上传/头像、刷新/退出/设备会话、部门切换及 API 同步入口。
 - 更新请求中 `null` 与省略都保持原值；用户/部门 `status` 仅为 1（启用）或 2（停用），0 不表示清空；`gender` 为 0/1/2。`dept_id:0`、`avatar_file_id:0` 表示解绑。
 - `role_ids` 回读全部未删除角色 ID 的去重集合。显式列表中保留的角色维持原部门绑定，移除角色删除全部绑定，新普通角色绑定用户主部门（无部门为 `dept:0`）；更换主部门只迁移旧主部门绑定。分配角色限定超级管理员，禁止移除最后一个有效超级管理员；省略角色字段不影响授权。
 - 用户主部门实际变更仅允许超级管理员，避免通过迁移部门绕过角色分配权限；传入与当前相同的 `dept_id` 不构成变更。角色 `code` 创建后不可修改，普通编辑需保留原值，否则返回 400，避免已有 Casbin 绑定失效。
@@ -172,7 +181,7 @@
 
 任务保存 created_by、workflow_snapshot 和 next_step。审批在对应步骤执行前暂停（包括最后一步），批准用原子状态变更领取执行权后从该步骤继续；重复或并发审批不能重复执行。工作流修改不改变已创建任务快照；工具失败标 failed，不伪装成功。旧任务缺少快照不能续跑；未知归属的历史任务不对普通请求开放。进程中断后 running 任务不自动重放有副作用步骤，本轮不提供自动恢复或定时调度。
 
-会话消息只读取本会话及本人数据。外部模型未配置或未启用时，发送消息返回 503，不产生伪造回答；会话管理、工具列表和本地工作流仍可用。密钥只读取 `API_KEY_<PROVIDER>` 环境变量，不回显、不记录；真实邮件/模型调用待用户配置后单独验收。
+会话消息只读取本会话及本人数据。AI 按 YAML 中的 Provider 选择 `AI_<PROVIDER>_KEY`（如 `AI_DEEPSEEK_KEY` 对应 `AI.DeepSeekKey`），该 Key 去除首尾空白后非空即启用，未配置或为空白则关闭；YAML 的 Enabled 字段保留兼容，运行时启用状态以 Key 为准。模型、地址和超时继续使用 YAML。关闭时发送消息返回 503，不产生伪造回答；会话管理、工具列表和本地工作流仍可用。密钥不回显、不记录；名称与启用规则已通过本地模型桩验证，2026-11-01 最新代码隔离 RPC 的真实 DeepSeek 单轮调用通过，未调用工具；长调用超时仍待验收。
 
 #### 本轮实现状态（2026-10-31）
 
@@ -186,7 +195,7 @@
 | AI | ✅ 按约定交付后端 16 个 HTTP 接口，本地 33 项通过；🚧 外部模型调用待配置 |
 | 租户 | ✅ 按约定交付后端 7 个 HTTP 接口，完整生命周期 24 项通过；未验证所有中断/大数据场景 |
 
-当前生成路由共 88 个。后端完整 `verify.ps1`、前端 `tsc -b`/`vite build`/lint 均退出 0；剩余待办与验收边界见 [后端待办](backend-api-integration-issues.md)。后台页面只覆盖约定的管理功能，本轮不新增 App/AI/租户页面。
+当前生成路由共 96 个。后端完整 `verify.ps1`、前端 `tsc -b`/`vite build`/lint 均退出 0；APP管理页面已补齐，AI/租户页面未在本轮新增。剩余待办与验收边界见 [后端待办](backend-api-integration-issues.md)。
 
 #### 复查补充约束（2026-11-01，✅ 本地定向回归完成）
 

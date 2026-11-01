@@ -19,6 +19,7 @@ JwtAuth:
   AccessExpire: 7200
 
 Captcha:
+  Enabled: true # 登录是否需要图片验证码
   ExpireSeconds: 120
 
 DefaultUserPassword: Admin@123456

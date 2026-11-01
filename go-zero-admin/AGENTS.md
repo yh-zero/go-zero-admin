@@ -40,7 +40,7 @@
 10. **proto package 唯一性**：package 与模块同名（`adminpb`/`apppb`/`filepb`/`aipb`/`tenantpb`），禁止都用 `pb`。
 11. **验收纪律**：功能对接逐模块真实验证，按根规范 §7 的改动触发条件覆盖失败和边界场景；纯整理、纯文档按各自验证要求执行。
 12. **pkg 定位**：≥2 服务使用或为公共基础设施；pkg 禁止 import 任何 `internal/` 包。
-13. **配置**：直接写 `etc/<模块>.yaml`；AI Key 留空走环境变量注入，命名约定 `API_KEY_<PROVIDER>`（现有 `API_KEY_DEEPSEEK` / `API_KEY_QWEN`）。
+13. **配置**：直接写 `etc/<模块>.yaml`；业务环境变量按“模块 + YAML 配置层级”转全大写下划线命名，如 `APP_SMTP_PASSWORD` 对应 App 的 `SMTP.Password`。AI 自身的 `AI` 节点不重复前缀：`AI_DEEPSEEK_KEY` / `AI_QWEN_KEY` 对应 `AI.DeepSeekKey` / `AI.QwenKey`，按 Provider 读取 `AI_<PROVIDER>_KEY`；YAML 中的 Key 保持空值。外部基础镜像要求的变量沿用其官方名称。
 14. **事故索引**：动手涉及 Casbin domains、多租户栈、goctl 生成、sqlx 数据层前，先查 `../ai_document/pitfalls.md` 对应条目。
 
 ## 3. 禁止事项速查

@@ -25,22 +25,26 @@ type ServiceContext struct {
 
 	AppUserModel            model.AppUserModel
 	AppMembershipGrantModel model.AppMembershipGrantModel
+	AppFeedbackModel        model.AppFeedbackModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	if c.SMTP.Host == "" {
-		c.SMTP.Host = os.Getenv("SMTP_HOST")
+		c.SMTP.Host = os.Getenv("APP_SMTP_HOST")
 	}
 	if c.SMTP.Username == "" {
-		c.SMTP.Username = os.Getenv("SMTP_USERNAME")
+		c.SMTP.Username = os.Getenv("APP_SMTP_USERNAME")
 	}
 	if c.SMTP.Password == "" {
-		c.SMTP.Password = os.Getenv("SMTP_PASSWORD")
+		c.SMTP.Password = os.Getenv("APP_SMTP_PASSWORD")
 	}
 	if c.SMTP.From == "" {
-		c.SMTP.From = os.Getenv("SMTP_FROM")
+		c.SMTP.From = os.Getenv("APP_SMTP_FROM")
 	}
-	if port, err := strconv.Atoi(os.Getenv("SMTP_PORT")); err == nil {
+	if c.SMTP.From == "" {
+		c.SMTP.From = c.SMTP.Username
+	}
+	if port, err := strconv.Atoi(os.Getenv("APP_SMTP_PORT")); err == nil {
 		c.SMTP.Port = port
 	}
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
@@ -56,6 +60,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Sessions:                jwtx.NewSessionStore(goredis.NewClient(opts), "app"),
 		AppUserModel:            model.NewAppUserModel(conn, c.CacheRedis),
 		AppMembershipGrantModel: model.NewAppMembershipGrantModel(conn, c.CacheRedis),
+		AppFeedbackModel:        model.NewAppFeedbackModel(conn, c.CacheRedis),
 	}
 	if c.FileRpc != nil {
 		desc := filepb.File_application_file_rpc_desc_file_proto.Services().Get(0)

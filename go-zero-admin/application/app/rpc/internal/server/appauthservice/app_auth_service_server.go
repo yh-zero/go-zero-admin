@@ -72,3 +72,13 @@ func (s *AppAuthServiceServer) GetMyMembership(ctx context.Context, in *apppb.Ge
 	l := appauthservicelogic.NewGetMyMembershipLogic(ctx, s.svcCtx)
 	return l.GetMyMembership(in)
 }
+
+func (s *AppAuthServiceServer) SubmitAppFeedback(ctx context.Context, in *apppb.AppSubmitFeedbackRequest) (*apppb.NoDataResponse, error) {
+	l := appauthservicelogic.NewSubmitAppFeedbackLogic(ctx, s.svcCtx)
+	return l.SubmitAppFeedback(in)
+}
+
+func (s *AppAuthServiceServer) ListMyFeedback(ctx context.Context, in *apppb.AppContentListRequest) (*apppb.AppFeedbackListResponse, error) {
+	l := appauthservicelogic.NewListMyFeedbackLogic(ctx, s.svcCtx)
+	return l.ListMyFeedback(in)
+}

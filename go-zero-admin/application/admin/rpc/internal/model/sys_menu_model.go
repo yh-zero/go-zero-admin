@@ -17,6 +17,7 @@ type (
 	// and implement the added methods in customSysMenuModel.
 	SysMenuModel interface {
 		sysMenuModel
+		Create(ctx context.Context, menu *SysMenu) error
 		// FindMenuRow 查单个有效菜单（含软删过滤），时间戳已转 int64
 		FindMenuRow(ctx context.Context, id uint64) (*MenuRow, error)
 		// ListMenuPage 分页查菜单，parentId/menuType 为 0 时不过滤
@@ -70,6 +71,19 @@ func NewSysMenuModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option)
 	return &customSysMenuModel{
 		defaultSysMenuModel: newSysMenuModel(conn, c, opts...),
 	}
+}
+
+func (m *customSysMenuModel) Create(ctx context.Context, menu *SysMenu) error {
+	result, err := m.Insert(ctx, menu)
+	if err != nil {
+		return err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	// 生成 Insert 使用传入 ID（新记录为 0），还需清理实际 ID 的未命中缓存。
+	return m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysMenuIdPrefix, id))
 }
 
 func (m *customSysMenuModel) FindMenuRow(ctx context.Context, id uint64) (*MenuRow, error) {

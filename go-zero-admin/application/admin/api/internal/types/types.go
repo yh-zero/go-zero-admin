@@ -168,8 +168,8 @@ type AppAdminListReq struct {
 }
 
 type AppAdminListResp struct {
-	List  []AppUserInfo `json:"list"`
-	Total int64         `json:"total"`
+	List  []AppAdminUserInfo `json:"list"`
+	Total int64              `json:"total"`
 }
 
 type AppAdminRevokeReq struct {
@@ -177,10 +177,63 @@ type AppAdminRevokeReq struct {
 	SessionId string `path:"session_id"`
 }
 
+type AppAdminUserInfo struct {
+	Id            int64  `json:"id"`
+	Account       string `json:"account"`
+	IdentityKind  string `json:"identity_kind"`
+	Nickname      string `json:"nickname"`
+	AvatarFileId  int64  `json:"avatar_file_id"`
+	AvatarUrl     string `json:"avatar_url"`
+	Status        string `json:"status"`
+	ReviewReason  string `json:"review_reason"`
+	EmailVerified bool   `json:"email_verified"`
+	PhoneVerified bool   `json:"phone_verified"`
+	LastLoginAt   int64  `json:"last_login_at"`
+	CreatedAt     int64  `json:"created_at"`
+	Remark        string `json:"remark"`
+}
+
+type AppAdminUserReq struct {
+	Id int64 `path:"id"`
+}
+
+type AppAdminUserResp struct {
+	User AppAdminUserInfo `json:"user"`
+}
+
 type AppAuthOptionsResp struct {
 	EmailVerificationRequired bool `json:"email_verification_required"`
 	EmailCodeEnabled          bool `json:"email_code_enabled"`
 	PhoneEnabled              bool `json:"phone_enabled"`
+}
+
+type AppContentListReq struct {
+	Page     int64 `form:"page,default=1"`
+	PageSize int64 `form:"page_size,default=20"`
+}
+
+type AppFeedbackInfo struct {
+	Id        int64  `json:"id"`
+	UserId    int64  `json:"user_id"`
+	Account   string `json:"account"`
+	Nickname  string `json:"nickname"`
+	Content   string `json:"content"`
+	Reply     string `json:"reply"`
+	Status    string `json:"status"`
+	CreatedAt int64  `json:"created_at"`
+	UpdatedAt int64  `json:"updated_at"`
+}
+
+type AppFeedbackListReq struct {
+	Page     int64  `form:"page,default=1"`
+	PageSize int64  `form:"page_size,default=20"`
+	UserId   int64  `form:"user_id,optional"`
+	Status   string `form:"status,optional"`
+}
+
+type AppFeedbackListResp struct {
+	List  []AppFeedbackInfo `json:"list"`
+	Total int64             `json:"total"`
 }
 
 type AppGrantMembershipReq struct {
@@ -204,6 +257,10 @@ type AppListMembershipResp struct {
 	Total int64                 `json:"total"`
 }
 
+type AppListSessionsReq struct {
+	Id int64 `path:"id"`
+}
+
 type AppLoginReq struct {
 	Account  string `json:"account"`
 	Password string `json:"password"`
@@ -211,6 +268,15 @@ type AppLoginReq struct {
 
 type AppLogoutReq struct {
 	AllDevices bool `json:"all_devices,optional"`
+}
+
+type AppMembershipPlanInfo struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
+}
+
+type AppMembershipPlansResp struct {
+	List []AppMembershipPlanInfo `json:"list"`
 }
 
 type AppMyMembershipResp struct {
@@ -251,6 +317,10 @@ type AppSetAvatarReq struct {
 	FileId int64 `json:"file_id"`
 }
 
+type AppSubmitFeedbackReq struct {
+	Content string `json:"content"`
+}
+
 type AppTokenResp struct {
 	AccessToken      string      `json:"access_token"`
 	ExpiresAt        int64       `json:"expires_at"`
@@ -260,8 +330,20 @@ type AppTokenResp struct {
 	User             AppUserInfo `json:"user"`
 }
 
+type AppUpdateFeedbackReq struct {
+	Id     int64   `path:"id"`
+	Reply  *string `json:"reply,optional"`
+	Status *string `json:"status,optional"`
+}
+
 type AppUpdateProfileReq struct {
 	Nickname *string `json:"nickname,optional"`
+}
+
+type AppUpdateUserReq struct {
+	Id       int64   `path:"id"`
+	Nickname *string `json:"nickname,optional"`
+	Remark   *string `json:"remark,optional"`
 }
 
 type AppUserInfo struct {
@@ -301,13 +383,14 @@ type ChangePasswordReq struct {
 }
 
 type CreateDeptReq struct {
-	ParentId int64  `json:"parent_id,optional"`
-	Name     string `json:"name"`
-	Leader   string `json:"leader,optional"`
-	Phone    string `json:"phone,optional"`
-	Email    string `json:"email,optional"`
-	Sort     int32  `json:"sort,optional"`
-	Status   int32  `json:"status,optional"`
+	ParentId     int64  `json:"parent_id,optional"`
+	Name         string `json:"name"`
+	Leader       string `json:"leader,optional"`
+	LeaderUserId int64  `json:"leader_user_id,optional"`
+	Phone        string `json:"phone,optional"`
+	Email        string `json:"email,optional"`
+	Sort         int32  `json:"sort,optional"`
+	Status       int32  `json:"status,optional"`
 }
 
 type CreateDictReq struct {
@@ -402,16 +485,19 @@ type DeleteUserReq struct {
 }
 
 type DeptInfo struct {
-	Id        int64  `json:"id"`
-	ParentId  int64  `json:"parent_id"`
-	Name      string `json:"name"`
-	Leader    string `json:"leader"`
-	Phone     string `json:"phone"`
-	Email     string `json:"email"`
-	Sort      int32  `json:"sort"`
-	Status    int32  `json:"status"`
-	Path      string `json:"path"`
-	CreatedAt int64  `json:"created_at"`
+	Id             int64  `json:"id"`
+	ParentId       int64  `json:"parent_id"`
+	Name           string `json:"name"`
+	Leader         string `json:"leader"`
+	Phone          string `json:"phone"`
+	Email          string `json:"email"`
+	Sort           int32  `json:"sort"`
+	Status         int32  `json:"status"`
+	Path           string `json:"path"`
+	CreatedAt      int64  `json:"created_at"`
+	LeaderUserId   int64  `json:"leader_user_id"`
+	MemberCount    int64  `json:"member_count"`
+	MembersVisible bool   `json:"members_visible"`
 }
 
 type DeviceSession struct {
@@ -491,6 +577,7 @@ type GetCaptchaReq struct {
 }
 
 type GetCaptchaResp struct {
+	Enabled     bool   `json:"enabled"`
 	CaptchaID   string `json:"captcha_id"`
 	ImageBase64 string `json:"image_base64"`
 	ExpiresAt   int64  `json:"expires_at"`
@@ -671,8 +758,8 @@ type ListDeviceSessionsResp struct {
 type LoginReq struct {
 	Username  string `json:"username"`
 	Password  string `json:"password"`
-	CaptchaID string `json:"captcha_id"`
-	Captcha   string `json:"captcha"`
+	CaptchaID string `json:"captcha_id,optional"`
+	Captcha   string `json:"captcha,optional"`
 }
 
 type LoginResp struct {
@@ -801,14 +888,15 @@ type TenantInfo struct {
 }
 
 type UpdateDeptReq struct {
-	Id       int64   `path:"id"`
-	ParentId *int64  `json:"parent_id,optional"`
-	Name     *string `json:"name,optional"`
-	Leader   *string `json:"leader,optional"`
-	Phone    *string `json:"phone,optional"`
-	Email    *string `json:"email,optional"`
-	Sort     *int32  `json:"sort,optional"`
-	Status   *int32  `json:"status,optional"`
+	Id           int64   `path:"id"`
+	ParentId     *int64  `json:"parent_id,optional"`
+	Name         *string `json:"name,optional"`
+	Leader       *string `json:"leader,optional"`
+	LeaderUserId *int64  `json:"leader_user_id,optional"`
+	Phone        *string `json:"phone,optional"`
+	Email        *string `json:"email,optional"`
+	Sort         *int32  `json:"sort,optional"`
+	Status       *int32  `json:"status,optional"`
 }
 
 type UpdateDictReq struct {

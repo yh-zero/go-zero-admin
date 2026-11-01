@@ -24,7 +24,7 @@ var (
 	sysDeptRowsExpectAutoSet   = strings.Join(stringx.Remove(sysDeptFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	sysDeptRowsWithPlaceHolder = strings.Join(stringx.Remove(sysDeptFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheGozeroAdminNewSysDeptIdPrefix = "cache:gozeroAdminNew:sysDept:id:"
+	cacheGozeroAdminSysDeptIdPrefix = "cache:gozeroAdmin:sysDept:id:"
 )
 
 type (
@@ -41,18 +41,19 @@ type (
 	}
 
 	SysDept struct {
-		Id        uint64       `db:"id"`        // 主键
-		ParentId  uint64       `db:"parent_id"` // 父部门ID，0=根
-		Name      string       `db:"name"`      // 部门名称
-		Leader    string       `db:"leader"`    // 负责人
-		Phone     string       `db:"phone"`     // 联系电话
-		Email     string       `db:"email"`     // 邮箱
-		Sort      int64        `db:"sort"`      // 排序（小在前）
-		Status    int64        `db:"status"`    // 状态：1启用 2停用
-		Path      string       `db:"path"`      // 物化路径，如 /1/7/12/，根为 /1/
-		CreatedAt time.Time    `db:"created_at"`
-		UpdatedAt time.Time    `db:"updated_at"`
-		DeletedAt sql.NullTime `db:"deleted_at"` // 软删除
+		Id           uint64       `db:"id"`             // 主键
+		ParentId     uint64       `db:"parent_id"`      // 父部门ID，0=根
+		Name         string       `db:"name"`           // 部门名称
+		Leader       string       `db:"leader"`         // 负责人
+		LeaderUserId uint64       `db:"leader_user_id"` // 负责人账号ID，0=未关联
+		Phone        string       `db:"phone"`          // 联系电话
+		Email        string       `db:"email"`          // 邮箱
+		Sort         int64        `db:"sort"`           // 排序（小在前）
+		Status       int64        `db:"status"`         // 状态：1启用 2停用
+		Path         string       `db:"path"`           // 物化路径，如 /1/7/12/，根为 /1/
+		CreatedAt    time.Time    `db:"created_at"`
+		UpdatedAt    time.Time    `db:"updated_at"`
+		DeletedAt    sql.NullTime `db:"deleted_at"` // 软删除
 	}
 )
 
@@ -64,18 +65,18 @@ func newSysDeptModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option)
 }
 
 func (m *defaultSysDeptModel) Delete(ctx context.Context, id uint64) error {
-	gozeroAdminNewSysDeptIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminNewSysDeptIdPrefix, id)
+	gozeroAdminSysDeptIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminSysDeptIdPrefix, id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, gozeroAdminNewSysDeptIdKey)
+	}, gozeroAdminSysDeptIdKey)
 	return err
 }
 
 func (m *defaultSysDeptModel) FindOne(ctx context.Context, id uint64) (*SysDept, error) {
-	gozeroAdminNewSysDeptIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminNewSysDeptIdPrefix, id)
+	gozeroAdminSysDeptIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminSysDeptIdPrefix, id)
 	var resp SysDept
-	err := m.QueryRowCtx(ctx, &resp, gozeroAdminNewSysDeptIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
+	err := m.QueryRowCtx(ctx, &resp, gozeroAdminSysDeptIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
 		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", sysDeptRows, m.table)
 		return conn.QueryRowCtx(ctx, v, query, id)
 	})
@@ -90,25 +91,25 @@ func (m *defaultSysDeptModel) FindOne(ctx context.Context, id uint64) (*SysDept,
 }
 
 func (m *defaultSysDeptModel) Insert(ctx context.Context, data *SysDept) (sql.Result, error) {
-	gozeroAdminNewSysDeptIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminNewSysDeptIdPrefix, data.Id)
+	gozeroAdminSysDeptIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminSysDeptIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, sysDeptRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.ParentId, data.Name, data.Leader, data.Phone, data.Email, data.Sort, data.Status, data.Path, data.DeletedAt)
-	}, gozeroAdminNewSysDeptIdKey)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, sysDeptRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.ParentId, data.Name, data.Leader, data.LeaderUserId, data.Phone, data.Email, data.Sort, data.Status, data.Path, data.DeletedAt)
+	}, gozeroAdminSysDeptIdKey)
 	return ret, err
 }
 
 func (m *defaultSysDeptModel) Update(ctx context.Context, data *SysDept) error {
-	gozeroAdminNewSysDeptIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminNewSysDeptIdPrefix, data.Id)
+	gozeroAdminSysDeptIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminSysDeptIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, sysDeptRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.ParentId, data.Name, data.Leader, data.Phone, data.Email, data.Sort, data.Status, data.Path, data.DeletedAt, data.Id)
-	}, gozeroAdminNewSysDeptIdKey)
+		return conn.ExecCtx(ctx, query, data.ParentId, data.Name, data.Leader, data.LeaderUserId, data.Phone, data.Email, data.Sort, data.Status, data.Path, data.DeletedAt, data.Id)
+	}, gozeroAdminSysDeptIdKey)
 	return err
 }
 
 func (m *defaultSysDeptModel) formatPrimary(primary any) string {
-	return fmt.Sprintf("%s%v", cacheGozeroAdminNewSysDeptIdPrefix, primary)
+	return fmt.Sprintf("%s%v", cacheGozeroAdminSysDeptIdPrefix, primary)
 }
 
 func (m *defaultSysDeptModel) queryPrimary(ctx context.Context, conn sqlx.SqlConn, v, primary any) error {

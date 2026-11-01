@@ -6,9 +6,9 @@ import { logout } from '../api/auth';
 import { useAuthStore } from '../stores/auth';
 import { DepartmentSwitcher } from './DepartmentSwitcher';
 
-interface Props { title: string; name: string; navigationOpen: boolean; onToggle: () => void }
+interface Props { title: string; name: string; navigationOpen: boolean; canViewProfile: boolean; onToggle: () => void }
 
-export function WorkspaceHeader({ title, name, navigationOpen, onToggle }: Props) {
+export function WorkspaceHeader({ title, name, navigationOpen, canViewProfile, onToggle }: Props) {
   const navigate = useNavigate();
   const isLoggingOut = useAuthStore(state => state.isLoggingOut);
   const mutation = useMutation({ mutationFn: () => logout(), onSettled: () => {
@@ -23,8 +23,7 @@ export function WorkspaceHeader({ title, name, navigationOpen, onToggle }: Props
       <Breadcrumb items={[{ title: <><HomeOutlined /><span className="breadcrumb-home">控制台</span></> }, { title }]} />
     </div>
     <div className="header-actions"><DepartmentSwitcher /><Dropdown trigger={['click']} menu={{ items: [
-      { key: 'profile', label: '个人中心', icon: <UserOutlined /> },
-      { type: 'divider' },
+      ...(canViewProfile ? [{ key: 'profile', label: '个人中心', icon: <UserOutlined /> }, { type: 'divider' as const }] : []),
       { key: 'logout', label: '退出登录', icon: <LogoutOutlined />, danger: true, disabled: isLoggingOut },
     ], onClick: ({ key }) => {
       if (key === 'logout') onLogout();

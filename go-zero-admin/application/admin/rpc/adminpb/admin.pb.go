@@ -241,6 +241,7 @@ type CaptchaInfo struct {
 	CaptchaID     string                 `protobuf:"bytes,1,opt,name=CaptchaID,proto3" json:"CaptchaID,omitempty"`
 	ImageBase64   string                 `protobuf:"bytes,2,opt,name=ImageBase64,proto3" json:"ImageBase64,omitempty"`
 	ExpiresAt     int64                  `protobuf:"varint,3,opt,name=ExpiresAt,proto3" json:"ExpiresAt,omitempty"`
+	Enabled       bool                   `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -294,6 +295,13 @@ func (x *CaptchaInfo) GetExpiresAt() int64 {
 		return x.ExpiresAt
 	}
 	return 0
+}
+
+func (x *CaptchaInfo) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
 }
 
 type GetCaptchaRequest struct {
@@ -3691,19 +3699,22 @@ func (x *GetMyPermCodesResponse) GetCodes() []string {
 // 部门
 // ============================================
 type DeptInfo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	ParentId      int64                  `protobuf:"varint,2,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Leader        string                 `protobuf:"bytes,4,opt,name=leader,proto3" json:"leader,omitempty"`
-	Phone         string                 `protobuf:"bytes,5,opt,name=phone,proto3" json:"phone,omitempty"`
-	Email         string                 `protobuf:"bytes,6,opt,name=email,proto3" json:"email,omitempty"`
-	Sort          int32                  `protobuf:"varint,7,opt,name=sort,proto3" json:"sort,omitempty"`
-	Status        int32                  `protobuf:"varint,8,opt,name=status,proto3" json:"status,omitempty"`
-	Path          string                 `protobuf:"bytes,9,opt,name=path,proto3" json:"path,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	ParentId       int64                  `protobuf:"varint,2,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	Name           string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Leader         string                 `protobuf:"bytes,4,opt,name=leader,proto3" json:"leader,omitempty"`
+	Phone          string                 `protobuf:"bytes,5,opt,name=phone,proto3" json:"phone,omitempty"`
+	Email          string                 `protobuf:"bytes,6,opt,name=email,proto3" json:"email,omitempty"`
+	Sort           int32                  `protobuf:"varint,7,opt,name=sort,proto3" json:"sort,omitempty"`
+	Status         int32                  `protobuf:"varint,8,opt,name=status,proto3" json:"status,omitempty"`
+	Path           string                 `protobuf:"bytes,9,opt,name=path,proto3" json:"path,omitempty"`
+	CreatedAt      int64                  `protobuf:"varint,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	LeaderUserId   int64                  `protobuf:"varint,11,opt,name=leader_user_id,json=leaderUserId,proto3" json:"leader_user_id,omitempty"`
+	MemberCount    int64                  `protobuf:"varint,12,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
+	MembersVisible bool                   `protobuf:"varint,13,opt,name=members_visible,json=membersVisible,proto3" json:"members_visible,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *DeptInfo) Reset() {
@@ -3806,12 +3817,34 @@ func (x *DeptInfo) GetCreatedAt() int64 {
 	return 0
 }
 
+func (x *DeptInfo) GetLeaderUserId() int64 {
+	if x != nil {
+		return x.LeaderUserId
+	}
+	return 0
+}
+
+func (x *DeptInfo) GetMemberCount() int64 {
+	if x != nil {
+		return x.MemberCount
+	}
+	return 0
+}
+
+func (x *DeptInfo) GetMembersVisible() bool {
+	if x != nil {
+		return x.MembersVisible
+	}
+	return false
+}
+
 type GetDeptTreeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
-	Status        int32                  `protobuf:"varint,2,opt,name=status,proto3" json:"status,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Actor          *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	Status         int32                  `protobuf:"varint,2,opt,name=status,proto3" json:"status,omitempty"`
+	IncludeMembers bool                   `protobuf:"varint,3,opt,name=include_members,json=includeMembers,proto3" json:"include_members,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetDeptTreeRequest) Reset() {
@@ -3856,6 +3889,13 @@ func (x *GetDeptTreeRequest) GetStatus() int32 {
 		return x.Status
 	}
 	return 0
+}
+
+func (x *GetDeptTreeRequest) GetIncludeMembers() bool {
+	if x != nil {
+		return x.IncludeMembers
+	}
+	return false
 }
 
 type GetDeptTreeResponse struct {
@@ -3912,6 +3952,7 @@ type CreateDeptRequest struct {
 	Email         string                 `protobuf:"bytes,6,opt,name=email,proto3" json:"email,omitempty"`
 	Sort          int32                  `protobuf:"varint,7,opt,name=sort,proto3" json:"sort,omitempty"`
 	Status        int32                  `protobuf:"varint,8,opt,name=status,proto3" json:"status,omitempty"`
+	LeaderUserId  int64                  `protobuf:"varint,9,opt,name=leader_user_id,json=leaderUserId,proto3" json:"leader_user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4002,6 +4043,13 @@ func (x *CreateDeptRequest) GetStatus() int32 {
 	return 0
 }
 
+func (x *CreateDeptRequest) GetLeaderUserId() int64 {
+	if x != nil {
+		return x.LeaderUserId
+	}
+	return 0
+}
+
 type UpdateDeptRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
@@ -4013,6 +4061,7 @@ type UpdateDeptRequest struct {
 	Email         *string                `protobuf:"bytes,7,opt,name=email,proto3,oneof" json:"email,omitempty"`
 	Sort          *int32                 `protobuf:"varint,8,opt,name=sort,proto3,oneof" json:"sort,omitempty"`
 	Status        *int32                 `protobuf:"varint,9,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	LeaderUserId  *int64                 `protobuf:"varint,10,opt,name=leader_user_id,json=leaderUserId,proto3,oneof" json:"leader_user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4106,6 +4155,13 @@ func (x *UpdateDeptRequest) GetSort() int32 {
 func (x *UpdateDeptRequest) GetStatus() int32 {
 	if x != nil && x.Status != nil {
 		return *x.Status
+	}
+	return 0
+}
+
+func (x *UpdateDeptRequest) GetLeaderUserId() int64 {
+	if x != nil && x.LeaderUserId != nil {
+		return *x.LeaderUserId
 	}
 	return 0
 }
@@ -5963,11 +6019,12 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\adept_id\x18\x03 \x01(\x03R\x06deptId\x12\x0e\n" +
 	"\x02ip\x18\x04 \x01(\tR\x02ip\x12\x1d\n" +
 	"\n" +
-	"user_agent\x18\x05 \x01(\tR\tuserAgent\"k\n" +
+	"user_agent\x18\x05 \x01(\tR\tuserAgent\"\x85\x01\n" +
 	"\vCaptchaInfo\x12\x1c\n" +
 	"\tCaptchaID\x18\x01 \x01(\tR\tCaptchaID\x12 \n" +
 	"\vImageBase64\x18\x02 \x01(\tR\vImageBase64\x12\x1c\n" +
-	"\tExpiresAt\x18\x03 \x01(\x03R\tExpiresAt\"\x13\n" +
+	"\tExpiresAt\x18\x03 \x01(\x03R\tExpiresAt\x12\x18\n" +
+	"\aenabled\x18\x04 \x01(\bR\aenabled\"\x13\n" +
 	"\x11GetCaptchaRequest\"D\n" +
 	"\x12GetCaptchaResponse\x12.\n" +
 	"\aCaptcha\x18\x01 \x01(\v2\x14.adminpb.CaptchaInfoR\aCaptcha\"\xae\x01\n" +
@@ -6274,7 +6331,7 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x15GetMyPermCodesRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\".\n" +
 	"\x16GetMyPermCodesResponse\x12\x14\n" +
-	"\x05Codes\x18\x01 \x03(\tR\x05Codes\"\xee\x01\n" +
+	"\x05Codes\x18\x01 \x03(\tR\x05Codes\"\xe0\x02\n" +
 	"\bDeptInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1b\n" +
 	"\tparent_id\x18\x02 \x01(\x03R\bparentId\x12\x12\n" +
@@ -6287,12 +6344,16 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x04path\x18\t \x01(\tR\x04path\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\n" +
-	" \x01(\x03R\tcreatedAt\"R\n" +
+	" \x01(\x03R\tcreatedAt\x12$\n" +
+	"\x0eleader_user_id\x18\v \x01(\x03R\fleaderUserId\x12!\n" +
+	"\fmember_count\x18\f \x01(\x03R\vmemberCount\x12'\n" +
+	"\x0fmembers_visible\x18\r \x01(\bR\x0emembersVisible\"{\n" +
 	"\x12GetDeptTreeRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\x05R\x06status\"<\n" +
+	"\x06status\x18\x02 \x01(\x05R\x06status\x12'\n" +
+	"\x0finclude_members\x18\x03 \x01(\bR\x0eincludeMembers\"<\n" +
 	"\x13GetDeptTreeResponse\x12%\n" +
-	"\x04list\x18\x01 \x03(\v2\x11.adminpb.DeptInfoR\x04list\"\xda\x01\n" +
+	"\x04list\x18\x01 \x03(\v2\x11.adminpb.DeptInfoR\x04list\"\x80\x02\n" +
 	"\x11CreateDeptRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x1b\n" +
 	"\tparent_id\x18\x02 \x01(\x03R\bparentId\x12\x12\n" +
@@ -6301,7 +6362,8 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x05phone\x18\x05 \x01(\tR\x05phone\x12\x14\n" +
 	"\x05email\x18\x06 \x01(\tR\x05email\x12\x12\n" +
 	"\x04sort\x18\a \x01(\x05R\x04sort\x12\x16\n" +
-	"\x06status\x18\b \x01(\x05R\x06status\"\xe0\x02\n" +
+	"\x06status\x18\b \x01(\x05R\x06status\x12$\n" +
+	"\x0eleader_user_id\x18\t \x01(\x03R\fleaderUserId\"\x9e\x03\n" +
 	"\x11UpdateDeptRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\adept_id\x18\x02 \x01(\x03R\x06deptId\x12 \n" +
@@ -6311,7 +6373,9 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x05phone\x18\x06 \x01(\tH\x03R\x05phone\x88\x01\x01\x12\x19\n" +
 	"\x05email\x18\a \x01(\tH\x04R\x05email\x88\x01\x01\x12\x17\n" +
 	"\x04sort\x18\b \x01(\x05H\x05R\x04sort\x88\x01\x01\x12\x1b\n" +
-	"\x06status\x18\t \x01(\x05H\x06R\x06status\x88\x01\x01B\f\n" +
+	"\x06status\x18\t \x01(\x05H\x06R\x06status\x88\x01\x01\x12)\n" +
+	"\x0eleader_user_id\x18\n" +
+	" \x01(\x03H\aR\fleaderUserId\x88\x01\x01B\f\n" +
 	"\n" +
 	"_parent_idB\a\n" +
 	"\x05_nameB\t\n" +
@@ -6319,7 +6383,8 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x06_phoneB\b\n" +
 	"\x06_emailB\a\n" +
 	"\x05_sortB\t\n" +
-	"\a_status\"9\n" +
+	"\a_statusB\x11\n" +
+	"\x0f_leader_user_id\"9\n" +
 	"\x11GetMyDeptsRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\";\n" +
 	"\x12GetMyDeptsResponse\x12%\n" +

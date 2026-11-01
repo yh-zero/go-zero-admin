@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button, Select, Space, Tooltip } from 'antd';
 import { ApartmentOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useIsMutating, useQuery } from '@tanstack/react-query';
@@ -12,11 +12,6 @@ export function DepartmentSwitcher() {
   const [switching, setSwitching] = useState(false);
   const mutations = useIsMutating();
   const query = useQuery({ queryKey: ['my-depts'], queryFn: fetchMyDepts });
-  useEffect(() => {
-    if (selectedDeptId !== null && query.isSuccess && !query.data.some(dept => dept.id === selectedDeptId)) {
-      void switchDepartment(null).catch(() => undefined);
-    }
-  }, [query.data, query.isSuccess, selectedDeptId]);
   if (query.isError) return <Tooltip title="部门列表加载失败，点击重试">
     <Button type="text" aria-label="重新加载可选部门" icon={<ReloadOutlined />} onClick={() => void query.refetch()} />
   </Tooltip>;

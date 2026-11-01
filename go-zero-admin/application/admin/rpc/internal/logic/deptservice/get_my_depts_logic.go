@@ -46,7 +46,7 @@ func (l *GetMyDeptsLogic) GetMyDepts(in *adminpb.GetMyDeptsRequest) (*adminpb.Ge
 	}
 	list := make([]*adminpb.DeptInfo, 0, len(rows))
 	for _, r := range rows {
-		list = append(list, &adminpb.DeptInfo{Id: r.Id, ParentId: r.ParentId, Name: r.Name, Leader: r.Leader, Phone: r.Phone, Email: r.Email, Sort: r.Sort, Status: r.Status, Path: r.Path, CreatedAt: r.CreatedAt})
+		list = append(list, &adminpb.DeptInfo{Id: r.Id, ParentId: r.ParentId, Name: r.Name, Leader: r.Leader, LeaderUserId: r.LeaderUserId, Phone: r.Phone, Email: r.Email, Sort: r.Sort, Status: r.Status, Path: r.Path, CreatedAt: r.CreatedAt})
 	}
 	return &adminpb.GetMyDeptsResponse{List: list}, nil
 }
