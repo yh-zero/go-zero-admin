@@ -319,7 +319,7 @@ server := rest.MustNewServer(c.RestConf,
 | 项 | 默认 |
 |---|---|
 | 平台栈 | nginx + api（仅租户管理接口）+ tenant-rpc + 控制库 MySQL + rustfs；不跑业务 RPC |
-| 租户栈 | api + 4 RPC + MySQL + Redis；模板仍有 `migrate` 占位服务，数据库自动初始化尚未接通（见 docker/tenant-stack/） |
+| 租户栈 | api + 4 RPC + MySQL + Redis；tenant-rpc 在创建时导入初始化 SQL（见 docker/tenant-stack/） |
 | RustFS | 平台级共享，每租户独立 bucket |
 | 本地开发 | `*.localhost`（127.0.0.1 泛解析） |
 | 生产域名 | 泛解析 DNS `*.example.com` + 泛域名证书 |
@@ -331,7 +331,7 @@ server := rest.MustNewServer(c.RestConf,
 - **控制库**（平台栈）：库名 `gozero_platform`，仅 `tenant_registry` 一张表，定义见 [初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql)。
 - **业务库**（每租户）：库名 `gozero_admin`，12 张表（见下）；每租户独立 MySQL 9.7 容器 + 独立卷；collation `utf8mb4_0900_ai_ci`。
 - **初始化唯一入口**：[data/db/init/mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql)，包含建库结构与开发数据。每次新建库完整导入，不维护增量升级流程；平台 Compose 将其目录挂到 MySQL 的 `/docker-entrypoint-initdb.d`，空数据卷首次启动时自动导入，已有卷不会重复执行。
-- **租户初始化边界**：租户模板的 `migrate` 服务仍为占位，尚未接入该 SQL 的导入；租户建库仍是待办。`tenant_registry` 缺少 `admin_account_ready` 的既有问题同样保留，见 [后端对接问题](backend-api-integration-issues.md)。
+- **租户初始化边界**：租户建库、初始化和 `admin_account_ready` 缺列问题已在后续联调处理；多实例隔离、大桶删除及中断恢复等剩余验收见 [后端待办](backend-api-integration-issues.md)。
 
 ### 表清单（12 张）
 

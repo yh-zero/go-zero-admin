@@ -57,5 +57,5 @@ node node_modules/oxlint/bin/oxlint
 - 证据和备份位于 `%LOCALAPPDATA%/go-zero-admin/frontend-integration-20261031-152116/`；`before-data/mysql-all.sql` 为导入前全库备份。逐路由结果见 `http-coverage.md` / `.json`，原始脱敏记录见 `http-results.json`。
 - HTTP 临时 ID、对象、缓存及 3 个 UI 临时角色均精确清理；临时延迟代理已停止，17002 端口释放。正式种子、45 条测试数据、3 个文件对象及当前项目进程保留。
 - 当前前端 `http://127.0.0.1:5999`，代理 `http://127.0.0.1:7001`；没有提交 Git。
-- App、AI、租户、上传、用户角色分配等尚无完整 HTTP 能力，不能仅靠前端完成；租户库缺列也仅记录，未修改 schema。详见 [本轮后端问题](backend-api-integration-issues.md)。
+- 本批次发现的 App/AI/租户等 HTTP 缺口及租户缺列已在后续联调修复；当前剩余事项见 [后端待办](backend-api-integration-issues.md)。
 - 未调用 App/AI/租户 RPC，未测试真实租户生命周期、外部 AI/邮件、全部权限组合、并发与数据库故障注入。后端代码未改，本轮未运行后端 `verify.ps1`，不把静态检查或前端构建当作后端验收。

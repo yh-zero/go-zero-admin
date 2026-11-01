@@ -186,7 +186,7 @@
 | AI | ✅ 按约定交付后端 16 个 HTTP 接口，本地 33 项通过；🚧 外部模型调用待配置 |
 | 租户 | ✅ 按约定交付后端 7 个 HTTP 接口，完整生命周期 24 项通过；未验证所有中断/大数据场景 |
 
-当前生成路由共 88 个。后端完整 `verify.ps1`、前端 `tsc -b`/`vite build`/lint 均退出 0；具体失败修复过程、清理和未覆盖项见 [本轮问题记录](backend-api-integration-issues.md)。后台页面只覆盖约定的管理功能，本轮不新增 App/AI/租户页面。
+当前生成路由共 88 个。后端完整 `verify.ps1`、前端 `tsc -b`/`vite build`/lint 均退出 0；剩余待办与验收边界见 [后端待办](backend-api-integration-issues.md)。后台页面只覆盖约定的管理功能，本轮不新增 App/AI/租户页面。
 
 #### 复查补充约束（2026-11-01，✅ 本地定向回归完成）
 
@@ -209,7 +209,7 @@
 
 ### 历史基线真实 HTTP 验证（本轮修复前）
 
-修复前基线注册 **41 个 HTTP 路由**，前端均有对应 API 函数。历史脚本验收批次记录 **127 次 HTTP 请求，41/41 路由至少一次正常路径调用通过，9 次预期拒绝通过**。以下表格保留当时结果；本轮新增接口与修复状态见 §7 及 [问题记录](backend-api-integration-issues.md)，不能把旧路由数量和旧问题当作当前状态。
+修复前基线注册 **41 个 HTTP 路由**，前端均有对应 API 函数。历史脚本验收批次记录 **127 次 HTTP 请求，41/41 路由至少一次正常路径调用通过，9 次预期拒绝通过**。以下表格保留当时结果；本轮新增接口与修复状态见 §7，剩余事项见 [后端待办](backend-api-integration-issues.md)，不能把旧路由数量和旧问题当作当前状态。
 
 | 范围 | 路由数 | 本轮真实调用通过的场景 | 未完成或未覆盖边界 |
 |---|---:|---|---|
@@ -238,8 +238,8 @@
 | 文件上传、引用、头像 | 上传/引用维护仅 RPC；资料 HTTP 接受的 `avatar_url` 未转成文件 ID。前端不模拟上传或头像保存成功。 |
 | API 同步、用户角色分配、认证扩展 | API 同步仅 RPC 且为占位实现；用户角色字段未进入 HTTP 且 RPC 写入未处理；认证刷新/退出/设备会话没有 HTTP。 |
 
-本轮问题、代码依据及清理记录见 [backend-api-integration-issues.md](backend-api-integration-issues.md)。本机脱敏证据位于 `%LOCALAPPDATA%/go-zero-admin/frontend-integration-20261031-152116/`：`http-results.json`、`http-coverage.json`、`http-coverage.md`、`temporary-records.json`。浏览器与重启验收单独记录在 [本轮计划](frontend-integration-plan.md)，不从 HTTP 结果推定页面全部通过。
+剩余事项见 [后端待办](backend-api-integration-issues.md)，历史问题与修复证据见该文件中的 Git 记录链接。本机脱敏证据位于 `%LOCALAPPDATA%/go-zero-admin/frontend-integration-20261031-152116/`：`http-results.json`、`http-coverage.json`、`http-coverage.md`、`temporary-records.json`。浏览器与重启验收单独记录在 [本轮计划](frontend-integration-plan.md)，不从 HTTP 结果推定页面全部通过。
 
-历史问题与修复只保留 [84245c4 基线记录](https://github.com/yh-zero/go-zero-admin/blob/84245c40bd1470ef0f662fdecb2d17a9e11998fb/ai_document/backend-api-integration-issues.md)，不把已修复的旧问题重新列为本轮阻塞。
+较早的历史基线见 [84245c4 基线记录](https://github.com/yh-zero/go-zero-admin/blob/84245c40bd1470ef0f662fdecb2d17a9e11998fb/ai_document/backend-api-integration-issues.md)，后续修复记录见后端待办中的 Git 链接；不把已修复的旧问题重新列为本轮阻塞。
 
 **最近更新：2026-11-01**

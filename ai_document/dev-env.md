@@ -18,7 +18,7 @@
 | nginx | `gozero-platform-nginx-1` | :80 | 多租户子域名路由 |
 | 前端 dev | `go-zero-admin-react` → http://localhost:5999 | `/v1` 已代理到 7001 | 宿主 pnpm dev，不进 compose |
 
-种子账号：`admin / Admin@123456`（登录需验证码；开发环境验证码答案经 `image_base64` 直接返回，base64 解码即可）。
+种子账号：`admin / Admin@123456`（登录需填写页面上的一次性图片验证码；`image_base64` 编码的是 PNG 图片，解码后不会直接得到答案文本）。
 
 **配置双套制**（改配置时注意是否两套都要同步）：
 - 容器内服务读 `docker/etc/*.yaml`（compose 卷挂载；地址为容器网络服务名 `mysql:3306` / `redis:6379` / `rustfs:9000`）
@@ -28,10 +28,13 @@
 
 ### 方式一：compose 一键全量（日常）
 
+Dockerfile 打包宿主机预编译的 Linux 二进制；首次启动或修改后端代码后，先执行构建脚本，再启动 Compose。
+
 ```powershell
 cd go-zero-admin
-docker compose up -d --build   # 首次构建约 5-15 分钟，之后秒级
-docker compose ps              # 确认全部 running
+powershell -NoProfile -ExecutionPolicy Bypass -File .\data\scripts\build-images.ps1
+docker compose up -d --build --wait
+docker compose ps              # 确认服务状态
 ````
 
 前端（单独，宿主运行）：
@@ -65,6 +68,8 @@ go run ./application/admin/rpc -f application/admin/rpc/etc/admin.yaml   # 其�
 api 启动时要经 admin-rpc 加载 Casbin 策略，rpc 未就绪会 panic——compose 已配 `restart: on-failure` 自愈。
 持续失败看日志：`docker compose logs api admin-rpc --tail 50`。
 
+API 容器重建后，若 7001 直连正常而 Nginx 返回 502，可能是 Nginx 仍保留旧上游地址。先执行 `docker compose exec -T nginx nginx -t`，确认成功后执行 `docker compose exec -T nginx nginx -s reload`，再以 `Host: localhost` 复测代理的 `/ping` 和 `/ready`；IP 直访默认站点返回 404 是域名隔离规则。
+
 ### ② 请求诡异失败（404/连接拒）
 **先查端口被谁占了**——旧项目 docker 的 `gozero-api` 常占用 7001：
 ```powershell
@@ -88,7 +93,7 @@ docker exec gozero-redis8 redis-cli DEL '<本次记录的精确缓存键>'
 - 执行策略拦截：`powershell -NoProfile -ExecutionPolicy Bypass -File <脚本>`
 
 ### ⑥ AI 密钥
-ai-rpc 的 `AI.Enabled=false` 时无需密钥；启用时目前**只能写进 yaml**（`docker/etc/ai-rpc.yaml` 或宿主 `application/ai/rpc/etc/ai.yaml`）——环境变量注入（`API_KEY_DEEPSEEK` 等）代码尚未实现，属已知缺陷。
+ai-rpc 的 `AI.Enabled=false` 时无需密钥；启用时在 YAML（`docker/etc/ai-rpc.yaml` 或宿主 `application/ai/rpc/etc/ai.yaml`）设置 `Enabled/Provider/Model/BaseURL` 等非敏感配置，密钥只从 `API_KEY_<PROVIDER>` 环境变量读取，供应商名称转为大写，不回退读取 YAML 密钥。平台 Compose 已传递 `API_KEY_DEEPSEEK` 和 `API_KEY_QWEN`；其他供应商需显式配置对应环境变量，宿主运行则直接设置进程环境变量。真实密钥不要写入版本库。
 
 ## 4. 联调后清理（任务完成定义的一部分）
 

@@ -30,7 +30,7 @@
 
 **当前范围：** 基础管理功能已有前端页面；App、AI、租户已提供 HTTP 与 RPC 接口，尚无专属前端业务页面。认证已接入验证码、刷新令牌、服务端退出与设备会话撤销。
 
-真实 SMTP 邮件发送和外部模型调用仍待配置后验收。已完成的本地验证不代表全部异常、并发和部署场景均已覆盖；具体进度与边界见 [后端对接记录](ai_document/backend-api-integration-issues.md)。
+真实 SMTP 邮件发送和外部模型调用仍待配置后验收。已完成的本地验证不代表全部异常、并发和部署场景均已覆盖；剩余事项见 [后端待办](ai_document/backend-api-integration-issues.md)。
 
 ## 界面预览
 
@@ -125,7 +125,7 @@ pnpm dev
 
 访问 [http://127.0.0.1:5999](http://127.0.0.1:5999)。前端开发服务器将 `/v1` 和 `/ping` 代理到本地 API 的 `7001` 端口。
 
-空数据卷首次启动时自动导入 [完整初始化 SQL](go-zero-admin/data/db/init/mysql-all.sql)；已有数据卷不会自动更新表结构。登录账号、本地配置与排障入口见 [本地开发环境](ai_document/dev-env.md)，接口行为和当前验证状态以 [API 契约](ai_document/api-contract.md) 与 [对接记录](ai_document/backend-api-integration-issues.md) 为准。密钥与密码放本地配置或环境变量，不写入前端变量或提交到仓库。
+空数据卷首次启动时自动导入 [完整初始化 SQL](go-zero-admin/data/db/init/mysql-all.sql)；已有数据卷不会自动更新表结构。登录账号、本地配置与排障入口见 [本地开发环境](ai_document/dev-env.md)，接口行为和当前验证状态以 [API 契约](ai_document/api-contract.md) 与 [后端待办](ai_document/backend-api-integration-issues.md) 为准。密钥与密码放本地配置或环境变量，不写入前端变量或提交到仓库。
 
 ## 仓库结构
 
@@ -148,5 +148,5 @@ pnpm dev
 | [架构与演进规划](ai_document/refactor-plan.md) | 架构设计与后续方向 |
 | [前端说明](go-zero-admin-react/README.md) | 页面范围、开发命令与对接约定 |
 | [登录猫咪接入说明](ai_document/rive-login-cat.md) | 动画素材、交互细节、生成入口与验证范围 |
-| [后端对接记录](ai_document/backend-api-integration-issues.md) | 实现进度、历史问题与验证边界 |
+| [后端待办](ai_document/backend-api-integration-issues.md) | 剩余待办与验收边界 |
 | [开发规范](AGENTS.md) | 仓库通用约定与两端规范入口 |
