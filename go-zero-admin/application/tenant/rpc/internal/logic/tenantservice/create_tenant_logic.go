@@ -175,28 +175,28 @@ func (l *CreateTenantLogic) provisionTenant(tenant *model.TenantRegistry, userna
 	}
 	if err = renderTenantEnv(l.svcCtx, tenant, storage); err != nil {
 		_ = tenantFailure(l.svcCtx, tenant, "写入租户运行配置失败", err)
-		reportStep(ctx, l.svcCtx, tenant, "render_env")
+		reportStep(l.svcCtx, tenant, "render_env")
 		return
 	}
-	reportStep(ctx, l.svcCtx, tenant, "render_env")
+	reportStep(l.svcCtx, tenant, "render_env")
 	if _, err = compose(ctx, l.svcCtx, tenant, nil, "up", "-d", "--no-build", "--pull", "never", "--wait", "--wait-timeout", "90", "mysql", "redis"); err != nil {
 		_ = tenantFailure(l.svcCtx, tenant, "启动租户数据库失败", err)
-		reportStep(ctx, l.svcCtx, tenant, "start_db")
+		reportStep(l.svcCtx, tenant, "start_db")
 		return
 	}
-	reportStep(ctx, l.svcCtx, tenant, "start_db")
+	reportStep(l.svcCtx, tenant, "start_db")
 	if err = initializeTenant(ctx, l.svcCtx, tenant, username, passwordHash); err != nil {
 		_ = tenantFailure(l.svcCtx, tenant, "初始化租户数据库失败", err)
-		reportStep(ctx, l.svcCtx, tenant, "init_db")
+		reportStep(l.svcCtx, tenant, "init_db")
 		return
 	}
-	reportStep(ctx, l.svcCtx, tenant, "init_db")
+	reportStep(l.svcCtx, tenant, "init_db")
 	if err = createTenantBuckets(ctx, storage, tenant); err != nil {
 		_ = tenantFailure(l.svcCtx, tenant, "创建租户存储空间失败", err)
-		reportStep(ctx, l.svcCtx, tenant, "create_buckets")
+		reportStep(l.svcCtx, tenant, "create_buckets")
 		return
 	}
-	reportStep(ctx, l.svcCtx, tenant, "create_buckets")
+	reportStep(l.svcCtx, tenant, "create_buckets")
 	// 初始化成功后保留 ready 标记；服务启动失败可以修复环境后再次 start。
 	if err = l.svcCtx.TenantRegistryModel.SetState(ctx, tenant, "creating", "", true); err != nil {
 		_ = tenantFailure(l.svcCtx, tenant, "保存租户初始化状态失败", err)
@@ -205,22 +205,22 @@ func (l *CreateTenantLogic) provisionTenant(tenant *model.TenantRegistry, userna
 	tenant.AdminAccountReady = 1
 	if _, err = compose(ctx, l.svcCtx, tenant, nil, "up", "-d", "--no-build", "--pull", "never", "--wait", "--wait-timeout", "60"); err != nil {
 		_ = tenantFailure(l.svcCtx, tenant, "启动租户应用失败", err)
-		reportStep(ctx, l.svcCtx, tenant, "start_apps")
+		reportStep(l.svcCtx, tenant, "start_apps")
 		return
 	}
-	reportStep(ctx, l.svcCtx, tenant, "start_apps")
+	reportStep(l.svcCtx, tenant, "start_apps")
 	if err = waitTenantReady(ctx, l.svcCtx, tenant); err != nil {
 		_ = tenantFailure(l.svcCtx, tenant, "租户应用依赖未就绪", err)
-		reportStep(ctx, l.svcCtx, tenant, "wait_ready")
+		reportStep(l.svcCtx, tenant, "wait_ready")
 		return
 	}
-	reportStep(ctx, l.svcCtx, tenant, "wait_ready")
+	reportStep(l.svcCtx, tenant, "wait_ready")
 	if err = routeTenant(ctx, l.svcCtx, tenant, true); err != nil {
 		_ = tenantFailure(l.svcCtx, tenant, "生成租户路由失败", err)
-		reportStep(ctx, l.svcCtx, tenant, "route")
+		reportStep(l.svcCtx, tenant, "route")
 		return
 	}
-	reportStep(ctx, l.svcCtx, tenant, "route")
+	reportStep(l.svcCtx, tenant, "route")
 	if err = l.svcCtx.TenantRegistryModel.SetState(ctx, tenant, "active", "", true); err != nil {
 		_ = tenantFailure(l.svcCtx, tenant, "保存租户就绪状态失败", err)
 	}
