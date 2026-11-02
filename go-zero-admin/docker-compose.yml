@@ -5,7 +5,7 @@ name: gozero-platform
 # 配置双套：容器内服务读 docker/etc/*.yaml（卷挂载，容器网络地址）；
 #           宿主 go run 开发读 application/*/etc/*.yaml（127.0.0.1 + 宿主映射端口）。
 # 数据卷复用本地既有卷（gozero-new-mysql-data / gozero-integration-rustfs-data），MySQL 空卷首次启动时
-# 自动从 data/db/init/mysql-all.sql 导入业务库与平台控制库，见 dev-env.md §2。
+# 自动从 data/db/init/mysql-all.sql 导入 gozero_admin 单库，见 dev-guide.md §2。
 
 services:
   nginx:

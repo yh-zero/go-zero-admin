@@ -24,9 +24,9 @@ var (
 	tenantRegistryRowsExpectAutoSet   = strings.Join(stringx.Remove(tenantRegistryFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	tenantRegistryRowsWithPlaceHolder = strings.Join(stringx.Remove(tenantRegistryFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheGozeroPlatformTenantRegistryIdPrefix     = "cache:gozeroPlatform:tenantRegistry:id:"
-	cacheGozeroPlatformTenantRegistryDomainPrefix = "cache:gozeroPlatform:tenantRegistry:domain:"
-	cacheGozeroPlatformTenantRegistrySlugPrefix   = "cache:gozeroPlatform:tenantRegistry:slug:"
+	cacheGozeroAdminTenantRegistryIdPrefix     = "cache:gozeroAdmin:tenantRegistry:id:"
+	cacheGozeroAdminTenantRegistryDomainPrefix = "cache:gozeroAdmin:tenantRegistry:domain:"
+	cacheGozeroAdminTenantRegistrySlugPrefix   = "cache:gozeroAdmin:tenantRegistry:slug:"
 )
 
 type (
@@ -55,6 +55,8 @@ type (
 		AppJwtAccessSecret string        `db:"app_jwt_access_secret"` // 该租户 App JWT 密钥（随机生成）
 		AdminAccountReady  int64         `db:"admin_account_ready"`   // 初始管理员是否就绪
 		ErrorMsg           string        `db:"error_msg"`             // 最近一次错误信息
+		CurrentStep        string        `db:"current_step"`          // provisioning 当前步骤
+		StepUpdatedAt      sql.NullTime  `db:"step_updated_at"`       // 步骤更新时间
 		CreatedBy          sql.NullInt64 `db:"created_by"`            // 创建操作员ID
 		CreatedAt          time.Time     `db:"created_at"`
 		UpdatedAt          time.Time     `db:"updated_at"`
@@ -75,20 +77,20 @@ func (m *defaultTenantRegistryModel) Delete(ctx context.Context, id uint64) erro
 		return err
 	}
 
-	gozeroPlatformTenantRegistryDomainKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistryDomainPrefix, data.Domain)
-	gozeroPlatformTenantRegistryIdKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistryIdPrefix, id)
-	gozeroPlatformTenantRegistrySlugKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistrySlugPrefix, data.Slug)
+	gozeroAdminTenantRegistryDomainKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistryDomainPrefix, data.Domain)
+	gozeroAdminTenantRegistryIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistryIdPrefix, id)
+	gozeroAdminTenantRegistrySlugKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistrySlugPrefix, data.Slug)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, gozeroPlatformTenantRegistryDomainKey, gozeroPlatformTenantRegistryIdKey, gozeroPlatformTenantRegistrySlugKey)
+	}, gozeroAdminTenantRegistryDomainKey, gozeroAdminTenantRegistryIdKey, gozeroAdminTenantRegistrySlugKey)
 	return err
 }
 
 func (m *defaultTenantRegistryModel) FindOne(ctx context.Context, id uint64) (*TenantRegistry, error) {
-	gozeroPlatformTenantRegistryIdKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistryIdPrefix, id)
+	gozeroAdminTenantRegistryIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistryIdPrefix, id)
 	var resp TenantRegistry
-	err := m.QueryRowCtx(ctx, &resp, gozeroPlatformTenantRegistryIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
+	err := m.QueryRowCtx(ctx, &resp, gozeroAdminTenantRegistryIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
 		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", tenantRegistryRows, m.table)
 		return conn.QueryRowCtx(ctx, v, query, id)
 	})
@@ -103,9 +105,9 @@ func (m *defaultTenantRegistryModel) FindOne(ctx context.Context, id uint64) (*T
 }
 
 func (m *defaultTenantRegistryModel) FindOneByDomain(ctx context.Context, domain string) (*TenantRegistry, error) {
-	gozeroPlatformTenantRegistryDomainKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistryDomainPrefix, domain)
+	gozeroAdminTenantRegistryDomainKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistryDomainPrefix, domain)
 	var resp TenantRegistry
-	err := m.QueryRowIndexCtx(ctx, &resp, gozeroPlatformTenantRegistryDomainKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
+	err := m.QueryRowIndexCtx(ctx, &resp, gozeroAdminTenantRegistryDomainKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
 		query := fmt.Sprintf("select %s from %s where `domain` = ? limit 1", tenantRegistryRows, m.table)
 		if err := conn.QueryRowCtx(ctx, &resp, query, domain); err != nil {
 			return nil, err
@@ -123,9 +125,9 @@ func (m *defaultTenantRegistryModel) FindOneByDomain(ctx context.Context, domain
 }
 
 func (m *defaultTenantRegistryModel) FindOneBySlug(ctx context.Context, slug string) (*TenantRegistry, error) {
-	gozeroPlatformTenantRegistrySlugKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistrySlugPrefix, slug)
+	gozeroAdminTenantRegistrySlugKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistrySlugPrefix, slug)
 	var resp TenantRegistry
-	err := m.QueryRowIndexCtx(ctx, &resp, gozeroPlatformTenantRegistrySlugKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
+	err := m.QueryRowIndexCtx(ctx, &resp, gozeroAdminTenantRegistrySlugKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
 		query := fmt.Sprintf("select %s from %s where `slug` = ? limit 1", tenantRegistryRows, m.table)
 		if err := conn.QueryRowCtx(ctx, &resp, query, slug); err != nil {
 			return nil, err
@@ -143,13 +145,13 @@ func (m *defaultTenantRegistryModel) FindOneBySlug(ctx context.Context, slug str
 }
 
 func (m *defaultTenantRegistryModel) Insert(ctx context.Context, data *TenantRegistry) (sql.Result, error) {
-	gozeroPlatformTenantRegistryDomainKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistryDomainPrefix, data.Domain)
-	gozeroPlatformTenantRegistryIdKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistryIdPrefix, data.Id)
-	gozeroPlatformTenantRegistrySlugKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistrySlugPrefix, data.Slug)
+	gozeroAdminTenantRegistryDomainKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistryDomainPrefix, data.Domain)
+	gozeroAdminTenantRegistryIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistryIdPrefix, data.Id)
+	gozeroAdminTenantRegistrySlugKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistrySlugPrefix, data.Slug)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, tenantRegistryRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Slug, data.Domain, data.ComposeProject, data.Status, data.MysqlRootPassword, data.JwtAccessSecret, data.AppJwtAccessSecret, data.AdminAccountReady, data.ErrorMsg, data.CreatedBy, data.DeletedAt)
-	}, gozeroPlatformTenantRegistryDomainKey, gozeroPlatformTenantRegistryIdKey, gozeroPlatformTenantRegistrySlugKey)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, tenantRegistryRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Slug, data.Domain, data.ComposeProject, data.Status, data.MysqlRootPassword, data.JwtAccessSecret, data.AppJwtAccessSecret, data.AdminAccountReady, data.ErrorMsg, data.CurrentStep, data.StepUpdatedAt, data.CreatedBy, data.DeletedAt)
+	}, gozeroAdminTenantRegistryDomainKey, gozeroAdminTenantRegistryIdKey, gozeroAdminTenantRegistrySlugKey)
 	return ret, err
 }
 
@@ -159,18 +161,18 @@ func (m *defaultTenantRegistryModel) Update(ctx context.Context, newData *Tenant
 		return err
 	}
 
-	gozeroPlatformTenantRegistryDomainKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistryDomainPrefix, data.Domain)
-	gozeroPlatformTenantRegistryIdKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistryIdPrefix, data.Id)
-	gozeroPlatformTenantRegistrySlugKey := fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistrySlugPrefix, data.Slug)
+	gozeroAdminTenantRegistryDomainKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistryDomainPrefix, data.Domain)
+	gozeroAdminTenantRegistryIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistryIdPrefix, data.Id)
+	gozeroAdminTenantRegistrySlugKey := fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistrySlugPrefix, data.Slug)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, tenantRegistryRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.Slug, newData.Domain, newData.ComposeProject, newData.Status, newData.MysqlRootPassword, newData.JwtAccessSecret, newData.AppJwtAccessSecret, newData.AdminAccountReady, newData.ErrorMsg, newData.CreatedBy, newData.DeletedAt, newData.Id)
-	}, gozeroPlatformTenantRegistryDomainKey, gozeroPlatformTenantRegistryIdKey, gozeroPlatformTenantRegistrySlugKey)
+		return conn.ExecCtx(ctx, query, newData.Slug, newData.Domain, newData.ComposeProject, newData.Status, newData.MysqlRootPassword, newData.JwtAccessSecret, newData.AppJwtAccessSecret, newData.AdminAccountReady, newData.ErrorMsg, newData.CurrentStep, newData.StepUpdatedAt, newData.CreatedBy, newData.DeletedAt, newData.Id)
+	}, gozeroAdminTenantRegistryDomainKey, gozeroAdminTenantRegistryIdKey, gozeroAdminTenantRegistrySlugKey)
 	return err
 }
 
 func (m *defaultTenantRegistryModel) formatPrimary(primary any) string {
-	return fmt.Sprintf("%s%v", cacheGozeroPlatformTenantRegistryIdPrefix, primary)
+	return fmt.Sprintf("%s%v", cacheGozeroAdminTenantRegistryIdPrefix, primary)
 }
 
 func (m *defaultTenantRegistryModel) queryPrimary(ctx context.Context, conn sqlx.SqlConn, v, primary any) error {

@@ -1,4 +1,5 @@
-# 依赖与构建产�?node_modules/
+# 依赖与构建产物
+node_modules/
 dist/
 .pnpm-store/
 *.tsbuildinfo
@@ -9,8 +10,12 @@ go-zero-admin/docker/.build/
 go-zero-admin/docker/tenant-stack/state/
 /bin/
 /tmp/
+.tmp_*/
 
+# 本地配置与密钥
+.env
 .env.local
+.env.*.local
 *.local.yaml
 
 # IDE
@@ -22,8 +27,8 @@ Thumbs.db
 # 日志
 *.log
 
-# �⻧����ʱ���ɵ� nginx ����
+# 租户运行时生成的 Nginx 配置
 go-zero-admin/docker/nginx/conf.d/*.conf
 
-# �û����� SQL ����
-go-zero-admin/data/db/init/20261101/
+# 本地数据库完整备份，含私人数据
+go-zero-admin/data/db/init/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]/

@@ -1,17 +1,18 @@
 import { useState } from 'react';
-import { App, Button, Form, Input, Modal, Popconfirm, Result, Space, Table, Tag } from 'antd';
-import { KeyOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { App, Button, Card, Form, Input, Modal, Popconfirm, Result, Select, Space, Table, Tag } from 'antd';
+import { EyeOutlined, KeyOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, UndoOutlined } from '@ant-design/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createTenant, deleteTenant, fetchTenants, resetTenantAdmin, startTenant, stopTenant } from '../../api/tenant';
-import type { CreateTenantReq, PageResult, TenantInfo } from '../../api/types';
+import type { CreateTenantReq, GetTenantListReq, PageResult, TenantInfo } from '../../api/types';
 import { Auth } from '../../components/Auth';
 import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { formatTime } from '../../utils/format';
 import { invalidateTenantData } from '../../utils/queryInvalidation';
+import { TenantDetails } from './TenantDetails';
 
-interface TenantFilters { page: number; page_size: number; status?: string }
+type TenantFilterValues = Pick<GetTenantListReq, 'status'>;
 
 const STATUS_META: Record<string, { color: string; text: string }> = {
   creating: { color: 'processing', text: '创建中' },
@@ -31,7 +32,9 @@ function PasswordResultModal({ open, title, password, onClose }: { open: boolean
 }
 
 export default function TenantListPage() {
-  const [filters, setFilters] = useState<TenantFilters>({ page: 1, page_size: 20 });
+  const [filters, setFilters] = useState<GetTenantListReq>({ page: 1, page_size: 20 });
+  const [filterForm] = Form.useForm<TenantFilterValues>();
+  const [detailId, setDetailId] = useState<number | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm] = Form.useForm<CreateTenantReq>();
   const [secret, setSecret] = useState<{ title: string; password: string } | null>(null);
@@ -41,7 +44,7 @@ export default function TenantListPage() {
   const { message } = App.useApp();
 
   // creating 状态存在时轮询（provisioning 为异步，通常 1-3 分钟）
-  const query = usePagedQuery<TenantFilters, TenantInfo>({
+  const query = usePagedQuery<GetTenantListReq, TenantInfo>({
     params: filters, setParams: setFilters,
     queryKey: ['tenant-list', filters],
     queryFn: () => fetchTenants(filters),
@@ -90,6 +93,7 @@ export default function TenantListPage() {
     {
       title: '操作', key: 'actions', render: (_: unknown, r: TenantInfo) => (
         <Space wrap>
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => setDetailId(r.id)}>详情</Button>
           <Auth code="sys:tenant:lifecycle">
             {r.status === 'active' ? (
               <Popconfirm title={`确认停用「${r.slug}」？`} description="停用后该租户所有服务停止响应。" onConfirm={() => lifecycle.mutate({ action: 'stop', id: r.id })}>
@@ -115,7 +119,7 @@ export default function TenantListPage() {
   ];
 
   return (
-    <div>
+    <div className="page-stack">
       <PageHeader title="租户管理" description="每租户独立整套服务与数据库，子域名经 Nginx 路由。" extra={
         <Space>
           <Button icon={<ReloadOutlined />} onClick={() => query.refetch()}>刷新</Button>
@@ -124,11 +128,29 @@ export default function TenantListPage() {
           </Auth>
         </Space>
       } />
-      <QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />
-      <Table<TenantInfo>
-        rowKey="id" loading={query.isFetching} columns={columns} dataSource={query.data?.list ?? []}
-        pagination={{ current: filters.page, pageSize: filters.page_size, total: query.data?.total ?? 0, showSizeChanger: true, onChange: (page, pageSize) => setFilters({ page, page_size: pageSize }) }}
-      />
+      <Card className="filter-card">
+        <Form<TenantFilterValues> form={filterForm} layout="inline" className="filter-form"
+          onFinish={values => setFilters(current => ({ ...current, page: 1, status: values.status }))}>
+          <Form.Item name="status" label="状态"><Select allowClear placeholder="全部状态"
+            options={Object.entries(STATUS_META).map(([value, meta]) => ({ value, label: meta.text }))} /></Form.Item>
+          <Form.Item><Space>
+            <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>查询</Button>
+            <Button icon={<UndoOutlined />} onClick={() => {
+              filterForm.resetFields(); setFilters(current => ({ page: 1, page_size: current.page_size }));
+            }}>重置</Button>
+          </Space></Form.Item>
+        </Form>
+      </Card>
+      <Card className="data-card" title="租户列表">
+        <QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />
+        <Table<TenantInfo>
+          rowKey="id" loading={query.isFetching} columns={columns} dataSource={query.data?.list ?? []}
+          scroll={{ x: 760 }}
+          pagination={{ current: filters.page, pageSize: filters.page_size, total: query.data?.total ?? 0, showSizeChanger: true,
+            onChange: (page, page_size) => setFilters(current => ({ ...current, page, page_size })) }}
+        />
+      </Card>
+      {detailId !== null && <TenantDetails key={detailId} id={detailId} onClose={() => setDetailId(null)} />}
 
       <Modal open={createOpen} title="创建租户" onCancel={() => setCreateOpen(false)} onOk={() => createForm.submit()} confirmLoading={create.isPending} destroyOnHidden>
         <Form form={createForm} layout="vertical" onFinish={(values) => create.mutate(values)}>

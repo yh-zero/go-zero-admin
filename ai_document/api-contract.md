@@ -181,7 +181,7 @@
 - 后台导航（✅ 已实现并经浏览器验证）：顶层“APP管理”与“系统管理”同级，下设“APP用户”（/app/users）、“会员管理”（/app/memberships）和“意见反馈”（/app/feedback）。操作码为 sys:app:user:edit、sys:app:user:review、sys:app:user:avatar、sys:app:session:revoke、sys:app:membership:grant、sys:app:membership:revoke、sys:app:feedback:reply；读取登录设备使用 sys:app:session:list，头像上传复用文件管理的 sys:file:upload。新增菜单默认只关联超级管理员；菜单可见性与服务端 Casbin 接口授权独立，沿用既有普通角色读取策略。
 - 租户新增 HTTP 对接现有生命周期 RPC，保留现有数据，补齐缺列及 NULL/别名扫描。AI 审批在步骤执行前暂停，批准后续跑，失败不得标成功；会话/工作流/任务均检查归属。
 - 租户路由（后台超级管理员）：`POST /v1/sys/tenant/create` 接收 slug、可选 admin_username/admin_password；`GET /v1/sys/tenant/list` 接收 page/page_size/status；`GET /v1/sys/tenant/:id`；`POST /:id/start`、`POST /:id/stop`、`DELETE /:id`（请求体 confirm_slug 必须匹配）、`POST /:id/reset-admin`。创建返回 tenant/admin_password，重置返回 new_password，仅当次响应展示；列表/详情不返回密钥。创建异步进入 creating，初始账号与探针确认成功后才为 active/admin_account_ready=true；失败显示不含敏感信息的原因。
-- APP 后台管理页面已补齐用户、头像、登录设备与会员管理；AI、租户仍提供后端与 HTTP 接口。当前后台保留角色分配、上传/头像、刷新/退出/设备会话、部门切换及 API 同步入口。
+- APP 后台管理页面已补齐用户、头像、登录设备与会员管理；AI 提供后端与 HTTP 接口。租户导航与 APP 管理同级，列表复用 `GET /v1/sys/tenant/list` 的状态筛选，详情复用 `GET /v1/sys/tenant/:id`，详情抽屉只读。2026-11-02 现有本地运行库仅补齐目录、列表两个菜单及超级管理员关联；随后整理的公开初始化库为超级管理员提供完整菜单，包含既有的创建、启停、重置与删除操作码，租户登记初始为空，实际生命周期需配置运行环境后使用。浏览器读取验收通过，本轮未执行真实租户生命周期。当前后台保留角色分配、上传/头像、刷新/退出/设备会话、部门切换及 API 同步入口。
 - 更新请求中 `null` 与省略都保持原值；用户/部门 `status` 仅为 1（启用）或 2（停用），0 不表示清空；`gender` 为 0/1/2。`dept_id:0`、`avatar_file_id:0` 表示解绑。
 - `role_ids` 回读全部未删除角色 ID 的去重集合。显式列表中保留的角色维持原部门绑定，移除角色删除全部绑定，新普通角色绑定用户主部门（无部门为 `dept:0`）；更换主部门只迁移旧主部门绑定。分配角色限定超级管理员，禁止移除最后一个有效超级管理员；省略角色字段不影响授权。
 - 用户主部门实际变更仅允许超级管理员，避免通过迁移部门绕过角色分配权限；传入与当前相同的 `dept_id` 不构成变更。角色 `code` 创建后不可修改，普通编辑需保留原值，否则返回 400，避免已有 Casbin 绑定失效。

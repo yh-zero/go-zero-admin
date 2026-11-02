@@ -134,6 +134,7 @@ export interface TenantInfo {
   updated_at: number;
 }
 export interface GetTenantListReq extends PageParams { status?: string }
+export interface GetTenantResp { tenant: TenantInfo }
 export interface CreateTenantReq {
   slug: string;
   admin_username?: string;

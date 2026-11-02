@@ -1,52 +1,31 @@
--- ============================================================================
--- go-zero-admin 开源初始化数据库（完整可开发数据集）
---
--- 使用方式（二选一）：
---   1. 一键启动（推荐）：docker compose up -d —— MySQL 空卷时自动导入本文件
---      （compose 已将本目录挂载到 /docker-entrypoint-initdb.d，仅空卷生效）
---   2. 手动导入：mysql -h 127.0.0.1 -P 3307 -u root -p < mysql-all.sql
---
--- 内容：
---   gozero_admin    全量：完整表结构 + 演示数据（菜单/角色/部门/用户/
---                         字典/API/Casbin 规则/文件登记/AI 与 App 演示行）
---   gozero_platform 全量：tenant_registry 含 3 条演示租户行（stopped/error/idle，
---                         其密钥列均为本地演示值，仅用于联调租户列表展示）
---
--- 开发账号（仅本地开发，生产必须修改）：
---   admin / Admin@123456    超级管理员（含全部菜单与 Casbin 权限）
---   user01..user28 / Admin@123456    演示用户（scope_all 等数据范围角色，GET 只读策略）
--- MySQL dump 10.13  Distrib 9.7.4, for Linux (x86_64)
---
--- Host: 127.0.0.1    Database: gozero_admin
--- ------------------------------------------------------
--- Server version	9.7.4
+-- go-zero-admin 开源初始化：单库完整结构 + 虚构演示数据
+-- 仅用于新建或重置开发数据库：本文件会 DROP 并重建列出的 19 张表。
+-- 首次 docker compose up -d 时，MySQL 空数据卷自动导入；已有卷不会重复执行。
+-- 手动导入：mysql -h 127.0.0.1 -P 3307 -u root -p < mysql-all.sql
+-- 后台账号：admin、demo_all、demo_tree、demo_dept、demo_self（密码均为 Admin@123456）。
+-- APP 示例账号：alice@example.test / Admin@123456；example.test 均为保留演示域，不接收邮件。
+-- 默认开启图片验证码；请在登录页按提示填写。演示密码仅限本地开发，部署前必须修改。
+-- 必备数据：部门、角色、菜单/操作权限、API 资源、字典及授权关联。
+-- 演示数据：后台用户、APP 用户、会员和反馈；文件/审计/AI/租户登记初始为空。
+-- 不包含模型密钥、邮箱授权码、真实个人资料、对象存储文件或租户运行凭据。
+-- 租户导航独立于登记数据，顶层与 APP 管理同级；真实租户通过平台创建。
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT;
+SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS;
+SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION;
+SET NAMES utf8mb4;
+SET @OLD_TIME_ZONE=@@TIME_ZONE;
+SET TIME_ZONE='+00:00';
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS;
+SET FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE;
+SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
---
--- Current Database: `gozero_admin`
---
-
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `gozero_admin` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-
+CREATE DATABASE IF NOT EXISTS `gozero_admin` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE `gozero_admin`;
 
---
--- Table structure for table `ai_conversation`
---
-
+-- ai_conversation
 DROP TABLE IF EXISTS `ai_conversation`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ai_conversation` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `user_id` bigint unsigned NOT NULL COMMENT '所属用户',
@@ -56,26 +35,10 @@ CREATE TABLE `ai_conversation` (
   `deleted_at` datetime DEFAULT NULL COMMENT '软删除',
   PRIMARY KEY (`id`),
   KEY `idx_user` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9010305 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 会话';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 会话';
 
---
--- Dumping data for table `ai_conversation`
---
-
-LOCK TABLES `ai_conversation` WRITE;
-/*!40000 ALTER TABLE `ai_conversation` DISABLE KEYS */;
-INSERT INTO `ai_conversation` VALUES (9010301,1,'四种消息角色','2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010302,1,'多轮与工具消息','2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010303,9001100,'其他用户会话','2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010304,1,'空会话','2026-10-31 15:28:18','2026-10-31 18:23:19',NULL);
-/*!40000 ALTER TABLE `ai_conversation` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `ai_message`
---
-
+-- ai_message
 DROP TABLE IF EXISTS `ai_message`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ai_message` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `conversation_id` bigint unsigned NOT NULL COMMENT '会话ID',
@@ -86,26 +49,10 @@ CREATE TABLE `ai_message` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_conversation` (`conversation_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9010413 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 消息';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 消息';
 
---
--- Dumping data for table `ai_message`
---
-
-LOCK TABLES `ai_message` WRITE;
-/*!40000 ALTER TABLE `ai_message` DISABLE KEYS */;
-INSERT INTO `ai_message` VALUES (9010401,9010301,'system','模拟系统说明，不连接模型。',NULL,0,'2026-10-31 09:00:01'),(9010402,9010301,'user','请统计示例文本。',NULL,6,'2026-10-31 09:00:02'),(9010403,9010301,'assistant','模拟工具调用。','[{\"id\": \"call_01\", \"type\": \"function\", \"function\": {\"name\": \"text_stats\", \"arguments\": \"{\\\"text\\\":\\\"sample text\\\"}\"}}]',12,'2026-10-31 09:00:03'),(9010404,9010301,'tool','模拟结果：字符数 11，单词数 2，行数 1。',NULL,0,'2026-10-31 09:00:04'),(9010405,9010302,'user','第一轮：你好。',NULL,4,'2026-10-31 09:01:01'),(9010406,9010302,'assistant','第一轮：这是保存的示例回复。',NULL,8,'2026-10-31 09:01:02'),(9010407,9010302,'user','第二轮：中文、English 与多行\n第二行。',NULL,10,'2026-10-31 09:01:03'),(9010408,9010302,'assistant','第二轮：模拟工具调用。','[{\"id\": \"call_02\", \"type\": \"function\", \"function\": {\"name\": \"text_stats\", \"arguments\": \"{\\\"text\\\":\\\"example\\\"}\"}}]',9,'2026-10-31 09:01:04'),(9010409,9010302,'tool','模拟结果：字符数 7，单词数 1，行数 1。',NULL,0,'2026-10-31 09:01:05'),(9010410,9010302,'assistant','最终回复：统计完成。',NULL,6,'2026-10-31 09:01:06'),(9010411,9010303,'user','其他用户的示例提问。',NULL,5,'2026-10-31 09:02:01'),(9010412,9010303,'assistant','其他用户的模拟回复。',NULL,7,'2026-10-31 09:02:02');
-/*!40000 ALTER TABLE `ai_message` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `ai_task`
---
-
+-- ai_task
 DROP TABLE IF EXISTS `ai_task`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ai_task` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `workflow_id` bigint unsigned DEFAULT NULL COMMENT '工作流ID（对话触发的任务为空）',
@@ -123,26 +70,10 @@ CREATE TABLE `ai_task` (
   PRIMARY KEY (`id`),
   KEY `idx_workflow` (`workflow_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=9010608 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 任务';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 任务';
 
---
--- Dumping data for table `ai_task`
---
-
-LOCK TABLES `ai_task` WRITE;
-/*!40000 ALTER TABLE `ai_task` DISABLE KEYS */;
-INSERT INTO `ai_task` (`id`,`workflow_id`,`conversation_id`,`status`,`input`,`result`,`error`,`approved_by`,`created_at`,`completed_at`) VALUES (9010601,9010502,NULL,'pending','{\"fixture\":\"sample\",\"case\":\"pending\"}','','',NULL,'2026-10-31 09:10:01',NULL),(9010602,9010502,NULL,'running','{\"fixture\":\"sample\",\"case\":\"running\"}','','',NULL,'2026-10-31 09:10:02',NULL),(9010603,9010503,NULL,'pending_approval','{\"fixture\":\"sample\",\"case\":\"approve\"}','模拟审批通过','',NULL,'2026-10-31 09:10:03',NULL),(9010604,9010502,9010301,'succeeded','{\"fixture\":\"sample\",\"case\":\"succeeded\"}','模拟执行成功','',1,'2026-10-31 09:10:04','2026-10-31 09:11:04'),(9010605,9010502,9010302,'failed','{\"fixture\":\"sample\",\"case\":\"failed\"}','','模拟工具失败，不代表真实调用',NULL,'2026-10-31 09:10:05','2026-10-31 09:11:05'),(9010606,9010503,NULL,'rejected','{\"fixture\":\"sample\",\"case\":\"rejected\"}','模拟审批拒绝','',1,'2026-10-31 09:10:06','2026-10-31 09:11:06'),(9010607,9010503,9010303,'pending_approval','{\"fixture\":\"sample\",\"case\":\"reject\"}','模拟第二条审批拒绝','',NULL,'2026-10-31 09:10:07',NULL);
-/*!40000 ALTER TABLE `ai_task` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `ai_workflow`
---
-
+-- ai_workflow
 DROP TABLE IF EXISTS `ai_workflow`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ai_workflow` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `name` varchar(128) NOT NULL COMMENT '工作流名称',
@@ -156,26 +87,10 @@ CREATE TABLE `ai_workflow` (
   `deleted_at` datetime DEFAULT NULL COMMENT '软删除',
   PRIMARY KEY (`id`),
   KEY `idx_next_run` (`enabled`,`next_run_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=9010504 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 工作流';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 工作流';
 
---
--- Dumping data for table `ai_workflow`
---
-
-LOCK TABLES `ai_workflow` WRITE;
-/*!40000 ALTER TABLE `ai_workflow` DISABLE KEYS */;
-INSERT INTO `ai_workflow` VALUES (9010501,'空步骤边界','{\"steps\": []}',0,0,NULL,1,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010502,'本地文本统计','{\"steps\": [{\"name\": \"示例统计\", \"tool\": \"text_stats\", \"input\": {\"text\": \"sample fixture\"}, \"approval\": false}]}',0,0,NULL,1,'2026-10-31 15:28:18','2026-10-31 18:31:03',NULL),(9010503,'审批展示','{\"steps\": [{\"name\": \"审批前统计\", \"tool\": \"text_stats\", \"input\": {\"text\": \"sample approval\"}, \"approval\": true}, {\"name\": \"后续统计\", \"tool\": \"text_stats\", \"input\": {\"text\": \"sample after approval\"}, \"approval\": false}]}',0,0,NULL,1,'2026-10-31 15:28:18','2026-10-31 18:32:47',NULL);
-/*!40000 ALTER TABLE `ai_workflow` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `app_membership_grant`
---
-
+-- app_membership_grant
 DROP TABLE IF EXISTS `app_membership_grant`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `app_membership_grant` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
@@ -193,23 +108,9 @@ CREATE TABLE `app_membership_grant` (
   UNIQUE KEY `uk_request` (`request_id`),
   KEY `idx_user` (`user_id`),
   KEY `idx_expires` (`expires_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=9010207 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='App 会员授予';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='App 会员授予';
 
---
--- Dumping data for table `app_membership_grant`
---
-
-LOCK TABLES `app_membership_grant` WRITE;
-/*!40000 ALTER TABLE `app_membership_grant` DISABLE KEYS */;
-INSERT INTO `app_membership_grant` VALUES (9010201,9010101,'vip','profile.export','grant_active',1,'2026-10-30 15:28:18','2026-11-30 15:28:18',0,NULL,'2026-10-31 15:28:18','2026-10-31 18:31:03'),(9010202,9010105,'vip','profile.export','grant_expired',1,'2026-09-01 15:28:18','2026-10-01 15:28:18',0,NULL,'2026-10-31 15:28:18','2026-10-31 18:31:03'),(9010203,9010105,'vip','profile.export','grant_future',1,'2026-11-30 15:28:18','2026-12-30 15:28:18',0,NULL,'2026-10-31 15:28:18','2026-10-31 18:31:03'),(9010204,9010101,'vip','profile.export','grant_revoked',1,'2026-10-24 15:28:18','2026-11-07 15:28:18',1,'2026-10-31 15:28:18','2026-10-31 15:28:18','2026-10-31 18:31:03'),(9010205,9010101,'vip','profile.export','grant_overlap',1,'2026-10-30 15:28:18','2026-11-07 15:28:18',0,NULL,'2026-10-31 15:28:18','2026-10-31 18:31:03'),(9010206,9010105,'vip','profile.export','grant_self',NULL,'2026-10-30 15:28:18','2026-11-07 15:28:18',0,NULL,'2026-10-31 15:28:18','2026-10-31 18:31:03');
-/*!40000 ALTER TABLE `app_membership_grant` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `app_feedback`
---
-
+-- app_feedback
 DROP TABLE IF EXISTS `app_feedback`;
 CREATE TABLE `app_feedback` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -224,13 +125,8 @@ CREATE TABLE `app_feedback` (
   KEY `idx_status_id` (`status`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='App 意见反馈';
 
---
--- Table structure for table `app_user`
---
-
+-- app_user
 DROP TABLE IF EXISTS `app_user`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `app_user` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `account` varchar(128) NOT NULL COMMENT '账号（邮箱或手机号，小写）',
@@ -250,26 +146,10 @@ CREATE TABLE `app_user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_account` (`account`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=9010109 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='App 用户';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='App 用户';
 
---
--- Dumping data for table `app_user`
---
-
-LOCK TABLES `app_user` WRITE;
-/*!40000 ALTER TABLE `app_user` DISABLE KEYS */;
-INSERT INTO `app_user` (`id`,`account`,`identity_kind`,`password_hash`,`nickname`,`avatar_file_id`,`status`,`review_reason`,`email_verified_at`,`phone_verified_at`,`last_login_at`,`created_at`,`updated_at`,`deleted_at`) VALUES (9010101,'active@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱已激活',NULL,'active','测试样例：已审核','2026-10-31 15:28:18',NULL,'2026-10-31 15:28:18','2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010102,'pending@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱待审核',NULL,'pending','',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010103,'disabled@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱已停用',NULL,'disabled','测试样例：账号停用','2026-10-31 15:28:18',NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010104,'rejected@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','邮箱已驳回',NULL,'rejected','测试样例：审核资料不完整',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010105,'0009010105','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机已激活',NULL,'active','测试样例：已审核',NULL,'2026-10-31 15:28:18','2026-10-31 15:28:18','2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010106,'0009010106','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机待审核',NULL,'pending','',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010107,'0009010107','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机已停用',NULL,'disabled','测试样例：账号停用',NULL,'2026-10-31 15:28:18',NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010108,'0009010108','phone','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','手机已驳回',NULL,'rejected','测试样例：审核资料不完整',NULL,NULL,NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL);
-/*!40000 ALTER TABLE `app_user` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `casbin_rule`
---
-
+-- casbin_rule
 DROP TABLE IF EXISTS `casbin_rule`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `casbin_rule` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `ptype` varchar(8) NOT NULL COMMENT 'p=策略 g=角色分组',
@@ -284,26 +164,10 @@ CREATE TABLE `casbin_rule` (
   UNIQUE KEY `uk_ptype_v0_v1_v2_v3` (`ptype`,`v0`,`v1`,`v2`,`v3`),
   KEY `idx_v0` (`v0`),
   KEY `idx_v1` (`v1`)
-) ENGINE=InnoDB AUTO_INCREMENT=9001748 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Casbin 策略';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Casbin 策略';
 
---
--- Dumping data for table `casbin_rule`
---
-
-LOCK TABLES `casbin_rule` WRITE;
-/*!40000 ALTER TABLE `casbin_rule` DISABLE KEYS */;
-INSERT INTO `casbin_rule` VALUES (1,'p','super_admin','*','*','*','','','2026-10-30 14:07:15'),(2,'p','dept_admin','dept:1','/v1/sys/user/*','GET','','','2026-10-30 14:07:15'),(3,'p','dept_admin','dept:1','/v1/sys/dept/*','GET','','','2026-10-30 14:07:15'),(4,'p','employee','dept:1','/v1/sys/profile/*','GET','','','2026-10-30 14:07:15'),(6,'g','user:1','super_admin','*','','','','2026-10-30 14:12:32'),(9001700,'p','scope_all','*','/v1/sys/*','GET','','','2026-10-30 09:00:00'),(9001701,'p','scope_dept_children','*','/v1/sys/*','GET','','','2026-10-30 09:00:00'),(9001702,'p','scope_dept','*','/v1/sys/*','GET','','','2026-10-30 09:00:00'),(9001703,'p','scope_self','*','/v1/sys/*','GET','','','2026-10-30 09:00:00'),(9001710,'g','user:9001100','scope_all','dept:9001000','','','','2026-10-30 09:00:00'),(9001711,'g','user:9001101','scope_dept_children','dept:9001001','','','','2026-10-30 09:00:00'),(9001712,'g','user:9001102','scope_dept','dept:9001002','','','','2026-10-30 09:00:00'),(9001713,'g','user:9001103','scope_self','dept:9001003','','','','2026-10-30 09:00:00'),(9001714,'g','user:9001104','scope_all','dept:9001004','','','','2026-10-30 09:00:00'),(9001715,'g','user:9001105','scope_dept_children','dept:9001000','','','','2026-10-30 09:00:00'),(9001716,'g','user:9001106','scope_dept','dept:9001001','','','','2026-10-30 09:00:00'),(9001717,'g','user:9001107','scope_self','dept:9001002','','','','2026-10-30 09:00:00'),(9001718,'g','user:9001108','scope_all','dept:9001003','','','','2026-10-30 09:00:00'),(9001719,'g','user:9001109','scope_dept_children','dept:9001004','','','','2026-10-30 09:00:00'),(9001720,'g','user:9001110','scope_dept','dept:9001000','','','','2026-10-30 09:00:00'),(9001721,'g','user:9001111','scope_self','dept:9001001','','','','2026-10-30 09:00:00'),(9001722,'g','user:9001112','scope_all','dept:9001002','','','','2026-10-30 09:00:00'),(9001723,'g','user:9001113','scope_dept_children','dept:9001003','','','','2026-10-30 09:00:00'),(9001724,'g','user:9001114','scope_dept','dept:9001004','','','','2026-10-30 09:00:00'),(9001725,'g','user:9001115','scope_self','dept:9001000','','','','2026-10-30 09:00:00'),(9001726,'g','user:9001116','scope_all','dept:9001001','','','','2026-10-30 09:00:00'),(9001727,'g','user:9001117','scope_dept_children','dept:9001002','','','','2026-10-30 09:00:00'),(9001728,'g','user:9001118','scope_dept','dept:9001003','','','','2026-10-30 09:00:00'),(9001729,'g','user:9001119','scope_self','dept:9001004','','','','2026-10-30 09:00:00'),(9001730,'g','user:9001120','scope_all','dept:9001000','','','','2026-10-30 09:00:00'),(9001731,'g','user:9001121','scope_dept_children','dept:9001001','','','','2026-10-30 09:00:00'),(9001732,'g','user:9001122','scope_dept','dept:9001002','','','','2026-10-30 09:00:00'),(9001733,'g','user:9001123','scope_self','dept:9001003','','','','2026-10-30 09:00:00'),(9001734,'g','user:9001124','scope_all','dept:9001004','','','','2026-10-30 09:00:00'),(9001735,'g','user:9001125','scope_dept_children','dept:9001000','','','','2026-10-30 09:00:00'),(9001736,'g','user:9001126','scope_dept','dept:9001001','','','','2026-10-30 09:00:00'),(9001737,'g','user:9001127','scope_self','dept:9001002','','','','2026-10-30 09:00:00');
-/*!40000 ALTER TABLE `casbin_rule` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sys_api`
---
-
+-- sys_api
 DROP TABLE IF EXISTS `sys_api`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sys_api` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `group_name` varchar(64) NOT NULL COMMENT '分组（如 sys/user）',
@@ -314,53 +178,10 @@ CREATE TABLE `sys_api` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_method_path` (`method`,`path`)
-) ENGINE=InnoDB AUTO_INCREMENT=9001543 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='API 资源';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='API 资源';
 
---
--- Dumping data for table `sys_api`
---
-
-LOCK TABLES `sys_api` WRITE;
-/*!40000 ALTER TABLE `sys_api` DISABLE KEYS */;
-INSERT INTO `sys_api` VALUES (9001500,'sys/auth','GET','/v1/sys/auth/captcha','获取验证码','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001501,'sys/auth','POST','/v1/sys/auth/login','登录','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001502,'sys/user','GET','/v1/sys/user/list','查询用户','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001503,'sys/user','GET','/v1/sys/user/:id','用户详情','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001504,'sys/user','POST','/v1/sys/user/create','新增用户','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001505,'sys/user','PUT','/v1/sys/user/:id','编辑用户','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001506,'sys/user','DELETE','/v1/sys/user/:id','删除用户','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001507,'sys/user','POST','/v1/sys/user/:id/password','重置密码','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001508,'sys/user','POST','/v1/sys/user/password/change','修改本人密码','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001509,'sys/dept','GET','/v1/sys/dept/tree','部门树','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001510,'sys/dept','POST','/v1/sys/dept/create','新增部门','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001511,'sys/dept','PUT','/v1/sys/dept/:id','编辑部门','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001512,'sys/dept','DELETE','/v1/sys/dept/:id','删除部门','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001513,'sys/role','GET','/v1/sys/role/list','查询角色','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001514,'sys/role','GET','/v1/sys/role/:id','角色详情','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001515,'sys/role','POST','/v1/sys/role/create','新增角色','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001516,'sys/role','PUT','/v1/sys/role/:id','编辑角色','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001517,'sys/role','DELETE','/v1/sys/role/:id','删除角色','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001518,'sys/role','POST','/v1/sys/role/:id/menus','角色菜单授权','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001519,'sys/menu','GET','/v1/sys/menu/list','查询菜单','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001520,'sys/menu','GET','/v1/sys/menu/:id','菜单详情','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001521,'sys/menu','GET','/v1/sys/menu/tree','菜单树','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001522,'sys/menu','GET','/v1/sys/menu/my','本人菜单','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001523,'sys/menu','GET','/v1/sys/menu/my/perm-codes','本人权限码','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001524,'sys/menu','POST','/v1/sys/menu/create','新增菜单','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001525,'sys/menu','PUT','/v1/sys/menu/:id','编辑菜单','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001526,'sys/menu','DELETE','/v1/sys/menu/:id','删除菜单','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001527,'sys/dict','GET','/v1/sys/dict/list','查询字典','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001528,'sys/dict','GET','/v1/sys/dict/code/:code','字典详情','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001529,'sys/dict','POST','/v1/sys/dict/create','新增字典','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001530,'sys/dict','PUT','/v1/sys/dict/:id','编辑字典','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001531,'sys/dict','DELETE','/v1/sys/dict/:id','删除字典','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001532,'sys/api','GET','/v1/sys/api/list','查询 API','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001533,'sys/api','DELETE','/v1/sys/api/:id','删除 API','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001534,'sys/file','GET','/v1/sys/file/list','查询文件','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001535,'sys/file','GET','/v1/sys/file/:id/url','获取文件链接','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001536,'sys/file','DELETE','/v1/sys/file/:id','删除文件','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001537,'sys/audit','GET','/v1/sys/audit/list','查询审计日志','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001538,'sys/profile','GET','/v1/sys/profile/','本人资料','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001539,'sys/profile','PUT','/v1/sys/profile/','更新本人资料','2026-10-30 09:00:00','2026-10-31 18:31:03'),(9001540,'system','GET','/ping','健康检查','2026-10-30 09:00:00','2026-10-31 18:31:03');
--- APP 后台管理接口；路径与 desc/sys/app.api 保持一致。
-INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
-(9001600,'sys/app','GET','/v1/sys/app/users','查询 APP 用户'),
-(9001601,'sys/app','POST','/v1/sys/app/users/:id/review','审核 APP 用户'),
-(9001602,'sys/app','PUT','/v1/sys/app/users/:id/avatar','设置 APP 用户头像'),
-(9001603,'sys/app','GET','/v1/sys/app/users/:id/sessions','查询 APP 登录设备'),
-(9001604,'sys/app','DELETE','/v1/sys/app/users/:id/sessions/:session_id','撤销 APP 登录设备'),
-(9001605,'sys/app','GET','/v1/sys/app/memberships','查询 APP 会员'),
-(9001606,'sys/app','POST','/v1/sys/app/memberships','授予 APP 会员'),
-(9001607,'sys/app','DELETE','/v1/sys/app/memberships/:id','撤销 APP 会员');
-INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
-(9001610,'sys/app','GET','/v1/sys/app/users/:id','APP 用户详情'),
-(9001611,'sys/app','PUT','/v1/sys/app/users/:id','编辑 APP 用户资料'),
-(9001612,'sys/app','GET','/v1/sys/app/membership-plans','APP 会员套餐选项'),
-(9001613,'sys/app','GET','/v1/sys/app/feedback','查询 APP 反馈'),
-(9001614,'sys/app','PUT','/v1/sys/app/feedback/:id','处理 APP 反馈'),
-(9001615,'app','GET','/v1/app/feedback','本人 APP 反馈'),
-(9001616,'app','POST','/v1/app/feedback','提交 APP 反馈');
--- 租户管理接口（仅平台栈可用）。
-INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
-(9001620,'sys/tenant','POST','/v1/sys/tenant/create','创建租户'),
-(9001621,'sys/tenant','GET','/v1/sys/tenant/list','查询租户'),
-(9001622,'sys/tenant','GET','/v1/sys/tenant/:id','租户详情'),
-(9001623,'sys/tenant','POST','/v1/sys/tenant/:id/start','启用租户'),
-(9001624,'sys/tenant','POST','/v1/sys/tenant/:id/stop','停用租户'),
-(9001625,'sys/tenant','DELETE','/v1/sys/tenant/:id','删除租户'),
-(9001626,'sys/tenant','POST','/v1/sys/tenant/:id/reset-admin','重置租户管理员密码');
-/*!40000 ALTER TABLE `sys_api` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sys_audit_log`
---
-
+-- sys_audit_log
 DROP TABLE IF EXISTS `sys_audit_log`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sys_audit_log` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `user_id` bigint unsigned DEFAULT NULL COMMENT '操作人ID',
@@ -380,26 +201,10 @@ CREATE TABLE `sys_audit_log` (
   KEY `idx_user` (`user_id`),
   KEY `idx_module_action` (`module`,`action`),
   KEY `idx_created` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=9001816 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='审计日志';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='审计日志';
 
---
--- Dumping data for table `sys_audit_log`
---
-
-LOCK TABLES `sys_audit_log` WRITE;
-/*!40000 ALTER TABLE `sys_audit_log` DISABLE KEYS */;
-INSERT INTO `sys_audit_log` VALUES (9001800,9001100,'user01','sys/user','create','POST','/v1/sys/user/create','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',1,'','127.0.0.1','frontend_fixture',15,'2026-10-30 09:01:00'),(9001801,9001101,'user02','sys/user','update','PUT','/v1/sys/user/9001100','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',1,'','127.0.0.1','frontend_fixture',22,'2026-10-30 09:02:00'),(9001802,9001102,'user03','sys/user','delete','DELETE','/v1/sys/user/9001127','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',1,'','127.0.0.1','frontend_fixture',29,'2026-10-30 09:03:00'),(9001803,9001103,'user04','sys/role','create','POST','/v1/sys/role/create','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',2,'模拟失败：用于验证错误信息展示','127.0.0.1','frontend_fixture',36,'2026-10-30 09:04:00'),(9001804,9001104,'user05','sys/role','update','PUT','/v1/sys/role/9001200','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',1,'','127.0.0.1','frontend_fixture',43,'2026-10-30 09:05:00'),(9001805,9001105,'user06','sys/dept','create','POST','/v1/sys/dept/create','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',1,'','127.0.0.1','frontend_fixture',50,'2026-10-30 09:06:00'),(9001806,9001106,'user07','sys/dept','update','PUT','/v1/sys/dept/9001000','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',1,'','127.0.0.1','frontend_fixture',57,'2026-10-30 09:07:00'),(9001807,9001107,'user08','sys/dict','create','POST','/v1/sys/dict/create','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',2,'模拟失败：用于验证错误信息展示','127.0.0.1','frontend_fixture',64,'2026-10-30 09:08:00'),(9001808,9001108,'user09','sys/dict','update','PUT','/v1/sys/dict/9001600','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',1,'','127.0.0.1','frontend_fixture',71,'2026-10-30 09:09:00'),(9001809,9001109,'user10','sys/api','list','GET','/v1/sys/api/list','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',1,'','127.0.0.1','frontend_fixture',78,'2026-10-30 09:10:00'),(9001810,9001110,'user11','sys/file','list','GET','/v1/sys/file/list','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',1,'','127.0.0.1','frontend_fixture',85,'2026-10-30 09:11:00'),(9001811,9001111,'user12','sys/auth','login','POST','/v1/sys/auth/login','{\"fixture\":\"frontend\",\"note\":\"仅用于前端联调的模拟记录，不代表真实操作\"}',2,'模拟失败：用于验证错误信息展示','127.0.0.1','frontend_fixture',92,'2026-10-30 09:12:00');
-/*!40000 ALTER TABLE `sys_audit_log` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sys_dept`
---
-
+-- sys_dept
 DROP TABLE IF EXISTS `sys_dept`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sys_dept` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `parent_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '父部门ID，0=根',
@@ -417,26 +222,10 @@ CREATE TABLE `sys_dept` (
   PRIMARY KEY (`id`),
   KEY `idx_parent` (`parent_id`),
   KEY `idx_path` (`path`(191))
-) ENGINE=InnoDB AUTO_INCREMENT=9001009 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='部门';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='部门';
 
---
--- Dumping data for table `sys_dept`
---
-
-LOCK TABLES `sys_dept` WRITE;
-/*!40000 ALTER TABLE `sys_dept` DISABLE KEYS */;
-INSERT INTO `sys_dept` (`id`,`parent_id`,`name`,`leader`,`phone`,`email`,`sort`,`status`,`path`,`created_at`,`updated_at`,`deleted_at`) VALUES (1,0,'总部','','','',0,1,'/1/','2026-10-30 14:07:15','2026-10-30 14:07:15',NULL),(9001000,1,'研发中心','示例负责人甲','000-0000-0001','rd@example.test',10,1,'/1/9001000/','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001001,9001000,'平台研发组','示例负责人乙','000-0000-0002','platform@example.test',20,1,'/1/9001000/9001001/','2026-10-30 09:00:00','2026-10-31 18:32:47',NULL),(9001002,9001000,'测试组','','','',0,0,'/1/9001000/9001002/','2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001003,1,'客户服务中心','示例负责人丁','000-0000-0004','service@example.test',40,1,'/1/9001003/','2026-10-30 09:00:00','2026-10-31 18:32:47',NULL),(9001004,9001003,'停用示例组','示例负责人戊','000-0000-0005','disabled@example.test',50,2,'/1/9001003/9001004/','2026-10-30 09:00:00','2026-10-31 18:32:47',NULL);
-/*!40000 ALTER TABLE `sys_dept` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sys_dict`
---
-
+-- sys_dict
 DROP TABLE IF EXISTS `sys_dict`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sys_dict` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL COMMENT '字典名称',
@@ -449,28 +238,10 @@ CREATE TABLE `sys_dict` (
   `deleted_at` datetime DEFAULT NULL COMMENT '软删除',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_code` (`code`)
-) ENGINE=InnoDB AUTO_INCREMENT=9010012 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='字典';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='字典';
 
---
--- Dumping data for table `sys_dict`
---
-
-LOCK TABLES `sys_dict` WRITE;
-/*!40000 ALTER TABLE `sys_dict` DISABLE KEYS */;
-INSERT INTO `sys_dict` (`name`,`code`,`items`,`description`,`status`) VALUES
-('APP会员套餐','app_membership_plan','[{"label":"基础会员","value":"basic","sort":0},{"label":"专业会员","value":"pro","sort":1}]','APP 后台开通会员时的套餐选择',1);
-INSERT INTO `sys_dict` VALUES (9001600,'启停状态','user_status','[{\"sort\": 0, \"label\": \"启用\", \"value\": \"1\"}, {\"sort\": 1, \"label\": \"停用\", \"value\": \"2\"}]','前端联调字典',1,'2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001601,'用户性别','user_gender','[{\"sort\": 0, \"label\": \"未知\", \"value\": \"0\"}, {\"sort\": 1, \"label\": \"男\", \"value\": \"1\"}, {\"sort\": 2, \"label\": \"女\", \"value\": \"2\"}]','前端联调字典',1,'2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001602,'数据范围','data_scope','[{\"sort\": 0, \"label\": \"全部\", \"value\": \"ALL\"}, {\"sort\": 1, \"label\": \"本部门及下级\", \"value\": \"DEPT_AND_CHILDREN\"}, {\"sort\": 2, \"label\": \"本部门\", \"value\": \"DEPT\"}, {\"sort\": 3, \"label\": \"本人\", \"value\": \"SELF\"}]','前端联调字典',1,'2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001603,'工单优先级','priority','[{\"sort\": 0, \"label\": \"低\", \"value\": \"low\"}, {\"sort\": 1, \"label\": \"中\", \"value\": \"normal\"}, {\"sort\": 2, \"label\": \"高\", \"value\": \"high\"}]','前端联调字典',2,'2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9010010,'空字典','empty_dict','[]','全模块联调：空字典项边界',1,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL);
-/*!40000 ALTER TABLE `sys_dict` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sys_file`
---
-
+-- sys_file
 DROP TABLE IF EXISTS `sys_file`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sys_file` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `bucket` varchar(64) NOT NULL COMMENT 'bucket 名',
@@ -489,24 +260,9 @@ CREATE TABLE `sys_file` (
   KEY `idx_bucket_key` (`bucket`,`object_key`(191)),
   KEY `idx_uploader` (`uploader_id`),
   KEY `idx_ref_count` (`ref_count`)
-) ENGINE=InnoDB AUTO_INCREMENT=9001907 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文件资源';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文件资源';
 
---
--- Dumping data for table `sys_file`
---
-
-LOCK TABLES `sys_file` WRITE;
-/*!40000 ALTER TABLE `sys_file` DISABLE KEYS */;
-INSERT INTO `sys_file` VALUES (9001901,'gozero-public','demo/frontend/demo-readme.txt','readme.txt','txt','text/plain',46,'public',0,1,'2026-10-30 15:14:21','2026-10-31 18:23:19',NULL),(9001902,'gozero-private','demo/frontend/demo-report.csv','report.csv','csv','text/csv',46,'private',0,1,'2026-10-30 15:14:21','2026-10-31 18:23:19',NULL),(9001903,'gozero-public','demo/frontend/demo-referenced.txt','referenced.txt','txt','text/plain',50,'public',1,1,'2026-10-30 15:14:21','2026-10-31 18:23:19',NULL);
-/*!40000 ALTER TABLE `sys_file` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sys_file_reference`
---
-
--- 文件引用明细；不回填历史 ref_count，无法追溯的历史引用继续阻止删除。
+-- sys_file_reference
 DROP TABLE IF EXISTS `sys_file_reference`;
 CREATE TABLE `sys_file_reference` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -520,13 +276,8 @@ CREATE TABLE `sys_file_reference` (
   KEY `idx_ref_subject` (`ref_type`,`ref_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文件业务引用明细';
 
---
--- Table structure for table `sys_menu`
---
-
+-- sys_menu
 DROP TABLE IF EXISTS `sys_menu`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sys_menu` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `parent_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '父菜单ID，0=根',
@@ -546,50 +297,10 @@ CREATE TABLE `sys_menu` (
   PRIMARY KEY (`id`),
   KEY `idx_parent` (`parent_id`),
   KEY `idx_type` (`type`)
-) ENGINE=InnoDB AUTO_INCREMENT=9001356 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='菜单';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='菜单';
 
---
--- Dumping data for table `sys_menu`
---
-
-LOCK TABLES `sys_menu` WRITE;
-/*!40000 ALTER TABLE `sys_menu` DISABLE KEYS */;
-INSERT INTO `sys_menu` VALUES (9001300,0,'系统管理','system',1,'/sys','','','system',10,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001301,0,'工作台','dashboard',2,'/dashboard','dashboard','','dashboard',0,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001302,9001300,'用户管理','user',2,'/sys/user','user','','user',20,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001303,9001300,'角色管理','role',2,'/sys/role','role','','role',21,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001304,9001300,'菜单管理','menu',2,'/sys/menu','menu','','menu',22,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001305,9001300,'部门管理','dept',2,'/sys/dept','dept','','dept',23,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001306,9001300,'字典管理','dict',2,'/sys/dict','dict','','dict',24,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001307,9001300,'API 资源','api',2,'/sys/api','api','','api',25,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001308,9001300,'文件管理','file',2,'/sys/file','file','','file',26,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001309,9001300,'审计日志','audit',2,'/sys/audit','audit','','audit',27,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001310,9001300,'个人中心','profile',2,'/sys/profile','profile','','profile',28,1,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001320,9001302,'新增用户','user_add',3,'','','sys:user:add','',0,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001321,9001302,'编辑用户','user_edit',3,'','','sys:user:edit','',1,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001322,9001302,'删除用户','user_delete',3,'','','sys:user:delete','',2,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001323,9001302,'重置密码','user_reset_password',3,'','','sys:user:reset-password','',3,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001324,9001303,'新增角色','role_add',3,'','','sys:role:add','',4,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001325,9001303,'编辑角色','role_edit',3,'','','sys:role:edit','',5,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001326,9001303,'删除角色','role_delete',3,'','','sys:role:delete','',6,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001327,9001303,'分配菜单','role_menus',3,'','','sys:role:menus','',7,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001328,9001304,'新增菜单','menu_add',3,'','','sys:menu:add','',8,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001329,9001304,'编辑菜单','menu_edit',3,'','','sys:menu:edit','',9,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001330,9001304,'删除菜单','menu_delete',3,'','','sys:menu:delete','',10,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001331,9001305,'新增部门','dept_add',3,'','','sys:dept:add','',11,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001332,9001305,'编辑部门','dept_edit',3,'','','sys:dept:edit','',12,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001333,9001305,'删除部门','dept_delete',3,'','','sys:dept:delete','',13,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001334,9001306,'新增字典','dict_add',3,'','','sys:dict:add','',14,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001335,9001306,'编辑字典','dict_edit',3,'','','sys:dict:edit','',15,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001336,9001306,'删除字典','dict_delete',3,'','','sys:dict:delete','',16,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001337,9001307,'删除 API','api_delete',3,'','','sys:api:delete','',17,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001338,9001308,'删除文件','file_delete',3,'','','sys:file:delete','',18,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001339,9001310,'编辑资料','profile_edit',3,'','','sys:profile:edit','',19,0,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL);
--- APP管理与系统管理同级，操作权限挂在对应页面下。
-INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component`,`perm_code`,`icon`,`sort`,`visible`,`status`) VALUES
-(9001360,0,'APP管理','app',1,'/app','','','app',20,1,1),
-(9001361,9001360,'APP用户','app_user',2,'/app/users','app_user','','app_user',0,1,1),
-(9001362,9001360,'会员管理','app_membership',2,'/app/memberships','app_membership','','membership',1,1,1),
-(9001363,9001361,'审核用户','app_user_review',3,'','','sys:app:user:review','',0,0,1),
-(9001364,9001361,'设置头像','app_user_avatar',3,'','','sys:app:user:avatar','',1,0,1),
-(9001365,9001361,'查看登录设备','app_session_list',3,'','','sys:app:session:list','',2,0,1),
-(9001366,9001361,'撤销登录设备','app_session_revoke',3,'','','sys:app:session:revoke','',3,0,1),
-(9001367,9001362,'授予会员','app_membership_grant',3,'','','sys:app:membership:grant','',0,0,1),
-(9001368,9001362,'撤销会员','app_membership_revoke',3,'','','sys:app:membership:revoke','',1,0,1),
-(9001369,9001308,'上传文件','file_upload',3,'','','sys:file:upload','',0,0,1);
-INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component`,`perm_code`,`icon`,`sort`,`visible`,`status`) VALUES
-(9001370,9001361,'编辑资料','app_user_edit',3,'','','sys:app:user:edit','',4,0,1),
-(9001371,9001360,'意见反馈','app_feedback',2,'/app/feedback','app_feedback','','message',2,1,1),
-(9001372,9001371,'处理反馈','app_feedback_reply',3,'','','sys:app:feedback:reply','',0,0,1);
--- 租户管理仅平台栈可见（租户库初始化时由 tenant-rpc 清理，见 initializeTenant）。
-INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component`,`perm_code`,`icon`,`sort`,`visible`,`status`) VALUES
-(9001373,0,'租户管理','tenant',1,'/tenant','','','cloud-server',25,1,1),
-(9001374,9001373,'租户列表','tenant_list',2,'/tenant/list','tenant_list','','cloud-server',0,1,1),
-(9001375,9001374,'创建租户','tenant_create',3,'','','sys:tenant:create','',0,0,1),
-(9001376,9001374,'启停租户','tenant_lifecycle',3,'','','sys:tenant:lifecycle','',1,0,1),
-(9001377,9001374,'重置管理员密码','tenant_reset',3,'','','sys:tenant:reset','',2,0,1),
-(9001378,9001374,'删除租户','tenant_delete',3,'','','sys:tenant:delete','',3,0,1);
-/*!40000 ALTER TABLE `sys_menu` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sys_role`
---
-
+-- sys_role
 DROP TABLE IF EXISTS `sys_role`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sys_role` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `name` varchar(64) NOT NULL COMMENT '角色名称',
@@ -604,26 +315,10 @@ CREATE TABLE `sys_role` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_code` (`code`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=9010006 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色';
 
---
--- Dumping data for table `sys_role`
---
-
-LOCK TABLES `sys_role` WRITE;
-/*!40000 ALTER TABLE `sys_role` DISABLE KEYS */;
-INSERT INTO `sys_role` VALUES (1,'超级管理员','super_admin','拥有所有权限，全局域','ALL',0,1,'2026-10-30 14:07:15','2026-10-30 14:07:15',NULL),(2,'部门管理员','dept_admin','管理本部门及下级','DEPT_AND_CHILDREN',1,1,'2026-10-30 14:07:15','2026-10-30 14:07:15',NULL),(3,'普通员工','employee','仅本人数据','SELF',2,1,'2026-10-30 14:07:15','2026-10-30 14:07:15',NULL),(9001200,'全部查看','scope_all','演示角色，仅配置 GET 权限；数据范围以后端实现为准','ALL',10,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001201,'部门及下级','scope_dept_children','演示角色，仅配置 GET 权限；数据范围以实际后端实现为准','DEPT_AND_CHILDREN',11,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001202,'部门查看','scope_dept','演示角色，仅配置 GET 权限；数据范围以实际后端实现为准','DEPT',12,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9001203,'本人查看','scope_self','演示角色，仅配置 GET 权限；数据范围以实际后端实现为准','SELF',13,1,'2026-10-30 09:00:00','2026-10-31 18:23:19',NULL),(9010001,'停用角色','disabled','全模块演示：停用角色，无授权关联','SELF',99,2,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL);
-/*!40000 ALTER TABLE `sys_role` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sys_role_menu`
---
-
+-- sys_role_menu
 DROP TABLE IF EXISTS `sys_role_menu`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sys_role_menu` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `role_id` bigint unsigned NOT NULL,
@@ -632,31 +327,10 @@ CREATE TABLE `sys_role_menu` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_role_menu` (`role_id`,`menu_id`),
   KEY `idx_menu` (`menu_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9001501 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色-菜单';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色-菜单';
 
---
--- Dumping data for table `sys_role_menu`
---
-
-LOCK TABLES `sys_role_menu` WRITE;
-/*!40000 ALTER TABLE `sys_role_menu` DISABLE KEYS */;
-INSERT INTO `sys_role_menu` VALUES (9001400,1,9001300,'2026-10-30 09:00:00'),(9001401,1,9001301,'2026-10-30 09:00:00'),(9001402,1,9001302,'2026-10-30 09:00:00'),(9001403,1,9001303,'2026-10-30 09:00:00'),(9001404,1,9001304,'2026-10-30 09:00:00'),(9001405,1,9001305,'2026-10-30 09:00:00'),(9001406,1,9001306,'2026-10-30 09:00:00'),(9001407,1,9001307,'2026-10-30 09:00:00'),(9001408,1,9001308,'2026-10-30 09:00:00'),(9001409,1,9001309,'2026-10-30 09:00:00'),(9001410,1,9001310,'2026-10-30 09:00:00'),(9001411,1,9001320,'2026-10-30 09:00:00'),(9001412,1,9001321,'2026-10-30 09:00:00'),(9001413,1,9001322,'2026-10-30 09:00:00'),(9001414,1,9001323,'2026-10-30 09:00:00'),(9001415,1,9001324,'2026-10-30 09:00:00'),(9001416,1,9001325,'2026-10-30 09:00:00'),(9001417,1,9001326,'2026-10-30 09:00:00'),(9001418,1,9001327,'2026-10-30 09:00:00'),(9001419,1,9001328,'2026-10-30 09:00:00'),(9001420,1,9001329,'2026-10-30 09:00:00'),(9001421,1,9001330,'2026-10-30 09:00:00'),(9001422,1,9001331,'2026-10-30 09:00:00'),(9001423,1,9001332,'2026-10-30 09:00:00'),(9001424,1,9001333,'2026-10-30 09:00:00'),(9001425,1,9001334,'2026-10-30 09:00:00'),(9001426,1,9001335,'2026-10-30 09:00:00'),(9001427,1,9001336,'2026-10-30 09:00:00'),(9001428,1,9001337,'2026-10-30 09:00:00'),(9001429,1,9001338,'2026-10-30 09:00:00'),(9001430,1,9001339,'2026-10-30 09:00:00'),(9001451,9001201,9001300,'2026-10-30 09:00:00'),(9001452,9001201,9001301,'2026-10-30 09:00:00'),(9001453,9001201,9001302,'2026-10-30 09:00:00'),(9001454,9001201,9001303,'2026-10-30 09:00:00'),(9001455,9001201,9001304,'2026-10-30 09:00:00'),(9001456,9001201,9001305,'2026-10-30 09:00:00'),(9001457,9001201,9001306,'2026-10-30 09:00:00'),(9001458,9001201,9001307,'2026-10-30 09:00:00'),(9001459,9001201,9001308,'2026-10-30 09:00:00'),(9001460,9001201,9001309,'2026-10-30 09:00:00'),(9001461,9001201,9001310,'2026-10-30 09:00:00'),(9001462,9001202,9001300,'2026-10-30 09:00:00'),(9001463,9001202,9001301,'2026-10-30 09:00:00'),(9001464,9001202,9001302,'2026-10-30 09:00:00'),(9001465,9001202,9001303,'2026-10-30 09:00:00'),(9001466,9001202,9001304,'2026-10-30 09:00:00'),(9001467,9001202,9001305,'2026-10-30 09:00:00'),(9001468,9001202,9001306,'2026-10-30 09:00:00'),(9001469,9001202,9001307,'2026-10-30 09:00:00'),(9001470,9001202,9001308,'2026-10-30 09:00:00'),(9001471,9001202,9001309,'2026-10-30 09:00:00'),(9001472,9001202,9001310,'2026-10-30 09:00:00'),(9001473,9001203,9001300,'2026-10-30 09:00:00'),(9001474,9001203,9001301,'2026-10-30 09:00:00'),(9001475,9001203,9001302,'2026-10-30 09:00:00'),(9001476,9001203,9001303,'2026-10-30 09:00:00'),(9001477,9001203,9001304,'2026-10-30 09:00:00'),(9001478,9001203,9001305,'2026-10-30 09:00:00'),(9001479,9001203,9001306,'2026-10-30 09:00:00'),(9001480,9001203,9001307,'2026-10-30 09:00:00'),(9001481,9001203,9001308,'2026-10-30 09:00:00'),(9001482,9001203,9001309,'2026-10-30 09:00:00'),(9001483,9001203,9001310,'2026-10-30 09:00:00'),(9001490,9001200,9001300,'2026-10-31 17:09:17'),(9001491,9001200,9001301,'2026-10-31 17:09:17'),(9001492,9001200,9001302,'2026-10-31 17:09:17'),(9001493,9001200,9001303,'2026-10-31 17:09:17'),(9001494,9001200,9001304,'2026-10-31 17:09:17'),(9001495,9001200,9001305,'2026-10-31 17:09:17'),(9001496,9001200,9001306,'2026-10-31 17:09:17'),(9001497,9001200,9001307,'2026-10-31 17:09:17'),(9001498,9001200,9001308,'2026-10-31 17:09:17'),(9001499,9001200,9001309,'2026-10-31 17:09:17'),(9001500,9001200,9001310,'2026-10-31 17:09:17');
-/*!40000 ALTER TABLE `sys_role_menu` ENABLE KEYS */;
-UNLOCK TABLES;
--- 默认仅超级管理员获得新增入口；菜单授权不替代 Casbin 接口鉴权。
-INSERT INTO `sys_role_menu` (`role_id`,`menu_id`)
-SELECT r.id,m.id FROM `sys_role` r CROSS JOIN `sys_menu` m
-WHERE r.code='super_admin' AND r.deleted_at IS NULL
-  AND m.id IN (9001360,9001361,9001362,9001363,9001364,9001365,9001366,9001367,9001368,9001369,9001370,9001371,9001372,9001373,9001374,9001375,9001376,9001377,9001378);
-
---
--- Table structure for table `sys_user`
---
-
+-- sys_user
 DROP TABLE IF EXISTS `sys_user`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sys_user` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `username` varchar(64) NOT NULL COMMENT '登录名',
@@ -679,51 +353,9 @@ CREATE TABLE `sys_user` (
   UNIQUE KEY `uk_username` (`username`),
   KEY `idx_dept` (`dept_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=9001153 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台用户';
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台用户';
 
---
--- Dumping data for table `sys_user`
---
-
-LOCK TABLES `sys_user` WRITE;
-/*!40000 ALTER TABLE `sys_user` DISABLE KEYS */;
-INSERT INTO `sys_user` VALUES (1,'admin','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','超级管理员','Admin','','',1,NULL,0,1,'','2026-10-31 18:26:53','172.20.0.1','2026-10-30 14:07:15','2026-10-31 18:26:53',NULL),(9001100,'user01','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户01','示例用户1','user01@example.test','000-0000-0001',9001000,NULL,0,1,'前端联调账号，请勿用于真实业务','2026-10-31 18:24:33','172.20.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001101,'user02','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户02','示例用户2','user02@example.test','000-0000-0002',9001001,NULL,1,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:02:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001102,'user03','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户03','示例用户3','user03@example.test','000-0000-0003',9001002,NULL,2,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:03:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001103,'user04','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户04','示例用户4','user04@example.test','000-0000-0004',9001003,NULL,0,1,'前端联调账号，请勿用于真实业务',NULL,'','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001104,'user05','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户05','示例用户5','user05@example.test','000-0000-0005',9001004,NULL,1,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:05:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001105,'user06','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户06','示例用户6','user06@example.test','000-0000-0006',9001000,NULL,2,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:06:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001106,'user07','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户07','示例用户7','user07@example.test','000-0000-0007',9001001,NULL,0,2,'前端联调账号，请勿用于真实业务','2026-10-30 08:07:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001107,'user08','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户08','示例用户8','user08@example.test','000-0000-0008',9001002,NULL,1,1,'前端联调账号，请勿用于真实业务',NULL,'','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001108,'user09','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户09','示例用户9','user09@example.test','000-0000-0009',9001003,NULL,2,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:09:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001109,'user10','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户10','示例用户10','user10@example.test','000-0000-0010',9001004,NULL,0,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:10:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001110,'user11','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户11','示例用户11','user11@example.test','000-0000-0011',9001000,NULL,1,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:11:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001111,'user12','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户12','示例用户12','user12@example.test','000-0000-0012',9001001,NULL,2,1,'前端联调账号，请勿用于真实业务',NULL,'','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001112,'user13','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户13','示例用户13','user13@example.test','000-0000-0013',9001002,NULL,0,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:13:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001113,'user14','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户14','示例用户14','user14@example.test','000-0000-0014',9001003,NULL,1,2,'前端联调账号，请勿用于真实业务','2026-10-30 08:14:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001114,'user15','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户15','示例用户15','user15@example.test','000-0000-0015',9001004,NULL,2,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:15:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001115,'user16','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户16','示例用户16','user16@example.test','000-0000-0016',9001000,NULL,0,1,'前端联调账号，请勿用于真实业务',NULL,'','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001116,'user17','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户17','示例用户17','user17@example.test','000-0000-0017',9001001,NULL,1,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:17:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001117,'user18','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户18','示例用户18','user18@example.test','000-0000-0018',9001002,NULL,2,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:18:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001118,'user19','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户19','示例用户19','user19@example.test','000-0000-0019',9001003,NULL,0,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:19:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001119,'user20','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户20','示例用户20','user20@example.test','000-0000-0020',9001004,NULL,1,1,'前端联调账号，请勿用于真实业务',NULL,'','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001120,'user21','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户21','示例用户21','user21@example.test','000-0000-0021',9001000,NULL,2,2,'前端联调账号，请勿用于真实业务','2026-10-30 08:21:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001121,'user22','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户22','示例用户22','user22@example.test','000-0000-0022',9001001,NULL,0,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:22:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001122,'user23','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户23','示例用户23','user23@example.test','000-0000-0023',9001002,NULL,1,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:23:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001123,'user24','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户24','示例用户24','user24@example.test','000-0000-0024',9001003,NULL,2,1,'前端联调账号，请勿用于真实业务',NULL,'','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001124,'user25','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户25','示例用户25','user25@example.test','000-0000-0025',9001004,NULL,0,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:25:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001125,'user26','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户26','示例用户26','user26@example.test','000-0000-0026',9001000,NULL,1,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:26:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001126,'user27','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户27','示例用户27','user27@example.test','000-0000-0027',9001001,NULL,2,1,'前端联调账号，请勿用于真实业务','2026-10-30 08:27:00','127.0.0.1','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL),(9001127,'user28','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','联调用户28','示例用户28','user28@example.test','000-0000-0028',9001002,NULL,0,2,'前端联调账号，请勿用于真实业务',NULL,'','2026-10-30 09:00:00','2026-10-31 18:31:03',NULL);
-/*!40000 ALTER TABLE `sys_user` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2026-10-31 18:32:50
-
--- MySQL dump 10.13  Distrib 9.7.4, for Linux (x86_64)
---
--- Host: 127.0.0.1    Database: gozero_platform
--- ------------------------------------------------------
--- Server version	9.7.4
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Table structure for table `tenant_registry`（原控制库表已并入业务库：单库设计）
---
-
+-- tenant_registry
 DROP TABLE IF EXISTS `tenant_registry`;
 CREATE TABLE `tenant_registry` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -746,12 +378,355 @@ CREATE TABLE `tenant_registry` (
   UNIQUE KEY `uk_slug` (`slug`),
   UNIQUE KEY `uk_domain` (`domain`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=9010704 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='租户注册表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='租户注册表';
 
---
--- Dumping data for table `tenant_registry`
---
+-- 部门层级与负责人使用同批虚构账号，路径和启停状态保持一致。
+INSERT INTO `sys_dept` (`id`,`parent_id`,`name`,`leader`,`leader_user_id`,`email`,`sort`,`status`,`path`,`created_at`,`updated_at`) VALUES
+(1,0,'总部','',0,'',0,1,'/1/','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(2,1,'研发中心','研发负责人',3,'rd@example.test',10,1,'/1/2/','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(3,2,'平台研发组','平台负责人',4,'platform@example.test',10,1,'/1/2/3/','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(4,2,'质量保障组','',0,'qa@example.test',20,1,'/1/2/4/','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(5,1,'运营中心','运营负责人',7,'operations@example.test',20,1,'/1/5/','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(6,1,'归档示例部门','',0,'',99,2,'/1/6/','2026-01-01 00:00:00','2026-01-01 00:00:00');
 
-LOCK TABLES `tenant_registry` WRITE;
-INSERT INTO `tenant_registry` (`id`,`slug`,`domain`,`compose_project`,`status`,`mysql_root_password`,`jwt_access_secret`,`app_jwt_access_secret`,`error_msg`,`created_by`,`created_at`,`updated_at`,`deleted_at`) VALUES (9010701,'stopped','stopped.example.test','gozero-tenant-stopped','stopped','EE42CBCACB3690C26A1994CFBE2883AE710234C86F551A00D8989DFEFF03EE56','E1C90B3C2802DC1881D7C99E117F85E707DBDBF97E32B0CD5FE06BB84BE2AE42','2A00452BA1DF67E102CBB4F5DAFF8CA8798865C74BB40D89E357AAFBDB82D62D','纯测试展示，未部署容器；禁止启停、删除栈或重置管理员密码。',1,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010702,'error','error.example.test','gozero-tenant-error','error','697CF020CC3CE2A6DAB85CB93C601BAFA88DF3CFFEB5E1425566AF841D061D15','DE11ACF182BF5B8C215B282A9266EC5EF598C487882704C0C44243322CFB1928','403E53A57CE3F9A2EDE6201A3B05A090E39858DD11AF6D3328E48C153A12DFD4','模拟部署失败；纯测试展示，未部署容器，禁止生命周期操作。',1,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010703,'idle','idle.example.test','gozero-tenant-idle','stopped','D1292122EEA2A8BDF2F13C769FC65D1CAE0292137175274D5EF854C7A0AEFFA7','20B1965040D1E088D1127E52C125741E1055D4CA5B6B2CA0133F5D4FE5246173','34904873CBF1773084BEC2FD00F6773B0EE07A457FC4B487445887A50756FAA1','空闲展示样例，未部署容器；禁止生命周期操作。',NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL);
-UNLOCK TABLES;
+INSERT INTO `sys_role` (`id`,`name`,`code`,`description`,`data_scope`,`sort`,`status`,`created_at`,`updated_at`) VALUES
+(1,'超级管理员','super_admin','平台全权限；仅供本地开发初始化','ALL',0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(2,'全部用户查看','scope_all','只读用户和部门，数据范围为全部用户','ALL',10,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(3,'部门及下级查看','scope_dept_children','只读用户和部门，覆盖当前部门及下级','DEPT_AND_CHILDREN',20,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(4,'本部门查看','scope_dept','只读用户和部门，仅当前部门用户','DEPT',30,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(5,'本人查看','scope_self','只读用户和部门，仅本人用户数据','SELF',40,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(6,'停用示例角色','disabled_example','停用角色无用户或菜单关联','SELF',99,2,'2026-01-01 00:00:00','2026-01-01 00:00:00');
+
+INSERT INTO `sys_user` (`id`,`username`,`password_hash`,`nickname`,`real_name`,`email`,`dept_id`,`gender`,`status`,`remark`,`created_at`,`updated_at`) VALUES
+(1,'admin','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','超级管理员','','',1,0,1,'本地开发默认账号，部署前请修改密码','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(2,'demo_all','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','全局查看员','演示成员甲','all@example.test',2,0,1,'ALL 数据范围示例，只读业务列表','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(3,'demo_tree','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','研发负责人','演示成员乙','tree@example.test',2,0,1,'研发中心为本部门及下级；切换运营中心时仅本人','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(4,'demo_dept','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','平台负责人','演示成员丙','dept@example.test',3,0,1,'DEPT 数据范围示例','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(5,'demo_self','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','平台成员','演示成员丁','self@example.test',3,0,1,'SELF 数据范围示例','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(6,'demo_quality','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','质量成员','演示成员戊','quality@example.test',4,0,1,'研发下级部门成员，用于比较查询范围','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(7,'demo_operations','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','运营负责人','演示成员己','operations@example.test',5,0,1,'其他部门成员，用于比较查询范围','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(8,'demo_disabled','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','停用示例用户','演示成员庚','disabled@example.test',5,0,2,'停用账号不可登录','2026-01-01 00:00:00','2026-01-01 00:00:00');
+
+-- 系统管理、APP 管理和租户管理；按钮权限挂在所属页面下。
+INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component`,`perm_code`,`icon`,`sort`,`visible`,`status`,`created_at`,`updated_at`) VALUES
+(9001300,0,'系统管理','system',1,'/sys','','','system',10,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001301,0,'工作台','dashboard',2,'/dashboard','dashboard','','dashboard',0,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001302,9001300,'用户管理','user',2,'/sys/user','user','','user',20,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001303,9001300,'角色管理','role',2,'/sys/role','role','','role',21,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001304,9001300,'菜单管理','menu',2,'/sys/menu','menu','','menu',22,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001305,9001300,'部门管理','dept',2,'/sys/dept','dept','','dept',23,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001306,9001300,'字典管理','dict',2,'/sys/dict','dict','','dict',24,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001307,9001300,'API 资源','api',2,'/sys/api','api','','api',25,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001308,9001300,'文件管理','file',2,'/sys/file','file','','file',26,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001309,9001300,'审计日志','audit',2,'/sys/audit','audit','','audit',27,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001310,9001300,'个人中心','profile',2,'/sys/profile','profile','','profile',28,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001320,9001302,'新增用户','user_add',3,'','','sys:user:add','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001321,9001302,'编辑用户','user_edit',3,'','','sys:user:edit','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001322,9001302,'删除用户','user_delete',3,'','','sys:user:delete','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001323,9001302,'重置密码','user_reset_password',3,'','','sys:user:reset-password','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001324,9001303,'新增角色','role_add',3,'','','sys:role:add','',4,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001325,9001303,'编辑角色','role_edit',3,'','','sys:role:edit','',5,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001326,9001303,'删除角色','role_delete',3,'','','sys:role:delete','',6,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001327,9001303,'分配菜单','role_menus',3,'','','sys:role:menus','',7,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001328,9001304,'新增菜单','menu_add',3,'','','sys:menu:add','',8,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001329,9001304,'编辑菜单','menu_edit',3,'','','sys:menu:edit','',9,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001330,9001304,'删除菜单','menu_delete',3,'','','sys:menu:delete','',10,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001331,9001305,'新增部门','dept_add',3,'','','sys:dept:add','',11,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001332,9001305,'编辑部门','dept_edit',3,'','','sys:dept:edit','',12,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001333,9001305,'删除部门','dept_delete',3,'','','sys:dept:delete','',13,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001334,9001306,'新增字典','dict_add',3,'','','sys:dict:add','',14,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001335,9001306,'编辑字典','dict_edit',3,'','','sys:dict:edit','',15,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001336,9001306,'删除字典','dict_delete',3,'','','sys:dict:delete','',16,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001337,9001307,'删除 API','api_delete',3,'','','sys:api:delete','',17,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001338,9001308,'删除文件','file_delete',3,'','','sys:file:delete','',18,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001339,9001310,'编辑资料','profile_edit',3,'','','sys:profile:edit','',19,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001360,0,'APP管理','app',1,'/app','','','app',20,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001361,9001360,'APP用户','app_user',2,'/app/users','app_user','','app_user',0,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001362,9001360,'会员管理','app_membership',2,'/app/memberships','app_membership','','membership',1,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001363,9001361,'审核用户','app_user_review',3,'','','sys:app:user:review','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001364,9001361,'设置头像','app_user_avatar',3,'','','sys:app:user:avatar','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001365,9001361,'查看登录设备','app_session_list',3,'','','sys:app:session:list','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001366,9001361,'撤销登录设备','app_session_revoke',3,'','','sys:app:session:revoke','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001367,9001362,'授予会员','app_membership_grant',3,'','','sys:app:membership:grant','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001368,9001362,'撤销会员','app_membership_revoke',3,'','','sys:app:membership:revoke','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001369,9001308,'上传文件','file_upload',3,'','','sys:file:upload','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001370,9001361,'编辑资料','app_user_edit',3,'','','sys:app:user:edit','',4,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001371,9001360,'意见反馈','app_feedback',2,'/app/feedback','app_feedback','','message',2,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001372,9001371,'处理反馈','app_feedback_reply',3,'','','sys:app:feedback:reply','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001373,0,'租户管理','tenant',1,'/tenant','','','cloud-server',25,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001374,9001373,'租户列表','tenant_list',2,'/tenant/list','tenant_list','','cloud-server',0,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001375,9001374,'创建租户','tenant_create',3,'','','sys:tenant:create','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001376,9001374,'启停租户','tenant_lifecycle',3,'','','sys:tenant:lifecycle','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001377,9001374,'重置管理员密码','tenant_reset',3,'','','sys:tenant:reset','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001378,9001374,'删除租户','tenant_delete',3,'','','sys:tenant:delete','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00');
+
+-- 超级管理员获得全部菜单与操作权限；服务端仍独立鉴权。
+INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES
+(1,9001300,'2026-01-01 00:00:00'),
+(1,9001301,'2026-01-01 00:00:00'),
+(1,9001302,'2026-01-01 00:00:00'),
+(1,9001303,'2026-01-01 00:00:00'),
+(1,9001304,'2026-01-01 00:00:00'),
+(1,9001305,'2026-01-01 00:00:00'),
+(1,9001306,'2026-01-01 00:00:00'),
+(1,9001307,'2026-01-01 00:00:00'),
+(1,9001308,'2026-01-01 00:00:00'),
+(1,9001309,'2026-01-01 00:00:00'),
+(1,9001310,'2026-01-01 00:00:00'),
+(1,9001320,'2026-01-01 00:00:00'),
+(1,9001321,'2026-01-01 00:00:00'),
+(1,9001322,'2026-01-01 00:00:00'),
+(1,9001323,'2026-01-01 00:00:00'),
+(1,9001324,'2026-01-01 00:00:00'),
+(1,9001325,'2026-01-01 00:00:00'),
+(1,9001326,'2026-01-01 00:00:00'),
+(1,9001327,'2026-01-01 00:00:00'),
+(1,9001328,'2026-01-01 00:00:00'),
+(1,9001329,'2026-01-01 00:00:00'),
+(1,9001330,'2026-01-01 00:00:00'),
+(1,9001331,'2026-01-01 00:00:00'),
+(1,9001332,'2026-01-01 00:00:00'),
+(1,9001333,'2026-01-01 00:00:00'),
+(1,9001334,'2026-01-01 00:00:00'),
+(1,9001335,'2026-01-01 00:00:00'),
+(1,9001336,'2026-01-01 00:00:00'),
+(1,9001337,'2026-01-01 00:00:00'),
+(1,9001338,'2026-01-01 00:00:00'),
+(1,9001339,'2026-01-01 00:00:00'),
+(1,9001360,'2026-01-01 00:00:00'),
+(1,9001361,'2026-01-01 00:00:00'),
+(1,9001362,'2026-01-01 00:00:00'),
+(1,9001363,'2026-01-01 00:00:00'),
+(1,9001364,'2026-01-01 00:00:00'),
+(1,9001365,'2026-01-01 00:00:00'),
+(1,9001366,'2026-01-01 00:00:00'),
+(1,9001367,'2026-01-01 00:00:00'),
+(1,9001368,'2026-01-01 00:00:00'),
+(1,9001369,'2026-01-01 00:00:00'),
+(1,9001370,'2026-01-01 00:00:00'),
+(1,9001371,'2026-01-01 00:00:00'),
+(1,9001372,'2026-01-01 00:00:00'),
+(1,9001373,'2026-01-01 00:00:00'),
+(1,9001374,'2026-01-01 00:00:00'),
+(1,9001375,'2026-01-01 00:00:00'),
+(1,9001376,'2026-01-01 00:00:00'),
+(1,9001377,'2026-01-01 00:00:00'),
+(1,9001378,'2026-01-01 00:00:00');
+
+-- 普通演示角色仅显示工作台、用户、部门和个人中心。
+INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES
+(2,9001301,'2026-01-01 00:00:00'),
+(2,9001300,'2026-01-01 00:00:00'),
+(2,9001302,'2026-01-01 00:00:00'),
+(2,9001305,'2026-01-01 00:00:00'),
+(2,9001310,'2026-01-01 00:00:00'),
+(2,9001339,'2026-01-01 00:00:00'),
+(3,9001301,'2026-01-01 00:00:00'),
+(3,9001300,'2026-01-01 00:00:00'),
+(3,9001302,'2026-01-01 00:00:00'),
+(3,9001305,'2026-01-01 00:00:00'),
+(3,9001310,'2026-01-01 00:00:00'),
+(3,9001339,'2026-01-01 00:00:00'),
+(4,9001301,'2026-01-01 00:00:00'),
+(4,9001300,'2026-01-01 00:00:00'),
+(4,9001302,'2026-01-01 00:00:00'),
+(4,9001305,'2026-01-01 00:00:00'),
+(4,9001310,'2026-01-01 00:00:00'),
+(4,9001339,'2026-01-01 00:00:00'),
+(5,9001301,'2026-01-01 00:00:00'),
+(5,9001300,'2026-01-01 00:00:00'),
+(5,9001302,'2026-01-01 00:00:00'),
+(5,9001305,'2026-01-01 00:00:00'),
+(5,9001310,'2026-01-01 00:00:00'),
+(5,9001339,'2026-01-01 00:00:00');
+
+-- 普通角色只读用户/部门，可维护本人资料；demo_tree 同时示范部门身份切换。
+INSERT INTO `casbin_rule` (`ptype`,`v0`,`v1`,`v2`,`v3`,`v4`,`v5`,`created_at`) VALUES
+('p','super_admin','*','/*','*','','','2026-01-01 00:00:00'),
+('g','user:1','super_admin','*','','','','2026-01-01 00:00:00'),
+('p','scope_all','*','/v1/sys/user/list','GET','','','2026-01-01 00:00:00'),
+('p','scope_all','*','/v1/sys/user/:id','GET','','','2026-01-01 00:00:00'),
+('p','scope_all','*','/v1/sys/dept/tree','GET','','','2026-01-01 00:00:00'),
+('p','scope_all','*','/v1/sys/menu/my','GET','','','2026-01-01 00:00:00'),
+('p','scope_all','*','/v1/sys/menu/my/perm-codes','GET','','','2026-01-01 00:00:00'),
+('p','scope_all','*','/v1/sys/profile','GET','','','2026-01-01 00:00:00'),
+('p','scope_all','*','/v1/sys/profile/','GET','','','2026-01-01 00:00:00'),
+('p','scope_all','*','/v1/sys/profile','PUT','','','2026-01-01 00:00:00'),
+('p','scope_all','*','/v1/sys/profile/','PUT','','','2026-01-01 00:00:00'),
+('p','scope_all','*','/v1/sys/user/password/change','POST','','','2026-01-01 00:00:00'),
+('p','scope_dept_children','*','/v1/sys/user/list','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept_children','*','/v1/sys/user/:id','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept_children','*','/v1/sys/dept/tree','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept_children','*','/v1/sys/menu/my','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept_children','*','/v1/sys/menu/my/perm-codes','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept_children','*','/v1/sys/profile','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept_children','*','/v1/sys/profile/','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept_children','*','/v1/sys/profile','PUT','','','2026-01-01 00:00:00'),
+('p','scope_dept_children','*','/v1/sys/profile/','PUT','','','2026-01-01 00:00:00'),
+('p','scope_dept_children','*','/v1/sys/user/password/change','POST','','','2026-01-01 00:00:00'),
+('p','scope_dept','*','/v1/sys/user/list','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept','*','/v1/sys/user/:id','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept','*','/v1/sys/dept/tree','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept','*','/v1/sys/menu/my','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept','*','/v1/sys/menu/my/perm-codes','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept','*','/v1/sys/profile','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept','*','/v1/sys/profile/','GET','','','2026-01-01 00:00:00'),
+('p','scope_dept','*','/v1/sys/profile','PUT','','','2026-01-01 00:00:00'),
+('p','scope_dept','*','/v1/sys/profile/','PUT','','','2026-01-01 00:00:00'),
+('p','scope_dept','*','/v1/sys/user/password/change','POST','','','2026-01-01 00:00:00'),
+('p','scope_self','*','/v1/sys/user/list','GET','','','2026-01-01 00:00:00'),
+('p','scope_self','*','/v1/sys/user/:id','GET','','','2026-01-01 00:00:00'),
+('p','scope_self','*','/v1/sys/dept/tree','GET','','','2026-01-01 00:00:00'),
+('p','scope_self','*','/v1/sys/menu/my','GET','','','2026-01-01 00:00:00'),
+('p','scope_self','*','/v1/sys/menu/my/perm-codes','GET','','','2026-01-01 00:00:00'),
+('p','scope_self','*','/v1/sys/profile','GET','','','2026-01-01 00:00:00'),
+('p','scope_self','*','/v1/sys/profile/','GET','','','2026-01-01 00:00:00'),
+('p','scope_self','*','/v1/sys/profile','PUT','','','2026-01-01 00:00:00'),
+('p','scope_self','*','/v1/sys/profile/','PUT','','','2026-01-01 00:00:00'),
+('p','scope_self','*','/v1/sys/user/password/change','POST','','','2026-01-01 00:00:00'),
+('g','user:2','scope_all','dept:2','','','','2026-01-01 00:00:00'),
+('g','user:3','scope_dept_children','dept:2','','','','2026-01-01 00:00:00'),
+('g','user:3','scope_self','dept:5','','','','2026-01-01 00:00:00'),
+('g','user:4','scope_dept','dept:3','','','','2026-01-01 00:00:00'),
+('g','user:5','scope_self','dept:3','','','','2026-01-01 00:00:00'),
+('g','user:6','scope_self','dept:4','','','','2026-01-01 00:00:00'),
+('g','user:7','scope_self','dept:5','','','','2026-01-01 00:00:00'),
+('g','user:8','scope_self','dept:5','','','','2026-01-01 00:00:00');
+
+INSERT INTO `sys_dict` (`id`,`name`,`code`,`items`,`description`,`status`,`created_at`,`updated_at`) VALUES
+(1,'启停状态','user_status','[{"label":"启用","value":1,"sort":0},{"label":"停用","value":2,"sort":1}]','后台用户、部门和角色状态',1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(2,'用户性别','user_gender','[{"label":"未知","value":0,"sort":0},{"label":"男","value":1,"sort":1},{"label":"女","value":2,"sort":2}]','后台用户性别',1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(3,'数据范围','data_scope','[{"label":"全部","value":"ALL","sort":0},{"label":"本部门及下级","value":"DEPT_AND_CHILDREN","sort":1},{"label":"本部门","value":"DEPT","sort":2},{"label":"本人","value":"SELF","sort":3}]','用户数据查询范围，多角色取并集',1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(4,'APP会员套餐','app_membership_plan','[{"label":"基础会员","value":"basic","sort":0},{"label":"专业会员","value":"pro","sort":1}]','APP 后台开通会员时的套餐选择',1,'2026-01-01 00:00:00','2026-01-01 00:00:00');
+
+-- 按当前 .api 注册的 v1 路由预置，分组/标题与后端同步入口一致；健康检查不进入业务资源。
+INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`,`created_at`,`updated_at`) VALUES
+(1,'app/auth','POST','/v1/app/auth/email-code','POST /v1/app/auth/email-code','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(2,'app/auth','POST','/v1/app/auth/login','POST /v1/app/auth/login','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(3,'app/auth','POST','/v1/app/auth/logout','POST /v1/app/auth/logout','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(4,'app/auth','GET','/v1/app/auth/options','GET /v1/app/auth/options','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(5,'app/auth','POST','/v1/app/auth/refresh','POST /v1/app/auth/refresh','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(6,'app/auth','POST','/v1/app/auth/register','POST /v1/app/auth/register','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(7,'app/feedback','GET','/v1/app/feedback','GET /v1/app/feedback','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(8,'app/feedback','POST','/v1/app/feedback','POST /v1/app/feedback','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9,'app/membership','GET','/v1/app/membership','GET /v1/app/membership','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(10,'app/profile','GET','/v1/app/profile','GET /v1/app/profile','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(11,'app/profile','PUT','/v1/app/profile','PUT /v1/app/profile','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(12,'sys/ai','GET','/v1/sys/ai/conversations','GET /v1/sys/ai/conversations','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(13,'sys/ai','POST','/v1/sys/ai/conversations','POST /v1/sys/ai/conversations','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(14,'sys/ai','DELETE','/v1/sys/ai/conversations/:id','DELETE /v1/sys/ai/conversations/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(15,'sys/ai','GET','/v1/sys/ai/conversations/:id','GET /v1/sys/ai/conversations/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(16,'sys/ai','POST','/v1/sys/ai/messages','POST /v1/sys/ai/messages','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(17,'sys/ai','GET','/v1/sys/ai/tasks','GET /v1/sys/ai/tasks','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(18,'sys/ai','GET','/v1/sys/ai/tasks/:id','GET /v1/sys/ai/tasks/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(19,'sys/ai','POST','/v1/sys/ai/tasks/:id/approve','POST /v1/sys/ai/tasks/:id/approve','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(20,'sys/ai','POST','/v1/sys/ai/tasks/:id/reject','POST /v1/sys/ai/tasks/:id/reject','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(21,'sys/ai','GET','/v1/sys/ai/tools','GET /v1/sys/ai/tools','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(22,'sys/ai','GET','/v1/sys/ai/workflows','GET /v1/sys/ai/workflows','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(23,'sys/ai','POST','/v1/sys/ai/workflows','POST /v1/sys/ai/workflows','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(24,'sys/ai','DELETE','/v1/sys/ai/workflows/:id','DELETE /v1/sys/ai/workflows/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(25,'sys/ai','GET','/v1/sys/ai/workflows/:id','GET /v1/sys/ai/workflows/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(26,'sys/ai','PUT','/v1/sys/ai/workflows/:id','PUT /v1/sys/ai/workflows/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(27,'sys/ai','POST','/v1/sys/ai/workflows/:id/run','POST /v1/sys/ai/workflows/:id/run','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(28,'sys/api','DELETE','/v1/sys/api/:id','DELETE /v1/sys/api/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(29,'sys/api','GET','/v1/sys/api/list','GET /v1/sys/api/list','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(30,'sys/api','POST','/v1/sys/api/sync','POST /v1/sys/api/sync','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(31,'sys/app','GET','/v1/sys/app/feedback','GET /v1/sys/app/feedback','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(32,'sys/app','PUT','/v1/sys/app/feedback/:id','PUT /v1/sys/app/feedback/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(33,'sys/app','GET','/v1/sys/app/membership-plans','GET /v1/sys/app/membership-plans','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(34,'sys/app','GET','/v1/sys/app/memberships','GET /v1/sys/app/memberships','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(35,'sys/app','POST','/v1/sys/app/memberships','POST /v1/sys/app/memberships','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(36,'sys/app','DELETE','/v1/sys/app/memberships/:id','DELETE /v1/sys/app/memberships/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(37,'sys/app','GET','/v1/sys/app/users','GET /v1/sys/app/users','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(38,'sys/app','GET','/v1/sys/app/users/:id','GET /v1/sys/app/users/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(39,'sys/app','PUT','/v1/sys/app/users/:id','PUT /v1/sys/app/users/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(40,'sys/app','PUT','/v1/sys/app/users/:id/avatar','PUT /v1/sys/app/users/:id/avatar','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(41,'sys/app','POST','/v1/sys/app/users/:id/review','POST /v1/sys/app/users/:id/review','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(42,'sys/app','GET','/v1/sys/app/users/:id/sessions','GET /v1/sys/app/users/:id/sessions','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(43,'sys/app','DELETE','/v1/sys/app/users/:id/sessions/:session_id','DELETE /v1/sys/app/users/:id/sessions/:session_id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(44,'sys/audit','GET','/v1/sys/audit/list','GET /v1/sys/audit/list','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(45,'sys/auth','GET','/v1/sys/auth/captcha','GET /v1/sys/auth/captcha','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(46,'sys/auth','POST','/v1/sys/auth/login','POST /v1/sys/auth/login','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(47,'sys/auth','POST','/v1/sys/auth/logout','POST /v1/sys/auth/logout','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(48,'sys/auth','POST','/v1/sys/auth/refresh','POST /v1/sys/auth/refresh','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(49,'sys/auth','GET','/v1/sys/auth/sessions','GET /v1/sys/auth/sessions','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(50,'sys/auth','DELETE','/v1/sys/auth/sessions/:id','DELETE /v1/sys/auth/sessions/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(51,'sys/dept','DELETE','/v1/sys/dept/:id','DELETE /v1/sys/dept/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(52,'sys/dept','PUT','/v1/sys/dept/:id','PUT /v1/sys/dept/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(53,'sys/dept','POST','/v1/sys/dept/create','POST /v1/sys/dept/create','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(54,'sys/dept','GET','/v1/sys/dept/my','GET /v1/sys/dept/my','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(55,'sys/dept','GET','/v1/sys/dept/tree','GET /v1/sys/dept/tree','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(56,'sys/dict','DELETE','/v1/sys/dict/:id','DELETE /v1/sys/dict/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(57,'sys/dict','PUT','/v1/sys/dict/:id','PUT /v1/sys/dict/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(58,'sys/dict','GET','/v1/sys/dict/code/:code','GET /v1/sys/dict/code/:code','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(59,'sys/dict','POST','/v1/sys/dict/create','POST /v1/sys/dict/create','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(60,'sys/dict','GET','/v1/sys/dict/list','GET /v1/sys/dict/list','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(61,'sys/file','DELETE','/v1/sys/file/:id','DELETE /v1/sys/file/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(62,'sys/file','GET','/v1/sys/file/:id/url','GET /v1/sys/file/:id/url','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(63,'sys/file','GET','/v1/sys/file/list','GET /v1/sys/file/list','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(64,'sys/file','POST','/v1/sys/file/upload','POST /v1/sys/file/upload','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(65,'sys/menu','DELETE','/v1/sys/menu/:id','DELETE /v1/sys/menu/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(66,'sys/menu','GET','/v1/sys/menu/:id','GET /v1/sys/menu/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(67,'sys/menu','PUT','/v1/sys/menu/:id','PUT /v1/sys/menu/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(68,'sys/menu','POST','/v1/sys/menu/create','POST /v1/sys/menu/create','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(69,'sys/menu','GET','/v1/sys/menu/list','GET /v1/sys/menu/list','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(70,'sys/menu','GET','/v1/sys/menu/my','GET /v1/sys/menu/my','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(71,'sys/menu','GET','/v1/sys/menu/my/perm-codes','GET /v1/sys/menu/my/perm-codes','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(72,'sys/menu','GET','/v1/sys/menu/tree','GET /v1/sys/menu/tree','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(73,'sys/profile','GET','/v1/sys/profile','GET /v1/sys/profile','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(74,'sys/profile','PUT','/v1/sys/profile','PUT /v1/sys/profile','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(75,'sys/role','DELETE','/v1/sys/role/:id','DELETE /v1/sys/role/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(76,'sys/role','GET','/v1/sys/role/:id','GET /v1/sys/role/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(77,'sys/role','PUT','/v1/sys/role/:id','PUT /v1/sys/role/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(78,'sys/role','POST','/v1/sys/role/:id/menus','POST /v1/sys/role/:id/menus','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(79,'sys/role','POST','/v1/sys/role/create','POST /v1/sys/role/create','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(80,'sys/role','GET','/v1/sys/role/list','GET /v1/sys/role/list','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(81,'sys/tenant','DELETE','/v1/sys/tenant/:id','DELETE /v1/sys/tenant/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(82,'sys/tenant','GET','/v1/sys/tenant/:id','GET /v1/sys/tenant/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(83,'sys/tenant','POST','/v1/sys/tenant/:id/reset-admin','POST /v1/sys/tenant/:id/reset-admin','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(84,'sys/tenant','POST','/v1/sys/tenant/:id/start','POST /v1/sys/tenant/:id/start','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(85,'sys/tenant','POST','/v1/sys/tenant/:id/stop','POST /v1/sys/tenant/:id/stop','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(86,'sys/tenant','POST','/v1/sys/tenant/create','POST /v1/sys/tenant/create','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(87,'sys/tenant','GET','/v1/sys/tenant/list','GET /v1/sys/tenant/list','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(88,'sys/user','DELETE','/v1/sys/user/:id','DELETE /v1/sys/user/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(89,'sys/user','GET','/v1/sys/user/:id','GET /v1/sys/user/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(90,'sys/user','PUT','/v1/sys/user/:id','PUT /v1/sys/user/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(91,'sys/user','POST','/v1/sys/user/:id/password','POST /v1/sys/user/:id/password','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(92,'sys/user','POST','/v1/sys/user/create','POST /v1/sys/user/create','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(93,'sys/user','GET','/v1/sys/user/list','GET /v1/sys/user/list','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(94,'sys/user','POST','/v1/sys/user/password/change','POST /v1/sys/user/password/change','2026-01-01 00:00:00','2026-01-01 00:00:00');
+
+-- APP 账号属于独立认证域，不用于后台登录；邮箱为保留演示域。
+INSERT INTO `app_user` (`id`,`account`,`identity_kind`,`password_hash`,`nickname`,`remark`,`status`,`review_reason`,`email_verified_at`,`created_at`,`updated_at`) VALUES
+(1,'alice@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','演示用户 Alice','虚构已启用账号，可用于本地 APP 登录','active','','2026-01-01 00:00:00','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(2,'bob@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','演示用户 Bob','虚构已启用账号，用于会员和反馈展示','active','','2026-01-01 00:00:00','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(3,'pending@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','待审核用户','虚构待审核账号','pending','','2026-01-01 00:00:00','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(4,'disabled@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','停用用户','虚构停用账号','disabled','演示：后台停用','2026-01-01 00:00:00','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(5,'rejected@example.test','email','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','驳回用户','虚构审核驳回账号','rejected','演示：注册资料需要补充','2026-01-01 00:00:00','2026-01-01 00:00:00','2026-01-01 00:00:00');
+
+-- 以导入时间生成生效、过期、撤销、未生效四种示例，不包含支付订单。
+INSERT INTO `app_membership_grant` (`id`,`user_id`,`plan_code`,`benefits`,`request_id`,`granted_by`,`starts_at`,`expires_at`,`revoked`,`revoked_at`,`created_at`,`updated_at`) VALUES
+(1,1,'pro','profile.export','demo-membership-active',1,DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY),DATE_ADD(UTC_TIMESTAMP(), INTERVAL 30 DAY),0,NULL,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(2,2,'basic','','demo-membership-expired',1,DATE_SUB(UTC_TIMESTAMP(), INTERVAL 90 DAY),DATE_SUB(UTC_TIMESTAMP(), INTERVAL 30 DAY),0,NULL,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(3,2,'pro','profile.export','demo-membership-revoked',1,DATE_SUB(UTC_TIMESTAMP(), INTERVAL 10 DAY),DATE_ADD(UTC_TIMESTAMP(), INTERVAL 20 DAY),1,UTC_TIMESTAMP(),'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(4,2,'basic','','demo-membership-upcoming',1,DATE_ADD(UTC_TIMESTAMP(), INTERVAL 7 DAY),DATE_ADD(UTC_TIMESTAMP(), INTERVAL 37 DAY),0,NULL,'2026-01-01 00:00:00','2026-01-01 00:00:00');
+
+INSERT INTO `app_feedback` (`id`,`user_id`,`content`,`reply`,`status`,`created_at`,`updated_at`) VALUES
+(1,1,'建议在账户设置中增加操作指引，方便新用户快速开始。','','pending','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(2,2,'会员状态说明很清晰，希望补充有效期的展示示例。','感谢建议，会员页面已展示生效时间和到期时间。','resolved','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(3,1,'这是一条用于演示处理流程的虚构反馈。','','pending','2026-01-01 00:00:00','2026-01-01 00:00:00');
+
+-- 以下表保留完整结构但无预置数据：
+-- sys_file / sys_file_reference：不创建没有真实对象的文件登记。
+-- sys_audit_log：只记录实际操作，不伪造审计历史。
+-- ai_conversation / ai_message / ai_task / ai_workflow：配置模型后由真实使用产生。
+-- tenant_registry：通过平台创建真实独立栈，不提供可误启停的假租户或共享凭据。
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET TIME_ZONE=@OLD_TIME_ZONE;
+SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT;
+SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS;
+SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION;
+
+-- 初始化完成。

@@ -1,4 +1,4 @@
--- 全模块联调补充数据：只用于 gozero-new-mysql 的 gozero_admin / gozero_platform。
+-- 全模块联调补充数据：只用于 gozero-new-mysql 的 gozero_admin 单库。
 -- 共 45 行：角色 1、字典 1、App 用户 8、会员 6、会话 4、消息 12、工作流 3、任务 7、租户 3。
 -- 固定 ID 逐条声明，不认领整个区间；先双向检查身份，再只补缺失行，不覆盖已有可编辑内容。
 -- App 密码哈希从现有管理员复制；租户随机凭证仅在数据库内生成，不写入源文件或输出。
@@ -22,7 +22,7 @@ CREATE TEMPORARY TABLE demo_full_conversation LIKE ai_conversation;
 CREATE TEMPORARY TABLE demo_full_message LIKE ai_message;
 CREATE TEMPORARY TABLE demo_full_workflow LIKE ai_workflow;
 CREATE TEMPORARY TABLE demo_full_task LIKE ai_task;
-CREATE TEMPORARY TABLE demo_full_tenant LIKE gozero_platform.tenant_registry;
+CREATE TEMPORARY TABLE demo_full_tenant LIKE tenant_registry;
 
 INSERT INTO demo_full_role (id,name,code,description,data_scope,sort,status) VALUES
   (9010001,'demo_full_停用角色','demo_full_disabled','全模块联调：停用角色，无授权关联','SELF',99,2);
@@ -120,7 +120,7 @@ SELECT 'identity_task' FROM demo_full_task e JOIN ai_task a ON a.id=e.id OR a.in
 WHERE a.id<>e.id OR NOT (a.workflow_id<=>e.workflow_id) OR NOT (a.conversation_id<=>e.conversation_id)
   OR NOT (BINARY a.input<=>BINARY e.input) LIMIT 1;
 INSERT INTO demo_full_checks
-SELECT 'identity_tenant' FROM demo_full_tenant e JOIN gozero_platform.tenant_registry a
+SELECT 'identity_tenant' FROM demo_full_tenant e JOIN tenant_registry a
   ON a.id=e.id OR a.slug=e.slug OR a.domain=e.domain OR a.compose_project=e.compose_project
 WHERE a.id<>e.id OR BINARY a.slug<>BINARY e.slug OR BINARY a.domain<>BINARY e.domain
   OR BINARY a.compose_project<>BINARY e.compose_project LIMIT 1;
@@ -182,16 +182,16 @@ SELECT 'ai_workflow_task_verified' AS module_check,
   (SELECT COUNT(*) FROM ai_workflow WHERE id IN (9010501,9010502,9010503) AND enabled=0 AND interval_seconds=0 AND next_run_at IS NULL) AS disabled_unscheduled,
   (SELECT COUNT(DISTINCT status) FROM ai_task WHERE id IN (9010601,9010602,9010603,9010604,9010605,9010606,9010607)) AS task_states;
 
--- 租户跨库插入仍属于同一事务；现有表没有 admin_account_ready，不增列迁移。
-INSERT INTO gozero_platform.tenant_registry
-SELECT e.* FROM demo_full_tenant e LEFT JOIN gozero_platform.tenant_registry a ON a.id=e.id WHERE a.id IS NULL;
+-- 租户样例与其他模块在同库同事务插入，未指定字段沿用现表默认值。
+INSERT INTO tenant_registry
+SELECT e.* FROM demo_full_tenant e LEFT JOIN tenant_registry a ON a.id=e.id WHERE a.id IS NULL;
 INSERT INTO demo_full_checks SELECT 'verify_tenant' WHERE
-  (SELECT COUNT(*) FROM gozero_platform.tenant_registry a JOIN demo_full_tenant e ON a.id=e.id)<>3
-  OR EXISTS (SELECT 1 FROM gozero_platform.tenant_registry a LEFT JOIN sys_user u ON u.id=a.created_by WHERE a.id IN (9010701,9010702,9010703) AND a.created_by IS NOT NULL AND u.id IS NULL);
+  (SELECT COUNT(*) FROM tenant_registry a JOIN demo_full_tenant e ON a.id=e.id)<>3
+  OR EXISTS (SELECT 1 FROM tenant_registry a LEFT JOIN sys_user u ON u.id=a.created_by WHERE a.id IN (9010701,9010702,9010703) AND a.created_by IS NOT NULL AND u.id IS NULL);
 SELECT 'tenant_verified' AS module_check,
-  (SELECT COUNT(*) FROM gozero_platform.tenant_registry a JOIN demo_full_tenant e ON a.id=e.id) AS tenant_rows,
-  (SELECT COUNT(*) FROM gozero_platform.tenant_registry WHERE id IN (9010701,9010702,9010703) AND status='stopped') AS stopped_rows,
-  (SELECT COUNT(*) FROM gozero_platform.tenant_registry WHERE id IN (9010701,9010702,9010703) AND status='error') AS error_rows;
+  (SELECT COUNT(*) FROM tenant_registry a JOIN demo_full_tenant e ON a.id=e.id) AS tenant_rows,
+  (SELECT COUNT(*) FROM tenant_registry WHERE id IN (9010701,9010702,9010703) AND status='stopped') AS stopped_rows,
+  (SELECT COUNT(*) FROM tenant_registry WHERE id IN (9010701,9010702,9010703) AND status='error') AS error_rows;
 
 DROP TEMPORARY TABLE demo_full_role,demo_full_dict,demo_full_app_user,demo_full_grant,
   demo_full_conversation,demo_full_message,demo_full_workflow,demo_full_task,demo_full_tenant,demo_full_checks;

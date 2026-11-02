@@ -21,7 +21,7 @@
 | APP管理 | 用户详情、审核启停、昵称/内部备注、头像与设备、会员套餐及开通撤销、意见反馈回复 |
 | 健康检查 | 通过 `/ping` 显示工作台服务连接状态 |
 
-APP管理已有专属后台页面，与系统管理同级；AI、租户目前提供 HTTP 与 RPC 接口。实际验收范围见 API 契约及后端待办，数据库样例不作为外部服务联调通过的证据。
+APP管理、租户管理与系统管理同级；租户页面支持列表、状态筛选和只读详情，AI 提供 HTTP 与 RPC 接口。实际验收范围见 API 契约及后端待办，数据库样例不作为外部服务联调通过的证据。
 
 ## 开发与检查
 
@@ -63,7 +63,9 @@ VITE_API_PROXY_TARGET=http://127.0.0.1:7001
 
 本节保留此前样例导入与验证证据，不表示本次提交重新执行了这些步骤；当前实现和最新验证边界见文末对接记录。
 
-导入入口仅接受 `gozero-new-mysql` 容器和 `gozero_admin` 单库。当前 compose 使用 `gozero-new-mysql-data` 数据卷；补全脚本还访问同一实例的 `gozero_platform` 控制库。运行前须完成两库既有表的初始化并备份数据，脚本不创建或迁移业务表。
+全新项目直接使用后端 [mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql) 中的公开演示数据即可，不必运行以下历史补充脚本。后续脚本存在固定 ID 与自然身份保护，冲突时应停止核对，不能覆盖初始化数据来强行导入。
+
+导入入口仅接受 `gozero-new-mysql` 容器和 `gozero_admin` 单库。当前 compose 使用 `gozero-new-mysql-data` 数据卷；租户表 `tenant_registry` 也位于该库。运行前须完成现有表的初始化并备份数据，脚本不创建或迁移业务表。
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/seed-test-data.ps1

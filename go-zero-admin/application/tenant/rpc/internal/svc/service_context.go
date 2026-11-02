@@ -10,7 +10,6 @@ import (
 
 type ServiceContext struct {
 	Config config.Config
-	DB     sqlx.SqlConn
 	Redis  *redis.Redis
 
 	TenantRegistryModel model.TenantRegistryModel
@@ -21,7 +20,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	rdb := redis.MustNewRedis(c.CacheRedis[0].RedisConf)
 	return &ServiceContext{
 		Config:              c,
-		DB:                  conn,
 		Redis:               rdb,
 		TenantRegistryModel: model.NewTenantRegistryModel(conn, c.CacheRedis),
 	}

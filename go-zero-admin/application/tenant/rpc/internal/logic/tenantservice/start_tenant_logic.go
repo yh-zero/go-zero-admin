@@ -220,12 +220,15 @@ func tenantFailure(s *svc.ServiceContext, tenant *model.TenantRegistry, message 
 	return xerr.NewErrCodeMsg(xerr.SERVER_COMMON_ERROR, message)
 }
 
-// reportStep 更新 registry 的当前步骤（进度可见，单服务器场景替代独立事件表）
 // reportStep 更新 registry 的当前步骤。不接收调用方 ctx：provisioning 取消/超时后步骤汇报仍要尽力送达。
 func reportStep(s *svc.ServiceContext, tenant *model.TenantRegistry, step string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if _, err := s.DB.ExecCtx(ctx, "UPDATE tenant_registry SET current_step=?, step_updated_at=NOW() WHERE id=?", step, tenant.Id); err != nil {
-		logx.Errorf("report step %s: %v", step, err)
+	if err := s.TenantRegistryModel.SetStep(ctx, tenant, step); err != nil {
+		if errors.Is(err, model.ErrStepCacheInvalidation) {
+			logx.Errorf("tenant step %s write succeeded but cache invalidation failed", step)
+			return
+		}
+		logx.Errorf("tenant step %s could not be written", step)
 	}
 }
