@@ -72,7 +72,7 @@ func (l *CreateUserLogic) CreateUser(in *adminpb.CreateUserRequest) (*adminpb.No
 	if in.DeptId < 0 || in.AvatarFileId < 0 {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
-	err = l.svcCtx.SysUserModel.CreateWithRoles(l.ctx, user, model.UserActor{UserId: in.GetActor().GetUserId(), DeptId: in.GetActor().GetDeptId()}, in.RoleIds, nil)
+	err = l.svcCtx.SysUserModel.CreateWithRoles(l.ctx, user, model.UserActor{UserId: in.GetActor().GetUserId(), DeptId: in.GetActor().GetDeptId()}, in.RoleIds)
 	if err != nil {
 		l.Error("创建用户失败")
 		return nil, userMutationError(err)

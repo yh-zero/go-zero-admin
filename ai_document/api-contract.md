@@ -21,6 +21,35 @@
 
 前端约定：axios 拦截器统一剥壳；`code !== 200` 由拦截器弹 `msg` 错误并 reject，**组件内不重复弹错**；code 401 时清 token 跳登录页。
 
+### 1.1 验证码（已升级为图形码）
+
+`GET /sys/auth/captcha` 返回：
+
+```json
+{ "code": 200, "result": {
+    "enabled": true,
+    "captcha_id": "<64位hex>",
+    "image_base64": "data:image/png;base64,<PNG图形>",
+    "expires_at": 1793586328
+} }
+```
+
+- `image_base64` 是 **data URI 格式的 PNG 图形码**（非明文文本），前端直接置 img src
+- e2e 取答案（联调用）：`docker exec gozero-redis8 redis-cli GET captcha:<captcha_id>`
+
+### 1.2 登录响应（双令牌 + 服务端会话）
+
+`POST /sys/auth/login` 的 `result`：
+
+```json
+{ "access_token": "...", "expires_at": 1793586328,
+  "refresh_token": "...", "refresh_expires_at": 1793586408,
+  "session_id": "..." }
+`
+
+- `access_token` 短期；`refresh_token` 走 `POST /sys/auth/refresh`（服务端会话校验，旧令牌撤销）
+- 会话管理见 `pkg/jwtx/session.go`（Redis 服务端会话，支持设备列表/踢出）
+
 ## 2. 命名与类型
 
 | 项 | 约定 |
@@ -62,6 +91,11 @@
 ```json
 { "code": 200, "result": { "list": [], "total": 100 } }
 ```
+
+### 菜单与权限码
+
+`GET /sys/menu/my` → `result: { "list": [MenuInfo] }`（树形）
+`GET /sys/menu/my/perm-codes` → `result: { "codes": ["sys:user:add", ...] }`
 
 ### 无返回体的写操作
 

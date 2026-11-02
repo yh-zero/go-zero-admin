@@ -25,7 +25,7 @@ type (
 		UpdateLastLogin(ctx context.Context, userId uint64, ip string) error
 		WithLoginUser(ctx context.Context, userId uint64, expectedHash string, issue func(context.Context, *SysUser) error) error
 		UpdatePassword(ctx context.Context, userId uint64, actor UserActor, expectedHash, newHash string, revoke func(context.Context, int64) error) error
-		CreateWithRoles(ctx context.Context, user *SysUser, actor UserActor, roleIds []int64, prepareAvatar AvatarPrepare) error
+		CreateWithRoles(ctx context.Context, user *SysUser, actor UserActor, roleIds []int64) error
 		UpdatePartial(ctx context.Context, userId int64, actor UserActor, patch UserPatch) error
 		ListUserRoleIds(ctx context.Context, userIds []int64) (map[int64][]int64, error)
 		IsSuperAdmin(ctx context.Context, userId int64) (bool, error)
@@ -329,7 +329,7 @@ func preserveLastSuperAdmin(ctx context.Context, s sqlx.Session, userId int64, w
 	return nil
 }
 
-func (m *customSysUserModel) CreateWithRoles(ctx context.Context, user *SysUser, actor UserActor, roleIds []int64, prepareAvatar AvatarPrepare) error {
+func (m *customSysUserModel) CreateWithRoles(ctx context.Context, user *SysUser, actor UserActor, roleIds []int64) error {
 	status, gender := int32(user.Status), int32(user.Gender)
 	deptId, avatarId := user.DeptId.Int64, user.AvatarFileId.Int64
 	if avatarId != 0 {
@@ -378,9 +378,6 @@ func (m *customSysUserModel) CreateWithRoles(ctx context.Context, user *SysUser,
 			if err := replaceUserRoles(ctx, s, id, actor.UserId, deptId, roleIds); err != nil {
 				return err
 			}
-		}
-		if avatarId > 0 && prepareAvatar != nil {
-			return prepareAvatar(ctx, id, 0, avatarId)
 		}
 		return nil
 	})
