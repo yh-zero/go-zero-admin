@@ -368,6 +368,15 @@ INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
 (9001614,'sys/app','PUT','/v1/sys/app/feedback/:id','处理 APP 反馈'),
 (9001615,'app','GET','/v1/app/feedback','本人 APP 反馈'),
 (9001616,'app','POST','/v1/app/feedback','提交 APP 反馈');
+-- 租户管理接口（仅平台栈可用）。
+INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
+(9001620,'sys/tenant','POST','/v1/sys/tenant/create','创建租户'),
+(9001621,'sys/tenant','GET','/v1/sys/tenant/list','查询租户'),
+(9001622,'sys/tenant','GET','/v1/sys/tenant/:id','租户详情'),
+(9001623,'sys/tenant','POST','/v1/sys/tenant/:id/start','启用租户'),
+(9001624,'sys/tenant','POST','/v1/sys/tenant/:id/stop','停用租户'),
+(9001625,'sys/tenant','DELETE','/v1/sys/tenant/:id','删除租户'),
+(9001626,'sys/tenant','POST','/v1/sys/tenant/:id/reset-admin','重置租户管理员密码');
 /*!40000 ALTER TABLE `sys_api` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -589,6 +598,14 @@ INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component
 (9001370,9001361,'编辑资料','app_user_edit',3,'','','sys:app:user:edit','',4,0,1),
 (9001371,9001360,'意见反馈','app_feedback',2,'/app/feedback','app_feedback','','message',2,1,1),
 (9001372,9001371,'处理反馈','app_feedback_reply',3,'','','sys:app:feedback:reply','',0,0,1);
+-- 租户管理仅平台栈可见（租户库初始化时由 tenant-rpc 清理，见 initializeTenant）。
+INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component`,`perm_code`,`icon`,`sort`,`visible`,`status`) VALUES
+(9001373,0,'租户管理','tenant',1,'/tenant','','','cloud-server',25,1,1),
+(9001374,9001373,'租户列表','tenant_list',2,'/tenant/list','tenant_list','','cloud-server',0,1,1),
+(9001375,9001374,'创建租户','tenant_create',3,'','','sys:tenant:create','',0,0,1),
+(9001376,9001374,'启停租户','tenant_lifecycle',3,'','','sys:tenant:lifecycle','',1,0,1),
+(9001377,9001374,'重置管理员密码','tenant_reset',3,'','','sys:tenant:reset','',2,0,1),
+(9001378,9001374,'删除租户','tenant_delete',3,'','','sys:tenant:delete','',3,0,1);
 /*!40000 ALTER TABLE `sys_menu` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -657,7 +674,7 @@ UNLOCK TABLES;
 INSERT INTO `sys_role_menu` (`role_id`,`menu_id`)
 SELECT r.id,m.id FROM `sys_role` r CROSS JOIN `sys_menu` m
 WHERE r.code='super_admin' AND r.deleted_at IS NULL
-  AND m.id IN (9001360,9001361,9001362,9001363,9001364,9001365,9001366,9001367,9001368,9001369,9001370,9001371,9001372);
+  AND m.id IN (9001360,9001361,9001362,9001363,9001364,9001365,9001366,9001367,9001368,9001369,9001370,9001371,9001372,9001373,9001374,9001375,9001376,9001377,9001378);
 
 --
 -- Table structure for table `sys_user`

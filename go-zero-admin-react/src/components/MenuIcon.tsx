@@ -1,5 +1,5 @@
 import {
-  ApiOutlined, AppstoreOutlined, ApartmentOutlined, AuditOutlined, BookOutlined, CrownOutlined,
+  ApiOutlined, AppstoreOutlined, ApartmentOutlined, AuditOutlined, BookOutlined, CloudServerOutlined, CrownOutlined,
   DashboardOutlined, FileTextOutlined, FolderOpenOutlined, FolderOutlined,
   IdcardOutlined, MenuOutlined, MessageOutlined, RightOutlined, SafetyCertificateOutlined, SettingOutlined,
   TeamOutlined, UserOutlined,
@@ -23,6 +23,7 @@ const icons: Record<string, IconEntry> = {
   profile: { icon: IdcardOutlined, tone: 'violet' },
   system: { icon: SettingOutlined, tone: 'indigo' },
   app: { icon: AppstoreOutlined, tone: 'cyan' },
+  cloudserver: { icon: CloudServerOutlined, tone: 'geekblue' },
   appuser: { icon: TeamOutlined, tone: 'blue' },
   membership: { icon: CrownOutlined, tone: 'amber' },
   message: { icon: MessageOutlined, tone: 'cyan' },

@@ -134,6 +134,7 @@
 | /v1/sys/audit | 审计 | |
 | /v1/sys/profile | 个人中心 | |
 | /v1/sys/api | API 资源 | |
+| /v1/sys/tenant | 租户管理 | 仅平台栈；仅超管；AdminPassword 仅此一次返回 |
 
 ## 7. 变更流程
 

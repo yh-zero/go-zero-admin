@@ -205,4 +205,6 @@ function requestContext(url: string) {
 export async function apiGet<T>(url: string, params?: object): Promise<T> { return (await request.get<T>(url, { ...requestContext(url), params })).data; }
 export async function apiPost<T = void>(url: string, data?: unknown): Promise<T> { return (await request.post<T>(url, data, requestContext(url))).data; }
 export async function apiPut<T = void>(url: string, data?: unknown): Promise<T> { return (await request.put<T>(url, data, requestContext(url))).data; }
-export async function apiDelete<T = void>(url: string): Promise<T> { return (await request.delete<T>(url, requestContext(url))).data; }
+export async function apiDelete<T = void>(url: string, data?: unknown): Promise<T> {
+  return (await request.delete<T>(url, { ...requestContext(url), data })).data;
+}

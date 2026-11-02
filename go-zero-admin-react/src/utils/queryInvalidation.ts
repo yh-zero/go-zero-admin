@@ -7,6 +7,10 @@ async function invalidateData(client: QueryClient, roots: string[]): Promise<voi
   await Promise.all(roots.map((root) => client.invalidateQueries({ queryKey: [root] })));
 }
 
+export function invalidateTenantData(client: QueryClient): Promise<void> {
+  return invalidateData(client, ['tenant-list']);
+}
+
 export function invalidateUserData(client: QueryClient): Promise<void> {
   return invalidateAccessData(client, ['users', 'user', 'profile', 'files', 'roles', 'role', 'depts', 'my-depts', 'my-menus', 'perm-codes']);
 }

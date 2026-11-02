@@ -119,3 +119,27 @@ export interface AppFeedbackInfo {
 }
 export interface GetAppFeedbackListReq extends PageParams { user_id?: number; status?: AppFeedbackStatus }
 export interface UpdateAppFeedbackReq { reply?: string; status?: AppFeedbackStatus }
+
+// ===== 租户管理（仅平台栈） =====
+export interface TenantInfo {
+  id: number;
+  slug: string;
+  domain: string;
+  compose_project: string;
+  status: string; // creating | active | stopped | error
+  error_msg: string;
+  admin_account_ready: boolean;
+  created_by: number;
+  created_at: number;
+  updated_at: number;
+}
+export interface GetTenantListReq extends PageParams { status?: string }
+export interface CreateTenantReq {
+  slug: string;
+  admin_username?: string;
+  admin_password?: string;
+}
+export interface CreateTenantResp {
+  tenant: TenantInfo;
+  admin_password: string; // 仅此一次返回
+}
