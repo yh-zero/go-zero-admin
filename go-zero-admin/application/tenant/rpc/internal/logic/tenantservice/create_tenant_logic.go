@@ -301,7 +301,7 @@ func initializeTenant(ctx context.Context, s *svc.ServiceContext, t *model.Tenan
 	cleanup += "DELETE FROM sys_role_menu WHERE menu_id NOT IN (SELECT id FROM sys_menu);\nDELETE FROM sys_role WHERE id NOT IN (1,2,3);\n"
 	cleanup += "DELETE FROM casbin_rule WHERE (ptype='g' AND NOT (v0='user:1' AND v1='super_admin' AND v2='*')) OR (ptype='p' AND v0 NOT IN ('super_admin','dept_admin','employee'));\n"
 	cleanup += "UPDATE sys_user SET username=CONVERT(0x" + hex.EncodeToString([]byte(username)) + " USING utf8mb4),password_hash=CONVERT(0x" + hex.EncodeToString([]byte(passwordHash)) + " USING utf8mb4),nickname='管理员',real_name='',email='',phone='',status=1,dept_id=1,avatar_file_id=NULL,last_login_at=NULL,last_login_ip='',remark='',deleted_at=NULL,updated_at=NOW() WHERE id=1;\n"
-	cleanup += "SET FOREIGN_KEY_CHECKS=1;\nDROP DATABASE IF EXISTS gozero_platform;\nSELECT COUNT(*) FROM sys_user WHERE id=1 AND status=1 AND deleted_at IS NULL;\n"
+	cleanup += "SET FOREIGN_KEY_CHECKS=1;\nSELECT COUNT(*) FROM sys_user WHERE id=1 AND status=1 AND deleted_at IS NULL;\n"
 	result, err := tenantSQL(ctx, s, t, strings.NewReader(cleanup))
 	if err != nil || strings.TrimSpace(string(result)) != "1" {
 		return errors.New("tenant initialization failed")
