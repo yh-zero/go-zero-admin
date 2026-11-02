@@ -33,31 +33,6 @@
 - 依赖：`@rive-app/react-canvas@4.38.0`、`@rive-app/canvas@2.48.0`；只新增这两项所需依赖。
 - 维护说明：[素材来源](../go-zero-admin-react/public/mascots/README.md)、[生成器说明](../go-zero-admin-react/scripts/build-login-cat.md)。
 
-## 首次接入验证结果（2026-10-31）
-
-从前端目录执行，下列检查退出码均为 0：
-
-```powershell
-node node_modules/typescript/bin/tsc -b
-node node_modules/vite/bin/vite.js build
-node --test scripts/pngSpriteAtlas.test.mjs
-node node_modules/oxlint/bin/oxlint src/pages/login/LoginPage.tsx src/pages/login/LoginMascot.tsx src/pages/login/RiveLoginCat.tsx src/pages/login/useLoginFeedback.ts scripts/build-login-cat.mjs scripts/pngSpriteAtlas.mjs scripts/pngSpriteAtlas.test.mjs
-```
-
-- PNG 模块六项测试通过，覆盖逐像素裁切、全部五种滤波、元数据与异常文件；另经 Windows 图像解码器独立比较像素一致。
-- 实际安装的 Rive WASM 成功加载最终文件，确认九张图片和四个输入；状态验证覆盖转头、捂眼、放爪、中途重新聚焦及成功/失败触发。
-- 独立浏览器页面使用真实登录组件及模拟接口响应，验证捂眼、失败反馈、成功反馈后跳回原目标、成功等待期间禁用重复提交。
-- 成功等待期间主动离开页面，确认不会执行延迟的会话写入；素材请求失败时仍可完成登录。
-- 原实现验证过系统减少动态效果时静态显示、手动开启互动的流程；该行为现已按用户要求调整为桌面端默认开启。390 × 844 窄屏无横向溢出，桌面布局显示正常。
-- 构建仍提示既有共享请求代码块超过 500kB；Rive 单独按需加载，动画代码块约 346kB。
-- 独立验收服务已停止，6009 端口确认释放；临时页面、模拟接口及诊断文件已删除。原有开发服务保持运行。
-
-## 默认开启调整验收（2026-10-31）
-
-已删除启用按钮、回调、手动启用状态及对应样式；桌面端仅按视口宽度启用动画。类型检查、生产构建及三个修改组件的 oxlint 检查退出码均为 0。真实开发页面刷新后，无需点击即可加载 Rive canvas；开启按钮数量为 0，聚焦密码框后实际显示捂眼姿态。本次未重复提交登录请求，后端无改动。
-
-![默认开启与捂眼验证](images/login-cat-default-ui.png)
-
 ## 验证边界
 
 本轮验证了前端与模拟成功/失败响应的联动，没有使用真实账号重新进行后端登录，也没有改变后端、验证码或接口契约。动画不接收密码内容，成功反馈使用固定短延时，不依赖动画完成事件无限等待。Rive 现有状态机输入 API 会给出弃用提示，当前固定版本支持此 API。
