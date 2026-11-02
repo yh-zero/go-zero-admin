@@ -12,6 +12,7 @@
 | 文档 | 内容 | 角色 |
 |---|---|---|
 | [refactor-plan.md](refactor-plan.md) | 架构决策（多租户/鉴权模型）、AI 平台三阶段演进、废弃项 | 决策与规划 |
+| [ai-agent-roadmap.md](ai-agent-roadmap.md) | AI Agent 阶段建议、长期功能与首版边界 | 待开发规划 |
 | [api-contract.md](api-contract.md) | 前后端共享 API 契约 + 接口实现状态矩阵 | **唯一契约事实源** |
 | [dev-guide.md](dev-guide.md) | 环境拓扑与联调 SOP、踩坑清单、登录猫动画维护 | 开发手册 |
 
