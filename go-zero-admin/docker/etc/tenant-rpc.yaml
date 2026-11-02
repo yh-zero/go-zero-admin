@@ -4,7 +4,7 @@ Timeout: 120000
 
 # 平台控制库（tenant_registry）
 Mysql:
-  DataSource: root:123456@tcp(mysql:3306)/gozero_platform?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai
+  DataSource: root:123456@tcp(mysql:3306)/gozero_admin?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai
 
 CacheRedis:
   - Host: redis:6379

@@ -63,7 +63,7 @@ VITE_API_PROXY_TARGET=http://127.0.0.1:7001
 
 本节保留此前样例导入与验证证据，不表示本次提交重新执行了这些步骤；当前实现和最新验证边界见文末对接记录。
 
-导入入口仅接受 `gozero-new-mysql` 容器和 `gozero_admin` 业务库。当前 compose 使用 `gozero-new-mysql-data` 数据卷；补全脚本还访问同一实例的 `gozero_platform` 控制库。运行前须完成两库既有表的初始化并备份数据，脚本不创建或迁移业务表。
+导入入口仅接受 `gozero-new-mysql` 容器和 `gozero_admin` 单库。当前 compose 使用 `gozero-new-mysql-data` 数据卷；补全脚本还访问同一实例的 `gozero_platform` 控制库。运行前须完成两库既有表的初始化并备份数据，脚本不创建或迁移业务表。
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/seed-test-data.ps1

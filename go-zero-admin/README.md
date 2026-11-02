@@ -14,7 +14,7 @@
 ## 目录
 
 - `application/<模块>/api|rpc` —— 业务模块（admin / app / file / ai / tenant）
-- `data/db/init/mysql-all.sql` —— 完整数据库初始化入口（业务库与平台控制库）
+- `data/db/init/mysql-all.sql` —— 完整数据库初始化入口（单库 gozero_admin，含 tenant_registry）
 - `data/scripts/gen.ps1` —— 生成命令入口
 - `docker/` —— Dockerfile、Nginx 与租户栈模板
 - `docker/Dockerfile` —— 多阶段构建（api / 各 rpc）

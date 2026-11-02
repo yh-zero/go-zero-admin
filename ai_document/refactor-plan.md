@@ -53,9 +53,9 @@ m = (g(r.sub, p.sub, r.dom) || g(r.sub, p.sub, "*")) && (r.dom == p.dom || p.dom
 
 ### 3.1 控制面与业务面分离
 
-- **控制库**（平台栈）：仅 `tenant_registry` 一张表（slug/域名/compose 项目名/随机密钥/状态）
+- **单库设计**（2026-11-02 合并）：`tenant_registry` 并入 `gozero_admin`，不再独立控制库（原双库是给多机预留，多机已不做）
 - **业务库**（每租户独立）：完整业务表，跑在租户栈自己的 MySQL 容器，完全隔离
-- **平台栈不跑业务**：api（租户管理接口）+ tenant-rpc + 控制库 + nginx + rustfs
+- **平台栈不跑业务**：api（租户管理接口）+ tenant-rpc + nginx + rustfs
 
 ### 3.2 租户创建流程
 

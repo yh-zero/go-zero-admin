@@ -298,32 +298,6 @@ INSERT INTO `casbin_rule` VALUES (1,'p','super_admin','*','*','*','','','2026-10
 UNLOCK TABLES;
 
 --
--- Table structure for table `goose_db_version`
---
-
-DROP TABLE IF EXISTS `goose_db_version`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `goose_db_version` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `version_id` bigint NOT NULL,
-  `is_applied` tinyint(1) NOT NULL,
-  `tstamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `goose_db_version`
---
-
-LOCK TABLES `goose_db_version` WRITE;
-/*!40000 ALTER TABLE `goose_db_version` DISABLE KEYS */;
-INSERT INTO `goose_db_version` VALUES (1,0,1,'2026-10-30 14:07:10'),(2,1,1,'2026-10-30 14:07:13'),(3,2,1,'2026-10-30 14:07:14');
-/*!40000 ALTER TABLE `goose_db_version` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `sys_api`
 --
 
@@ -747,65 +721,10 @@ UNLOCK TABLES;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Current Database: `gozero_platform`
---
-
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `gozero_platform` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-
-USE `gozero_platform`;
-
---
--- Table structure for table `goose_db_version`
---
-
-DROP TABLE IF EXISTS `goose_db_version`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `goose_db_version` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `version_id` bigint NOT NULL,
-  `is_applied` tinyint(1) NOT NULL,
-  `tstamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `goose_db_version`
---
-
-LOCK TABLES `goose_db_version` WRITE;
-/*!40000 ALTER TABLE `goose_db_version` DISABLE KEYS */;
-INSERT INTO `goose_db_version` VALUES (1,0,1,'2026-10-30 14:07:14'),(2,1,1,'2026-10-30 14:07:14');
-/*!40000 ALTER TABLE `goose_db_version` ENABLE KEYS */;
-
-
-UNLOCK TABLES;
---
--- Table structure for table `tenant_provision_event`
---
-
-DROP TABLE IF EXISTS `tenant_provision_event`;
-CREATE TABLE `tenant_provision_event` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `tenant_id` bigint unsigned NOT NULL COMMENT '租户登记 ID',
-  `step` varchar(32) NOT NULL COMMENT '步骤标识',
-  `status` varchar(16) NOT NULL COMMENT 'ok / fail',
-  `detail` text COMMENT '步骤结果摘要（失败时含具体错误）',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `idx_tenant_id` (`tenant_id`),
-  KEY `idx_created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='租户 provisioning 步骤事件（排障/进度可见）';
-
-
---
--- Table structure for table `tenant_registry`
+-- Table structure for table `tenant_registry`（原控制库表已并入业务库：单库设计）
 --
 
 DROP TABLE IF EXISTS `tenant_registry`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tenant_registry` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `slug` varchar(32) NOT NULL COMMENT '租户标识（英文小写，子域名前缀）',
@@ -817,6 +736,8 @@ CREATE TABLE `tenant_registry` (
   `app_jwt_access_secret` varchar(128) NOT NULL COMMENT '该租户 App JWT 密钥（随机生成）',
   `admin_account_ready` tinyint NOT NULL DEFAULT '0' COMMENT '初始管理员是否就绪',
   `error_msg` varchar(512) NOT NULL DEFAULT '' COMMENT '最近一次错误信息',
+  `current_step` varchar(32) DEFAULT '' COMMENT 'provisioning 当前步骤',
+  `step_updated_at` datetime DEFAULT NULL COMMENT '步骤更新时间',
   `created_by` bigint unsigned DEFAULT NULL COMMENT '创建操作员ID',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -826,26 +747,11 @@ CREATE TABLE `tenant_registry` (
   UNIQUE KEY `uk_domain` (`domain`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9010704 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='租户注册表';
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `tenant_registry`
 --
 
 LOCK TABLES `tenant_registry` WRITE;
-/*!40000 ALTER TABLE `tenant_registry` DISABLE KEYS */;
 INSERT INTO `tenant_registry` (`id`,`slug`,`domain`,`compose_project`,`status`,`mysql_root_password`,`jwt_access_secret`,`app_jwt_access_secret`,`error_msg`,`created_by`,`created_at`,`updated_at`,`deleted_at`) VALUES (9010701,'stopped','stopped.example.test','gozero-tenant-stopped','stopped','EE42CBCACB3690C26A1994CFBE2883AE710234C86F551A00D8989DFEFF03EE56','E1C90B3C2802DC1881D7C99E117F85E707DBDBF97E32B0CD5FE06BB84BE2AE42','2A00452BA1DF67E102CBB4F5DAFF8CA8798865C74BB40D89E357AAFBDB82D62D','纯测试展示，未部署容器；禁止启停、删除栈或重置管理员密码。',1,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010702,'error','error.example.test','gozero-tenant-error','error','697CF020CC3CE2A6DAB85CB93C601BAFA88DF3CFFEB5E1425566AF841D061D15','DE11ACF182BF5B8C215B282A9266EC5EF598C487882704C0C44243322CFB1928','403E53A57CE3F9A2EDE6201A3B05A090E39858DD11AF6D3328E48C153A12DFD4','模拟部署失败；纯测试展示，未部署容器，禁止生命周期操作。',1,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL),(9010703,'idle','idle.example.test','gozero-tenant-idle','stopped','D1292122EEA2A8BDF2F13C769FC65D1CAE0292137175274D5EF854C7A0AEFFA7','20B1965040D1E088D1127E52C125741E1055D4CA5B6B2CA0133F5D4FE5246173','34904873CBF1773084BEC2FD00F6773B0EE07A457FC4B487445887A50756FAA1','空闲展示样例，未部署容器；禁止生命周期操作。',NULL,'2026-10-31 15:28:18','2026-10-31 18:23:19',NULL);
-/*!40000 ALTER TABLE `tenant_registry` ENABLE KEYS */;
 UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2026-10-31 18:32:50
-

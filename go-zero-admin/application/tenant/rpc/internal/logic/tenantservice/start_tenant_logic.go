@@ -3,7 +3,6 @@ package tenantservicelogic
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -219,11 +218,11 @@ func tenantFailure(s *svc.ServiceContext, tenant *model.TenantRegistry, message 
 	return xerr.NewErrCodeMsg(xerr.SERVER_COMMON_ERROR, message)
 }
 
-// recordProvisionEvent 记录 provisioning 步骤（成功/失败均可追踪）
-func recordProvisionEvent(ctx context.Context, s *svc.ServiceContext, tenant *model.TenantRegistry, step, status, detail string) {
-	if _, err := s.ProvisionEventModel.Insert(ctx, &model.TenantProvisionEvent{
-		TenantId: tenant.Id, Step: step, Status: status, Detail: sql.NullString{String: detail, Valid: detail != ""}, CreatedAt: time.Now(),
-	}); err != nil {
-		logx.Errorf("record provision event %s/%s: %v", step, status, err)
+// reportStep 更新 registry 的当前步骤（进度可见，单服务器场景替代独立事件表）
+func reportStep(ctx context.Context, s *svc.ServiceContext, tenant *model.TenantRegistry, step string) {
+	ctx2, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if _, err := s.DB.ExecCtx(ctx2, "UPDATE tenant_registry SET current_step=?, step_updated_at=NOW() WHERE id=?", step, tenant.Id); err != nil {
+		logx.Errorf("report step %s: %v", step, err)
 	}
 }

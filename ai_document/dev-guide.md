@@ -10,7 +10,7 @@
 
 | 组件 | 容器 | 宿主地址 | 说明 |
 |---|---|---|---|
-| MySQL 9.7 | `gozero-new-mysql` | `127.0.0.1:3307` | 业务库 `gozero_admin` + 控制库 `gozero_platform`；统一导入 [初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql) |
+| MySQL 9.7 | `gozero-new-mysql` | `127.0.0.1:3307` | 单库 `gozero_admin`（含 tenant_registry 租户登记表）；统一导入 [初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql) |
 | Redis 8 | `gozero-redis8` | `127.0.0.1:16379` | 缓存 + Casbin 策略通知频道 |
 | RustFS | `gozero-integration-rustfs` | `127.0.0.1:19000`（控制台 :19001） | S3 兼容对象存储 |
 | admin-rpc | `gozero-platform-admin-rpc-1` | 仅容器网络 :6001 | |
@@ -56,7 +56,7 @@ go run ./application/admin/rpc -f application/admin/rpc/etc/admin.yaml   # 其�
 
 ### 数据初始化（首次克隆）
 
-[data/db/init/mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql) 是数据库初始化唯一入口，包含业务库和控制库的完整结构与开发数据。每次新建库均完整导入该文件，不维护增量升级流程。Compose 已将其目录挂到 MySQL 的 `/docker-entrypoint-initdb.d`，**空数据卷首次 `docker compose up -d` 自动导入，无需手动操作**；已有数据卷不会重复执行，也不会自动更新结构。
+[data/db/init/mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql) 是数据库初始化唯一入口，包含全部表结构与开发数据。每次新建库均完整导入该文件，不维护增量升级流程。Compose 已将其目录挂到 MySQL 的 `/docker-entrypoint-initdb.d`，**空数据卷首次 `docker compose up -d` 自动导入，无需手动操作**；已有数据卷不会重复执行，也不会自动更新结构。
 
 初始化账号：`admin` / `Admin@123456`（仅本地开发，生产必改）；DB root 统一 `123456`。
 
