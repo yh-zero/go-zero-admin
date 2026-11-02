@@ -94,6 +94,12 @@ docker exec gozero-redis8 redis-cli DEL '<本次记录的精确缓存键>'
 - 续行符是反引号 ` 不是反斜杠 \
 - 执行策略拦截：`powershell -NoProfile -ExecutionPolicy Bypass -File <脚本>`
 
+### ⑥ 中文种子导入后乱码（双重编码）
+
+`docker cp` + `mysql < file` 导入中文 SQL 时，mysql 客户端默认 latin1 会把 UTF-8 字节二次编码（"租户管理"→`ç§Ÿæˆ·ç®¡ç†`）。
+- 预防：导入命令加 `--default-character-set=utf8mb4`
+- 已坏的修复：`UPDATE t SET col=CONVERT(0x<utf8hex> USING utf8mb4)`（0x 字面量绕过客户端字符集；hex 用 Node Buffer 生成保证字节准确）
+
 ### ⑥ AI 与邮件：极简 env
 
 原 YAML 保留完整默认配置。在后端目录的 `.env.local` 填写以下三项（该文件已被 Git 忽略，空值表示尚未配置）：
