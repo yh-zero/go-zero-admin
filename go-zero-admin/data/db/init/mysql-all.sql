@@ -778,7 +778,26 @@ LOCK TABLES `goose_db_version` WRITE;
 /*!40000 ALTER TABLE `goose_db_version` DISABLE KEYS */;
 INSERT INTO `goose_db_version` VALUES (1,0,1,'2026-10-30 14:07:14'),(2,1,1,'2026-10-30 14:07:14');
 /*!40000 ALTER TABLE `goose_db_version` ENABLE KEYS */;
+
+
 UNLOCK TABLES;
+--
+-- Table structure for table `tenant_provision_event`
+--
+
+DROP TABLE IF EXISTS `tenant_provision_event`;
+CREATE TABLE `tenant_provision_event` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `tenant_id` bigint unsigned NOT NULL COMMENT '租户登记 ID',
+  `step` varchar(32) NOT NULL COMMENT '步骤标识',
+  `status` varchar(16) NOT NULL COMMENT 'ok / fail',
+  `detail` text COMMENT '步骤结果摘要（失败时含具体错误）',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_tenant_id` (`tenant_id`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='租户 provisioning 步骤事件（排障/进度可见）';
+
 
 --
 -- Table structure for table `tenant_registry`

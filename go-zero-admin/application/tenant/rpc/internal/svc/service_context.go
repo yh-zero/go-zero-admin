@@ -14,6 +14,7 @@ type ServiceContext struct {
 	Redis  *redis.Redis
 
 	TenantRegistryModel model.TenantRegistryModel
+	ProvisionEventModel model.TenantProvisionEventModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -24,5 +25,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		DB:                  conn,
 		Redis:               rdb,
 		TenantRegistryModel: model.NewTenantRegistryModel(conn, c.CacheRedis),
+		ProvisionEventModel: model.NewTenantProvisionEventModel(conn, c.CacheRedis),
 	}
 }

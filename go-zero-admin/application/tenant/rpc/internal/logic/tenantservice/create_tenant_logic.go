@@ -88,14 +88,18 @@ func (l *CreateTenantLogic) CreateTenant(in *tenantpb.CreateTenantRequest) (*ten
 			release()
 		}
 	}()
-	_, err = l.svcCtx.TenantRegistryModel.FindOneBySlug(l.ctx, slug)
-	if err == nil {
+	existing, err := l.svcCtx.TenantRegistryModel.FindOneBySlug(l.ctx, slug)
+	if err == nil && !existing.DeletedAt.Valid {
 		return nil, xerr.NewErrCodeMsg(400, "租户标识已存在")
 	}
-	if !errors.Is(err, sqlx.ErrNotFound) {
+	if err != nil && !errors.Is(err, sqlx.ErrNotFound) {
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)
 	}
 	tenant := &model.TenantRegistry{Slug: slug, Domain: slug + "." + suffix, ComposeProject: "gozero-t-" + slug, Status: "creating", CreatedBy: sql.NullInt64{Int64: in.Actor.UserID, Valid: true}, CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	if existing != nil { // 复活软删记录：复用 id 保持审计连续，栈资源已全清
+		tenant.Id = existing.Id
+		tenant.CreatedAt = existing.CreatedAt
+	}
 	if err = checkTenantResources(l.ctx, l.svcCtx, tenant); err != nil {
 		return nil, xerr.NewErrCodeMsg(400, "租户资源已存在或 Docker 运行环境不可用")
 	}
@@ -111,22 +115,29 @@ func (l *CreateTenantLogic) CreateTenant(in *tenantpb.CreateTenantRequest) (*ten
 	if err != nil {
 		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
 	}
-	result, err := l.svcCtx.TenantRegistryModel.Insert(l.ctx, tenant)
-	if err != nil {
-		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	if existing != nil {
+		// 软删复活：全字段重置（密钥/状态/域名），deleted_at 置空
+		if err = l.svcCtx.TenantRegistryModel.Update(l.ctx, tenant); err != nil {
+			return nil, xerr.NewErrCode(xerr.DB_ERROR)
+		}
+	} else {
+		result, err := l.svcCtx.TenantRegistryModel.Insert(l.ctx, tenant)
+		if err != nil {
+			return nil, xerr.NewErrCode(xerr.DB_ERROR)
+		}
+		id, err := result.LastInsertId()
+		if err != nil {
+			return nil, xerr.NewErrCode(xerr.DB_ERROR)
+		}
+		tenant.Id = uint64(id)
 	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return nil, xerr.NewErrCode(xerr.DB_ERROR)
-	}
-	tenant.Id = uint64(id)
 	response := mapTenant(tenant)
 	handedOff = true
 	go func() {
 		defer release()
 		defer func() {
 			if recover() != nil {
-				_ = tenantFailure(l.svcCtx, tenant, "创建租户异常中断")
+				_ = tenantFailure(l.svcCtx, tenant, "创建租户异常中断", nil)
 			}
 		}()
 		l.provisionTenant(tenant, username, string(hash))
@@ -159,45 +170,59 @@ func (l *CreateTenantLogic) provisionTenant(tenant *model.TenantRegistry, userna
 	defer cancel()
 	storage, err := tenantStorage(l.svcCtx, tenant)
 	if err != nil {
-		_ = tenantFailure(l.svcCtx, tenant, "租户对象存储配置不可用")
+		_ = tenantFailure(l.svcCtx, tenant, "租户对象存储配置不可用", err)
 		return
 	}
 	if err = renderTenantEnv(l.svcCtx, tenant, storage); err != nil {
-		_ = tenantFailure(l.svcCtx, tenant, "写入租户运行配置失败")
+		_ = tenantFailure(l.svcCtx, tenant, "写入租户运行配置失败", err)
+		recordProvisionEvent(ctx, l.svcCtx, tenant, "render_env", "fail", err.Error())
 		return
 	}
+	recordProvisionEvent(ctx, l.svcCtx, tenant, "render_env", "ok", "租户运行配置已生成")
 	if _, err = compose(ctx, l.svcCtx, tenant, nil, "up", "-d", "--no-build", "--pull", "never", "--wait", "--wait-timeout", "90", "mysql", "redis"); err != nil {
-		_ = tenantFailure(l.svcCtx, tenant, "启动租户数据库失败")
+		_ = tenantFailure(l.svcCtx, tenant, "启动租户数据库失败", err)
+		recordProvisionEvent(ctx, l.svcCtx, tenant, "start_db", "fail", err.Error())
 		return
 	}
+	recordProvisionEvent(ctx, l.svcCtx, tenant, "start_db", "ok", "租户数据库已启动")
 	if err = initializeTenant(ctx, l.svcCtx, tenant, username, passwordHash); err != nil {
-		_ = tenantFailure(l.svcCtx, tenant, "初始化租户数据库失败")
+		_ = tenantFailure(l.svcCtx, tenant, "初始化租户数据库失败", err)
+		recordProvisionEvent(ctx, l.svcCtx, tenant, "init_db", "fail", err.Error())
 		return
 	}
+	recordProvisionEvent(ctx, l.svcCtx, tenant, "init_db", "ok", "租户数据库已初始化")
 	if err = createTenantBuckets(ctx, storage, tenant); err != nil {
-		_ = tenantFailure(l.svcCtx, tenant, "创建租户存储空间失败")
+		_ = tenantFailure(l.svcCtx, tenant, "创建租户存储空间失败", err)
+		recordProvisionEvent(ctx, l.svcCtx, tenant, "create_buckets", "fail", err.Error())
 		return
 	}
+	recordProvisionEvent(ctx, l.svcCtx, tenant, "create_buckets", "ok", "租户存储空间已创建")
 	// 初始化成功后保留 ready 标记；服务启动失败可以修复环境后再次 start。
 	if err = l.svcCtx.TenantRegistryModel.SetState(ctx, tenant, "creating", "", true); err != nil {
-		_ = tenantFailure(l.svcCtx, tenant, "保存租户初始化状态失败")
+		_ = tenantFailure(l.svcCtx, tenant, "保存租户初始化状态失败", err)
 		return
 	}
 	tenant.AdminAccountReady = 1
 	if _, err = compose(ctx, l.svcCtx, tenant, nil, "up", "-d", "--no-build", "--pull", "never", "--wait", "--wait-timeout", "60"); err != nil {
-		_ = tenantFailure(l.svcCtx, tenant, "启动租户应用失败")
+		_ = tenantFailure(l.svcCtx, tenant, "启动租户应用失败", err)
+		recordProvisionEvent(ctx, l.svcCtx, tenant, "start_apps", "fail", err.Error())
 		return
 	}
+	recordProvisionEvent(ctx, l.svcCtx, tenant, "start_apps", "ok", "租户应用已启动")
 	if err = waitTenantReady(ctx, l.svcCtx, tenant); err != nil {
-		_ = tenantFailure(l.svcCtx, tenant, "租户应用依赖未就绪")
+		_ = tenantFailure(l.svcCtx, tenant, "租户应用依赖未就绪", err)
+		recordProvisionEvent(ctx, l.svcCtx, tenant, "wait_ready", "fail", err.Error())
 		return
 	}
+	recordProvisionEvent(ctx, l.svcCtx, tenant, "wait_ready", "ok", "租户依赖就绪")
 	if err = routeTenant(ctx, l.svcCtx, tenant, true); err != nil {
-		_ = tenantFailure(l.svcCtx, tenant, "生成租户路由失败")
+		_ = tenantFailure(l.svcCtx, tenant, "生成租户路由失败", err)
+		recordProvisionEvent(ctx, l.svcCtx, tenant, "route", "fail", err.Error())
 		return
 	}
+	recordProvisionEvent(ctx, l.svcCtx, tenant, "route", "ok", "租户路由已生成")
 	if err = l.svcCtx.TenantRegistryModel.SetState(ctx, tenant, "active", "", true); err != nil {
-		_ = tenantFailure(l.svcCtx, tenant, "保存租户就绪状态失败")
+		_ = tenantFailure(l.svcCtx, tenant, "保存租户就绪状态失败", err)
 	}
 }
 

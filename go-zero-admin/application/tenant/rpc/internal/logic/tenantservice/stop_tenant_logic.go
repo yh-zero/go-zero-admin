@@ -27,10 +27,10 @@ func (l *StopTenantLogic) StopTenant(in *tenantpb.StopTenantRequest) (*tenantpb.
 	ctx, cancel := context.WithTimeout(l.ctx, 90*time.Second)
 	defer cancel()
 	if err = routeTenant(ctx, l.svcCtx, tenant, false); err != nil {
-		return nil, tenantFailure(l.svcCtx, tenant, "停用租户路由失败")
+		return nil, tenantFailure(l.svcCtx, tenant, "停用租户路由失败", err)
 	}
 	if _, err = compose(ctx, l.svcCtx, tenant, nil, "stop", "--timeout", "10"); err != nil {
-		return nil, tenantFailure(l.svcCtx, tenant, "停止租户服务失败")
+		return nil, tenantFailure(l.svcCtx, tenant, "停止租户服务失败", err)
 	}
 	if err = l.svcCtx.TenantRegistryModel.SetState(ctx, tenant, "stopped", "", tenant.AdminAccountReady == 1); err != nil {
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)

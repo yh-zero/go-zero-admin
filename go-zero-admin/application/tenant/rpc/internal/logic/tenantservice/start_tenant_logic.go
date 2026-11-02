@@ -3,8 +3,10 @@ package tenantservicelogic
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -46,13 +48,13 @@ func (l *StartTenantLogic) StartTenant(in *tenantpb.StartTenantRequest) (*tenant
 	ctx, cancel := context.WithTimeout(l.ctx, 90*time.Second)
 	defer cancel()
 	if _, err = compose(ctx, l.svcCtx, tenant, nil, "up", "-d", "--no-build", "--pull", "never", "--wait", "--wait-timeout", "60"); err != nil {
-		return nil, tenantFailure(l.svcCtx, tenant, "启动租户服务失败")
+		return nil, tenantFailure(l.svcCtx, tenant, "启动租户服务失败", err)
 	}
 	if err = waitTenantReady(ctx, l.svcCtx, tenant); err != nil {
-		return nil, tenantFailure(l.svcCtx, tenant, "租户依赖未就绪")
+		return nil, tenantFailure(l.svcCtx, tenant, "租户依赖未就绪", err)
 	}
 	if err = routeTenant(ctx, l.svcCtx, tenant, true); err != nil {
-		return nil, tenantFailure(l.svcCtx, tenant, "启用租户路由失败")
+		return nil, tenantFailure(l.svcCtx, tenant, "启用租户路由失败", err)
 	}
 	if err = l.svcCtx.TenantRegistryModel.SetState(ctx, tenant, "active", "", true); err != nil {
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)
@@ -132,9 +134,13 @@ func dockerCommand(ctx context.Context, input io.Reader, args ...string) ([]byte
 	cmd.Stdin = input
 	var output bytes.Buffer
 	cmd.Stdout = &output
-	cmd.Stderr = io.Discard
+	cmd.Stderr = &output
 	if err := cmd.Run(); err != nil {
-		return nil, errors.New("docker operation failed")
+		detail := strings.TrimSpace(output.String())
+		if detail == "" {
+			detail = err.Error()
+		}
+		return nil, fmt.Errorf("docker %s: %s", args[0], detail)
 	}
 	return output.Bytes(), nil
 }
@@ -201,11 +207,23 @@ func routeTenant(ctx context.Context, s *svc.ServiceContext, tenant *model.Tenan
 	}
 	return nil
 }
-func tenantFailure(s *svc.ServiceContext, tenant *model.TenantRegistry, message string) error {
+func tenantFailure(s *svc.ServiceContext, tenant *model.TenantRegistry, message string, err error) error {
+	if err != nil {
+		message = fmt.Sprintf("%s: %v", message, err)
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := s.TenantRegistryModel.SetState(ctx, tenant, "error", message, tenant.AdminAccountReady == 1); err != nil {
 		logx.Error("tenant failure state could not be persisted")
 	}
 	return xerr.NewErrCodeMsg(xerr.SERVER_COMMON_ERROR, message)
+}
+
+// recordProvisionEvent 记录 provisioning 步骤（成功/失败均可追踪）
+func recordProvisionEvent(ctx context.Context, s *svc.ServiceContext, tenant *model.TenantRegistry, step, status, detail string) {
+	if _, err := s.ProvisionEventModel.Insert(ctx, &model.TenantProvisionEvent{
+		TenantId: tenant.Id, Step: step, Status: status, Detail: sql.NullString{String: detail, Valid: detail != ""}, CreatedAt: time.Now(),
+	}); err != nil {
+		logx.Errorf("record provision event %s/%s: %v", step, status, err)
+	}
 }

@@ -39,24 +39,24 @@ func (l *DeleteTenantLogic) DeleteTenant(in *tenantpb.DeleteTenantRequest) (*ten
 	ctx, cancel := context.WithTimeout(l.ctx, 90*time.Second)
 	defer cancel()
 	if err = routeTenant(ctx, l.svcCtx, tenant, false); err != nil {
-		return nil, tenantFailure(l.svcCtx, tenant, "删除租户路由失败")
+		return nil, tenantFailure(l.svcCtx, tenant, "删除租户路由失败", err)
 	}
 	if _, statErr := os.Stat(tenantEnvPath(l.svcCtx, tenant)); statErr == nil {
 		if _, err = compose(ctx, l.svcCtx, tenant, nil, "down", "--volumes", "--remove-orphans", "--timeout", "10"); err != nil {
-			return nil, tenantFailure(l.svcCtx, tenant, "删除租户容器失败")
+			return nil, tenantFailure(l.svcCtx, tenant, "删除租户容器失败", err)
 		}
 	} else if !os.IsNotExist(statErr) || !noTenantResources(ctx, tenant) {
-		return nil, tenantFailure(l.svcCtx, tenant, "租户运行配置缺失，不能安全删除资源")
+		return nil, tenantFailure(l.svcCtx, tenant, "租户运行配置缺失，不能安全删除资源", nil)
 	}
 	storage, err := tenantStorage(l.svcCtx, tenant)
 	if err != nil {
-		return nil, tenantFailure(l.svcCtx, tenant, "租户存储配置不可用")
+		return nil, tenantFailure(l.svcCtx, tenant, "租户存储配置不可用", err)
 	}
 	if err = deleteTenantBuckets(ctx, storage, tenant); err != nil {
-		return nil, tenantFailure(l.svcCtx, tenant, "删除租户存储空间失败")
+		return nil, tenantFailure(l.svcCtx, tenant, "删除租户存储空间失败", err)
 	}
 	if err = os.Remove(tenantEnvPath(l.svcCtx, tenant)); err != nil && !os.IsNotExist(err) {
-		return nil, tenantFailure(l.svcCtx, tenant, "删除租户运行配置失败")
+		return nil, tenantFailure(l.svcCtx, tenant, "删除租户运行配置失败", err)
 	}
 	tenant.DeletedAt = sql.NullTime{Time: time.Now(), Valid: true}
 	tenant.Status, tenant.ErrorMsg, tenant.AdminAccountReady = "stopped", "", 0
