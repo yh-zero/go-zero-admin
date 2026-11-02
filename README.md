@@ -46,7 +46,7 @@ pnpm dev
 权限演示账号：`demo_all`、`demo_tree`、`demo_dept`、`demo_self`，分别查看全部、本部门及下级、本部门、本人数据，密码同上；`demo_tree` 可切换部门比较范围。APP 示例账号为 `alice@example.test`，密码同上。演示凭据仅限本地开发。
 
 - **初始化数据**：[mysql-all.sql](go-zero-admin/data/db/init/mysql-all.sql) 包含完整表结构与可公开的演示数据。MySQL 空数据卷首次启动自动导入；已有数据卷不会自动覆盖或更新。
-- **可选配置**：AI 和邮件不影响基础后台启动，配置项见 [.env.example](go-zero-admin/.env.example)。本地配置和完整数据库备份不提交到仓库。
+- **可选配置**：AI 和邮件不影响基础后台启动，配置项见 [.env.example](go-zero-admin/.env.example)。本地配置不提交到仓库；历史完整备份见 [20261102](go-zero-admin/data/db/init/20261102)，首次初始化仍使用 `mysql-all.sql`。
 - **配置位置**：容器使用 `go-zero-admin/docker/etc/*.yaml`，宿主运行使用各服务的 `etc/*.yaml`。验证码开关为 admin-rpc 的 `Captcha.Enabled`。
 
 详细启动、数据库初始化和排障说明见 [开发手册](ai_document/dev-guide.md)，未覆盖的外部联调和异常场景见 [剩余事项](ai_document/README.md#后端剩余事项)。

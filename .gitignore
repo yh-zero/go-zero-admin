@@ -29,6 +29,3 @@ Thumbs.db
 
 # 租户运行时生成的 Nginx 配置
 go-zero-admin/docker/nginx/conf.d/*.conf
-
-# 本地数据库完整备份，含私人数据
-go-zero-admin/data/db/init/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]/
