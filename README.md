@@ -1,8 +1,12 @@
 # go-zero-admin
 
+[![CI](https://github.com/yh-zero/go-zero-admin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/yh-zero/go-zero-admin/actions/workflows/ci.yml)
+
 基于 **go-zero + React** 的管理后台，包含权限、部门、文件、审计和 APP 用户管理，适合作为业务系统的开发起点。
 
 后端采用 **1 个 HTTP API + 5 个 RPC 服务**（admin / app / file / ai / tenant），前端采用 React 19、TypeScript 和 Ant Design 6。
+
+CI 在推送代码、提交 PR 或手动触发时，自动执行后端 `verify.ps1`、前端类型检查与构建；结果见上方状态标识或仓库 Actions 页面。
 
 ## 功能
 
