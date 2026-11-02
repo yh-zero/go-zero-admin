@@ -24,3 +24,6 @@ Thumbs.db
 
 # 租户运行时生成的 nginx 配置
 go-zero-admin/docker/nginx/conf.d/*.conf
+
+# 用户本地 SQL 备份
+go-zero-admin/data/db/init/20261101/
