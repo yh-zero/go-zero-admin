@@ -1,7 +1,7 @@
 # AGENTS.md — 后端开发规范（go-zero 规范优先）
 
 > 先读仓库根 `../AGENTS.md`（通用纪律），再读本文件。冲突时以本文件为准；已授权范围内的常规实现、生成和验证自主完成，超出授权或涉及未明确的数据、权限边界时先确认，已批准事项不重复确认。
-> 共享 API 契约以 `../ai_document/api-contract.md` 为唯一事实源；规范背后的历史事故见 `../ai_document/pitfalls.md`。
+> 共享 API 契约以 `../ai_document/api-contract.md` 为唯一事实源；规范背后的历史事故见 `../ai_document/dev-guide.md` §5。
 
 ## 1. 项目速览
 
@@ -41,14 +41,33 @@
 11. **验收纪律**：功能对接逐模块真实验证，按根规范 §7 的改动触发条件覆盖失败和边界场景；纯整理、纯文档按各自验证要求执行。
 12. **pkg 定位**：≥2 服务使用或为公共基础设施；pkg 禁止 import 任何 `internal/` 包。
 13. **配置**：直接写 `etc/<模块>.yaml`；业务环境变量按“模块 + YAML 配置层级”转全大写下划线命名，如 `APP_SMTP_PASSWORD` 对应 App 的 `SMTP.Password`。AI 自身的 `AI` 节点不重复前缀：`AI_DEEPSEEK_KEY` / `AI_QWEN_KEY` 对应 `AI.DeepSeekKey` / `AI.QwenKey`，按 Provider 读取 `AI_<PROVIDER>_KEY`；YAML 中的 Key 保持空值。外部基础镜像要求的变量沿用其官方名称。
-14. **事故索引**：动手涉及 Casbin domains、多租户栈、goctl 生成、sqlx 数据层前，先查 `../ai_document/pitfalls.md` 对应条目。
+14. **事故索引**：动手涉及 Casbin domains、多租户栈、goctl 生成、sqlx 数据层前，先查 `../ai_document/dev-guide.md` §5 对应条目。
 
-## 3. 禁止事项速查
+## 3. AI 模块专项（application/ai）
+
+1. **LLM 调用纪律**：
+   - 一律经 `pkg/llm` 封装（eino ChatModel），禁止 logic 内裸写 HTTP 调模型接口
+   - function calling 轮次上限 5（`send_message_logic`），超限必须兜底返回，禁止死循环
+   - 每次对话落库 token 用量（`ai_message.tokens`），阶段 3 计费依赖此数据
+2. **工具开发（pkg/agenttools）**：
+   - 新工具 = 实现 `Tool` 接口 + `init()` 注册，禁止散落的工具实现
+   - `Description()`/`Params()` 是给 LLM 的决策依据，必须准确完整（写清什么时候用、参数含义）
+   - 工具参数视为**不可信输入**：Execute 内必须校验，禁止直接拼接 SQL/命令/路径
+3. **工作流 DSL**：
+   - 定义只走 `{"steps":[{name,tool,input,approval}]}` 结构，变更时同步 `run_workflow_logic` 的解析与校验
+   - `approval=true` 仅中间步骤生效（最后一步不中断，无后续可续）；改动此语义必须同步前端审批交互
+4. **AI 安全**：
+   - 模型密钥只走环境变量（`API_KEY_DEEPSEEK`/`API_KEY_QWEN`），yaml 留空，禁止进仓库/日志
+   - LLM 输出（含工具调用参数）一律视为不可信，落库前校验长度与格式；渲染走前端转义，禁止服务端拼接 HTML
+   - 会话/工作流/任务严格按 `actor.UserId` 隔离，禁止跨用户读取（已有校验，新增查询时保持）
+5. **降级约定**：`AI.Enabled=false` 或无 Key 时，所有 LLM 相关接口返回统一配置提示（已有模式，新增接口照做）。
+
+## 4. 禁止事项速查
 
 - ❌ 白名单外目录、给 goctl 加 `-home`、手改生成物后直接重新生成
 - ❌ 自定义响应信封/绕过 xerr、api 层直连数据库、擅自改 `docker/` 模板
 
-## 4. 代码提交前自检（必过）
+## 5. 代码提交前自检（必过）
 
 ```powershell
 .\data\scripts\verify.ps1

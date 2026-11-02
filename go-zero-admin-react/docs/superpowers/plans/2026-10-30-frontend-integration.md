@@ -1,6 +1,6 @@
 # 前端对接 Implementation Plan
 
-> 历史计划（2026-10-30）：下列范围和验收数字记录当时的前端阶段。2026-10-31 用户已授权必要后端配合，后续修复、测试清理及当前状态以根目录 AGENTS.md 和 `ai_document/backend-api-integration-issues.md` 为准。
+> 历史计划（2026-10-30）：下列范围和验收数字记录当时的前端阶段。2026-10-31 用户已授权必要后端配合，后续修复、测试清理及当前状态以根目录 AGENTS.md 和 `ai_document/README.md` 为准。
 
 > **For agentic workers:** 按限定目录并行实施，父代理整合与验收。
 

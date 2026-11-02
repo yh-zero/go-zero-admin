@@ -13,7 +13,7 @@
 | `go-zero-admin-react/` | 前端：React 19 + Vite 8 + antd 6；具体版本以依赖声明与锁文件为准 |
 | `ai_document/api-contract.md` | **前后端共享 API 契约（唯一事实源）** |
 | `ai_document/refactor-plan.md` | 架构方案与 AI 平台演进规划 |
-| `ai_document/dev-env.md` | 本地开发环境拓扑与联调 SOP |
+| `ai_document/dev-guide.md` | 开发手册（环境 SOP/踩坑/功能维护） |
 
 ## 2. 任务路由（动手前先读对应规范）
 

@@ -51,9 +51,9 @@ pnpm dev
 - 数据初始化：空数据卷首次启动会自动导入 [完整初始化 SQL](go-zero-admin/data/db/init/mysql-all.sql)；已有数据卷不会自动更新结构。
 - 登录验证码：由 admin-rpc 的 `Captcha.Enabled` 控制，默认开启；修改后重启 admin-rpc。
 - 配置位置：容器使用 `go-zero-admin/docker/etc/*.yaml`，宿主运行使用各服务的 `etc/*.yaml`；AI/邮件凭据见 [.env.example](go-zero-admin/.env.example)，密钥只保存在本地配置或环境变量中。
-- 可选服务：AI、邮件可按需配置。SMTP 服务器、端口及 TLS 需同步实际运行配置；真实邮箱注册等待验收范围见 [后端待办](ai_document/backend-api-integration-issues.md)。
+- 可选服务：AI、邮件可按需配置。SMTP 服务器、端口及 TLS 需同步实际运行配置；真实邮箱注册等待验收范围见 [后端剩余事项](ai_document/README.md#后端剩余事项)。
 
-服务拓扑、配置路径和排障步骤见 [本地开发环境](ai_document/dev-env.md)。
+服务拓扑、配置路径和排障步骤见 [开发手册](ai_document/dev-guide.md)。
 
 ## 界面预览
 
@@ -65,7 +65,7 @@ pnpm dev
 
 ![猫咪登录动态预览](ai_document/images/login-cat-demo.gif)
 
-动图来自实际登录页面，账号、验证码和登录结果使用演示数据。素材与交互细节见 [登录猫咪说明](ai_document/rive-login-cat.md)。
+动图来自实际登录页面，账号、验证码和登录结果使用演示数据。素材与交互细节见 [登录猫动画维护](ai_document/dev-guide.md)。
 
 ### APP管理
 
@@ -143,10 +143,10 @@ pnpm dev
 
 | 文档 | 内容 |
 |---|---|
-| [本地开发环境](ai_document/dev-env.md) | 拓扑、启动、初始化与排障 |
+| [开发手册](ai_document/dev-guide.md) | 拓扑、启动、初始化与排障 |
 | [API 契约](ai_document/api-contract.md) | 接口约定与当前验证范围 |
-| [后端待办](ai_document/backend-api-integration-issues.md) | 待配置、待验收事项 |
+| [后端剩余事项](ai_document/README.md#后端剩余事项) | 待配置、待验收事项 |
 | [架构规划](ai_document/refactor-plan.md) | 架构与后续方向 |
 | [前端说明](go-zero-admin-react/README.md) | 页面范围、开发命令与对接约定 |
-| [登录猫咪说明](ai_document/rive-login-cat.md) | 素材、交互与验证范围 |
+| [登录猫动画维护](ai_document/dev-guide.md) | 素材、交互与验证范围 |
 | [开发规范](AGENTS.md) | 通用约定及前后端规范入口 |

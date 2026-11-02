@@ -1,4 +1,6 @@
-# 本地开发环境拓扑与联调 SOP
+# go-zero-admin 开发手册
+
+> 环境拓扑与联调 SOP + 历史事故对策 + 功能维护。契约见 [api-contract.md](api-contract.md)，架构决策见 [refactor-plan.md](refactor-plan.md)。
 
 > 联调/验证前先读本文。环境异常时按 §3 排查，别猜。
 
@@ -122,3 +124,90 @@ docker compose --env-file .env.local up -d --build --force-recreate ai-rpc app-r
 2. 删除 `.tmp_*` 目录、调试日志
 3. `docker start gozero-api` 恢复旧项目容器（如曾暂停）
 4. `git status` 确认工作区干净
+
+
+---
+
+## 5. 踩坑清单（历史事故）
+
+> 动手涉及 Casbin domains、多租户栈、goctl 生成、sqlx 数据层前，先查对应条目。
+
+> 规范条目背后的真实事故。规则本体在各 AGENTS.md，本文件只讲事故与成因。
+
+## 生成物相关
+
+1. **pb 字段名凭记忆书写**（事故 ×5+）：`CaptchaId`/`CaptchaID`、`UserId`/`UserID` 反复写错——proto snake_case 生成的 Go 字段大小写不直觉。对策：根规范生成物查证纪律。
+2. **正则批量转 proto 字段**：CamelCase→snake_case 正则把 `id`→`i_d`、`IP`→`i_p`，286 个字段逐个修。对策：禁止正则批量替换 desc/ 文件。
+3. **proto package 全是 `pb`**：多模块同 package 致 protobuf 全局注册冲突，编译全过、运行时 panic。对策：后端规则 package 唯一性。
+4. **goctl 对已有 main 跳过生成**：proto 加 service 后 `pb.go` 不自动注册，运行时 `unknown service`。对策：`gen.ps1 rpc` 注册检查告警。
+5. **etc 双 yaml**：goctl 按 package 名生成 `aipb.yaml` 与手写 `pb.yaml` 并存。对策：`--name-from-filename` + 只保留 `<模块>.yaml`。
+
+## 数据层
+
+6. **`QueryRowsCtx` 直扫 pb 类型**（事故 ×7）：pb 无 `db` tag，运行时 `not matching destination to scan`。对策：本地 row struct 过渡。
+7. **DATETIME 直扫 int64**：dept/role 报"数据库错误"根因。对策：SQL 层 `UNIX_TIMESTAMP()`。
+8. **goctl model 缓存幽灵数据**：直接改库后 `FindOneByAccount` 命中旧缓存。对策：按生成 model 的键规则失效本次记录的 ID/唯一索引缓存；禁止用全局清空代替精确清理（§3.2）。
+
+## 环境/工具链
+
+9. **版本漂移**：`go get go-zero@v1.10.3` 静默失败，文档写 1.10.3 实际 1.10.0。对策：验证实际生效版本。
+10. **端口被旧项目占用**：旧项目 `gozero-api` 容器占 7001，新服务"启动成功"但请求全 404。对策：§3.1。
+11. **跨模块 RPC 复用连接**：`FileRpc` 复用 adminRpc 连接指向 6001，`unknown service`。对策：每个外部模块独立 client 连接。
+12. **docker exec 中文乱码**：管道传 SQL 中文乱码；改用 `docker cp`。对策：§3.3。
+13. **ps1 无 BOM**：UTF-8 无 BOM 脚本中文注释解析崩溃。对策：§3.4。
+
+## 流程
+
+14. **积攒多模块一次性 e2e**：三模块攒一起测，一次爆 3 类错误。对策：每模块立即验证（后端规则 11）。
+15. **API 层直连数据库**：Casbin 初期引入，后重构为 RPC 拉策略。对策：api 层必须经 RPC client。
+
+---
+
+## 6. 登录猫动画维护
+
+## 已确认需求
+
+在登录页左侧插画区域接入 Rive 猫咪：输入密码时捂眼，登录成功和失败时分别播放对应反馈。只改前端，保留现有登录、验证码和权限接口。用户已授权使用 Rive 及所需素材，并要求桌面端互动默认开启、移除手动开启按钮。
+
+## 完成情况
+
+- [x] 按视频中的毛绒橘猫风格生成九种姿态，保存来源图集；通过项目脚本生成真实 `.riv` 与静态备用图。
+- [x] 新增按需加载的 `LoginMascot` / `RiveLoginCat`，Rive 文件和 WASM 均随站点本地托管。
+- [x] 对接密码聚焦、表单聚焦与登录结果；处理资源失败、窄屏及卸载清理。
+- [x] 完成类型检查、生产构建、相关静态检查、素材测试与独立浏览器验收。
+
+## 交互细节
+
+| 场景 | 表现 |
+|---|---|
+| 闲置 | 轻微呼吸、间歇眨眼；鼠标左右移动时转头，方向切换设置不同进入与退出阈值，避免边界闪动 |
+| 聚焦表单 | 朝右侧表单看，并显示陪伴提示 |
+| 聚焦密码 | 分段抬爪捂眼，离开密码框后放爪；只接收聚焦状态，不读取密码 |
+| 登录成功 | 开心挥爪、轻微弹起；约 1.1 秒后保存会话并进入原目标页 |
+| 登录失败 | 低头轻摇与安慰提示；保留既有错误信息、验证码清空和刷新行为 |
+| 资源不可用 | 显示静态备用图，成功后直接完成登录 |
+| 默认启用 | 768px 及以上进入登录页即开启互动，包括系统设置为减少动态效果时；页面不再显示手动开启按钮 |
+| 小屏幕 | 768px 以下隐藏装饰角色，不加载 Rive，优先保持表单可用 |
+
+角色包含橘色虎斑、奶油色胸口、粉色肉垫和细密毛发。采用九张图片姿态与 Rive 轨道组合，并非原视频素材或实时三维模型。
+
+## 素材与维护
+
+- 唯一图片来源：`go-zero-admin-react/src/assets/login-cat-atlas.png`，1536 × 1536 透明图集，每格 512 × 512。
+- 生成入口：从前端目录运行 `node scripts/build-login-cat.mjs public/mascots/login-cat.riv src/assets/login-cat-atlas.png`；生成物不手工编辑。
+- 依赖：`@rive-app/react-canvas@4.38.0`、`@rive-app/canvas@2.48.0`；只新增这两项所需依赖。
+- 维护说明：[素材来源](../go-zero-admin-react/public/mascots/README.md)、[生成器说明](../go-zero-admin-react/scripts/build-login-cat.md)。
+
+## 验证边界
+
+本轮验证了前端与模拟成功/失败响应的联动，没有使用真实账号重新进行后端登录，也没有改变后端、验证码或接口契约。动画不接收密码内容，成功反馈使用固定短延时，不依赖动画完成事件无限等待。Rive 现有状态机输入 API 会给出弃用提示，当前固定版本支持此 API。
+
+## 页面截图
+
+以下截图来自独立验收页，验证码为测试展示值：
+
+![登录页猫咪](images/login-cat-ui.png)
+
+![输入密码时捂眼](images/login-cat-cover-ui.png)
+
+当前仓库既有未提交改动保留，本任务不自动提交或推送。

@@ -45,7 +45,7 @@ VITE_API_PROXY_TARGET=http://127.0.0.1:7001
 
 `VITE_API_BASE_URL` 控制浏览器请求前缀，默认 `/v1`；`VITE_API_PROXY_TARGET` 控制开发服务器的 `/v1` 和 `/ping` 代理。前端环境变量均会公开到客户端，不放任何密钥。
 
-后端使用 `../go-zero-admin/docker-compose.yml` 的 `gozero-platform` 栈，标准端口为 API 7001、MySQL 3307、Redis 16379、RustFS 19000。启动与环境说明见 [本地开发环境](../ai_document/dev-env.md)。
+后端使用 `../go-zero-admin/docker-compose.yml` 的 `gozero-platform` 栈，标准端口为 API 7001、MySQL 3307、Redis 16379、RustFS 19000。启动与环境说明见 [开发手册](../ai_document/dev-guide.md)。
 
 ## 对接约定
 
@@ -98,6 +98,6 @@ AI 消息和任务状态是展示数据，不代表本轮执行了模型或工�
 
 ## 后端联调与验收边界
 
-此前缺少 HTTP 入口、文件上传、角色分配及 `tenant_registry.admin_account_ready` 列等问题已在后续后端联调中处理。真实 SMTP、外部模型及浏览器上传等剩余事项见 [后端待办](../ai_document/backend-api-integration-issues.md)，历史证据见该文件中的 Git 记录链接。
+此前缺少 HTTP 入口、文件上传、角色分配及 `tenant_registry.admin_account_ready` 列等问题已在后续后端联调中处理。真实 SMTP、外部模型及浏览器上传等剩余事项见 [后端剩余事项](../ai_document/README.md#后端剩余事项)，历史证据见 git 历史。
 
 历史测试结果不自动证明后续改动通过；后续变更仍须按受影响行为运行类型检查、构建及实际页面验证。

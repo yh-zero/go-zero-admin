@@ -28,7 +28,7 @@
 .\data\scripts\gen.ps1 swagger          # Swagger（官方原生）
 ```
 
-数据层生成前，先在新开发库导入 `data/db/init/mysql-all.sql`；Compose 的 MySQL 空卷首次启动时会自动导入。初始化方式见 [本地开发环境](../ai_document/dev-env.md)。
+数据层生成前，先在新开发库导入 `data/db/init/mysql-all.sql`；Compose 的 MySQL 空卷首次启动时会自动导入。初始化方式见 [开发手册](../ai_document/dev-guide.md)。
 
 > 骨架阶段：`internal/`、`etc/`、`pb/`、`client/` 由 goctl 生成，当前仅含 desc 契约与部署骨架。
 
