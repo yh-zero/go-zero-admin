@@ -6,8 +6,6 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/zrpc"
-	"os"
-	"strconv"
 
 	"go-zero-admin/application/app/rpc/internal/config"
 	"go-zero-admin/application/app/rpc/internal/model"
@@ -29,23 +27,8 @@ type ServiceContext struct {
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
-	if c.SMTP.Host == "" {
-		c.SMTP.Host = os.Getenv("APP_SMTP_HOST")
-	}
-	if c.SMTP.Username == "" {
-		c.SMTP.Username = os.Getenv("APP_SMTP_USERNAME")
-	}
-	if c.SMTP.Password == "" {
-		c.SMTP.Password = os.Getenv("APP_SMTP_PASSWORD")
-	}
-	if c.SMTP.From == "" {
-		c.SMTP.From = os.Getenv("APP_SMTP_FROM")
-	}
 	if c.SMTP.From == "" {
 		c.SMTP.From = c.SMTP.Username
-	}
-	if port, err := strconv.Atoi(os.Getenv("APP_SMTP_PORT")); err == nil {
-		c.SMTP.Port = port
 	}
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	rdb := redis.MustNewRedis(c.CacheRedis[0].RedisConf)

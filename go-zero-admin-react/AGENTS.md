@@ -6,7 +6,7 @@
 
 React 19 + TypeScript（严格）+ Vite 8 + antd 6 + @ant-design/pro-components + react-router-dom 7 + @tanstack/react-query + zustand + axios + dayjs。
 
-- 新增依赖必须先经批准，并说明理由（同根规范 5）
+- 新增依赖必须先经批准，并说明理由（同根规范 6）
 - Node `^24`（`package.json` 的 `engines` 已锁定），包管理 `pnpm`（`packageManager` 字段已锁定）
 - 具体版本以 `package.json`、锁文件和实际安装结果为准；当前 antd 声明为 `^6.6.8`，不得按陈旧文档擅自升降级。
 
@@ -62,21 +62,16 @@ src/
 - 图标用 `@ant-design/icons`，禁止 emoji 当图标
 - 注释解释"为什么"；提交前删掉调试代码/console.log
 
-## 8. 禁止事项速查
-
-- ❌ 组件内裸 axios/fetch、useEffect 里裸请求、自造与契约不符的类型
-- ❌ index 作 key、useState 镜像表单值、手动 setState 同步服务端列表
-- ❌ `dangerouslySetInnerHTML` 渲染后端内容、emoji 当图标、提交残留 console.log
-
-## 9. 代码提交前自检（必过）
+## 8. 代码提交前自检（必过）
 
 工作目录为 `go-zero-admin-react/`：
 
 ```powershell
 pnpm exec tsc -b      # 类型零错误
+pnpm lint             # oxlint 零错误
 pnpm exec vite build  # 构建成功
 ```
 
-类型检查和构建不代替实际浏览器交互验收；按根规范 §7 对受影响行为验证。认证改动关注多标签同步、迟到响应和退出；UI 改动覆盖相关的拖拽、双击、折叠等状态。
+自检性质与验收要求按根 §8；认证改动关注多标签同步、迟到响应和退出；UI 改动覆盖相关的拖拽、双击、折叠等状态。
 
 纯文档或规则修改按根规范检查内容一致性、路径引用和差异，不要求运行上述构建。

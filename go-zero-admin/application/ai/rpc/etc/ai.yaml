@@ -1,4 +1,4 @@
-Name: ai-rpc
+﻿Name: ai-rpc
 ListenOn: 0.0.0.0:6004
 Timeout: 120000
 
@@ -10,12 +10,15 @@ CacheRedis:
     Type: node
 
 AI:
-  Enabled: false                 # 兼容旧开关；实际按 AI_<PROVIDER>_KEY 是否有值启停
+  Enabled: false                 # 鍏煎鏃у紑鍏筹紱瀹為檯鎸?AI_<PROVIDER>_KEY 鏄惁鏈夊€煎惎鍋?
   Provider: deepseek             # deepseek / qwen
   Model: deepseek-chat
   BaseURL: https://api.deepseek.com/v1
   TimeoutSeconds: 60
 
-  # 兼容历史配置字段，保持空值；运行时只读取 AI_DEEPSEEK_KEY / AI_QWEN_KEY。
-  DeepSeekKey:
-  QwenKey:
+  # 瀵嗛挜浜岄€変竴锛?
+  #   1) 鐩存帴濉湡瀹炲€硷紝绔嬪嵆鐢熸晥锛堟敞鎰忓埆鎻愪氦鍒板叕寮€浠撳簱锛?
+  #   2) 淇濇寔 ${...} 鍗犱綅绗︼紝浠庣幆澧冨彉閲忚鍙栵紱docker compose 浼氳浠撳簱鏍?.env.local锛屽涓?go run 璇峰湪鍚姩鍓?setx/export 鍚屽悕鍙橀噺
+  DeepSeekKey: ${AI_DEEPSEEK_KEY}
+  QwenKey: ${AI_QWEN_KEY}
+

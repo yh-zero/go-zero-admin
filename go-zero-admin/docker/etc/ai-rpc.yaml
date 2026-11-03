@@ -10,12 +10,14 @@ CacheRedis:
     Type: node
 
 AI:
-  Enabled: false                 # 兼容旧开关；实际按 AI_<PROVIDER>_KEY 是否有值启停
+  Enabled: false                 # 兼容旧开关；实际按密钥是否配置自动启停
   Provider: deepseek             # deepseek / qwen
   Model: deepseek-chat
   BaseURL: https://api.deepseek.com/v1
   TimeoutSeconds: 60
 
-  # 兼容历史配置字段，保持空值；运行时只读取 AI_DEEPSEEK_KEY / AI_QWEN_KEY。
-  DeepSeekKey:
-  QwenKey:
+  # 密钥二选一：
+  #   1) 直接填真实值，立即生效（注意别提交到公开仓库）
+  #   2) 保持 ${...} 占位符，从环境变量读取；docker compose 会读仓库根 .env.local，宿主 go run 请在启动前 setx/export 同名变量
+  DeepSeekKey: ${AI_DEEPSEEK_KEY}
+  QwenKey: ${AI_QWEN_KEY}

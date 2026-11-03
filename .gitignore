@@ -26,6 +26,3 @@ Thumbs.db
 
 # 日志
 *.log
-
-# 租户运行时生成的 Nginx 配置
-go-zero-admin/docker/nginx/conf.d/*.conf

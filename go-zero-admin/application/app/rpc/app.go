@@ -24,7 +24,7 @@ func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	conf.MustLoad(*configFile, &c, conf.UseEnv())
 	sqlx.DisableLog()
 	services := apppb.File_application_app_rpc_desc_app_proto.Services()
 	for i := 0; i < services.Len(); i++ {

@@ -23,7 +23,7 @@ func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	conf.MustLoad(*configFile, &c, conf.UseEnv())
 	// 对话内容、工具参数和个人字段不进入默认 RPC/SQL 内容日志。
 	sqlx.DisableLog()
 	services := aipb.File_application_ai_rpc_desc_ai_proto.Services()

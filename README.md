@@ -29,7 +29,7 @@ APP 端另有独立的认证、资料、会员和反馈接口。租户运行栈�
 
 ```powershell
 cd go-zero-admin
-if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.example .env.local }
+if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .env.local }
 # 按需编辑 .env.local，填写 AI Key 或 SMTP 邮箱及授权码
 powershell -NoProfile -ExecutionPolicy Bypass -File .\data\scripts\build-images.ps1
 docker compose --env-file .env.local up -d --build --wait
@@ -50,7 +50,7 @@ pnpm dev
 权限演示账号：`demo_all`、`demo_tree`、`demo_dept`、`demo_self`，分别查看全部、本部门及下级、本部门、本人数据，密码同上；`demo_tree` 可切换部门比较范围。APP 示例账号为 `alice@example.test`，密码同上。演示凭据仅限本地开发。
 
 - **初始化数据**：[mysql-all.sql](go-zero-admin/data/db/init/mysql-all.sql) 包含完整表结构与可公开的演示数据。MySQL 空数据卷首次启动自动导入；已有数据卷不会自动覆盖或更新。
-- **可选配置**：AI 和邮件不影响基础后台启动，配置项见 [.env.example](go-zero-admin/.env.example)。本地配置不提交到仓库；历史完整备份见 [20261102](go-zero-admin/data/db/init/20261102)，首次初始化仍使用 `mysql-all.sql`。
+- **可选配置**：AI 和邮件不影响基础后台启动，配置项见 [.env.local.example](go-zero-admin/.env.local.example)。本地配置不提交到仓库；历史完整备份见 [20261102](go-zero-admin/data/db/init/20261102)，首次初始化仍使用 `mysql-all.sql`。
 - **配置位置**：容器使用 `go-zero-admin/docker/etc/*.yaml`，宿主运行使用各服务的 `etc/*.yaml`。验证码开关为 admin-rpc 的 `Captcha.Enabled`。
 
 详细启动、数据库初始化和排障说明见 [开发手册](ai_document/dev-guide.md)，未覆盖的外部联调和异常场景见 [剩余事项](ai_document/README.md#后端剩余事项)。

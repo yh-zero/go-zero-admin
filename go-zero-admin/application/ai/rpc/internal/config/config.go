@@ -11,14 +11,16 @@ type Config struct {
 	Mysql      struct{ DataSource string }
 	CacheRedis cache.CacheConf
 
-	AI struct {
-		Enabled        bool   `json:",default=false"`
-		Provider       string `json:",optional"`
-		Model          string `json:",optional"`
-		BaseURL        string `json:",optional"`
-		TimeoutSeconds int64  `json:",default=60"`
-		// 兼容旧 YAML 字段但不读取其值；密钥统一使用 AI_<PROVIDER>_KEY 环境变量。
-		DeepSeekKey string `json:",optional"`
-		QwenKey     string `json:",optional"`
-	}
+	AI ConfigAI
+}
+
+// ConfigAI AI 模型配置；密钥支持直填或 ${AI_DEEPSEEK_KEY}/${AI_QWEN_KEY} 占位符（conf.UseEnv 展开）。
+type ConfigAI struct {
+	Enabled        bool   `json:",default=false"`
+	Provider       string `json:",optional"`
+	Model          string `json:",optional"`
+	BaseURL        string `json:",optional"`
+	TimeoutSeconds int64  `json:",default=60"`
+	DeepSeekKey    string `json:",optional"`
+	QwenKey        string `json:",optional"`
 }

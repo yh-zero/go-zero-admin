@@ -2,8 +2,6 @@ package svc
 
 import (
 	"net/url"
-	"os"
-	"regexp"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -30,32 +28,9 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	rdb := redis.MustNewRedis(c.CacheRedis[0].RedisConf)
 
-	// 仅从约定环境变量读取密钥；不从 YAML 回退，避免误将凭据提交仓库。
-	var llmClient *llm.Client
-	provider := strings.ToUpper(strings.TrimSpace(c.AI.Provider))
-	apiKey := strings.TrimSpace(os.Getenv("AI_" + provider + "_KEY"))
-	c.AI.Enabled = apiKey != ""
-	if c.AI.Enabled {
-		if !regexp.MustCompile(`^[A-Z][A-Z0-9_]*$`).MatchString(provider) {
-			panic("AI.Provider 配置无效")
-		}
-		endpoint, err := url.Parse(c.AI.BaseURL)
-		if err != nil || endpoint.Hostname() == "" || (endpoint.Scheme != "http" && endpoint.Scheme != "https") || endpoint.User != nil || endpoint.RawQuery != "" || endpoint.Fragment != "" || strings.TrimSpace(c.AI.Model) == "" {
-			panic("AI 模型或地址配置无效")
-		}
-		if c.AI.TimeoutSeconds < 1 || c.AI.TimeoutSeconds > 90 {
-			panic("AI.TimeoutSeconds 必须为 1..90")
-		}
-		llmClient, err = llm.New(llm.Config{
-			BaseURL: c.AI.BaseURL,
-			APIKey:  apiKey,
-			Model:   c.AI.Model,
-			Timeout: c.AI.TimeoutSeconds,
-		})
-		if err != nil {
-			panic("AI 客户端初始化失败，请检查配置")
-		}
-	}
+	ai := c.AI
+	ai.Enabled = newLLMEnabled(ai)
+	llmClient := newLLMClient(ai)
 
 	return &ServiceContext{
 		Config:              c,
@@ -67,4 +42,44 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		AiWorkflowModel:     model.NewAiWorkflowModel(conn, c.CacheRedis),
 		AiTaskModel:         model.NewAiTaskModel(conn, c.CacheRedis),
 	}
+}
+
+// newLLMEnabled 按 Provider 取到密钥即视为启用；密钥支持 yaml 直填或环境变量占位符（conf.UseEnv 加载时已展开）。
+func newLLMEnabled(ai config.ConfigAI) bool {
+	provider := strings.ToUpper(strings.TrimSpace(ai.Provider))
+	switch provider {
+	case "DEEPSEEK":
+		return strings.TrimSpace(ai.DeepSeekKey) != ""
+	case "QWEN":
+		return strings.TrimSpace(ai.QwenKey) != ""
+	}
+	return false
+}
+
+// newLLMClient 校验配置并组装 LLM client；未启用或配置无效时返回 nil，由 AI 接口返回降级提示。
+func newLLMClient(ai config.ConfigAI) *llm.Client {
+	if !ai.Enabled {
+		return nil
+	}
+	endpoint, err := url.Parse(ai.BaseURL)
+	if err != nil || endpoint.Hostname() == "" || (endpoint.Scheme != "http" && endpoint.Scheme != "https") || endpoint.User != nil || endpoint.RawQuery != "" || endpoint.Fragment != "" || strings.TrimSpace(ai.Model) == "" {
+		panic("AI 模型或地址配置无效")
+	}
+	if ai.TimeoutSeconds < 1 || ai.TimeoutSeconds > 90 {
+		panic("AI.TimeoutSeconds 必须为 1..90")
+	}
+	apiKey := strings.TrimSpace(ai.DeepSeekKey)
+	if strings.ToUpper(strings.TrimSpace(ai.Provider)) == "QWEN" {
+		apiKey = strings.TrimSpace(ai.QwenKey)
+	}
+	client, err := llm.New(llm.Config{
+		BaseURL: ai.BaseURL,
+		APIKey:  apiKey,
+		Model:   ai.Model,
+		Timeout: ai.TimeoutSeconds,
+	})
+	if err != nil {
+		panic("AI 客户端初始化失败，请检查配置")
+	}
+	return client
 }

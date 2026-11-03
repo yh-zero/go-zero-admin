@@ -45,12 +45,10 @@ services:
     build: { context: ., dockerfile: docker/Dockerfile, target: app-rpc }
     volumes:
       - ./docker/etc/app-rpc.yaml:/app/etc/app.yaml:ro
-    environment:
-      APP_SMTP_HOST: "${APP_SMTP_HOST:-}"
-      APP_SMTP_PORT: "${APP_SMTP_PORT:-587}"
-      APP_SMTP_USERNAME: "${APP_SMTP_USERNAME:-}"
-      APP_SMTP_PASSWORD: "${APP_SMTP_PASSWORD:-}"
-      APP_SMTP_FROM: "${APP_SMTP_FROM:-}"
+    # AI/SMTP 等密钥统一由 .env.local 注入（gitignore）；文件缺失也可启动，对应功能降级
+    env_file:
+      - path: .env.local
+        required: false
     depends_on:
       mysql: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -68,9 +66,9 @@ services:
     build: { context: ., dockerfile: docker/Dockerfile, target: ai-rpc }
     volumes:
       - ./docker/etc/ai-rpc.yaml:/app/etc/ai.yaml:ro
-    environment:
-      AI_DEEPSEEK_KEY: "${AI_DEEPSEEK_KEY:-}"
-      AI_QWEN_KEY: "${AI_QWEN_KEY:-}"
+    env_file:
+      - path: .env.local
+        required: false
     depends_on:
       mysql: { condition: service_healthy }
       redis: { condition: service_healthy }

@@ -23,9 +23,10 @@ EmailVerificationRequired: true
 SMTP:
   Host: smtp.163.com
   Port: 465
-  Username: ""
-  Password: ""
-  From: ""
+  # 凭据：直接填真实值即可生效；保持 ${...} 占位符则从环境变量读取（conf.UseEnv 展开）
+  Username: ${APP_SMTP_USERNAME}
+  Password: ${APP_SMTP_PASSWORD}
+  From: ${APP_SMTP_FROM}
   FromName: 帅浩            # 收件人看到的发件人名称
   ValidSeconds: 600         # 验证码有效10分钟；到期或验证成功后删除
   ImplicitTLS: false

@@ -36,7 +36,7 @@ pnpm lint
 # pnpm build 等价于 tsc -b && vite build
 ```
 
-默认前端地址 `http://127.0.0.1:5999`，端口占用时直接报错，开发代理默认指向后端 7001。可复制 `.env.example` 到被忽略的 `.env.local`，指定另一个已启动的后端：
+默认前端地址 `http://127.0.0.1:5999`，端口占用时直接报错，开发代理默认指向后端 7001。可复制 `.env.local.example` 到被忽略的 `.env.local`，指定另一个已启动的后端：
 
 ```dotenv
 VITE_API_BASE_URL=/v1

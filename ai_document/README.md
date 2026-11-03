@@ -1,6 +1,6 @@
 # ai_document
 
-长期知识库：架构决策 / 契约 / 开发手册。过程性记录放 git 提交信息，不进本目录。
+长期知识库：架构决策 / 契约 / 开发手册。提交级过程记录放 git 提交信息；较完整的实施/验证台账放 change-log.md。
 
 ## 目录约定
 
@@ -15,6 +15,7 @@
 | [ai-agent-roadmap.md](ai-agent-roadmap.md) | AI Agent 阶段建议、长期功能与首版边界 | 待开发规划 |
 | [api-contract.md](api-contract.md) | 前后端共享 API 契约 + 接口实现状态矩阵 | **唯一契约事实源** |
 | [dev-guide.md](dev-guide.md) | 环境拓扑与联调 SOP、踩坑清单、登录猫动画维护 | 开发手册 |
+| [change-log.md](change-log.md) | 历史实施与验证台账（按日期组织，只追加） | 历史追溯 |
 
 数据库初始化唯一入口为 [mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql)：新建库导入完整 SQL，Compose 空卷首启自动导入；模型由 `gen.ps1 model` 从已导入的开发库反射生成。
 
