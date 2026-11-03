@@ -110,7 +110,7 @@ Rive 猫咪默认开启互动，支持呼吸、眨眼、鼠标跟随、输入密
 ## 开发文档
 
 - [开发手册](ai_document/dev-guide.md)：环境、启动、初始化、排障与猫咪动画维护
-- [API 契约](ai_document/api-contract.md)：字段、权限和当前验证范围
+- [API 契约](ai_document/api-contract.md)：当前字段、权限、业务语义和能力边界；未完成事项见[问题清单](ai_document/README.md#后端剩余事项)
 - [架构规划](ai_document/refactor-plan.md)：架构与后续方向
 - [前端说明](go-zero-admin-react/README.md)：页面、命令与对接约定
 - [开发规范](AGENTS.md)：通用规则及前后端规范入口

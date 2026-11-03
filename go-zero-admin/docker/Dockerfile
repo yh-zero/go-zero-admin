@@ -1,4 +1,4 @@
-# 打包镜像：api / admin-rpc / app-rpc / file-rpc / ai-rpc / tenant-rpc（数据库完整初始化见 dev-guide.md §2）
+# 打包镜像：api / admin-rpc / app-rpc / file-rpc / ai-rpc / tenant-rpc（数据库完整初始化见 dev-guide.md“数据初始化”）
 # 离线约束：Docker Hub 不可达，二进制由 data/scripts/build-images.ps1 在宿主交叉编译到 docker/.build/
 # 基础镜像只用本地已有的 alpine:3.24.2；CA 证书从本地 golang:1.27.1-alpine 复制（ai-rpc 出站 HTTPS 需要）
 

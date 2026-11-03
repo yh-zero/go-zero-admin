@@ -1,38 +1,37 @@
-# AGENTS.md — 前端开发规范（React 规范优先）
+# AGENTS.md — 前端开发规范（React 实践 + 仓库约定）
 
 > 先读仓库根 `../AGENTS.md`（通用纪律），再读本文件。冲突时以本文件为准。
 
-## 1. 技术栈（固定，禁止擅自新增依赖）
+## 1. 技术栈与依赖
 
-React 19 + TypeScript（严格）+ Vite 8 + antd 6 + @ant-design/pro-components + react-router-dom 7 + @tanstack/react-query + zustand + axios + dayjs。
+沿用 React 函数组件、TypeScript 严格模式、Vite、antd、TanStack Query、zustand 与现有请求封装；版本和已安装依赖以 `package.json`、锁文件及实际安装为准，不在本文重复维护。
 
 - 新增依赖必须先经批准，并说明理由（同根规范 6）
-- Node `^24`（`package.json` 的 `engines` 已锁定），包管理 `pnpm`（`packageManager` 字段已锁定）
-- 具体版本以 `package.json`、锁文件和实际安装结果为准；当前 antd 声明为 `^6.6.8`，不得按陈旧文档擅自升降级。
+- Node 与 pnpm 分别按 `engines` / `packageManager`；依赖操作遵守根“安全基线”，不为迎合文档擅自升降级
 
 ## 2. React 规范
 
 1. **函数组件 + Hooks**，禁止 class 组件
 2. 组件文件 `PascalCase`（`UserList.tsx`）；hooks 文件 `useXxx.ts`；工具函数 `camelCase.ts`
 3. props 必须显式类型；事件回调命名 `onXxx`；列表渲染 key 用稳定 id，**禁止 index 作 key**
-4. 副作用进 `useEffect` 并保持纯净；自定义 hook 封装可复用逻辑
-5. 组件超过约 100 行或嵌套超 3 层时，审查职责与可读性，再决定是否拆分；不按行数或层数机械拆分。
+4. render 保持纯净；外部订阅、资源生命周期用 `useEffect` 并清理，用户操作在事件/Mutation 中处理，不把所有副作用机械搬进 Effect
+5. 抽组件/hook 以独立职责、复用或测试收益为准，不为行数、嵌套层数增加转发层；纯整理不改变交互和状态语义
 
-## 3. 对接铁律（契约见 ../ai_document/api-contract.md）
+## 3. 接口对接（契约见 ../ai_document/api-contract.md）
 
-1. **所有请求走 `src/utils/request.ts`**，禁止组件内裸 axios/fetch
+1. **业务 API 请求走 `src/utils/request.ts`**，API 函数放 `src/api/`，禁止组件内裸 axios/fetch 绕过认证、错误和会话处理
 2. **接口请求/响应类型统一从 `src/api/types.ts` 导入**；当前按共享契约及核对后的后端类型手工维护，没有现成的 TypeScript 类型生成入口。禁止自造与契约不符的接口类型；组件 Props、UI 状态类型可在所属组件或模块定义。
-3. 错误处理：拦截器已统一弹错 + 401 跳登录；组件内 catch **只做降级**（如按钮恢复），不重复 `message.error`
-4. 写操作成功后调用 `queryClient.invalidateQueries` 刷新相关列表，禁止手动 setState 同步列表
+3. 请求层统一处理错误及会话失效；组件可做字段提示、失败反馈和恢复交互，但不重复弹同一错误，也不吞掉失败伪装成功
+4. 写成功后默认 `queryClient.invalidateQueries` 刷新受影响缓存；确需精确缓存更新/乐观更新时使用 Query 缓存 API 并验证回滚和一致性，不另用组件 state 长期维护服务器列表副本
 5. 分页/过滤参数与契约 §4 一致（`page`/`page_size` → `list`/`total`）
 
 ## 4. 状态纪律
 
 | 状态 | 归属 |
 |---|---|
-| 服务端数据（接口返回） | **一律 TanStack Query**，`useQuery`/`useMutation`；禁止 useEffect 里裸请求 |
-| 客户端状态（token/permCodes/主题） | zustand（`stores/`） |
-| 表单状态 | antd Form 自管理，不用 useState 镜像表单值 |
+| 常规服务端查询与业务写操作 | 默认 `useQuery`/`useMutation`；不在 Effect 裸请求或复制缓存到 state |
+| 会话、权限快照、主题等共享客户端状态 | 沿用 zustand 与既有会话流程，不强制把登录/刷新状态机改造成普通查询 |
+| 表单与局部交互 | antd Form 管表单值，展开/选择/动画等用局部状态；避免与 Form 或 Query 双份维护 |
 
 ## 5. 目录规范
 
@@ -72,6 +71,6 @@ pnpm lint             # oxlint 零错误
 pnpm exec vite build  # 构建成功
 ```
 
-自检性质与验收要求按根 §8；认证改动关注多标签同步、迟到响应和退出；UI 改动覆盖相关的拖拽、双击、折叠等状态。
+本地与 CI 应执行同一组门槛；当前 CI 尚缺 lint，见 `../ai_document/README.md` 待办，不因 CI 缺项省略本地检查。业务变更补可重复回归并验证受影响交互；认证/权限/状态竞争场景按根 §8。
 
 纯文档或规则修改按根规范检查内容一致性、路径引用和差异，不要求运行上述构建。
