@@ -2,6 +2,7 @@ package menu
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -22,6 +23,9 @@ func NewGetMyMenusLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMyM
 }
 
 func (l *GetMyMenusLogic) GetMyMenus(req *types.GetMyMenusReq) (resp *types.GetMyMenusResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	actor := middleware.ActorFromContext(l.ctx)
 	rpcResp, err := l.svcCtx.MenuRpc.GetMyMenus(l.ctx, &adminpb.GetMyMenusRequest{Actor: actor})
 	if err != nil {

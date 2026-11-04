@@ -19,6 +19,9 @@ func NewRevokeAppSessionLogic(ctx context.Context, s *svc.ServiceContext) *Revok
 	return &RevokeAppSessionLogic{ctx, s, logx.WithContext(ctx)}
 }
 func (l *RevokeAppSessionLogic) RevokeAppSession(req *types.AppAdminRevokeReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	if l.svcCtx.AppAdminRpc == nil {
 		return nil, xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE)
 	}

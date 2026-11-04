@@ -19,6 +19,9 @@ func NewAppRegisterLogic(ctx context.Context, s *svc.ServiceContext) *AppRegiste
 	return &AppRegisterLogic{ctx, s, logx.WithContext(ctx)}
 }
 func (l *AppRegisterLogic) AppRegister(req *types.AppRegisterReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	if l.svcCtx.AppAuthRpc == nil {
 		return nil, xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE)
 	}

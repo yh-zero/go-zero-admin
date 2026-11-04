@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -22,6 +23,9 @@ func NewDeleteFileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeleteFileLogic) DeleteFile(req *types.DeleteFileReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	_, err := l.svcCtx.FileRpc.DeleteFile(l.ctx, &filepb.DeleteFileRequest{
 		Actor: &filepb.Actor{UserID: userID}, FileID: req.Id,

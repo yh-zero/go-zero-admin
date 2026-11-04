@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"go-zero-admin/application/admin/api/internal/middleware"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -22,6 +23,9 @@ func NewUpdateUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 }
 
 func (l *UpdateUserLogic) UpdateUser(req *types.UpdateUserReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	_, err := l.svcCtx.UserRpc.UpdateUser(l.ctx, &adminpb.UpdateUserRequest{
 		Actor: middleware.ActorFromContext(l.ctx), RoleIds: req.RoleIds, UpdateRoles: req.RoleIds != nil,
 		UserId: req.Id, Nickname: req.Nickname,

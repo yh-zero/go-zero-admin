@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -21,6 +22,9 @@ func NewGetApiListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetApi
 }
 
 func (l *GetApiListLogic) GetApiList(req *types.GetApiListReq) (resp *types.GetApiListResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	rpcResp, err := l.svcCtx.ApiRpc.GetApiList(l.ctx, &adminpb.GetApiListRequest{
 		Page:  &adminpb.PageRequest{Page: req.Page, PageSize: req.PageSize},
 		Group: req.Group, Method: req.Method, Path: req.Path,

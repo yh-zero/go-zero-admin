@@ -30,7 +30,7 @@
 
 数据层生成前，先在新开发库导入 `data/db/init/mysql-all.sql`；Compose 的 MySQL 空卷首次启动时会自动导入。初始化方式见 [开发手册](../ai_document/dev-guide.md)。
 
-> 当前已有 API/RPC 业务实现、model 扩展和部署配置，不是仅含 desc 的骨架。生成物与可维护骨架须按 [AGENTS.md 的文件分类](AGENTS.md#2-开发与生成规则)分别处理，不能把整个 `internal/`、配置或主入口都视为禁止编辑的生成物。
+> 当前已有 API/RPC 业务实现、model 扩展和部署配置，不是仅含 desc 的骨架。生成物与可维护骨架须按 [AGENTS.md 的文件分类](AGENTS.md#2-生成入口与文件边界官方规则之上的项目适配)分别处理，不能把整个 `internal/`、配置或主入口都视为禁止编辑的生成物。
 
 ## AI 协作开发（Codex / DSH / Claude Code / 其他）
 

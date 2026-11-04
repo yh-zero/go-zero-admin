@@ -5,6 +5,7 @@ package auth
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -29,6 +30,9 @@ func NewListDeviceSessionsLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 }
 
 func (l *ListDeviceSessionsLogic) ListDeviceSessions(req *types.ListDeviceSessionsReq) (resp *types.ListDeviceSessionsResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	userId, _ := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	sessionId, _ := l.ctx.Value(middleware.CtxKeySessionId).(string)
 	rpcResp, err := l.svcCtx.AuthRpc.ListDeviceSessions(l.ctx, &adminpb.ListDeviceSessionsRequest{Actor: &adminpb.Actor{UserId: userId}, CurrentSessionId: sessionId})

@@ -2,6 +2,7 @@ package menu
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -22,6 +23,9 @@ func NewDeleteMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeleteMenuLogic) DeleteMenu(req *types.DeleteMenuReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	actor := &adminpb.Actor{UserId: userID}
 	_, err := l.svcCtx.MenuRpc.DeleteMenu(l.ctx, &adminpb.DeleteMenuRequest{Actor: actor, MenuId: req.Id})

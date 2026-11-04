@@ -29,6 +29,9 @@ func NewSubmitAppFeedbackLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 }
 
 func (l *SubmitAppFeedbackLogic) SubmitAppFeedback(req *types.AppSubmitFeedbackReq) (resp *types.EmptyResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	if l.svcCtx.AppAuthRpc == nil {
 		return nil, xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE)
 	}

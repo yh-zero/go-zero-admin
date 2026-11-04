@@ -2,6 +2,7 @@ package menu
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -21,6 +22,9 @@ func NewGetMenuTreeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMe
 }
 
 func (l *GetMenuTreeLogic) GetMenuTree(req *types.GetMenuTreeReq) (resp *types.GetMenuTreeResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	rpcResp, err := l.svcCtx.MenuRpc.GetMenuTree(l.ctx, &adminpb.GetMenuTreeRequest{Type: req.Type, Status: req.Status})
 	if err != nil {
 		return nil, err

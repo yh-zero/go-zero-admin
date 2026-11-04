@@ -6,7 +6,7 @@
 #   .\data\scripts\gen.ps1 model <module> <table>  生成数据层（goctl model，带缓存；需先导入完整初始化 SQL）
 #   .\data\scripts\gen.ps1 swagger              生成 Swagger（官方原生输出）
 #
-# 前提：goctl v1.10.2 已安装，本地开发库已导入 data/db/init/mysql-all.sql。生成后请检查差异，保留手写业务逻辑。
+# 前提：goctl v1.10.2 已安装；protoc-gen-go v1.36.12 与 protoc-gen-go-grpc v1.6.2 与已提交 pb 产物一致（版本漂移会导致重新生成出现版本头差异）。本地开发库已导入 data/db/init/mysql-all.sql。生成后请检查差异，保留手写业务逻辑。
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)][ValidateSet('api', 'rpc', 'model', 'swagger')][string]$Command,

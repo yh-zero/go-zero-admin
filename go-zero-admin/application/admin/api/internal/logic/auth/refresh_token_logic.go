@@ -5,6 +5,7 @@ package auth
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -30,6 +31,9 @@ func NewRefreshTokenLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Refr
 }
 
 func (l *RefreshTokenLogic) RefreshToken(req *types.RefreshTokenReq) (resp *types.LoginResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	ip, _ := l.ctx.Value(middleware.CtxKeyClientIP).(string)
 	ua, _ := l.ctx.Value(middleware.CtxKeyUserAgent).(string)
 	rpcResp, err := l.svcCtx.AuthRpc.RefreshToken(l.ctx, &adminpb.RefreshTokenRequest{RefreshToken: req.RefreshToken, Ip: ip, UserAgent: ua})

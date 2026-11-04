@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"go-zero-admin/application/admin/api/internal/middleware"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -22,6 +23,9 @@ func NewDeleteUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeleteUserLogic) DeleteUser(req *types.DeleteUserReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	_, err := l.svcCtx.UserRpc.DeleteUser(l.ctx, &adminpb.DeleteUserRequest{Actor: middleware.ActorFromContext(l.ctx), UserId: req.Id})
 	if err != nil {
 		return nil, err

@@ -30,6 +30,9 @@ func NewListAppFeedbackLogic(ctx context.Context, svcCtx *svc.ServiceContext) *L
 }
 
 func (l *ListAppFeedbackLogic) ListAppFeedback(req *types.AppFeedbackListReq) (resp *types.AppFeedbackListResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	if l.svcCtx.AppAdminRpc == nil {
 		return nil, xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE)
 	}

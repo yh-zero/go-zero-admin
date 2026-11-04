@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"go-zero-admin/application/admin/api/internal/middleware"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -22,6 +23,9 @@ func NewChangePasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ch
 }
 
 func (l *ChangePasswordLogic) ChangePassword(req *types.ChangePasswordReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	_, err := l.svcCtx.UserRpc.ChangePassword(l.ctx, &adminpb.ChangePasswordRequest{
 		Actor:       &adminpb.Actor{UserId: userID},

@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -21,6 +22,9 @@ func NewGetRoleListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetRo
 }
 
 func (l *GetRoleListLogic) GetRoleList(req *types.GetRoleListReq) (resp *types.GetRoleListResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	rpcResp, err := l.svcCtx.RoleRpc.GetRoleList(l.ctx, &adminpb.GetRoleListRequest{
 		Page: &adminpb.PageRequest{Page: req.Page, PageSize: req.PageSize},
 		Name: req.Name, Code: req.Code, Status: req.Status,

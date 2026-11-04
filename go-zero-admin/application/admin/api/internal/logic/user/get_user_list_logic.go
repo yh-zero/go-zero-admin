@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"go-zero-admin/application/admin/api/internal/middleware"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -26,6 +27,9 @@ func NewGetUserListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUs
 }
 
 func (l *GetUserListLogic) GetUserList(req *types.GetUserListReq) (resp *types.GetUserListResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	rpcResp, err := l.svcCtx.UserRpc.GetUserList(l.ctx, &adminpb.GetUserListRequest{
 		Actor:    middleware.ActorFromContext(l.ctx),
 		Page:     &adminpb.PageRequest{Page: req.Page, PageSize: req.PageSize},

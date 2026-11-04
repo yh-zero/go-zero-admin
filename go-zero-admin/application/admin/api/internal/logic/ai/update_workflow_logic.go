@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -19,6 +20,9 @@ func NewUpdateWorkflowLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Up
 	return &UpdateWorkflowLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 func (l *UpdateWorkflowLogic) UpdateWorkflow(req *types.AiUpdateWorkflowReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	actor, err := actorForAi(l.ctx, l.svcCtx)
 	if err != nil {
 		return nil, err

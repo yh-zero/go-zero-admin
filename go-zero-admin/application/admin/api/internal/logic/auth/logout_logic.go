@@ -5,6 +5,7 @@ package auth
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -29,6 +30,9 @@ func NewLogoutLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LogoutLogi
 }
 
 func (l *LogoutLogic) Logout(req *types.LogoutReq) (resp *types.EmptyResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	token, _ := l.ctx.Value(middleware.CtxKeyAccessToken).(string)
 	_, err = l.svcCtx.AuthRpc.Logout(l.ctx, &adminpb.LogoutRequest{AccessToken: token, AllDevices: req.AllDevices})
 	if err != nil {

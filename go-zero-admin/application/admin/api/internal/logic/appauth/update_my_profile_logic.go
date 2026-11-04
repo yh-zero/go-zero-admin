@@ -19,6 +19,9 @@ func NewUpdateMyProfileLogic(ctx context.Context, s *svc.ServiceContext) *Update
 	return &UpdateMyProfileLogic{ctx, s, logx.WithContext(ctx)}
 }
 func (l *UpdateMyProfileLogic) UpdateMyProfile(req *types.AppUpdateProfileReq) (*types.AppProfileResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	if l.svcCtx.AppAuthRpc == nil {
 		return nil, xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE)
 	}

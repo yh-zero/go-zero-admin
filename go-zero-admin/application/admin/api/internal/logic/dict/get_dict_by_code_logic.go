@@ -2,6 +2,7 @@ package dict
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -21,6 +22,9 @@ func NewGetDictByCodeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get
 }
 
 func (l *GetDictByCodeLogic) GetDictByCode(req *types.GetDictByCodeReq) (resp *types.GetDictByCodeResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	rpcResp, err := l.svcCtx.DictRpc.GetDictByCode(l.ctx, &adminpb.GetDictByCodeRequest{Code: req.Code})
 	if err != nil {
 		return nil, err

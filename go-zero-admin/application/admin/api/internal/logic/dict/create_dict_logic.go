@@ -2,6 +2,7 @@ package dict
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -22,6 +23,9 @@ func NewCreateDictLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 }
 
 func (l *CreateDictLogic) CreateDict(req *types.CreateDictReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	actor := &adminpb.Actor{UserId: userID}
 	_, err := l.svcCtx.DictRpc.CreateDict(l.ctx, &adminpb.CreateDictRequest{

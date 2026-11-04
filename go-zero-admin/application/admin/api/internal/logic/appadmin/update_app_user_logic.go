@@ -29,6 +29,9 @@ func NewUpdateAppUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Upd
 }
 
 func (l *UpdateAppUserLogic) UpdateAppUser(req *types.AppUpdateUserReq) (resp *types.EmptyResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	if l.svcCtx.AppAdminRpc == nil {
 		return nil, xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE)
 	}
