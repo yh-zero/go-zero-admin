@@ -6,58 +6,55 @@ info (
 )
 
 type (
-    DeptInfo {
-        Id        int64  `json:"id"`
-        ParentId  int64  `json:"parent_id"`
-        Name      string `json:"name"`
-        Leader    string `json:"leader"`
-        Phone     string `json:"phone"`
-        Email     string `json:"email"`
-        Sort      int32  `json:"sort"`
-        Status    int32  `json:"status"`
-        Path      string `json:"path"`
-        CreatedAt int64  `json:"created_at"`
-        LeaderUserId int64 `json:"leader_user_id"`
-        MemberCount int64 `json:"member_count"`
-        MembersVisible bool `json:"members_visible"`
-    }
-
-    GetDeptTreeReq {
-        Status int32 `json:"status,optional" form:"status,optional" validate:"omitempty,oneof=1 2"`
-    }
-    GetDeptTreeResp {
-        List []*DeptInfo `json:"list"`
-    }
-
-    CreateDeptReq {
-        ParentId int64  `json:"parent_id,optional"`
-        Name     string `json:"name" validate:"max=64"`
-        Leader   string `json:"leader,optional" validate:"omitempty,max=64"`
-        LeaderUserId int64 `json:"leader_user_id,optional"`
-        Phone    string `json:"phone,optional" validate:"omitempty,max=20"`
-        Email    string `json:"email,optional" validate:"omitempty,email,max=128"`
-        Sort     int32  `json:"sort,optional"`
-        Status   int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
-    }
-
-    UpdateDeptReq {
-        Id       int64  `path:"id" validate:"min=1"`
-        ParentId *int64  `json:"parent_id,optional"`
-        Name     *string `json:"name,optional" validate:"omitempty,max=64"`
-        Leader   *string `json:"leader,optional" validate:"omitempty,max=64"`
-        LeaderUserId *int64 `json:"leader_user_id,optional"`
-        Phone    *string `json:"phone,optional" validate:"omitempty,max=20"`
-        Email    *string `json:"email,optional" validate:"omitempty,email,max=128"`
-        Sort     *int32  `json:"sort,optional"`
-        Status   *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
-    }
-
-    GetMyDeptsReq {}
-    GetMyDeptsResp { List []*DeptInfo `json:"list"` }
-
-    DeleteDeptReq {
-        Id int64 `path:"id" validate:"min=1"`
-    }
+	DeptInfo {
+		Id             int64  `json:"id"`
+		ParentId       int64  `json:"parent_id"`
+		Name           string `json:"name"`
+		Leader         string `json:"leader"`
+		Phone          string `json:"phone"`
+		Email          string `json:"email"`
+		Sort           int32  `json:"sort"`
+		Status         int32  `json:"status"`
+		Path           string `json:"path"`
+		CreatedAt      int64  `json:"created_at"`
+		LeaderUserId   int64  `json:"leader_user_id"`
+		MemberCount    int64  `json:"member_count"`
+		MembersVisible bool   `json:"members_visible"`
+	}
+	GetDeptTreeReq {
+		Status int32 `json:"status,optional" form:"status,optional" validate:"omitempty,oneof=1 2"`
+	}
+	GetDeptTreeResp {
+		List []*DeptInfo `json:"list"`
+	}
+	CreateDeptReq {
+		ParentId     int64  `json:"parent_id,optional"`
+		Name         string `json:"name" validate:"max=64"`
+		Leader       string `json:"leader,optional" validate:"omitempty,max=64"`
+		LeaderUserId int64  `json:"leader_user_id,optional"`
+		Phone        string `json:"phone,optional" validate:"omitempty,max=20"`
+		Email        string `json:"email,optional" validate:"omitempty,email,max=128"`
+		Sort         int32  `json:"sort,optional"`
+		Status       int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	}
+	UpdateDeptReq {
+		Id           int64   `path:"id" validate:"min=1"`
+		ParentId     *int64  `json:"parent_id,optional"`
+		Name         *string `json:"name,optional" validate:"omitempty,max=64"`
+		Leader       *string `json:"leader,optional" validate:"omitempty,max=64"`
+		LeaderUserId *int64  `json:"leader_user_id,optional"`
+		Phone        *string `json:"phone,optional" validate:"omitempty,max=20"`
+		Email        *string `json:"email,optional" validate:"omitempty,email_or_empty,max=128"`
+		Sort         *int32  `json:"sort,optional"`
+		Status       *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	}
+	GetMyDeptsReq  {}
+	GetMyDeptsResp {
+		List []*DeptInfo `json:"list"`
+	}
+	DeleteDeptReq {
+		Id int64 `path:"id" validate:"min=1"`
+	}
 )
 
 @server (
@@ -65,8 +62,8 @@ type (
 	group:  dept
 )
 service admin {
-    @handler getMyDepts
-    get /my (GetMyDeptsReq) returns (GetMyDeptsResp)
+	@handler getMyDepts
+	get /my (GetMyDeptsReq) returns (GetMyDeptsResp)
 
 	@handler getDeptTree
 	get /tree (GetDeptTreeReq) returns (GetDeptTreeResp)

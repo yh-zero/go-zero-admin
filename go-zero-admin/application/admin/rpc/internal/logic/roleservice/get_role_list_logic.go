@@ -22,6 +22,9 @@ func NewGetRoleListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetRo
 }
 
 func (l *GetRoleListLogic) GetRoleList(in *adminpb.GetRoleListRequest) (*adminpb.GetRoleListResponse, error) {
+	if err := requireRoleActor(l.ctx, l.svcCtx, in.GetActor()); err != nil {
+		return nil, err
+	}
 	rows, total, err := l.svcCtx.SysRoleModel.ListRolePage(l.ctx, model.RoleListFilter{
 		Name: in.Name, Code: in.Code, Status: int64(in.Status),
 	}, in.GetPage().GetPage(), in.GetPage().GetPageSize())

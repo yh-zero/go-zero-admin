@@ -21,11 +21,14 @@ func (l *ApproveTaskLogic) ApproveTask(in *aipb.ApproveTaskRequest) (*aipb.NoDat
 	if err := requireAiActor(in.Actor); err != nil {
 		return nil, err
 	}
+	if in.ExpectedStep == nil || *in.ExpectedStep < 0 {
+		return nil, xerr.NewErrCodeMsg(400, "expected_step 必填且不得为负")
+	}
 	task, err := l.svcCtx.AiTaskModel.FindOwned(l.ctx, in.TaskId, in.Actor.UserId)
 	if err != nil {
 		return nil, aiModelError(err)
 	}
-	if task.Status != "pending_approval" {
+	if task.Status != "pending_approval" || task.NextStep != *in.ExpectedStep {
 		return nil, xerr.NewErrCodeMsg(400, "任务不在待审批状态")
 	}
 	definition, err := parseWorkflow(task.WorkflowSnapshot)
@@ -35,7 +38,7 @@ func (l *ApproveTaskLogic) ApproveTask(in *aipb.ApproveTaskRequest) (*aipb.NoDat
 	if task.NextStep < 0 || task.NextStep >= int64(len(definition.Steps)) || !definition.Steps[task.NextStep].Approval {
 		return nil, xerr.NewErrCodeMsg(400, "任务审批断点无效")
 	}
-	if err := l.svcCtx.AiTaskModel.ClaimApproval(l.ctx, task.Id, in.Actor.UserId, task.NextStep); err != nil {
+	if err := l.svcCtx.AiTaskModel.ClaimApproval(l.ctx, task.Id, in.Actor.UserId, *in.ExpectedStep); err != nil {
 		return nil, aiModelError(err)
 	}
 	if _, err := executeWorkflow(l.ctx, l.svcCtx, task, true); err != nil {

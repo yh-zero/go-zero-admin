@@ -238,6 +238,8 @@ type ChatMessage struct {
 	ToolCalls     string                 `protobuf:"bytes,4,opt,name=tool_calls,json=toolCalls,proto3" json:"tool_calls,omitempty"`
 	Tokens        int64                  `protobuf:"varint,5,opt,name=tokens,proto3" json:"tokens,omitempty"`
 	CreatedAt     int64                  `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Status        string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	Error         string                 `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -312,6 +314,20 @@ func (x *ChatMessage) GetCreatedAt() int64 {
 		return x.CreatedAt
 	}
 	return 0
+}
+
+func (x *ChatMessage) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
 }
 
 type ConversationInfo struct {
@@ -602,6 +618,8 @@ type GetConversationRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Actor          *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
 	ConversationId int64                  `protobuf:"varint,2,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
+	BeforeId       int64                  `protobuf:"varint,3,opt,name=before_id,json=beforeId,proto3" json:"before_id,omitempty"`
+	PageSize       int64                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -650,10 +668,26 @@ func (x *GetConversationRequest) GetConversationId() int64 {
 	return 0
 }
 
+func (x *GetConversationRequest) GetBeforeId() int64 {
+	if x != nil {
+		return x.BeforeId
+	}
+	return 0
+}
+
+func (x *GetConversationRequest) GetPageSize() int64 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 type GetConversationResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Conversation  *ConversationInfo      `protobuf:"bytes,1,opt,name=conversation,proto3" json:"conversation,omitempty"`
 	Messages      []*ChatMessage         `protobuf:"bytes,2,rep,name=messages,proto3" json:"messages,omitempty"`
+	HasMore       bool                   `protobuf:"varint,3,opt,name=has_more,json=hasMore,proto3" json:"has_more,omitempty"`
+	NextBeforeId  int64                  `protobuf:"varint,4,opt,name=next_before_id,json=nextBeforeId,proto3" json:"next_before_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -700,6 +734,20 @@ func (x *GetConversationResponse) GetMessages() []*ChatMessage {
 		return x.Messages
 	}
 	return nil
+}
+
+func (x *GetConversationResponse) GetHasMore() bool {
+	if x != nil {
+		return x.HasMore
+	}
+	return false
+}
+
+func (x *GetConversationResponse) GetNextBeforeId() int64 {
+	if x != nil {
+		return x.NextBeforeId
+	}
+	return 0
 }
 
 type DeleteConversationRequest struct {
@@ -760,6 +808,7 @@ type SendMessageRequest struct {
 	Actor          *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
 	ConversationId int64                  `protobuf:"varint,2,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"` // 0 = 自动创建新会话
 	Content        string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	RequestId      string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -811,6 +860,13 @@ func (x *SendMessageRequest) GetConversationId() int64 {
 func (x *SendMessageRequest) GetContent() string {
 	if x != nil {
 		return x.Content
+	}
+	return ""
+}
+
+func (x *SendMessageRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
 	}
 	return ""
 }
@@ -1707,6 +1763,7 @@ type AgentTaskInfo struct {
 	ApprovedBy     int64                  `protobuf:"varint,8,opt,name=approved_by,json=approvedBy,proto3" json:"approved_by,omitempty"`
 	CreatedAt      int64                  `protobuf:"varint,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	CompletedAt    int64                  `protobuf:"varint,10,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
+	NextStep       int64                  `protobuf:"varint,11,opt,name=next_step,json=nextStep,proto3" json:"next_step,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1807,6 +1864,13 @@ func (x *AgentTaskInfo) GetCreatedAt() int64 {
 func (x *AgentTaskInfo) GetCompletedAt() int64 {
 	if x != nil {
 		return x.CompletedAt
+	}
+	return 0
+}
+
+func (x *AgentTaskInfo) GetNextStep() int64 {
+	if x != nil {
+		return x.NextStep
 	}
 	return 0
 }
@@ -2031,6 +2095,7 @@ type ApproveTaskRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
 	TaskId        int64                  `protobuf:"varint,2,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	ExpectedStep  *int64                 `protobuf:"varint,3,opt,name=expected_step,json=expectedStep,proto3,oneof" json:"expected_step,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2079,11 +2144,19 @@ func (x *ApproveTaskRequest) GetTaskId() int64 {
 	return 0
 }
 
+func (x *ApproveTaskRequest) GetExpectedStep() int64 {
+	if x != nil && x.ExpectedStep != nil {
+		return *x.ExpectedStep
+	}
+	return 0
+}
+
 type RejectTaskRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
 	TaskId        int64                  `protobuf:"varint,2,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
 	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	ExpectedStep  *int64                 `protobuf:"varint,4,opt,name=expected_step,json=expectedStep,proto3,oneof" json:"expected_step,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2139,6 +2212,13 @@ func (x *RejectTaskRequest) GetReason() string {
 	return ""
 }
 
+func (x *RejectTaskRequest) GetExpectedStep() int64 {
+	if x != nil && x.ExpectedStep != nil {
+		return *x.ExpectedStep
+	}
+	return 0
+}
+
 var File_application_ai_rpc_desc_ai_proto protoreflect.FileDescriptor
 
 const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
@@ -2156,7 +2236,7 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\adept_id\x18\x03 \x01(\x03R\x06deptId\x12\x0e\n" +
 	"\x02ip\x18\x04 \x01(\tR\x02ip\x12\x1d\n" +
 	"\n" +
-	"user_agent\x18\x05 \x01(\tR\tuserAgent\"\xa1\x01\n" +
+	"user_agent\x18\x05 \x01(\tR\tuserAgent\"\xcf\x01\n" +
 	"\vChatMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04role\x18\x02 \x01(\tR\x04role\x12\x18\n" +
@@ -2165,7 +2245,9 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"tool_calls\x18\x04 \x01(\tR\ttoolCalls\x12\x16\n" +
 	"\x06tokens\x18\x05 \x01(\x03R\x06tokens\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\x03R\tcreatedAt\"\xb4\x01\n" +
+	"created_at\x18\x06 \x01(\x03R\tcreatedAt\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\x12\x14\n" +
+	"\x05error\x18\b \x01(\tR\x05error\"\xb4\x01\n" +
 	"\x10ConversationInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x17\n" +
@@ -2185,20 +2267,26 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\x04page\x18\x02 \x01(\v2\x11.aipb.PageRequestR\x04page\"o\n" +
 	"\x19ListConversationsResponse\x12*\n" +
 	"\x04list\x18\x01 \x03(\v2\x16.aipb.ConversationInfoR\x04list\x12&\n" +
-	"\x04page\x18\x02 \x01(\v2\x12.aipb.PageResponseR\x04page\"d\n" +
+	"\x04page\x18\x02 \x01(\v2\x12.aipb.PageResponseR\x04page\"\x9e\x01\n" +
 	"\x16GetConversationRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12'\n" +
-	"\x0fconversation_id\x18\x02 \x01(\x03R\x0econversationId\"\x84\x01\n" +
+	"\x0fconversation_id\x18\x02 \x01(\x03R\x0econversationId\x12\x1b\n" +
+	"\tbefore_id\x18\x03 \x01(\x03R\bbeforeId\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x03R\bpageSize\"\xc5\x01\n" +
 	"\x17GetConversationResponse\x12:\n" +
 	"\fconversation\x18\x01 \x01(\v2\x16.aipb.ConversationInfoR\fconversation\x12-\n" +
-	"\bmessages\x18\x02 \x03(\v2\x11.aipb.ChatMessageR\bmessages\"g\n" +
+	"\bmessages\x18\x02 \x03(\v2\x11.aipb.ChatMessageR\bmessages\x12\x19\n" +
+	"\bhas_more\x18\x03 \x01(\bR\ahasMore\x12$\n" +
+	"\x0enext_before_id\x18\x04 \x01(\x03R\fnextBeforeId\"g\n" +
 	"\x19DeleteConversationRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12'\n" +
-	"\x0fconversation_id\x18\x02 \x01(\x03R\x0econversationId\"z\n" +
+	"\x0fconversation_id\x18\x02 \x01(\x03R\x0econversationId\"\x99\x01\n" +
 	"\x12SendMessageRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\x03R\x0econversationId\x12\x18\n" +
-	"\acontent\x18\x03 \x01(\tR\acontent\"\xa6\x01\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tR\trequestId\"\xa6\x01\n" +
 	"\x13SendMessageResponse\x124\n" +
 	"\fuser_message\x18\x01 \x01(\v2\x11.aipb.ChatMessageR\vuserMessage\x120\n" +
 	"\n" +
@@ -2274,7 +2362,7 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\x05input\x18\x03 \x01(\tR\x05input\"F\n" +
 	"\x13RunWorkflowResponse\x12\x17\n" +
 	"\atask_id\x18\x01 \x01(\x03R\x06taskId\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\tR\x06status\"\xa8\x02\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\"\xc5\x02\n" +
 	"\rAgentTaskInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1f\n" +
 	"\vworkflow_id\x18\x02 \x01(\x03R\n" +
@@ -2289,7 +2377,8 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\t \x01(\x03R\tcreatedAt\x12!\n" +
 	"\fcompleted_at\x18\n" +
-	" \x01(\x03R\vcompletedAt\"\x9a\x01\n" +
+	" \x01(\x03R\vcompletedAt\x12\x1b\n" +
+	"\tnext_step\x18\v \x01(\x03R\bnextStep\"\x9a\x01\n" +
 	"\x15ListAgentTasksRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12%\n" +
 	"\x04page\x18\x02 \x01(\v2\x11.aipb.PageRequestR\x04page\x12\x16\n" +
@@ -2303,14 +2392,18 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x17\n" +
 	"\atask_id\x18\x02 \x01(\x03R\x06taskId\"?\n" +
 	"\x14GetAgentTaskResponse\x12'\n" +
-	"\x04task\x18\x01 \x01(\v2\x13.aipb.AgentTaskInfoR\x04task\"P\n" +
+	"\x04task\x18\x01 \x01(\v2\x13.aipb.AgentTaskInfoR\x04task\"\x8c\x01\n" +
 	"\x12ApproveTaskRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x17\n" +
-	"\atask_id\x18\x02 \x01(\x03R\x06taskId\"g\n" +
+	"\atask_id\x18\x02 \x01(\x03R\x06taskId\x12(\n" +
+	"\rexpected_step\x18\x03 \x01(\x03H\x00R\fexpectedStep\x88\x01\x01B\x10\n" +
+	"\x0e_expected_step\"\xa3\x01\n" +
 	"\x11RejectTaskRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x17\n" +
 	"\atask_id\x18\x02 \x01(\x03R\x06taskId\x12\x16\n" +
-	"\x06reason\x18\x03 \x01(\tR\x06reason2\x92\t\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12(\n" +
+	"\rexpected_step\x18\x04 \x01(\x03H\x00R\fexpectedStep\x88\x01\x01B\x10\n" +
+	"\x0e_expected_step2\x92\t\n" +
 	"\tAiService\x12W\n" +
 	"\x12CreateConversation\x12\x1f.aipb.CreateConversationRequest\x1a .aipb.CreateConversationResponse\x12T\n" +
 	"\x11ListConversations\x12\x1e.aipb.ListConversationsRequest\x1a\x1f.aipb.ListConversationsResponse\x12N\n" +
@@ -2461,6 +2554,8 @@ func file_application_ai_rpc_desc_ai_proto_init() {
 		return
 	}
 	file_application_ai_rpc_desc_ai_proto_msgTypes[25].OneofWrappers = []any{}
+	file_application_ai_rpc_desc_ai_proto_msgTypes[34].OneofWrappers = []any{}
+	file_application_ai_rpc_desc_ai_proto_msgTypes[35].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

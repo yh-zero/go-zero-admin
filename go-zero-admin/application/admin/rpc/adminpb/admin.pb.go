@@ -2420,7 +2420,7 @@ type CreateRoleRequest struct {
 	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	DataScope     string                 `protobuf:"bytes,5,opt,name=data_scope,json=dataScope,proto3" json:"data_scope,omitempty"`
 	Sort          int32                  `protobuf:"varint,6,opt,name=sort,proto3" json:"sort,omitempty"`
-	Status        int32                  `protobuf:"varint,7,opt,name=status,proto3" json:"status,omitempty"`
+	Status        *int32                 `protobuf:"varint,7,opt,name=status,proto3,oneof" json:"status,omitempty"`
 	MenuIds       []int64                `protobuf:"varint,8,rep,packed,name=menu_ids,json=menuIds,proto3" json:"menu_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2499,8 +2499,8 @@ func (x *CreateRoleRequest) GetSort() int32 {
 }
 
 func (x *CreateRoleRequest) GetStatus() int32 {
-	if x != nil {
-		return x.Status
+	if x != nil && x.Status != nil {
+		return *x.Status
 	}
 	return 0
 }
@@ -2516,13 +2516,14 @@ type UpdateRoleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
 	RoleId        int64                  `protobuf:"varint,2,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Code          string                 `protobuf:"bytes,4,opt,name=code,proto3" json:"code,omitempty"`
-	Description   string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
-	DataScope     string                 `protobuf:"bytes,6,opt,name=data_scope,json=dataScope,proto3" json:"data_scope,omitempty"`
-	Sort          int32                  `protobuf:"varint,7,opt,name=sort,proto3" json:"sort,omitempty"`
-	Status        int32                  `protobuf:"varint,8,opt,name=status,proto3" json:"status,omitempty"`
+	Name          *string                `protobuf:"bytes,3,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Code          *string                `protobuf:"bytes,4,opt,name=code,proto3,oneof" json:"code,omitempty"`
+	Description   *string                `protobuf:"bytes,5,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	DataScope     *string                `protobuf:"bytes,6,opt,name=data_scope,json=dataScope,proto3,oneof" json:"data_scope,omitempty"`
+	Sort          *int32                 `protobuf:"varint,7,opt,name=sort,proto3,oneof" json:"sort,omitempty"`
+	Status        *int32                 `protobuf:"varint,8,opt,name=status,proto3,oneof" json:"status,omitempty"`
 	MenuIds       []int64                `protobuf:"varint,9,rep,packed,name=menu_ids,json=menuIds,proto3" json:"menu_ids,omitempty"`
+	UpdateMenus   bool                   `protobuf:"varint,10,opt,name=update_menus,json=updateMenus,proto3" json:"update_menus,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2572,43 +2573,43 @@ func (x *UpdateRoleRequest) GetRoleId() int64 {
 }
 
 func (x *UpdateRoleRequest) GetName() string {
-	if x != nil {
-		return x.Name
+	if x != nil && x.Name != nil {
+		return *x.Name
 	}
 	return ""
 }
 
 func (x *UpdateRoleRequest) GetCode() string {
-	if x != nil {
-		return x.Code
+	if x != nil && x.Code != nil {
+		return *x.Code
 	}
 	return ""
 }
 
 func (x *UpdateRoleRequest) GetDescription() string {
-	if x != nil {
-		return x.Description
+	if x != nil && x.Description != nil {
+		return *x.Description
 	}
 	return ""
 }
 
 func (x *UpdateRoleRequest) GetDataScope() string {
-	if x != nil {
-		return x.DataScope
+	if x != nil && x.DataScope != nil {
+		return *x.DataScope
 	}
 	return ""
 }
 
 func (x *UpdateRoleRequest) GetSort() int32 {
-	if x != nil {
-		return x.Sort
+	if x != nil && x.Sort != nil {
+		return *x.Sort
 	}
 	return 0
 }
 
 func (x *UpdateRoleRequest) GetStatus() int32 {
-	if x != nil {
-		return x.Status
+	if x != nil && x.Status != nil {
+		return *x.Status
 	}
 	return 0
 }
@@ -2618,6 +2619,13 @@ func (x *UpdateRoleRequest) GetMenuIds() []int64 {
 		return x.MenuIds
 	}
 	return nil
+}
+
+func (x *UpdateRoleRequest) GetUpdateMenus() bool {
+	if x != nil {
+		return x.UpdateMenus
+	}
+	return false
 }
 
 type DeleteRoleRequest struct {
@@ -3208,7 +3216,7 @@ type CreateMenuRequest struct {
 	Icon          string                 `protobuf:"bytes,9,opt,name=icon,proto3" json:"icon,omitempty"`
 	Sort          int32                  `protobuf:"varint,10,opt,name=sort,proto3" json:"sort,omitempty"`
 	Visible       bool                   `protobuf:"varint,11,opt,name=visible,proto3" json:"visible,omitempty"`
-	Status        int32                  `protobuf:"varint,12,opt,name=status,proto3" json:"status,omitempty"`
+	Status        *int32                 `protobuf:"varint,12,opt,name=status,proto3,oneof" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3321,8 +3329,8 @@ func (x *CreateMenuRequest) GetVisible() bool {
 }
 
 func (x *CreateMenuRequest) GetStatus() int32 {
-	if x != nil {
-		return x.Status
+	if x != nil && x.Status != nil {
+		return *x.Status
 	}
 	return 0
 }
@@ -3331,17 +3339,17 @@ type UpdateMenuRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
 	MenuId        int64                  `protobuf:"varint,2,opt,name=menu_id,json=menuId,proto3" json:"menu_id,omitempty"`
-	ParentId      int64                  `protobuf:"varint,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
-	Title         string                 `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
-	Name          string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
-	Type          int32                  `protobuf:"varint,6,opt,name=type,proto3" json:"type,omitempty"`
-	Path          string                 `protobuf:"bytes,7,opt,name=path,proto3" json:"path,omitempty"`
-	Component     string                 `protobuf:"bytes,8,opt,name=component,proto3" json:"component,omitempty"`
-	PermCode      string                 `protobuf:"bytes,9,opt,name=perm_code,json=permCode,proto3" json:"perm_code,omitempty"`
-	Icon          string                 `protobuf:"bytes,10,opt,name=icon,proto3" json:"icon,omitempty"`
-	Sort          int32                  `protobuf:"varint,11,opt,name=sort,proto3" json:"sort,omitempty"`
-	Visible       bool                   `protobuf:"varint,12,opt,name=visible,proto3" json:"visible,omitempty"`
-	Status        int32                  `protobuf:"varint,13,opt,name=status,proto3" json:"status,omitempty"`
+	ParentId      *int64                 `protobuf:"varint,3,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
+	Title         *string                `protobuf:"bytes,4,opt,name=title,proto3,oneof" json:"title,omitempty"`
+	Name          *string                `protobuf:"bytes,5,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Type          *int32                 `protobuf:"varint,6,opt,name=type,proto3,oneof" json:"type,omitempty"`
+	Path          *string                `protobuf:"bytes,7,opt,name=path,proto3,oneof" json:"path,omitempty"`
+	Component     *string                `protobuf:"bytes,8,opt,name=component,proto3,oneof" json:"component,omitempty"`
+	PermCode      *string                `protobuf:"bytes,9,opt,name=perm_code,json=permCode,proto3,oneof" json:"perm_code,omitempty"`
+	Icon          *string                `protobuf:"bytes,10,opt,name=icon,proto3,oneof" json:"icon,omitempty"`
+	Sort          *int32                 `protobuf:"varint,11,opt,name=sort,proto3,oneof" json:"sort,omitempty"`
+	Visible       *bool                  `protobuf:"varint,12,opt,name=visible,proto3,oneof" json:"visible,omitempty"`
+	Status        *int32                 `protobuf:"varint,13,opt,name=status,proto3,oneof" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3391,78 +3399,78 @@ func (x *UpdateMenuRequest) GetMenuId() int64 {
 }
 
 func (x *UpdateMenuRequest) GetParentId() int64 {
-	if x != nil {
-		return x.ParentId
+	if x != nil && x.ParentId != nil {
+		return *x.ParentId
 	}
 	return 0
 }
 
 func (x *UpdateMenuRequest) GetTitle() string {
-	if x != nil {
-		return x.Title
+	if x != nil && x.Title != nil {
+		return *x.Title
 	}
 	return ""
 }
 
 func (x *UpdateMenuRequest) GetName() string {
-	if x != nil {
-		return x.Name
+	if x != nil && x.Name != nil {
+		return *x.Name
 	}
 	return ""
 }
 
 func (x *UpdateMenuRequest) GetType() int32 {
-	if x != nil {
-		return x.Type
+	if x != nil && x.Type != nil {
+		return *x.Type
 	}
 	return 0
 }
 
 func (x *UpdateMenuRequest) GetPath() string {
-	if x != nil {
-		return x.Path
+	if x != nil && x.Path != nil {
+		return *x.Path
 	}
 	return ""
 }
 
 func (x *UpdateMenuRequest) GetComponent() string {
-	if x != nil {
-		return x.Component
+	if x != nil && x.Component != nil {
+		return *x.Component
 	}
 	return ""
 }
 
 func (x *UpdateMenuRequest) GetPermCode() string {
-	if x != nil {
-		return x.PermCode
+	if x != nil && x.PermCode != nil {
+		return *x.PermCode
 	}
 	return ""
 }
 
 func (x *UpdateMenuRequest) GetIcon() string {
-	if x != nil {
-		return x.Icon
+	if x != nil && x.Icon != nil {
+		return *x.Icon
 	}
 	return ""
 }
 
 func (x *UpdateMenuRequest) GetSort() int32 {
-	if x != nil {
-		return x.Sort
+	if x != nil && x.Sort != nil {
+		return *x.Sort
 	}
 	return 0
 }
 
 func (x *UpdateMenuRequest) GetVisible() bool {
-	if x != nil {
-		return x.Visible
+	if x != nil && x.Visible != nil {
+		return *x.Visible
 	}
 	return false
 }
 
 func (x *UpdateMenuRequest) GetStatus() int32 {
-	if x != nil {
-		return x.Status
+	if x != nil && x.Status != nil {
+		return *x.Status
 	}
 	return 0
 }
@@ -4692,7 +4700,7 @@ type CreateDictRequest struct {
 	Code          string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
 	Items         []*DictItem            `protobuf:"bytes,4,rep,name=items,proto3" json:"items,omitempty"`
 	Description   string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
-	Status        int32                  `protobuf:"varint,6,opt,name=status,proto3" json:"status,omitempty"`
+	Status        *int32                 `protobuf:"varint,6,opt,name=status,proto3,oneof" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4763,8 +4771,8 @@ func (x *CreateDictRequest) GetDescription() string {
 }
 
 func (x *CreateDictRequest) GetStatus() int32 {
-	if x != nil {
-		return x.Status
+	if x != nil && x.Status != nil {
+		return *x.Status
 	}
 	return 0
 }
@@ -4773,11 +4781,12 @@ type UpdateDictRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
 	DictId        int64                  `protobuf:"varint,2,opt,name=dict_id,json=dictId,proto3" json:"dict_id,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Code          string                 `protobuf:"bytes,4,opt,name=code,proto3" json:"code,omitempty"`
+	Name          *string                `protobuf:"bytes,3,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Code          *string                `protobuf:"bytes,4,opt,name=code,proto3,oneof" json:"code,omitempty"`
 	Items         []*DictItem            `protobuf:"bytes,5,rep,name=items,proto3" json:"items,omitempty"`
-	Description   string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
-	Status        int32                  `protobuf:"varint,7,opt,name=status,proto3" json:"status,omitempty"`
+	Description   *string                `protobuf:"bytes,6,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Status        *int32                 `protobuf:"varint,7,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	UpdateItems   bool                   `protobuf:"varint,8,opt,name=update_items,json=updateItems,proto3" json:"update_items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4827,15 +4836,15 @@ func (x *UpdateDictRequest) GetDictId() int64 {
 }
 
 func (x *UpdateDictRequest) GetName() string {
-	if x != nil {
-		return x.Name
+	if x != nil && x.Name != nil {
+		return *x.Name
 	}
 	return ""
 }
 
 func (x *UpdateDictRequest) GetCode() string {
-	if x != nil {
-		return x.Code
+	if x != nil && x.Code != nil {
+		return *x.Code
 	}
 	return ""
 }
@@ -4848,17 +4857,24 @@ func (x *UpdateDictRequest) GetItems() []*DictItem {
 }
 
 func (x *UpdateDictRequest) GetDescription() string {
-	if x != nil {
-		return x.Description
+	if x != nil && x.Description != nil {
+		return *x.Description
 	}
 	return ""
 }
 
 func (x *UpdateDictRequest) GetStatus() int32 {
-	if x != nil {
-		return x.Status
+	if x != nil && x.Status != nil {
+		return *x.Status
 	}
 	return 0
+}
+
+func (x *UpdateDictRequest) GetUpdateItems() bool {
+	if x != nil {
+		return x.UpdateItems
+	}
+	return false
 }
 
 type DeleteDictRequest struct {
@@ -6228,7 +6244,7 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\arole_id\x18\x02 \x01(\x03R\x06roleId\"8\n" +
 	"\x0fGetRoleResponse\x12%\n" +
-	"\x04Role\x18\x01 \x01(\v2\x11.adminpb.RoleInfoR\x04Role\"\xe9\x01\n" +
+	"\x04Role\x18\x01 \x01(\v2\x11.adminpb.RoleInfoR\x04Role\"\xf9\x01\n" +
 	"\x11CreateRoleRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -6236,20 +6252,29 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x1d\n" +
 	"\n" +
 	"data_scope\x18\x05 \x01(\tR\tdataScope\x12\x12\n" +
-	"\x04sort\x18\x06 \x01(\x05R\x04sort\x12\x16\n" +
-	"\x06status\x18\a \x01(\x05R\x06status\x12\x19\n" +
-	"\bmenu_ids\x18\b \x03(\x03R\amenuIds\"\x82\x02\n" +
+	"\x04sort\x18\x06 \x01(\x05R\x04sort\x12\x1b\n" +
+	"\x06status\x18\a \x01(\x05H\x00R\x06status\x88\x01\x01\x12\x19\n" +
+	"\bmenu_ids\x18\b \x03(\x03R\amenuIdsB\t\n" +
+	"\a_status\"\x88\x03\n" +
 	"\x11UpdateRoleRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
-	"\arole_id\x18\x02 \x01(\x03R\x06roleId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
-	"\x04code\x18\x04 \x01(\tR\x04code\x12 \n" +
-	"\vdescription\x18\x05 \x01(\tR\vdescription\x12\x1d\n" +
+	"\arole_id\x18\x02 \x01(\x03R\x06roleId\x12\x17\n" +
+	"\x04name\x18\x03 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x17\n" +
+	"\x04code\x18\x04 \x01(\tH\x01R\x04code\x88\x01\x01\x12%\n" +
+	"\vdescription\x18\x05 \x01(\tH\x02R\vdescription\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"data_scope\x18\x06 \x01(\tR\tdataScope\x12\x12\n" +
-	"\x04sort\x18\a \x01(\x05R\x04sort\x12\x16\n" +
-	"\x06status\x18\b \x01(\x05R\x06status\x12\x19\n" +
-	"\bmenu_ids\x18\t \x03(\x03R\amenuIds\"R\n" +
+	"data_scope\x18\x06 \x01(\tH\x03R\tdataScope\x88\x01\x01\x12\x17\n" +
+	"\x04sort\x18\a \x01(\x05H\x04R\x04sort\x88\x01\x01\x12\x1b\n" +
+	"\x06status\x18\b \x01(\x05H\x05R\x06status\x88\x01\x01\x12\x19\n" +
+	"\bmenu_ids\x18\t \x03(\x03R\amenuIds\x12!\n" +
+	"\fupdate_menus\x18\n" +
+	" \x01(\bR\vupdateMenusB\a\n" +
+	"\x05_nameB\a\n" +
+	"\x05_codeB\x0e\n" +
+	"\f_descriptionB\r\n" +
+	"\v_data_scopeB\a\n" +
+	"\x05_sortB\t\n" +
+	"\a_status\"R\n" +
 	"\x11DeleteRoleRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\arole_id\x18\x02 \x01(\x03R\x06roleId\"r\n" +
@@ -6291,7 +6316,7 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\amenu_id\x18\x02 \x01(\x03R\x06menuId\"8\n" +
 	"\x0fGetMenuResponse\x12%\n" +
-	"\x04Menu\x18\x01 \x01(\v2\x11.adminpb.MenuInfoR\x04Menu\"\xbd\x02\n" +
+	"\x04Menu\x18\x01 \x01(\v2\x11.adminpb.MenuInfoR\x04Menu\"\xcd\x02\n" +
 	"\x11CreateMenuRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x1b\n" +
 	"\tparent_id\x18\x02 \x01(\x03R\bparentId\x12\x14\n" +
@@ -6304,23 +6329,40 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x04icon\x18\t \x01(\tR\x04icon\x12\x12\n" +
 	"\x04sort\x18\n" +
 	" \x01(\x05R\x04sort\x12\x18\n" +
-	"\avisible\x18\v \x01(\bR\avisible\x12\x16\n" +
-	"\x06status\x18\f \x01(\x05R\x06status\"\xd6\x02\n" +
+	"\avisible\x18\v \x01(\bR\avisible\x12\x1b\n" +
+	"\x06status\x18\f \x01(\x05H\x00R\x06status\x88\x01\x01B\t\n" +
+	"\a_status\"\x85\x04\n" +
 	"\x11UpdateMenuRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
-	"\amenu_id\x18\x02 \x01(\x03R\x06menuId\x12\x1b\n" +
-	"\tparent_id\x18\x03 \x01(\x03R\bparentId\x12\x14\n" +
-	"\x05title\x18\x04 \x01(\tR\x05title\x12\x12\n" +
-	"\x04name\x18\x05 \x01(\tR\x04name\x12\x12\n" +
-	"\x04type\x18\x06 \x01(\x05R\x04type\x12\x12\n" +
-	"\x04path\x18\a \x01(\tR\x04path\x12\x1c\n" +
-	"\tcomponent\x18\b \x01(\tR\tcomponent\x12\x1b\n" +
-	"\tperm_code\x18\t \x01(\tR\bpermCode\x12\x12\n" +
+	"\amenu_id\x18\x02 \x01(\x03R\x06menuId\x12 \n" +
+	"\tparent_id\x18\x03 \x01(\x03H\x00R\bparentId\x88\x01\x01\x12\x19\n" +
+	"\x05title\x18\x04 \x01(\tH\x01R\x05title\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x05 \x01(\tH\x02R\x04name\x88\x01\x01\x12\x17\n" +
+	"\x04type\x18\x06 \x01(\x05H\x03R\x04type\x88\x01\x01\x12\x17\n" +
+	"\x04path\x18\a \x01(\tH\x04R\x04path\x88\x01\x01\x12!\n" +
+	"\tcomponent\x18\b \x01(\tH\x05R\tcomponent\x88\x01\x01\x12 \n" +
+	"\tperm_code\x18\t \x01(\tH\x06R\bpermCode\x88\x01\x01\x12\x17\n" +
 	"\x04icon\x18\n" +
-	" \x01(\tR\x04icon\x12\x12\n" +
-	"\x04sort\x18\v \x01(\x05R\x04sort\x12\x18\n" +
-	"\avisible\x18\f \x01(\bR\avisible\x12\x16\n" +
-	"\x06status\x18\r \x01(\x05R\x06status\"R\n" +
+	" \x01(\tH\aR\x04icon\x88\x01\x01\x12\x17\n" +
+	"\x04sort\x18\v \x01(\x05H\bR\x04sort\x88\x01\x01\x12\x1d\n" +
+	"\avisible\x18\f \x01(\bH\tR\avisible\x88\x01\x01\x12\x1b\n" +
+	"\x06status\x18\r \x01(\x05H\n" +
+	"R\x06status\x88\x01\x01B\f\n" +
+	"\n" +
+	"_parent_idB\b\n" +
+	"\x06_titleB\a\n" +
+	"\x05_nameB\a\n" +
+	"\x05_typeB\a\n" +
+	"\x05_pathB\f\n" +
+	"\n" +
+	"_componentB\f\n" +
+	"\n" +
+	"_perm_codeB\a\n" +
+	"\x05_iconB\a\n" +
+	"\x05_sortB\n" +
+	"\n" +
+	"\b_visibleB\t\n" +
+	"\a_status\"R\n" +
 	"\x11DeleteMenuRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\amenu_id\x18\x02 \x01(\x03R\x06menuId\"9\n" +
@@ -6419,22 +6461,28 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x14GetDictByCodeRequest\x12\x12\n" +
 	"\x04Code\x18\x01 \x01(\tR\x04Code\">\n" +
 	"\x15GetDictByCodeResponse\x12%\n" +
-	"\x04Dict\x18\x01 \x01(\v2\x11.adminpb.DictInfoR\x04Dict\"\xc4\x01\n" +
+	"\x04Dict\x18\x01 \x01(\v2\x11.adminpb.DictInfoR\x04Dict\"\xd4\x01\n" +
 	"\x11CreateDictRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
 	"\x04code\x18\x03 \x01(\tR\x04code\x12'\n" +
 	"\x05items\x18\x04 \x03(\v2\x11.adminpb.DictItemR\x05items\x12 \n" +
-	"\vdescription\x18\x05 \x01(\tR\vdescription\x12\x16\n" +
-	"\x06status\x18\x06 \x01(\x05R\x06status\"\xdd\x01\n" +
+	"\vdescription\x18\x05 \x01(\tR\vdescription\x12\x1b\n" +
+	"\x06status\x18\x06 \x01(\x05H\x00R\x06status\x88\x01\x01B\t\n" +
+	"\a_status\"\xc1\x02\n" +
 	"\x11UpdateDictRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
-	"\adict_id\x18\x02 \x01(\x03R\x06dictId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
-	"\x04code\x18\x04 \x01(\tR\x04code\x12'\n" +
-	"\x05items\x18\x05 \x03(\v2\x11.adminpb.DictItemR\x05items\x12 \n" +
-	"\vdescription\x18\x06 \x01(\tR\vdescription\x12\x16\n" +
-	"\x06status\x18\a \x01(\x05R\x06status\"R\n" +
+	"\adict_id\x18\x02 \x01(\x03R\x06dictId\x12\x17\n" +
+	"\x04name\x18\x03 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x17\n" +
+	"\x04code\x18\x04 \x01(\tH\x01R\x04code\x88\x01\x01\x12'\n" +
+	"\x05items\x18\x05 \x03(\v2\x11.adminpb.DictItemR\x05items\x12%\n" +
+	"\vdescription\x18\x06 \x01(\tH\x02R\vdescription\x88\x01\x01\x12\x1b\n" +
+	"\x06status\x18\a \x01(\x05H\x03R\x06status\x88\x01\x01\x12!\n" +
+	"\fupdate_items\x18\b \x01(\bR\vupdateItemsB\a\n" +
+	"\x05_nameB\a\n" +
+	"\x05_codeB\x0e\n" +
+	"\f_descriptionB\t\n" +
+	"\a_status\"R\n" +
 	"\x11DeleteDictRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\adict_id\x18\x02 \x01(\x03R\x06dictId\"\x90\x01\n" +
@@ -6885,7 +6933,13 @@ func file_application_admin_rpc_desc_admin_proto_init() {
 	}
 	file_application_admin_rpc_desc_admin_proto_msgTypes[22].OneofWrappers = []any{}
 	file_application_admin_rpc_desc_admin_proto_msgTypes[28].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[34].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[35].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[45].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[46].OneofWrappers = []any{}
 	file_application_admin_rpc_desc_admin_proto_msgTypes[56].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[66].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[67].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

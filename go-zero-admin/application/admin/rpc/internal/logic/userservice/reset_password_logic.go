@@ -24,6 +24,9 @@ func NewResetPasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Res
 }
 
 func (l *ResetPasswordLogic) ResetPassword(in *adminpb.ResetPasswordRequest) (*adminpb.NoDataResponse, error) {
+	if err := validateNewPassword(in.NewPassword); err != nil {
+		return nil, err
+	}
 	if in.UserId <= 0 || in.GetActor().GetUserId() <= 0 {
 		return nil, xerr.NewErrCode(xerr.PERMISSION_DENIED)
 	}

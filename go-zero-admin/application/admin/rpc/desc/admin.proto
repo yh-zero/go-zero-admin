@@ -234,20 +234,21 @@ message CreateRoleRequest {
   string description = 4;
   string data_scope = 5;
   int32 sort = 6;
-  int32 status = 7;
+  optional int32 status = 7;
   repeated int64 menu_ids = 8;
 }
 
 message UpdateRoleRequest {
   Actor actor = 1;
   int64 role_id = 2;
-  string name = 3;
-  string code = 4;
-  string description = 5;
-  string data_scope = 6;
-  int32 sort = 7;
-  int32 status = 8;
+  optional string name = 3;
+  optional string code = 4;
+  optional string description = 5;
+  optional string data_scope = 6;
+  optional int32 sort = 7;
+  optional int32 status = 8;
   repeated int64 menu_ids = 9;
+  bool update_menus = 10;
 }
 
 message DeleteRoleRequest {
@@ -318,23 +319,23 @@ message CreateMenuRequest {
   string icon = 9;
   int32 sort = 10;
   bool visible = 11;
-  int32 status = 12;
+  optional int32 status = 12;
 }
 
 message UpdateMenuRequest {
   Actor actor = 1;
   int64 menu_id = 2;
-  int64 parent_id = 3;
-  string title = 4;
-  string name = 5;
-  int32 type = 6;
-  string path = 7;
-  string component = 8;
-  string perm_code = 9;
-  string icon = 10;
-  int32 sort = 11;
-  bool visible = 12;
-  int32 status = 13;
+  optional int64 parent_id = 3;
+  optional string title = 4;
+  optional string name = 5;
+  optional int32 type = 6;
+  optional string path = 7;
+  optional string component = 8;
+  optional string perm_code = 9;
+  optional string icon = 10;
+  optional int32 sort = 11;
+  optional bool visible = 12;
+  optional int32 status = 13;
 }
 
 message DeleteMenuRequest {
@@ -448,16 +449,17 @@ message CreateDictRequest {
   string code = 3;
   repeated DictItem items = 4;
   string description = 5;
-  int32 status = 6;
+  optional int32 status = 6;
 }
 message UpdateDictRequest {
   Actor actor = 1;
   int64 dict_id = 2;
-  string name = 3;
-  string code = 4;
+  optional string name = 3;
+  optional string code = 4;
   repeated DictItem items = 5;
-  string description = 6;
-  int32 status = 7;
+  optional string description = 6;
+  optional int32 status = 7;
+  bool update_items = 8;
 }
 message DeleteDictRequest {
   Actor actor = 1;

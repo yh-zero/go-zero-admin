@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
 	"go-zero-admin/pkg/xerr"
 
@@ -28,10 +29,7 @@ func NewCheckHealthLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Check
 func (l *CheckHealthLogic) CheckHealth(in *adminpb.CheckHealthRequest) (*adminpb.CheckHealthResponse, error) {
 	ctx, cancel := context.WithTimeout(l.ctx, 2*time.Second)
 	defer cancel()
-	var row struct {
-		Value int64 `db:"value"`
-	}
-	if err := l.svcCtx.DB.QueryRowCtx(ctx, &row, "SELECT 1 AS value"); err != nil {
+	if err := model.CheckDatabaseHealth(ctx, l.svcCtx.DB); err != nil {
 		return nil, xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE)
 	}
 	if !l.svcCtx.Redis.PingCtx(ctx) {

@@ -24,10 +24,16 @@ func NewDeleteRoleLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeleteRoleLogic) DeleteRole(in *adminpb.DeleteRoleRequest) (*adminpb.NoDataResponse, error) {
-	if err := l.svcCtx.SysRoleModel.SoftDeleteWithRelations(l.ctx, uint64(in.RoleId)); err != nil {
+	if err := requireRoleActor(l.ctx, l.svcCtx, in.GetActor()); err != nil {
+		return nil, err
+	}
+	err := l.svcCtx.SysRoleModel.SoftDeleteWithRelations(l.ctx, uint64(in.RoleId))
+	if model.MutationCommitted(err) {
+		l.svcCtx.PublishPolicyChanged(l.ctx)
+	}
+	if err != nil {
 		return nil, roleMutationError(err)
 	}
-	l.svcCtx.PublishPolicyChanged(l.ctx)
 	return &adminpb.NoDataResponse{}, nil
 }
 

@@ -23,13 +23,9 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	rdb := redis.MustNewRedis(c.CacheRedis[0].RedisConf)
 
-	var store *objectstorage.Client
-	if c.Storage.Endpoint != "" {
-		var err error
-		store, err = objectstorage.New(c.Storage)
-		if err != nil {
-			panic("init object storage failed: " + err.Error())
-		}
+	store, err := objectstorage.New(c.Storage)
+	if err != nil {
+		panic("init object storage failed: " + err.Error())
 	}
 
 	return &ServiceContext{

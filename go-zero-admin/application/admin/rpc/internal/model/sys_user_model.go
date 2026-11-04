@@ -508,7 +508,7 @@ func (m *customSysUserModel) UpdatePartial(ctx context.Context, userId int64, ac
 	if err != nil {
 		return err
 	}
-	return m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysUserIdPrefix, userId), cacheGozeroAdminNewSysUserUsernamePrefix+username)
+	return committedCacheError(m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysUserIdPrefix, userId), cacheGozeroAdminNewSysUserUsernamePrefix+username))
 }
 
 // 事务结束后再按用户当前真实头像对账，防止较早请求误删较晚请求正在使用的引用。

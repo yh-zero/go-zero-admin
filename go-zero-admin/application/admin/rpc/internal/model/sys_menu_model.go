@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -18,6 +19,7 @@ type (
 	SysMenuModel interface {
 		sysMenuModel
 		Create(ctx context.Context, menu *SysMenu) error
+		UpdatePartial(ctx context.Context, id uint64, patch MenuPatch) error
 		// FindMenuRow 查单个有效菜单（含软删过滤），时间戳已转 int64
 		FindMenuRow(ctx context.Context, id uint64) (*MenuRow, error)
 		// ListMenuPage 分页查菜单，parentId/menuType 为 0 时不过滤
@@ -73,17 +75,122 @@ func NewSysMenuModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option)
 	}
 }
 
+// 结构写入先锁固定行，再按ID锁菜单。菜单路径不反向锁角色，保持role->menu锁序。
+func lockMenuStructure(ctx context.Context, s sqlx.Session) error {
+	var id int64
+	if err := s.QueryRowCtx(ctx, &id, "SELECT id FROM sys_menu_lock WHERE id=1 FOR UPDATE"); err != nil {
+		return fmt.Errorf("菜单结构锁不可用: %w", err)
+	}
+	return nil
+}
+
+func lockMenuTree(ctx context.Context, s sqlx.Session) ([]*SysMenu, error) {
+	var rows []*SysMenu
+	err := s.QueryRowsCtx(ctx, &rows, "SELECT "+sysMenuRows+" FROM sys_menu WHERE deleted_at IS NULL ORDER BY id FOR UPDATE")
+	return rows, err
+}
+
+func validateMenuParent(menu *SysMenu, rows []*SysMenu) error {
+	byId := make(map[uint64]*SysMenu, len(rows))
+	for _, row := range rows {
+		byId[row.Id] = row
+	}
+	if menu.Type < 1 || menu.Type > 3 || menu.Status < 1 || menu.Status > 2 {
+		return ErrInvalidMutation
+	}
+	if menu.Type == 3 {
+		for _, row := range rows {
+			if row.ParentId == menu.Id && menu.Id != 0 {
+				return fmt.Errorf("%w: 按钮不能包含子菜单", ErrInvalidMutation)
+			}
+		}
+	}
+	seen := map[uint64]bool{}
+	for parent := menu.ParentId; parent != 0; {
+		if parent == menu.Id || seen[parent] {
+			return fmt.Errorf("%w: 不能挂载到自身或子菜单下", ErrInvalidMutation)
+		}
+		seen[parent] = true
+		row, ok := byId[parent]
+		if !ok {
+			return fmt.Errorf("%w: 父菜单不存在", ErrInvalidMutation)
+		}
+		if parent == menu.ParentId && row.Type == 3 {
+			return fmt.Errorf("%w: 按钮不能包含子菜单", ErrInvalidMutation)
+		}
+		parent = row.ParentId
+	}
+	return nil
+}
+
 func (m *customSysMenuModel) Create(ctx context.Context, menu *SysMenu) error {
-	result, err := m.Insert(ctx, menu)
+	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
+		if err := lockMenuStructure(ctx, s); err != nil {
+			return err
+		}
+		rows, err := lockMenuTree(ctx, s)
+		if err != nil {
+			return err
+		}
+		if err := validateMenuParent(menu, rows); err != nil {
+			return err
+		}
+		result, err := s.ExecCtx(ctx, "INSERT INTO sys_menu (parent_id,title,name,type,path,component,perm_code,icon,sort,visible,status) VALUES (?,?,?,?,?,?,?,?,?,?,?)", menu.ParentId, menu.Title, menu.Name, menu.Type, menu.Path, menu.Component, menu.PermCode, menu.Icon, menu.Sort, menu.Visible, menu.Status)
+		if err != nil {
+			return err
+		}
+		id, err := result.LastInsertId()
+		menu.Id = uint64(id)
+		return err
+	})
 	if err != nil {
 		return err
 	}
-	id, err := result.LastInsertId()
+	return committedCacheError(m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysMenuIdPrefix, menu.Id)))
+}
+
+func (m *customSysMenuModel) UpdatePartial(ctx context.Context, id uint64, patch MenuPatch) error {
+	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
+		var current *SysMenu
+		if patch.ParentId != nil || patch.Type != nil {
+			if err := lockMenuStructure(ctx, s); err != nil {
+				return err
+			}
+			rows, err := lockMenuTree(ctx, s)
+			if err != nil {
+				return err
+			}
+			for _, row := range rows {
+				if row.Id == id {
+					current = row
+					break
+				}
+			}
+			if current == nil {
+				return sqlx.ErrNotFound
+			}
+			if err := applyMenuPatch(current, patch); err != nil {
+				return err
+			}
+			if err := validateMenuParent(current, rows); err != nil {
+				return err
+			}
+		} else {
+			current = &SysMenu{}
+			if err := s.QueryRowCtx(ctx, current, "SELECT "+sysMenuRows+" FROM sys_menu WHERE id=? AND deleted_at IS NULL FOR UPDATE", id); err != nil {
+				return err
+			}
+			if err := applyMenuPatch(current, patch); err != nil {
+				return err
+			}
+		}
+		_, err := s.ExecCtx(ctx, "UPDATE sys_menu SET parent_id=?,title=?,name=?,type=?,path=?,component=?,perm_code=?,icon=?,sort=?,visible=?,status=? WHERE id=? AND deleted_at IS NULL", current.ParentId, current.Title, current.Name, current.Type, current.Path, current.Component, current.PermCode, current.Icon, current.Sort, current.Visible, current.Status, id)
+		return err
+	})
 	if err != nil {
 		return err
 	}
-	// 生成 Insert 使用传入 ID（新记录为 0），还需清理实际 ID 的未命中缓存。
-	return m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysMenuIdPrefix, id))
+	return committedCacheError(m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysMenuIdPrefix, id)))
 }
 
 func (m *customSysMenuModel) FindMenuRow(ctx context.Context, id uint64) (*MenuRow, error) {
@@ -216,34 +323,58 @@ func (m *customSysMenuModel) CollectSubtreeIds(ctx context.Context, rootId uint6
 }
 
 func (m *customSysMenuModel) SoftDeleteSubtree(ctx context.Context, rootId uint64) (int64, error) {
-	ids, err := m.CollectSubtreeIds(ctx, rootId)
-	if err != nil {
-		return 0, err
-	}
-	args := make([]any, 0, len(ids))
-	for _, id := range ids {
-		args = append(args, id)
-	}
-	ph := inPlaceholders(len(ids))
-	err = m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
-		if _, err := s.ExecCtx(ctx, "UPDATE sys_menu SET deleted_at=NOW() WHERE id IN ("+ph+") AND deleted_at IS NULL", args...); err != nil {
+	var ids []int64
+	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
+		if err := lockMenuStructure(ctx, s); err != nil {
 			return err
 		}
-		_, err := s.ExecCtx(ctx, "DELETE FROM sys_role_menu WHERE menu_id IN ("+ph+")", args...)
+		rows, err := lockMenuTree(ctx, s)
+		if err != nil {
+			return err
+		}
+		exists := false
+		for _, row := range rows {
+			if row.Id == rootId {
+				exists = true
+				break
+			}
+		}
+		if !exists {
+			return sqlx.ErrNotFound
+		}
+		seen := map[uint64]bool{rootId: true}
+		for changed := true; changed; {
+			changed = false
+			for _, row := range rows {
+				if seen[row.ParentId] && !seen[row.Id] {
+					seen[row.Id] = true
+					changed = true
+				}
+			}
+		}
+		for id := range seen {
+			ids = append(ids, int64(id))
+		}
+		sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
+		args := make([]any, 0, len(ids))
+		for _, id := range ids {
+			args = append(args, id)
+		}
+		ph := inPlaceholders(len(ids))
+		if _, err = s.ExecCtx(ctx, "DELETE FROM sys_role_menu WHERE menu_id IN ("+ph+")", args...); err != nil {
+			return err
+		}
+		_, err = s.ExecCtx(ctx, "UPDATE sys_menu SET deleted_at=NOW() WHERE id IN ("+ph+") AND deleted_at IS NULL", args...)
 		return err
 	})
 	if err != nil {
 		return 0, err
 	}
-	// 清 id 缓存（当前菜单无缓存读路径，防御性清理防未来接入缓存后取到脏数据）
 	keys := make([]string, 0, len(ids))
 	for _, id := range ids {
 		keys = append(keys, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysMenuIdPrefix, id))
 	}
-	if err := m.DelCacheCtx(ctx, keys...); err != nil {
-		return int64(len(ids)), err
-	}
-	return int64(len(ids)), nil
+	return int64(len(ids)), committedCacheError(m.DelCacheCtx(ctx, keys...))
 }
 
 func (m *customSysMenuModel) ListRoleCodesByUser(ctx context.Context, userId, deptId int64) ([]string, error) {

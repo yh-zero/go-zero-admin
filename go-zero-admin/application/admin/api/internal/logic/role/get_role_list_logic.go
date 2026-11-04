@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -26,8 +27,9 @@ func (l *GetRoleListLogic) GetRoleList(req *types.GetRoleListReq) (resp *types.G
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
 	rpcResp, err := l.svcCtx.RoleRpc.GetRoleList(l.ctx, &adminpb.GetRoleListRequest{
-		Page: &adminpb.PageRequest{Page: req.Page, PageSize: req.PageSize},
-		Name: req.Name, Code: req.Code, Status: req.Status,
+		Actor: middleware.ActorFromContext(l.ctx),
+		Page:  &adminpb.PageRequest{Page: req.Page, PageSize: req.PageSize},
+		Name:  req.Name, Code: req.Code, Status: req.Status,
 	})
 	if err != nil {
 		return nil, err

@@ -3,6 +3,7 @@ package authservicelogic
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -30,6 +31,9 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 
 // Login 用户登录：验证码 → 查用户 → 校验密码 → 签发 JWT
 func (l *LoginLogic) Login(in *adminpb.LoginRequest) (*adminpb.LoginResponse, error) {
+	if len(in.Password) > 72 {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	// 限流：IP 维度 20 次/分钟 + 账号维度 10 次/分钟（go-zero PeriodLimit，Lua 原子）
 	limiterIP := limit.NewPeriodLimit(60, 20, l.svcCtx.Redis, "admin:login:ip:")
 	if code, err := limiterIP.TakeCtx(l.ctx, in.Ip); err != nil {
@@ -59,6 +63,14 @@ func (l *LoginLogic) Login(in *adminpb.LoginRequest) (*adminpb.LoginResponse, er
 		}
 		l.Errorf("query user error: %v", err)
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	}
+
+	// 数据库排序规则可能让大小写或重音不同的名称命中同一账号，命中后统一按用户ID限流。
+	limiterUser := limit.NewPeriodLimit(60, 10, l.svcCtx.Redis, "admin:login:user:")
+	if code, err := limiterUser.TakeCtx(l.ctx, strconv.FormatUint(user.Id, 10)); err != nil {
+		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
+	} else if code == limit.OverQuota {
+		return nil, xerr.NewErrCodeMsg(400, "登录尝试过多，请稍后再试")
 	}
 
 	// 3. 校验状态

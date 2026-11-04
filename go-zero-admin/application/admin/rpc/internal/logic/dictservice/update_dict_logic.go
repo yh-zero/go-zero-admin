@@ -25,13 +25,25 @@ func NewUpdateDictLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 }
 
 func (l *UpdateDictLogic) UpdateDict(in *adminpb.UpdateDictRequest) (*adminpb.NoDataResponse, error) {
-	itemsJson, _ := json.Marshal(in.Items)
-	err := l.svcCtx.SysDictModel.UpdateActive(l.ctx, &model.SysDict{
-		Id: uint64(in.DictId), Name: in.Name, Code: in.Code, Items: string(itemsJson),
-		Description: in.Description, Status: int64(in.Status),
-	})
+	var items *string
+	if in.UpdateItems {
+		values := in.Items
+		if values == nil {
+			values = []*adminpb.DictItem{}
+		}
+		encoded, err := json.Marshal(values)
+		if err != nil {
+			return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+		}
+		value := string(encoded)
+		items = &value
+	}
+	err := l.svcCtx.SysDictModel.UpdatePartial(l.ctx, uint64(in.DictId), model.DictPatch{Name: in.Name, Code: in.Code, Items: items, Description: in.Description, Status: in.Status})
 	if errors.Is(err, sqlx.ErrNotFound) {
 		return nil, xerr.NewErrCode(xerr.DICT_NOT_FOUND)
+	}
+	if errors.Is(err, model.ErrInvalidMutation) {
+		return nil, xerr.NewErrCodeMsg(xerr.REQUEST_PARAM_ERROR, err.Error())
 	}
 	if err != nil {
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)

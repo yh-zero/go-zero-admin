@@ -43,4 +43,3 @@ service admin {
 	@handler ready
 	get /ready returns (ReadyResp)
 }
-

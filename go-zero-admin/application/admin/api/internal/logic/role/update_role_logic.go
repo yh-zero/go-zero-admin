@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -26,8 +27,9 @@ func (l *UpdateRoleLogic) UpdateRole(req *types.UpdateRoleReq) (*types.EmptyResp
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
 	_, err := l.svcCtx.RoleRpc.UpdateRole(l.ctx, &adminpb.UpdateRoleRequest{
+		Actor:  middleware.ActorFromContext(l.ctx),
 		RoleId: req.Id, Name: req.Name, Code: req.Code, Description: req.Description,
-		DataScope: req.DataScope, Sort: req.Sort, Status: req.Status, MenuIds: req.MenuIds,
+		DataScope: req.DataScope, Sort: req.Sort, Status: req.Status, MenuIds: req.MenuIds, UpdateMenus: req.MenuIds != nil,
 	})
 	return &types.EmptyResp{}, err
 }

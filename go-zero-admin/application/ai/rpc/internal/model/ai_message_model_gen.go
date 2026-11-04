@@ -24,13 +24,15 @@ var (
 	aiMessageRowsExpectAutoSet   = strings.Join(stringx.Remove(aiMessageFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	aiMessageRowsWithPlaceHolder = strings.Join(stringx.Remove(aiMessageFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheGozeroAdminAiMessageIdPrefix = "cache:gozeroAdmin:aiMessage:id:"
+	cacheGozeroAdminAiMessageIdPrefix         = "cache:gozeroAdmin:aiMessage:id:"
+	cacheGozeroAdminAiMessageCallIdRolePrefix = "cache:gozeroAdmin:aiMessage:callId:role:"
 )
 
 type (
 	aiMessageModel interface {
 		Insert(ctx context.Context, data *AiMessage) (sql.Result, error)
 		FindOne(ctx context.Context, id uint64) (*AiMessage, error)
+		FindOneByCallIdRole(ctx context.Context, callId sql.NullString, role string) (*AiMessage, error)
 		Update(ctx context.Context, data *AiMessage) error
 		Delete(ctx context.Context, id uint64) error
 	}
@@ -45,8 +47,10 @@ type (
 		ConversationId uint64         `db:"conversation_id"` // 会话ID
 		Role           string         `db:"role"`            // 角色：user/assistant/tool/system
 		Content        string         `db:"content"`         // 消息内容
-		ToolCalls      sql.NullString `db:"tool_calls"`      // 工具调用记录（JSON 数组）
+		ToolCalls      sql.NullString `db:"tool_calls"`      // 调用元数据，兼容历史工具调用数组
 		Tokens         uint64         `db:"tokens"`          // 消耗 token 数
+		Status         string         `db:"status"`          // 调用状态：running/succeeded/failed
+		CallId         sql.NullString `db:"call_id"`         // 用户命名空间内的幂等调用标识，历史消息为空
 		CreatedAt      time.Time      `db:"created_at"`
 	}
 )
@@ -59,11 +63,17 @@ func newAiMessageModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Optio
 }
 
 func (m *defaultAiMessageModel) Delete(ctx context.Context, id uint64) error {
+	data, err := m.FindOne(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	gozeroAdminAiMessageCallIdRoleKey := fmt.Sprintf("%s%v:%v", cacheGozeroAdminAiMessageCallIdRolePrefix, data.CallId, data.Role)
 	gozeroAdminAiMessageIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiMessageIdPrefix, id)
-	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, gozeroAdminAiMessageIdKey)
+	}, gozeroAdminAiMessageCallIdRoleKey, gozeroAdminAiMessageIdKey)
 	return err
 }
 
@@ -84,21 +94,48 @@ func (m *defaultAiMessageModel) FindOne(ctx context.Context, id uint64) (*AiMess
 	}
 }
 
+func (m *defaultAiMessageModel) FindOneByCallIdRole(ctx context.Context, callId sql.NullString, role string) (*AiMessage, error) {
+	gozeroAdminAiMessageCallIdRoleKey := fmt.Sprintf("%s%v:%v", cacheGozeroAdminAiMessageCallIdRolePrefix, callId, role)
+	var resp AiMessage
+	err := m.QueryRowIndexCtx(ctx, &resp, gozeroAdminAiMessageCallIdRoleKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
+		query := fmt.Sprintf("select %s from %s where `call_id` = ? and `role` = ? limit 1", aiMessageRows, m.table)
+		if err := conn.QueryRowCtx(ctx, &resp, query, callId, role); err != nil {
+			return nil, err
+		}
+		return resp.Id, nil
+	}, m.queryPrimary)
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
 func (m *defaultAiMessageModel) Insert(ctx context.Context, data *AiMessage) (sql.Result, error) {
+	gozeroAdminAiMessageCallIdRoleKey := fmt.Sprintf("%s%v:%v", cacheGozeroAdminAiMessageCallIdRolePrefix, data.CallId, data.Role)
 	gozeroAdminAiMessageIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiMessageIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?)", m.table, aiMessageRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.ConversationId, data.Role, data.Content, data.ToolCalls, data.Tokens)
-	}, gozeroAdminAiMessageIdKey)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?)", m.table, aiMessageRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.ConversationId, data.Role, data.Content, data.ToolCalls, data.Tokens, data.Status, data.CallId)
+	}, gozeroAdminAiMessageCallIdRoleKey, gozeroAdminAiMessageIdKey)
 	return ret, err
 }
 
-func (m *defaultAiMessageModel) Update(ctx context.Context, data *AiMessage) error {
+func (m *defaultAiMessageModel) Update(ctx context.Context, newData *AiMessage) error {
+	data, err := m.FindOne(ctx, newData.Id)
+	if err != nil {
+		return err
+	}
+
+	gozeroAdminAiMessageCallIdRoleKey := fmt.Sprintf("%s%v:%v", cacheGozeroAdminAiMessageCallIdRolePrefix, data.CallId, data.Role)
 	gozeroAdminAiMessageIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiMessageIdPrefix, data.Id)
-	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, aiMessageRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.ConversationId, data.Role, data.Content, data.ToolCalls, data.Tokens, data.Id)
-	}, gozeroAdminAiMessageIdKey)
+		return conn.ExecCtx(ctx, query, newData.ConversationId, newData.Role, newData.Content, newData.ToolCalls, newData.Tokens, newData.Status, newData.CallId, newData.Id)
+	}, gozeroAdminAiMessageCallIdRoleKey, gozeroAdminAiMessageIdKey)
 	return err
 }
 

@@ -12,6 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type AppLoginLogic struct {
@@ -25,7 +26,7 @@ func NewAppLoginLogic(ctx context.Context, s *svc.ServiceContext) *AppLoginLogic
 }
 func (l *AppLoginLogic) AppLogin(in *apppb.AppLoginRequest) (*apppb.AppLoginResponse, error) {
 	account := strings.ToLower(strings.TrimSpace(in.Account))
-	if len(account) > 128 || len(in.Password) > 64 {
+	if len(account) > 128 || utf8.RuneCountInString(in.Password) > 64 || len(in.Password) > 72 {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
 	if err := takeLimit(l.ctx, l.svcCtx, "login:ip", in.IP, 60, 20); err != nil {

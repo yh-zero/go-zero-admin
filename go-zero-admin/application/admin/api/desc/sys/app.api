@@ -1,116 +1,140 @@
 syntax = "v1"
+
 type (
- AppAdminUserInfo {
-  Id int64 `json:"id"`
-  Account string `json:"account"`
-  IdentityKind string `json:"identity_kind"`
-  Nickname string `json:"nickname"`
-  AvatarFileId int64 `json:"avatar_file_id"`
-  AvatarUrl string `json:"avatar_url"`
-  Status string `json:"status"`
-  ReviewReason string `json:"review_reason"`
-  EmailVerified bool `json:"email_verified"`
-  PhoneVerified bool `json:"phone_verified"`
-  LastLoginAt int64 `json:"last_login_at"`
-  CreatedAt int64 `json:"created_at"`
-  Remark string `json:"remark"`
- }
- AppAdminUserReq { Id int64 `path:"id" validate:"min=1"` }
- AppAdminUserResp { User AppAdminUserInfo `json:"user"` }
- AppUpdateUserReq {
-  Id int64 `path:"id" validate:"min=1"`
-  Nickname *string `json:"nickname,optional" validate:"omitempty,max=64"`
-  Remark *string `json:"remark,optional" validate:"omitempty,max=500"`
- }
- AppMembershipPlanInfo {
-  Label string `json:"label"`
-  Value string `json:"value"`
- }
- AppMembershipPlansResp { List []AppMembershipPlanInfo `json:"list"` }
- AppAdminListReq {
-  Page int64 `form:"page,default=1" validate:"min=1"`
-  PageSize int64 `form:"page_size,default=20" validate:"min=1,max=100"`
-  Status string `form:"status,optional" validate:"omitempty,oneof=pending active disabled rejected"`
-  Account string `form:"account,optional" validate:"omitempty,max=128"`
- }
- AppAdminListResp {
-  List []AppAdminUserInfo `json:"list"`
-  Total int64 `json:"total"`
- }
- AppReviewReq {
-  Id int64 `path:"id" validate:"min=1"`
-  Status string `json:"status" validate:"oneof=pending active disabled rejected"`
-  Reason string `json:"reason,optional" validate:"omitempty,max=255"`
- }
- AppSetAvatarReq {
-  Id int64 `path:"id" validate:"min=1"`
-  FileId int64 `json:"file_id" validate:"min=1"`
- }
- AppAdminRevokeReq {
-  Id int64 `path:"id" validate:"min=1"`
-  SessionId string `path:"session_id" validate:"max=64"`
- }
- AppListSessionsReq { Id int64 `path:"id" validate:"min=1"` }
- AppListMembershipReq {
-  Page int64 `form:"page,default=1" validate:"min=1"`
-  PageSize int64 `form:"page_size,default=20" validate:"min=1,max=100"`
-  UserId int64 `form:"user_id,optional" validate:"omitempty,min=1"`
-  PlanCode string `form:"plan_code,optional" validate:"omitempty,max=32"`
-  ActiveOnly bool `form:"active_only,optional"`
- }
- AppListMembershipResp {
-  List []MembershipGrantInfo `json:"list"`
-  Total int64 `json:"total"`
- }
- AppGrantMembershipReq {
-  UserId int64 `json:"user_id" validate:"min=1"`
-  PlanCode string `json:"plan_code" validate:"max=32"`
-  Benefits string `json:"benefits,optional" validate:"omitempty,max=512"`
-  RequestId string `json:"request_id" validate:"max=64"`
-  DurationDays int64 `json:"duration_days" validate:"min=1"`
- }
- AppRevokeMembershipReq { Id int64 `path:"id" validate:"min=1"` }
- AppFeedbackListReq {
-  Page int64 `form:"page,default=1" validate:"min=1"`
-  PageSize int64 `form:"page_size,default=20" validate:"min=1,max=100"`
-  UserId int64 `form:"user_id,optional" validate:"omitempty,min=1"`
-  Status string `form:"status,optional" validate:"omitempty,oneof=pending resolved"`
- }
- AppUpdateFeedbackReq {
-  Id int64 `path:"id" validate:"min=1"`
-  Reply *string `json:"reply,optional" validate:"omitempty,max=2000"`
-  Status *string `json:"status,optional" validate:"omitempty,oneof=pending resolved"`
- }
+	AppAdminUserInfo {
+		Id            int64  `json:"id"`
+		Account       string `json:"account"`
+		IdentityKind  string `json:"identity_kind"`
+		Nickname      string `json:"nickname"`
+		AvatarFileId  int64  `json:"avatar_file_id"`
+		AvatarUrl     string `json:"avatar_url"`
+		Status        string `json:"status"`
+		ReviewReason  string `json:"review_reason"`
+		EmailVerified bool   `json:"email_verified"`
+		PhoneVerified bool   `json:"phone_verified"`
+		LastLoginAt   int64  `json:"last_login_at"`
+		CreatedAt     int64  `json:"created_at"`
+		Remark        string `json:"remark"`
+	}
+	AppAdminUserReq {
+		Id int64 `path:"id" validate:"min=1"`
+	}
+	AppAdminUserResp {
+		User AppAdminUserInfo `json:"user"`
+	}
+	AppUpdateUserReq {
+		Id       int64   `path:"id" validate:"min=1"`
+		Nickname *string `json:"nickname,optional" validate:"omitempty,max=64"`
+		Remark   *string `json:"remark,optional" validate:"omitempty,max=500"`
+	}
+	AppMembershipPlanInfo {
+		Label string `json:"label"`
+		Value string `json:"value"`
+	}
+	AppMembershipPlansResp {
+		List []AppMembershipPlanInfo `json:"list"`
+	}
+	AppAdminListReq {
+		Page     int64  `form:"page,default=1" validate:"omitempty,min=1"`
+		PageSize int64  `form:"page_size,default=20" validate:"omitempty,min=1,max=100"`
+		Status   string `form:"status,optional" validate:"omitempty,oneof=pending active disabled rejected"`
+		Account  string `form:"account,optional" validate:"omitempty,max=128"`
+	}
+	AppAdminListResp {
+		List  []AppAdminUserInfo `json:"list"`
+		Total int64              `json:"total"`
+	}
+	AppReviewReq {
+		Id     int64  `path:"id" validate:"min=1"`
+		Status string `json:"status" validate:"oneof=pending active disabled rejected"`
+		Reason string `json:"reason,optional" validate:"omitempty,max=255"`
+	}
+	AppSetAvatarReq {
+		Id     int64 `path:"id" validate:"min=1"`
+		FileId int64 `json:"file_id" validate:"min=0"`
+	}
+	AppAdminRevokeReq {
+		Id        int64  `path:"id" validate:"min=1"`
+		SessionId string `path:"session_id" validate:"max=64"`
+	}
+	AppListSessionsReq {
+		Id int64 `path:"id" validate:"min=1"`
+	}
+	AppListMembershipReq {
+		Page       int64  `form:"page,default=1" validate:"omitempty,min=1"`
+		PageSize   int64  `form:"page_size,default=20" validate:"omitempty,min=1,max=100"`
+		UserId     int64  `form:"user_id,optional" validate:"omitempty,min=1"`
+		PlanCode   string `form:"plan_code,optional" validate:"omitempty,max=32"`
+		ActiveOnly bool   `form:"active_only,optional"`
+	}
+	AppListMembershipResp {
+		List  []MembershipGrantInfo `json:"list"`
+		Total int64                 `json:"total"`
+	}
+	AppGrantMembershipReq {
+		UserId       int64  `json:"user_id" validate:"min=1"`
+		PlanCode     string `json:"plan_code" validate:"max=32"`
+		Benefits     string `json:"benefits,optional" validate:"omitempty,max=512"`
+		RequestId    string `json:"request_id" validate:"max=64"`
+		DurationDays int64  `json:"duration_days" validate:"min=1"`
+	}
+	AppRevokeMembershipReq {
+		Id int64 `path:"id" validate:"min=1"`
+	}
+	AppFeedbackListReq {
+		Page     int64  `form:"page,default=1" validate:"omitempty,min=1"`
+		PageSize int64  `form:"page_size,default=20" validate:"omitempty,min=1,max=100"`
+		UserId   int64  `form:"user_id,optional" validate:"omitempty,min=1"`
+		Status   string `form:"status,optional" validate:"omitempty,oneof=pending resolved"`
+	}
+	AppUpdateFeedbackReq {
+		Id     int64   `path:"id" validate:"min=1"`
+		Reply  *string `json:"reply,optional" validate:"omitempty,max=2000"`
+		Status *string `json:"status,optional" validate:"omitempty,oneof=pending resolved"`
+	}
 )
+
 @server (
- prefix: v1/sys/app
- group: appadmin
+	prefix: v1/sys/app
+	group:  appadmin
 )
 service admin {
- @handler listAppUsers
- get /users (AppAdminListReq) returns (AppAdminListResp)
- @handler getAppUser
- get /users/:id (AppAdminUserReq) returns (AppAdminUserResp)
- @handler updateAppUser
- put /users/:id (AppUpdateUserReq) returns (EmptyResp)
- @handler listAppMembershipPlans
- get /membership-plans returns (AppMembershipPlansResp)
- @handler reviewAppUser
- post /users/:id/review (AppReviewReq) returns (EmptyResp)
- @handler setAppUserAvatar
- put /users/:id/avatar (AppSetAvatarReq) returns (EmptyResp)
- @handler listAppSessions
- get /users/:id/sessions (AppListSessionsReq) returns (ListDeviceSessionsResp)
- @handler revokeAppSession
- delete /users/:id/sessions/:session_id (AppAdminRevokeReq) returns (EmptyResp)
- @handler listMemberships
- get /memberships (AppListMembershipReq) returns (AppListMembershipResp)
- @handler grantMembership
- post /memberships (AppGrantMembershipReq) returns (EmptyResp)
- @handler revokeMembership
- delete /memberships/:id (AppRevokeMembershipReq) returns (EmptyResp)
- @handler listAppFeedback
- get /feedback (AppFeedbackListReq) returns (AppFeedbackListResp)
- @handler updateAppFeedback
- put /feedback/:id (AppUpdateFeedbackReq) returns (EmptyResp)
+	@handler listAppUsers
+	get /users (AppAdminListReq) returns (AppAdminListResp)
+
+	@handler getAppUser
+	get /users/:id (AppAdminUserReq) returns (AppAdminUserResp)
+
+	@handler updateAppUser
+	put /users/:id (AppUpdateUserReq) returns (EmptyResp)
+
+	@handler listAppMembershipPlans
+	get /membership-plans returns (AppMembershipPlansResp)
+
+	@handler reviewAppUser
+	post /users/:id/review (AppReviewReq) returns (EmptyResp)
+
+	@handler setAppUserAvatar
+	put /users/:id/avatar (AppSetAvatarReq) returns (EmptyResp)
+
+	@handler listAppSessions
+	get /users/:id/sessions (AppListSessionsReq) returns (ListDeviceSessionsResp)
+
+	@handler revokeAppSession
+	delete /users/:id/sessions/:session_id (AppAdminRevokeReq) returns (EmptyResp)
+
+	@handler listMemberships
+	get /memberships (AppListMembershipReq) returns (AppListMembershipResp)
+
+	@handler grantMembership
+	post /memberships (AppGrantMembershipReq) returns (EmptyResp)
+
+	@handler revokeMembership
+	delete /memberships/:id (AppRevokeMembershipReq) returns (EmptyResp)
+
+	@handler listAppFeedback
+	get /feedback (AppFeedbackListReq) returns (AppFeedbackListResp)
+
+	@handler updateAppFeedback
+	put /feedback/:id (AppUpdateFeedbackReq) returns (EmptyResp)
 }

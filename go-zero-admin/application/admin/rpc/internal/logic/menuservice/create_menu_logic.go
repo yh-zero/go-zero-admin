@@ -26,18 +26,24 @@ func (l *CreateMenuLogic) CreateMenu(in *adminpb.CreateMenuRequest) (*adminpb.No
 	if in.ParentId < 0 {
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)
 	}
+	status, err := model.CreateStatus(in.Status)
+	if err != nil {
+		return nil, menuMutationError(err)
+	}
 	visible := int64(0)
 	if in.Visible {
 		visible = 1
 	}
-	err := l.svcCtx.SysMenuModel.Create(l.ctx, &model.SysMenu{
+	err = l.svcCtx.SysMenuModel.Create(l.ctx, &model.SysMenu{
 		ParentId: uint64(in.ParentId), Title: in.Title, Name: in.Name, Type: int64(in.Type),
 		Path: in.Path, Component: in.Component, PermCode: in.PermCode, Icon: in.Icon,
-		Sort: int64(in.Sort), Visible: visible, Status: int64(in.Status),
+		Sort: int64(in.Sort), Visible: visible, Status: status,
 	})
-	if err != nil {
-		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	if model.MutationCommitted(err) {
+		l.svcCtx.PublishPolicyChanged(l.ctx)
 	}
-	l.svcCtx.PublishPolicyChanged(l.ctx)
+	if err != nil {
+		return nil, menuMutationError(err)
+	}
 	return &adminpb.NoDataResponse{}, nil
 }

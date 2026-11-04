@@ -88,15 +88,15 @@ m = (g(r.sub, p.sub, r.dom) || g(r.sub, p.sub, "*")) && (r.dom == p.dom || p.dom
 
 ### 阶段 1 工具调用 Agent（已实现）
 
-eino ChatModel + 工具注册表（`pkg/agenttools`）；SendMessage 最多 5 轮 function calling；token 用量落库 `ai_message.tokens`。
+eino ChatModel + 工具注册表（`pkg/agenttools`）；SendMessage 最多 5 轮 function calling；已知 token 用量落库 `ai_message.tokens`。前端“AI 功能 → AI 对话”提供会话、消息、工具记录与用量展示；真实供应商联调边界见问题清单。
 
 ### 阶段 2 工作流编排（已实现）
 
-JSON DSL `{"steps":[{name,tool,input,approval}]}`；`approval=true` 中间步骤中断 → 人工 Approve/Reject → 续跑；任务状态机 pending_approval/succeeded/rejected/error。已知缺口：无事务、审批无角色门槛（排入阶段 3 前处理）。
+JSON DSL `{"steps":[{name,tool,input,approval}]}`；审批在对应步骤执行前暂停，包括最后一步；通过任务快照、next_step 和 expected_step 原子比较续跑。任务创建与关键状态更新已有事务/行锁，失败状态为 failed；工具执行不在数据库事务中。当前审批限本人任务并受路由权限控制，工作流/审批页面、跨人审批、定时调度与中断恢复待开发。
 
 ### 阶段 3 多 Agent 协作平台（规划）
 
-Agent 市场/计费/多 Agent 协作；前置依赖：`ai_message.tokens` 计费数据已落库；待补：审批角色门槛、工作流事务、业务指标。
+Agent 市场/计费/多 Agent 协作；已有 `ai_message.tokens` 作为已知用量基础，缺失用量仍可能未知，不能直接作为完整费用凭证；待明确跨人审批权限、工具副作用的幂等/恢复及业务指标。
 
 ## 5. 明确废弃项（防返工）
 

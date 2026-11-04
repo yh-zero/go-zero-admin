@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go-zero-admin/pkg/logsafe"
 
 	"go-zero-admin/application/tenant/rpc/internal/config"
 	tenantserviceServer "go-zero-admin/application/tenant/rpc/internal/server/tenantservice"
@@ -23,7 +24,10 @@ func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	conf.MustLoad(*configFile, &c, conf.UseEnv())
+	if err := logsafe.Setup(c.Log, c.Name); err != nil {
+		panic(err)
+	}
 	sqlx.DisableLog()
 	serviceDesc := tenantpb.File_application_tenant_rpc_desc_tenant_proto.Services().Get(0)
 	for i := 0; i < serviceDesc.Methods().Len(); i++ {

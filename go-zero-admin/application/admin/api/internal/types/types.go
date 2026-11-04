@@ -3,6 +3,11 @@
 
 package types
 
+type AiApproveTaskReq struct {
+	Id           int64  `path:"id" validate:"min=1"`
+	ExpectedStep *int64 `json:"expected_step" validate:"required,min=0"`
+}
+
 type AiChatMessage struct {
 	Id        int64  `json:"id"`
 	Role      string `json:"role"`
@@ -10,6 +15,8 @@ type AiChatMessage struct {
 	ToolCalls string `json:"tool_calls"`
 	Tokens    int64  `json:"tokens"`
 	CreatedAt int64  `json:"created_at"`
+	Status    string `json:"status"`
+	Error     string `json:"error"`
 }
 
 type AiConversationInfo struct {
@@ -35,9 +42,17 @@ type AiCreateWorkflowReq struct {
 	IntervalSeconds int64  `json:"interval_seconds,optional" validate:"omitempty,min=0"`
 }
 
+type AiGetConversationReq struct {
+	Id       int64 `path:"id" validate:"min=1"`
+	BeforeId int64 `form:"before_id,optional" validate:"omitempty,min=0"`
+	PageSize int64 `form:"page_size,optional" validate:"omitempty,min=0,max=20"`
+}
+
 type AiGetConversationResp struct {
 	Conversation *AiConversationInfo `json:"conversation"`
 	Messages     []*AiChatMessage    `json:"messages"`
+	HasMore      bool                `json:"has_more"`
+	NextBeforeId int64               `json:"next_before_id"`
 }
 
 type AiIdReq struct {
@@ -79,8 +94,9 @@ type AiPageReq struct {
 }
 
 type AiRejectTaskReq struct {
-	Id     int64  `path:"id" validate:"min=1"`
-	Reason string `json:"reason" validate:"max=512"`
+	Id           int64  `path:"id" validate:"min=1"`
+	ExpectedStep *int64 `json:"expected_step" validate:"required,min=0"`
+	Reason       string `json:"reason" validate:"max=512"`
 }
 
 type AiRunWorkflowReq struct {
@@ -94,7 +110,8 @@ type AiRunWorkflowResp struct {
 }
 
 type AiSendMessageReq struct {
-	ConversationId int64  `json:"conversation_id" validate:"min=1"`
+	RequestId      string `json:"request_id" validate:"required,uuid"`
+	ConversationId int64  `json:"conversation_id" validate:"min=0"`
 	Content        string `json:"content" validate:"max=16000"`
 }
 
@@ -115,6 +132,7 @@ type AiTaskInfo struct {
 	ApprovedBy     int64  `json:"approved_by"`
 	CreatedAt      int64  `json:"created_at"`
 	CompletedAt    int64  `json:"completed_at"`
+	NextStep       int64  `json:"next_step"`
 }
 
 type AiTaskResp struct {
@@ -161,8 +179,8 @@ type ApiInfo struct {
 }
 
 type AppAdminListReq struct {
-	Page     int64  `form:"page,default=1" validate:"min=1"`
-	PageSize int64  `form:"page_size,default=20" validate:"min=1,max=100"`
+	Page     int64  `form:"page,default=1" validate:"omitempty,min=1"`
+	PageSize int64  `form:"page_size,default=20" validate:"omitempty,min=1,max=100"`
 	Status   string `form:"status,optional" validate:"omitempty,oneof=pending active disabled rejected"`
 	Account  string `form:"account,optional" validate:"omitempty,max=128"`
 }
@@ -208,8 +226,8 @@ type AppAuthOptionsResp struct {
 }
 
 type AppContentListReq struct {
-	Page     int64 `form:"page,default=1" validate:"min=1"`
-	PageSize int64 `form:"page_size,default=20" validate:"min=1,max=100"`
+	Page     int64 `form:"page,default=1" validate:"omitempty,min=1"`
+	PageSize int64 `form:"page_size,default=20" validate:"omitempty,min=1,max=100"`
 }
 
 type AppFeedbackInfo struct {
@@ -225,8 +243,8 @@ type AppFeedbackInfo struct {
 }
 
 type AppFeedbackListReq struct {
-	Page     int64  `form:"page,default=1" validate:"min=1"`
-	PageSize int64  `form:"page_size,default=20" validate:"min=1,max=100"`
+	Page     int64  `form:"page,default=1" validate:"omitempty,min=1"`
+	PageSize int64  `form:"page_size,default=20" validate:"omitempty,min=1,max=100"`
 	UserId   int64  `form:"user_id,optional" validate:"omitempty,min=1"`
 	Status   string `form:"status,optional" validate:"omitempty,oneof=pending resolved"`
 }
@@ -245,8 +263,8 @@ type AppGrantMembershipReq struct {
 }
 
 type AppListMembershipReq struct {
-	Page       int64  `form:"page,default=1" validate:"min=1"`
-	PageSize   int64  `form:"page_size,default=20" validate:"min=1,max=100"`
+	Page       int64  `form:"page,default=1" validate:"omitempty,min=1"`
+	PageSize   int64  `form:"page_size,default=20" validate:"omitempty,min=1,max=100"`
 	UserId     int64  `form:"user_id,optional" validate:"omitempty,min=1"`
 	PlanCode   string `form:"plan_code,optional" validate:"omitempty,max=32"`
 	ActiveOnly bool   `form:"active_only,optional"`
@@ -263,7 +281,7 @@ type AppListSessionsReq struct {
 
 type AppLoginReq struct {
 	Account  string `json:"account" validate:"max=128"`
-	Password string `json:"password" validate:"max=64"`
+	Password string `json:"password" validate:"max=64,maxbytes=72"`
 }
 
 type AppLogoutReq struct {
@@ -293,7 +311,7 @@ type AppRefreshReq struct {
 
 type AppRegisterReq struct {
 	Account   string `json:"account" validate:"max=128"`
-	Password  string `json:"password" validate:"min=8,max=64"`
+	Password  string `json:"password" validate:"min=8,max=64,maxbytes=72"`
 	Nickname  string `json:"nickname,optional" validate:"omitempty,max=64"`
 	EmailCode string `json:"email_code,optional" validate:"omitempty,len=6"`
 }
@@ -314,7 +332,7 @@ type AppSendEmailCodeReq struct {
 
 type AppSetAvatarReq struct {
 	Id     int64 `path:"id" validate:"min=1"`
-	FileId int64 `json:"file_id" validate:"min=1"`
+	FileId int64 `json:"file_id" validate:"min=0"`
 }
 
 type AppSubmitFeedbackReq struct {
@@ -378,8 +396,8 @@ type AuditLogInfo struct {
 }
 
 type ChangePasswordReq struct {
-	OldPassword string `json:"old_password" validate:"max=72"`
-	NewPassword string `json:"new_password" validate:"min=8,max=72"`
+	OldPassword string `json:"old_password" validate:"maxbytes=72"`
+	NewPassword string `json:"new_password" validate:"min=8,maxbytes=72"`
 }
 
 type CreateDeptReq struct {
@@ -398,7 +416,7 @@ type CreateDictReq struct {
 	Code        string      `json:"code" validate:"max=64"`
 	Items       []*DictItem `json:"items,optional"`
 	Description string      `json:"description,optional" validate:"omitempty,max=512"`
-	Status      int32       `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	Status      *int32      `json:"status,optional" validate:"omitempty,oneof=1 2"`
 }
 
 type CreateMenuReq struct {
@@ -412,7 +430,7 @@ type CreateMenuReq struct {
 	Icon      string `json:"icon,optional" validate:"omitempty,max=64"`
 	Sort      int32  `json:"sort,optional"`
 	Visible   bool   `json:"visible,optional"`
-	Status    int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	Status    *int32 `json:"status,optional" validate:"omitempty,oneof=1 2"`
 }
 
 type CreateRoleReq struct {
@@ -421,14 +439,14 @@ type CreateRoleReq struct {
 	Description string  `json:"description,optional" validate:"omitempty,max=512"`
 	DataScope   string  `json:"data_scope,optional" validate:"omitempty,oneof=ALL DEPT_AND_CHILDREN DEPT SELF"`
 	Sort        int32   `json:"sort,optional"`
-	Status      int32   `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	Status      *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
 	MenuIds     []int64 `json:"menu_ids,optional" validate:"omitempty,dive,min=1"`
 }
 
 type CreateTenantReq struct {
 	Slug          string `json:"slug" validate:"min=2,max=32"`
 	AdminUsername string `json:"admin_username,optional" validate:"omitempty,max=64"`
-	AdminPassword string `json:"admin_password,optional" validate:"omitempty,max=72"`
+	AdminPassword string `json:"admin_password,optional" validate:"omitempty,maxbytes=72"`
 }
 
 type CreateTenantResp struct {
@@ -438,7 +456,7 @@ type CreateTenantResp struct {
 
 type CreateUserReq struct {
 	Username     string  `json:"username" validate:"min=2,max=64"`
-	Password     string  `json:"password" validate:"min=8,max=72"`
+	Password     string  `json:"password" validate:"min=8,maxbytes=72"`
 	Nickname     string  `json:"nickname,optional" validate:"omitempty,max=64"`
 	RealName     string  `json:"real_name,optional" validate:"omitempty,max=64"`
 	Email        string  `json:"email,optional" validate:"omitempty,email,max=128"`
@@ -712,8 +730,8 @@ type GetRoleResp struct {
 }
 
 type GetTenantListReq struct {
-	Page     int64  `form:"page,default=1" validate:"min=1"`
-	PageSize int64  `form:"page_size,default=20" validate:"min=1,max=100"`
+	Page     int64  `form:"page,default=1" validate:"omitempty,min=1"`
+	PageSize int64  `form:"page_size,default=20" validate:"omitempty,min=1,max=100"`
 	Status   string `form:"status,optional" validate:"omitempty,oneof=active stopped error"`
 }
 
@@ -757,7 +775,7 @@ type ListDeviceSessionsResp struct {
 
 type LoginReq struct {
 	Username  string `json:"username" validate:"max=64"`
-	Password  string `json:"password" validate:"max=72"`
+	Password  string `json:"password" validate:"maxbytes=72"`
 	CaptchaID string `json:"captcha_id,optional" validate:"omitempty,max=64"`
 	Captcha   string `json:"captcha,optional" validate:"omitempty,len=4"`
 }
@@ -836,7 +854,7 @@ type RefreshTokenReq struct {
 
 type ResetPasswordReq struct {
 	Id          int64  `path:"id" validate:"min=1"`
-	NewPassword string `json:"new_password" validate:"min=8,max=72"`
+	NewPassword string `json:"new_password" validate:"min=8,maxbytes=72"`
 }
 
 type ResetTenantAdminResp struct {
@@ -894,39 +912,39 @@ type UpdateDeptReq struct {
 	Leader       *string `json:"leader,optional" validate:"omitempty,max=64"`
 	LeaderUserId *int64  `json:"leader_user_id,optional"`
 	Phone        *string `json:"phone,optional" validate:"omitempty,max=20"`
-	Email        *string `json:"email,optional" validate:"omitempty,email,max=128"`
+	Email        *string `json:"email,optional" validate:"omitempty,email_or_empty,max=128"`
 	Sort         *int32  `json:"sort,optional"`
 	Status       *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
 }
 
 type UpdateDictReq struct {
 	Id          int64       `path:"id" validate:"min=1"`
-	Name        string      `json:"name,optional" validate:"omitempty,max=64"`
-	Code        string      `json:"code,optional" validate:"omitempty,max=64"`
+	Name        *string     `json:"name,optional" validate:"omitempty,max=64"`
+	Code        *string     `json:"code,optional" validate:"omitempty,max=64"`
 	Items       []*DictItem `json:"items,optional"`
-	Description string      `json:"description,optional" validate:"omitempty,max=512"`
-	Status      int32       `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	Description *string     `json:"description,optional" validate:"omitempty,max=512"`
+	Status      *int32      `json:"status,optional" validate:"omitempty,oneof=1 2"`
 }
 
 type UpdateMenuReq struct {
-	Id        int64  `path:"id" validate:"min=1"`
-	ParentId  int64  `json:"parent_id,optional"`
-	Title     string `json:"title,optional" validate:"omitempty,max=64"`
-	Name      string `json:"name,optional" validate:"omitempty,max=64"`
-	Type      int32  `json:"type,optional" validate:"omitempty,oneof=1 2 3"`
-	Path      string `json:"path,optional" validate:"omitempty,max=255"`
-	Component string `json:"component,optional" validate:"omitempty,max=255"`
-	PermCode  string `json:"perm_code,optional" validate:"omitempty,max=128"`
-	Icon      string `json:"icon,optional" validate:"omitempty,max=64"`
-	Sort      int32  `json:"sort,optional"`
-	Visible   bool   `json:"visible,optional"`
-	Status    int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	Id        int64   `path:"id" validate:"min=1"`
+	ParentId  *int64  `json:"parent_id,optional"`
+	Title     *string `json:"title,optional" validate:"omitempty,max=64"`
+	Name      *string `json:"name,optional" validate:"omitempty,max=64"`
+	Type      *int32  `json:"type,optional" validate:"omitempty,oneof=1 2 3"`
+	Path      *string `json:"path,optional" validate:"omitempty,max=255"`
+	Component *string `json:"component,optional" validate:"omitempty,max=255"`
+	PermCode  *string `json:"perm_code,optional" validate:"omitempty,max=128"`
+	Icon      *string `json:"icon,optional" validate:"omitempty,max=64"`
+	Sort      *int32  `json:"sort,optional"`
+	Visible   *bool   `json:"visible,optional"`
+	Status    *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
 }
 
 type UpdateProfileReq struct {
 	Nickname     *string `json:"nickname,optional" validate:"omitempty,max=64"`
 	RealName     *string `json:"real_name,optional" validate:"omitempty,max=64"`
-	Email        *string `json:"email,optional" validate:"omitempty,email,max=128"`
+	Email        *string `json:"email,optional" validate:"omitempty,email_or_empty,max=128"`
 	Phone        *string `json:"phone,optional" validate:"omitempty,max=20"`
 	AvatarFileId *int64  `json:"avatar_file_id,optional"`
 	Gender       *int32  `json:"gender,optional" validate:"omitempty,oneof=0 1 2"`
@@ -939,12 +957,12 @@ type UpdateRoleMenusReq struct {
 
 type UpdateRoleReq struct {
 	Id          int64   `path:"id" validate:"min=1"`
-	Name        string  `json:"name,optional" validate:"omitempty,max=64"`
-	Code        string  `json:"code,optional" validate:"omitempty,max=64"`
-	Description string  `json:"description,optional" validate:"omitempty,max=512"`
-	DataScope   string  `json:"data_scope,optional" validate:"omitempty,oneof=ALL DEPT_AND_CHILDREN DEPT SELF"`
-	Sort        int32   `json:"sort,optional"`
-	Status      int32   `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	Name        *string `json:"name,optional" validate:"omitempty,max=64"`
+	Code        *string `json:"code,optional" validate:"omitempty,max=64"`
+	Description *string `json:"description,optional" validate:"omitempty,max=512"`
+	DataScope   *string `json:"data_scope,optional" validate:"omitempty,oneof=ALL DEPT_AND_CHILDREN DEPT SELF"`
+	Sort        *int32  `json:"sort,optional"`
+	Status      *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
 	MenuIds     []int64 `json:"menu_ids,optional" validate:"omitempty,dive,min=1"`
 }
 
@@ -952,7 +970,7 @@ type UpdateUserReq struct {
 	Id           int64   `path:"id" validate:"min=1"`
 	Nickname     *string `json:"nickname,optional" validate:"omitempty,max=64"`
 	RealName     *string `json:"real_name,optional" validate:"omitempty,max=64"`
-	Email        *string `json:"email,optional" validate:"omitempty,email,max=128"`
+	Email        *string `json:"email,optional" validate:"omitempty,email_or_empty,max=128"`
 	Phone        *string `json:"phone,optional" validate:"omitempty,max=20"`
 	DeptId       *int64  `json:"dept_id,optional"`
 	AvatarFileId *int64  `json:"avatar_file_id,optional"`

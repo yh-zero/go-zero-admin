@@ -105,13 +105,15 @@
 
 ### 部分更新
 
-- 更新字段省略或 `null` 保持原值，显式空字符串/0 只清空允许清空的字段；`role_ids` 省略保持授权、空数组清空。用户及个人资料使用 `avatar_file_id`，`avatar_url` 只读，不接受客户端提供可信操作者身份。
+- ✅ 角色、菜单、字典更新字段省略或 `null` 保持原值，显式空字符串/0 只清空允许清空的字段；角色编辑的 `menu_ids`、字典 `items` 省略或 null 保持，空数组清空；独立角色菜单授权接口仍执行完整替换。
+- 用户 `role_ids` 省略或 null 保持，空数组清空。用户及个人资料使用 `avatar_file_id`，`avatar_url` 只读，不接受客户端提供可信操作者身份。
+- 🚧 用户、个人资料和部门邮箱允许显式空字符串清空。
 - 状态与解绑：用户/部门 `status` 仅为 1（启用）或 2（停用），0 不表示清空；`gender` 为 0/1/2。`dept_id:0`、`avatar_file_id:0` 表示解绑。
 
 ### 账号与密码策略（后台）
 
 - 用户名：创建时 2–64 字符；登录/筛选不设最小长度（兼容历史账号），上限 64。
-- 密码：设置类操作（创建用户、管理员重置、自助改密）8–72 字符（72 为 bcrypt 上限）；登录输入只校验上限。App 侧注册为 8–64（RPC 既有规则），两端策略以各自接口为准。
+- 🚧 密码：设置类操作（创建用户、管理员重置、自助改密）至少 8 个字符，最多 72 字节（bcrypt 上限）；登录输入只校验字节上限。App 注册保留 8–64 字符，同时不得超过 72 字节。超过字节上限返回参数错误 400，不返回内部错误。
 
 ## 5. 错误码（与后端 pkg/xerr 一致）
 
@@ -167,6 +169,7 @@
 - 用户管理的列表、详情、创建、编辑、删除和重置密码受数据范围约束：当前服务端验证部门内的有效角色（含全局绑定）取并集；`ALL` 为全部，`DEPT` 为当前部门，`DEPT_AND_CHILDREN` 含当前部门及有效下级，`SELF` 仅本人，全局超级管理员为全部。无有效范围拒绝访问；历史范围值去空白并忽略大小写，未知值不授予权限。`dept_id=0` 的部门范围仅代表未分配部门，不代表全部部门。客户端部门筛选只能进一步缩小列表。创建必须落在可管理部门，SELF 不允许创建他人；不存在目标保留用户不存在错误，越界目标返回 403。个人资料和认证状态读取固定本人，不以用户管理范围放行他人。
 - 个人资料只读字段 `is_super_admin` 由服务端有效全局超级管理员绑定计算，供前端显示角色分配等入口，不根据用户名判断；后端仍独立执行权限校验。
 - 删除角色与清理授权关系在同一事务内完成，并失效该角色 ID/编码缓存；角色编辑只更新可编辑列，不可恢复已删除角色。
+- ✅ 角色、菜单、字典创建时省略 status 默认 1，显式状态只允许 1/2；角色省略 data_scope 默认 SELF。角色 code 编辑省略或 null 保持，显式不同于现值返回 400。普通角色资料编辑不自动提交旧菜单授权。
 
 ### 部门
 
@@ -178,7 +181,7 @@
 ### 菜单、字典与 API 资源
 
 - `GET /v1/sys/dict/code/:code` 的 `code` 从路径绑定，不要求 GET JSON 请求体或额外 query。
-- 菜单删除按 `parent_id` 确定当前节点及全部后代，在同一事务删除菜单授权关系并软删除菜单，提交后失效详情缓存；导航路径前缀相同的其他节点不受影响。已删除菜单不能被更新恢复。
+- ✅ 菜单删除按 `parent_id` 确定当前节点及全部后代，在同一事务删除菜单授权关系并软删除菜单，提交后失效详情缓存；导航路径前缀相同的其他节点不受影响。创建、移动和子树删除共享数据库结构锁，校验和写入在同一事务内；普通资料编辑只锁目标行。已删除菜单不能被更新恢复，缺少结构锁记录时拒绝结构写入。
 - `POST /v1/sys/api/sync` 使用实际注册路由同步 API 资源，返回 `added/updated/removed`。
 - API 同步采用增量 upsert：保留已有人工标题和非本服务资源，`removed` 固定为 0；新增标题采用 `METHOD /path`。无来源标记时不自动删除其他资源。
 
@@ -220,13 +223,17 @@
 
 统一前缀 `/v1/sys/ai`，仅后台认证用户可访问；Actor 由服务端认证上下文生成。会话、工作流和任务仅其所属用户可读写，越权 ID 与不存在均返回 404。列表接收 `page/page_size`，默认 1/20，page_size 最大 100，响应 `list/total`。
 
+- ✅ 第一期导航：一级“AI 功能”（`/ai`）与“租户管理”同级，子页面“AI 对话”（`/ai/chat`，页面标识 `ai_chat`）。复用现有会话和消息接口，展示本人会话、消息历史、发送状态、工具调用记录和已知 token 用量。
+- ✅ 页面操作码：查看会话 `sys:ai:conversation:list`（含详情）、新建 `sys:ai:conversation:create`、删除 `sys:ai:conversation:delete`、发送 `sys:ai:message:send`。初始化仅关联超级管理员；菜单/按钮码不替代服务端 Casbin 路由权限，普通角色需要分别获得对应授权。
+- ✅ 同一逻辑请求的结果重查复用 `request_id`；明确再次发起模型调用使用新 ID。发送期间阻止重复提交，切换会话后的迟到响应不能覆盖当前会话；消息正文和工具参数按不可信文本转义显示，工具调用记录不代表实际执行结果或费用明细。显示的是已知 token，零值不能据此推断完整计量或免费。
+
 | 方法与路径 | 请求字段 | result 字段 |
 |---|---|---|
 | POST `/conversations` | title（可选，最多 128 字符） | conversation |
 | GET `/conversations` | 分页 | list、total |
-| GET `/conversations/:id` | id | conversation、messages |
+| GET `/conversations/:id` | id、before_id（0/省略取最新页）、page_size（0/省略默认20，最大20） | conversation、messages、has_more、next_before_id |
 | DELETE `/conversations/:id` | id | `{}` |
-| POST `/messages` | conversation_id（0 自动新建）、content（非空，最多 16000 字节） | conversation_id、user_message、ai_message |
+| POST `/messages` | request_id（规范 UUID，逻辑提交重试复用）、conversation_id（0 自动新建）、content（非空，最多 16000 字节） | conversation_id、user_message、ai_message |
 | GET `/tools` | 无 | list：name、description、parameters_schema |
 | POST `/workflows` | name、definition（JSON 字符串）、interval_seconds（默认 0） | workflow |
 | GET `/workflows` | 分页 | list、total |
@@ -236,13 +243,16 @@
 | POST `/workflows/:id/run` | id、input（可选 JSON 字符串，保存为本次输入记录） | task_id、status |
 | GET `/tasks` | 分页、status/workflow_id（可选） | list、total |
 | GET `/tasks/:id` | id | task |
-| POST `/tasks/:id/approve` | id | `{}`，执行状态通过详情查询 |
-| POST `/tasks/:id/reject` | id、reason（非空，最多 512 字符） | `{}` |
+| POST `/tasks/:id/approve` | id、expected_step（必填，0有效，来自详情 next_step） | `{}`，执行状态通过详情查询 |
+| POST `/tasks/:id/reject` | id、expected_step（必填，0有效）、reason（非空，最多 512 字符） | `{}` |
 
 `definition` 为 `{"steps":[{"name":"步骤名","tool":"text_stats","input":{"text":"示例"},"approval":true}]}`；1..32 步，工具仅使用服务端已有注册表，步骤 input 为对象。name 最多 128 字符，enabled 为 0/1；当前只提供手动执行，新增或显式更新 interval_seconds 非 0 返回 400，历史非 0 值保留但不调度。
 
 任务保存 created_by、workflow_snapshot 和 next_step。审批在对应步骤执行前暂停（包括最后一步），批准用原子状态变更领取执行权后从该步骤继续；重复或并发审批不能重复执行。工作流修改不改变已创建任务快照；工具失败标 failed，不伪装成功。旧任务缺少快照不能续跑；未知归属的历史任务不对普通请求开放。进程中断后 running 任务不自动重放有副作用步骤，当前不提供自动恢复或定时调度。
-- AI 批准、拒绝同时绑定本次读取的 `next_step`，迟到请求不能重复执行旧步骤或改变下一审批点。
+- ✅ 任务详情返回 `next_step`；批准、拒绝必须携带客户端读取的 `expected_step` 并原子比较，缺失返回 400。服务端不能以重新读取的新断点替代请求断点；迟到或重放请求不能改变下一审批点。
+- ✅ 会话详情按消息 ID 游标分批读取，每页时间正序，响应同时受字节预算约束，低于默认 4 MiB RPC 接收上限。只读取本人未删除会话；单条历史异常数据不得导致游标无限循环。
+- ✅ 消息增加 `status`（running/succeeded/failed）与安全 `error`；历史消息视为 succeeded。发送前持久化 running 消息对，逐轮保存已知累计 token，完成后原子更新两行终态；失败助手正文为空，HTTP 仍返回业务失败。模型历史只使用 succeeded 的 user/assistant 消息。
+- ✅ `request_id` 在用户内幂等；重复 ID 的内容或会话参数不同返回 400。成功重放返回原消息对，失败重放返回原安全错误，running 返回处理中且不再次调用模型；用户有意重试须使用新 ID。运行中断保持 incomplete，不自动重放付费或工具调用；外部模型响应与数据库落库之间的中断可能造成未知用量，不能宣称严格一次性计费。
 
 会话消息只读取本会话及本人数据。AI 按 YAML 中的 Provider 选择 `AI_<PROVIDER>_KEY`（如 `AI_DEEPSEEK_KEY` 对应 `AI.DeepSeekKey`），该 Key 去除首尾空白后非空即启用，未配置或为空白则关闭；YAML 的 Enabled 字段保留兼容，运行时启用状态以 Key 为准。模型、地址和超时继续使用 YAML。关闭时发送消息返回 503，不产生伪造回答；会话管理、工具列表和本地工作流仍可用。密钥不回显、不记录；长调用等外部验证见[问题清单](README.md#后端剩余事项)。
 

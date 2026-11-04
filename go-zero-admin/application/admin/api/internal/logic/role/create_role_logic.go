@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -26,7 +27,8 @@ func (l *CreateRoleLogic) CreateRole(req *types.CreateRoleReq) (*types.EmptyResp
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
 	_, err := l.svcCtx.RoleRpc.CreateRole(l.ctx, &adminpb.CreateRoleRequest{
-		Name: req.Name, Code: req.Code, Description: req.Description,
+		Actor: middleware.ActorFromContext(l.ctx),
+		Name:  req.Name, Code: req.Code, Description: req.Description,
 		DataScope: req.DataScope, Sort: req.Sort, Status: req.Status, MenuIds: req.MenuIds,
 	})
 	return &types.EmptyResp{}, err

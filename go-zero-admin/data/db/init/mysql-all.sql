@@ -1,5 +1,5 @@
 -- go-zero-admin 开源初始化：单库完整结构 + 虚构演示数据
--- 仅用于新建或重置开发数据库：本文件会 DROP 并重建列出的 19 张表。
+-- 仅用于新建或重置开发数据库：本文件会 DROP 并重建列出的 20 张表。
 -- 首次 docker compose up -d 时，MySQL 空数据卷自动导入；已有卷不会重复执行。
 -- 手动导入：mysql -h 127.0.0.1 -P 3307 -u root -p < mysql-all.sql
 -- 后台账号：admin、demo_all、demo_tree、demo_dept、demo_self（密码均为 Admin@123456）。
@@ -44,12 +44,23 @@ CREATE TABLE `ai_message` (
   `conversation_id` bigint unsigned NOT NULL COMMENT '会话ID',
   `role` varchar(16) NOT NULL COMMENT '角色：user/assistant/tool/system',
   `content` text NOT NULL COMMENT '消息内容',
-  `tool_calls` json DEFAULT NULL COMMENT '工具调用记录（JSON 数组）',
+  `tool_calls` json DEFAULT NULL COMMENT '调用元数据，兼容历史工具调用数组',
   `tokens` int unsigned NOT NULL DEFAULT '0' COMMENT '消耗 token 数',
+  `status` varchar(16) NOT NULL DEFAULT 'succeeded' COMMENT '调用状态：running/succeeded/failed',
+  `call_id` varchar(64) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL COMMENT '用户命名空间内的幂等调用标识，历史消息为空',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_call_role` (`call_id`,`role`),
   KEY `idx_conversation` (`conversation_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 消息';
+
+-- sys_menu_lock：菜单结构写入的专用事务锁，不与用户编辑共享锁。
+DROP TABLE IF EXISTS `sys_menu_lock`;
+CREATE TABLE `sys_menu_lock` (
+  `id` bigint unsigned NOT NULL COMMENT '固定锁记录，必须为1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='菜单结构事务锁';
+INSERT INTO `sys_menu_lock` (`id`) VALUES (1);
 
 -- ai_task
 DROP TABLE IF EXISTS `ai_task`;
@@ -407,7 +418,7 @@ INSERT INTO `sys_user` (`id`,`username`,`password_hash`,`nickname`,`real_name`,`
 (7,'demo_operations','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','运营负责人','演示成员己','operations@example.test',5,0,1,'其他部门成员，用于比较查询范围','2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (8,'demo_disabled','$2a$10$5HrvkHotuA/EHstDstu9CO5IroSRQXjytLNM4sI095/NKC0rWo8T6','停用示例用户','演示成员庚','disabled@example.test',5,0,2,'停用账号不可登录','2026-01-01 00:00:00','2026-01-01 00:00:00');
 
--- 系统管理、APP 管理和租户管理；按钮权限挂在所属页面下。
+-- 系统管理、APP 管理、租户管理和 AI 功能；按钮权限挂在所属页面下。
 INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component`,`perm_code`,`icon`,`sort`,`visible`,`status`,`created_at`,`updated_at`) VALUES
 (9001300,0,'系统管理','system',1,'/sys','','','system',10,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001301,0,'工作台','dashboard',2,'/dashboard','dashboard','','dashboard',0,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
@@ -458,7 +469,13 @@ INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component
 (9001375,9001374,'创建租户','tenant_create',3,'','','sys:tenant:create','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001376,9001374,'启停租户','tenant_lifecycle',3,'','','sys:tenant:lifecycle','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001377,9001374,'重置管理员密码','tenant_reset',3,'','','sys:tenant:reset','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
-(9001378,9001374,'删除租户','tenant_delete',3,'','','sys:tenant:delete','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00');
+(9001378,9001374,'删除租户','tenant_delete',3,'','','sys:tenant:delete','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001400,0,'AI 功能','ai',1,'/ai','','','robot',30,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001401,9001400,'AI 对话','ai_chat',2,'/ai/chat','ai_chat','','message',0,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001402,9001401,'新建会话','ai_conversation_create',3,'','','sys:ai:conversation:create','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001403,9001401,'发送消息','ai_message_send',3,'','','sys:ai:message:send','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001404,9001401,'删除会话','ai_conversation_delete',3,'','','sys:ai:conversation:delete','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001405,9001401,'查看会话','ai_conversation_list',3,'','','sys:ai:conversation:list','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00');
 
 -- 超级管理员获得全部菜单与操作权限；服务端仍独立鉴权。
 INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES
@@ -511,7 +528,13 @@ INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES
 (1,9001375,'2026-01-01 00:00:00'),
 (1,9001376,'2026-01-01 00:00:00'),
 (1,9001377,'2026-01-01 00:00:00'),
-(1,9001378,'2026-01-01 00:00:00');
+(1,9001378,'2026-01-01 00:00:00'),
+(1,9001400,'2026-01-01 00:00:00'),
+(1,9001401,'2026-01-01 00:00:00'),
+(1,9001402,'2026-01-01 00:00:00'),
+(1,9001403,'2026-01-01 00:00:00'),
+(1,9001404,'2026-01-01 00:00:00'),
+(1,9001405,'2026-01-01 00:00:00');
 
 -- 普通演示角色仅显示工作台、用户、部门和个人中心。
 INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES

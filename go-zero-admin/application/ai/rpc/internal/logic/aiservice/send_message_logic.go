@@ -2,12 +2,14 @@ package aiservicelogic
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/cloudwego/eino/schema"
+	"github.com/google/uuid"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"go-zero-admin/application/ai/rpc/aipb"
@@ -28,22 +30,46 @@ func NewSendMessageLogic(ctx context.Context, svcCtx *svc.ServiceContext) *SendM
 	return &SendMessageLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
+// callRecord 只在存储层保存，外部 tool_calls 始终映射成数组字符串。
+type callRecord struct {
+	Version       int               `json:"version"`
+	Calls         []schema.ToolCall `json:"calls"`
+	Fingerprint   string            `json:"fingerprint"`
+	Error         string            `json:"error,omitempty"`
+	ErrorCode     uint32            `json:"error_code,omitempty"`
+	UsageComplete bool              `json:"usage_complete"`
+}
+
+func (r callRecord) marshal() string { data, _ := json.Marshal(r); return string(data) }
+func requestFingerprint(conversationId int64, content string) string {
+	data, _ := json.Marshal([]any{conversationId, content})
+	return fmt.Sprintf("%x", sha256.Sum256(data))
+}
+
 func (l *SendMessageLogic) SendMessage(in *aipb.SendMessageRequest) (*aipb.SendMessageResponse, error) {
 	if err := requireAiActor(in.Actor); err != nil {
 		return nil, err
 	}
-	content := strings.TrimSpace(in.Content)
-	if content == "" || len(content) > 16000 || in.ConversationId < 0 {
-		return nil, xerr.NewErrCodeMsg(400, "消息内容须为 1..16000 字节，会话 ID 不得为负")
+	requestId, err := uuid.Parse(in.RequestId)
+	if err != nil || len(in.RequestId) != 36 || !strings.EqualFold(requestId.String(), in.RequestId) || in.ConversationId < 0 || strings.TrimSpace(in.Content) == "" || len(in.Content) > 16000 {
+		return nil, xerr.NewErrCodeMsg(400, "request_id 须为规范 UUID，消息须为 1..16000 字节且会话 ID 不得为负")
 	}
-	conversationId := in.ConversationId
-	if conversationId > 0 {
-		if _, err := l.svcCtx.AiConversationModel.FindOwned(l.ctx, conversationId, in.Actor.UserId); err != nil {
-			return nil, aiModelError(err)
-		}
+	callId := fmt.Sprintf("%d:%s", in.Actor.UserId, requestId.String())
+	record := callRecord{Version: 1, Calls: make([]schema.ToolCall, 0), Fingerprint: requestFingerprint(in.ConversationId, in.Content)}
+	if pair, err := l.svcCtx.AiMessageModel.FindCall(l.ctx, in.Actor.UserId, callId); err == nil {
+		return replayCall(pair, record.Fingerprint)
+	} else if err != model.ErrNotFound {
+		return nil, aiModelError(err)
 	}
 	if l.svcCtx.LLM == nil {
 		return nil, xerr.NewErrCodeMsg(xerr.SERVICE_UNAVAILABLE, "AI 模型未启用或未配置密钥")
+	}
+	pair, fresh, err := l.svcCtx.AiMessageModel.ReserveCall(l.ctx, in.Actor.UserId, in.ConversationId, callId, in.Content, record.marshal())
+	if err != nil {
+		return nil, aiModelError(err)
+	}
+	if !fresh {
+		return replayCall(pair, record.Fingerprint)
 	}
 	timeout := l.svcCtx.Config.AI.TimeoutSeconds
 	if timeout < 1 || timeout > 90 {
@@ -51,112 +77,171 @@ func (l *SendMessageLogic) SendMessage(in *aipb.SendMessageRequest) (*aipb.SendM
 	}
 	ctx, cancel := context.WithTimeout(l.ctx, time.Duration(timeout)*time.Second)
 	defer cancel()
-	if conversationId == 0 {
-		title := []rune(content)
-		if len(title) > 64 {
-			title = title[:64]
+	var tokens int64
+	fail := func(cause error) (*aipb.SendMessageResponse, error) {
+		if code, ok := xerr.AsCodeError(cause); ok {
+			record.ErrorCode = code.GetErrCode()
+			record.Error = code.GetErrMsg()
+		} else {
+			record.ErrorCode = xerr.SERVER_COMMON_ERROR
+			record.Error = "AI 调用未完成，请使用新的 request_id 重试"
 		}
-		result, err := l.svcCtx.AiConversationModel.Insert(ctx, &model.AiConversation{UserId: uint64(in.Actor.UserId), Title: string(title)})
-		if err != nil {
+		cleanup, done := context.WithTimeout(context.WithoutCancel(l.ctx), 5*time.Second)
+		defer done()
+		if err := l.svcCtx.AiMessageModel.FinishCall(cleanup, in.Actor.UserId, pair, "failed", "", record.marshal(), tokens); err != nil {
 			return nil, aiModelError(err)
 		}
-		conversationId, err = result.LastInsertId()
-		if err != nil {
-			return nil, aiModelError(err)
-		}
+		return nil, xerr.NewErrCodeMsg(record.ErrorCode, record.Error)
 	}
-	lock := redis.NewRedisLock(l.svcCtx.Redis, fmt.Sprintf("ai:conversation:send:%d", conversationId))
+	lock := redis.NewRedisLock(l.svcCtx.Redis, fmt.Sprintf("ai:conversation:send:%d", pair.ConversationId))
 	lock.SetExpire(120)
 	locked, err := lock.AcquireCtx(ctx)
 	if err != nil {
-		return nil, xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE)
+		return fail(xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE))
 	}
 	if !locked {
-		return nil, xerr.NewErrCodeMsg(400, "会话已有消息处理中，请稍后重试")
+		return fail(xerr.NewErrCodeMsg(400, "会话已有消息处理中，请使用新的 request_id 重试"))
 	}
 	defer func() {
-		cleanupCtx, done := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		cleanup, done := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
 		defer done()
-		if _, err := lock.ReleaseCtx(cleanupCtx); err != nil {
+		if _, err := lock.ReleaseCtx(cleanup); err != nil {
 			l.Error("AI 会话锁释放失败")
 		}
 	}()
-	if _, err := l.svcCtx.AiConversationModel.FindOwned(ctx, conversationId, in.Actor.UserId); err != nil {
-		return nil, aiModelError(err)
+	// Redis 锁取得前会话可能已删除；公共可见性与预留调用的结算权限分别校验。
+	if _, err := l.svcCtx.AiConversationModel.FindOwned(ctx, pair.ConversationId, in.Actor.UserId); err != nil {
+		return fail(aiModelError(err))
 	}
-	history, err := l.svcCtx.AiMessageModel.ListOwned(ctx, conversationId, in.Actor.UserId, 20)
+	history, err := l.svcCtx.AiMessageModel.ListOwned(ctx, pair.ConversationId, in.Actor.UserId, 20)
 	if err != nil {
-		return nil, aiModelError(err)
+		return fail(aiModelError(err))
 	}
 	messages := make([]*schema.Message, 0, len(history)+1)
 	for _, row := range history {
-		switch row.Role {
-		case "user":
+		if row.Role == "user" {
 			messages = append(messages, schema.UserMessage(row.Content))
-		case "assistant":
+		} else if row.Role == "assistant" {
 			messages = append(messages, schema.AssistantMessage(row.Content, nil))
 		}
 	}
-	messages = append(messages, schema.UserMessage(content))
-	answer, trace, tokens, err := askModel(ctx, l.svcCtx.LLM, messages)
-	if err != nil {
-		return nil, err
+	messages = append(messages, schema.UserMessage(in.Content))
+	answer, trace, known, complete, err := askModelWithProgress(ctx, l.svcCtx.LLM, messages, func(total int64, calls []schema.ToolCall, usageComplete bool) error {
+		tokens = total
+		record.Calls = calls
+		record.UsageComplete = usageComplete
+		// running 始终 incomplete；下一轮外部响应与落库之间的崩溃用量未知。
+		checkpoint := record
+		checkpoint.UsageComplete = false
+		if err := l.svcCtx.AiMessageModel.SaveCallUsage(ctx, in.Actor.UserId, pair, tokens, checkpoint.marshal()); err != nil {
+			return aiModelError(err)
+		}
+		return nil
+	})
+	tokens = known
+	record.UsageComplete = complete
+	if trace != "" {
+		_ = json.Unmarshal([]byte(trace), &record.Calls)
 	}
-	userId, assistantId, err := l.svcCtx.AiConversationModel.AppendTurn(ctx, conversationId, in.Actor.UserId, content, answer, trace, tokens)
 	if err != nil {
+		return fail(err)
+	}
+	cleanup, done := context.WithTimeout(context.WithoutCancel(l.ctx), 5*time.Second)
+	defer done()
+	if err := l.svcCtx.AiMessageModel.FinishCall(cleanup, in.Actor.UserId, pair, "succeeded", answer, record.marshal(), tokens); err != nil {
 		return nil, aiModelError(err)
 	}
-	now := time.Now().Unix()
-	return &aipb.SendMessageResponse{ConversationId: conversationId, UserMessage: &aipb.ChatMessage{Id: userId, Role: "user", Content: content, CreatedAt: now}, AiMessage: &aipb.ChatMessage{Id: assistantId, Role: "assistant", Content: answer, ToolCalls: trace, Tokens: tokens, CreatedAt: now}}, nil
+	pair.User.Status = "succeeded"
+	pair.User.ToolCalls = record.marshal()
+	pair.Assistant.Status = "succeeded"
+	pair.Assistant.Content = answer
+	pair.Assistant.Tokens = tokens
+	pair.Assistant.ToolCalls = record.marshal()
+	return callResponse(pair), nil
+}
+func callResponse(pair *model.CallPair) *aipb.SendMessageResponse {
+	return &aipb.SendMessageResponse{ConversationId: pair.ConversationId, UserMessage: messageProto(pair.User), AiMessage: messageProto(pair.Assistant)}
+}
+func replayCall(pair *model.CallPair, fingerprint string) (*aipb.SendMessageResponse, error) {
+	var record callRecord
+	if json.Unmarshal([]byte(pair.Assistant.ToolCalls), &record) != nil || record.Version != 1 || record.Fingerprint != fingerprint {
+		return nil, xerr.NewErrCodeMsg(400, "request_id 已用于不同的会话或消息内容")
+	}
+	switch pair.Assistant.Status {
+	case "succeeded":
+		return callResponse(pair), nil
+	case "failed":
+		if record.ErrorCode == 0 || record.Error == "" {
+			return nil, xerr.NewErrCodeMsg(503, "AI 调用失败，请使用新的 request_id 重试")
+		}
+		return nil, xerr.NewErrCodeMsg(record.ErrorCode, record.Error)
+	default:
+		return nil, xerr.NewErrCodeMsg(400, "消息仍在处理中或执行已中断；不会自动重放，请查询会话并使用新的 request_id 提交新意图")
+	}
 }
 
 func askModel(ctx context.Context, client *llm.Client, messages []*schema.Message) (string, string, int64, error) {
-	var calls []schema.ToolCall
-	var tokens int64
+	answer, trace, tokens, _, err := askModelWithProgress(ctx, client, messages, func(int64, []schema.ToolCall, bool) error { return nil })
+	return answer, trace, tokens, err
+}
+func askModelWithProgress(ctx context.Context, client *llm.Client, messages []*schema.Message, persist func(int64, []schema.ToolCall, bool) error) (answer, trace string, tokens int64, complete bool, err error) {
+	calls := make([]schema.ToolCall, 0)
+	complete = true
+	defer func() { data, _ := json.Marshal(calls); trace = string(data) }()
 	for round := 0; round < 5; round++ {
-		response, usage, err := client.Chat(ctx, messages, agenttools.LLMTools())
-		if err != nil {
-			return "", "", 0, xerr.NewErrCodeMsg(xerr.SERVICE_UNAVAILABLE, "模型调用失败，请稍后重试")
+		response, usage, callErr := client.Chat(ctx, messages, agenttools.LLMTools())
+		if callErr != nil {
+			return "", "", tokens, false, xerr.NewErrCodeMsg(503, "模型调用失败，请稍后重试")
 		}
-		if usage != nil && usage.TotalTokens > 0 {
+		if usage == nil || usage.TotalTokens == 0 && usage.PromptTokens == 0 && usage.CompletionTokens == 0 {
+			// 当前 Eino adapter 把缺失/null usage 转为非nil的全零结构，无法据此认定已知零。
+			complete = false
+		} else if usage.TotalTokens < 0 {
+			return "", "", tokens, false, xerr.NewErrCodeMsg(500, "模型用量响应无效")
+		} else {
 			tokens += int64(usage.TotalTokens)
 		}
+		if err := persist(tokens, calls, complete); err != nil {
+			return "", "", tokens, false, err
+		}
 		if tokens > 10_000_000 {
-			return "", "", 0, xerr.NewErrCodeMsg(500, "模型用量响应超出限制")
+			return "", "", tokens, complete, xerr.NewErrCodeMsg(500, "模型用量响应超出限制")
+		}
+		if response == nil {
+			return "", "", tokens, false, xerr.NewErrCodeMsg(503, "模型响应为空")
 		}
 		if len(response.ToolCalls) == 0 {
 			if strings.TrimSpace(response.Content) == "" || len(response.Content) > 60000 {
-				return "", "", 0, xerr.NewErrCodeMsg(500, "模型回复为空或超过大小限制")
+				return "", "", tokens, complete, xerr.NewErrCodeMsg(500, "模型回复为空或超过大小限制")
 			}
-			if calls == nil {
-				calls = make([]schema.ToolCall, 0)
-			}
-			trace, err := json.Marshal(calls)
-			if err != nil || len(trace) > 60000 {
-				return "", "", 0, xerr.NewErrCodeMsg(500, "工具调用记录超过大小限制")
-			}
-			return response.Content, string(trace), tokens, nil
+			return response.Content, "", tokens, complete, nil
 		}
-		if len(response.ToolCalls) > 16 {
-			return "", "", 0, xerr.NewErrCodeMsg(500, "模型请求过多工具调用")
+		if len(calls)+len(response.ToolCalls) > 16 {
+			return "", "", tokens, complete, xerr.NewErrCodeMsg(500, "模型请求过多工具调用")
+		}
+		for _, call := range response.ToolCalls {
+			if len(call.Function.Arguments) > 64000 {
+				return "", "", tokens, complete, xerr.NewErrCodeMsg(500, "工具参数超过大小限制")
+			}
+		}
+		proposed := append(append([]schema.ToolCall{}, calls...), response.ToolCalls...)
+		data, marshalErr := json.Marshal(proposed)
+		if marshalErr != nil || len(data) > 60000 {
+			return "", "", tokens, complete, xerr.NewErrCodeMsg(500, "工具调用记录超过大小限制")
+		}
+		calls = proposed
+		if err := persist(tokens, calls, complete); err != nil {
+			return "", "", tokens, false, err
 		}
 		messages = append(messages, response)
 		for _, call := range response.ToolCalls {
-			if len(call.Function.Arguments) > 64000 {
-				return "", "", 0, xerr.NewErrCodeMsg(500, "工具参数超过大小限制")
-			}
-			calls = append(calls, call)
 			result := "工具不存在"
 			if tool, ok := agenttools.Get(call.Function.Name); ok {
-				if json.Valid([]byte(call.Function.Arguments)) {
-					value, err := tool.Execute(ctx, json.RawMessage(call.Function.Arguments))
-					if err != nil {
-						result = "工具参数不合法或执行失败"
-					} else {
-						result = value
-					}
+				value, toolErr := tool.Execute(ctx, json.RawMessage(call.Function.Arguments))
+				if toolErr != nil {
+					result = "工具参数不合法或执行失败"
 				} else {
-					result = "工具参数不是有效 JSON"
+					result = value
 				}
 			}
 			if len(result) > 16000 {
@@ -166,5 +251,5 @@ func askModel(ctx context.Context, client *llm.Client, messages []*schema.Messag
 			messages = append(messages, schema.ToolMessage(result, call.ID))
 		}
 	}
-	return "", "", 0, xerr.NewErrCodeMsg(500, "已达到工具调用轮数限制，请简化问题")
+	return "", "", tokens, complete, xerr.NewErrCodeMsg(500, "已达到工具调用轮数限制，请简化问题")
 }

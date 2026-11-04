@@ -1,0 +1,29 @@
+.workspace { display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); align-items: start; gap: 20px; min-width: 0; }
+.sidebar, .conversation { min-width: 0; }
+.list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; max-height: 560px; overflow: auto; }
+.conversationItem { display: flex; align-items: center; gap: 4px; padding: 6px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; min-width: 0; }
+.selected { background: var(--ant-color-primary-bg); border-color: var(--ant-color-primary-border); }
+.selectConversation { flex: 1; min-width: 0; text-align: left; white-space: normal; height: auto; padding: 6px; display: flex; flex-direction: column; align-items: start; gap: 2px; }
+.title { display: block; width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.small { color: var(--ant-color-text-secondary); font-size: 12px; }
+.messages { display: flex; flex-direction: column; gap: 16px; max-height: min(56vh, 680px); min-height: 180px; overflow: auto; padding: 4px 2px 16px; overflow-anchor: none; }
+.message { min-width: 0; padding: 16px; background: var(--ant-color-fill-quaternary); border-radius: 12px; }
+.userMessage { background: var(--ant-color-primary-bg); }
+.messageMeta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+.messageText { white-space: pre-wrap; overflow-wrap: anywhere; }
+.usage { margin: 12px 0 0 !important; font-size: 12px; }
+.tools { margin-top: 12px; min-width: 0; }
+.tool { margin-top: 8px; padding: 12px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; overflow-wrap: anywhere; }
+.tool pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; margin: 8px 0 0; }
+.historyAction { display: flex; justify-content: center; margin-bottom: 12px; }
+.composer { border-top: 1px solid var(--ant-color-border-secondary); padding-top: 16px; }
+.composer :global(.ant-form-item) { margin-bottom: 10px; }
+.composerActions { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.feedback { margin-bottom: 12px; }
+.recordNote { font-size: 12px; }
+@media (max-width: 760px) {
+  .workspace { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .list { max-height: 220px; }
+  .messages { max-height: 480px; }
+  .message { padding: 12px; }
+}

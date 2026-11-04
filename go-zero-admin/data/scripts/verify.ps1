@@ -22,7 +22,15 @@ try {
         }
         Push-Location $tmp
         try {
-            $dirty = @(gofmt -l application pkg 2>$null)
+            $formatPreference = $ErrorActionPreference
+            $ErrorActionPreference = 'Continue'
+            try {
+                $dirty = @(& gofmt -l application pkg 2>&1)
+                $formatExit = $LASTEXITCODE
+            } finally {
+                $ErrorActionPreference = $formatPreference
+            }
+            if ($formatExit -ne 0) { throw ('gofmt 执行失败，退出码 ' + $formatExit) }
             if ($dirty.Count -gt 0) { throw ('gofmt 未格式化: ' + ($dirty -join ', ')) }
         } finally {
             Pop-Location
@@ -51,9 +59,22 @@ try {
     & go build ./...
     if ($LASTEXITCODE -ne 0) { throw 'go build failed.' }
 
-    Write-Host '[4/7] go mod tidy -diff（检测未批准依赖） ...'
-    & go mod tidy -diff
-    if ($LASTEXITCODE -ne 0) { throw 'go.mod/go.sum 不整洁：可能引入了未批准依赖，见 AGENTS.md 第 2.5 条。' }
+    Write-Host '[4/7] go mod tidy -diff（临时 LF 副本，不改工作区依赖文件） ...'
+    $tidyTemp = Join-Path $env:TEMP ('gozero-tidy-' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $tidyTemp | Out-Null
+    try {
+        foreach ($moduleFile in @('go.mod', 'go.sum')) {
+            $moduleText = [IO.File]::ReadAllText((Join-Path $projectRoot $moduleFile)).Replace("`r`n", "`n")
+            [IO.File]::WriteAllText((Join-Path $tidyTemp $moduleFile), $moduleText, [Text.UTF8Encoding]::new($false))
+        }
+        & go mod tidy -diff -modfile (Join-Path $tidyTemp 'go.mod')
+        if ($LASTEXITCODE -ne 0) { throw 'go.mod/go.sum 内容不整洁：见 AGENTS.md 第 2.5 条。' }
+    } finally {
+        $tidyRoot = [IO.Path]::GetFullPath($env:TEMP).TrimEnd('\') + '\gozero-tidy-'
+        $tidyTarget = [IO.Path]::GetFullPath($tidyTemp)
+        if (-not $tidyTarget.StartsWith($tidyRoot, [StringComparison]::OrdinalIgnoreCase)) { throw '依赖检查临时目录越界，拒绝清理。' }
+        Remove-Item -LiteralPath $tidyTarget -Recurse -Force
+    }
 
     Write-Host '[5/7] goctl api validate ...'
     & goctl api validate --api application/admin/api/desc/admin.api

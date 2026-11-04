@@ -30,6 +30,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 	ai := c.AI
 	ai.Enabled = newLLMEnabled(ai)
+	c.AI = ai
 	llmClient := newLLMClient(ai)
 
 	return &ServiceContext{

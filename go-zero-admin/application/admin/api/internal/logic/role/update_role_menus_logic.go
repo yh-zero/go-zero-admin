@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -26,6 +27,7 @@ func (l *UpdateRoleMenusLogic) UpdateRoleMenus(req *types.UpdateRoleMenusReq) (*
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
 	_, err := l.svcCtx.RoleRpc.UpdateRoleMenus(l.ctx, &adminpb.UpdateRoleMenusRequest{
+		Actor:  middleware.ActorFromContext(l.ctx),
 		RoleId: req.Id, MenuIds: req.MenuIds,
 	})
 	return &types.EmptyResp{}, err

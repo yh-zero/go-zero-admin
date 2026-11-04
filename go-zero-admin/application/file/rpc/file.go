@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go-zero-admin/pkg/logsafe"
 
 	"go-zero-admin/application/file/rpc/filepb"
 	"go-zero-admin/application/file/rpc/internal/config"
@@ -23,7 +24,10 @@ func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	conf.MustLoad(*configFile, &c, conf.UseEnv())
+	if err := logsafe.Setup(c.Log, c.Name); err != nil {
+		panic(err)
+	}
 	// 文件字节、签名链接及数据库个人字段不进入默认内容日志。
 	sqlx.DisableLog()
 	services := filepb.File_application_file_rpc_desc_file_proto.Services()

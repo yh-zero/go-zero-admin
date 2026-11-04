@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go-zero-admin/pkg/logsafe"
 
 	"go-zero-admin/application/app/rpc/apppb"
 	"go-zero-admin/application/app/rpc/internal/config"
@@ -25,6 +26,9 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c, conf.UseEnv())
+	if err := logsafe.Setup(c.Log, c.Name); err != nil {
+		panic(err)
+	}
 	sqlx.DisableLog()
 	services := apppb.File_application_app_rpc_desc_app_proto.Services()
 	for i := 0; i < services.Len(); i++ {

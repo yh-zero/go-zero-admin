@@ -6,58 +6,54 @@ info (
 )
 
 type (
-    FileInfo {
-        Id           int64  `json:"id"`
-        Bucket       string `json:"bucket"`
-        ObjectKey    string `json:"object_key"`
-        OriginalName string `json:"original_name"`
-        Ext          string `json:"ext"`
-        Mime         string `json:"mime"`
-        Size         int64  `json:"size"`
-        Visibility   string `json:"visibility"`
-        RefCount     int32  `json:"ref_count"`
-        UploaderId   int64  `json:"uploader_id"`
-        URL          string `json:"url,optional"`
-        CreatedAt    int64  `json:"created_at"`
-    }
-
-    GetFileListReq {
-        Page       int64  `json:"page,optional" form:"page,optional" validate:"omitempty,min=1"`
-        PageSize   int64  `json:"page_size,optional" form:"page_size,optional" validate:"omitempty,min=1,max=100"`
-        Visibility string `json:"visibility,optional" form:"visibility,optional" validate:"omitempty,oneof=public private"`
-        UploaderId int64  `json:"uploader_id,optional" form:"uploader_id,optional" validate:"omitempty,min=1"`
-    }
-    GetFileListResp {
-        List  []*FileInfo `json:"list"`
-        Total int64        `json:"total"`
-    }
-
-    GetFileURLReq {
-        Id int64 `path:"id" validate:"min=1"`
-    }
-    GetFileURLResp {
-        URL       string `json:"url"`
-        ExpiresAt int64  `json:"expires_at"`
-    }
-
-    DeleteFileReq {
-        Id int64 `path:"id" validate:"min=1"`
-    }
-
-    UploadFileReq {
-        Name          string `json:"name" validate:"max=255"`
-        ContentBase64 string `json:"content_base64"`
-        Scene         string `json:"scene,default=common" validate:"oneof=common avatar doc"`
-        Visibility    string `json:"visibility,default=private" validate:"oneof=private public"`
-    }
-    UploadFileResp {
-        File *FileInfo `json:"file"`
-    }
+	FileInfo {
+		Id           int64  `json:"id"`
+		Bucket       string `json:"bucket"`
+		ObjectKey    string `json:"object_key"`
+		OriginalName string `json:"original_name"`
+		Ext          string `json:"ext"`
+		Mime         string `json:"mime"`
+		Size         int64  `json:"size"`
+		Visibility   string `json:"visibility"`
+		RefCount     int32  `json:"ref_count"`
+		UploaderId   int64  `json:"uploader_id"`
+		URL          string `json:"url,optional"`
+		CreatedAt    int64  `json:"created_at"`
+	}
+	GetFileListReq {
+		Page       int64  `json:"page,optional" form:"page,optional" validate:"omitempty,min=1"`
+		PageSize   int64  `json:"page_size,optional" form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+		Visibility string `json:"visibility,optional" form:"visibility,optional" validate:"omitempty,oneof=public private"`
+		UploaderId int64  `json:"uploader_id,optional" form:"uploader_id,optional" validate:"omitempty,min=1"`
+	}
+	GetFileListResp {
+		List  []*FileInfo `json:"list"`
+		Total int64       `json:"total"`
+	}
+	GetFileURLReq {
+		Id int64 `path:"id" validate:"min=1"`
+	}
+	GetFileURLResp {
+		URL       string `json:"url"`
+		ExpiresAt int64  `json:"expires_at"`
+	}
+	DeleteFileReq {
+		Id int64 `path:"id" validate:"min=1"`
+	}
+	UploadFileReq {
+		Name          string `json:"name" validate:"max=255"`
+		ContentBase64 string `json:"content_base64"`
+		Scene         string `json:"scene,default=common" validate:"oneof=common avatar doc"`
+		Visibility    string `json:"visibility,default=private" validate:"oneof=private public"`
+	}
+	UploadFileResp {
+		File *FileInfo `json:"file"`
+	}
 )
 
 @server (
-	prefix: v1/sys/file
-	group:  file
+	prefix:   v1/sys/file
+	group:    file
 	maxBytes: 14680064
 )
 service admin {
@@ -72,5 +68,4 @@ service admin {
 
 	@handler deleteFile
 	delete /:id (DeleteFileReq) returns (EmptyResp)
-
 }

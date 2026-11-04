@@ -1,110 +1,135 @@
 syntax = "v1"
 
 type (
- AppUserInfo {
-  Id int64 `json:"id"`
-  Account string `json:"account"`
-  IdentityKind string `json:"identity_kind"`
-  Nickname string `json:"nickname"`
-  AvatarFileId int64 `json:"avatar_file_id"`
-  AvatarUrl string `json:"avatar_url"`
-  Status string `json:"status"`
-  ReviewReason string `json:"review_reason"`
-  EmailVerified bool `json:"email_verified"`
-  PhoneVerified bool `json:"phone_verified"`
-  LastLoginAt int64 `json:"last_login_at"`
-  CreatedAt int64 `json:"created_at"`
- }
- AppRegisterReq {
-  Account string `json:"account" validate:"max=128"`
-  Password string `json:"password" validate:"min=8,max=64"`
-  Nickname string `json:"nickname,optional" validate:"omitempty,max=64"`
-  EmailCode string `json:"email_code,optional" validate:"omitempty,len=6"`
- }
- AppLoginReq {
-  Account string `json:"account" validate:"max=128"`
-  Password string `json:"password" validate:"max=64"`
- }
- AppTokenResp {
-  AccessToken string `json:"access_token"`
-  ExpiresAt int64 `json:"expires_at"`
-  RefreshToken string `json:"refresh_token"`
-  RefreshExpiresAt int64 `json:"refresh_expires_at"`
-  SessionId string `json:"session_id"`
-  User AppUserInfo `json:"user"`
- }
- AppRefreshReq { RefreshToken string `json:"refresh_token" validate:"max=2048"` }
- AppLogoutReq { AllDevices bool `json:"all_devices,optional"` }
- AppProfileResp { User AppUserInfo `json:"user"` }
- AppUpdateProfileReq { Nickname *string `json:"nickname,optional" validate:"omitempty,max=64"` }
- AppAuthOptionsResp {
-  EmailVerificationRequired bool `json:"email_verification_required"`
-  EmailCodeEnabled bool `json:"email_code_enabled"`
-  PhoneEnabled bool `json:"phone_enabled"`
- }
- AppSendEmailCodeReq { Account string `json:"account" validate:"max=128"` }
- MembershipGrantInfo {
-  Id int64 `json:"id"`
-  UserId int64 `json:"user_id"`
-  PlanCode string `json:"plan_code"`
-  Benefits string `json:"benefits"`
-  RequestId string `json:"request_id"`
-  GrantedBy int64 `json:"granted_by"`
-  GrantedByAdmin bool `json:"granted_by_admin"`
-  StartsAt int64 `json:"starts_at"`
-  ExpiresAt int64 `json:"expires_at"`
-  Revoked bool `json:"revoked"`
-  RevokedAt int64 `json:"revoked_at"`
-  CreatedAt int64 `json:"created_at"`
- }
- AppMyMembershipResp { List []MembershipGrantInfo `json:"list"` }
- AppContentListReq {
-  Page int64 `form:"page,default=1" validate:"min=1"`
-  PageSize int64 `form:"page_size,default=20" validate:"min=1,max=100"`
- }
- AppSubmitFeedbackReq { Content string `json:"content" validate:"max=2000"` }
- AppFeedbackInfo {
-  Id int64 `json:"id"`
-  UserId int64 `json:"user_id"`
-  Account string `json:"account"`
-  Nickname string `json:"nickname"`
-  Content string `json:"content"`
-  Reply string `json:"reply"`
-  Status string `json:"status"`
-  CreatedAt int64 `json:"created_at"`
-  UpdatedAt int64 `json:"updated_at"`
- }
- AppFeedbackListResp {
-  List []AppFeedbackInfo `json:"list"`
-  Total int64 `json:"total"`
- }
+	AppUserInfo {
+		Id            int64  `json:"id"`
+		Account       string `json:"account"`
+		IdentityKind  string `json:"identity_kind"`
+		Nickname      string `json:"nickname"`
+		AvatarFileId  int64  `json:"avatar_file_id"`
+		AvatarUrl     string `json:"avatar_url"`
+		Status        string `json:"status"`
+		ReviewReason  string `json:"review_reason"`
+		EmailVerified bool   `json:"email_verified"`
+		PhoneVerified bool   `json:"phone_verified"`
+		LastLoginAt   int64  `json:"last_login_at"`
+		CreatedAt     int64  `json:"created_at"`
+	}
+	AppRegisterReq {
+		Account   string `json:"account" validate:"max=128"`
+		Password  string `json:"password" validate:"min=8,max=64,maxbytes=72"`
+		Nickname  string `json:"nickname,optional" validate:"omitempty,max=64"`
+		EmailCode string `json:"email_code,optional" validate:"omitempty,len=6"`
+	}
+	AppLoginReq {
+		Account  string `json:"account" validate:"max=128"`
+		Password string `json:"password" validate:"max=64,maxbytes=72"`
+	}
+	AppTokenResp {
+		AccessToken      string      `json:"access_token"`
+		ExpiresAt        int64       `json:"expires_at"`
+		RefreshToken     string      `json:"refresh_token"`
+		RefreshExpiresAt int64       `json:"refresh_expires_at"`
+		SessionId        string      `json:"session_id"`
+		User             AppUserInfo `json:"user"`
+	}
+	AppRefreshReq {
+		RefreshToken string `json:"refresh_token" validate:"max=2048"`
+	}
+	AppLogoutReq {
+		AllDevices bool `json:"all_devices,optional"`
+	}
+	AppProfileResp {
+		User AppUserInfo `json:"user"`
+	}
+	AppUpdateProfileReq {
+		Nickname *string `json:"nickname,optional" validate:"omitempty,max=64"`
+	}
+	AppAuthOptionsResp {
+		EmailVerificationRequired bool `json:"email_verification_required"`
+		EmailCodeEnabled          bool `json:"email_code_enabled"`
+		PhoneEnabled              bool `json:"phone_enabled"`
+	}
+	AppSendEmailCodeReq {
+		Account string `json:"account" validate:"max=128"`
+	}
+	MembershipGrantInfo {
+		Id             int64  `json:"id"`
+		UserId         int64  `json:"user_id"`
+		PlanCode       string `json:"plan_code"`
+		Benefits       string `json:"benefits"`
+		RequestId      string `json:"request_id"`
+		GrantedBy      int64  `json:"granted_by"`
+		GrantedByAdmin bool   `json:"granted_by_admin"`
+		StartsAt       int64  `json:"starts_at"`
+		ExpiresAt      int64  `json:"expires_at"`
+		Revoked        bool   `json:"revoked"`
+		RevokedAt      int64  `json:"revoked_at"`
+		CreatedAt      int64  `json:"created_at"`
+	}
+	AppMyMembershipResp {
+		List []MembershipGrantInfo `json:"list"`
+	}
+	AppContentListReq {
+		Page     int64 `form:"page,default=1" validate:"omitempty,min=1"`
+		PageSize int64 `form:"page_size,default=20" validate:"omitempty,min=1,max=100"`
+	}
+	AppSubmitFeedbackReq {
+		Content string `json:"content" validate:"max=2000"`
+	}
+	AppFeedbackInfo {
+		Id        int64  `json:"id"`
+		UserId    int64  `json:"user_id"`
+		Account   string `json:"account"`
+		Nickname  string `json:"nickname"`
+		Content   string `json:"content"`
+		Reply     string `json:"reply"`
+		Status    string `json:"status"`
+		CreatedAt int64  `json:"created_at"`
+		UpdatedAt int64  `json:"updated_at"`
+	}
+	AppFeedbackListResp {
+		List  []AppFeedbackInfo `json:"list"`
+		Total int64             `json:"total"`
+	}
 )
+
 @server (
- prefix: v1/app
- group: appauth
- timeout: 20s
+	prefix:  v1/app
+	group:   appauth
+	timeout: 20s
 )
 service admin {
- @handler appRegister
- post /auth/register (AppRegisterReq) returns (EmptyResp)
- @handler appLogin
- post /auth/login (AppLoginReq) returns (AppTokenResp)
- @handler appRefresh
- post /auth/refresh (AppRefreshReq) returns (AppTokenResp)
- @handler appLogout
- post /auth/logout (AppLogoutReq) returns (EmptyResp)
- @handler getAuthOptions
- get /auth/options returns (AppAuthOptionsResp)
- @handler sendEmailCode
- post /auth/email-code (AppSendEmailCodeReq) returns (EmptyResp)
- @handler getMyProfile
- get /profile returns (AppProfileResp)
- @handler updateMyProfile
- put /profile (AppUpdateProfileReq) returns (AppProfileResp)
- @handler getMyMembership
- get /membership returns (AppMyMembershipResp)
- @handler submitAppFeedback
- post /feedback (AppSubmitFeedbackReq) returns (EmptyResp)
- @handler listMyFeedback
- get /feedback (AppContentListReq) returns (AppFeedbackListResp)
+	@handler appRegister
+	post /auth/register (AppRegisterReq) returns (EmptyResp)
+
+	@handler appLogin
+	post /auth/login (AppLoginReq) returns (AppTokenResp)
+
+	@handler appRefresh
+	post /auth/refresh (AppRefreshReq) returns (AppTokenResp)
+
+	@handler appLogout
+	post /auth/logout (AppLogoutReq) returns (EmptyResp)
+
+	@handler getAuthOptions
+	get /auth/options returns (AppAuthOptionsResp)
+
+	@handler sendEmailCode
+	post /auth/email-code (AppSendEmailCodeReq) returns (EmptyResp)
+
+	@handler getMyProfile
+	get /profile returns (AppProfileResp)
+
+	@handler updateMyProfile
+	put /profile (AppUpdateProfileReq) returns (AppProfileResp)
+
+	@handler getMyMembership
+	get /membership returns (AppMyMembershipResp)
+
+	@handler submitAppFeedback
+	post /feedback (AppSubmitFeedbackReq) returns (EmptyResp)
+
+	@handler listMyFeedback
+	get /feedback (AppContentListReq) returns (AppFeedbackListResp)
 }

@@ -22,20 +22,15 @@
 
 > 完成并验证后删行（git 历史可查）；现行功能限制见 [api-contract.md](api-contract.md)。规范修订不代表下列实现问题已修复。
 
-- [ ] 配置：对齐宿主/容器 SMTP Host、Port、ImplicitTLS（当前容器 Host 仍依赖模板未列的 env，宿主 465 与 false 不匹配）；隐式 TLS 分支已存在，需配置与真实邮件验证，不重复开发
-- [ ] 外部：真实邮箱验证码注册完整闭环、AI 工具调用与长调用超时；历史单次 SMTP 发信或模型回复不等于这些链路已覆盖
+- [ ] 外部：真实邮箱验证码注册完整闭环、真实模型的工具调用与长调用超时；AI 对话已用本地模型桩完成隔离 HTTP 和页面联调，不能据此推定真实供应商或付费调用已验收
+- [ ] 契约真实 HTTP 补验：邮箱显式清空、密码多字节边界、App 头像解绑/分页默认值已补实现并通过历史隔离回归；尚未完成对应前后端真实 HTTP 闭环的条目保留 🚧，不能按其他模块验收推定通过
 - [ ] 页面：浏览器实际上传并保存后台个人头像/普通文件闭环、多窗口并发刷新与迟到响应；接口正常路径或模拟页面响应不能替代真实闭环
 - [ ] 异常：持续数据库/Redis/存储故障及故障注入、缓存失效失败、panic/进程中断与跨服务连续失败时的头像/文件引用恢复；对账正常路径不证明跨库原子或全部故障恢复
-- [ ] 权限：最后管理员并发移除保护
+- [ ] 权限：最后管理员并发移除的独立回归；现有实现已通过内置角色行锁串行校验，仍需覆盖并发停用、删用户和移除角色组合
 - [ ] 租户：当前版本按需复验实际生命周期、多实例 DNS 隔离、大桶分页删除、创建中断恢复；历史生命周期验收不能推定中断/大数据场景已覆盖，菜单读取也不能替代生命周期验证
 
-## 规范与自动化待对齐
+## 自动化验证边界
 
-> 2026-11-03 静态核对；本次仅优化规范，未改业务、CI 或本地 hook，以下均未完成。
-
-- [ ] 配置覆盖：当前只有 AI/App 主入口启用 `conf.UseEnv()`；评估并统一 [admin-api](../go-zero-admin/application/admin/api/admin.go)、[admin-rpc](../go-zero-admin/application/admin/rpc/admin.go)、[file-rpc](../go-zero-admin/application/file/rpc/file.go)、[tenant-rpc](../go-zero-admin/application/tenant/rpc/tenant.go) 及 [tenantStorage 二次加载](../go-zero-admin/application/tenant/rpc/internal/logic/tenantservice/create_tenant_logic.go)，补直填/占位符/缺失变量回归，不以文档声明替代实现
-- [ ] AI 初始化一致性：[service_context.go](../go-zero-admin/application/ai/rpc/internal/svc/service_context.go) 只更新局部 `ai.Enabled`，保存的 `Config.AI.Enabled` 未同步；辅助函数注释声称“配置无效返回 nil”，代码实际 panic。按已有契约核对运行状态与错误语义，不能借纯重构静默改变行为
-- [ ] CI：[前端任务](../.github/workflows/ci.yml) 缺少本地门槛 `pnpm lint`；补齐并验证，本地继续执行类型/lint/构建，不删规范迁就 CI
-- [ ] 本地 hook：现有 `.git/hooks/pre-commit` 报错拼入密钥值且读取工作区而非暂存 blob，需停止回显值、扫描实际暂存内容；只在独立临时仓库验证“暂存/工作区不一致、合法占位符、拒绝凭据”等场景。该 hook 未纳入版本控制，本轮不运行或修改
-- [ ] 自检可信性：[verify.ps1](../go-zero-admin/data/scripts/verify.ps1) 的 gofmt 仅看输出且丢弃 stderr，需补非零退出断言；其余 go list/vet/build/tidy/API 已有退出码检查，不笼统记作全部缺失。YAML 字段扫描不覆盖 DSN 内密码或所有文件，不能视为全仓密钥防护
-- [ ] 回归沉淀：当前自检不运行 Go 测试，尚无保留的 `*_test.go`；沿用现有 [登录 HTTP 验证](../go-zero-admin/test/login_e2e.ps1)，按受影响功能补持久回归与入口，外部环境需求单列，不以空测试命令成功冒充行为覆盖
+- [ ] Go 行为回归及数据库/Redis 集成验证：当前 `application/` 与 `pkg/` 无 Go 测试源文件，CI 的 `go test ./...` 不提供行为覆盖；后续需恢复用例并使用独立服务验证事务、并发和缓存
+- [ ] 凭据防护：`verify.ps1` 的 YAML 字段扫描不覆盖 DSN 内密码或所有文件；当前工作区无本地 `pre-commit`，不能把历史未版本化 hook 当作现行防护。若新增 hook，须扫描暂存 blob、只报告路径/行号/字段，并在独立临时仓库验证
+- [ ] GitHub Actions 远端执行：工作流已配置 Go 包检查、自检脚本回归和前端 lint，本地门槛仍须执行；未触发远端流水线前不视为远端通过

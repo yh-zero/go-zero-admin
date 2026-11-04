@@ -27,7 +27,7 @@ func (l *SendMessageLogic) SendMessage(req *types.AiSendMessageReq) (*types.AiSe
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.SendMessage(l.ctx, &aipb.SendMessageRequest{Actor: actor, ConversationId: req.ConversationId, Content: req.Content})
+	out, err := l.svcCtx.AiRpc.SendMessage(l.ctx, &aipb.SendMessageRequest{Actor: actor, ConversationId: req.ConversationId, Content: req.Content, RequestId: req.RequestId})
 	if err != nil {
 		return nil, err
 	}

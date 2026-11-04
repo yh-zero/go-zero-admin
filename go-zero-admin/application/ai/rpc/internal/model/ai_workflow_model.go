@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -19,6 +20,7 @@ type (
 		ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*WorkflowRow, int64, error)
 		UpdateOwned(ctx context.Context, id, ownerId int64, patch WorkflowPatch) error
 		DeleteOwned(ctx context.Context, id, ownerId int64) error
+		CreateTaskOwned(ctx context.Context, id, ownerId int64, input string) (*TaskRow, error)
 	}
 
 	customAiWorkflowModel struct {
@@ -33,6 +35,39 @@ func NewAiWorkflowModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Opti
 		defaultAiWorkflowModel: newAiWorkflowModel(conn, c, opts...),
 		conn:                   conn,
 	}
+}
+
+var ErrWorkflowDisabled = errors.New("workflow disabled")
+
+// CreateTaskOwned 与修改/停用/删除使用同一行锁，只有锁内仍启用的快照可创建任务。
+func (m *customAiWorkflowModel) CreateTaskOwned(ctx context.Context, id, ownerId int64, input string) (*TaskRow, error) {
+	var task *TaskRow
+	err := m.conn.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
+		var workflow WorkflowRow
+		if err := session.QueryRowCtx(ctx, &workflow, workflowSelect+"WHERE id=? AND created_by=? AND deleted_at IS NULL FOR UPDATE", id, ownerId); err != nil {
+			return err
+		}
+		if workflow.Enabled != 1 {
+			return ErrWorkflowDisabled
+		}
+		result, err := session.ExecCtx(ctx, "INSERT INTO ai_task (workflow_id,status,input,created_by,workflow_snapshot) VALUES (?,'running',?,?,?)", id, input, ownerId, workflow.Definition)
+		if err != nil {
+			return err
+		}
+		taskId, err := result.LastInsertId()
+		if err != nil {
+			return err
+		}
+		task = &TaskRow{Id: taskId, WorkflowId: id, Status: "running", Input: input, CreatedBy: ownerId, WorkflowSnapshot: workflow.Definition}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err := m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminAiTaskIdPrefix, task.Id)); err != nil {
+		return nil, err
+	}
+	return task, nil
 }
 
 type WorkflowRow struct {

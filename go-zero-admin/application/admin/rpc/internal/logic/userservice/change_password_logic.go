@@ -25,6 +25,9 @@ func NewChangePasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ch
 }
 
 func (l *ChangePasswordLogic) ChangePassword(in *adminpb.ChangePasswordRequest) (*adminpb.NoDataResponse, error) {
+	if err := validateNewPassword(in.NewPassword); err != nil {
+		return nil, err
+	}
 	if in.GetActor().GetUserId() <= 0 {
 		return nil, xerr.NewErrCode(xerr.PERMISSION_DENIED)
 	}

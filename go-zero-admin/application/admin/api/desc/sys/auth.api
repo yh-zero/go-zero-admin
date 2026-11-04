@@ -7,42 +7,49 @@ info (
 )
 
 type (
-    GetCaptchaReq {}
-    GetCaptchaResp {
-        Enabled     bool   `json:"enabled"`
-        CaptchaID   string `json:"captcha_id"`
-        ImageBase64 string `json:"image_base64"`
-        ExpiresAt   int64  `json:"expires_at"`
-    }
-
-    LoginReq {
-        Username  string `json:"username" validate:"max=64"`
-        Password  string `json:"password" validate:"max=72"`
-        CaptchaID string `json:"captcha_id,optional" validate:"omitempty,max=64"`
-        Captcha   string `json:"captcha,optional" validate:"omitempty,len=4"`
-    }
-    LoginResp {
-        AccessToken  string `json:"access_token"`
-        ExpiresAt    int64  `json:"expires_at"`
-        RefreshToken string `json:"refresh_token"`
-        RefreshExpiresAt int64 `json:"refresh_expires_at"`
-        SessionId string `json:"session_id"`
-    }
-    RefreshTokenReq { RefreshToken string `json:"refresh_token" validate:"max=2048"` }
-    LogoutReq { AllDevices bool `json:"all_devices,optional"` }
-    ListDeviceSessionsReq {}
-    DeviceSession {
-        Id string `json:"id"`
-        DeviceName string `json:"device_name"`
-        Ip string `json:"ip"`
-        UserAgent string `json:"user_agent"`
-        CreatedAt int64 `json:"created_at"`
-        LastSeenAt int64 `json:"last_seen_at"`
-        ExpiresAt int64 `json:"expires_at"`
-        IsCurrent bool `json:"is_current"`
-    }
-    ListDeviceSessionsResp { List []DeviceSession `json:"list"` }
-    RevokeDeviceSessionReq { Id string `path:"id" validate:"max=64"` }
+	GetCaptchaReq  {}
+	GetCaptchaResp {
+		Enabled     bool   `json:"enabled"`
+		CaptchaID   string `json:"captcha_id"`
+		ImageBase64 string `json:"image_base64"`
+		ExpiresAt   int64  `json:"expires_at"`
+	}
+	LoginReq {
+		Username  string `json:"username" validate:"max=64"`
+		Password  string `json:"password" validate:"maxbytes=72"`
+		CaptchaID string `json:"captcha_id,optional" validate:"omitempty,max=64"`
+		Captcha   string `json:"captcha,optional" validate:"omitempty,len=4"`
+	}
+	LoginResp {
+		AccessToken      string `json:"access_token"`
+		ExpiresAt        int64  `json:"expires_at"`
+		RefreshToken     string `json:"refresh_token"`
+		RefreshExpiresAt int64  `json:"refresh_expires_at"`
+		SessionId        string `json:"session_id"`
+	}
+	RefreshTokenReq {
+		RefreshToken string `json:"refresh_token" validate:"max=2048"`
+	}
+	LogoutReq {
+		AllDevices bool `json:"all_devices,optional"`
+	}
+	ListDeviceSessionsReq  {}
+	DeviceSession {
+		Id         string `json:"id"`
+		DeviceName string `json:"device_name"`
+		Ip         string `json:"ip"`
+		UserAgent  string `json:"user_agent"`
+		CreatedAt  int64  `json:"created_at"`
+		LastSeenAt int64  `json:"last_seen_at"`
+		ExpiresAt  int64  `json:"expires_at"`
+		IsCurrent  bool   `json:"is_current"`
+	}
+	ListDeviceSessionsResp {
+		List []DeviceSession `json:"list"`
+	}
+	RevokeDeviceSessionReq {
+		Id string `path:"id" validate:"max=64"`
+	}
 )
 
 @server (
@@ -56,15 +63,15 @@ service admin {
 	@handler login
 	post /login (LoginReq) returns (LoginResp)
 
-    @handler refreshToken
-    post /refresh (RefreshTokenReq) returns (LoginResp)
+	@handler refreshToken
+	post /refresh (RefreshTokenReq) returns (LoginResp)
 
-    @handler logout
-    post /logout (LogoutReq) returns (EmptyResp)
+	@handler logout
+	post /logout (LogoutReq) returns (EmptyResp)
 
-    @handler listDeviceSessions
-    get /sessions (ListDeviceSessionsReq) returns (ListDeviceSessionsResp)
+	@handler listDeviceSessions
+	get /sessions (ListDeviceSessionsReq) returns (ListDeviceSessionsResp)
 
-    @handler revokeDeviceSession
-    delete /sessions/:id (RevokeDeviceSessionReq) returns (EmptyResp)
+	@handler revokeDeviceSession
+	delete /sessions/:id (RevokeDeviceSessionReq) returns (EmptyResp)
 }

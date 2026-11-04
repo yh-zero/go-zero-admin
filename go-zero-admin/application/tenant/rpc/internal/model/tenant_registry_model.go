@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -64,6 +65,9 @@ func (m *customTenantRegistryModel) List(ctx context.Context, page, size int64, 
 }
 
 func (m *customTenantRegistryModel) SetState(ctx context.Context, tenant *TenantRegistry, status, reason string, ready bool) error {
+	if utf8.RuneCountInString(reason) > 512 {
+		reason = string([]rune(reason)[:512])
+	}
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (sql.Result, error) {
 		return conn.ExecCtx(ctx, "UPDATE tenant_registry SET status=?,error_msg=?,admin_account_ready=?,updated_at=NOW() WHERE id=? AND deleted_at IS NULL", status, reason, ready, tenant.Id)
 	}, fmt.Sprintf("%s%d", cacheGozeroAdminTenantRegistryIdPrefix, tenant.Id), cacheGozeroAdminTenantRegistrySlugPrefix+tenant.Slug, cacheGozeroAdminTenantRegistryDomainPrefix+tenant.Domain)
@@ -101,6 +105,22 @@ func InitializeTenantDatabase(ctx context.Context, seed io.Reader, username, pas
 		return errors.New("tenant initialization failed")
 	}
 	return nil
+}
+
+// ResetTenantAdminDatabase 仅操作已授权租户的管理员，跨容器执行器由逻辑层提供。
+func ResetTenantAdminDatabase(ctx context.Context, passwordHash string, execute func(context.Context, io.Reader) ([]byte, error)) (string, error) {
+	output, err := execute(ctx, strings.NewReader("SELECT HEX(username) FROM gozero_admin.sys_user WHERE id=1 AND deleted_at IS NULL;"))
+	username, decodeErr := hex.DecodeString(strings.TrimSpace(string(output)))
+	if err != nil || decodeErr != nil || len(username) == 0 {
+		return "", errors.New("读取租户管理员失败")
+	}
+	// 执行器使用 mysql 标准输入；值以十六进制字面量编码，不能拼接原始值。
+	query := "UPDATE gozero_admin.sys_user SET password_hash=CONVERT(0x" + hex.EncodeToString([]byte(passwordHash)) + " USING utf8mb4),updated_at=NOW() WHERE id=1 AND deleted_at IS NULL; SELECT ROW_COUNT();"
+	output, err = execute(ctx, strings.NewReader(query))
+	if err != nil || strings.TrimSpace(string(output)) != "1" {
+		return "", errors.New("更新租户管理员失败")
+	}
+	return string(username), nil
 }
 
 // NewTenantRegistryModel returns a model for the database table.

@@ -18,7 +18,7 @@ type (
 		sysDictModel
 		ListDictPage(ctx context.Context, filter DictListFilter, page, pageSize int64) ([]*DictRow, int64, error)
 		SoftDelete(ctx context.Context, id int64) error
-		UpdateActive(ctx context.Context, dict *SysDict) error
+		UpdatePartial(ctx context.Context, id uint64, patch DictPatch) error
 	}
 
 	customSysDictModel struct {
@@ -107,20 +107,22 @@ func (m *customSysDictModel) SoftDelete(ctx context.Context, id int64) error {
 	return m.DelCacheCtx(ctx, keys...)
 }
 
-func (m *customSysDictModel) UpdateActive(ctx context.Context, dict *SysDict) error {
+func (m *customSysDictModel) UpdatePartial(ctx context.Context, id uint64, patch DictPatch) error {
 	var current SysDict
-	err := m.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
-		if err := session.QueryRowCtx(ctx, &current, "SELECT "+sysDictRows+" FROM sys_dict WHERE id=? AND deleted_at IS NULL FOR UPDATE", dict.Id); err != nil {
+	var oldCode string
+	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
+		if err := s.QueryRowCtx(ctx, &current, "SELECT "+sysDictRows+" FROM sys_dict WHERE id=? AND deleted_at IS NULL FOR UPDATE", id); err != nil {
 			return err
 		}
-		// 不写回查询快照中的 deleted_at，避免并发删除后恢复记录。
-		_, err := session.ExecCtx(ctx, "UPDATE sys_dict SET name=?,code=?,items=?,description=?,status=? WHERE id=? AND deleted_at IS NULL",
-			dict.Name, dict.Code, dict.Items, dict.Description, dict.Status, dict.Id)
+		oldCode = current.Code
+		if err := applyDictPatch(&current, patch); err != nil {
+			return err
+		}
+		_, err := s.ExecCtx(ctx, "UPDATE sys_dict SET name=?,code=?,items=?,description=?,status=? WHERE id=? AND deleted_at IS NULL", current.Name, current.Code, current.Items, current.Description, current.Status, id)
 		return err
 	})
 	if err != nil {
 		return err
 	}
-	return m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysDictIdPrefix, dict.Id),
-		cacheGozeroAdminNewSysDictCodePrefix+current.Code, cacheGozeroAdminNewSysDictCodePrefix+dict.Code)
+	return committedCacheError(m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysDictIdPrefix, id), cacheGozeroAdminNewSysDictCodePrefix+oldCode, cacheGozeroAdminNewSysDictCodePrefix+current.Code))
 }

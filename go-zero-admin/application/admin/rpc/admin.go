@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go-zero-admin/pkg/logsafe"
 
 	"go-zero-admin/application/admin/rpc/adminpb"
 	"go-zero-admin/application/admin/rpc/internal/config"
@@ -33,7 +34,10 @@ func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	conf.MustLoad(*configFile, &c, conf.UseEnv())
+	if err := logsafe.Setup(c.Log, c.Name); err != nil {
+		panic(err)
+	}
 	// SQL 默认日志会展开参数，关闭普通及慢查询内容，避免密码摘要和个人字段泄漏。
 	sqlx.DisableLog()
 	// 保留方法耗时与指标，但不让默认 RPC 统计日志记录密码、令牌和用户资料。

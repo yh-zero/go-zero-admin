@@ -63,7 +63,7 @@ if redis.call("GET", KEYS[1]) == ARGV[1] then
     return redis.call("DEL", KEYS[1])
 end
 return 0`
-		consumed, verifyErr := l.svcCtx.Redis.EvalCtx(l.ctx, consumeCode, []string{codeKey(account)}, codeDigest(account, in.EmailCode))
+		consumed, verifyErr := l.svcCtx.EmailCodes.Eval(l.ctx, consumeCode, []string{codeKey(account)}, codeDigest(account, in.EmailCode)).Result()
 		if verifyErr != nil {
 			return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
 		}
@@ -108,8 +108,9 @@ func takeLimit(ctx context.Context, s *svc.ServiceContext, scope, key string, pe
 	return nil
 }
 func validatePasswordStrength(password string) error {
-	if len(password) < 8 || len(password) > 64 {
-		return xerr.NewErrCodeMsg(400, "密码长度需为 8-64 位")
+	characters := utf8.RuneCountInString(password)
+	if characters < 8 || characters > 64 || len(password) > 72 {
+		return xerr.NewErrCodeMsg(400, "密码须为 8-64 个字符且不超过 72 字节")
 	}
 	var letter, digit bool
 	for _, c := range password {

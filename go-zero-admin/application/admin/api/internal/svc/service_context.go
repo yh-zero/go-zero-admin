@@ -118,7 +118,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		AuditRpc:    auditserviceclient.NewAuditService(adminRpc),
 		ProfileRpc:  profileserviceclient.NewProfileService(adminRpc),
 		Redis:       rdb,
-		Validator:   validator.New(),
+		Validator:   NewValidator(),
 	}
 
 	if c.TenantRpc != nil {

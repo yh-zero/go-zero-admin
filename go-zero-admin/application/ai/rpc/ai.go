@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go-zero-admin/pkg/logsafe"
 
 	"go-zero-admin/application/ai/rpc/aipb"
 	"go-zero-admin/application/ai/rpc/internal/config"
@@ -24,6 +25,9 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c, conf.UseEnv())
+	if err := logsafe.Setup(c.Log, c.Name); err != nil {
+		panic(err)
+	}
 	// 对话内容、工具参数和个人字段不进入默认 RPC/SQL 内容日志。
 	sqlx.DisableLog()
 	services := aipb.File_application_ai_rpc_desc_ai_proto.Services()

@@ -13,6 +13,7 @@ message Actor { int64 user_id = 1; string username = 2; int64 dept_id = 3; strin
 // ========== 会话与消息（阶段 1） ==========
 message ChatMessage {
   int64 id = 1; string role = 2; string content = 3; string tool_calls = 4; int64 tokens = 5; int64 created_at = 6;
+  string status = 7; string error = 8;
 }
 message ConversationInfo {
   int64 id = 1; string title = 2; int64 user_id = 3; int64 message_count = 4; int64 created_at = 5; int64 updated_at = 6;
@@ -22,8 +23,8 @@ message CreateConversationRequest { Actor actor = 1; string title = 2; }
 message CreateConversationResponse { ConversationInfo conversation = 1; }
 message ListConversationsRequest { Actor actor = 1; PageRequest page = 2; }
 message ListConversationsResponse { repeated ConversationInfo list = 1; PageResponse page = 2; }
-message GetConversationRequest { Actor actor = 1; int64 conversation_id = 2; }
-message GetConversationResponse { ConversationInfo conversation = 1; repeated ChatMessage messages = 2; }
+message GetConversationRequest { Actor actor = 1; int64 conversation_id = 2; int64 before_id = 3; int64 page_size = 4; }
+message GetConversationResponse { ConversationInfo conversation = 1; repeated ChatMessage messages = 2; bool has_more = 3; int64 next_before_id = 4; }
 message DeleteConversationRequest { Actor actor = 1; int64 conversation_id = 2; }
 
 // SendMessage：多轮 function calling（LLM 提议工具 → 服务端执行 → 回填），最多 5 轮
@@ -31,6 +32,7 @@ message SendMessageRequest {
   Actor actor = 1;
   int64 conversation_id = 2;   // 0 = 自动创建新会话
   string content = 3;
+  string request_id = 4;
 }
 message SendMessageResponse { ChatMessage user_message = 1; ChatMessage ai_message = 2; int64 conversation_id = 3; }
 
@@ -62,13 +64,14 @@ message AgentTaskInfo {
   int64 id = 1; int64 workflow_id = 2; int64 conversation_id = 3; string status = 4;
   string input = 5; string result = 6; string error = 7; int64 approved_by = 8;
   int64 created_at = 9; int64 completed_at = 10;
+  int64 next_step = 11;
 }
 message ListAgentTasksRequest { Actor actor = 1; PageRequest page = 2; string status = 3; int64 workflow_id = 4; }
 message ListAgentTasksResponse { repeated AgentTaskInfo list = 1; PageResponse page = 2; }
 message GetAgentTaskRequest { Actor actor = 1; int64 task_id = 2; }
 message GetAgentTaskResponse { AgentTaskInfo task = 1; }
-message ApproveTaskRequest { Actor actor = 1; int64 task_id = 2; }
-message RejectTaskRequest { Actor actor = 1; int64 task_id = 2; string reason = 3; }
+message ApproveTaskRequest { Actor actor = 1; int64 task_id = 2; optional int64 expected_step = 3; }
+message RejectTaskRequest { Actor actor = 1; int64 task_id = 2; string reason = 3; optional int64 expected_step = 4; }
 
 service AiService {
   rpc CreateConversation(CreateConversationRequest) returns (CreateConversationResponse);

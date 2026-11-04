@@ -293,7 +293,7 @@ func initializeTenant(ctx context.Context, s *svc.ServiceContext, t *model.Tenan
 
 func tenantStorage(s *svc.ServiceContext, t *model.TenantRegistry) (objectstorage.Config, error) {
 	var config struct{ Storage objectstorage.Config }
-	if err := conf.Load(s.Config.Tenant.StorageConfigPath, &config); err != nil {
+	if err := conf.Load(s.Config.Tenant.StorageConfigPath, &config, conf.UseEnv()); err != nil {
 		return objectstorage.Config{}, errors.New("storage config unavailable")
 	}
 	config.Storage.PublicBucket = "gozero-t-" + t.Slug + "-public"

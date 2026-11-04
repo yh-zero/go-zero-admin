@@ -1,159 +1,202 @@
 syntax = "v1"
 
 info (
-    title: "AI 会话与工作流"
-    version: "v1"
+	title:   "AI 会话与工作流"
+	version: "v1"
 )
 
 type (
-    AiConversationInfo {
-        Id int64 `json:"id"`
-        Title string `json:"title"`
-        UserId int64 `json:"user_id"`
-        MessageCount int64 `json:"message_count"`
-        CreatedAt int64 `json:"created_at"`
-        UpdatedAt int64 `json:"updated_at"`
-    }
-    AiChatMessage {
-        Id int64 `json:"id"`
-        Role string `json:"role"`
-        Content string `json:"content"`
-        ToolCalls string `json:"tool_calls"`
-        Tokens int64 `json:"tokens"`
-        CreatedAt int64 `json:"created_at"`
-    }
-    AiWorkflowInfo {
-        Id int64 `json:"id"`
-        Name string `json:"name"`
-        Definition string `json:"definition"`
-        IntervalSeconds int64 `json:"interval_seconds"`
-        Enabled int64 `json:"enabled"`
-        NextRunAt int64 `json:"next_run_at"`
-        CreatedBy int64 `json:"created_by"`
-        CreatedAt int64 `json:"created_at"`
-        UpdatedAt int64 `json:"updated_at"`
-    }
-    AiTaskInfo {
-        Id int64 `json:"id"`
-        WorkflowId int64 `json:"workflow_id"`
-        ConversationId int64 `json:"conversation_id"`
-        Status string `json:"status"`
-        Input string `json:"input"`
-        Result string `json:"result"`
-        Error string `json:"error"`
-        ApprovedBy int64 `json:"approved_by"`
-        CreatedAt int64 `json:"created_at"`
-        CompletedAt int64 `json:"completed_at"`
-    }
-    AiToolInfo {
-        Name string `json:"name"`
-        Description string `json:"description"`
-        ParametersSchema string `json:"parameters_schema"`
-    }
-    AiIdReq { Id int64 `path:"id" validate:"min=1"` }
-    AiPageReq {
-        Page int64 `form:"page,optional" validate:"omitempty,min=1"`
-        PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
-    }
-    AiCreateConversationReq { Title string `json:"title,optional" validate:"omitempty,max=128"` }
-    AiConversationResp { Conversation *AiConversationInfo `json:"conversation"` }
-    AiGetConversationResp {
-        Conversation *AiConversationInfo `json:"conversation"`
-        Messages []*AiChatMessage `json:"messages"`
-    }
-    AiListConversationsResp {
-        List []*AiConversationInfo `json:"list"`
-        Total int64 `json:"total"`
-    }
-    AiSendMessageReq {
-        ConversationId int64 `json:"conversation_id" validate:"min=1"`
-        Content string `json:"content" validate:"max=16000"`
-    }
-    AiSendMessageResp {
-        ConversationId int64 `json:"conversation_id"`
-        UserMessage *AiChatMessage `json:"user_message"`
-        AiMessage *AiChatMessage `json:"ai_message"`
-    }
-    AiListToolsReq {}
-    AiListToolsResp { List []*AiToolInfo `json:"list"` }
-    AiCreateWorkflowReq {
-        Name string `json:"name" validate:"max=128"`
-        Definition string `json:"definition" validate:"max=65536"`
-        IntervalSeconds int64 `json:"interval_seconds,optional" validate:"omitempty,min=0"`
-    }
-    AiUpdateWorkflowReq {
-        Id int64 `path:"id" validate:"min=1"`
-        Name *string `json:"name,optional" validate:"omitempty,max=128"`
-        Definition *string `json:"definition,optional" validate:"omitempty,max=65536"`
-        IntervalSeconds *int64 `json:"interval_seconds,optional" validate:"omitempty,min=0"`
-        Enabled *int64 `json:"enabled,optional" validate:"omitempty,oneof=0 1"`
-    }
-    AiWorkflowResp { Workflow *AiWorkflowInfo `json:"workflow"` }
-    AiListWorkflowsResp {
-        List []*AiWorkflowInfo `json:"list"`
-        Total int64 `json:"total"`
-    }
-    AiRunWorkflowReq {
-        Id int64 `path:"id" validate:"min=1"`
-        Input string `json:"input,optional" validate:"omitempty,max=16000"`
-    }
-    AiRunWorkflowResp {
-        TaskId int64 `json:"task_id"`
-        Status string `json:"status"`
-    }
-    AiListTasksReq {
-        Page int64 `form:"page,optional" validate:"omitempty,min=1"`
-        PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
-        Status string `form:"status,optional" validate:"omitempty,oneof=pending running pending_approval succeeded failed rejected"`
-        WorkflowId int64 `form:"workflow_id,optional" validate:"omitempty,min=1"`
-    }
-    AiListTasksResp {
-        List []*AiTaskInfo `json:"list"`
-        Total int64 `json:"total"`
-    }
-    AiTaskResp { Task *AiTaskInfo `json:"task"` }
-    AiRejectTaskReq {
-        Id int64 `path:"id" validate:"min=1"`
-        Reason string `json:"reason" validate:"max=512"`
-    }
+	AiConversationInfo {
+		Id           int64  `json:"id"`
+		Title        string `json:"title"`
+		UserId       int64  `json:"user_id"`
+		MessageCount int64  `json:"message_count"`
+		CreatedAt    int64  `json:"created_at"`
+		UpdatedAt    int64  `json:"updated_at"`
+	}
+	AiChatMessage {
+		Id        int64  `json:"id"`
+		Role      string `json:"role"`
+		Content   string `json:"content"`
+		ToolCalls string `json:"tool_calls"`
+		Tokens    int64  `json:"tokens"`
+		CreatedAt int64  `json:"created_at"`
+		Status    string `json:"status"`
+		Error     string `json:"error"`
+	}
+	AiWorkflowInfo {
+		Id              int64  `json:"id"`
+		Name            string `json:"name"`
+		Definition      string `json:"definition"`
+		IntervalSeconds int64  `json:"interval_seconds"`
+		Enabled         int64  `json:"enabled"`
+		NextRunAt       int64  `json:"next_run_at"`
+		CreatedBy       int64  `json:"created_by"`
+		CreatedAt       int64  `json:"created_at"`
+		UpdatedAt       int64  `json:"updated_at"`
+	}
+	AiTaskInfo {
+		Id             int64  `json:"id"`
+		WorkflowId     int64  `json:"workflow_id"`
+		ConversationId int64  `json:"conversation_id"`
+		Status         string `json:"status"`
+		Input          string `json:"input"`
+		Result         string `json:"result"`
+		Error          string `json:"error"`
+		ApprovedBy     int64  `json:"approved_by"`
+		CreatedAt      int64  `json:"created_at"`
+		CompletedAt    int64  `json:"completed_at"`
+		NextStep       int64  `json:"next_step"`
+	}
+	AiToolInfo {
+		Name             string `json:"name"`
+		Description      string `json:"description"`
+		ParametersSchema string `json:"parameters_schema"`
+	}
+	AiIdReq {
+		Id int64 `path:"id" validate:"min=1"`
+	}
+	AiPageReq {
+		Page     int64 `form:"page,optional" validate:"omitempty,min=1"`
+		PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+	}
+	AiCreateConversationReq {
+		Title string `json:"title,optional" validate:"omitempty,max=128"`
+	}
+	AiConversationResp {
+		Conversation *AiConversationInfo `json:"conversation"`
+	}
+	AiGetConversationReq {
+		Id       int64 `path:"id" validate:"min=1"`
+		BeforeId int64 `form:"before_id,optional" validate:"omitempty,min=0"`
+		PageSize int64 `form:"page_size,optional" validate:"omitempty,min=0,max=20"`
+	}
+	AiGetConversationResp {
+		Conversation *AiConversationInfo `json:"conversation"`
+		Messages     []*AiChatMessage    `json:"messages"`
+		HasMore      bool                `json:"has_more"`
+		NextBeforeId int64               `json:"next_before_id"`
+	}
+	AiListConversationsResp {
+		List  []*AiConversationInfo `json:"list"`
+		Total int64                 `json:"total"`
+	}
+	AiSendMessageReq {
+		RequestId      string `json:"request_id" validate:"required,uuid"`
+		ConversationId int64  `json:"conversation_id" validate:"min=0"`
+		Content        string `json:"content" validate:"max=16000"`
+	}
+	AiSendMessageResp {
+		ConversationId int64          `json:"conversation_id"`
+		UserMessage    *AiChatMessage `json:"user_message"`
+		AiMessage      *AiChatMessage `json:"ai_message"`
+	}
+	AiListToolsReq  {}
+	AiListToolsResp {
+		List []*AiToolInfo `json:"list"`
+	}
+	AiCreateWorkflowReq {
+		Name            string `json:"name" validate:"max=128"`
+		Definition      string `json:"definition" validate:"max=65536"`
+		IntervalSeconds int64  `json:"interval_seconds,optional" validate:"omitempty,min=0"`
+	}
+	AiUpdateWorkflowReq {
+		Id              int64   `path:"id" validate:"min=1"`
+		Name            *string `json:"name,optional" validate:"omitempty,max=128"`
+		Definition      *string `json:"definition,optional" validate:"omitempty,max=65536"`
+		IntervalSeconds *int64  `json:"interval_seconds,optional" validate:"omitempty,min=0"`
+		Enabled         *int64  `json:"enabled,optional" validate:"omitempty,oneof=0 1"`
+	}
+	AiWorkflowResp {
+		Workflow *AiWorkflowInfo `json:"workflow"`
+	}
+	AiListWorkflowsResp {
+		List  []*AiWorkflowInfo `json:"list"`
+		Total int64             `json:"total"`
+	}
+	AiRunWorkflowReq {
+		Id    int64  `path:"id" validate:"min=1"`
+		Input string `json:"input,optional" validate:"omitempty,max=16000"`
+	}
+	AiRunWorkflowResp {
+		TaskId int64  `json:"task_id"`
+		Status string `json:"status"`
+	}
+	AiListTasksReq {
+		Page       int64  `form:"page,optional" validate:"omitempty,min=1"`
+		PageSize   int64  `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+		Status     string `form:"status,optional" validate:"omitempty,oneof=pending running pending_approval succeeded failed rejected"`
+		WorkflowId int64  `form:"workflow_id,optional" validate:"omitempty,min=1"`
+	}
+	AiListTasksResp {
+		List  []*AiTaskInfo `json:"list"`
+		Total int64         `json:"total"`
+	}
+	AiTaskResp {
+		Task *AiTaskInfo `json:"task"`
+	}
+	AiApproveTaskReq {
+		Id           int64  `path:"id" validate:"min=1"`
+		ExpectedStep *int64 `json:"expected_step" validate:"required,min=0"`
+	}
+	AiRejectTaskReq {
+		Id           int64  `path:"id" validate:"min=1"`
+		ExpectedStep *int64 `json:"expected_step" validate:"required,min=0"`
+		Reason       string `json:"reason" validate:"max=512"`
+	}
 )
 
 @server (
-    prefix: v1/sys/ai
-    group: ai
-    timeout: 120s
+	prefix:  v1/sys/ai
+	group:   ai
+	timeout: 120s
 )
 service admin {
-    @handler createConversation
-    post /conversations (AiCreateConversationReq) returns (AiConversationResp)
-    @handler listConversations
-    get /conversations (AiPageReq) returns (AiListConversationsResp)
-    @handler getConversation
-    get /conversations/:id (AiIdReq) returns (AiGetConversationResp)
-    @handler deleteConversation
-    delete /conversations/:id (AiIdReq) returns (EmptyResp)
-    @handler sendMessage
-    post /messages (AiSendMessageReq) returns (AiSendMessageResp)
-    @handler listTools
-    get /tools (AiListToolsReq) returns (AiListToolsResp)
-    @handler createWorkflow
-    post /workflows (AiCreateWorkflowReq) returns (AiWorkflowResp)
-    @handler listWorkflows
-    get /workflows (AiPageReq) returns (AiListWorkflowsResp)
-    @handler getWorkflow
-    get /workflows/:id (AiIdReq) returns (AiWorkflowResp)
-    @handler updateWorkflow
-    put /workflows/:id (AiUpdateWorkflowReq) returns (EmptyResp)
-    @handler deleteWorkflow
-    delete /workflows/:id (AiIdReq) returns (EmptyResp)
-    @handler runWorkflow
-    post /workflows/:id/run (AiRunWorkflowReq) returns (AiRunWorkflowResp)
-    @handler listAgentTasks
-    get /tasks (AiListTasksReq) returns (AiListTasksResp)
-    @handler getAgentTask
-    get /tasks/:id (AiIdReq) returns (AiTaskResp)
-    @handler approveTask
-    post /tasks/:id/approve (AiIdReq) returns (EmptyResp)
-    @handler rejectTask
-    post /tasks/:id/reject (AiRejectTaskReq) returns (EmptyResp)
+	@handler createConversation
+	post /conversations (AiCreateConversationReq) returns (AiConversationResp)
+
+	@handler listConversations
+	get /conversations (AiPageReq) returns (AiListConversationsResp)
+
+	@handler getConversation
+	get /conversations/:id (AiGetConversationReq) returns (AiGetConversationResp)
+
+	@handler deleteConversation
+	delete /conversations/:id (AiIdReq) returns (EmptyResp)
+
+	@handler sendMessage
+	post /messages (AiSendMessageReq) returns (AiSendMessageResp)
+
+	@handler listTools
+	get /tools (AiListToolsReq) returns (AiListToolsResp)
+
+	@handler createWorkflow
+	post /workflows (AiCreateWorkflowReq) returns (AiWorkflowResp)
+
+	@handler listWorkflows
+	get /workflows (AiPageReq) returns (AiListWorkflowsResp)
+
+	@handler getWorkflow
+	get /workflows/:id (AiIdReq) returns (AiWorkflowResp)
+
+	@handler updateWorkflow
+	put /workflows/:id (AiUpdateWorkflowReq) returns (EmptyResp)
+
+	@handler deleteWorkflow
+	delete /workflows/:id (AiIdReq) returns (EmptyResp)
+
+	@handler runWorkflow
+	post /workflows/:id/run (AiRunWorkflowReq) returns (AiRunWorkflowResp)
+
+	@handler listAgentTasks
+	get /tasks (AiListTasksReq) returns (AiListTasksResp)
+
+	@handler getAgentTask
+	get /tasks/:id (AiIdReq) returns (AiTaskResp)
+
+	@handler approveTask
+	post /tasks/:id/approve (AiApproveTaskReq) returns (EmptyResp)
+
+	@handler rejectTask
+	post /tasks/:id/reject (AiRejectTaskReq) returns (EmptyResp)
 }

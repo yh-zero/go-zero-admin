@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { App, Form, Modal } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createRole, fetchRole, updateRole } from '../../api/role';
@@ -15,10 +16,17 @@ export function RoleEditor({ id, onClose }: Props) {
   const { message } = App.useApp();
   const client = useQueryClient();
   const role = useQuery({ queryKey: ['role', id], queryFn: () => fetchRole(id!), enabled: id !== undefined });
-  useFormDraft(form, { entityKey: id ?? 'new', values: id === undefined ? defaults : role.data });
+  const editorValues = useMemo(() => {
+    if (!role.data) return undefined;
+    const { name, code, description, data_scope, sort, status } = role.data;
+    return { name, code, description, data_scope, sort, status };
+  }, [role.data]);
+  useFormDraft(form, { entityKey: id ?? 'new', values: id === undefined ? defaults : editorValues });
   const save = useMutation({
-    mutationFn: (values: CreateRoleReq) => id === undefined ? createRole({ ...values, menu_ids: [] })
-      : updateRole(id, { ...values, menu_ids: role.data!.menu_ids ?? [] }),
+    mutationFn: ({ name, code, description, data_scope, sort, status }: CreateRoleReq) => {
+      const values = { name, code, description, data_scope, sort, status };
+      return id === undefined ? createRole(values) : updateRole(id, values);
+    },
     onSuccess: async () => {
       await invalidateRoleData(client);
       message.success(id === undefined ? '角色已创建' : '角色已更新');

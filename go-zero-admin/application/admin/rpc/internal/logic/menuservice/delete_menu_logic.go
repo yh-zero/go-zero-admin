@@ -8,6 +8,7 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
 	"go-zero-admin/pkg/xerr"
 )
@@ -24,13 +25,16 @@ func NewDeleteMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 
 func (l *DeleteMenuLogic) DeleteMenu(in *adminpb.DeleteMenuRequest) (*adminpb.NoDataResponse, error) {
 	// 事务软删子树 + 清角色关联 + 清缓存（见 model.SoftDeleteSubtree）
-	if _, err := l.svcCtx.SysMenuModel.SoftDeleteSubtree(l.ctx, uint64(in.MenuId)); err != nil {
+	_, err := l.svcCtx.SysMenuModel.SoftDeleteSubtree(l.ctx, uint64(in.MenuId))
+	if model.MutationCommitted(err) {
+		l.svcCtx.PublishPolicyChanged(l.ctx)
+	}
+	if err != nil {
 		if errors.Is(err, sqlx.ErrNotFound) {
 			return nil, xerr.NewErrCode(xerr.MENU_NOT_FOUND)
 		}
 		l.Errorf("delete menu subtree error: %v", err)
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)
 	}
-	l.svcCtx.PublishPolicyChanged(l.ctx)
 	return &adminpb.NoDataResponse{}, nil
 }

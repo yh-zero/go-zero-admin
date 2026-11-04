@@ -58,7 +58,7 @@ func mapAiMessage(row *aipb.ChatMessage) *types.AiChatMessage {
 	if row == nil {
 		return nil
 	}
-	return &types.AiChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: row.ToolCalls, Tokens: row.Tokens, CreatedAt: row.CreatedAt}
+	return &types.AiChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: row.ToolCalls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: row.Status, Error: row.Error}
 }
 func mapAiWorkflow(row *aipb.WorkflowInfo) *types.AiWorkflowInfo {
 	if row == nil {
@@ -70,5 +70,5 @@ func mapAiTask(row *aipb.AgentTaskInfo) *types.AiTaskInfo {
 	if row == nil {
 		return nil
 	}
-	return &types.AiTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt}
+	return &types.AiTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt, NextStep: row.NextStep}
 }

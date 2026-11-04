@@ -1,5 +1,8 @@
 export function requiredWritePermission(method: string, url: string): string | undefined {
   const verb = method.toUpperCase();
+  if (verb === 'POST' && url === '/sys/ai/conversations') return 'sys:ai:conversation:create';
+  if (verb === 'POST' && url === '/sys/ai/messages') return 'sys:ai:message:send';
+  if (verb === 'DELETE' && /^\/sys\/ai\/conversations\/\d+$/.test(url)) return 'sys:ai:conversation:delete';
   if (verb === 'PUT' && /^\/sys\/app\/users\/\d+$/.test(url)) return 'sys:app:user:edit';
   if (verb === 'PUT' && /^\/sys\/app\/feedback\/\d+$/.test(url)) return 'sys:app:feedback:reply';
   if (verb === 'POST' && /^\/sys\/app\/users\/\d+\/review$/.test(url)) return 'sys:app:user:review';

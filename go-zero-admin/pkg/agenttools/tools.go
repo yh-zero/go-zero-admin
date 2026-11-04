@@ -68,8 +68,15 @@ func (getCurrentTime) Description() string { return "获取当前服务器时间
 func (getCurrentTime) Params() map[string]*schema.ParameterInfo {
 	return map[string]*schema.ParameterInfo{}
 }
-func (getCurrentTime) Execute(context.Context, json.RawMessage) (string, error) {
-	loc, _ := time.LoadLocation("Asia/Shanghai")
+func (getCurrentTime) Execute(_ context.Context, args json.RawMessage) (string, error) {
+	var input struct{}
+	if err := decodeObject(args, &input); err != nil {
+		return "", err
+	}
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		loc = time.FixedZone("CST", 8*60*60)
+	}
 	return time.Now().In(loc).Format("2006-01-02 15:04:05 MST"), nil
 }
 
@@ -85,15 +92,27 @@ func (textStats) Params() map[string]*schema.ParameterInfo {
 }
 func (textStats) Execute(_ context.Context, args json.RawMessage) (string, error) {
 	var in struct {
-		Text string `json:"text"`
+		Text *string `json:"text"`
 	}
-	if err := json.Unmarshal(args, &in); err != nil {
+	if err := decodeObject(args, &in); err != nil {
 		return "", fmt.Errorf("invalid args: %w", err)
 	}
-	chars := len([]rune(in.Text))
-	words := len(strings.Fields(in.Text))
-	lines := len(strings.Split(in.Text, "\n"))
+	if in.Text == nil || len(*in.Text) > 16000 {
+		return "", fmt.Errorf("text 必填且最多 16000 字节")
+	}
+	chars := len([]rune(*in.Text))
+	words := len(strings.Fields(*in.Text))
+	lines := len(strings.Split(*in.Text, "\n"))
 	return fmt.Sprintf("字符数 %d，单词数 %d，行数 %d", chars, words, lines), nil
+}
+
+func decodeObject(args json.RawMessage, out any) error {
+	if len(args) > 64000 || !json.Valid(args) || !strings.HasPrefix(strings.TrimSpace(string(args)), "{") {
+		return fmt.Errorf("参数必须为 JSON 对象且最多 64000 字节")
+	}
+	decoder := json.NewDecoder(strings.NewReader(string(args)))
+	decoder.DisallowUnknownFields()
+	return decoder.Decode(out)
 }
 
 func init() {

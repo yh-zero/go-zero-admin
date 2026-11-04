@@ -39,9 +39,16 @@ jobs:
       - name: 安装 goctl
         run: go install github.com/zeromicro/go-zero/tools/goctl@v1.10.2
 
-      - name: 运行后端六项自检
+      - name: 运行后端七项自检
         working-directory: go-zero-admin
         run: ./data/scripts/verify.ps1
+
+      - name: 运行后端 Go 包检查与脚本回归
+        working-directory: go-zero-admin
+        run: |
+          go test ./...
+          if ($LASTEXITCODE -ne 0) { throw '后端 Go 包检查失败' }
+          ./test/verify_script_test.ps1
 
   frontend:
     name: 前端类型检查与构建
@@ -73,6 +80,14 @@ jobs:
       - name: 检查 TypeScript 类型
         working-directory: go-zero-admin-react
         run: pnpm exec tsc -b
+
+      - name: 检查前端代码规范
+        working-directory: go-zero-admin-react
+        run: pnpm lint
+
+      - name: 运行 AI 前端回归
+        working-directory: go-zero-admin-react
+        run: node --test scripts/aiClient.test.mjs scripts/aiChat.test.mjs
 
       - name: 构建前端
         working-directory: go-zero-admin-react

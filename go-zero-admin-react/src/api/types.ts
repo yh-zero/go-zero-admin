@@ -21,7 +21,7 @@ export interface CreateMenuReq {
   parent_id?: number; title: string; name?: string; type: number; path?: string;
   component?: string; perm_code?: string; icon?: string; sort?: number; visible?: boolean; status?: number;
 }
-export type UpdateMenuReq = CreateMenuReq;
+export type UpdateMenuReq = Partial<{ [K in keyof CreateMenuReq]: CreateMenuReq[K] | null }>;
 export interface GetMenuListReq extends PageParams { parent_id?: number; type?: number }
 export interface GetMenuTreeReq { type?: number; status?: number }
 export interface UserInfo {
@@ -55,7 +55,7 @@ export interface RoleInfo {
 export interface CreateRoleReq {
   name: string; code: string; description?: string; data_scope?: string; sort?: number; status?: number; menu_ids?: number[];
 }
-export type UpdateRoleReq = CreateRoleReq;
+export type UpdateRoleReq = Partial<{ [K in keyof CreateRoleReq]: CreateRoleReq[K] | null }>;
 export interface GetRoleListReq extends PageParams { name?: string; code?: string; status?: number }
 export interface DictItem { label: string; value: string; sort: number }
 export interface DictInfo {
@@ -63,7 +63,7 @@ export interface DictInfo {
   status: number; created_at: number; updated_at: number;
 }
 export interface CreateDictReq { name: string; code: string; items?: DictItem[]; description?: string; status?: number }
-export type UpdateDictReq = CreateDictReq;
+export type UpdateDictReq = Partial<{ [K in keyof CreateDictReq]: CreateDictReq[K] | null }>;
 export interface GetDictListReq extends PageParams { name?: string; code?: string; status?: number }
 export interface ApiInfo { id: number; group: string; method: string; path: string; title: string; created_at: number }
 export interface GetApiListReq extends PageParams { group?: string; method?: string; path?: string }
@@ -144,3 +144,39 @@ export interface CreateTenantResp {
   tenant: TenantInfo;
   admin_password: string; // 仅此一次返回
 }
+
+// ===== AI 会话与工作流 =====
+export type AiMessageStatus = 'running' | 'succeeded' | 'failed';
+export type AiTaskStatus = 'pending' | 'running' | 'pending_approval' | 'succeeded' | 'failed' | 'rejected';
+export interface AiConversationInfo {
+  id: number; title: string; user_id: number; message_count: number; created_at: number; updated_at: number;
+}
+export interface AiChatMessage {
+  id: number; role: string; content: string; tool_calls: string; tokens: number; created_at: number;
+  status: AiMessageStatus; error: string;
+}
+export interface AiWorkflowInfo {
+  id: number; name: string; definition: string; interval_seconds: number; enabled: number;
+  next_run_at: number; created_by: number; created_at: number; updated_at: number;
+}
+export interface AiTaskInfo {
+  id: number; workflow_id: number; conversation_id: number; status: AiTaskStatus; input: string;
+  result: string; error: string; approved_by: number; created_at: number; completed_at: number; next_step: number;
+}
+export interface AiToolInfo { name: string; description: string; parameters_schema: string }
+export interface AiConversationResp { conversation: AiConversationInfo }
+export interface AiGetConversationReq { before_id?: number; page_size?: number }
+export interface AiGetConversationResp extends AiConversationResp {
+  messages: AiChatMessage[]; has_more: boolean; next_before_id: number;
+}
+// 同一逻辑提交重试必须复用 request_id；用户有意发起新调用时由调用者生成新的 UUID。
+export interface AiSendMessageReq { request_id: string; conversation_id: number; content: string }
+export interface AiSendMessageResp { conversation_id: number; user_message: AiChatMessage; ai_message: AiChatMessage }
+export interface AiCreateWorkflowReq { name: string; definition: string; interval_seconds?: number }
+export interface AiUpdateWorkflowReq { name?: string; definition?: string; interval_seconds?: number; enabled?: 0 | 1 }
+export interface AiWorkflowResp { workflow: AiWorkflowInfo }
+export interface AiRunWorkflowResp { task_id: number; status: AiTaskStatus }
+export interface AiListTasksReq extends PageParams { status?: AiTaskStatus; workflow_id?: number }
+export interface AiTaskResp { task: AiTaskInfo }
+export interface AiApproveTaskReq { expected_step: number }
+export interface AiRejectTaskReq extends AiApproveTaskReq { reason: string }

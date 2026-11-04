@@ -8,6 +8,7 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
 	"go-zero-admin/pkg/xerr"
 )
@@ -23,49 +24,24 @@ func NewUpdateMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 }
 
 func (l *UpdateMenuLogic) UpdateMenu(in *adminpb.UpdateMenuRequest) (*adminpb.NoDataResponse, error) {
-	// 走生成 model：Update 自动清缓存；FindOne 后校验软删，避免更新已删除行
-	menu, err := l.svcCtx.SysMenuModel.FindOne(l.ctx, uint64(in.MenuId))
+	err := l.svcCtx.SysMenuModel.UpdatePartial(l.ctx, uint64(in.MenuId), model.MenuPatch{
+		ParentId: in.ParentId, Title: in.Title, Name: in.Name, Type: in.Type, Path: in.Path, Component: in.Component, PermCode: in.PermCode, Icon: in.Icon, Sort: in.Sort, Visible: in.Visible, Status: in.Status,
+	})
+	if model.MutationCommitted(err) {
+		l.svcCtx.PublishPolicyChanged(l.ctx)
+	}
 	if err != nil {
-		if errors.Is(err, sqlx.ErrNotFound) {
-			return nil, xerr.NewErrCode(xerr.MENU_NOT_FOUND)
-		}
-		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+		return nil, menuMutationError(err)
 	}
-	if menu.DeletedAt.Valid {
-		return nil, xerr.NewErrCode(xerr.MENU_NOT_FOUND)
-	}
-	// 防环：新父节点不能是自身或自身后代，否则子树收集会成环
-	if in.ParentId > 0 {
-		subtree, err := l.svcCtx.SysMenuModel.CollectSubtreeIds(l.ctx, uint64(in.MenuId))
-		if err != nil {
-			l.Errorf("collect menu subtree error: %v", err)
-			return nil, xerr.NewErrCode(xerr.DB_ERROR)
-		}
-		for _, id := range subtree {
-			if id == in.ParentId {
-				return nil, xerr.NewErrCodeMsg(xerr.REQUEST_PARAM_ERROR, "不能挂载到自身或子菜单下")
-			}
-		}
-	}
-	menu.ParentId = uint64(in.ParentId)
-	menu.Title = in.Title
-	menu.Name = in.Name
-	menu.Type = int64(in.Type)
-	menu.Path = in.Path
-	menu.Component = in.Component
-	menu.PermCode = in.PermCode
-	menu.Icon = in.Icon
-	menu.Sort = int64(in.Sort)
-	if in.Visible {
-		menu.Visible = 1
-	} else {
-		menu.Visible = 0
-	}
-	menu.Status = int64(in.Status)
-	if err := l.svcCtx.SysMenuModel.Update(l.ctx, menu); err != nil {
-		l.Errorf("update menu error: %v", err)
-		return nil, xerr.NewErrCode(xerr.DB_ERROR)
-	}
-	l.svcCtx.PublishPolicyChanged(l.ctx)
 	return &adminpb.NoDataResponse{}, nil
+}
+
+func menuMutationError(err error) error {
+	if errors.Is(err, sqlx.ErrNotFound) {
+		return xerr.NewErrCode(xerr.MENU_NOT_FOUND)
+	}
+	if errors.Is(err, model.ErrInvalidMutation) {
+		return xerr.NewErrCodeMsg(xerr.REQUEST_PARAM_ERROR, err.Error())
+	}
+	return xerr.NewErrCode(xerr.DB_ERROR)
 }

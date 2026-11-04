@@ -28,6 +28,9 @@ func NewCreateUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 }
 
 func (l *CreateUserLogic) CreateUser(in *adminpb.CreateUserRequest) (*adminpb.NoDataResponse, error) {
+	if err := validateNewPassword(in.Password); err != nil {
+		return nil, err
+	}
 	if in.AvatarFileId != 0 {
 		return nil, xerr.NewErrCodeMsg(xerr.REQUEST_PARAM_ERROR, "请先创建用户，再编辑头像")
 	}

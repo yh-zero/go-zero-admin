@@ -210,7 +210,8 @@ func routeTenant(ctx context.Context, s *svc.ServiceContext, tenant *model.Tenan
 }
 func tenantFailure(s *svc.ServiceContext, tenant *model.TenantRegistry, message string, err error) error {
 	if err != nil {
-		message = fmt.Sprintf("%s: %v", message, err)
+		// Docker/数据库诊断可能包含配置；对外和登记表只保存受控的阶段说明。
+		logx.Error("tenant operation failed: " + message)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

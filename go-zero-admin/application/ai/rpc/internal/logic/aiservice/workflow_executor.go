@@ -120,6 +120,9 @@ func requireAiActor(actor *aipb.Actor) error {
 }
 
 func aiModelError(err error) error {
+	if errors.Is(err, model.ErrWorkflowDisabled) {
+		return xerr.NewErrCodeMsg(400, "工作流已停用")
+	}
 	if errors.Is(err, model.ErrNotFound) {
 		return xerr.NewErrCodeMsg(xerr.NOT_FOUND, "资源不存在")
 	}
@@ -147,11 +150,29 @@ func conversationProto(row *model.ConversationRow) *aipb.ConversationInfo {
 	return &aipb.ConversationInfo{Id: row.Id, Title: row.Title, UserId: row.UserId, MessageCount: row.MessageCount, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}
 }
 func messageProto(row *model.MessageRow) *aipb.ChatMessage {
-	return &aipb.ChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: row.ToolCalls, Tokens: row.Tokens, CreatedAt: row.CreatedAt}
+	status := row.Status
+	if status == "" {
+		status = "succeeded"
+	}
+	calls := "[]"
+	message := ""
+	if strings.HasPrefix(strings.TrimSpace(row.ToolCalls), "[") && json.Valid([]byte(row.ToolCalls)) {
+		calls = row.ToolCalls
+	} else {
+		var record callRecord
+		if json.Unmarshal([]byte(row.ToolCalls), &record) == nil && record.Version == 1 {
+			if row.Role == "assistant" && record.Calls != nil {
+				data, _ := json.Marshal(record.Calls)
+				calls = string(data)
+			}
+			message = record.Error
+		}
+	}
+	return &aipb.ChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: calls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: status, Error: message}
 }
 func workflowProto(row *model.WorkflowRow) *aipb.WorkflowInfo {
 	return &aipb.WorkflowInfo{Id: row.Id, Name: row.Name, Definition: row.Definition, IntervalSeconds: row.IntervalSeconds, Enabled: row.Enabled, NextRunAt: row.NextRunAt, CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}
 }
 func taskProto(row *model.TaskRow) *aipb.AgentTaskInfo {
-	return &aipb.AgentTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt}
+	return &aipb.AgentTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt, NextStep: row.NextStep}
 }

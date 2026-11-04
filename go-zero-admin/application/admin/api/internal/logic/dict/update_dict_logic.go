@@ -29,7 +29,7 @@ func (l *UpdateDictLogic) UpdateDict(req *types.UpdateDictReq) (*types.EmptyResp
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	actor := &adminpb.Actor{UserId: userID}
 	_, err := l.svcCtx.DictRpc.UpdateDict(l.ctx, &adminpb.UpdateDictRequest{
-		Actor: actor, DictId: req.Id, Name: req.Name, Code: req.Code, Items: mapDictItems(req.Items),
+		Actor: actor, DictId: req.Id, Name: req.Name, Code: req.Code, Items: mapDictItems(req.Items), UpdateItems: req.Items != nil,
 		Description: req.Description, Status: req.Status,
 	})
 	return &types.EmptyResp{}, err

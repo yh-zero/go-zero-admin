@@ -27,7 +27,7 @@ func (l *RejectTaskLogic) RejectTask(req *types.AiRejectTaskReq) (*types.EmptyRe
 	if err != nil {
 		return nil, err
 	}
-	_, err = l.svcCtx.AiRpc.RejectTask(l.ctx, &aipb.RejectTaskRequest{Actor: actor, TaskId: req.Id, Reason: req.Reason})
+	_, err = l.svcCtx.AiRpc.RejectTask(l.ctx, &aipb.RejectTaskRequest{Actor: actor, TaskId: req.Id, Reason: req.Reason, ExpectedStep: req.ExpectedStep})
 	if err != nil {
 		return nil, err
 	}

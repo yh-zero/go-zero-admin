@@ -19,7 +19,7 @@ type ApproveTaskLogic struct {
 func NewApproveTaskLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ApproveTaskLogic {
 	return &ApproveTaskLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
-func (l *ApproveTaskLogic) ApproveTask(req *types.AiIdReq) (*types.EmptyResp, error) {
+func (l *ApproveTaskLogic) ApproveTask(req *types.AiApproveTaskReq) (*types.EmptyResp, error) {
 	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
@@ -27,7 +27,7 @@ func (l *ApproveTaskLogic) ApproveTask(req *types.AiIdReq) (*types.EmptyResp, er
 	if err != nil {
 		return nil, err
 	}
-	_, err = l.svcCtx.AiRpc.ApproveTask(l.ctx, &aipb.ApproveTaskRequest{Actor: actor, TaskId: req.Id})
+	_, err = l.svcCtx.AiRpc.ApproveTask(l.ctx, &aipb.ApproveTaskRequest{Actor: actor, TaskId: req.Id, ExpectedStep: req.ExpectedStep})
 	if err != nil {
 		return nil, err
 	}

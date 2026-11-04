@@ -6,31 +6,31 @@ info (
 )
 
 type (
-    ProfileInfo {
-        Id        int64  `json:"id"`
-        Username  string `json:"username"`
-        Nickname  string `json:"nickname"`
-        RealName  string `json:"real_name"`
-        Email     string `json:"email"`
-        Phone     string `json:"phone"`
-        AvatarUrl string `json:"avatar_url"`
-        AvatarFileId int64 `json:"avatar_file_id"`
-        IsSuperAdmin bool `json:"is_super_admin"`
-        Gender    int32  `json:"gender"`
-        DeptName  string `json:"dept_name"`
-    }
-
-    GetProfileReq {}
-    GetProfileResp { User *ProfileInfo `json:"user"` }
-
-    UpdateProfileReq {
-        Nickname  *string `json:"nickname,optional" validate:"omitempty,max=64"`
-        RealName  *string `json:"real_name,optional" validate:"omitempty,max=64"`
-        Email     *string `json:"email,optional" validate:"omitempty,email,max=128"`
-        Phone     *string `json:"phone,optional" validate:"omitempty,max=20"`
-        AvatarFileId *int64 `json:"avatar_file_id,optional"`
-        Gender    *int32  `json:"gender,optional" validate:"omitempty,oneof=0 1 2"`
-    }
+	ProfileInfo {
+		Id           int64  `json:"id"`
+		Username     string `json:"username"`
+		Nickname     string `json:"nickname"`
+		RealName     string `json:"real_name"`
+		Email        string `json:"email"`
+		Phone        string `json:"phone"`
+		AvatarUrl    string `json:"avatar_url"`
+		AvatarFileId int64  `json:"avatar_file_id"`
+		IsSuperAdmin bool   `json:"is_super_admin"`
+		Gender       int32  `json:"gender"`
+		DeptName     string `json:"dept_name"`
+	}
+	GetProfileReq  {}
+	GetProfileResp {
+		User *ProfileInfo `json:"user"`
+	}
+	UpdateProfileReq {
+		Nickname     *string `json:"nickname,optional" validate:"omitempty,max=64"`
+		RealName     *string `json:"real_name,optional" validate:"omitempty,max=64"`
+		Email        *string `json:"email,optional" validate:"omitempty,email_or_empty,max=128"`
+		Phone        *string `json:"phone,optional" validate:"omitempty,max=20"`
+		AvatarFileId *int64  `json:"avatar_file_id,optional"`
+		Gender       *int32  `json:"gender,optional" validate:"omitempty,oneof=0 1 2"`
+	}
 )
 
 @server (
@@ -43,5 +43,4 @@ service admin {
 
 	@handler updateProfile
 	put / (UpdateProfileReq) returns (EmptyResp)
-
 }

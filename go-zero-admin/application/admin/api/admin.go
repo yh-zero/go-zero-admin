@@ -15,6 +15,7 @@ import (
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/pkg/logsafe"
 	"go-zero-admin/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/core/conf"
@@ -37,7 +38,10 @@ func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	conf.MustLoad(*configFile, &c, conf.UseEnv())
+	if err := logsafe.Setup(c.Log, c.Name); err != nil {
+		panic(err)
+	}
 	// 官方 HTTP 日志在错误分支会完整转储请求，认证接口改用不采集内容的审计与指标。
 	c.Middlewares.Log = false
 

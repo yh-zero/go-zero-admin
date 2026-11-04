@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -25,6 +26,7 @@ func (l *DeleteRoleLogic) DeleteRole(req *types.DeleteRoleReq) (*types.EmptyResp
 	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
-	_, err := l.svcCtx.RoleRpc.DeleteRole(l.ctx, &adminpb.DeleteRoleRequest{RoleId: req.Id})
+	_, err := l.svcCtx.RoleRpc.DeleteRole(l.ctx, &adminpb.DeleteRoleRequest{
+		Actor: middleware.ActorFromContext(l.ctx), RoleId: req.Id})
 	return &types.EmptyResp{}, err
 }

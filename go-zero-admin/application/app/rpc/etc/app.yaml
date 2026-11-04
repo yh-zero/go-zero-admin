@@ -29,6 +29,6 @@ SMTP:
   From: ${APP_SMTP_FROM}
   FromName: 帅浩            # 收件人看到的发件人名称
   ValidSeconds: 600         # 验证码有效10分钟；到期或验证成功后删除
-  ImplicitTLS: false
+  ImplicitTLS: true
 
 DefaultUserPassword: Demo@123456

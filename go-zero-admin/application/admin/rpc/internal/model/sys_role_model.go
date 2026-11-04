@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -24,7 +25,7 @@ type (
 		// CountUsersByRoleCodes 按角色码统计用户数（casbin g 规则）
 		CountUsersByRoleCodes(ctx context.Context, roleCodes []string) (map[string]int64, error)
 		CreateWithMenus(ctx context.Context, role *SysRole, menuIds []int64) error
-		UpdateWithMenus(ctx context.Context, role *SysRole, menuIds []int64) error
+		UpdatePartial(ctx context.Context, roleId uint64, patch RolePatch) error
 		ReplaceMenus(ctx context.Context, roleId uint64, menuIds []int64) error
 		SoftDeleteWithRelations(ctx context.Context, roleId uint64) error
 	}
@@ -112,6 +113,16 @@ func (m *customSysRoleModel) invalidateRole(ctx context.Context, role *SysRole) 
 }
 
 func (m *customSysRoleModel) CreateWithMenus(ctx context.Context, role *SysRole, menuIds []int64) error {
+	if strings.TrimSpace(role.Code) == "" {
+		return ErrInvalidMutation
+	}
+	status := int32(role.Status)
+	if _, err := CreateStatus(&status); err != nil {
+		return err
+	}
+	if err := applyRolePatch(role, RolePatch{Name: &role.Name, DataScope: &role.DataScope}); err != nil {
+		return err
+	}
 	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
 		result, err := s.ExecCtx(ctx, "INSERT INTO sys_role (name,code,description,data_scope,sort,status) VALUES (?,?,?,?,?,?)", role.Name, role.Code, role.Description, role.DataScope, role.Sort, role.Status)
 		if err != nil {
@@ -127,31 +138,32 @@ func (m *customSysRoleModel) CreateWithMenus(ctx context.Context, role *SysRole,
 	if err != nil {
 		return err
 	}
-	return m.invalidateRole(ctx, role)
+	return committedCacheError(m.invalidateRole(ctx, role))
 }
 
-func (m *customSysRoleModel) UpdateWithMenus(ctx context.Context, role *SysRole, menuIds []int64) error {
+func (m *customSysRoleModel) UpdatePartial(ctx context.Context, roleId uint64, patch RolePatch) error {
+	var role *SysRole
 	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
-		current, err := lockRole(ctx, s, role.Id)
+		var err error
+		role, err = lockRole(ctx, s, roleId)
 		if err != nil {
 			return err
 		}
-		if role.Code != current.Code {
-			return fmt.Errorf("%w: 角色标识创建后不能修改", ErrInvalidMutation)
-		}
-		if current.Code == "super_admin" && role.Status != 1 {
-			return fmt.Errorf("%w: 超级管理员角色不能停用", ErrInvalidMutation)
-		}
-		// 只更新可编辑列，不将查询快照中的 deleted_at 写回。
-		if _, err = s.ExecCtx(ctx, "UPDATE sys_role SET name=?,description=?,data_scope=?,sort=?,status=? WHERE id=? AND deleted_at IS NULL", role.Name, role.Description, role.DataScope, role.Sort, role.Status, role.Id); err != nil {
+		if err = applyRolePatch(role, patch); err != nil {
 			return err
 		}
-		return replaceRoleMenus(ctx, s, role.Id, menuIds)
+		if _, err = s.ExecCtx(ctx, "UPDATE sys_role SET name=?,description=?,data_scope=?,sort=?,status=? WHERE id=? AND deleted_at IS NULL", role.Name, role.Description, role.DataScope, role.Sort, role.Status, roleId); err != nil {
+			return err
+		}
+		if patch.UpdateMenus {
+			return replaceRoleMenus(ctx, s, roleId, patch.MenuIds)
+		}
+		return nil
 	})
 	if err != nil {
 		return err
 	}
-	return m.invalidateRole(ctx, role)
+	return committedCacheError(m.invalidateRole(ctx, role))
 }
 
 func (m *customSysRoleModel) ReplaceMenus(ctx context.Context, roleId uint64, menuIds []int64) error {
@@ -186,7 +198,7 @@ func (m *customSysRoleModel) SoftDeleteWithRelations(ctx context.Context, roleId
 	if err != nil {
 		return err
 	}
-	return m.invalidateRole(ctx, role)
+	return committedCacheError(m.invalidateRole(ctx, role))
 }
 
 func (m *customSysRoleModel) ListRolePage(ctx context.Context, f RoleListFilter, page, pageSize int64) ([]*RoleRow, int64, error) {

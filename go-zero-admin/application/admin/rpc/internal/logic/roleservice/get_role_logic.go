@@ -21,6 +21,9 @@ func NewGetRoleLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetRoleLo
 }
 
 func (l *GetRoleLogic) GetRole(in *adminpb.GetRoleRequest) (*adminpb.GetRoleResponse, error) {
+	if err := requireRoleActor(l.ctx, l.svcCtx, in.GetActor()); err != nil {
+		return nil, err
+	}
 	role, err := l.svcCtx.SysRoleModel.FindOne(l.ctx, uint64(in.RoleId))
 	if err != nil {
 		return nil, xerr.NewErrCode(xerr.ROLE_NOT_FOUND)

@@ -19,7 +19,7 @@ type GetConversationLogic struct {
 func NewGetConversationLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetConversationLogic {
 	return &GetConversationLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
-func (l *GetConversationLogic) GetConversation(req *types.AiIdReq) (*types.AiGetConversationResp, error) {
+func (l *GetConversationLogic) GetConversation(req *types.AiGetConversationReq) (*types.AiGetConversationResp, error) {
 	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
@@ -27,7 +27,7 @@ func (l *GetConversationLogic) GetConversation(req *types.AiIdReq) (*types.AiGet
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.GetConversation(l.ctx, &aipb.GetConversationRequest{Actor: actor, ConversationId: req.Id})
+	out, err := l.svcCtx.AiRpc.GetConversation(l.ctx, &aipb.GetConversationRequest{Actor: actor, ConversationId: req.Id, BeforeId: req.BeforeId, PageSize: req.PageSize})
 	if err != nil {
 		return nil, err
 	}
@@ -35,5 +35,5 @@ func (l *GetConversationLogic) GetConversation(req *types.AiIdReq) (*types.AiGet
 	for _, item := range out.Messages {
 		messages = append(messages, mapAiMessage(item))
 	}
-	return &types.AiGetConversationResp{Conversation: mapAiConversation(out.Conversation), Messages: messages}, nil
+	return &types.AiGetConversationResp{Conversation: mapAiConversation(out.Conversation), Messages: messages, HasMore: out.HasMore, NextBeforeId: out.NextBeforeId}, nil
 }

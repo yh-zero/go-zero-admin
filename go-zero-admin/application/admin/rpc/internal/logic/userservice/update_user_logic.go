@@ -29,7 +29,6 @@ func (l *UpdateUserLogic) UpdateUser(in *adminpb.UpdateUserRequest) (*adminpb.No
 		Nickname: in.Nickname, RealName: in.RealName, Email: in.Email, Phone: in.Phone, DeptId: in.DeptId, AvatarFileId: in.AvatarFileId,
 		Gender: in.Gender, Status: in.Status, Remark: in.Remark, UpdateRoles: in.UpdateRoles, RoleIds: in.RoleIds,
 	})
-	l.svcCtx.PublishPolicyChanged(l.ctx)
 	if err != nil {
 		return nil, userMutationError(err)
 	}
@@ -88,6 +87,9 @@ func UpdateUserWithAvatar(ctx context.Context, s *svc.ServiceContext, userId int
 		return nil
 	}
 	err := s.SysUserModel.UpdatePartial(ctx, userId, model.UserActor{UserId: actor.GetUserId(), DeptId: actor.GetDeptId(), OwnAccount: p.OwnAccount}, p)
+	if !p.OwnAccount && model.MutationCommitted(err) {
+		s.PublishPolicyChanged(ctx)
+	}
 	if p.AvatarFileId != nil && (err == nil || attempted) {
 		if cleanupErr := ReconcileUserAvatar(ctx, s, userId, actor); cleanupErr != nil {
 			return errors.Join(cleanupErr, err)

@@ -15,11 +15,12 @@ import (
 )
 
 type ServiceContext struct {
-	Config   config.Config
-	DB       sqlx.SqlConn
-	Redis    *redis.Redis
-	Sessions *jwtx.SessionStore
-	FileRpc  fileservice.FileService
+	Config     config.Config
+	DB         sqlx.SqlConn
+	Redis      *redis.Redis
+	EmailCodes *goredis.Client
+	Sessions   *jwtx.SessionStore
+	FileRpc    fileservice.FileService
 
 	AppUserModel            model.AppUserModel
 	AppMembershipGrantModel model.AppMembershipGrantModel
@@ -32,15 +33,18 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	rdb := redis.MustNewRedis(c.CacheRedis[0].RedisConf)
-	opts := &goredis.Options{Addr: c.CacheRedis[0].Host, Username: c.CacheRedis[0].User, Password: c.CacheRedis[0].Pass}
+	opts := &goredis.Options{Addr: c.CacheRedis[0].Host, Username: c.CacheRedis[0].User, Password: c.CacheRedis[0].Pass, ContextTimeoutEnabled: true}
 	if c.CacheRedis[0].Tls {
 		opts.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
 	}
+	// 验证码和会话共用启用 context I/O 超时的客户端，不安装会展开命令参数的日志 hook。
+	privateRedis := goredis.NewClient(opts)
 	ctx := &ServiceContext{
 		Config:                  c,
 		DB:                      conn,
 		Redis:                   rdb,
-		Sessions:                jwtx.NewSessionStore(goredis.NewClient(opts), "app"),
+		EmailCodes:              privateRedis,
+		Sessions:                jwtx.NewSessionStore(privateRedis, "app"),
 		AppUserModel:            model.NewAppUserModel(conn, c.CacheRedis),
 		AppMembershipGrantModel: model.NewAppMembershipGrantModel(conn, c.CacheRedis),
 		AppFeedbackModel:        model.NewAppFeedbackModel(conn, c.CacheRedis),

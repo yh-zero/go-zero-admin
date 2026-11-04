@@ -5,10 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"fmt"
-	"github.com/zeromicro/go-zero/core/logx"
-	apppb "go-zero-admin/application/app/rpc/apppb"
-	"go-zero-admin/application/app/rpc/internal/svc"
-	"go-zero-admin/pkg/xerr"
 	"math/big"
 	"net"
 	"net/mail"
@@ -16,6 +12,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	apppb "go-zero-admin/application/app/rpc/apppb"
+	"go-zero-admin/application/app/rpc/internal/svc"
+	"go-zero-admin/pkg/xerr"
+
+	goredis "github.com/redis/go-redis/v9"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type SendEmailCodeLogic struct {
@@ -47,14 +50,33 @@ func (l *SendEmailCodeLogic) SendEmailCode(in *apppb.AppSendEmailCodeRequest) (*
 	}
 	code := fmt.Sprintf("%06d", n.Int64())
 	// 先保存后发送：发送失败立即删除，不能留下未送达却有效的验证码。
-	if err = l.svcCtx.Redis.SetexCtx(l.ctx, codeKey(account), codeDigest(account, code), l.svcCtx.Config.SMTP.ValidSeconds); err != nil {
+	if err = l.svcCtx.EmailCodes.SetEx(l.ctx, codeKey(account), codeDigest(account, code), time.Duration(l.svcCtx.Config.SMTP.ValidSeconds)*time.Second).Err(); err != nil {
 		return nil, xerr.NewErrCode(xerr.SERVER_COMMON_ERROR)
 	}
 	if err = sendCode(l.ctx, l.svcCtx, account, code); err != nil {
-		_, _ = l.svcCtx.Redis.DelCtx(l.ctx, codeKey(account))
+		if cleanupErr := cleanupFailedEmailCode(l.ctx, l.svcCtx.EmailCodes, codeKey(account), codeDigest(account, code)); cleanupErr != nil {
+			// Redis 原错误可能包含参数，不记录邮箱、验证码、摘要或底层错误。
+			l.Error("failed to clean up undelivered email verification code")
+		}
 		return nil, xerr.NewErrCodeMsg(xerr.SERVICE_UNAVAILABLE, "验证码发送失败，请稍后重试")
 	}
 	return &apppb.NoDataResponse{}, nil
+}
+
+type emailCodeCache interface {
+	Eval(context.Context, string, []string, ...any) *goredis.Cmd
+}
+
+func cleanupFailedEmailCode(ctx context.Context, cache emailCodeCache, key, digest string) error {
+	// 请求取消不应取消补偿；只删除本次摘要，避免迟到失败误删新验证码。
+	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
+	defer cancel()
+	const removeOwnCode = `
+if redis.call("GET", KEYS[1]) == ARGV[1] then
+    return redis.call("DEL", KEYS[1])
+end
+return 0`
+	return cache.Eval(cleanupCtx, removeOwnCode, []string{key}, digest).Err()
 }
 func smtpEnabled(s *svc.ServiceContext) bool {
 	c := s.Config.SMTP
@@ -63,11 +85,9 @@ func smtpEnabled(s *svc.ServiceContext) bool {
 		err == nil && address.Address == c.From && !strings.ContainsAny(c.Host+c.From+c.FromName, "\r\n")
 }
 func sendCode(ctx context.Context, s *svc.ServiceContext, to, code string) error {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	c := s.Config.SMTP
-	deadline := time.Now().Add(10 * time.Second)
-	if d, ok := ctx.Deadline(); ok && d.Before(deadline) {
-		deadline = d
-	}
 	dialer := &net.Dialer{Timeout: 10 * time.Second}
 	var conn net.Conn
 	var err error
@@ -82,7 +102,17 @@ func sendCode(ctx context.Context, s *svc.ServiceContext, to, code string) error
 		return err
 	}
 	defer conn.Close()
-	if err = conn.SetDeadline(deadline); err != nil {
+	return sendSMTP(ctx, s, conn, to, code)
+}
+
+// sendSMTP 负责已建立连接上的 SMTP 会话；连接建立独立处理隐式 TLS。
+func sendSMTP(ctx context.Context, s *svc.ServiceContext, conn net.Conn, to, code string) error {
+	c := s.Config.SMTP
+	deadline := time.Now().Add(10 * time.Second)
+	if d, ok := ctx.Deadline(); ok && d.Before(deadline) {
+		deadline = d
+	}
+	if err := conn.SetDeadline(deadline); err != nil {
 		return err
 	}
 	client, err := smtp.NewClient(conn, c.Host)
@@ -91,7 +121,7 @@ func sendCode(ctx context.Context, s *svc.ServiceContext, to, code string) error
 	}
 	defer client.Close()
 	if !c.ImplicitTLS {
-		if err = client.StartTLS(tlsConfig); err != nil {
+		if err = client.StartTLS(&tls.Config{ServerName: c.Host, MinVersion: tls.VersionTLS12}); err != nil {
 			return err
 		}
 	}
@@ -119,5 +149,7 @@ func sendCode(ctx context.Context, s *svc.ServiceContext, to, code string) error
 	if err = writer.Close(); err != nil {
 		return err
 	}
-	return client.Quit()
+	// DATA 的最终 250 表示服务器已接受邮件，QUIT 仅结束会话。
+	_ = client.Quit()
+	return nil
 }

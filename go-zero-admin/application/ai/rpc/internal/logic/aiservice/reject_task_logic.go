@@ -23,6 +23,9 @@ func (l *RejectTaskLogic) RejectTask(in *aipb.RejectTaskRequest) (*aipb.NoDataRe
 	if err := requireAiActor(in.Actor); err != nil {
 		return nil, err
 	}
+	if in.ExpectedStep == nil || *in.ExpectedStep < 0 {
+		return nil, xerr.NewErrCodeMsg(400, "expected_step 必填且不得为负")
+	}
 	reason := strings.TrimSpace(in.Reason)
 	if reason == "" || utf8.RuneCountInString(reason) > 512 {
 		return nil, xerr.NewErrCodeMsg(400, "拒绝原因须为 1..512 字符")
@@ -31,10 +34,10 @@ func (l *RejectTaskLogic) RejectTask(in *aipb.RejectTaskRequest) (*aipb.NoDataRe
 	if err != nil {
 		return nil, aiModelError(err)
 	}
-	if task.Status != "pending_approval" {
+	if task.Status != "pending_approval" || task.NextStep != *in.ExpectedStep {
 		return nil, xerr.NewErrCodeMsg(400, "任务不在待审批状态")
 	}
-	if err := l.svcCtx.AiTaskModel.RejectOwned(l.ctx, in.TaskId, in.Actor.UserId, task.NextStep, reason); err != nil {
+	if err := l.svcCtx.AiTaskModel.RejectOwned(l.ctx, in.TaskId, in.Actor.UserId, *in.ExpectedStep, reason); err != nil {
 		return nil, aiModelError(err)
 	}
 	return &aipb.NoDataResponse{}, nil
