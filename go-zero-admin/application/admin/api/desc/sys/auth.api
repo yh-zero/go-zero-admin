@@ -16,10 +16,10 @@ type (
     }
 
     LoginReq {
-        Username  string `json:"username"`
-        Password  string `json:"password"`
-        CaptchaID string `json:"captcha_id,optional"`
-        Captcha   string `json:"captcha,optional"`
+        Username  string `json:"username" validate:"max=64"`
+        Password  string `json:"password" validate:"max=72"`
+        CaptchaID string `json:"captcha_id,optional" validate:"omitempty,max=64"`
+        Captcha   string `json:"captcha,optional" validate:"omitempty,len=4"`
     }
     LoginResp {
         AccessToken  string `json:"access_token"`
@@ -28,7 +28,7 @@ type (
         RefreshExpiresAt int64 `json:"refresh_expires_at"`
         SessionId string `json:"session_id"`
     }
-    RefreshTokenReq { RefreshToken string `json:"refresh_token"` }
+    RefreshTokenReq { RefreshToken string `json:"refresh_token" validate:"max=2048"` }
     LogoutReq { AllDevices bool `json:"all_devices,optional"` }
     ListDeviceSessionsReq {}
     DeviceSession {
@@ -42,7 +42,7 @@ type (
         IsCurrent bool `json:"is_current"`
     }
     ListDeviceSessionsResp { List []DeviceSession `json:"list"` }
-    RevokeDeviceSessionReq { Id string `path:"id"` }
+    RevokeDeviceSessionReq { Id string `path:"id" validate:"max=64"` }
 )
 
 @server (

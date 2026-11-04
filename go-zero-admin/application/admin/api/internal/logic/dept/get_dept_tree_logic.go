@@ -24,6 +24,9 @@ func NewGetDeptTreeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetDe
 }
 
 func (l *GetDeptTreeLogic) GetDeptTree(req *types.GetDeptTreeReq) (resp *types.GetDeptTreeResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	actor := middleware.ActorFromContext(l.ctx)
 	includeMembers, err := departmentMembersReadable(l.svcCtx, actor)
 	if err != nil {

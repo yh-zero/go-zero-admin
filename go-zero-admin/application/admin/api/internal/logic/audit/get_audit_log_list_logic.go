@@ -2,6 +2,7 @@ package audit
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -21,6 +22,9 @@ func NewGetAuditLogListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *G
 }
 
 func (l *GetAuditLogListLogic) GetAuditLogList(req *types.GetAuditLogListReq) (resp *types.GetAuditLogListResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	rpcResp, err := l.svcCtx.AuditRpc.GetAuditLogList(l.ctx, &adminpb.GetAuditLogListRequest{
 		Page:   &adminpb.PageRequest{Page: req.Page, PageSize: req.PageSize},
 		Module: req.Module, Action: req.Action, UserId: req.UserId, Result: req.Result,

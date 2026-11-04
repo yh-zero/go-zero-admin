@@ -23,7 +23,7 @@ type (
     }
 
     GetDeptTreeReq {
-        Status int32 `json:"status,optional" form:"status,optional"`
+        Status int32 `json:"status,optional" form:"status,optional" validate:"omitempty,oneof=1 2"`
     }
     GetDeptTreeResp {
         List []*DeptInfo `json:"list"`
@@ -31,32 +31,32 @@ type (
 
     CreateDeptReq {
         ParentId int64  `json:"parent_id,optional"`
-        Name     string `json:"name"`
-        Leader   string `json:"leader,optional"`
+        Name     string `json:"name" validate:"max=64"`
+        Leader   string `json:"leader,optional" validate:"omitempty,max=64"`
         LeaderUserId int64 `json:"leader_user_id,optional"`
-        Phone    string `json:"phone,optional"`
-        Email    string `json:"email,optional"`
+        Phone    string `json:"phone,optional" validate:"omitempty,max=20"`
+        Email    string `json:"email,optional" validate:"omitempty,email,max=128"`
         Sort     int32  `json:"sort,optional"`
-        Status   int32  `json:"status,optional"`
+        Status   int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
     }
 
     UpdateDeptReq {
-        Id       int64  `path:"id"`
+        Id       int64  `path:"id" validate:"min=1"`
         ParentId *int64  `json:"parent_id,optional"`
-        Name     *string `json:"name,optional"`
-        Leader   *string `json:"leader,optional"`
+        Name     *string `json:"name,optional" validate:"omitempty,max=64"`
+        Leader   *string `json:"leader,optional" validate:"omitempty,max=64"`
         LeaderUserId *int64 `json:"leader_user_id,optional"`
-        Phone    *string `json:"phone,optional"`
-        Email    *string `json:"email,optional"`
+        Phone    *string `json:"phone,optional" validate:"omitempty,max=20"`
+        Email    *string `json:"email,optional" validate:"omitempty,email,max=128"`
         Sort     *int32  `json:"sort,optional"`
-        Status   *int32  `json:"status,optional"`
+        Status   *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
     }
 
     GetMyDeptsReq {}
     GetMyDeptsResp { List []*DeptInfo `json:"list"` }
 
     DeleteDeptReq {
-        Id int64 `path:"id"`
+        Id int64 `path:"id" validate:"min=1"`
     }
 )
 

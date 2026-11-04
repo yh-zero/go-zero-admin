@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/core/logx"
 
@@ -23,6 +24,9 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 }
 
 func (l *LoginLogic) Login(req *types.LoginReq) (resp *types.LoginResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	ip, _ := l.ctx.Value(middleware.CtxKeyClientIP).(string)
 	ua, _ := l.ctx.Value(middleware.CtxKeyUserAgent).(string)
 	rpcResp, err := l.svcCtx.AuthRpc.Login(l.ctx, &adminpb.LoginRequest{

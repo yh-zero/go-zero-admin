@@ -21,11 +21,11 @@ type (
     }
 
     GetRoleListReq {
-        Page     int64  `json:"page,optional" form:"page,optional"`
-        PageSize int64  `json:"page_size,optional" form:"page_size,optional"`
-        Name     string `json:"name,optional" form:"name,optional"`
-        Code     string `json:"code,optional" form:"code,optional"`
-        Status   int32  `json:"status,optional" form:"status,optional"`
+        Page     int64  `json:"page,optional" form:"page,optional" validate:"omitempty,min=1"`
+        PageSize int64  `json:"page_size,optional" form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+        Name     string `json:"name,optional" form:"name,optional" validate:"omitempty,max=64"`
+        Code     string `json:"code,optional" form:"code,optional" validate:"omitempty,max=64"`
+        Status   int32  `json:"status,optional" form:"status,optional" validate:"omitempty,oneof=1 2"`
     }
     GetRoleListResp {
         List  []*RoleInfo `json:"list"`
@@ -33,40 +33,40 @@ type (
     }
 
     GetRoleReq {
-        Id int64 `path:"id"`
+        Id int64 `path:"id" validate:"min=1"`
     }
     GetRoleResp {
         Role *RoleInfo `json:"role"`
     }
 
     CreateRoleReq {
-        Name        string  `json:"name"`
-        Code        string  `json:"code"`
-        Description string  `json:"description,optional"`
-        DataScope   string  `json:"data_scope,optional"`
+        Name        string  `json:"name" validate:"max=64"`
+        Code        string  `json:"code" validate:"max=64"`
+        Description string  `json:"description,optional" validate:"omitempty,max=512"`
+        DataScope   string  `json:"data_scope,optional" validate:"omitempty,oneof=ALL DEPT_AND_CHILDREN DEPT SELF"`
         Sort        int32   `json:"sort,optional"`
-        Status      int32   `json:"status,optional"`
-        MenuIds     []int64 `json:"menu_ids,optional"`
+        Status      int32   `json:"status,optional" validate:"omitempty,oneof=1 2"`
+        MenuIds     []int64 `json:"menu_ids,optional" validate:"omitempty,dive,min=1"`
     }
 
     UpdateRoleReq {
-        Id          int64   `path:"id"`
-        Name        string  `json:"name,optional"`
-        Code        string  `json:"code,optional"`
-        Description string  `json:"description,optional"`
-        DataScope   string  `json:"data_scope,optional"`
+        Id          int64   `path:"id" validate:"min=1"`
+        Name        string  `json:"name,optional" validate:"omitempty,max=64"`
+        Code        string  `json:"code,optional" validate:"omitempty,max=64"`
+        Description string  `json:"description,optional" validate:"omitempty,max=512"`
+        DataScope   string  `json:"data_scope,optional" validate:"omitempty,oneof=ALL DEPT_AND_CHILDREN DEPT SELF"`
         Sort        int32   `json:"sort,optional"`
-        Status      int32   `json:"status,optional"`
-        MenuIds     []int64 `json:"menu_ids,optional"`
+        Status      int32   `json:"status,optional" validate:"omitempty,oneof=1 2"`
+        MenuIds     []int64 `json:"menu_ids,optional" validate:"omitempty,dive,min=1"`
     }
 
     DeleteRoleReq {
-        Id int64 `path:"id"`
+        Id int64 `path:"id" validate:"min=1"`
     }
 
     UpdateRoleMenusReq {
-        Id      int64   `path:"id"`
-        MenuIds []int64 `json:"menu_ids"`
+        Id      int64   `path:"id" validate:"min=1"`
+        MenuIds []int64 `json:"menu_ids" validate:"dive,min=1"`
     }
 )
 

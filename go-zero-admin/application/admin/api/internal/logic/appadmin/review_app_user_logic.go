@@ -19,6 +19,9 @@ func NewReviewAppUserLogic(ctx context.Context, s *svc.ServiceContext) *ReviewAp
 	return &ReviewAppUserLogic{ctx, s, logx.WithContext(ctx)}
 }
 func (l *ReviewAppUserLogic) ReviewAppUser(req *types.AppReviewReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	if l.svcCtx.AppAdminRpc == nil {
 		return nil, xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE)
 	}

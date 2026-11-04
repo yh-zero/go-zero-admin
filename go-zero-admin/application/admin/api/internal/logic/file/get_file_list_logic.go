@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -21,6 +22,9 @@ func NewGetFileListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetFi
 }
 
 func (l *GetFileListLogic) GetFileList(req *types.GetFileListReq) (resp *types.GetFileListResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	rpcResp, err := l.svcCtx.FileRpc.GetFileList(l.ctx, &filepb.GetFileListRequest{
 		Page:       &filepb.PageRequest{Page: req.Page, PageSize: req.PageSize},
 		Visibility: req.Visibility, UploaderID: req.UploaderId,

@@ -32,6 +32,9 @@ func NewUploadFileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Upload
 }
 
 func (l *UploadFileLogic) UploadFile(req *types.UploadFileReq) (resp *types.UploadFileResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	userId, _ := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	if userId <= 0 {
 		return nil, xerr.NewErrCode(xerr.PERMISSION_DENIED)

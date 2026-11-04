@@ -3,6 +3,7 @@ package dept
 import (
 	"context"
 	"go-zero-admin/application/admin/api/internal/middleware"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -22,6 +23,9 @@ func NewCreateDeptLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 }
 
 func (l *CreateDeptLogic) CreateDept(req *types.CreateDeptReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	actor := middleware.ActorFromContext(l.ctx)
 	if err := checkDepartmentLeaderAccess(l.svcCtx, actor, req.LeaderUserId); err != nil {
 		return nil, err

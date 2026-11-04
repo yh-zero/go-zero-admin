@@ -50,12 +50,12 @@ type (
         Description string `json:"description"`
         ParametersSchema string `json:"parameters_schema"`
     }
-    AiIdReq { Id int64 `path:"id"` }
+    AiIdReq { Id int64 `path:"id" validate:"min=1"` }
     AiPageReq {
-        Page int64 `form:"page,optional"`
-        PageSize int64 `form:"page_size,optional"`
+        Page int64 `form:"page,optional" validate:"omitempty,min=1"`
+        PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
     }
-    AiCreateConversationReq { Title string `json:"title,optional"` }
+    AiCreateConversationReq { Title string `json:"title,optional" validate:"omitempty,max=128"` }
     AiConversationResp { Conversation *AiConversationInfo `json:"conversation"` }
     AiGetConversationResp {
         Conversation *AiConversationInfo `json:"conversation"`
@@ -66,8 +66,8 @@ type (
         Total int64 `json:"total"`
     }
     AiSendMessageReq {
-        ConversationId int64 `json:"conversation_id"`
-        Content string `json:"content"`
+        ConversationId int64 `json:"conversation_id" validate:"min=1"`
+        Content string `json:"content" validate:"max=16000"`
     }
     AiSendMessageResp {
         ConversationId int64 `json:"conversation_id"`
@@ -77,16 +77,16 @@ type (
     AiListToolsReq {}
     AiListToolsResp { List []*AiToolInfo `json:"list"` }
     AiCreateWorkflowReq {
-        Name string `json:"name"`
-        Definition string `json:"definition"`
-        IntervalSeconds int64 `json:"interval_seconds,optional"`
+        Name string `json:"name" validate:"max=128"`
+        Definition string `json:"definition" validate:"max=65536"`
+        IntervalSeconds int64 `json:"interval_seconds,optional" validate:"omitempty,min=0"`
     }
     AiUpdateWorkflowReq {
-        Id int64 `path:"id"`
-        Name *string `json:"name,optional"`
-        Definition *string `json:"definition,optional"`
-        IntervalSeconds *int64 `json:"interval_seconds,optional"`
-        Enabled *int64 `json:"enabled,optional"`
+        Id int64 `path:"id" validate:"min=1"`
+        Name *string `json:"name,optional" validate:"omitempty,max=128"`
+        Definition *string `json:"definition,optional" validate:"omitempty,max=65536"`
+        IntervalSeconds *int64 `json:"interval_seconds,optional" validate:"omitempty,min=0"`
+        Enabled *int64 `json:"enabled,optional" validate:"omitempty,oneof=0 1"`
     }
     AiWorkflowResp { Workflow *AiWorkflowInfo `json:"workflow"` }
     AiListWorkflowsResp {
@@ -94,18 +94,18 @@ type (
         Total int64 `json:"total"`
     }
     AiRunWorkflowReq {
-        Id int64 `path:"id"`
-        Input string `json:"input,optional"`
+        Id int64 `path:"id" validate:"min=1"`
+        Input string `json:"input,optional" validate:"omitempty,max=16000"`
     }
     AiRunWorkflowResp {
         TaskId int64 `json:"task_id"`
         Status string `json:"status"`
     }
     AiListTasksReq {
-        Page int64 `form:"page,optional"`
-        PageSize int64 `form:"page_size,optional"`
-        Status string `form:"status,optional"`
-        WorkflowId int64 `form:"workflow_id,optional"`
+        Page int64 `form:"page,optional" validate:"omitempty,min=1"`
+        PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+        Status string `form:"status,optional" validate:"omitempty,oneof=pending running pending_approval succeeded failed rejected"`
+        WorkflowId int64 `form:"workflow_id,optional" validate:"omitempty,min=1"`
     }
     AiListTasksResp {
         List []*AiTaskInfo `json:"list"`
@@ -113,8 +113,8 @@ type (
     }
     AiTaskResp { Task *AiTaskInfo `json:"task"` }
     AiRejectTaskReq {
-        Id int64 `path:"id"`
-        Reason string `json:"reason"`
+        Id int64 `path:"id" validate:"min=1"`
+        Reason string `json:"reason" validate:"max=512"`
     }
 )
 

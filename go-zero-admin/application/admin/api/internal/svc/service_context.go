@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc"
@@ -64,6 +65,8 @@ type ServiceContext struct {
 	AppAuthRpc  appauthserviceclient.AppAuthService
 	AppAdminRpc appadminserviceclient.AppAdminService
 	AiRpc       aiserviceclient.AiService
+	// Validator 请求参数校验器：logic 入口调用 StructCtx，校验规则见 .api 类型的 validate 标签
+	Validator *validator.Validate
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -115,6 +118,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		AuditRpc:    auditserviceclient.NewAuditService(adminRpc),
 		ProfileRpc:  profileserviceclient.NewProfileService(adminRpc),
 		Redis:       rdb,
+		Validator:   validator.New(),
 	}
 
 	if c.TenantRpc != nil {

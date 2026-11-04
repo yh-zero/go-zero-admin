@@ -7,6 +7,7 @@ import (
 	"context"
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -29,6 +30,9 @@ func NewGetMyDeptsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMyD
 }
 
 func (l *GetMyDeptsLogic) GetMyDepts(req *types.GetMyDeptsReq) (resp *types.GetMyDeptsResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	result, err := l.svcCtx.DeptRpc.GetMyDepts(l.ctx, &adminpb.GetMyDeptsRequest{Actor: middleware.ActorFromContext(l.ctx)})
 	if err != nil {
 		return nil, err

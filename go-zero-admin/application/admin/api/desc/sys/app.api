@@ -15,12 +15,12 @@ type (
   CreatedAt int64 `json:"created_at"`
   Remark string `json:"remark"`
  }
- AppAdminUserReq { Id int64 `path:"id"` }
+ AppAdminUserReq { Id int64 `path:"id" validate:"min=1"` }
  AppAdminUserResp { User AppAdminUserInfo `json:"user"` }
  AppUpdateUserReq {
-  Id int64 `path:"id"`
-  Nickname *string `json:"nickname,optional"`
-  Remark *string `json:"remark,optional"`
+  Id int64 `path:"id" validate:"min=1"`
+  Nickname *string `json:"nickname,optional" validate:"omitempty,max=64"`
+  Remark *string `json:"remark,optional" validate:"omitempty,max=500"`
  }
  AppMembershipPlanInfo {
   Label string `json:"label"`
@@ -28,34 +28,34 @@ type (
  }
  AppMembershipPlansResp { List []AppMembershipPlanInfo `json:"list"` }
  AppAdminListReq {
-  Page int64 `form:"page,default=1"`
-  PageSize int64 `form:"page_size,default=20"`
-  Status string `form:"status,optional"`
-  Account string `form:"account,optional"`
+  Page int64 `form:"page,default=1" validate:"min=1"`
+  PageSize int64 `form:"page_size,default=20" validate:"min=1,max=100"`
+  Status string `form:"status,optional" validate:"omitempty,oneof=pending active disabled rejected"`
+  Account string `form:"account,optional" validate:"omitempty,max=128"`
  }
  AppAdminListResp {
   List []AppAdminUserInfo `json:"list"`
   Total int64 `json:"total"`
  }
  AppReviewReq {
-  Id int64 `path:"id"`
-  Status string `json:"status"`
-  Reason string `json:"reason,optional"`
+  Id int64 `path:"id" validate:"min=1"`
+  Status string `json:"status" validate:"oneof=pending active disabled rejected"`
+  Reason string `json:"reason,optional" validate:"omitempty,max=255"`
  }
  AppSetAvatarReq {
-  Id int64 `path:"id"`
-  FileId int64 `json:"file_id"`
+  Id int64 `path:"id" validate:"min=1"`
+  FileId int64 `json:"file_id" validate:"min=1"`
  }
  AppAdminRevokeReq {
-  Id int64 `path:"id"`
-  SessionId string `path:"session_id"`
+  Id int64 `path:"id" validate:"min=1"`
+  SessionId string `path:"session_id" validate:"max=64"`
  }
- AppListSessionsReq { Id int64 `path:"id"` }
+ AppListSessionsReq { Id int64 `path:"id" validate:"min=1"` }
  AppListMembershipReq {
-  Page int64 `form:"page,default=1"`
-  PageSize int64 `form:"page_size,default=20"`
-  UserId int64 `form:"user_id,optional"`
-  PlanCode string `form:"plan_code,optional"`
+  Page int64 `form:"page,default=1" validate:"min=1"`
+  PageSize int64 `form:"page_size,default=20" validate:"min=1,max=100"`
+  UserId int64 `form:"user_id,optional" validate:"omitempty,min=1"`
+  PlanCode string `form:"plan_code,optional" validate:"omitempty,max=32"`
   ActiveOnly bool `form:"active_only,optional"`
  }
  AppListMembershipResp {
@@ -63,23 +63,23 @@ type (
   Total int64 `json:"total"`
  }
  AppGrantMembershipReq {
-  UserId int64 `json:"user_id"`
-  PlanCode string `json:"plan_code"`
-  Benefits string `json:"benefits,optional"`
-  RequestId string `json:"request_id"`
-  DurationDays int64 `json:"duration_days"`
+  UserId int64 `json:"user_id" validate:"min=1"`
+  PlanCode string `json:"plan_code" validate:"max=32"`
+  Benefits string `json:"benefits,optional" validate:"omitempty,max=512"`
+  RequestId string `json:"request_id" validate:"max=64"`
+  DurationDays int64 `json:"duration_days" validate:"min=1"`
  }
- AppRevokeMembershipReq { Id int64 `path:"id"` }
+ AppRevokeMembershipReq { Id int64 `path:"id" validate:"min=1"` }
  AppFeedbackListReq {
-  Page int64 `form:"page,default=1"`
-  PageSize int64 `form:"page_size,default=20"`
-  UserId int64 `form:"user_id,optional"`
-  Status string `form:"status,optional"`
+  Page int64 `form:"page,default=1" validate:"min=1"`
+  PageSize int64 `form:"page_size,default=20" validate:"min=1,max=100"`
+  UserId int64 `form:"user_id,optional" validate:"omitempty,min=1"`
+  Status string `form:"status,optional" validate:"omitempty,oneof=pending resolved"`
  }
  AppUpdateFeedbackReq {
-  Id int64 `path:"id"`
-  Reply *string `json:"reply,optional"`
-  Status *string `json:"status,optional"`
+  Id int64 `path:"id" validate:"min=1"`
+  Reply *string `json:"reply,optional" validate:"omitempty,max=2000"`
+  Status *string `json:"status,optional" validate:"omitempty,oneof=pending resolved"`
  }
 )
 @server (

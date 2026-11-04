@@ -21,6 +21,9 @@ func NewGetTenantListLogic(ctx context.Context, s *svc.ServiceContext) *GetTenan
 	return &GetTenantListLogic{ctx: ctx, svcCtx: s, Logger: logx.WithContext(ctx)}
 }
 func (l *GetTenantListLogic) GetTenantList(req *types.GetTenantListReq) (*types.GetTenantListResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	actor, err := authorizeTenant(l.ctx, l.svcCtx)
 	if err != nil {
 		return nil, err

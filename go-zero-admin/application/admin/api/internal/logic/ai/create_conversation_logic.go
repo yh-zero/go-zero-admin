@@ -20,6 +20,9 @@ func NewCreateConversationLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 	return &CreateConversationLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 func (l *CreateConversationLogic) CreateConversation(req *types.AiCreateConversationReq) (*types.AiConversationResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	actor, err := actorForAi(l.ctx, l.svcCtx)
 	if err != nil {
 		return nil, err

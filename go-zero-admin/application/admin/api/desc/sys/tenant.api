@@ -14,28 +14,28 @@ type (
         AdminAccountReady bool `json:"admin_account_ready"`
     }
     CreateTenantReq {
-        Slug string `json:"slug"`
-        AdminUsername string `json:"admin_username,optional"`
-        AdminPassword string `json:"admin_password,optional"`
+        Slug string `json:"slug" validate:"min=2,max=32"`
+        AdminUsername string `json:"admin_username,optional" validate:"omitempty,max=64"`
+        AdminPassword string `json:"admin_password,optional" validate:"omitempty,max=72"`
     }
     CreateTenantResp {
         Tenant *TenantInfo `json:"tenant"`
         AdminPassword string `json:"admin_password"`
     }
     GetTenantListReq {
-        Page int64 `form:"page,default=1"`
-        PageSize int64 `form:"page_size,default=20"`
-        Status string `form:"status,optional"`
+        Page int64 `form:"page,default=1" validate:"min=1"`
+        PageSize int64 `form:"page_size,default=20" validate:"min=1,max=100"`
+        Status string `form:"status,optional" validate:"omitempty,oneof=active stopped error"`
     }
     GetTenantListResp {
         List []*TenantInfo `json:"list"`
         Total int64 `json:"total"`
     }
-    TenantIdReq { Id int64 `path:"id"` }
+    TenantIdReq { Id int64 `path:"id" validate:"min=1"` }
     GetTenantResp { Tenant *TenantInfo `json:"tenant"` }
     DeleteTenantReq {
-        Id int64 `path:"id"`
-        ConfirmSlug string `json:"confirm_slug"`
+        Id int64 `path:"id" validate:"min=1"`
+        ConfirmSlug string `json:"confirm_slug" validate:"max=32"`
     }
     ResetTenantAdminResp { NewPassword string `json:"new_password"` }
 )

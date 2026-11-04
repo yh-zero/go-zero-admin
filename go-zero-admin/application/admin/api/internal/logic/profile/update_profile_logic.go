@@ -2,6 +2,7 @@ package profile
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -22,6 +23,9 @@ func NewUpdateProfileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Upd
 }
 
 func (l *UpdateProfileLogic) UpdateProfile(req *types.UpdateProfileReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	actor := middleware.ActorFromContext(l.ctx)
 	_, err := l.svcCtx.ProfileRpc.UpdateProfile(l.ctx, &adminpb.UpdateProfileRequest{
 		Actor: actor, Nickname: req.Nickname, RealName: req.RealName,

@@ -23,6 +23,9 @@ func NewGetCaptchaLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetCap
 }
 
 func (l *GetCaptchaLogic) GetCaptcha(req *types.GetCaptchaReq) (resp *types.GetCaptchaResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	ip, _ := l.ctx.Value(middleware.CtxKeyClientIP).(string)
 	const script = `local n=redis.call('INCR',KEYS[1]);if n==1 then redis.call('EXPIRE',KEYS[1],60) end;return n`
 	count, err := l.svcCtx.Redis.Eval(l.ctx, script, []string{"admin:captcha:ip:" + ip}).Int()

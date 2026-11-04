@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -22,6 +23,9 @@ func NewGetFileURLLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetFil
 }
 
 func (l *GetFileURLLogic) GetFileURL(req *types.GetFileURLReq) (resp *types.GetFileURLResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	userID := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	rpcResp, err := l.svcCtx.FileRpc.GetFileURL(l.ctx, &filepb.GetFileURLRequest{
 		Actor: &filepb.Actor{UserID: userID}, FileID: req.Id,

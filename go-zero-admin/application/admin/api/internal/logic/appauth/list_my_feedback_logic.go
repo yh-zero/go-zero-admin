@@ -29,6 +29,9 @@ func NewListMyFeedbackLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Li
 }
 
 func (l *ListMyFeedbackLogic) ListMyFeedback(req *types.AppContentListReq) (resp *types.AppFeedbackListResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	if l.svcCtx.AppAuthRpc == nil {
 		return nil, xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE)
 	}

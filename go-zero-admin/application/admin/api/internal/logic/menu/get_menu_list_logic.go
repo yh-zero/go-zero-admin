@@ -2,6 +2,7 @@ package menu
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -21,6 +22,9 @@ func NewGetMenuListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMe
 }
 
 func (l *GetMenuListLogic) GetMenuList(req *types.GetMenuListReq) (resp *types.GetMenuListResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	rpcResp, err := l.svcCtx.MenuRpc.GetMenuList(l.ctx, &adminpb.GetMenuListRequest{
 		Page:     &adminpb.PageRequest{Page: req.Page, PageSize: req.PageSize},
 		ParentId: req.ParentId, Type: req.Type,

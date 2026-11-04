@@ -2,6 +2,7 @@ package dict
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -21,6 +22,9 @@ func NewGetDictListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetDi
 }
 
 func (l *GetDictListLogic) GetDictList(req *types.GetDictListReq) (resp *types.GetDictListResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	rpcResp, err := l.svcCtx.DictRpc.GetDictList(l.ctx, &adminpb.GetDictListRequest{
 		Page: &adminpb.PageRequest{Page: req.Page, PageSize: req.PageSize},
 		Name: req.Name, Code: req.Code, Status: req.Status,

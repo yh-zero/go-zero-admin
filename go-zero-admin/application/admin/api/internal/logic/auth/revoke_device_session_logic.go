@@ -5,6 +5,7 @@ package auth
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
@@ -29,6 +30,9 @@ func NewRevokeDeviceSessionLogic(ctx context.Context, svcCtx *svc.ServiceContext
 }
 
 func (l *RevokeDeviceSessionLogic) RevokeDeviceSession(req *types.RevokeDeviceSessionReq) (resp *types.EmptyResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	userId, _ := l.ctx.Value(middleware.CtxKeyUserID).(int64)
 	_, err = l.svcCtx.AuthRpc.RevokeDeviceSession(l.ctx, &adminpb.RevokeDeviceSessionRequest{Actor: &adminpb.Actor{UserId: userId}, SessionId: req.Id})
 	if err != nil {

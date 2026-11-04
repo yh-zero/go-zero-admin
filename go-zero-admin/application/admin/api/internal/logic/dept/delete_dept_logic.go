@@ -3,6 +3,7 @@ package dept
 import (
 	"context"
 	"go-zero-admin/application/admin/api/internal/middleware"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -22,6 +23,9 @@ func NewDeleteDeptLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeleteDeptLogic) DeleteDept(req *types.DeleteDeptReq) (*types.EmptyResp, error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	_, err := l.svcCtx.DeptRpc.DeleteDept(l.ctx, &adminpb.DeleteDeptRequest{Actor: middleware.ActorFromContext(l.ctx), DeptId: req.Id})
 	return &types.EmptyResp{}, err
 }

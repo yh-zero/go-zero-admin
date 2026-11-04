@@ -7,6 +7,7 @@ import (
 	"context"
 	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/rpc/adminpb"
+	"go-zero-admin/pkg/xerr"
 
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
@@ -29,6 +30,9 @@ func NewSyncApiLogic(ctx context.Context, svcCtx *svc.ServiceContext) *SyncApiLo
 }
 
 func (l *SyncApiLogic) SyncApi(req *types.SyncApiReq) (resp *types.SyncApiResp, err error) {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	result, err := l.svcCtx.ApiRpc.SyncApi(l.ctx, &adminpb.SyncApiRequest{Actor: middleware.ActorFromContext(l.ctx), Routes: l.svcCtx.ApiRoutes})
 	if err != nil {
 		return nil, err
