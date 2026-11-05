@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { resetUserPassword } from '../../api/user';
 import type { UserInfo } from '../../api/types';
 import { createPasswordConfirmationRules, newPasswordRules } from '../../utils/passwordRules';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface Props { user: UserInfo; onClose: () => void }
 interface PasswordForm { new_password: string; confirmation: string }
@@ -14,7 +15,7 @@ export function ResetPasswordDialog({ user, onClose }: Props) {
   const reset = useMutation({
     mutationFn: (values: PasswordForm) => resetUserPassword(user.id, values.new_password),
     onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ['users'] });
+      await client.invalidateQueries({ queryKey: [queryKeys.users] });
       message.success('密码已重置');
       onClose();
     },

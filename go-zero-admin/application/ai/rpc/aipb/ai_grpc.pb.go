@@ -24,6 +24,7 @@ const (
 	AiService_GetConversation_FullMethodName    = "/aipb.AiService/GetConversation"
 	AiService_DeleteConversation_FullMethodName = "/aipb.AiService/DeleteConversation"
 	AiService_SendMessage_FullMethodName        = "/aipb.AiService/SendMessage"
+	AiService_SendMessageStream_FullMethodName  = "/aipb.AiService/SendMessageStream"
 	AiService_ListTools_FullMethodName          = "/aipb.AiService/ListTools"
 	AiService_CreateWorkflow_FullMethodName     = "/aipb.AiService/CreateWorkflow"
 	AiService_ListWorkflows_FullMethodName      = "/aipb.AiService/ListWorkflows"
@@ -46,6 +47,7 @@ type AiServiceClient interface {
 	GetConversation(ctx context.Context, in *GetConversationRequest, opts ...grpc.CallOption) (*GetConversationResponse, error)
 	DeleteConversation(ctx context.Context, in *DeleteConversationRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
+	SendMessageStream(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamChunk], error)
 	ListTools(ctx context.Context, in *ListToolsRequest, opts ...grpc.CallOption) (*ListToolsResponse, error)
 	CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*CreateWorkflowResponse, error)
 	ListWorkflows(ctx context.Context, in *ListWorkflowsRequest, opts ...grpc.CallOption) (*ListWorkflowsResponse, error)
@@ -116,6 +118,25 @@ func (c *aiServiceClient) SendMessage(ctx context.Context, in *SendMessageReques
 	}
 	return out, nil
 }
+
+func (c *aiServiceClient) SendMessageStream(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamChunk], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &AiService_ServiceDesc.Streams[0], AiService_SendMessageStream_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[SendMessageRequest, StreamChunk]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type AiService_SendMessageStreamClient = grpc.ServerStreamingClient[StreamChunk]
 
 func (c *aiServiceClient) ListTools(ctx context.Context, in *ListToolsRequest, opts ...grpc.CallOption) (*ListToolsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -236,6 +257,7 @@ type AiServiceServer interface {
 	GetConversation(context.Context, *GetConversationRequest) (*GetConversationResponse, error)
 	DeleteConversation(context.Context, *DeleteConversationRequest) (*NoDataResponse, error)
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
+	SendMessageStream(*SendMessageRequest, grpc.ServerStreamingServer[StreamChunk]) error
 	ListTools(context.Context, *ListToolsRequest) (*ListToolsResponse, error)
 	CreateWorkflow(context.Context, *CreateWorkflowRequest) (*CreateWorkflowResponse, error)
 	ListWorkflows(context.Context, *ListWorkflowsRequest) (*ListWorkflowsResponse, error)
@@ -271,6 +293,9 @@ func (UnimplementedAiServiceServer) DeleteConversation(context.Context, *DeleteC
 }
 func (UnimplementedAiServiceServer) SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SendMessage not implemented")
+}
+func (UnimplementedAiServiceServer) SendMessageStream(*SendMessageRequest, grpc.ServerStreamingServer[StreamChunk]) error {
+	return status.Error(codes.Unimplemented, "method SendMessageStream not implemented")
 }
 func (UnimplementedAiServiceServer) ListTools(context.Context, *ListToolsRequest) (*ListToolsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListTools not implemented")
@@ -415,6 +440,17 @@ func _AiService_SendMessage_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	return interceptor(ctx, in, info, handler)
 }
+
+func _AiService_SendMessageStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SendMessageRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AiServiceServer).SendMessageStream(m, &grpc.GenericServerStream[SendMessageRequest, StreamChunk]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type AiService_SendMessageStreamServer = grpc.ServerStreamingServer[StreamChunk]
 
 func _AiService_ListTools_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListToolsRequest)
@@ -686,6 +722,12 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AiService_RejectTask_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SendMessageStream",
+			Handler:       _AiService_SendMessageStream_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "application/ai/rpc/desc/ai.proto",
 }

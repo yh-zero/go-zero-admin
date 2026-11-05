@@ -6,6 +6,7 @@ import { fetchAppMembershipPlans, fetchAppUsers, grantAppMembership } from '../.
 import type { GrantAppMembershipReq } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { invalidateAppData } from '../../utils/queryInvalidation';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface UserChoice { value: number; label: string }
 interface UserSelectProps { id?: string; value?: UserChoice; onChange?: (value?: UserChoice) => void; disabled?: boolean }
@@ -17,7 +18,7 @@ function AppUserSelect({ id, value, onChange, disabled }: UserSelectProps) {
   const [page, setPage] = useState(1);
   const search = useDeferredValue(account);
   const searchValid = new TextEncoder().encode(search).length <= 128;
-  const users = useQuery({ queryKey: ['app-user-options', search, page],
+  const users = useQuery({ queryKey: [queryKeys.appUserOptions, search, page],
     queryFn: () => fetchAppUsers({ account: search || undefined, page, page_size: 20 }), enabled: searchValid });
   const options = (users.data?.list ?? []).map(user => ({ value: user.id,
     label: `${user.nickname ? user.nickname + ' · ' : ''}${user.account}（#${user.id}）` }));
@@ -42,7 +43,7 @@ export function AppMembershipGrantDialog({ initialUserId, onClose }: Props) {
   const [form] = Form.useForm<GrantFormValues>();
   const client = useQueryClient();
   const { message } = App.useApp();
-  const plans = useQuery({ queryKey: ['app-membership-plans'], queryFn: fetchAppMembershipPlans });
+  const plans = useQuery({ queryKey: [queryKeys.appMembershipPlans], queryFn: fetchAppMembershipPlans });
   const plansUnavailable = !plans.isSuccess || plans.data.length === 0;
   const submission = useRef<{ fingerprint: string; requestId: string } | null>(null);
   const submitting = useRef(false);

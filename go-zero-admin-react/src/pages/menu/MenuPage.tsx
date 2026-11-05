@@ -16,6 +16,7 @@ import { MenuTable } from './MenuTable';
 import { OperationPermissions } from './OperationPermissions';
 import { filterNavigationMenus, getUnassignedPermissions } from './menuResources';
 import styles from './MenuPage.module.css';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface MenuFilters { keyword?: string; status?: number }
 
@@ -27,7 +28,7 @@ export default function MenuPage() {
   const [pageId, setPageId] = useState<number | null>(null);
   const [filterForm] = Form.useForm<MenuFilters>();
   const queryClient = useQueryClient();
-  const query = useQuery({ queryKey: ['menus', 'resources'], queryFn: () => fetchMenuTree() });
+  const query = useQuery({ queryKey: [queryKeys.menus, 'resources'], queryFn: () => fetchMenuTree() });
   const resources = query.data?.list ?? [];
   const ready = query.isSuccess && !query.isFetching;
   const unassignedCount = getUnassignedPermissions(resources).length;

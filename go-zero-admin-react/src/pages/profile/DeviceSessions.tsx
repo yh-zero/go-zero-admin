@@ -8,19 +8,20 @@ import type { DeviceSession } from '../../api/types';
 import { useAuthStore } from '../../stores/auth';
 import { clearSession } from '../../utils/session';
 import { QueryState } from '../../components/QueryState';
+import { queryKeys } from '../../utils/queryKeys';
 
 export function DeviceSessions() {
   const client = useQueryClient();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const isLoggingOut = useAuthStore(state => state.isLoggingOut);
-  const query = useQuery({ queryKey: ['device-sessions'], queryFn: fetchDeviceSessions });
+  const query = useQuery({ queryKey: [queryKeys.deviceSessions], queryFn: fetchDeviceSessions });
   const revoke = useMutation({ mutationFn: (session: DeviceSession) => revokeDeviceSession(session.id), onMutate: () => useAuthStore.getState(), onSuccess: async (_, session, auth) => {
     if (session.is_current) {
       if (auth && await clearSession({ sessionVersion: auth.sessionVersion, sessionId: session.id })) navigate('/login', { replace: true });
       return;
     }
-    await client.invalidateQueries({ queryKey: ['device-sessions'] });
+    await client.invalidateQueries({ queryKey: [queryKeys.deviceSessions] });
     void message.success('已退出该设备');
   } });
   const revokeAll = useMutation({ mutationFn: () => logout(true), onSettled: () => {

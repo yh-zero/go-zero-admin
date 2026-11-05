@@ -19,6 +19,8 @@ import { AppUserEditDialog } from './AppUserEditDialog';
 import { getAccessiblePagePaths } from '../../router/menuRoutes';
 import { appUserStatus, appUserStatusOptions } from './appOptions';
 import './app.css';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 
 type UserAction = { id: number; mode: 'details' | 'review' | 'avatar' | 'sessions' | 'memberships' | 'edit'; intent?: AppUserReviewIntent };
 
@@ -26,9 +28,10 @@ export default function AppUserList() {
   const [form] = Form.useForm<GetAppUserListReq>();
   const [params, setParams] = useState<GetAppUserListReq>({ page: 1, page_size: 20 });
   const [action, setAction] = useState<UserAction | null>(null);
-  const menus = useQuery({ queryKey: ['my-menus'], queryFn: fetchMyMenus });
+  const menus = useQuery({ queryKey: [queryKeys.myMenus], queryFn: fetchMyMenus });
   const canReadMemberships = menus.isSuccess && getAccessiblePagePaths(menus.data).has('/app/memberships');
-  const users = usePagedQuery({ params, setParams, queryKey: ['app-users', params], queryFn: () => fetchAppUsers(params) });
+  const users = usePagedQuery({ params, setParams, queryKey: [queryKeys.appUsers, params], queryFn: () => fetchAppUsers(params) });
+  const pagination = useTablePagination(params, setParams, users.data?.total ?? 0);
   const selectedUser = users.data?.list.find(user => user.id === action?.id);
   useEffect(() => {
     // 必须结束已失效的弹窗会话，否则用户日后重新进入筛选结果时会重开旧弹窗。
@@ -36,6 +39,7 @@ export default function AppUserList() {
     if (action && (action.mode === 'review' || action.mode === 'avatar') && users.isSuccess && !users.isFetching && !selectedUser) setAction(null);
   }, [action, selectedUser, users.isSuccess, users.isFetching]);
   const unavailable = users.isFetching || users.isError;
+
   return <div className="page-stack app-page">
     <div className="app-page-heading"><span className="app-heading-icon"><TeamOutlined /></span>
       <PageHeader title="APP用户" description="管理用户资料与账号状态，让每一次访问清晰可控" /></div>
@@ -56,9 +60,7 @@ export default function AppUserList() {
       <QueryState isPending={users.isPending} error={users.error} onRetry={() => users.refetch()} />
       {!users.isError && <Table<AppAdminUserInfo> rowKey="id" dataSource={users.data?.list ?? []} loading={users.isFetching}
         locale={{ emptyText: <Empty className="app-empty" image={<TeamOutlined />} description={<><strong>暂无匹配用户</strong><p>调整账号或状态后再试</p></>} /> }}
-        scroll={{ x: 1250 }} pagination={{ current: params.page, pageSize: params.page_size, total: users.data?.total ?? 0,
-          showSizeChanger: true, showTotal: total => `共 ${total} 位APP用户`,
-          onChange: (page, page_size) => setParams({ ...params, page, page_size }) }} columns={[
+        scroll={{ x: 1250 }} pagination={pagination} columns={[
           { title: '用户账号', dataIndex: 'account', key: 'account', width: 265, render: (value: string, row) => <div className="app-table-identity">
             <Avatar shape="square" size={38} className="app-avatar--blue" src={row.avatar_url || undefined} icon={<UserOutlined />} />
             <div className="app-identity-copy"><Button type="link" className="app-account-link" disabled={unavailable}

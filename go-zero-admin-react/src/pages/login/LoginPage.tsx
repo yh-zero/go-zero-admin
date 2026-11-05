@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Alert, Button, Form, Input, Typography } from 'antd';
 import { ArrowRightOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -12,6 +12,7 @@ import { CaptchaField } from './CaptchaField';
 import { LoginMascot } from './LoginMascot';
 import { useLoginFeedback } from './useLoginFeedback';
 import './login.css';
+import { queryKeys } from '../../utils/queryKeys';
 
 function LoginBrand({ feedback }: { feedback: ReturnType<typeof useLoginFeedback> }) {
   return <section className="login-brand-panel" aria-label="go-zero-admin 管理工作台">
@@ -32,8 +33,10 @@ export default function LoginPage() {
   const location = useLocation();
   const auth = useAuthStore();
   const feedback = useLoginFeedback();
-  const captcha = useQuery({ queryKey: ['captcha'], queryFn: fetchCaptcha, staleTime: 0, gcTime: 0, refetchInterval: 90_000 });
+  const captcha = useQuery({ queryKey: [queryKeys.captcha], queryFn: fetchCaptcha, staleTime: 0, gcTime: 0, refetchInterval: 90_000 });
   const captchaEnabled = captcha.data?.enabled !== false;
+  // 验证码刷新入口统一，失败、过期与手动重试共用同一行为。
+  const reloadCaptcha = useCallback(() => { void captcha.refetch(); }, [captcha]);
   useEffect(() => { form.setFieldValue('captcha', ''); }, [captcha.data?.captcha_id, captcha.data?.enabled, form]);
   const mutation = useMutation({
     mutationFn: login,
@@ -45,14 +48,14 @@ export default function LoginPage() {
         }).catch(() => feedback.showFailure());
       });
     },
-    onError: () => { feedback.showFailure(); form.setFieldValue('captcha', ''); void captcha.refetch(); },
+    onError: () => { feedback.showFailure(); form.setFieldValue('captcha', ''); reloadCaptcha(); },
   });
   if (auth.token) return <Navigate to="/dashboard" replace />;
   const submit = (values: LoginReq) => {
     if (mutation.isPending || mutation.isSuccess) return;
-    if (!captcha.isSuccess || !captcha.data || captcha.isFetching) { void captcha.refetch(); return; }
+    if (!captcha.isSuccess || !captcha.data || captcha.isFetching) { reloadCaptcha(); return; }
     if (captchaEnabled && captcha.data.expires_at * 1000 <= Date.now()) {
-      form.setFields([{ name: 'captcha', errors: ['验证码已过期，请刷新后重试'] }]); feedback.showFailure(); void captcha.refetch(); return;
+      form.setFields([{ name: 'captcha', errors: ['验证码已过期，请刷新后重试'] }]); feedback.showFailure(); reloadCaptcha(); return;
     }
     feedback.reset();
     mutation.mutate(captchaEnabled ? { ...values, captcha_id: captcha.data.captcha_id } : { username: values.username, password: values.password });
@@ -82,10 +85,10 @@ export default function LoginPage() {
                 <Form.Item name="captcha" noStyle preserve={false} rules={[{ required: true, message: '请输入验证码' }]}>
                   <Input autoComplete="off" placeholder="请输入验证码" maxLength={8} />
                 </Form.Item>
-                <CaptchaField data={captcha.data} loading={captcha.isFetching} onReload={() => void captcha.refetch()} />
+                <CaptchaField data={captcha.data} loading={captcha.isFetching} onReload={reloadCaptcha} />
               </div>
             </Form.Item>}
-            {captcha.isError && <Form.Item><Alert type="error" title="登录配置加载失败" action={<Button size="small" onClick={() => void captcha.refetch()}>重试</Button>} /></Form.Item>}
+            {captcha.isError && <Form.Item><Alert type="error" title="登录配置加载失败" action={<Button size="small" onClick={reloadCaptcha}>重试</Button>} /></Form.Item>}
             <Button className="login-submit" block type="primary" htmlType="submit" loading={mutation.isPending || mutation.isSuccess} disabled={!captcha.isSuccess || captcha.isFetching || mutation.isSuccess}>
               {mutation.isSuccess ? '登录成功，正在进入' : '登录工作台'}<ArrowRightOutlined />
             </Button>

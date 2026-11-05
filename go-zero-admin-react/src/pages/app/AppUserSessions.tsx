@@ -9,6 +9,7 @@ import { QueryState } from '../../components/QueryState';
 import { useAuthStore } from '../../stores/auth';
 import { formatTime } from '../../utils/format';
 import { invalidateAppData } from '../../utils/queryInvalidation';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface Props { user: AppUserInfo; onClose: () => void }
 interface PanelProps { user: AppUserInfo; onBusyChange?: (busy: boolean) => void }
@@ -25,7 +26,7 @@ export function AppUserSessionsPanel({ user, onBusyChange }: PanelProps) {
   const client = useQueryClient();
   const allowed = useAuthStore(state => state.permissionsReady && state.permCodes.includes('sys:app:session:list'));
   const sessions = useQuery({
-    queryKey: ['app-sessions', user.id], queryFn: () => fetchAppUserSessions(user.id), enabled: allowed,
+    queryKey: [queryKeys.appSessions, user.id], queryFn: () => fetchAppUserSessions(user.id), enabled: allowed,
   });
   const revoke = useMutation({
     mutationFn: (sessionId: string) => revokeAppUserSession(user.id, sessionId),

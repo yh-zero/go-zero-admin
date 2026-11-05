@@ -103,7 +103,9 @@ func (textStats) Execute(_ context.Context, args json.RawMessage) (string, error
 	chars := len([]rune(*in.Text))
 	words := len(strings.Fields(*in.Text))
 	lines := len(strings.Split(*in.Text, "\n"))
-	return fmt.Sprintf("字符数 %d，单词数 %d，行数 %d", chars, words, lines), nil
+	// 返回结构化 JSON，模型可直接引用字段做后续推理。
+	result, _ := json.Marshal(map[string]int{"chars": chars, "words": words, "lines": lines})
+	return string(result), nil
 }
 
 func decodeObject(args json.RawMessage, out any) error {
@@ -115,7 +117,41 @@ func decodeObject(args json.RawMessage, out any) error {
 	return decoder.Decode(out)
 }
 
+// jsonFormatter 将任意文本转为合法 JSON（模型自检格式用）。
+type jsonFormatter struct{}
+
+func (jsonFormatter) Name() string { return "json_formatter" }
+func (jsonFormatter) Description() string {
+	return "将文本解析并格式化输出为缩进 JSON；输入非法 JSON 时返回错误"
+}
+func (jsonFormatter) Params() map[string]*schema.ParameterInfo {
+	return map[string]*schema.ParameterInfo{
+		"text": {Type: schema.String, Desc: "要格式化的 JSON 字符串", Required: true},
+	}
+}
+func (jsonFormatter) Execute(_ context.Context, args json.RawMessage) (string, error) {
+	var in struct {
+		Text *string `json:"text"`
+	}
+	if err := decodeObject(args, &in); err != nil {
+		return "", fmt.Errorf("invalid args: %w", err)
+	}
+	if in.Text == nil || len(*in.Text) > 16000 {
+		return "", fmt.Errorf("text 必填且最多 16000 字节")
+	}
+	var parsed any
+	if err := json.Unmarshal([]byte(*in.Text), &parsed); err != nil {
+		return "", fmt.Errorf("输入不是合法 JSON: %w", err)
+	}
+	formatted, err := json.MarshalIndent(parsed, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("格式化失败: %w", err)
+	}
+	return string(formatted), nil
+}
+
 func init() {
 	Register(getCurrentTime{})
 	Register(textStats{})
+	Register(jsonFormatter{})
 }

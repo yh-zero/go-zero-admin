@@ -9,12 +9,13 @@ import { invalidateRoleData } from '../../utils/queryInvalidation';
 import { RolePermissionTable } from './RolePermissionTable';
 import { groupRolePermissions, togglePermission } from './rolePermissions';
 import styles from './RolePermissions.module.css';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface Props { id: number; onClose: () => void }
 
 function permissionDataReady(client: QueryClient, id: number): boolean {
-  const role = client.getQueryState<RoleInfo>(['role', id]);
-  const menus = client.getQueryState<ListResult<MenuInfo>>(['role-menu-options']);
+  const role = client.getQueryState<RoleInfo>([queryKeys.role, id]);
+  const menus = client.getQueryState<ListResult<MenuInfo>>([queryKeys.roleMenuOptions]);
   return role?.status === 'success' && role.fetchStatus === 'idle' && !role.isInvalidated && role.data?.id === id
     && menus?.status === 'success' && menus.fetchStatus === 'idle' && !menus.isInvalidated && !!menus.data;
 }
@@ -28,8 +29,8 @@ function RolePermissionSession({ id, onClose }: Props) {
   const submitting = useRef(false);
   const { message } = App.useApp();
   const client = useQueryClient();
-  const role = useQuery({ queryKey: ['role', id], queryFn: () => fetchRole(id) });
-  const menus = useQuery({ queryKey: ['role-menu-options'], queryFn: fetchRoleMenus });
+  const role = useQuery({ queryKey: [queryKeys.role, id], queryFn: () => fetchRole(id) });
+  const menus = useQuery({ queryKey: [queryKeys.roleMenuOptions], queryFn: fetchRoleMenus });
   const checkedIds = selection ?? role.data?.menu_ids ?? [];
   const checkedSet = new Set(checkedIds);
   const groups = useMemo(() => groupRolePermissions(menus.data?.list ?? []), [menus.data]);
@@ -51,7 +52,7 @@ function RolePermissionSession({ id, onClose }: Props) {
   };
   const onToggle = (menuId: number, checked: boolean) => {
     if (!available || submitting.current || !permissionDataReady(client, id)) return;
-    setSelection(current => togglePermission(current ?? role.data!.menu_ids ?? [], menuId, checked));
+    setSelection(current => togglePermission(current ?? role.data?.menu_ids ?? [], menuId, checked));
   };
   return <Modal open width={1000} title={`功能授权${role.data ? ` · ${role.data.name}` : ''}`}
     onCancel={() => { if (!submitting.current) onClose(); }} onOk={onSave} okText="保存授权"

@@ -6,6 +6,8 @@ import type { DeptInfo, GetUserListReq, UserInfo } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 
 interface DeptMembersProps { dept: DeptInfo; canReadUsers: boolean }
 
@@ -28,8 +30,10 @@ function MemberContact({ user }: { user: UserInfo }) {
 export function DeptMembers({ dept, canReadUsers }: DeptMembersProps) {
   const [form] = Form.useForm<Pick<GetUserListReq, 'username'>>();
   const [params, setParams] = useState<GetUserListReq>({ dept_id: dept.id, page: 1, page_size: 20 });
-  const members = usePagedQuery({ params, setParams, queryKey: ['users', 'dept-members', params],
+  const members = usePagedQuery({ params, setParams, queryKey: [queryKeys.users, 'dept-members', params],
     queryFn: () => fetchUsers(params), enabled: canReadUsers });
+  const pagination = useTablePagination(params, setParams, members.data?.total ?? 0);
+
   return <Card className="data-card dept-members" title={<div className="dept-section-heading">
     <span className="dept-section-icon"><TeamOutlined aria-hidden /></span><span>直属成员</span>
     {canReadUsers && members.isSuccess && <span className="dept-section-count">{members.data.total}</span>}
@@ -46,8 +50,7 @@ export function DeptMembers({ dept, canReadUsers }: DeptMembersProps) {
       </div>
       <QueryState isPending={members.isPending} error={members.error} onRetry={() => void members.refetch()} />
       {members.isSuccess && <Table<UserInfo> rowKey="id" dataSource={members.data.list} loading={members.isFetching} scroll={{ x: 590 }}
-        pagination={{ current: params.page, pageSize: params.page_size, total: members.data.total, showSizeChanger: true,
-          showTotal: total => `共 ${total} 位成员`, onChange: (page, page_size) => setParams({ ...params, page, page_size }) }} columns={[
+        pagination={pagination} columns={[
           { title: '成员', key: 'member', width: '42%', render: (_, user) => <MemberIdentity user={user} /> },
           { title: '联系方式', key: 'contact', render: (_, user) => <MemberContact user={user} /> },
           { title: '状态', dataIndex: 'status', width: 110, render: (status: number) => <StatusTag status={status} /> },

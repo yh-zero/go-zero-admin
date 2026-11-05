@@ -7,6 +7,7 @@ import { QueryState } from '../../components/QueryState';
 import { useFormDraft } from '../../hooks/useFormDraft';
 import { invalidateRoleData } from '../../utils/queryInvalidation';
 import { RoleFormFields } from './RoleFormFields';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface Props { id?: number; onClose: () => void }
 const defaults = { description: '', data_scope: 'SELF', sort: 0, status: 1 };
@@ -15,7 +16,7 @@ export function RoleEditor({ id, onClose }: Props) {
   const [form] = Form.useForm<CreateRoleReq>();
   const { message } = App.useApp();
   const client = useQueryClient();
-  const role = useQuery({ queryKey: ['role', id], queryFn: () => fetchRole(id!), enabled: id !== undefined });
+  const role = useQuery({ queryKey: [queryKeys.role, id], queryFn: () => fetchRole(id!), enabled: id !== undefined });
   const editorValues = useMemo(() => {
     if (!role.data) return undefined;
     const { name, code, description, data_scope, sort, status } = role.data;

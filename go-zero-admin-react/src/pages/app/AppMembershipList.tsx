@@ -13,6 +13,8 @@ import { formatTime } from '../../utils/format';
 import { invalidateAppData } from '../../utils/queryInvalidation';
 import { AppMembershipGrantDialog } from './AppMembershipGrantDialog';
 import './app.css';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 
 type MembershipFilters = Omit<GetAppMembershipListReq, 'page' | 'page_size'>;
 interface PageProps {
@@ -63,9 +65,11 @@ function MembershipPage({ initialFilters, pageSize, onPageSizeChange, onFiltersC
   const client = useQueryClient();
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Math.floor(Date.now() / 1000)), 30_000);
+
     return () => window.clearInterval(timer);
   }, []);
-  const memberships = usePagedQuery({ params, setParams, queryKey: ['app-memberships', params], queryFn: () => fetchAppMemberships(params) });
+  const memberships = usePagedQuery({ params, setParams, queryKey: [queryKeys.appMemberships, params], queryFn: () => fetchAppMemberships(params) });
+  const pagination = useTablePagination(params, setParams, memberships.data?.total ?? 0);
   const revoke = useMutation({ mutationFn: revokeAppMembership, onSuccess: async () => {
     await invalidateAppData(client);
     void message.success('会员已撤销');
@@ -102,10 +106,9 @@ function MembershipPage({ initialFilters, pageSize, onPageSizeChange, onFiltersC
       <span>会员记录</span>{memberships.isSuccess && <span className="app-count">{memberships.data.total}</span>}</div>}>
       <QueryState isPending={memberships.isPending} error={memberships.error} onRetry={() => memberships.refetch()} />
       <Table<AppMembershipInfo> rowKey="id" dataSource={memberships.data?.list ?? []} loading={memberships.isFetching} scroll={{ x: 1200 }}
-        pagination={{ current: params.page, pageSize: params.page_size, total: memberships.data?.total ?? 0, showSizeChanger: true,
-          showTotal: total => `共 ${total} 条记录`, onChange: (page, page_size) => {
-            onPageSizeChange(page_size); setParams({ ...params, page, page_size });
-          } }} columns={[
+pagination={{ ...pagination,
+          showTotal: total => `共 ${total} 条记录`,
+          onChange: (page, pageSize) => { onPageSizeChange(pageSize); setParams(current => ({ ...current, page, page_size: pageSize })); } }} columns={[
           { title: '用户', dataIndex: 'user_id', width: 180, render: (id: number) => <div className="app-table-identity">
             <Avatar size={34} className="app-avatar--amber" icon={<UserOutlined />} />
             <div className="app-identity-copy"><span className="app-primary-text">#{id}</span><span className="app-secondary-text">用户 ID</span></div>

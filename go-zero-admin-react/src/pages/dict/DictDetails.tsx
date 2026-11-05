@@ -5,11 +5,12 @@ import type { DictItem } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { formatTime } from '../../utils/format';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface DictDetailsProps { code: string | null; onClose: () => void }
 
 export function DictDetails({ code, onClose }: DictDetailsProps) {
-  const query = useQuery({ queryKey: ['dicts', 'detail', code], queryFn: () => fetchDictByCode(code!), enabled: code !== null });
+  const query = useQuery({ queryKey: [queryKeys.dicts, 'detail', code], queryFn: () => fetchDictByCode(code!), enabled: code !== null });
   const dict = query.data;
   return <Drawer title="字典详情" open={code !== null} onClose={onClose} size="large">
     <QueryState isPending={query.isPending} error={query.error} onRetry={() => { void query.refetch(); }} />

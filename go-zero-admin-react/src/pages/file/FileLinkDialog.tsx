@@ -3,11 +3,12 @@ import { Button, Descriptions, Modal, Typography } from 'antd';
 import { fetchFileURL } from '../../api/file';
 import { QueryState } from '../../components/QueryState';
 import { formatTime } from '../../utils/format';
+import { queryKeys } from '../../utils/queryKeys';
 function safeURL(value?: string) {
   try { const url = new URL(value ?? ''); return ['http:', 'https:'].includes(url.protocol) ? url.href : undefined; } catch { return undefined; }
 }
 export function FileLinkDialog({ id, visibility, onClose }: { id: number; visibility: string; onClose: () => void }) {
-  const query = useQuery({ queryKey: ['file-url', id], queryFn: () => fetchFileURL(id), staleTime: 0, gcTime: 0 });
+  const query = useQuery({ queryKey: [queryKeys.fileUrl, id], queryFn: () => fetchFileURL(id), staleTime: 0, gcTime: 0 });
   const data = query.isSuccess ? query.data : undefined;
   const href = safeURL(data?.url);
   const isPublic = visibility === 'public';

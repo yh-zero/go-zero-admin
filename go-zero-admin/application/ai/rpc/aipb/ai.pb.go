@@ -931,6 +931,115 @@ func (x *SendMessageResponse) GetConversationId() int64 {
 	return 0
 }
 
+// SendMessageStream：服务端流式发送；type 对应 SSE 事件 meta/delta/tool/done/error
+type StreamChunk struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Type           string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`                                            // meta / delta / tool / done / error
+	Content        string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`                                      // delta 文本增量 / tool 名 / error 消息
+	ConversationId int64                  `protobuf:"varint,3,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"` // meta 帧
+	UserMessageId  int64                  `protobuf:"varint,4,opt,name=user_message_id,json=userMessageId,proto3" json:"user_message_id,omitempty"`  // meta 帧
+	AiMessageId    int64                  `protobuf:"varint,5,opt,name=ai_message_id,json=aiMessageId,proto3" json:"ai_message_id,omitempty"`        // meta 帧
+	Tokens         int64                  `protobuf:"varint,6,opt,name=tokens,proto3" json:"tokens,omitempty"`                                       // done 帧：已知累计 token
+	UsageComplete  bool                   `protobuf:"varint,7,opt,name=usage_complete,json=usageComplete,proto3" json:"usage_complete,omitempty"`    // done 帧：用量是否完整
+	ErrorCode      int32                  `protobuf:"varint,8,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`                // error 帧：业务错误码
+	ToolStatus     string                 `protobuf:"bytes,9,opt,name=tool_status,json=toolStatus,proto3" json:"tool_status,omitempty"`              // tool 帧：start / done
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *StreamChunk) Reset() {
+	*x = StreamChunk{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamChunk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamChunk) ProtoMessage() {}
+
+func (x *StreamChunk) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamChunk.ProtoReflect.Descriptor instead.
+func (*StreamChunk) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *StreamChunk) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *StreamChunk) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *StreamChunk) GetConversationId() int64 {
+	if x != nil {
+		return x.ConversationId
+	}
+	return 0
+}
+
+func (x *StreamChunk) GetUserMessageId() int64 {
+	if x != nil {
+		return x.UserMessageId
+	}
+	return 0
+}
+
+func (x *StreamChunk) GetAiMessageId() int64 {
+	if x != nil {
+		return x.AiMessageId
+	}
+	return 0
+}
+
+func (x *StreamChunk) GetTokens() int64 {
+	if x != nil {
+		return x.Tokens
+	}
+	return 0
+}
+
+func (x *StreamChunk) GetUsageComplete() bool {
+	if x != nil {
+		return x.UsageComplete
+	}
+	return false
+}
+
+func (x *StreamChunk) GetErrorCode() int32 {
+	if x != nil {
+		return x.ErrorCode
+	}
+	return 0
+}
+
+func (x *StreamChunk) GetToolStatus() string {
+	if x != nil {
+		return x.ToolStatus
+	}
+	return ""
+}
+
 // ========== 工具注册表（阶段 1） ==========
 type ToolInfo struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
@@ -943,7 +1052,7 @@ type ToolInfo struct {
 
 func (x *ToolInfo) Reset() {
 	*x = ToolInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[15]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -955,7 +1064,7 @@ func (x *ToolInfo) String() string {
 func (*ToolInfo) ProtoMessage() {}
 
 func (x *ToolInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[15]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -968,7 +1077,7 @@ func (x *ToolInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ToolInfo.ProtoReflect.Descriptor instead.
 func (*ToolInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{15}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ToolInfo) GetName() string {
@@ -1001,7 +1110,7 @@ type ListToolsRequest struct {
 
 func (x *ListToolsRequest) Reset() {
 	*x = ListToolsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[16]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1013,7 +1122,7 @@ func (x *ListToolsRequest) String() string {
 func (*ListToolsRequest) ProtoMessage() {}
 
 func (x *ListToolsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[16]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1026,7 +1135,7 @@ func (x *ListToolsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListToolsRequest.ProtoReflect.Descriptor instead.
 func (*ListToolsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{16}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListToolsRequest) GetActor() *Actor {
@@ -1045,7 +1154,7 @@ type ListToolsResponse struct {
 
 func (x *ListToolsResponse) Reset() {
 	*x = ListToolsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[17]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1057,7 +1166,7 @@ func (x *ListToolsResponse) String() string {
 func (*ListToolsResponse) ProtoMessage() {}
 
 func (x *ListToolsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[17]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1070,7 +1179,7 @@ func (x *ListToolsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListToolsResponse.ProtoReflect.Descriptor instead.
 func (*ListToolsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{17}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListToolsResponse) GetList() []*ToolInfo {
@@ -1098,7 +1207,7 @@ type WorkflowInfo struct {
 
 func (x *WorkflowInfo) Reset() {
 	*x = WorkflowInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[18]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1110,7 +1219,7 @@ func (x *WorkflowInfo) String() string {
 func (*WorkflowInfo) ProtoMessage() {}
 
 func (x *WorkflowInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[18]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1123,7 +1232,7 @@ func (x *WorkflowInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowInfo.ProtoReflect.Descriptor instead.
 func (*WorkflowInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{18}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *WorkflowInfo) GetId() int64 {
@@ -1202,7 +1311,7 @@ type CreateWorkflowRequest struct {
 
 func (x *CreateWorkflowRequest) Reset() {
 	*x = CreateWorkflowRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[19]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1214,7 +1323,7 @@ func (x *CreateWorkflowRequest) String() string {
 func (*CreateWorkflowRequest) ProtoMessage() {}
 
 func (x *CreateWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[19]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1227,7 +1336,7 @@ func (x *CreateWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*CreateWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{19}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CreateWorkflowRequest) GetActor() *Actor {
@@ -1267,7 +1376,7 @@ type CreateWorkflowResponse struct {
 
 func (x *CreateWorkflowResponse) Reset() {
 	*x = CreateWorkflowResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[20]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1279,7 +1388,7 @@ func (x *CreateWorkflowResponse) String() string {
 func (*CreateWorkflowResponse) ProtoMessage() {}
 
 func (x *CreateWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[20]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1292,7 +1401,7 @@ func (x *CreateWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*CreateWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{20}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateWorkflowResponse) GetWorkflow() *WorkflowInfo {
@@ -1312,7 +1421,7 @@ type ListWorkflowsRequest struct {
 
 func (x *ListWorkflowsRequest) Reset() {
 	*x = ListWorkflowsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[21]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1324,7 +1433,7 @@ func (x *ListWorkflowsRequest) String() string {
 func (*ListWorkflowsRequest) ProtoMessage() {}
 
 func (x *ListWorkflowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[21]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1337,7 +1446,7 @@ func (x *ListWorkflowsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowsRequest.ProtoReflect.Descriptor instead.
 func (*ListWorkflowsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{21}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListWorkflowsRequest) GetActor() *Actor {
@@ -1364,7 +1473,7 @@ type ListWorkflowsResponse struct {
 
 func (x *ListWorkflowsResponse) Reset() {
 	*x = ListWorkflowsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[22]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1376,7 +1485,7 @@ func (x *ListWorkflowsResponse) String() string {
 func (*ListWorkflowsResponse) ProtoMessage() {}
 
 func (x *ListWorkflowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[22]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1389,7 +1498,7 @@ func (x *ListWorkflowsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowsResponse.ProtoReflect.Descriptor instead.
 func (*ListWorkflowsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{22}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListWorkflowsResponse) GetList() []*WorkflowInfo {
@@ -1416,7 +1525,7 @@ type GetWorkflowRequest struct {
 
 func (x *GetWorkflowRequest) Reset() {
 	*x = GetWorkflowRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[23]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1428,7 +1537,7 @@ func (x *GetWorkflowRequest) String() string {
 func (*GetWorkflowRequest) ProtoMessage() {}
 
 func (x *GetWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[23]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1441,7 +1550,7 @@ func (x *GetWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*GetWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{23}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetWorkflowRequest) GetActor() *Actor {
@@ -1467,7 +1576,7 @@ type GetWorkflowResponse struct {
 
 func (x *GetWorkflowResponse) Reset() {
 	*x = GetWorkflowResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[24]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1479,7 +1588,7 @@ func (x *GetWorkflowResponse) String() string {
 func (*GetWorkflowResponse) ProtoMessage() {}
 
 func (x *GetWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[24]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1492,7 +1601,7 @@ func (x *GetWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*GetWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{24}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetWorkflowResponse) GetWorkflow() *WorkflowInfo {
@@ -1516,7 +1625,7 @@ type UpdateWorkflowRequest struct {
 
 func (x *UpdateWorkflowRequest) Reset() {
 	*x = UpdateWorkflowRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[25]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1528,7 +1637,7 @@ func (x *UpdateWorkflowRequest) String() string {
 func (*UpdateWorkflowRequest) ProtoMessage() {}
 
 func (x *UpdateWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[25]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1541,7 +1650,7 @@ func (x *UpdateWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*UpdateWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{25}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpdateWorkflowRequest) GetActor() *Actor {
@@ -1596,7 +1705,7 @@ type DeleteWorkflowRequest struct {
 
 func (x *DeleteWorkflowRequest) Reset() {
 	*x = DeleteWorkflowRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[26]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1608,7 +1717,7 @@ func (x *DeleteWorkflowRequest) String() string {
 func (*DeleteWorkflowRequest) ProtoMessage() {}
 
 func (x *DeleteWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[26]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1621,7 +1730,7 @@ func (x *DeleteWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*DeleteWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{26}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *DeleteWorkflowRequest) GetActor() *Actor {
@@ -1649,7 +1758,7 @@ type RunWorkflowRequest struct {
 
 func (x *RunWorkflowRequest) Reset() {
 	*x = RunWorkflowRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[27]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1661,7 +1770,7 @@ func (x *RunWorkflowRequest) String() string {
 func (*RunWorkflowRequest) ProtoMessage() {}
 
 func (x *RunWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[27]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1674,7 +1783,7 @@ func (x *RunWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*RunWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{27}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *RunWorkflowRequest) GetActor() *Actor {
@@ -1708,7 +1817,7 @@ type RunWorkflowResponse struct {
 
 func (x *RunWorkflowResponse) Reset() {
 	*x = RunWorkflowResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[28]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1720,7 +1829,7 @@ func (x *RunWorkflowResponse) String() string {
 func (*RunWorkflowResponse) ProtoMessage() {}
 
 func (x *RunWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[28]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1733,7 +1842,7 @@ func (x *RunWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*RunWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{28}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *RunWorkflowResponse) GetTaskId() int64 {
@@ -1770,7 +1879,7 @@ type AgentTaskInfo struct {
 
 func (x *AgentTaskInfo) Reset() {
 	*x = AgentTaskInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[29]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1782,7 +1891,7 @@ func (x *AgentTaskInfo) String() string {
 func (*AgentTaskInfo) ProtoMessage() {}
 
 func (x *AgentTaskInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[29]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1795,7 +1904,7 @@ func (x *AgentTaskInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentTaskInfo.ProtoReflect.Descriptor instead.
 func (*AgentTaskInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{29}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *AgentTaskInfo) GetId() int64 {
@@ -1887,7 +1996,7 @@ type ListAgentTasksRequest struct {
 
 func (x *ListAgentTasksRequest) Reset() {
 	*x = ListAgentTasksRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[30]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1899,7 +2008,7 @@ func (x *ListAgentTasksRequest) String() string {
 func (*ListAgentTasksRequest) ProtoMessage() {}
 
 func (x *ListAgentTasksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[30]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1912,7 +2021,7 @@ func (x *ListAgentTasksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentTasksRequest.ProtoReflect.Descriptor instead.
 func (*ListAgentTasksRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{30}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListAgentTasksRequest) GetActor() *Actor {
@@ -1953,7 +2062,7 @@ type ListAgentTasksResponse struct {
 
 func (x *ListAgentTasksResponse) Reset() {
 	*x = ListAgentTasksResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[31]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1965,7 +2074,7 @@ func (x *ListAgentTasksResponse) String() string {
 func (*ListAgentTasksResponse) ProtoMessage() {}
 
 func (x *ListAgentTasksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[31]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1978,7 +2087,7 @@ func (x *ListAgentTasksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentTasksResponse.ProtoReflect.Descriptor instead.
 func (*ListAgentTasksResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{31}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ListAgentTasksResponse) GetList() []*AgentTaskInfo {
@@ -2005,7 +2114,7 @@ type GetAgentTaskRequest struct {
 
 func (x *GetAgentTaskRequest) Reset() {
 	*x = GetAgentTaskRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[32]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2017,7 +2126,7 @@ func (x *GetAgentTaskRequest) String() string {
 func (*GetAgentTaskRequest) ProtoMessage() {}
 
 func (x *GetAgentTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[32]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2030,7 +2139,7 @@ func (x *GetAgentTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentTaskRequest.ProtoReflect.Descriptor instead.
 func (*GetAgentTaskRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{32}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetAgentTaskRequest) GetActor() *Actor {
@@ -2056,7 +2165,7 @@ type GetAgentTaskResponse struct {
 
 func (x *GetAgentTaskResponse) Reset() {
 	*x = GetAgentTaskResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[33]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2068,7 +2177,7 @@ func (x *GetAgentTaskResponse) String() string {
 func (*GetAgentTaskResponse) ProtoMessage() {}
 
 func (x *GetAgentTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[33]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2081,7 +2190,7 @@ func (x *GetAgentTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentTaskResponse.ProtoReflect.Descriptor instead.
 func (*GetAgentTaskResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{33}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetAgentTaskResponse) GetTask() *AgentTaskInfo {
@@ -2102,7 +2211,7 @@ type ApproveTaskRequest struct {
 
 func (x *ApproveTaskRequest) Reset() {
 	*x = ApproveTaskRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[34]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2114,7 +2223,7 @@ func (x *ApproveTaskRequest) String() string {
 func (*ApproveTaskRequest) ProtoMessage() {}
 
 func (x *ApproveTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[34]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2127,7 +2236,7 @@ func (x *ApproveTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApproveTaskRequest.ProtoReflect.Descriptor instead.
 func (*ApproveTaskRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{34}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ApproveTaskRequest) GetActor() *Actor {
@@ -2163,7 +2272,7 @@ type RejectTaskRequest struct {
 
 func (x *RejectTaskRequest) Reset() {
 	*x = RejectTaskRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[35]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2175,7 +2284,7 @@ func (x *RejectTaskRequest) String() string {
 func (*RejectTaskRequest) ProtoMessage() {}
 
 func (x *RejectTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[35]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2188,7 +2297,7 @@ func (x *RejectTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RejectTaskRequest.ProtoReflect.Descriptor instead.
 func (*RejectTaskRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{35}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *RejectTaskRequest) GetActor() *Actor {
@@ -2291,7 +2400,19 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\fuser_message\x18\x01 \x01(\v2\x11.aipb.ChatMessageR\vuserMessage\x120\n" +
 	"\n" +
 	"ai_message\x18\x02 \x01(\v2\x11.aipb.ChatMessageR\taiMessage\x12'\n" +
-	"\x0fconversation_id\x18\x03 \x01(\x03R\x0econversationId\"m\n" +
+	"\x0fconversation_id\x18\x03 \x01(\x03R\x0econversationId\"\xaf\x02\n" +
+	"\vStreamChunk\x12\x12\n" +
+	"\x04type\x18\x01 \x01(\tR\x04type\x12\x18\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\x12'\n" +
+	"\x0fconversation_id\x18\x03 \x01(\x03R\x0econversationId\x12&\n" +
+	"\x0fuser_message_id\x18\x04 \x01(\x03R\ruserMessageId\x12\"\n" +
+	"\rai_message_id\x18\x05 \x01(\x03R\vaiMessageId\x12\x16\n" +
+	"\x06tokens\x18\x06 \x01(\x03R\x06tokens\x12%\n" +
+	"\x0eusage_complete\x18\a \x01(\bR\rusageComplete\x12\x1d\n" +
+	"\n" +
+	"error_code\x18\b \x01(\x05R\terrorCode\x12\x1f\n" +
+	"\vtool_status\x18\t \x01(\tR\n" +
+	"toolStatus\"m\n" +
 	"\bToolInfo\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12+\n" +
@@ -2403,13 +2524,14 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\atask_id\x18\x02 \x01(\x03R\x06taskId\x12\x16\n" +
 	"\x06reason\x18\x03 \x01(\tR\x06reason\x12(\n" +
 	"\rexpected_step\x18\x04 \x01(\x03H\x00R\fexpectedStep\x88\x01\x01B\x10\n" +
-	"\x0e_expected_step2\x92\t\n" +
+	"\x0e_expected_step2\xd6\t\n" +
 	"\tAiService\x12W\n" +
 	"\x12CreateConversation\x12\x1f.aipb.CreateConversationRequest\x1a .aipb.CreateConversationResponse\x12T\n" +
 	"\x11ListConversations\x12\x1e.aipb.ListConversationsRequest\x1a\x1f.aipb.ListConversationsResponse\x12N\n" +
 	"\x0fGetConversation\x12\x1c.aipb.GetConversationRequest\x1a\x1d.aipb.GetConversationResponse\x12K\n" +
 	"\x12DeleteConversation\x12\x1f.aipb.DeleteConversationRequest\x1a\x14.aipb.NoDataResponse\x12B\n" +
-	"\vSendMessage\x12\x18.aipb.SendMessageRequest\x1a\x19.aipb.SendMessageResponse\x12<\n" +
+	"\vSendMessage\x12\x18.aipb.SendMessageRequest\x1a\x19.aipb.SendMessageResponse\x12B\n" +
+	"\x11SendMessageStream\x12\x18.aipb.SendMessageRequest\x1a\x11.aipb.StreamChunk0\x01\x12<\n" +
 	"\tListTools\x12\x16.aipb.ListToolsRequest\x1a\x17.aipb.ListToolsResponse\x12K\n" +
 	"\x0eCreateWorkflow\x12\x1b.aipb.CreateWorkflowRequest\x1a\x1c.aipb.CreateWorkflowResponse\x12H\n" +
 	"\rListWorkflows\x12\x1a.aipb.ListWorkflowsRequest\x1a\x1b.aipb.ListWorkflowsResponse\x12B\n" +
@@ -2435,7 +2557,7 @@ func file_application_ai_rpc_desc_ai_proto_rawDescGZIP() []byte {
 	return file_application_ai_rpc_desc_ai_proto_rawDescData
 }
 
-var file_application_ai_rpc_desc_ai_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
+var file_application_ai_rpc_desc_ai_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_application_ai_rpc_desc_ai_proto_goTypes = []any{
 	(*PageRequest)(nil),                // 0: aipb.PageRequest
 	(*PageResponse)(nil),               // 1: aipb.PageResponse
@@ -2452,27 +2574,28 @@ var file_application_ai_rpc_desc_ai_proto_goTypes = []any{
 	(*DeleteConversationRequest)(nil),  // 12: aipb.DeleteConversationRequest
 	(*SendMessageRequest)(nil),         // 13: aipb.SendMessageRequest
 	(*SendMessageResponse)(nil),        // 14: aipb.SendMessageResponse
-	(*ToolInfo)(nil),                   // 15: aipb.ToolInfo
-	(*ListToolsRequest)(nil),           // 16: aipb.ListToolsRequest
-	(*ListToolsResponse)(nil),          // 17: aipb.ListToolsResponse
-	(*WorkflowInfo)(nil),               // 18: aipb.WorkflowInfo
-	(*CreateWorkflowRequest)(nil),      // 19: aipb.CreateWorkflowRequest
-	(*CreateWorkflowResponse)(nil),     // 20: aipb.CreateWorkflowResponse
-	(*ListWorkflowsRequest)(nil),       // 21: aipb.ListWorkflowsRequest
-	(*ListWorkflowsResponse)(nil),      // 22: aipb.ListWorkflowsResponse
-	(*GetWorkflowRequest)(nil),         // 23: aipb.GetWorkflowRequest
-	(*GetWorkflowResponse)(nil),        // 24: aipb.GetWorkflowResponse
-	(*UpdateWorkflowRequest)(nil),      // 25: aipb.UpdateWorkflowRequest
-	(*DeleteWorkflowRequest)(nil),      // 26: aipb.DeleteWorkflowRequest
-	(*RunWorkflowRequest)(nil),         // 27: aipb.RunWorkflowRequest
-	(*RunWorkflowResponse)(nil),        // 28: aipb.RunWorkflowResponse
-	(*AgentTaskInfo)(nil),              // 29: aipb.AgentTaskInfo
-	(*ListAgentTasksRequest)(nil),      // 30: aipb.ListAgentTasksRequest
-	(*ListAgentTasksResponse)(nil),     // 31: aipb.ListAgentTasksResponse
-	(*GetAgentTaskRequest)(nil),        // 32: aipb.GetAgentTaskRequest
-	(*GetAgentTaskResponse)(nil),       // 33: aipb.GetAgentTaskResponse
-	(*ApproveTaskRequest)(nil),         // 34: aipb.ApproveTaskRequest
-	(*RejectTaskRequest)(nil),          // 35: aipb.RejectTaskRequest
+	(*StreamChunk)(nil),                // 15: aipb.StreamChunk
+	(*ToolInfo)(nil),                   // 16: aipb.ToolInfo
+	(*ListToolsRequest)(nil),           // 17: aipb.ListToolsRequest
+	(*ListToolsResponse)(nil),          // 18: aipb.ListToolsResponse
+	(*WorkflowInfo)(nil),               // 19: aipb.WorkflowInfo
+	(*CreateWorkflowRequest)(nil),      // 20: aipb.CreateWorkflowRequest
+	(*CreateWorkflowResponse)(nil),     // 21: aipb.CreateWorkflowResponse
+	(*ListWorkflowsRequest)(nil),       // 22: aipb.ListWorkflowsRequest
+	(*ListWorkflowsResponse)(nil),      // 23: aipb.ListWorkflowsResponse
+	(*GetWorkflowRequest)(nil),         // 24: aipb.GetWorkflowRequest
+	(*GetWorkflowResponse)(nil),        // 25: aipb.GetWorkflowResponse
+	(*UpdateWorkflowRequest)(nil),      // 26: aipb.UpdateWorkflowRequest
+	(*DeleteWorkflowRequest)(nil),      // 27: aipb.DeleteWorkflowRequest
+	(*RunWorkflowRequest)(nil),         // 28: aipb.RunWorkflowRequest
+	(*RunWorkflowResponse)(nil),        // 29: aipb.RunWorkflowResponse
+	(*AgentTaskInfo)(nil),              // 30: aipb.AgentTaskInfo
+	(*ListAgentTasksRequest)(nil),      // 31: aipb.ListAgentTasksRequest
+	(*ListAgentTasksResponse)(nil),     // 32: aipb.ListAgentTasksResponse
+	(*GetAgentTaskRequest)(nil),        // 33: aipb.GetAgentTaskRequest
+	(*GetAgentTaskResponse)(nil),       // 34: aipb.GetAgentTaskResponse
+	(*ApproveTaskRequest)(nil),         // 35: aipb.ApproveTaskRequest
+	(*RejectTaskRequest)(nil),          // 36: aipb.RejectTaskRequest
 }
 var file_application_ai_rpc_desc_ai_proto_depIdxs = []int32{
 	3,  // 0: aipb.CreateConversationRequest.actor:type_name -> aipb.Actor
@@ -2489,24 +2612,24 @@ var file_application_ai_rpc_desc_ai_proto_depIdxs = []int32{
 	4,  // 11: aipb.SendMessageResponse.user_message:type_name -> aipb.ChatMessage
 	4,  // 12: aipb.SendMessageResponse.ai_message:type_name -> aipb.ChatMessage
 	3,  // 13: aipb.ListToolsRequest.actor:type_name -> aipb.Actor
-	15, // 14: aipb.ListToolsResponse.list:type_name -> aipb.ToolInfo
+	16, // 14: aipb.ListToolsResponse.list:type_name -> aipb.ToolInfo
 	3,  // 15: aipb.CreateWorkflowRequest.actor:type_name -> aipb.Actor
-	18, // 16: aipb.CreateWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
+	19, // 16: aipb.CreateWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
 	3,  // 17: aipb.ListWorkflowsRequest.actor:type_name -> aipb.Actor
 	0,  // 18: aipb.ListWorkflowsRequest.page:type_name -> aipb.PageRequest
-	18, // 19: aipb.ListWorkflowsResponse.list:type_name -> aipb.WorkflowInfo
+	19, // 19: aipb.ListWorkflowsResponse.list:type_name -> aipb.WorkflowInfo
 	1,  // 20: aipb.ListWorkflowsResponse.page:type_name -> aipb.PageResponse
 	3,  // 21: aipb.GetWorkflowRequest.actor:type_name -> aipb.Actor
-	18, // 22: aipb.GetWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
+	19, // 22: aipb.GetWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
 	3,  // 23: aipb.UpdateWorkflowRequest.actor:type_name -> aipb.Actor
 	3,  // 24: aipb.DeleteWorkflowRequest.actor:type_name -> aipb.Actor
 	3,  // 25: aipb.RunWorkflowRequest.actor:type_name -> aipb.Actor
 	3,  // 26: aipb.ListAgentTasksRequest.actor:type_name -> aipb.Actor
 	0,  // 27: aipb.ListAgentTasksRequest.page:type_name -> aipb.PageRequest
-	29, // 28: aipb.ListAgentTasksResponse.list:type_name -> aipb.AgentTaskInfo
+	30, // 28: aipb.ListAgentTasksResponse.list:type_name -> aipb.AgentTaskInfo
 	1,  // 29: aipb.ListAgentTasksResponse.page:type_name -> aipb.PageResponse
 	3,  // 30: aipb.GetAgentTaskRequest.actor:type_name -> aipb.Actor
-	29, // 31: aipb.GetAgentTaskResponse.task:type_name -> aipb.AgentTaskInfo
+	30, // 31: aipb.GetAgentTaskResponse.task:type_name -> aipb.AgentTaskInfo
 	3,  // 32: aipb.ApproveTaskRequest.actor:type_name -> aipb.Actor
 	3,  // 33: aipb.RejectTaskRequest.actor:type_name -> aipb.Actor
 	6,  // 34: aipb.AiService.CreateConversation:input_type -> aipb.CreateConversationRequest
@@ -2514,35 +2637,37 @@ var file_application_ai_rpc_desc_ai_proto_depIdxs = []int32{
 	10, // 36: aipb.AiService.GetConversation:input_type -> aipb.GetConversationRequest
 	12, // 37: aipb.AiService.DeleteConversation:input_type -> aipb.DeleteConversationRequest
 	13, // 38: aipb.AiService.SendMessage:input_type -> aipb.SendMessageRequest
-	16, // 39: aipb.AiService.ListTools:input_type -> aipb.ListToolsRequest
-	19, // 40: aipb.AiService.CreateWorkflow:input_type -> aipb.CreateWorkflowRequest
-	21, // 41: aipb.AiService.ListWorkflows:input_type -> aipb.ListWorkflowsRequest
-	23, // 42: aipb.AiService.GetWorkflow:input_type -> aipb.GetWorkflowRequest
-	25, // 43: aipb.AiService.UpdateWorkflow:input_type -> aipb.UpdateWorkflowRequest
-	26, // 44: aipb.AiService.DeleteWorkflow:input_type -> aipb.DeleteWorkflowRequest
-	27, // 45: aipb.AiService.RunWorkflow:input_type -> aipb.RunWorkflowRequest
-	30, // 46: aipb.AiService.ListAgentTasks:input_type -> aipb.ListAgentTasksRequest
-	32, // 47: aipb.AiService.GetAgentTask:input_type -> aipb.GetAgentTaskRequest
-	34, // 48: aipb.AiService.ApproveTask:input_type -> aipb.ApproveTaskRequest
-	35, // 49: aipb.AiService.RejectTask:input_type -> aipb.RejectTaskRequest
-	7,  // 50: aipb.AiService.CreateConversation:output_type -> aipb.CreateConversationResponse
-	9,  // 51: aipb.AiService.ListConversations:output_type -> aipb.ListConversationsResponse
-	11, // 52: aipb.AiService.GetConversation:output_type -> aipb.GetConversationResponse
-	2,  // 53: aipb.AiService.DeleteConversation:output_type -> aipb.NoDataResponse
-	14, // 54: aipb.AiService.SendMessage:output_type -> aipb.SendMessageResponse
-	17, // 55: aipb.AiService.ListTools:output_type -> aipb.ListToolsResponse
-	20, // 56: aipb.AiService.CreateWorkflow:output_type -> aipb.CreateWorkflowResponse
-	22, // 57: aipb.AiService.ListWorkflows:output_type -> aipb.ListWorkflowsResponse
-	24, // 58: aipb.AiService.GetWorkflow:output_type -> aipb.GetWorkflowResponse
-	2,  // 59: aipb.AiService.UpdateWorkflow:output_type -> aipb.NoDataResponse
-	2,  // 60: aipb.AiService.DeleteWorkflow:output_type -> aipb.NoDataResponse
-	28, // 61: aipb.AiService.RunWorkflow:output_type -> aipb.RunWorkflowResponse
-	31, // 62: aipb.AiService.ListAgentTasks:output_type -> aipb.ListAgentTasksResponse
-	33, // 63: aipb.AiService.GetAgentTask:output_type -> aipb.GetAgentTaskResponse
-	2,  // 64: aipb.AiService.ApproveTask:output_type -> aipb.NoDataResponse
-	2,  // 65: aipb.AiService.RejectTask:output_type -> aipb.NoDataResponse
-	50, // [50:66] is the sub-list for method output_type
-	34, // [34:50] is the sub-list for method input_type
+	13, // 39: aipb.AiService.SendMessageStream:input_type -> aipb.SendMessageRequest
+	17, // 40: aipb.AiService.ListTools:input_type -> aipb.ListToolsRequest
+	20, // 41: aipb.AiService.CreateWorkflow:input_type -> aipb.CreateWorkflowRequest
+	22, // 42: aipb.AiService.ListWorkflows:input_type -> aipb.ListWorkflowsRequest
+	24, // 43: aipb.AiService.GetWorkflow:input_type -> aipb.GetWorkflowRequest
+	26, // 44: aipb.AiService.UpdateWorkflow:input_type -> aipb.UpdateWorkflowRequest
+	27, // 45: aipb.AiService.DeleteWorkflow:input_type -> aipb.DeleteWorkflowRequest
+	28, // 46: aipb.AiService.RunWorkflow:input_type -> aipb.RunWorkflowRequest
+	31, // 47: aipb.AiService.ListAgentTasks:input_type -> aipb.ListAgentTasksRequest
+	33, // 48: aipb.AiService.GetAgentTask:input_type -> aipb.GetAgentTaskRequest
+	35, // 49: aipb.AiService.ApproveTask:input_type -> aipb.ApproveTaskRequest
+	36, // 50: aipb.AiService.RejectTask:input_type -> aipb.RejectTaskRequest
+	7,  // 51: aipb.AiService.CreateConversation:output_type -> aipb.CreateConversationResponse
+	9,  // 52: aipb.AiService.ListConversations:output_type -> aipb.ListConversationsResponse
+	11, // 53: aipb.AiService.GetConversation:output_type -> aipb.GetConversationResponse
+	2,  // 54: aipb.AiService.DeleteConversation:output_type -> aipb.NoDataResponse
+	14, // 55: aipb.AiService.SendMessage:output_type -> aipb.SendMessageResponse
+	15, // 56: aipb.AiService.SendMessageStream:output_type -> aipb.StreamChunk
+	18, // 57: aipb.AiService.ListTools:output_type -> aipb.ListToolsResponse
+	21, // 58: aipb.AiService.CreateWorkflow:output_type -> aipb.CreateWorkflowResponse
+	23, // 59: aipb.AiService.ListWorkflows:output_type -> aipb.ListWorkflowsResponse
+	25, // 60: aipb.AiService.GetWorkflow:output_type -> aipb.GetWorkflowResponse
+	2,  // 61: aipb.AiService.UpdateWorkflow:output_type -> aipb.NoDataResponse
+	2,  // 62: aipb.AiService.DeleteWorkflow:output_type -> aipb.NoDataResponse
+	29, // 63: aipb.AiService.RunWorkflow:output_type -> aipb.RunWorkflowResponse
+	32, // 64: aipb.AiService.ListAgentTasks:output_type -> aipb.ListAgentTasksResponse
+	34, // 65: aipb.AiService.GetAgentTask:output_type -> aipb.GetAgentTaskResponse
+	2,  // 66: aipb.AiService.ApproveTask:output_type -> aipb.NoDataResponse
+	2,  // 67: aipb.AiService.RejectTask:output_type -> aipb.NoDataResponse
+	51, // [51:68] is the sub-list for method output_type
+	34, // [34:51] is the sub-list for method input_type
 	34, // [34:34] is the sub-list for extension type_name
 	34, // [34:34] is the sub-list for extension extendee
 	0,  // [0:34] is the sub-list for field type_name
@@ -2553,16 +2678,16 @@ func file_application_ai_rpc_desc_ai_proto_init() {
 	if File_application_ai_rpc_desc_ai_proto != nil {
 		return
 	}
-	file_application_ai_rpc_desc_ai_proto_msgTypes[25].OneofWrappers = []any{}
-	file_application_ai_rpc_desc_ai_proto_msgTypes[34].OneofWrappers = []any{}
+	file_application_ai_rpc_desc_ai_proto_msgTypes[26].OneofWrappers = []any{}
 	file_application_ai_rpc_desc_ai_proto_msgTypes[35].OneofWrappers = []any{}
+	file_application_ai_rpc_desc_ai_proto_msgTypes[36].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_application_ai_rpc_desc_ai_proto_rawDesc), len(file_application_ai_rpc_desc_ai_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   36,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

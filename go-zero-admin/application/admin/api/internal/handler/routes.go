@@ -56,6 +56,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: ai.SendMessageHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodPost,
+				Path:    "/messages/stream",
+				Handler: ai.SendMessageStreamHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodGet,
 				Path:    "/tasks",
 				Handler: ai.ListAgentTasksHandler(serverCtx),

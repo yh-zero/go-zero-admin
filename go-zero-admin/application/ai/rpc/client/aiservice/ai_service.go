@@ -47,6 +47,7 @@ type (
 	RunWorkflowResponse        = aipb.RunWorkflowResponse
 	SendMessageRequest         = aipb.SendMessageRequest
 	SendMessageResponse        = aipb.SendMessageResponse
+	StreamChunk                = aipb.StreamChunk
 	ToolInfo                   = aipb.ToolInfo
 	UpdateWorkflowRequest      = aipb.UpdateWorkflowRequest
 	WorkflowInfo               = aipb.WorkflowInfo
@@ -57,6 +58,7 @@ type (
 		GetConversation(ctx context.Context, in *GetConversationRequest, opts ...grpc.CallOption) (*GetConversationResponse, error)
 		DeleteConversation(ctx context.Context, in *DeleteConversationRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
+		SendMessageStream(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (aipb.AiService_SendMessageStreamClient, error)
 		ListTools(ctx context.Context, in *ListToolsRequest, opts ...grpc.CallOption) (*ListToolsResponse, error)
 		CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*CreateWorkflowResponse, error)
 		ListWorkflows(ctx context.Context, in *ListWorkflowsRequest, opts ...grpc.CallOption) (*ListWorkflowsResponse, error)
@@ -104,6 +106,11 @@ func (m *defaultAiService) DeleteConversation(ctx context.Context, in *DeleteCon
 func (m *defaultAiService) SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error) {
 	client := aipb.NewAiServiceClient(m.cli.Conn())
 	return client.SendMessage(ctx, in, opts...)
+}
+
+func (m *defaultAiService) SendMessageStream(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (aipb.AiService_SendMessageStreamClient, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.SendMessageStream(ctx, in, opts...)
 }
 
 func (m *defaultAiService) ListTools(ctx context.Context, in *ListToolsRequest, opts ...grpc.CallOption) (*ListToolsResponse, error) {

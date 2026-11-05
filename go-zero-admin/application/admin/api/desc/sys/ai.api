@@ -167,6 +167,10 @@ service admin {
 	@handler sendMessage
 	post /messages (AiSendMessageReq) returns (AiSendMessageResp)
 
+	// 流式发送：实际响应为 SSE（text/event-stream），不走统一 JSON 信封；AiSendMessageResp 仅作生成占位
+	@handler sendMessageStream
+	post /messages/stream (AiSendMessageReq) returns (AiSendMessageResp)
+
 	@handler listTools
 	get /tools (AiListToolsReq) returns (AiListToolsResp)
 

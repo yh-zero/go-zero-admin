@@ -3,13 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchTenant } from '../../api/tenant';
 import { QueryState } from '../../components/QueryState';
 import { formatTime } from '../../utils/format';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface TenantDetailsProps { id: number; onClose: () => void }
 
 const statusLabels: Record<string, string> = { creating: '创建中', active: '运行中', stopped: '已停用', error: '异常' };
 
 export function TenantDetails({ id, onClose }: TenantDetailsProps) {
-  const query = useQuery({ queryKey: ['tenant-list', 'detail', id], queryFn: () => fetchTenant(id) });
+  const query = useQuery({ queryKey: [queryKeys.tenantList, 'detail', id], queryFn: () => fetchTenant(id) });
   const tenant = query.data?.tenant;
   return <Drawer open title="租户详情" onClose={onClose} size="large">
     <QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />

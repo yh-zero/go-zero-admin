@@ -5,11 +5,12 @@ import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { formatTime } from '../../utils/format';
 import { dataScopeOptions } from './roleOptions';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface Props { id: number; onClose: () => void }
 
 export function RoleDetails({ id, onClose }: Props) {
-  const role = useQuery({ queryKey: ['role', id], queryFn: () => fetchRole(id) });
+  const role = useQuery({ queryKey: [queryKeys.role, id], queryFn: () => fetchRole(id) });
   const data = role.data;
   return <Drawer open title="角色详情" onClose={onClose} size="large">
     <QueryState isPending={role.isPending} error={role.error} onRetry={() => void role.refetch()} />

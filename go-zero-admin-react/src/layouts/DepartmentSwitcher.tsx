@@ -5,13 +5,14 @@ import { useIsMutating, useQuery } from '@tanstack/react-query';
 import { fetchMyDepts } from '../api/dept';
 import { useAuthStore } from '../stores/auth';
 import { switchDepartment } from '../utils/request';
+import { queryKeys } from '../utils/queryKeys';
 
 export function DepartmentSwitcher() {
   const selectedDeptId = useAuthStore(state => state.selectedDeptId);
   const isLoggingOut = useAuthStore(state => state.isLoggingOut);
   const [switching, setSwitching] = useState(false);
   const mutations = useIsMutating();
-  const query = useQuery({ queryKey: ['my-depts'], queryFn: fetchMyDepts });
+  const query = useQuery({ queryKey: [queryKeys.myDepts], queryFn: fetchMyDepts });
   if (query.isError) return <Tooltip title="部门列表加载失败，点击重试">
     <Button type="text" aria-label="重新加载可选部门" icon={<ReloadOutlined />} onClick={() => void query.refetch()} />
   </Tooltip>;

@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { App, Button, Card, Form, Input, Modal, Popconfirm, Result, Select, Space, Table, Tag } from 'antd';
 import { EyeOutlined, KeyOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, UndoOutlined } from '@ant-design/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createTenant, deleteTenant, fetchTenants, resetTenantAdmin, startTenant, stopTenant } from '../../api/tenant';
-import type { CreateTenantReq, GetTenantListReq, PageResult, TenantInfo } from '../../api/types';
+import type { CreateTenantReq, GetTenantListReq, TenantInfo } from '../../api/types';
 import { Auth } from '../../components/Auth';
 import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
@@ -11,6 +11,8 @@ import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { formatTime } from '../../utils/format';
 import { invalidateTenantData } from '../../utils/queryInvalidation';
 import { TenantDetails } from './TenantDetails';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 
 type TenantFilterValues = Pick<GetTenantListReq, 'status'>;
 
@@ -46,11 +48,12 @@ export default function TenantListPage() {
   // creating 状态存在时轮询（provisioning 为异步，通常 1-3 分钟）
   const query = usePagedQuery<GetTenantListReq, TenantInfo>({
     params: filters, setParams: setFilters,
-    queryKey: ['tenant-list', filters],
+    queryKey: [queryKeys.tenantList, filters],
     queryFn: () => fetchTenants(filters),
-    refetchInterval: (q: { state: { data?: PageResult<TenantInfo> } }) =>
-      (q.state.data?.list ?? []).some((t: TenantInfo) => t.status === 'creating') ? 5000 : false,
-  } as never);
+    refetchInterval: query =>
+      (query.state.data?.list ?? []).some((t: TenantInfo) => t.status === 'creating') ? 5000 : false,
+  });
+  const pagination = useTablePagination(filters, setFilters, query.data?.total ?? 0);
 
   const refresh = () => invalidateTenantData(queryClient);
   const lifecycle = useMutation({
@@ -80,7 +83,8 @@ export default function TenantListPage() {
     onError: () => undefined,
   });
 
-  const columns = [
+  // columns 依赖稳定的 mutate 函数（useMutation 返回对象每次渲染都变，不能直接作依赖）。
+  const columns = useMemo(() => [
     { title: '标识', dataIndex: 'slug', render: (v: string, r: TenantInfo) => <span>{v} {r.admin_account_ready ? null : <Tag>初始化中</Tag>}</span> },
     { title: '域名', dataIndex: 'domain' },
     { title: '状态', dataIndex: 'status', render: (v: string, r: TenantInfo) => (
@@ -116,7 +120,12 @@ export default function TenantListPage() {
         </Space>
       ),
     },
-  ];
+  // isPending 会随 mutation 状态变化，需要在依赖中单独跟踪。
+  // oxlint 提示补全对象依赖，但 useMutation 返回对象每次渲染都新建，完整依赖会让 useMemo 失效。
+  // 真实依赖是 mutate（稳定）+ isPending（状态），故忽略此规则。
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
+  ], [lifecycle.mutate, lifecycle.isPending, reset.mutate, reset.isPending, setDetailId, setDeleteTarget, setDeleteConfirm]);
+
 
   return (
     <div className="page-stack">
@@ -146,8 +155,7 @@ export default function TenantListPage() {
         <Table<TenantInfo>
           rowKey="id" loading={query.isFetching} columns={columns} dataSource={query.data?.list ?? []}
           scroll={{ x: 760 }}
-          pagination={{ current: filters.page, pageSize: filters.page_size, total: query.data?.total ?? 0, showSizeChanger: true,
-            onChange: (page, page_size) => setFilters(current => ({ ...current, page, page_size })) }}
+pagination={pagination}
         />
       </Card>
       {detailId !== null && <TenantDetails key={detailId} id={detailId} onClose={() => setDetailId(null)} />}

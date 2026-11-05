@@ -16,6 +16,7 @@ import { BrandMark } from '../components/BrandMark';
 import { WorkspaceHeader } from './WorkspaceHeader';
 import { ResizableSidebar } from './ResizableSidebar';
 import { WorkspaceMenu } from './WorkspaceMenu';
+import { queryKeys } from '../utils/queryKeys';
 
 export default function BasicLayout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -28,11 +29,11 @@ export default function BasicLayout() {
   const clearPermissions = useAuthStore(state => state.clearPermissions);
   const selectedDeptId = useAuthStore(state => state.selectedDeptId);
   const departmentVersion = useAuthStore(state => state.departmentVersion);
-  const departments = useQuery({ queryKey: ['my-depts'], queryFn: fetchMyDepts });
+  const departments = useQuery({ queryKey: [queryKeys.myDepts], queryFn: fetchMyDepts });
   const departmentReady = departments.isSuccess && (selectedDeptId === null || departments.data.some(dept => dept.id === selectedDeptId));
-  const menus = useQuery({ queryKey: ['my-menus'], queryFn: fetchMyMenus, enabled: departmentReady });
-  const permissions = useQuery({ queryKey: ['perm-codes'], queryFn: fetchMyPermCodes, enabled: departmentReady });
-  const profile = useQuery({ queryKey: ['profile'], queryFn: fetchProfile, enabled: departmentReady });
+  const menus = useQuery({ queryKey: [queryKeys.myMenus], queryFn: fetchMyMenus, enabled: departmentReady });
+  const permissions = useQuery({ queryKey: [queryKeys.permCodes], queryFn: fetchMyPermCodes, enabled: departmentReady });
+  const profile = useQuery({ queryKey: [queryKeys.profile], queryFn: fetchProfile, enabled: departmentReady });
   useEffect(() => {
     if (departments.isSuccess && selectedDeptId !== null && !departmentReady) {
       void switchDepartment(null).catch(() => undefined);

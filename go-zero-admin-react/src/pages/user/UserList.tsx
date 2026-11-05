@@ -15,6 +15,8 @@ import { statusOptions } from '../../utils/formOptions';
 import { UserDetails } from './UserDetails';
 import { UserEditor } from './UserEditor';
 import { ResetPasswordDialog } from './ResetPasswordDialog';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 
 export default function UserList() {
   const [filterForm] = Form.useForm<GetUserListReq>();
@@ -24,13 +26,15 @@ export default function UserList() {
   const [detailId, setDetailId] = useState<number | null>(null);
   const [resetTarget, setResetTarget] = useState<UserInfo | null>(null);
   const client = useQueryClient();
-  const users = usePagedQuery({ params, setParams, queryKey: ['users', params], queryFn: () => fetchUsers(params) });
-  const departments = useQuery({ queryKey: ['depts', {}], queryFn: () => fetchDeptTree() });
+  const users = usePagedQuery({ params, setParams, queryKey: [queryKeys.users, params], queryFn: () => fetchUsers(params) });
+  const pagination = useTablePagination(params, setParams, users.data?.total ?? 0);
+  const departments = useQuery({ queryKey: [queryKeys.depts, {}], queryFn: () => fetchDeptTree() });
   const remove = useMutation({
     mutationFn: deleteUser,
     onSuccess: async () => { await invalidateUserData(client); message.success('用户已删除'); },
   });
   const submitFilters = (values: GetUserListReq) => setParams({ ...values, page: 1, page_size: params.page_size });
+
   return <div className="page-stack">
     <PageHeader title="用户管理" description="管理用户资料、部门和账号状态" extra={<Auth code="sys:user:add">
       <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增用户</Button>
@@ -48,8 +52,7 @@ export default function UserList() {
     <Card className="data-card" title="用户列表">
       <QueryState isPending={users.isPending} error={users.error} onRetry={() => void users.refetch()} />
       <Table<UserInfo> rowKey="id" dataSource={users.data?.list ?? []} loading={users.isFetching} scroll={{ x: 1100 }}
-        pagination={{ current: params.page, pageSize: params.page_size, total: users.data?.total ?? 0, showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 位用户`, onChange: (page, page_size) => setParams({ ...params, page, page_size }) }} columns={[
+        pagination={pagination} columns={[
           { title: '用户名', dataIndex: 'username', key: 'username', render: (value: string, row) => <Button type="link" className="table-primary" onClick={() => setDetailId(row.id)}>{value}</Button> },
           { title: '昵称', dataIndex: 'nickname', key: 'nickname', render: (value: string) => value || '—' },
           { title: '真实姓名', dataIndex: 'real_name', key: 'real_name', render: (value: string) => value || '—' },

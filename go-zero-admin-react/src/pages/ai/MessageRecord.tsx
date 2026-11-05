@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Tag, Typography } from 'antd';
 import type { AiChatMessage } from '../../api/types';
 import { formatTime } from '../../utils/format';
@@ -23,13 +24,21 @@ function readToolCalls(raw: string): ToolCallRecord[] | null {
   } catch { return null; }
 }
 
+// 工具参数美化：text_stats/json_formatter 的参数是 JSON，做缩进格式化。
+function formatToolArgs(name: string, args: string): string {
+  if (name !== 'text_stats' && name !== 'json_formatter') return args;
+  try {
+    return JSON.stringify(JSON.parse(args), null, 2);
+  } catch { return args; }
+}
+
 const statuses = {
   running: { color: 'processing', title: '处理中' },
   succeeded: { color: 'success', title: '已完成' },
   failed: { color: 'error', title: '失败' },
 };
 
-export function MessageRecord({ message }: Props) {
+export const MessageRecord = memo(function MessageRecord({ message }: Props) {
   const status = statuses[message.status] ?? (message.status ? { color: 'default', title: message.status } : statuses.succeeded);
   const calls = readToolCalls(message.tool_calls);
   return <article className={`${styles.message} ${message.role === 'user' ? styles.userMessage : ''}`}>
@@ -47,8 +56,8 @@ export function MessageRecord({ message }: Props) {
       <Typography.Text type="secondary">工具调用记录（仅名称与参数）</Typography.Text>
       {calls.map(call => <div className={styles.tool} key={call.key}>
         <strong>{call.function.name}</strong>
-        <pre>{call.function.arguments}</pre>
+        <pre>{formatToolArgs(call.function.name, call.function.arguments)}</pre>
       </div>)}
     </div>}
   </article>;
-}
+});

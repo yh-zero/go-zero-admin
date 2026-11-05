@@ -6,6 +6,7 @@ import { QueryState } from '../../components/QueryState';
 import { useFormDraft } from '../../hooks/useFormDraft';
 import { statusOptions } from '../../utils/formOptions';
 import { DictItemsFields } from './DictItemsFields';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface DictFormProps { open: boolean; editingCode: string | null; onClose: () => void }
 const defaults: CreateDictReq = { name: '', code: '', items: [], description: '', status: 1 };
@@ -14,7 +15,7 @@ export function DictForm({ open, editingCode, onClose }: DictFormProps) {
   const [form] = Form.useForm<CreateDictReq>();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
-  const detail = useQuery({ queryKey: ['dicts', 'detail', editingCode], queryFn: () => fetchDictByCode(editingCode!), enabled: open && editingCode !== null, refetchOnWindowFocus: false });
+  const detail = useQuery({ queryKey: [queryKeys.dicts, 'detail', editingCode], queryFn: () => fetchDictByCode(editingCode!), enabled: open && editingCode !== null, refetchOnWindowFocus: false });
   useFormDraft(form, { open, entityKey: editingCode ?? 'new', values: editingCode === null ? defaults : detail.data });
   const save = useMutation({
     mutationFn: (values: CreateDictReq) => {
@@ -25,8 +26,8 @@ export function DictForm({ open, editingCode, onClose }: DictFormProps) {
     },
     onSuccess: async () => {
       onClose();
-      await queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'dicts' && query.queryKey[1] !== 'detail' });
-      await queryClient.invalidateQueries({ queryKey: ['dicts', 'detail'], refetchType: 'none' });
+      await queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === queryKeys.dicts && query.queryKey[1] !== 'detail' });
+      await queryClient.invalidateQueries({ queryKey: [queryKeys.dicts, 'detail'], refetchType: 'none' });
       message.success(editingCode === null ? '字典已创建' : '字典已更新');
     },
   });

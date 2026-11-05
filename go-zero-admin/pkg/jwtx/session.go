@@ -17,6 +17,10 @@ import (
 
 var ErrSessionInvalid = errors.New("session is invalid or expired")
 
+// lastSeenUpdateIntervalSeconds 控制 last_seen_at 的写入频率（秒），
+// 避免每次 Validate 都写 Redis；从 Lua 脚本硬编码提取为可调常量。
+const lastSeenUpdateIntervalSeconds = 30
+
 // Session 只在服务端保存，RefreshHash 不得返回客户端。
 type Session struct {
 	Id          string `json:"id"`
@@ -105,11 +109,12 @@ func (s *SessionStore) Validate(ctx context.Context, id string, userId int64, ac
 local raw = redis.call('GET', KEYS[1]); if not raw then return '' end
 local session = cjson.decode(raw)
 if session.user_id ~= ARGV[1] or session.access_id ~= ARGV[2] or session.expires_at <= tonumber(ARGV[3]) then return '' end
-if session.last_seen_at < tonumber(ARGV[3]) - 30 then
+if session.last_seen_at < tonumber(ARGV[3]) - tonumber(ARGV[4]) then
  session.last_seen_at = tonumber(ARGV[3]); raw = cjson.encode(session); redis.call('SET', KEYS[1], raw, 'KEEPTTL')
 end
 return raw`
-	raw, err := s.redis.Eval(ctx, script, []string{s.sessionKey(id)}, fmt.Sprint(userId), accessId, time.Now().Unix()).Text()
+	raw, err := s.redis.Eval(ctx, script, []string{s.sessionKey(id)}, fmt.Sprint(userId), accessId,
+		time.Now().Unix(), lastSeenUpdateIntervalSeconds).Text()
 	if err != nil {
 		return nil, err
 	}

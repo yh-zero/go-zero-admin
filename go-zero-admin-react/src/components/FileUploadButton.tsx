@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { uploadFile } from '../api/file';
 import type { FileInfo, UploadFileReq } from '../api/types';
 import { useAuthStore } from '../stores/auth';
+import { queryKeys } from '../utils/queryKeys';
 
 interface Props {
   scene?: UploadFileReq['scene']; visibility?: UploadFileReq['visibility']; disabled?: boolean;
@@ -22,7 +23,7 @@ export function FileUploadButton({ scene = 'common', visibility = 'private', dis
   const mutation = useMutation({ mutationFn: uploadFile, onSuccess: async (file) => {
     onChange?.(file.id);
     onUploaded?.(file);
-    await client.invalidateQueries({ queryKey: ['files'] });
+    await client.invalidateQueries({ queryKey: [queryKeys.files] });
     void message.success(avatar ? '头像已上传，保存后生效' : '文件已上传');
   }, onSettled: finishUpload });
   const beforeUpload: UploadProps['beforeUpload'] = (file) => {

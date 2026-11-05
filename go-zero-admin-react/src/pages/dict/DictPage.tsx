@@ -13,6 +13,8 @@ import { formatTime } from '../../utils/format';
 import { statusOptions } from '../../utils/formOptions';
 import { DictDetails } from './DictDetails';
 import { DictForm } from './DictForm';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 
 export default function DictPage() {
   const { message } = App.useApp();
@@ -21,11 +23,13 @@ export default function DictPage() {
   const [detailCode, setDetailCode] = useState<string | null>(null);
   const [filterForm] = Form.useForm<GetDictListReq>();
   const queryClient = useQueryClient();
-  const query = usePagedQuery({ params: filters, setParams: setFilters, queryKey: ['dicts', 'list', filters], queryFn: () => fetchDicts(filters) });
+  const query = usePagedQuery({ params: filters, setParams: setFilters, queryKey: [queryKeys.dicts, 'list', filters], queryFn: () => fetchDicts(filters) });
+  const pagination = useTablePagination(filters, setFilters, query.data?.total ?? 0);
   const remove = useMutation({ mutationFn: deleteDict, onSuccess: async () => {
-    await queryClient.invalidateQueries({ queryKey: ['dicts'] });
+    await queryClient.invalidateQueries({ queryKey: [queryKeys.dicts] });
     message.success('字典已删除');
   } });
+
   return <div className="page-stack">
     <PageHeader title="字典管理" description="配置字典编码、启停状态和可选值。"
       extra={<Auth code="sys:dict:add"><Button type="primary" icon={<PlusOutlined />} onClick={() => setEditing({ open: true, code: null })}>新增字典</Button></Auth>} />
@@ -41,8 +45,7 @@ export default function DictPage() {
     <Card className="data-card" title="字典列表">
       <QueryState isPending={query.isPending} error={query.error} onRetry={() => { void query.refetch(); }} />
       {!query.isPending && !query.error && <Table<DictInfo> rowKey="id" dataSource={query.data?.list ?? []} scroll={{ x: 1000 }}
-        pagination={{ current: filters.page, pageSize: filters.page_size, total: query.data?.total ?? 0, showSizeChanger: true,
-          onChange: (page, pageSize) => setFilters({ ...filters, page, page_size: pageSize }) }} columns={[
+        pagination={pagination} columns={[
           { title: '名称', dataIndex: 'name', width: 160, render: (value: string) => <span className="table-primary">{value}</span> },
           { title: '编码', dataIndex: 'code', width: 160, render: (value: string) => <span className="code-text">{value}</span> },
           { title: '描述', dataIndex: 'description', ellipsis: true },

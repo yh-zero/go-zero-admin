@@ -717,7 +717,8 @@ INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`,`created_at`,`u
 (91,'sys/user','POST','/v1/sys/user/:id/password','POST /v1/sys/user/:id/password','2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (92,'sys/user','POST','/v1/sys/user/create','POST /v1/sys/user/create','2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (93,'sys/user','GET','/v1/sys/user/list','GET /v1/sys/user/list','2026-01-01 00:00:00','2026-01-01 00:00:00'),
-(94,'sys/user','POST','/v1/sys/user/password/change','POST /v1/sys/user/password/change','2026-01-01 00:00:00','2026-01-01 00:00:00');
+(94,'sys/user','POST','/v1/sys/user/password/change','POST /v1/sys/user/password/change','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(95,'sys/ai','POST','/v1/sys/ai/messages/stream','POST /v1/sys/ai/messages/stream','2026-01-01 00:00:00','2026-01-01 00:00:00');
 
 -- APP 账号属于独立认证域，不用于后台登录；邮箱为保留演示域。
 INSERT INTO `app_user` (`id`,`account`,`identity_kind`,`password_hash`,`nickname`,`remark`,`status`,`review_reason`,`email_verified_at`,`created_at`,`updated_at`) VALUES

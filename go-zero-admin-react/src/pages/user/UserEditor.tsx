@@ -9,6 +9,7 @@ import { QueryState } from '../../components/QueryState';
 import { useFormDraft } from '../../hooks/useFormDraft';
 import { invalidateUserData } from '../../utils/queryInvalidation';
 import { UserFormFields } from './UserFormFields';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface Props { id?: number; depts: DeptInfo[]; onClose: () => void }
 const defaults = { nickname: '', real_name: '', email: '', phone: '', dept_id: 0, avatar_file_id: 0, gender: 0, status: 1, remark: '' };
@@ -18,10 +19,10 @@ export function UserEditor({ id, depts, onClose }: Props) {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const { message } = App.useApp();
   const client = useQueryClient();
-  const user = useQuery({ queryKey: ['user', id], queryFn: () => fetchUser(id!), enabled: id !== undefined });
-  const profile = useQuery({ queryKey: ['profile'], queryFn: fetchProfile });
+  const user = useQuery({ queryKey: [queryKeys.user, id], queryFn: () => fetchUser(id!), enabled: id !== undefined });
+  const profile = useQuery({ queryKey: [queryKeys.profile], queryFn: fetchProfile });
   const canAssignRoles = profile.data?.is_super_admin === true;
-  const roles = useQuery({ queryKey: ['role-options'], queryFn: fetchRoleOptions, enabled: canAssignRoles });
+  const roles = useQuery({ queryKey: [queryKeys.roleOptions], queryFn: fetchRoleOptions, enabled: canAssignRoles });
   useFormDraft(form, { entityKey: id ?? 'new', values: id === undefined ? defaults : user.data });
   const save = useMutation({
     mutationFn: (values: CreateUserReq) => {

@@ -17,6 +17,7 @@ import { statusOptions } from '../../utils/formOptions';
 import DeptForm from './DeptForm';
 import { DeptMembers } from './DeptMembers';
 import './dept.css';
+import { queryKeys } from '../../utils/queryKeys';
 
 function filterDepartments(departments: DeptInfo[], keyword: string, status?: number) {
   const byId = new Map(departments.map(dept => [dept.id, dept]));
@@ -62,8 +63,8 @@ export default function DeptList() {
   const [editor, setEditor] = useState<{ dept?: DeptInfo; parentId?: number } | null>(null);
   const { message } = App.useApp();
   const queryClient = useQueryClient();
-  const query = useQuery({ queryKey: ['depts', {}], queryFn: () => fetchDeptTree() });
-  const menus = useQuery({ queryKey: ['my-menus'], queryFn: fetchMyMenus });
+  const query = useQuery({ queryKey: [queryKeys.depts, {}], queryFn: () => fetchDeptTree() });
+  const menus = useQuery({ queryKey: [queryKeys.myMenus], queryFn: fetchMyMenus });
   const canReadUsers = menus.isSuccess && getAccessiblePagePaths(menus.data).has('/sys/user');
   const departments = query.data?.list ?? [];
   const visible = filterDepartments(departments, keyword, status);
@@ -88,7 +89,7 @@ export default function DeptList() {
   return <div className="page-stack dept-page">
     <PageHeader title="部门管理" description="维护组织架构、负责人和直属成员" extra={<Space>
       <Button icon={<ReloadOutlined />} onClick={() => void Promise.all([query.refetch(),
-        queryClient.invalidateQueries({ queryKey: ['users', 'dept-members'] })])}>刷新</Button>
+        queryClient.invalidateQueries({ queryKey: [queryKeys.users, 'dept-members'] })])}>刷新</Button>
       <Auth code="sys:dept:add"><Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增部门</Button></Auth>
     </Space>} />
     <QueryState isPending={query.isPending} error={query.error} onRetry={() => void query.refetch()} />

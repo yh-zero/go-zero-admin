@@ -254,6 +254,27 @@
 - ✅ 消息增加 `status`（running/succeeded/failed）与安全 `error`；历史消息视为 succeeded。发送前持久化 running 消息对，逐轮保存已知累计 token，完成后原子更新两行终态；失败助手正文为空，HTTP 仍返回业务失败。模型历史只使用 succeeded 的 user/assistant 消息。
 - ✅ `request_id` 在用户内幂等；重复 ID 的内容或会话参数不同返回 400。成功重放返回原消息对，失败重放返回原安全错误，running 返回处理中且不再次调用模型；用户有意重试须使用新 ID。运行中断保持 incomplete，不自动重放付费或工具调用；外部模型响应与数据库落库之间的中断可能造成未知用量，不能宣称严格一次性计费。
 
+🚧 AI 增强（2026-11-05）：
+- 🚧 上下文窗口管理：多轮对话历史按 `AI.MaxContextTokens`（默认 32000）token 预算截取，替代固定条数限制。
+- 🚧 工具结构化返回：`text_stats` 返回 JSON `{"chars":N,"words":N,"lines":N}`；新增 `json_formatter` 工具。
+- 🚧 工作流进度：任务 `result` 每步前缀 `[当前步/总步数]` 标识执行进度。
+- 🚧 对话导出：前端支持导出 Markdown / JSON 格式（浏览器下载）。
+- 🚧 新建会话：标题自动取首条消息前 64 字符。
+
+✅ 流式发送：`POST /v1/sys/ai/messages/stream` 请求体与 `/messages` 完全一致（request_id 幂等语义相同），响应为 SSE（`Content-Type: text/event-stream`）。客户端必须带 `Accept: text/event-stream`（go-zero 按此头放行长连接）。事件序列：
+
+| event | data 字段 | 说明 |
+|---|---|---|
+| `meta` | conversation_id、user_message_id、ai_message_id | 首帧，消息对预留成功后立即下发 |
+| `delta` | content | 助手正文增量，仅最终回复轮流式；工具调用轮不下发参数片段 |
+| `tool` | name、status（start/done） | 工具调用提示，不代表执行结果或费用 |
+| `done` | tokens、usage_complete | 终帧，status 恒为 succeeded |
+| `error` | code、msg | 业务失败终帧，语义同统一信封 |
+
+- ✅ 失败语义不变：error 后消息对终态 failed、助手正文为空；流式已展示的部分内容**不落库、不构成最终回复**，客户端收到 error 后应以服务端状态为准重新拉取。
+- ✅ running 重放与断线：重复 request_id 语义同 `/messages`；流中断不续传，客户端以 request_id 重新查询或换新 ID 重试。每 15 秒发送 `: ping` 心跳注释行防代理空闲超时。
+- ✅ 权限、超时、字节上限与 `/messages` 一致；模型 90 秒上限不变，HTTP 层不再对流式请求施加 120 秒超时（go-zero SSE 旁路），由下游超时兜底。
+
 会话消息只读取本会话及本人数据。AI 按 YAML 中的 Provider 选择 `AI_<PROVIDER>_KEY`（如 `AI_DEEPSEEK_KEY` 对应 `AI.DeepSeekKey`），该 Key 去除首尾空白后非空即启用，未配置或为空白则关闭；YAML 的 Enabled 字段保留兼容，运行时启用状态以 Key 为准。模型、地址和超时继续使用 YAML。关闭时发送消息返回 503，不产生伪造回答；会话管理、工具列表和本地工作流仍可用。密钥不回显、不记录；长调用等外部验证见[问题清单](README.md#后端剩余事项)。
 
 ### 链路限制

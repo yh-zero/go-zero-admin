@@ -114,6 +114,8 @@ async function refreshAccessToken(): Promise<void> {
   const promise = withSessionLock(() => rotateSession(auth), true).finally(() => {
     if (refreshFlight?.promise === promise) refreshFlight = undefined;
   });
+  // 附加处理器标记该拒绝已被消化，避免无人 await 时的未处理拒绝；原 promise 仍照常 reject 给调用方。
+  void promise.catch(() => undefined);
   refreshFlight = { version, promise };
   return promise;
 }
@@ -209,4 +211,24 @@ export async function apiPost<T = void>(url: string, data?: unknown, options?: {
 export async function apiPut<T = void>(url: string, data?: unknown): Promise<T> { return (await request.put<T>(url, data, requestContext(url))).data; }
 export async function apiDelete<T = void>(url: string, data?: unknown): Promise<T> {
   return (await request.delete<T>(url, { ...requestContext(url), data })).data;
+}
+
+// 流式请求（fetch/SSE 不经 axios）复用同套会话语义：过期先刷新，返回鉴权与部门头。
+// 流中途 401 不重试，直接失败；调用方负责权限码预检。
+export async function prepareStreamHeaders(url: string): Promise<Record<string, string>> {
+  syncAuthFromStorage();
+  let auth = useAuthStore.getState();
+  if (!auth.token) throw new ApiError(401, '登录已过期，请重新登录');
+  if (auth.isLoggingOut) throw new ApiError(401, '正在退出登录');
+  if (auth.expiresAt * 1000 <= Date.now() + 5000 && auth.refreshToken) {
+    await refreshAccessToken();
+    auth = useAuthStore.getState();
+  }
+  const headers: Record<string, string> = {
+    Authorization: 'Bearer ' + auth.token,
+    Accept: 'text/event-stream',
+    'Content-Type': 'application/json',
+  };
+  if (usesDepartment(url) && auth.selectedDeptId !== null) headers['X-Dept-Id'] = String(auth.selectedDeptId);
+  return headers;
 }

@@ -36,6 +36,19 @@ message SendMessageRequest {
 }
 message SendMessageResponse { ChatMessage user_message = 1; ChatMessage ai_message = 2; int64 conversation_id = 3; }
 
+// SendMessageStream：服务端流式发送；type 对应 SSE 事件 meta/delta/tool/done/error
+message StreamChunk {
+  string type = 1;            // meta / delta / tool / done / error
+  string content = 2;         // delta 文本增量 / tool 名 / error 消息
+  int64 conversation_id = 3;  // meta 帧
+  int64 user_message_id = 4;  // meta 帧
+  int64 ai_message_id = 5;    // meta 帧
+  int64 tokens = 6;           // done 帧：已知累计 token
+  bool usage_complete = 7;    // done 帧：用量是否完整
+  int32 error_code = 8;       // error 帧：业务错误码
+  string tool_status = 9;     // tool 帧：start / done
+}
+
 // ========== 工具注册表（阶段 1） ==========
 message ToolInfo { string name = 1; string description = 2; string parameters_schema = 3; }
 message ListToolsRequest { Actor actor = 1; }
@@ -79,6 +92,7 @@ service AiService {
   rpc GetConversation(GetConversationRequest) returns (GetConversationResponse);
   rpc DeleteConversation(DeleteConversationRequest) returns (NoDataResponse);
   rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  rpc SendMessageStream(SendMessageRequest) returns (stream StreamChunk);
   rpc ListTools(ListToolsRequest) returns (ListToolsResponse);
 
   rpc CreateWorkflow(CreateWorkflowRequest) returns (CreateWorkflowResponse);

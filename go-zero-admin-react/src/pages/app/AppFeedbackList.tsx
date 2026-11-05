@@ -13,6 +13,8 @@ import { useAuthStore } from '../../stores/auth';
 import { formatTime } from '../../utils/format';
 import { invalidateAppData } from '../../utils/queryInvalidation';
 import './app.css';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 
 const statusOptions = [{ value: 'pending', label: '待处理' }, { value: 'resolved', label: '已处理' }];
 interface FeedbackDialogProps { feedback: AppFeedbackInfo; readOnly: boolean; onClose: () => void }
@@ -64,7 +66,9 @@ export default function AppFeedbackList() {
   const [form] = Form.useForm<GetAppFeedbackListReq>();
   const [params, setParams] = useState<GetAppFeedbackListReq>({ page: 1, page_size: 20 });
   const [selected, setSelected] = useState<{ feedback: AppFeedbackInfo; readOnly: boolean } | null>(null);
-  const feedback = usePagedQuery({ params, setParams, queryKey: ['app-feedback', params], queryFn: () => fetchAppFeedback(params) });
+  const feedback = usePagedQuery({ params, setParams, queryKey: [queryKeys.appFeedback, params], queryFn: () => fetchAppFeedback(params) });
+  const pagination = useTablePagination(params, setParams, feedback.data?.total ?? 0);
+
   return <div className="page-stack app-page">
     <div className="app-page-heading"><span className="app-heading-icon app-heading-icon--cyan"><MessageOutlined /></span>
       <PageHeader title="意见反馈" description="倾听用户的声音，及时回应每一条建议" /></div>
@@ -85,8 +89,7 @@ export default function AppFeedbackList() {
       {!feedback.isError && <Table<AppFeedbackInfo> rowKey="id" dataSource={feedback.data?.list ?? []} loading={feedback.isFetching} scroll={{ x: 1100 }}
         locale={{ emptyText: feedback.isPending ? null : <Empty className="app-empty" image={<MessageOutlined />} description={<>
           <strong>{params.user_id || params.status ? '暂无匹配反馈' : '暂无用户反馈'}</strong><p>{params.user_id || params.status ? '调整筛选条件后再试' : '收到的用户建议会在这里展示'}</p></>} /> }}
-        pagination={{ current: params.page, pageSize: params.page_size, total: feedback.data?.total ?? 0, showSizeChanger: true,
-          showTotal: total => `共 ${total} 条反馈`, onChange: (page, page_size) => setParams({ ...params, page, page_size }) }} columns={[
+        pagination={pagination} columns={[
           { title: '反馈用户', key: 'user', width: 265, render: (_, item) => <div className="app-table-identity">
             <Avatar shape="square" size={36} className="app-avatar--cyan">{(item.nickname || item.account).slice(0, 1)}</Avatar>
             <div className="app-identity-copy"><span className="app-primary-text">{item.nickname || item.account}</span>

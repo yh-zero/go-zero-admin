@@ -11,6 +11,8 @@ import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { formatBytes, formatTime } from '../../utils/format';
 import { FileLinkDialog } from './FileLinkDialog';
 import { FileUploadButton } from '../../components/FileUploadButton';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 export default function FileList() {
   const [form] = Form.useForm<GetFileListReq>();
   const [uploadVisibility, setUploadVisibility] = useState<'public' | 'private'>('private');
@@ -18,8 +20,10 @@ export default function FileList() {
   const [linkFile, setLinkFile] = useState<Pick<FileInfo, 'id' | 'visibility'> | null>(null);
   const client = useQueryClient();
   const { message } = App.useApp();
-  const query = usePagedQuery({ params, setParams, queryKey: ['files', params], queryFn: () => fetchFiles(params) });
-  const remove = useMutation({ mutationFn: deleteFile, onSuccess: async () => { await client.invalidateQueries({ queryKey: ['files'] }); void message.success('文件已删除'); } });
+  const query = usePagedQuery({ params, setParams, queryKey: [queryKeys.files, params], queryFn: () => fetchFiles(params) });
+  const pagination = useTablePagination(params, setParams, query.data?.total ?? 0);
+  const remove = useMutation({ mutationFn: deleteFile, onSuccess: async () => { await client.invalidateQueries({ queryKey: [queryKeys.files] }); void message.success('文件已删除'); } });
+
   return <div className="page-stack"><PageHeader title="文件管理" description="查询文件资源、获取访问链接和管理引用" extra={<Space wrap>
     <Select aria-label="上传文件可见性" value={uploadVisibility} onChange={setUploadVisibility}
       options={[{ value: 'private', label: '私有文件' }, { value: 'public', label: '公开文件' }]} />
@@ -31,7 +35,7 @@ export default function FileList() {
       <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button><Button onClick={() => { form.resetFields(); setParams({ page: 1, page_size: params.page_size }); }}>重置</Button><Button aria-label="刷新文件列表" icon={<ReloadOutlined />} onClick={() => void query.refetch()} /></Space></Form.Item>
     </Form></Card>
     <Card className="data-card" title="文件列表"><QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />
-      <Table<FileInfo> rowKey="id" dataSource={query.data?.list ?? []} loading={query.isFetching} scroll={{ x: 1000 }} pagination={{ current: params.page, pageSize: params.page_size, total: query.data?.total ?? 0, showSizeChanger: true, onChange: (page, page_size) => setParams({ ...params, page, page_size }) }} columns={[
+      <Table<FileInfo> rowKey="id" dataSource={query.data?.list ?? []} loading={query.isFetching} scroll={{ x: 1000 }} pagination={pagination} columns={[
         { title: '文件名称', dataIndex: 'original_name', ellipsis: true, render: (value: string) => <span className="table-primary">{value}</span> },
         { title: '类型', dataIndex: 'mime' }, { title: '大小', dataIndex: 'size', render: formatBytes },
         { title: '可见性', dataIndex: 'visibility', render: (value: string) => <Tag color={value === 'private' ? 'gold' : 'blue'}>{value === 'private' ? '私有' : '公开'}</Tag> },

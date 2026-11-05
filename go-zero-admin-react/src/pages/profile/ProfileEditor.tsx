@@ -8,6 +8,7 @@ import { useFormDraft } from '../../hooks/useFormDraft';
 import { invalidateUserData } from '../../utils/queryInvalidation';
 import { genderOptions } from '../../utils/formOptions';
 import { FileUploadButton } from '../../components/FileUploadButton';
+import { queryKeys } from '../../utils/queryKeys';
 export function ProfileEditor({ profile }: { profile: ProfileInfo }) {
   const [form] = Form.useForm<UpdateProfileReq>();
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -16,7 +17,7 @@ export function ProfileEditor({ profile }: { profile: ProfileInfo }) {
   const resetDraft = useFormDraft(form, { entityKey: profile.id, values: profile });
   const mutation = useMutation({ mutationFn: updateProfile, onSuccess: async (_, values) => {
     await invalidateUserData(client);
-    const refreshed = client.getQueryState<ProfileInfo>(['profile']);
+    const refreshed = client.getQueryState<ProfileInfo>([queryKeys.profile]);
     resetDraft(refreshed?.status === 'success' && !refreshed.isInvalidated && refreshed.data
       ? refreshed.data : { ...profile, ...values });
     void message.success('个人资料已保存');

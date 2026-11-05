@@ -10,9 +10,10 @@ import { ProfileEditor } from './ProfileEditor';
 import { ChangePasswordDialog } from './ChangePasswordDialog';
 import { DeviceSessions } from './DeviceSessions';
 import './profile.css';
+import { queryKeys } from '../../utils/queryKeys';
 export default function ProfilePage() {
   const [passwordOpen, setPasswordOpen] = useState(false);
-  const query = useQuery({ queryKey: ['profile'], queryFn: fetchProfile });
+  const query = useQuery({ queryKey: [queryKeys.profile], queryFn: fetchProfile });
   const user = query.data;
   return <div className="page-stack profile-page"><PageHeader title="个人中心" description="管理您的账号信息与个人资料" extra={<Button icon={<LockOutlined />} onClick={() => setPasswordOpen(true)}>修改密码</Button>} />
     <QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />

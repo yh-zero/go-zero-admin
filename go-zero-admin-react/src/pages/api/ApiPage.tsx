@@ -10,22 +10,26 @@ import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { formatTime } from '../../utils/format';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 
 export default function ApiPage() {
   const { message } = App.useApp();
   const [filters, setFilters] = useState<GetApiListReq>({ page: 1, page_size: 20 });
   const [form] = Form.useForm<GetApiListReq>();
   const queryClient = useQueryClient();
-  const profile = useQuery({ queryKey: ['profile'], queryFn: fetchProfile });
-  const query = usePagedQuery({ params: filters, setParams: setFilters, queryKey: ['api-resources', filters], queryFn: () => fetchApiResources(filters) });
+  const profile = useQuery({ queryKey: [queryKeys.profile], queryFn: fetchProfile });
+  const query = usePagedQuery({ params: filters, setParams: setFilters, queryKey: [queryKeys.apiResources, filters], queryFn: () => fetchApiResources(filters) });
+  const pagination = useTablePagination(filters, setFilters, query.data?.total ?? 0);
   const remove = useMutation({ mutationFn: deleteApiResource, onSuccess: async () => {
-    await queryClient.invalidateQueries({ queryKey: ['api-resources'] });
+    await queryClient.invalidateQueries({ queryKey: [queryKeys.apiResources] });
     message.success('API 资源登记已删除');
   } });
   const sync = useMutation({ mutationFn: syncApiResources, onSuccess: async result => {
-    await queryClient.invalidateQueries({ queryKey: ['api-resources'] });
+    await queryClient.invalidateQueries({ queryKey: [queryKeys.apiResources] });
     void message.success(`同步完成：新增 ${result.added}，更新 ${result.updated}，移除 ${result.removed}`);
   } });
+
   return <div className="page-stack">
     <PageHeader title="API 资源" description="维护接口资源目录，支持按分组、方法和路径查询。" extra={profile.data?.is_super_admin &&
       <Button type="primary" icon={<SyncOutlined />} loading={sync.isPending} onClick={() => sync.mutate()}>同步接口</Button>} />
@@ -42,8 +46,7 @@ export default function ApiPage() {
     <Card className="data-card" title="API 资源目录">
       <QueryState isPending={query.isPending} error={query.error} onRetry={() => { void query.refetch(); }} />
       {!query.isPending && !query.error && <Table<ApiInfo> rowKey="id" dataSource={query.data?.list ?? []} scroll={{ x: 950 }}
-        pagination={{ current: filters.page, pageSize: filters.page_size, total: query.data?.total ?? 0, showSizeChanger: true,
-          onChange: (page, pageSize) => setFilters({ ...filters, page, page_size: pageSize }) }} columns={[
+        pagination={pagination} columns={[
           { title: 'ID', dataIndex: 'id', width: 70 }, { title: '分组', dataIndex: 'group', width: 150, render: (value: string) => <span className="table-primary">{value}</span> },
           { title: '方法', dataIndex: 'method', width: 110, render: (method: string) => <Tag>{method}</Tag> },
           { title: '路径', dataIndex: 'path', ellipsis: true, render: (value: string) => <span className="code-text">{value}</span> }, { title: '说明', dataIndex: 'title', ellipsis: true },

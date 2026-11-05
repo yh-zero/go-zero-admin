@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -83,7 +84,7 @@ func executeWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *mode
 		if result != "" {
 			result += "\n"
 		}
-		result += step.Name + ": " + output
+		result += "[" + strconv.Itoa(int(task.NextStep)+1) + "/" + strconv.Itoa(len(definition.Steps)) + "] " + step.Name + ": " + output
 		if len(result) > 60000 {
 			return failWorkflow(ctx, svcCtx, task, "工作流结果超过大小限制")
 		}

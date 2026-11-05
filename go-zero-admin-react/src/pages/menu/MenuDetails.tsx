@@ -5,11 +5,12 @@ import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { formatTime } from '../../utils/format';
 import { menuTypeOptions } from './menuOptions';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface MenuDetailsProps { id: number | null; onClose: () => void }
 
 export function MenuDetails({ id, onClose }: MenuDetailsProps) {
-  const query = useQuery({ queryKey: ['menus', 'detail', id], queryFn: () => fetchMenu(id!), enabled: id !== null });
+  const query = useQuery({ queryKey: [queryKeys.menus, 'detail', id], queryFn: () => fetchMenu(id!), enabled: id !== null });
   const menu = query.data;
   return <Drawer title="菜单详情" open={id !== null} onClose={onClose} size="large">
     <QueryState isPending={query.isPending} error={query.error} onRetry={() => { void query.refetch(); }} />

@@ -5,6 +5,7 @@ import type { UpdateAppUserReq } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { useFormDraft } from '../../hooks/useFormDraft';
 import { invalidateAppData } from '../../utils/queryInvalidation';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface Props { id: number; onClose: () => void }
 
@@ -12,7 +13,7 @@ export function AppUserEditDialog({ id, onClose }: Props) {
   const [form] = Form.useForm<UpdateAppUserReq>();
   const { message } = App.useApp();
   const client = useQueryClient();
-  const user = useQuery({ queryKey: ['app-user', id], queryFn: () => fetchAppUser(id) });
+  const user = useQuery({ queryKey: [queryKeys.appUser, id], queryFn: () => fetchAppUser(id) });
   useFormDraft(form, { entityKey: id, values: user.data });
   const save = useMutation({ mutationFn: (values: UpdateAppUserReq) => updateAppUser(id, values),
   onSuccess: async () => {

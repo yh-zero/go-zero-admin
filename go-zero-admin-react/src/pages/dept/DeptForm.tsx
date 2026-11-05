@@ -9,6 +9,7 @@ import { QueryState } from '../../components/QueryState';
 import { useFormDraft } from '../../hooks/useFormDraft';
 import { buildTree } from '../../utils/tree';
 import { statusOptions } from '../../utils/formOptions';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface DeptFormProps {
   open: boolean;
@@ -49,7 +50,7 @@ function LeaderSelect({ id, enabled, disabled, value, onChange }: LeaderSelectPr
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const params = { username: search, status: 1, page, page_size: 20 };
-  const users = useQuery({ queryKey: ['users', 'dept-leader-options', params], queryFn: () => fetchUsers(params), enabled });
+  const users = useQuery({ queryKey: [queryKeys.users, 'dept-leader-options', params], queryFn: () => fetchUsers(params), enabled });
   return <Select id={id} labelInValue allowClear showSearch={{ filterOption: false, onSearch: keyword => { setSearch(keyword); setPage(1); } }}
     value={value} onChange={onChange} disabled={disabled || !enabled ? true : undefined} loading={users.isFetching}
     placeholder={enabled ? '输入用户名搜索并选择负责人' : '需要用户查询权限'}

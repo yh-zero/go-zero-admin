@@ -19,9 +19,8 @@ export function useSidebarResize(collapsed: boolean) {
       handle.current.releasePointerCapture(pointerId);
     }
   }, []);
-  useEffect(() => {
-    if (collapsed) cancelDrag();
-  }, [collapsed, cancelDrag]);
+  // collapsed 变化时若正在拖拽则取消：派生自渲染而非 effect，避免级联渲染。
+  // 在 startDrag/moveDrag 入口判断 collapsed 也能达到同样效果，且更符合"事件驱动"原则。
   useEffect(() => {
     if (!dragging) return;
     const { cursor, userSelect } = document.body.style;
@@ -34,6 +33,7 @@ export function useSidebarResize(collapsed: boolean) {
   }, [dragging]);
 
   const startDrag = (event: PointerEvent<HTMLDivElement>) => {
+    if (collapsed) return; // 折叠状态下不启动拖拽
     if (!event.isPrimary || event.button !== 0) return;
     event.preventDefault();
     event.currentTarget.focus({ preventScroll: true });
@@ -43,6 +43,7 @@ export function useSidebarResize(collapsed: boolean) {
   };
   const moveDrag = (event: PointerEvent<HTMLDivElement>) => {
     const active = drag.current;
+    if (collapsed) { if (active) cancelDrag(); return; } // 折叠时取消进行中的拖拽
     if (active?.pointerId === event.pointerId) {
       setDraftWidth(clampSidebarWidth(active.startWidth + event.clientX - active.startX));
     }

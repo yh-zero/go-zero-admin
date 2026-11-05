@@ -15,15 +15,16 @@ import { fetchHealth } from '../../api/health';
 import { getAccessiblePagePaths } from '../../router/menuRoutes';
 import { DashboardShortcuts } from './DashboardShortcuts';
 import './dashboard.css';
+import { queryKeys } from '../../utils/queryKeys';
 export default function DashboardPage() {
-  const menus = useQuery({ queryKey: ['my-menus'], queryFn: fetchMyMenus });
+  const menus = useQuery({ queryKey: [queryKeys.myMenus], queryFn: fetchMyMenus });
   const allowedPaths = menus.isSuccess ? getAccessiblePagePaths(menus.data) : new Set<string>();
   const canReadAudit = allowedPaths.has('/sys/audit');
-  const health = useQuery({ queryKey: ['health'], queryFn: fetchHealth, refetchInterval: 60_000 });
-  const users = useQuery({ queryKey: ['users', { page: 1, page_size: 1 }], queryFn: () => fetchUsers({ page: 1, page_size: 1 }), enabled: allowedPaths.has('/sys/user') });
-  const roles = useQuery({ queryKey: ['roles', { page: 1, page_size: 1 }], queryFn: () => fetchRoles({ page: 1, page_size: 1 }), enabled: allowedPaths.has('/sys/role') });
-  const files = useQuery({ queryKey: ['files', { page: 1, page_size: 1 }], queryFn: () => fetchFiles({ page: 1, page_size: 1 }), enabled: allowedPaths.has('/sys/file') });
-  const audit = useQuery({ queryKey: ['audit-logs', { page: 1, page_size: 5 }], queryFn: () => fetchAuditLogs({ page: 1, page_size: 5 }), enabled: canReadAudit });
+  const health = useQuery({ queryKey: [queryKeys.health], queryFn: fetchHealth, refetchInterval: 60_000 });
+  const users = useQuery({ queryKey: [queryKeys.users, { page: 1, page_size: 1 }], queryFn: () => fetchUsers({ page: 1, page_size: 1 }), enabled: allowedPaths.has('/sys/user') });
+  const roles = useQuery({ queryKey: [queryKeys.roles, { page: 1, page_size: 1 }], queryFn: () => fetchRoles({ page: 1, page_size: 1 }), enabled: allowedPaths.has('/sys/role') });
+  const files = useQuery({ queryKey: [queryKeys.files, { page: 1, page_size: 1 }], queryFn: () => fetchFiles({ page: 1, page_size: 1 }), enabled: allowedPaths.has('/sys/file') });
+  const audit = useQuery({ queryKey: [queryKeys.auditLogs, { page: 1, page_size: 5 }], queryFn: () => fetchAuditLogs({ page: 1, page_size: 5 }), enabled: canReadAudit });
   const stats = [
     { title: '用户总数', query: users, icon: <TeamOutlined />, tone: 'blue', caption: '系统账号与成员', path: '/sys/user' },
     { title: '角色总数', query: roles, icon: <SafetyOutlined />, tone: 'violet', caption: '角色与访问权限', path: '/sys/role' },

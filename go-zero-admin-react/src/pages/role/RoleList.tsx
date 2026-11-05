@@ -15,6 +15,8 @@ import { RoleEditor } from './RoleEditor';
 import { RoleDetails } from './RoleDetails';
 import { RoleMenuDialog } from './RoleMenuDialog';
 import { dataScopeOptions } from './roleOptions';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 
 export default function RoleList() {
   const [form] = Form.useForm<GetRoleListReq>();
@@ -24,11 +26,13 @@ export default function RoleList() {
   const [detailId, setDetailId] = useState<number | null>(null);
   const [menuRoleId, setMenuRoleId] = useState<number | null>(null);
   const client = useQueryClient();
-  const roles = usePagedQuery({ params, setParams, queryKey: ['roles', params], queryFn: () => fetchRoles(params) });
+  const roles = usePagedQuery({ params, setParams, queryKey: [queryKeys.roles, params], queryFn: () => fetchRoles(params) });
+  const pagination = useTablePagination(params, setParams, roles.data?.total ?? 0);
   const remove = useMutation({
     mutationFn: deleteRole,
     onSuccess: async () => { await invalidateRoleData(client); message.success('角色已删除'); },
   });
+
   return <div className="page-stack">
     <PageHeader title="角色管理" description="配置角色资料、数据范围和功能授权" extra={<Auth code="sys:role:add">
       <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增角色</Button>
@@ -44,8 +48,7 @@ export default function RoleList() {
     <Card className="data-card" title="角色列表">
       <QueryState isPending={roles.isPending} error={roles.error} onRetry={() => void roles.refetch()} />
       <Table<RoleInfo> rowKey="id" dataSource={roles.data?.list ?? []} loading={roles.isFetching} scroll={{ x: 1050 }}
-        pagination={{ current: params.page, pageSize: params.page_size, total: roles.data?.total ?? 0, showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 个角色`, onChange: (page, page_size) => setParams({ ...params, page, page_size }) }} columns={[
+        pagination={pagination} columns={[
           { title: '角色名称', dataIndex: 'name', key: 'name', render: (value: string, row) => <Button type="link" className="table-primary" onClick={() => setDetailId(row.id)}>{value}</Button> },
           { title: '角色编码', dataIndex: 'code', key: 'code', render: (value: string) => <span className="code-text">{value}</span> },
           { title: '说明', dataIndex: 'description', key: 'description', ellipsis: true, render: (value: string) => value || '—' },

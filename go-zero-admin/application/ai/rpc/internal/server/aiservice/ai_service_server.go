@@ -48,6 +48,11 @@ func (s *AiServiceServer) SendMessage(ctx context.Context, in *aipb.SendMessageR
 	return l.SendMessage(in)
 }
 
+func (s *AiServiceServer) SendMessageStream(in *aipb.SendMessageRequest, stream aipb.AiService_SendMessageStreamServer) error {
+	l := aiservicelogic.NewSendMessageStreamLogic(stream.Context(), s.svcCtx)
+	return l.SendMessageStream(in, stream)
+}
+
 func (s *AiServiceServer) ListTools(ctx context.Context, in *aipb.ListToolsRequest) (*aipb.ListToolsResponse, error) {
 	l := aiservicelogic.NewListToolsLogic(ctx, s.svcCtx)
 	return l.ListTools(in)

@@ -7,11 +7,15 @@ import type { AuditLogInfo, GetAuditLogListReq } from '../../api/types';
 import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { formatTime } from '../../utils/format';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 export default function AuditLogList() {
   const [form] = Form.useForm<GetAuditLogListReq>();
   const [params, setParams] = useState<GetAuditLogListReq>({ page: 1, page_size: 20 });
   const [detail, setDetail] = useState<AuditLogInfo | null>(null);
-  const query = useQuery({ queryKey: ['audit-logs', params], queryFn: () => fetchAuditLogs(params) });
+  const query = useQuery({ queryKey: [queryKeys.auditLogs, params], queryFn: () => fetchAuditLogs(params) });
+  const pagination = useTablePagination(params, setParams, query.data?.total ?? 0);
+
   return <div className="page-stack"><PageHeader title="审计日志" description="查询操作结果与请求记录" />
     <Card className="filter-card"><Form name="audit-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setParams({ ...values, page: 1, page_size: params.page_size })}>
       <Form.Item name="module" label="模块"><Input placeholder="如 sys/user" allowClear /></Form.Item>
@@ -21,7 +25,7 @@ export default function AuditLogList() {
       <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button><Button onClick={() => { form.resetFields(); setParams({ page: 1, page_size: params.page_size }); }}>重置</Button><Button aria-label="刷新审计日志" icon={<ReloadOutlined />} onClick={() => void query.refetch()} /></Space></Form.Item>
     </Form></Card>
     <Card className="data-card" title="操作记录"><QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />
-      <Table<AuditLogInfo> rowKey="id" dataSource={query.data?.list ?? []} loading={query.isFetching} scroll={{ x: 1000 }} pagination={{ current: params.page, pageSize: params.page_size, total: query.data?.total ?? 0, showSizeChanger: true, onChange: (page, page_size) => setParams({ ...params, page, page_size }) }} columns={[
+      <Table<AuditLogInfo> rowKey="id" dataSource={query.data?.list ?? []} loading={query.isFetching} scroll={{ x: 1000 }} pagination={pagination} columns={[
         { title: '操作人', dataIndex: 'username', render: (value: string) => <span className="table-primary">{value || '—'}</span> },
         { title: '模块', dataIndex: 'module' }, { title: '动作', dataIndex: 'action' },
         { title: '方法', dataIndex: 'method' }, { title: '路径', dataIndex: 'path', ellipsis: true, render: (value: string) => <span className="code-text">{value}</span> },

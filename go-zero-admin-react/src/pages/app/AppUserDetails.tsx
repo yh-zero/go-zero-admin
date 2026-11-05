@@ -16,6 +16,8 @@ import { AppMembershipGrantDialog } from './AppMembershipGrantDialog';
 import { AppUserSessionsPanel } from './AppUserSessions';
 import { appUserStatus } from './appOptions';
 import './app.css';
+import { queryKeys } from '../../utils/queryKeys';
+import { useTablePagination } from '../../hooks/useTablePagination';
 
 interface Props { id: number; initialTab?: 'profile' | 'memberships' | 'sessions'; onClose: () => void }
 
@@ -50,7 +52,8 @@ function AppUserMemberships({ user, onBusyChange }: { user: AppAdminUserInfo; on
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   const client = useQueryClient();
   const { message } = App.useApp();
-  const memberships = usePagedQuery({ params, setParams, queryKey: ['app-memberships', params], queryFn: () => fetchAppMemberships(params) });
+  const memberships = usePagedQuery({ params, setParams, queryKey: [queryKeys.appMemberships, params], queryFn: () => fetchAppMemberships(params) });
+  const pagination = useTablePagination(params, setParams, memberships.data?.total ?? 0);
   const revoke = useMutation({ mutationFn: revokeAppMembership, onSuccess: async () => {
     await invalidateAppData(client); void message.success('会员已撤销');
   } });
@@ -60,6 +63,7 @@ function AppUserMemberships({ user, onBusyChange }: { user: AppAdminUserInfo; on
   }, []);
   useEffect(() => {
     onBusyChange(revoke.isPending || grantOpen);
+
     return () => onBusyChange(false);
   }, [onBusyChange, revoke.isPending, grantOpen]);
   return <div className="app-user-panel">
@@ -70,8 +74,7 @@ function AppUserMemberships({ user, onBusyChange }: { user: AppAdminUserInfo; on
     </Space></div>
     <QueryState isPending={memberships.isPending} error={memberships.error} onRetry={() => memberships.refetch()} />
     {memberships.isSuccess && <Table<AppMembershipInfo> rowKey="id" dataSource={memberships.data.list} loading={memberships.isFetching} scroll={{ x: 830 }}
-      pagination={{ current: params.page, pageSize: params.page_size, total: memberships.data.total, showSizeChanger: true,
-        showTotal: total => `共 ${total} 项会员记录`, onChange: (page, page_size) => setParams({ ...params, page, page_size }) }} columns={[
+      pagination={pagination} columns={[
         { title: '套餐', dataIndex: 'plan_code', width: 110, render: value => <span className="app-plan-pill">{value}</span> },
         { title: '会员权益', dataIndex: 'benefits', ellipsis: true, render: value => value || '—' },
         { title: '状态', key: 'status', width: 90, render: (_, item) => membershipState(item, now) },
@@ -90,8 +93,8 @@ function AppUserMemberships({ user, onBusyChange }: { user: AppAdminUserInfo; on
 export function AppUserDetails({ id, initialTab = 'profile', onClose }: Props) {
   const [tab, setTab] = useState(initialTab);
   const [busy, setBusy] = useState(false);
-  const user = useQuery({ queryKey: ['app-user', id], queryFn: () => fetchAppUser(id) });
-  const menus = useQuery({ queryKey: ['my-menus'], queryFn: fetchMyMenus });
+  const user = useQuery({ queryKey: [queryKeys.appUser, id], queryFn: () => fetchAppUser(id) });
+  const menus = useQuery({ queryKey: [queryKeys.myMenus], queryFn: fetchMyMenus });
   const canReadMemberships = menus.isSuccess && getAccessiblePagePaths(menus.data).has('/app/memberships');
   const canReadSessions = useAuthStore(state => state.permissionsReady && state.permCodes.includes('sys:app:session:list'));
   const selectedTab = tab === 'memberships' && !canReadMemberships || tab === 'sessions' && !canReadSessions ? 'profile' : tab;

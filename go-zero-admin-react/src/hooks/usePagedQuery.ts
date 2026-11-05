@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { QueryKey } from '@tanstack/react-query';
+import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import type { PageParams, PageResult } from '../api/types';
 
 export function correctPageParams<Params extends PageParams>(params: Params, total: number): Params {
@@ -9,7 +9,9 @@ export function correctPageParams<Params extends PageParams>(params: Params, tot
   return (params.page ?? 1) > lastPage ? { ...params, page: lastPage } : params;
 }
 
-interface PagedQueryOptions<Params extends PageParams, Item> {
+interface PagedQueryOptions<Params extends PageParams, Item>
+  extends Pick<UseQueryOptions<PageResult<Item>, Error, PageResult<Item>, QueryKey>,
+    'refetchInterval' | 'refetchOnWindowFocus' | 'staleTime' | 'gcTime'> {
   params: Params;
   setParams: Dispatch<SetStateAction<Params>>;
   queryKey: QueryKey;
@@ -23,7 +25,7 @@ export function usePagedQuery<Params extends PageParams, Item>({ params, setPara
   const total = query.isSuccess && !query.isFetching ? query.data.total : undefined;
   useEffect(() => {
     if (enabled === false || total === undefined) return;
-    // 旧查询完成时，不能用它的总数修改用户刚切换的筛选或每页条数。
+    // 旧查询完成时，不能用它的总数改写用户刚切换的筛选或每页条数。
     setParams((current) => current === params ? correctPageParams(current, total) : current);
   }, [enabled, params, setParams, total]);
   return query;

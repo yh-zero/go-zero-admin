@@ -8,6 +8,7 @@ import { useFormDraft } from '../../hooks/useFormDraft';
 import { invalidateMenuData } from '../../utils/queryInvalidation';
 import { MenuFields } from './MenuFields';
 import { PermissionFields } from './PermissionFields';
+import { queryKeys } from '../../utils/queryKeys';
 
 export interface MenuEditorState { id: number | null; kind: 'navigation' | 'permission'; parentId?: number }
 interface Props { editor: MenuEditorState; resources: MenuInfo[]; resourcesReady: boolean; onClose: () => void }
@@ -29,7 +30,7 @@ export function MenuForm({ editor, resources, resourcesReady, onClose }: Props) 
   const queryClient = useQueryClient();
   const permission = editor.kind === 'permission';
   const detail = useQuery({
-    queryKey: ['menus', 'detail', editor.id], queryFn: () => fetchMenu(editor.id!),
+    queryKey: [queryKeys.menus, 'detail', editor.id], queryFn: () => fetchMenu(editor.id!),
     enabled: editor.id !== null, refetchOnWindowFocus: false,
   });
   const initialValues = useMemo(() => editor.id === null

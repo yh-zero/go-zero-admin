@@ -5,11 +5,12 @@ import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { formatTime } from '../../utils/format';
 import { formatGender } from '../../utils/formOptions';
+import { queryKeys } from '../../utils/queryKeys';
 
 interface Props { id: number; onClose: () => void }
 
 export function UserDetails({ id, onClose }: Props) {
-  const user = useQuery({ queryKey: ['user', id], queryFn: () => fetchUser(id) });
+  const user = useQuery({ queryKey: [queryKeys.user, id], queryFn: () => fetchUser(id) });
   const data = user.data;
   return <Drawer open title="用户详情" onClose={onClose} size="large">
     <QueryState isPending={user.isPending} error={user.error} onRetry={() => void user.refetch()} />
