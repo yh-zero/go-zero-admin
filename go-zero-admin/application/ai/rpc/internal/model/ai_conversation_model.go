@@ -16,6 +16,7 @@ type (
 	// and implement the added methods in customAiConversationModel.
 	AiConversationModel interface {
 		aiConversationModel
+		CheckOwned(ctx context.Context, id, ownerId int64) error
 		FindOwned(ctx context.Context, id, ownerId int64) (*ConversationRow, error)
 		ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*ConversationRow, int64, error)
 		DeleteOwned(ctx context.Context, id, ownerId int64) error
@@ -43,9 +44,15 @@ type ConversationRow struct {
 	MessageCount int64  `db:"message_count"`
 	CreatedAt    int64  `db:"created_at"`
 	UpdatedAt    int64  `db:"updated_at"`
+	Deleted      bool   `db:"deleted"`
 }
 
-const conversationSelect = "SELECT c.id,c.user_id,c.title,(SELECT COUNT(*) FROM ai_message m WHERE m.conversation_id=c.id) AS message_count,UNIX_TIMESTAMP(c.created_at) AS created_at,UNIX_TIMESTAMP(c.updated_at) AS updated_at FROM ai_conversation c "
+const conversationSelect = "SELECT c.id,c.user_id,c.title,(SELECT COUNT(*) FROM ai_message m WHERE m.conversation_id=c.id) AS message_count,UNIX_TIMESTAMP(c.created_at) AS created_at,UNIX_TIMESTAMP(c.updated_at) AS updated_at,c.deleted_at IS NOT NULL AS deleted FROM ai_conversation c "
+
+func (m *customAiConversationModel) CheckOwned(ctx context.Context, id, ownerId int64) error {
+	var ownedId int64
+	return m.QueryRowNoCacheCtx(ctx, &ownedId, "SELECT id FROM ai_conversation WHERE id=? AND user_id=? AND deleted_at IS NULL", id, ownerId)
+}
 
 func (m *customAiConversationModel) FindOwned(ctx context.Context, id, ownerId int64) (*ConversationRow, error) {
 	var row ConversationRow

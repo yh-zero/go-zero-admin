@@ -14,6 +14,7 @@ import (
 
 type CallPair struct {
 	ConversationId  int64
+	Conversation    *ConversationRow
 	User, Assistant *MessageRow
 }
 
@@ -97,7 +98,7 @@ func (m *customAiMessageModel) reserveCallOnce(ctx context.Context, ownerId, con
 			if role == "user" {
 				text = content
 			}
-			result, err := session.ExecCtx(ctx, "INSERT INTO ai_message (conversation_id,role,content,tool_calls,tokens,status,call_id) VALUES (?,?,?,?,0,'running',?)", pair.ConversationId, role, text, metadata, callId)
+			result, err := session.ExecCtx(ctx, "INSERT INTO ai_message (conversation_id,role,content,tool_calls,tokens,status,call_id,created_at) VALUES (?,?,?,?,0,'running',?,FROM_UNIXTIME(?))", pair.ConversationId, role, text, metadata, callId, now)
 			if err != nil {
 				return err
 			}
@@ -130,20 +131,22 @@ func (m *customAiMessageModel) reserveCallOnce(ctx context.Context, ownerId, con
 }
 
 func (m *customAiMessageModel) SaveCallUsage(ctx context.Context, ownerId int64, pair *CallPair, tokens int64, metadata string) error {
-	return m.mutateCall(ctx, ownerId, pair, func(ctx context.Context, session sqlx.Session) error {
+	return m.mutateCall(ctx, ownerId, pair, nil, func(ctx context.Context, session sqlx.Session) error {
 		_, err := session.ExecCtx(ctx, "UPDATE ai_message SET tokens=?,tool_calls=? WHERE id=? AND status='running'", tokens, metadata, pair.Assistant.Id)
 		return err
 	})
 }
 
 func (m *customAiMessageModel) FinishCall(ctx context.Context, ownerId int64, pair *CallPair, status, answer, metadata string, tokens int64) error {
+	pair.Conversation = nil
 	if status != "failed" && status != "succeeded" {
 		return ErrCallState
 	}
 	if status == "failed" {
 		answer = ""
 	}
-	return m.mutateCall(ctx, ownerId, pair, func(ctx context.Context, session sqlx.Session) error {
+	var conversation ConversationRow
+	err := m.mutateCall(ctx, ownerId, pair, &conversation, func(ctx context.Context, session sqlx.Session) error {
 		result, err := session.ExecCtx(ctx, "UPDATE ai_message SET status=?,tool_calls=? WHERE id=? AND status='running'", status, metadata, pair.User.Id)
 		if err != nil {
 			return err
@@ -166,20 +169,34 @@ func (m *customAiMessageModel) FinishCall(ctx context.Context, ownerId int64, pa
 		if n != 1 {
 			return ErrCallState
 		}
-		_, err = session.ExecCtx(ctx, "UPDATE ai_conversation SET updated_at=NOW() WHERE id=?", pair.ConversationId)
+		// 在父行锁等待及消息更新后采样，返回时间与数据库写入使用同一秒值。
+		conversation.UpdatedAt = time.Now().Unix()
+		_, err = session.ExecCtx(ctx, "UPDATE ai_conversation SET updated_at=FROM_UNIXTIME(?) WHERE id=?", conversation.UpdatedAt, pair.ConversationId)
 		return err
 	})
+	if err != nil {
+		return err
+	}
+	if !conversation.Deleted {
+		pair.Conversation = &conversation
+	}
+	return nil
 }
 
-func (m *customAiMessageModel) mutateCall(ctx context.Context, ownerId int64, pair *CallPair, fn func(context.Context, sqlx.Session) error) error {
+func (m *customAiMessageModel) mutateCall(ctx context.Context, ownerId int64, pair *CallPair, conversation *ConversationRow, fn func(context.Context, sqlx.Session) error) error {
 	err := m.conn.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
 		// 按会话再消息的固定锁序，与预留/删除串行；外部模型与工具调用均不在事务中。
-		var owner struct {
-			Id int64 `db:"id"`
-		}
 		// 已预留调用的结算只验证owner；软删除不应丢弃已经取得的外部用量或复活会话。
-		if err := session.QueryRowCtx(ctx, &owner, "SELECT id FROM ai_conversation WHERE id=? AND user_id=? FOR UPDATE", pair.ConversationId, ownerId); err != nil {
-			return err
+		if conversation != nil {
+			// 终态复用父行锁读取摘要，检查点仍只读取ID，避免每轮统计历史。
+			if err := session.QueryRowCtx(ctx, conversation, conversationSelect+"WHERE c.id=? AND c.user_id=? FOR UPDATE", pair.ConversationId, ownerId); err != nil {
+				return err
+			}
+		} else {
+			var ownerIdRow int64
+			if err := session.QueryRowCtx(ctx, &ownerIdRow, "SELECT id FROM ai_conversation WHERE id=? AND user_id=? FOR UPDATE", pair.ConversationId, ownerId); err != nil {
+				return err
+			}
 		}
 		var rows []struct {
 			Id int64 `db:"id"`

@@ -1,0 +1,26 @@
+.workspace { min-width: 0; }
+.workspace :global(.ant-card-head) { padding: 18px 22px; }
+.workspace :global(.ant-card-head-title) { white-space: normal; }
+.workspace :global(.ant-card-body) { padding: 20px 22px; }
+.subtitle { margin: 5px 0 0; color: var(--ant-color-text-secondary); font-size: 12px; font-weight: 400; }
+.toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.toolbar :global(.ant-input-affix-wrapper) { width: 300px; max-width: 100%; }
+.muted { color: var(--ant-color-text-secondary); font-size: 12px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.toolCard { min-width: 0; padding: 20px; border: 1px solid var(--ant-color-border-secondary); border-radius: 10px; }
+.symbol { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9px; background: var(--ant-color-primary-bg); color: var(--ant-color-primary); font-size: 20px; margin-bottom: 15px; }
+.toolName { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.description { min-height: 40px; margin: 12px 0 20px; color: var(--ant-color-text-secondary); font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cardActions { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding-top: 15px; border-top: 1px solid var(--ant-color-border-secondary); }
+.cardActions :global(.ant-btn-link) { padding-inline: 0; }
+.drawer { max-width: 100vw; }
+.drawerActions { display: flex; justify-content: flex-end; }
+.detailContent { min-width: 0; }
+.detailContent h3 { font-size: 14px; }
+.code { margin: 12px 0 18px; padding: 14px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; background: var(--ant-color-fill-quaternary); color: var(--ant-color-text); font: 12px/1.7 Consolas, 'Microsoft YaHei', monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 700px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) {
+  .workspace :global(.ant-card-head) { padding: 16px 14px; }
+  .workspace :global(.ant-card-body) { padding: 16px 14px; }
+  .toolCard { padding: 17px; }
+}

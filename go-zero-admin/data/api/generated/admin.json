@@ -1126,7 +1126,7 @@
         }
       }
     },
-    "/v1/sys/ai/messages": {
+    "/v1/sys/ai/messages/stream": {
       "post": {
         "consumes": [
           "application/json"
@@ -1137,8 +1137,8 @@
         "schemes": [
           "https"
         ],
-        "summary": "sendMessage",
-        "operationId": "aiSendMessage",
+        "summary": "sendMessageStream",
+        "operationId": "aiSendMessageStream",
         "parameters": [
           {
             "name": "body",
@@ -1207,6 +1207,37 @@
                     },
                     "tool_calls": {
                       "type": "string"
+                    }
+                  }
+                },
+                "conversation": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "title",
+                    "user_id",
+                    "message_count",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "properties": {
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "message_count": {
+                      "type": "integer"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    },
+                    "user_id": {
+                      "type": "integer"
                     }
                   }
                 },
@@ -6659,7 +6690,7 @@
       }
     }
   },
-  "x-date": "2026-11-04 21:18:54",
+  "x-date": "2026-11-05 21:08:23",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

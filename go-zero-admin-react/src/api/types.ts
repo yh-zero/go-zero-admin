@@ -171,7 +171,12 @@ export interface AiGetConversationResp extends AiConversationResp {
 }
 // 同一逻辑提交重试必须复用 request_id；用户有意发起新调用时由调用者生成新的 UUID。
 export interface AiSendMessageReq { request_id: string; conversation_id: number; content: string }
-export interface AiSendMessageResp { conversation_id: number; user_message: AiChatMessage; ai_message: AiChatMessage }
+export interface AiSendMessageResult {
+  conversation_id: number; conversation: AiConversationInfo | null;
+  user_message: AiChatMessage; ai_message: AiChatMessage;
+}
+export interface AiStreamMeta { conversation_id: number; user_message_id: number; ai_message_id: number }
+export interface AiStreamDone { tokens: number; usage_complete: boolean; result: AiSendMessageResult }
 export interface AiCreateWorkflowReq { name: string; definition: string; interval_seconds?: number }
 export interface AiUpdateWorkflowReq { name?: string; definition?: string; interval_seconds?: number; enabled?: 0 | 1 }
 export interface AiWorkflowResp { workflow: AiWorkflowInfo }

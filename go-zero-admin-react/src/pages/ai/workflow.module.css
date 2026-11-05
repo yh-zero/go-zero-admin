@@ -1,0 +1,41 @@
+.workspace { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.header, .toolbar, .nameRow, .stepHeading, .editorFooter { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.header { flex-wrap: wrap; }
+.header h3, .stepHeading h5 { margin: 0; }
+.headerNote { margin: 6px 0 0; color: var(--ant-color-text-secondary, #64748b); }
+.toolbar { margin-bottom: 20px; flex-wrap: wrap; }
+.search { width: 300px; max-width: 100%; }
+.workflowName { max-width: 320px; overflow-wrap: anywhere; text-align: left; white-space: normal; height: auto; padding: 0; }
+.rowNote { color: var(--ant-color-text-tertiary, #94a3b8); font-size: 12px; margin-top: 4px; }
+.editorForm { display: flex; flex-direction: column; gap: 20px; }
+.nameRow { align-items: center; }
+.nameField { flex: 1; }
+.editorGrid { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 24px; min-width: 0; }
+.stepNavigation { min-width: 0; }
+.stepHeading { margin-bottom: 16px; flex-wrap: wrap; }
+.stepButton { border: 1px solid transparent; width: 100%; border-radius: 8px; padding: 12px; display: flex; gap: 12px; margin-bottom: 8px; background: transparent; text-align: left; cursor: pointer; color: inherit; }
+.stepButton:hover { background: var(--ant-color-fill-tertiary, #f4f6f9); }
+.stepButton:disabled { cursor: default; opacity: .6; }
+.stepButton:focus-visible { outline: 2px solid var(--ant-color-primary, #1677ff); }
+.selectedStep { border-color: var(--ant-color-primary-border, #91caff); background: var(--ant-color-primary-bg, #e6f4ff); }
+.stepNumber { background: var(--ant-color-fill-secondary, #e9edf3); border-radius: 6px; width: 26px; height: 26px; display: grid; place-items: center; flex-shrink: 0; }
+.stepSummary { min-width: 0; display: flex; flex-direction: column; gap: 4px; overflow-wrap: anywhere; }
+.stepSummary small { color: var(--ant-color-text-secondary, #64748b); }
+.stepEditor { min-width: 0; border-left: 1px solid var(--ant-color-border-secondary, #edf0f4); padding-left: 24px; }
+.schema { margin: -12px 0 20px; }
+.schema summary, .definitionView summary { cursor: pointer; color: var(--ant-color-text-secondary, #64748b); }
+.code, .jsonInput { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+.code { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--ant-color-fill-quaternary, #f8fafc); padding: 14px; border-radius: 8px; font-size: 12px; max-height: 400px; overflow: auto; }
+.editorFooter { justify-content: flex-end; padding: 16px 0 0; border-top: 1px solid var(--ant-color-border-secondary, #edf0f4); }
+.definitionView { min-width: 0; }
+.readSteps { padding-left: 24px; }
+.readSteps li { margin-bottom: 20px; }
+.runDetails { margin: 16px 0; }
+@media (max-width: 700px) {
+  .editorGrid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .stepNavigation { max-height: 220px; overflow-y: auto; }
+  .stepEditor { border-left: 0; border-top: 1px solid var(--ant-color-border-secondary, #edf0f4); padding: 20px 0 0; }
+  .nameRow { align-items: flex-start; }
+  .toolbar { align-items: flex-start; }
+  .search { width: 100%; }
+}

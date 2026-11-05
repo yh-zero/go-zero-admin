@@ -876,6 +876,7 @@ type SendMessageResponse struct {
 	UserMessage    *ChatMessage           `protobuf:"bytes,1,opt,name=user_message,json=userMessage,proto3" json:"user_message,omitempty"`
 	AiMessage      *ChatMessage           `protobuf:"bytes,2,opt,name=ai_message,json=aiMessage,proto3" json:"ai_message,omitempty"`
 	ConversationId int64                  `protobuf:"varint,3,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
+	Conversation   *ConversationInfo      `protobuf:"bytes,4,opt,name=conversation,proto3" json:"conversation,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -931,6 +932,13 @@ func (x *SendMessageResponse) GetConversationId() int64 {
 	return 0
 }
 
+func (x *SendMessageResponse) GetConversation() *ConversationInfo {
+	if x != nil {
+		return x.Conversation
+	}
+	return nil
+}
+
 // SendMessageStream：服务端流式发送；type 对应 SSE 事件 meta/delta/tool/done/error
 type StreamChunk struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
@@ -943,6 +951,7 @@ type StreamChunk struct {
 	UsageComplete  bool                   `protobuf:"varint,7,opt,name=usage_complete,json=usageComplete,proto3" json:"usage_complete,omitempty"`    // done 帧：用量是否完整
 	ErrorCode      int32                  `protobuf:"varint,8,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`                // error 帧：业务错误码
 	ToolStatus     string                 `protobuf:"bytes,9,opt,name=tool_status,json=toolStatus,proto3" json:"tool_status,omitempty"`              // tool 帧：start / done
+	Result         *SendMessageResponse   `protobuf:"bytes,10,opt,name=result,proto3" json:"result,omitempty"`                                       // done 帧：成功提交后的权威消息对与当前会话摘要
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1038,6 +1047,13 @@ func (x *StreamChunk) GetToolStatus() string {
 		return x.ToolStatus
 	}
 	return ""
+}
+
+func (x *StreamChunk) GetResult() *SendMessageResponse {
+	if x != nil {
+		return x.Result
+	}
+	return nil
 }
 
 // ========== 工具注册表（阶段 1） ==========
@@ -2395,12 +2411,13 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\x0fconversation_id\x18\x02 \x01(\x03R\x0econversationId\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1d\n" +
 	"\n" +
-	"request_id\x18\x04 \x01(\tR\trequestId\"\xa6\x01\n" +
+	"request_id\x18\x04 \x01(\tR\trequestId\"\xe2\x01\n" +
 	"\x13SendMessageResponse\x124\n" +
 	"\fuser_message\x18\x01 \x01(\v2\x11.aipb.ChatMessageR\vuserMessage\x120\n" +
 	"\n" +
 	"ai_message\x18\x02 \x01(\v2\x11.aipb.ChatMessageR\taiMessage\x12'\n" +
-	"\x0fconversation_id\x18\x03 \x01(\x03R\x0econversationId\"\xaf\x02\n" +
+	"\x0fconversation_id\x18\x03 \x01(\x03R\x0econversationId\x12:\n" +
+	"\fconversation\x18\x04 \x01(\v2\x16.aipb.ConversationInfoR\fconversation\"\xe2\x02\n" +
 	"\vStreamChunk\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12'\n" +
@@ -2412,7 +2429,9 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\n" +
 	"error_code\x18\b \x01(\x05R\terrorCode\x12\x1f\n" +
 	"\vtool_status\x18\t \x01(\tR\n" +
-	"toolStatus\"m\n" +
+	"toolStatus\x121\n" +
+	"\x06result\x18\n" +
+	" \x01(\v2\x19.aipb.SendMessageResponseR\x06result\"m\n" +
 	"\bToolInfo\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12+\n" +
@@ -2524,13 +2543,12 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\atask_id\x18\x02 \x01(\x03R\x06taskId\x12\x16\n" +
 	"\x06reason\x18\x03 \x01(\tR\x06reason\x12(\n" +
 	"\rexpected_step\x18\x04 \x01(\x03H\x00R\fexpectedStep\x88\x01\x01B\x10\n" +
-	"\x0e_expected_step2\xd6\t\n" +
+	"\x0e_expected_step2\x92\t\n" +
 	"\tAiService\x12W\n" +
 	"\x12CreateConversation\x12\x1f.aipb.CreateConversationRequest\x1a .aipb.CreateConversationResponse\x12T\n" +
 	"\x11ListConversations\x12\x1e.aipb.ListConversationsRequest\x1a\x1f.aipb.ListConversationsResponse\x12N\n" +
 	"\x0fGetConversation\x12\x1c.aipb.GetConversationRequest\x1a\x1d.aipb.GetConversationResponse\x12K\n" +
 	"\x12DeleteConversation\x12\x1f.aipb.DeleteConversationRequest\x1a\x14.aipb.NoDataResponse\x12B\n" +
-	"\vSendMessage\x12\x18.aipb.SendMessageRequest\x1a\x19.aipb.SendMessageResponse\x12B\n" +
 	"\x11SendMessageStream\x12\x18.aipb.SendMessageRequest\x1a\x11.aipb.StreamChunk0\x01\x12<\n" +
 	"\tListTools\x12\x16.aipb.ListToolsRequest\x1a\x17.aipb.ListToolsResponse\x12K\n" +
 	"\x0eCreateWorkflow\x12\x1b.aipb.CreateWorkflowRequest\x1a\x1c.aipb.CreateWorkflowResponse\x12H\n" +
@@ -2611,49 +2629,49 @@ var file_application_ai_rpc_desc_ai_proto_depIdxs = []int32{
 	3,  // 10: aipb.SendMessageRequest.actor:type_name -> aipb.Actor
 	4,  // 11: aipb.SendMessageResponse.user_message:type_name -> aipb.ChatMessage
 	4,  // 12: aipb.SendMessageResponse.ai_message:type_name -> aipb.ChatMessage
-	3,  // 13: aipb.ListToolsRequest.actor:type_name -> aipb.Actor
-	16, // 14: aipb.ListToolsResponse.list:type_name -> aipb.ToolInfo
-	3,  // 15: aipb.CreateWorkflowRequest.actor:type_name -> aipb.Actor
-	19, // 16: aipb.CreateWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
-	3,  // 17: aipb.ListWorkflowsRequest.actor:type_name -> aipb.Actor
-	0,  // 18: aipb.ListWorkflowsRequest.page:type_name -> aipb.PageRequest
-	19, // 19: aipb.ListWorkflowsResponse.list:type_name -> aipb.WorkflowInfo
-	1,  // 20: aipb.ListWorkflowsResponse.page:type_name -> aipb.PageResponse
-	3,  // 21: aipb.GetWorkflowRequest.actor:type_name -> aipb.Actor
-	19, // 22: aipb.GetWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
-	3,  // 23: aipb.UpdateWorkflowRequest.actor:type_name -> aipb.Actor
-	3,  // 24: aipb.DeleteWorkflowRequest.actor:type_name -> aipb.Actor
-	3,  // 25: aipb.RunWorkflowRequest.actor:type_name -> aipb.Actor
-	3,  // 26: aipb.ListAgentTasksRequest.actor:type_name -> aipb.Actor
-	0,  // 27: aipb.ListAgentTasksRequest.page:type_name -> aipb.PageRequest
-	30, // 28: aipb.ListAgentTasksResponse.list:type_name -> aipb.AgentTaskInfo
-	1,  // 29: aipb.ListAgentTasksResponse.page:type_name -> aipb.PageResponse
-	3,  // 30: aipb.GetAgentTaskRequest.actor:type_name -> aipb.Actor
-	30, // 31: aipb.GetAgentTaskResponse.task:type_name -> aipb.AgentTaskInfo
-	3,  // 32: aipb.ApproveTaskRequest.actor:type_name -> aipb.Actor
-	3,  // 33: aipb.RejectTaskRequest.actor:type_name -> aipb.Actor
-	6,  // 34: aipb.AiService.CreateConversation:input_type -> aipb.CreateConversationRequest
-	8,  // 35: aipb.AiService.ListConversations:input_type -> aipb.ListConversationsRequest
-	10, // 36: aipb.AiService.GetConversation:input_type -> aipb.GetConversationRequest
-	12, // 37: aipb.AiService.DeleteConversation:input_type -> aipb.DeleteConversationRequest
-	13, // 38: aipb.AiService.SendMessage:input_type -> aipb.SendMessageRequest
-	13, // 39: aipb.AiService.SendMessageStream:input_type -> aipb.SendMessageRequest
-	17, // 40: aipb.AiService.ListTools:input_type -> aipb.ListToolsRequest
-	20, // 41: aipb.AiService.CreateWorkflow:input_type -> aipb.CreateWorkflowRequest
-	22, // 42: aipb.AiService.ListWorkflows:input_type -> aipb.ListWorkflowsRequest
-	24, // 43: aipb.AiService.GetWorkflow:input_type -> aipb.GetWorkflowRequest
-	26, // 44: aipb.AiService.UpdateWorkflow:input_type -> aipb.UpdateWorkflowRequest
-	27, // 45: aipb.AiService.DeleteWorkflow:input_type -> aipb.DeleteWorkflowRequest
-	28, // 46: aipb.AiService.RunWorkflow:input_type -> aipb.RunWorkflowRequest
-	31, // 47: aipb.AiService.ListAgentTasks:input_type -> aipb.ListAgentTasksRequest
-	33, // 48: aipb.AiService.GetAgentTask:input_type -> aipb.GetAgentTaskRequest
-	35, // 49: aipb.AiService.ApproveTask:input_type -> aipb.ApproveTaskRequest
-	36, // 50: aipb.AiService.RejectTask:input_type -> aipb.RejectTaskRequest
-	7,  // 51: aipb.AiService.CreateConversation:output_type -> aipb.CreateConversationResponse
-	9,  // 52: aipb.AiService.ListConversations:output_type -> aipb.ListConversationsResponse
-	11, // 53: aipb.AiService.GetConversation:output_type -> aipb.GetConversationResponse
-	2,  // 54: aipb.AiService.DeleteConversation:output_type -> aipb.NoDataResponse
-	14, // 55: aipb.AiService.SendMessage:output_type -> aipb.SendMessageResponse
+	5,  // 13: aipb.SendMessageResponse.conversation:type_name -> aipb.ConversationInfo
+	14, // 14: aipb.StreamChunk.result:type_name -> aipb.SendMessageResponse
+	3,  // 15: aipb.ListToolsRequest.actor:type_name -> aipb.Actor
+	16, // 16: aipb.ListToolsResponse.list:type_name -> aipb.ToolInfo
+	3,  // 17: aipb.CreateWorkflowRequest.actor:type_name -> aipb.Actor
+	19, // 18: aipb.CreateWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
+	3,  // 19: aipb.ListWorkflowsRequest.actor:type_name -> aipb.Actor
+	0,  // 20: aipb.ListWorkflowsRequest.page:type_name -> aipb.PageRequest
+	19, // 21: aipb.ListWorkflowsResponse.list:type_name -> aipb.WorkflowInfo
+	1,  // 22: aipb.ListWorkflowsResponse.page:type_name -> aipb.PageResponse
+	3,  // 23: aipb.GetWorkflowRequest.actor:type_name -> aipb.Actor
+	19, // 24: aipb.GetWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
+	3,  // 25: aipb.UpdateWorkflowRequest.actor:type_name -> aipb.Actor
+	3,  // 26: aipb.DeleteWorkflowRequest.actor:type_name -> aipb.Actor
+	3,  // 27: aipb.RunWorkflowRequest.actor:type_name -> aipb.Actor
+	3,  // 28: aipb.ListAgentTasksRequest.actor:type_name -> aipb.Actor
+	0,  // 29: aipb.ListAgentTasksRequest.page:type_name -> aipb.PageRequest
+	30, // 30: aipb.ListAgentTasksResponse.list:type_name -> aipb.AgentTaskInfo
+	1,  // 31: aipb.ListAgentTasksResponse.page:type_name -> aipb.PageResponse
+	3,  // 32: aipb.GetAgentTaskRequest.actor:type_name -> aipb.Actor
+	30, // 33: aipb.GetAgentTaskResponse.task:type_name -> aipb.AgentTaskInfo
+	3,  // 34: aipb.ApproveTaskRequest.actor:type_name -> aipb.Actor
+	3,  // 35: aipb.RejectTaskRequest.actor:type_name -> aipb.Actor
+	6,  // 36: aipb.AiService.CreateConversation:input_type -> aipb.CreateConversationRequest
+	8,  // 37: aipb.AiService.ListConversations:input_type -> aipb.ListConversationsRequest
+	10, // 38: aipb.AiService.GetConversation:input_type -> aipb.GetConversationRequest
+	12, // 39: aipb.AiService.DeleteConversation:input_type -> aipb.DeleteConversationRequest
+	13, // 40: aipb.AiService.SendMessageStream:input_type -> aipb.SendMessageRequest
+	17, // 41: aipb.AiService.ListTools:input_type -> aipb.ListToolsRequest
+	20, // 42: aipb.AiService.CreateWorkflow:input_type -> aipb.CreateWorkflowRequest
+	22, // 43: aipb.AiService.ListWorkflows:input_type -> aipb.ListWorkflowsRequest
+	24, // 44: aipb.AiService.GetWorkflow:input_type -> aipb.GetWorkflowRequest
+	26, // 45: aipb.AiService.UpdateWorkflow:input_type -> aipb.UpdateWorkflowRequest
+	27, // 46: aipb.AiService.DeleteWorkflow:input_type -> aipb.DeleteWorkflowRequest
+	28, // 47: aipb.AiService.RunWorkflow:input_type -> aipb.RunWorkflowRequest
+	31, // 48: aipb.AiService.ListAgentTasks:input_type -> aipb.ListAgentTasksRequest
+	33, // 49: aipb.AiService.GetAgentTask:input_type -> aipb.GetAgentTaskRequest
+	35, // 50: aipb.AiService.ApproveTask:input_type -> aipb.ApproveTaskRequest
+	36, // 51: aipb.AiService.RejectTask:input_type -> aipb.RejectTaskRequest
+	7,  // 52: aipb.AiService.CreateConversation:output_type -> aipb.CreateConversationResponse
+	9,  // 53: aipb.AiService.ListConversations:output_type -> aipb.ListConversationsResponse
+	11, // 54: aipb.AiService.GetConversation:output_type -> aipb.GetConversationResponse
+	2,  // 55: aipb.AiService.DeleteConversation:output_type -> aipb.NoDataResponse
 	15, // 56: aipb.AiService.SendMessageStream:output_type -> aipb.StreamChunk
 	18, // 57: aipb.AiService.ListTools:output_type -> aipb.ListToolsResponse
 	21, // 58: aipb.AiService.CreateWorkflow:output_type -> aipb.CreateWorkflowResponse
@@ -2666,11 +2684,11 @@ var file_application_ai_rpc_desc_ai_proto_depIdxs = []int32{
 	34, // 65: aipb.AiService.GetAgentTask:output_type -> aipb.GetAgentTaskResponse
 	2,  // 66: aipb.AiService.ApproveTask:output_type -> aipb.NoDataResponse
 	2,  // 67: aipb.AiService.RejectTask:output_type -> aipb.NoDataResponse
-	51, // [51:68] is the sub-list for method output_type
-	34, // [34:51] is the sub-list for method input_type
-	34, // [34:34] is the sub-list for extension type_name
-	34, // [34:34] is the sub-list for extension extendee
-	0,  // [0:34] is the sub-list for field type_name
+	52, // [52:68] is the sub-list for method output_type
+	36, // [36:52] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_application_ai_rpc_desc_ai_proto_init() }

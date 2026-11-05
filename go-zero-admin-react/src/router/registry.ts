@@ -10,6 +10,9 @@ export const pages = {
   app_feedback: lazy(() => import('../pages/app/AppFeedbackList')),
   tenant_list: lazy(() => import('../pages/tenant/TenantList')),
   ai_chat: lazy(() => import('../pages/ai/AIChat')),
+  ai_workflow: lazy(() => import('../pages/ai/AIWorkflows')),
+  ai_task: lazy(() => import('../pages/ai/AITasks')),
+  ai_tool: lazy(() => import('../pages/ai/AITools')),
 };
 export const pageLinks = [
   { name: 'dashboard', path: '/dashboard', title: '工作台', icon: 'dashboard' },
@@ -24,6 +27,9 @@ export const pageLinks = [
   { name: 'profile', path: '/sys/profile', title: '个人中心', icon: 'user' },
   { name: 'tenant_list', path: '/tenant/list', title: '租户管理', icon: 'cloud-server' },
   { name: 'ai_chat', path: '/ai/chat', title: 'AI 对话', icon: 'robot' },
+  { name: 'ai_workflow', path: '/ai/workflows', title: '工作流管理', icon: 'apartment' },
+  { name: 'ai_task', path: '/ai/tasks', title: '任务中心', icon: 'audit' },
+  { name: 'ai_tool', path: '/ai/tools', title: '工具目录', icon: 'api' },
   { name: 'app_user', path: '/app/users', title: 'APP用户', icon: 'appuser' },
   { name: 'app_membership', path: '/app/memberships', title: '会员管理', icon: 'membership' },
   { name: 'app_feedback', path: '/app/feedback', title: '意见反馈', icon: 'message' },

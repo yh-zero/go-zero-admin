@@ -34,7 +34,7 @@ message SendMessageRequest {
   string content = 3;
   string request_id = 4;
 }
-message SendMessageResponse { ChatMessage user_message = 1; ChatMessage ai_message = 2; int64 conversation_id = 3; }
+message SendMessageResponse { ChatMessage user_message = 1; ChatMessage ai_message = 2; int64 conversation_id = 3; ConversationInfo conversation = 4; }
 
 // SendMessageStream：服务端流式发送；type 对应 SSE 事件 meta/delta/tool/done/error
 message StreamChunk {
@@ -47,6 +47,7 @@ message StreamChunk {
   bool usage_complete = 7;    // done 帧：用量是否完整
   int32 error_code = 8;       // error 帧：业务错误码
   string tool_status = 9;     // tool 帧：start / done
+  SendMessageResponse result = 10; // done 帧：成功提交后的权威消息对与当前会话摘要
 }
 
 // ========== 工具注册表（阶段 1） ==========
@@ -91,7 +92,6 @@ service AiService {
   rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse);
   rpc GetConversation(GetConversationRequest) returns (GetConversationResponse);
   rpc DeleteConversation(DeleteConversationRequest) returns (NoDataResponse);
-  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
   rpc SendMessageStream(SendMessageRequest) returns (stream StreamChunk);
   rpc ListTools(ListToolsRequest) returns (ListToolsResponse);
 

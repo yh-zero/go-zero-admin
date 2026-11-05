@@ -43,11 +43,6 @@ func (s *AiServiceServer) DeleteConversation(ctx context.Context, in *aipb.Delet
 	return l.DeleteConversation(in)
 }
 
-func (s *AiServiceServer) SendMessage(ctx context.Context, in *aipb.SendMessageRequest) (*aipb.SendMessageResponse, error) {
-	l := aiservicelogic.NewSendMessageLogic(ctx, s.svcCtx)
-	return l.SendMessage(in)
-}
-
 func (s *AiServiceServer) SendMessageStream(in *aipb.SendMessageRequest, stream aipb.AiService_SendMessageStreamServer) error {
 	l := aiservicelogic.NewSendMessageStreamLogic(stream.Context(), s.svcCtx)
 	return l.SendMessageStream(in, stream)

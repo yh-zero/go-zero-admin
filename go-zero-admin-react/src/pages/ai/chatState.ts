@@ -1,4 +1,5 @@
-import type { AiChatMessage, AiGetConversationResp, AiSendMessageReq, AiSendMessageResp } from '../../api/types';
+import type { AiChatMessage, AiGetConversationResp, AiSendMessageReq, AiSendMessageResult, AiStreamMeta } from '../../api/types';
+import type { AiStreamHandlers } from '../../api/aiStream';
 
 export function validateMessageContent(content: string): string | undefined {
   if (!content.trim()) return '请输入消息内容';
@@ -23,39 +24,48 @@ export function nextMessageCursor(page: Pick<AiGetConversationResp, 'has_more' |
 
 export interface MessageAttempt {
   request: AiSendMessageReq;
-  promise: Promise<AiSendMessageResp>;
+  promise: Promise<AiSendMessageResult>;
+  controller: AbortController;
+  startedAt: number;
+  meta?: AiStreamMeta;
 }
 
-// 发送通道：流式发送构造请求并持有发送锁；重查复用原请求 ID 走一元调用确认服务端结果。
-export function createMessageSender(send: (request: AiSendMessageReq) => Promise<AiSendMessageResp>, newId = () => crypto.randomUUID()) {
-  let busy = false;
-  let previous: AiSendMessageReq | undefined;
+// 新旧会话及重查共享同一流式通道；同步锁覆盖React下一次渲染前的双击。
+export function createMessageSender(send: (request: AiSendMessageReq, handlers: AiStreamHandlers, signal?: AbortSignal) => Promise<AiSendMessageResult>, newId = () => crypto.randomUUID()) {
+  let active: MessageAttempt | undefined;
+  let createdConversationId = 0;
+  let previous: { request: AiSendMessageReq; startedAt: number; meta?: AiStreamMeta } | undefined;
 
-  function begin(request: AiSendMessageReq): MessageAttempt | null {
-    if (busy) return null;
-    // React 下一次渲染前也要拒绝第二个事件，避免双击或 Enter 与点击同时触发。
-    busy = true;
-    previous = request;
-    const promise = Promise.resolve().then(() => send(request)).finally(() => { busy = false; });
-    return { request, promise };
+  function begin(submission: NonNullable<typeof previous>, handlers: AiStreamHandlers): MessageAttempt | null {
+    if (active) return null;
+    previous = submission;
+    const controller = new AbortController();
+    const attempt: MessageAttempt = { ...submission, controller, promise: Promise.resolve().then(() => {
+      controller.signal.throwIfAborted();
+      return send(submission.request, { ...handlers, onMeta: meta => {
+        attempt.meta = meta;
+        submission.meta = meta;
+        createdConversationId = meta.conversation_id;
+        handlers.onMeta?.(meta);
+      } }, controller.signal);
+    }).then(result => {
+      controller.signal.throwIfAborted();
+      // 首条成功后仍在编辑的草稿属于这个新会话；原请求重查不改写原始0指纹。
+      createdConversationId = result.conversation ? result.conversation_id : 0;
+      return result;
+    }).finally(() => { if (active === attempt) active = undefined; }) };
+    active = attempt;
+    return attempt;
   }
 
   return {
-    // 一元发送：构造请求并立即发起调用，返回可等待的 Promise。
-    start(conversationId: number, content: string): MessageAttempt | null {
-      if (busy || validateMessageContent(content)) return null;
-      return begin({ request_id: newId(), conversation_id: conversationId, content });
-    },
-    // 只构造请求并加锁；帧经回调下发，结束后由调用方 finish() 释放。
-    startStream(conversationId: number, content: string): AiSendMessageReq | null {
-      if (busy || validateMessageContent(content)) return null;
-      busy = true;
-      previous = { request_id: newId(), conversation_id: conversationId, content };
-      return previous;
+    start(conversationId: number, content: string, handlers: AiStreamHandlers = {}): MessageAttempt | null {
+      if (active || validateMessageContent(content)) return null;
+      return begin({ request: { request_id: newId(), conversation_id: conversationId || createdConversationId, content }, startedAt: Date.now() }, handlers);
     },
     // 重查复用原请求 ID，确认服务端是否已处理，不会新建调用。
-    recheck() { return previous ? begin(previous) : null; },
-    finish() { busy = false; },
+    recheck(handlers: AiStreamHandlers = {}) { return previous ? begin(previous, handlers) : null; },
+    abort() { active?.controller.abort(); },
   };
 }
 // 导出会话为 Markdown 或 JSON，触发浏览器下载。

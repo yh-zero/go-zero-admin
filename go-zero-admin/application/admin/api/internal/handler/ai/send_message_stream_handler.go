@@ -36,12 +36,9 @@ func SendMessageStreamHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		header := w.Header()
-		header.Set("Content-Type", "text/event-stream; charset=utf-8")
-		header.Set("Cache-Control", "no-cache")
-		header.Set("X-Accel-Buffering", "no") // 关闭 nginx 代理缓冲
-		rc := http.NewResponseController(w)   // 穿透中间件 writer 包装链定位 Flusher
-		if err := rc.Flush(); err != nil {
+		w.Header().Set("X-Accel-Buffering", "no") // 关闭 nginx 代理缓冲
+		w.WriteHeader(http.StatusOK)
+		if err := flushSSE(w); err != nil {
 			return
 		}
 
@@ -57,11 +54,18 @@ func SendMessageStreamHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 				chunk, err := stream.Recv()
 				if err != nil {
 					if err != io.EOF {
-						recvCh <- recvResult{err: err}
+						select {
+						case recvCh <- recvResult{err: err}:
+						case <-r.Context().Done():
+						}
 					}
 					return
 				}
-				recvCh <- recvResult{chunk: chunk}
+				select {
+				case recvCh <- recvResult{chunk: chunk}:
+				case <-r.Context().Done():
+					return
+				}
 			}
 		}()
 
@@ -72,22 +76,19 @@ func SendMessageStreamHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			case <-r.Context().Done():
 				return
 			case <-ticker.C:
-				if _, err := io.WriteString(w, ": ping\n\n"); err != nil {
+				if err := writeSSEFrame(w, ": ping\n\n"); err != nil {
 					return
 				}
-				_ = rc.Flush()
 			case result, ok := <-recvCh:
 				if !ok {
 					return
 				}
 				if result.err != nil {
-					writeSSEEvent(w, "error", map[string]any{"code": 500, "msg": "流式通道中断，请查询会话后重试"})
-					_ = rc.Flush()
+					_ = writeSSEEvent(w, "error", map[string]any{"code": 500, "msg": "流式通道中断，请查询会话后重试"})
 					return
 				}
-				terminal := writeStreamChunk(w, result.chunk)
-				_ = rc.Flush()
-				if terminal {
+				terminal, err := writeStreamChunk(w, result.chunk)
+				if err != nil || terminal {
 					return
 				}
 			}
@@ -96,28 +97,52 @@ func SendMessageStreamHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 }
 
 // writeStreamChunk 将 RPC 帧映射为 SSE 事件；返回 true 表示终帧（done/error）。
-func writeStreamChunk(w io.Writer, chunk *aipb.StreamChunk) bool {
+func writeStreamChunk(w http.ResponseWriter, chunk *aipb.StreamChunk) (bool, error) {
 	switch chunk.Type {
 	case "meta":
-		writeSSEEvent(w, "meta", map[string]any{"conversation_id": chunk.ConversationId, "user_message_id": chunk.UserMessageId, "ai_message_id": chunk.AiMessageId})
+		return false, writeSSEEvent(w, "meta", map[string]any{"conversation_id": chunk.ConversationId, "user_message_id": chunk.UserMessageId, "ai_message_id": chunk.AiMessageId})
 	case "delta":
-		writeSSEEvent(w, "delta", map[string]any{"content": chunk.Content})
+		return false, writeSSEEvent(w, "delta", map[string]any{"content": chunk.Content})
 	case "tool":
-		writeSSEEvent(w, "tool", map[string]any{"name": chunk.Content, "status": chunk.ToolStatus})
+		return false, writeSSEEvent(w, "tool", map[string]any{"name": chunk.Content, "status": chunk.ToolStatus})
 	case "done":
-		writeSSEEvent(w, "done", map[string]any{"tokens": chunk.Tokens, "usage_complete": chunk.UsageComplete})
-		return true
+		return true, writeSSEEvent(w, "done", map[string]any{"tokens": chunk.Tokens, "usage_complete": chunk.UsageComplete, "result": ai.MapSendResult(chunk.Result)})
 	case "error":
-		writeSSEEvent(w, "error", map[string]any{"code": chunk.ErrorCode, "msg": chunk.Content})
-		return true
+		return true, writeSSEEvent(w, "error", map[string]any{"code": chunk.ErrorCode, "msg": chunk.Content})
 	}
-	return false
+	return false, nil
 }
 
-func writeSSEEvent(w io.Writer, event string, data map[string]any) {
+func writeSSEEvent(w http.ResponseWriter, event string, data map[string]any) error {
 	payload, err := json.Marshal(data)
 	if err != nil {
-		return
+		return err
 	}
-	_, _ = io.WriteString(w, "event: "+event+"\ndata: "+string(payload)+"\n\n")
+	return writeSSEFrame(w, "event: "+event+"\ndata: "+string(payload)+"\n\n")
+}
+
+func writeSSEFrame(w http.ResponseWriter, frame string) error {
+	n, err := io.WriteString(w, frame)
+	if err != nil {
+		return err
+	}
+	if n != len(frame) {
+		return io.ErrShortWrite
+	}
+	return flushSSE(w)
+}
+
+func flushSSE(w http.ResponseWriter) error {
+	// go-zero 的透传 Flush 会吞掉底层错误，先穿透包装，保留可报告错误的 FlushError。
+	for {
+		if _, ok := w.(interface{ FlushError() error }); ok {
+			break
+		}
+		unwrapper, ok := w.(interface{ Unwrap() http.ResponseWriter })
+		if !ok {
+			break
+		}
+		w = unwrapper.Unwrap()
+	}
+	return http.NewResponseController(w).Flush()
 }

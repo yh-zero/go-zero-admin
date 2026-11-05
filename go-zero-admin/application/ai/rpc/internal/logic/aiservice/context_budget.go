@@ -1,12 +1,17 @@
 package aiservicelogic
 
-import "go-zero-admin/application/ai/rpc/internal/svc"
+import (
+	"encoding/json"
+
+	"github.com/cloudwego/eino/schema"
+	"go-zero-admin/application/ai/rpc/internal/svc"
+)
 
 // contextBudget 控制多轮对话历史的最大 prompt token 预算。
 // 历史按时间正序从新到旧累积，直到逼近预算上限；最新的消息始终保留。
 type contextBudget struct {
 	maxTokens int64
-	used      int64
+	usedBytes int64
 }
 
 func newContextBudget(svcCtx *svc.ServiceContext) *contextBudget {
@@ -17,14 +22,18 @@ func newContextBudget(svcCtx *svc.ServiceContext) *contextBudget {
 	return &contextBudget{maxTokens: max}
 }
 
-// tryAdd 估算单条消息的 token 占用（按字符数 / 4 粗估，中文约 1.5 token/字）。
-// 返回 true 表示加入后仍在预算内。
+// 裁剪与逐轮检查使用同一序列化字节口径；这是估算预算，不是供应商计费量。
 func (b *contextBudget) tryAdd(content string) bool {
-	// 粗略估算：英文 ~4 字符/token，中文 ~1.5 字符/token，取保守值 3
-	estimated := int64(len(content)) / 3
-	if b.used+estimated > b.maxTokens {
+	bytes := b.usedBytes + int64(len(content))
+	if (bytes+2)/3 > b.maxTokens {
 		return false
 	}
-	b.used += estimated
+	b.usedBytes = bytes
 	return true
+}
+
+func (b *contextBudget) tryAddMessage(message *schema.Message) bool {
+	data, err := json.Marshal(message)
+	// 每条消息保留一个数组分隔字符；首条前的 '[' 由调用方预留。
+	return err == nil && b.tryAdd(string(data)+",")
 }

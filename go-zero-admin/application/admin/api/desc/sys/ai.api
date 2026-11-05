@@ -88,6 +88,7 @@ type (
 	}
 	AiSendMessageResp {
 		ConversationId int64          `json:"conversation_id"`
+		Conversation   *AiConversationInfo `json:"conversation"`
 		UserMessage    *AiChatMessage `json:"user_message"`
 		AiMessage      *AiChatMessage `json:"ai_message"`
 	}
@@ -164,13 +165,6 @@ service admin {
 	@handler deleteConversation
 	delete /conversations/:id (AiIdReq) returns (EmptyResp)
 
-	@handler sendMessage
-	post /messages (AiSendMessageReq) returns (AiSendMessageResp)
-
-	// 流式发送：实际响应为 SSE（text/event-stream），不走统一 JSON 信封；AiSendMessageResp 仅作生成占位
-	@handler sendMessageStream
-	post /messages/stream (AiSendMessageReq) returns (AiSendMessageResp)
-
 	@handler listTools
 	get /tools (AiListToolsReq) returns (AiListToolsResp)
 
@@ -203,4 +197,16 @@ service admin {
 
 	@handler rejectTask
 	post /tasks/:id/reject (AiRejectTaskReq) returns (EmptyResp)
+}
+
+@server (
+	prefix:  v1/sys/ai
+	group:   ai
+	timeout: 120s
+	sse:     true
+)
+service admin {
+	// 流式发送：实际响应为 SSE（text/event-stream），不走统一 JSON 信封；AiSendMessageResp 仅作生成占位
+	@handler sendMessageStream
+	post /messages/stream (AiSendMessageReq) returns (AiSendMessageResp)
 }

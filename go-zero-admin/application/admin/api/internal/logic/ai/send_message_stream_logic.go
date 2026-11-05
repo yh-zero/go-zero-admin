@@ -35,3 +35,16 @@ func (l *SendMessageStreamLogic) SendMessageStream(req *types.AiSendMessageReq) 
 	}
 	return stream, nil
 }
+
+// MapSendResult 保留 API 字段的零值与 null，不直接暴露 protobuf 的省略字段规则。
+func MapSendResult(result *aipb.SendMessageResponse) *types.AiSendMessageResp {
+	if result == nil {
+		return nil
+	}
+	return &types.AiSendMessageResp{
+		ConversationId: result.ConversationId,
+		Conversation:   mapAiConversation(result.Conversation),
+		UserMessage:    mapAiMessage(result.UserMessage),
+		AiMessage:      mapAiMessage(result.AiMessage),
+	}
+}

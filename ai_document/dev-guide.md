@@ -109,11 +109,17 @@ if ($ready.code -ne 200 -or -not $ready.result.ready) { throw "API 尚未就绪"
 
 ## 3. 日常开发与验证流程
 
-规范正文以三层 AGENTS.md 为唯一事实源，本节不复制其内容，仅提示执行顺序：确认范围与授权（根 §5.7）→ 契约先行与生成入口（根 §5.2、后端 §2）→ 实现与分层回归（后端 §3）→ 静态门槛（后端 §7、前端 §8）→ 功能验收（根 §9）→ 精确清理与交付（根 §9.4–9.6）。每个受影响模块实现后先验证再推进依赖模块；未覆盖或失败列[待办](README.md#后端剩余事项)，不伪装全部通过。
+规范正文以三层 AGENTS.md 为唯一事实源，本节不复制其内容，仅提示执行顺序：确认范围与授权（根 §5.7）→ 契约先行与生成入口（根 §5.2、后端 §2）→ 实现、针对性回归及必要静态检查（根 §9、后端 §3）→ 受影响功能验收（根 §9）→ 按授权提交前执行完整自检（后端 §7、前端 §8）→ 精确清理与交付（根 §9.4–9.6）。开发阶段不默认检查无关功能或重复全量回归；每个受影响模块实现后先验证再推进依赖模块。未覆盖或失败列[待办](README.md#后端剩余事项)，不伪装全部通过。
 
-当前 `application/` 与 `pkg/` 的 Go 测试源文件已按要求移除，`go test ./...` 仅检查现有包编译，不提供业务回归覆盖。`test/verify_script_test.ps1` 继续在独立临时夹具中验证自检脚本的失败出口。CI 未覆盖数据库/Redis 集成行为；需要验证事务、并发和缓存时须恢复相关用例并使用独立测试实例。
+AI 发送与 model 已恢复 Go 回归：本地模型桩验证工具检查点与 SSE 终帧，真实数据库/缓存回归需显式设置 `GOZERO_AI_TEST_DSN`、`GOZERO_AI_TEST_REDIS` 并使用独立 MySQL/Redis 实例；变量缺失时这些集成用例明确跳过，不能记为业务验证通过。运行 `go test ./application/ai/rpc/internal/logic/aiservice ./application/ai/rpc/internal/model ./application/admin/api/internal/handler/ai -count=1` 可复验。其他模块仍缺少 Go 行为回归；`test/verify_script_test.ps1` 继续在独立临时夹具中验证自检脚本的失败出口，CI 默认环境不代表数据库/Redis 集成验证。
 
-前端 AI 回归在前端目录运行 `node --test scripts/aiClient.test.mjs scripts/aiChat.test.mjs`，验证长调用超时、鉴权刷新、权限、发送防重、游标合并、迟到响应及安全文本渲染；不调用真实模型。AI 对话入口为 `/ai/chat`，位于一级“AI 功能”下；只读、创建、发送、删除需分别配置菜单操作码，服务端仍需对应 Casbin 路由授权。新增库使用完整 SQL 内置菜单，已有库通过正常菜单/角色接口精确添加并保留原授权，不能重导初始化 SQL。
+AI SSE 路由单独在 `desc/sys/ai.api` 的 `@server` 块声明 `sse: true`，经 `gen.ps1 api` 生成 `rest.WithSSE()`；同名 `group: ai` 不会合并不同块的路由选项，不要给包含普通 JSON 接口的整个块启用 SSE。框架接管 SSE 响应头及连接写入期限，客户端仍需 `Accept: text/event-stream` 旁路普通 HTTP 超时；业务截止时间继续由 AI RPC 控制。handler 保留代理防缓冲、命名事件、心跳及 gRPC 桥接；Flush 沿当前审计/go-zero 透传 writer 展开并优先保留 `FlushError`，再交给 `ResponseController`，避免框架无错误返回的 `Flush` 吞掉底层错误。写入或 Flush 失败即退出，不要用直接断言 `http.Flusher` 的 `httpx.Stream` 覆盖该行为。路由与错误边界可运行 `go test ./application/admin/api/internal/handler/... -count=1` 复验，无需数据库或模型凭据。
+
+前端 AI 回归在前端目录运行 `node --test scripts/aiClient.test.mjs scripts/aiChat.test.mjs scripts/aiSend.test.mjs scripts/chatScroll.test.mjs`，验证流式鉴权、权限、原请求重查、防重复发送、权威结果回填、分页游标、迟到响应、安全文本渲染，以及滚动跟随、上翻暂停和历史锚点；不调用真实模型。AI 对话入口为 `/ai/chat`，位于一级“AI 功能”下；只读、创建、发送、删除需分别配置菜单操作码，服务端仍需对应 Casbin 路由授权。新增库使用完整 SQL 内置菜单，已有库通过正常菜单/角色接口精确添加并保留原授权，不能重导初始化 SQL。
+
+AI 工作区入口为 `/ai/workflows`、`/ai/tasks`、`/ai/tools`，页面与操作码见共享契约。已有开发库需要在“菜单管理”下给现有“AI 功能”补三个页面及九个操作权限，再在“角色管理 → 功能授权”中补勾对应资源，保留原授权；新增菜单不会自动关联超级管理员。保存前核对界面“已选 N 项”，保存后重新读取或从侧栏进入三页确认，不以 DOM 勾选属性或源码中已有注册替代实际生效检查。已有业务记录、账号与接口策略无需因菜单接入而重置。
+
+本次三页相关前端回归为 `node --test scripts/aiWorkspace.test.mjs scripts/aiWorkflows.test.mjs scripts/aiTasksTools.test.mjs`；后端菜单源检查为 `powershell -NoProfile -ExecutionPolicy Bypass -File test/ai_workspace_seed_test.ps1`。隔离工作流回归使用 `go test ./application/ai/rpc/internal/logic/aiservice -run '^TestAIWorkspace' -count=1 -v`；只有显式设置 `GOZERO_AI_TEST_DSN`、`GOZERO_AI_TEST_REDIS` 才执行数据库/缓存场景，缺环境时明确跳过。三页验收覆盖工具带入、步骤增删排序、编辑启停、运行、两个审批点与拒绝、删除后历史任务，以及权限、分页回退和草稿保留；仅使用本地工具，不调用模型。运行命令按本次影响范围选择，不因此默认重跑聊天或其他模块。
 
 认证可复用[登录 HTTP 回归入口](../go-zero-admin/test/login_e2e.ps1)：只用专用测试账号，正常取得一次性图形码，不读数据库/缓存绕过验证，也不退出其他设备。纯文档只需检查内容、链接与 `git diff --check`，不强制构建或全量 E2E。外部环境和故障场景边界见[问题清单](README.md#后端剩余事项)。
 

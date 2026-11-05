@@ -116,9 +116,10 @@ type AiSendMessageReq struct {
 }
 
 type AiSendMessageResp struct {
-	ConversationId int64          `json:"conversation_id"`
-	UserMessage    *AiChatMessage `json:"user_message"`
-	AiMessage      *AiChatMessage `json:"ai_message"`
+	ConversationId int64               `json:"conversation_id"`
+	Conversation   *AiConversationInfo `json:"conversation"`
+	UserMessage    *AiChatMessage      `json:"user_message"`
+	AiMessage      *AiChatMessage      `json:"ai_message"`
 }
 
 type AiTaskInfo struct {

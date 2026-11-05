@@ -1,13 +1,21 @@
-.workspace { display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); align-items: start; gap: 20px; min-width: 0; }
-.sidebar, .conversation { min-width: 0; }
-.list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; max-height: 560px; overflow: auto; }
+.workspace { display: grid; grid-template-columns: minmax(260px, 300px) minmax(0, 1fr); align-items: stretch; gap: 20px; min-width: 0; height: calc(100dvh - 140px); }
+.sidebar, .conversation { display: flex; flex-direction: column; min-width: 0; min-height: 0; height: 100%; }
+.sidebar > :global(.ant-card-head), .conversation > :global(.ant-card-head) { flex-shrink: 0; }
+.sidebar > :global(.ant-card-head) { padding-inline: 16px; }
+.sidebar > :global(.ant-card-body), .conversation > :global(.ant-card-body) { display: flex; flex: 1; flex-direction: column; min-height: 0; overflow: hidden; padding: 20px; }
+.sidebar > :global(.ant-card-body) { padding: 16px; }
+.sidebar :global(.ant-pagination) { flex-shrink: 0; }
+.list { display: flex; flex: 1; flex-direction: column; gap: 8px; min-height: 0; margin-bottom: 16px; overflow: auto; scrollbar-gutter: stable; }
 .conversationItem { display: flex; align-items: center; gap: 4px; padding: 6px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; min-width: 0; }
 .selected { background: var(--ant-color-primary-bg); border-color: var(--ant-color-primary-border); }
 .selectConversation { flex: 1; min-width: 0; text-align: left; white-space: normal; height: auto; padding: 6px; display: flex; flex-direction: column; align-items: start; gap: 2px; }
 .title { display: block; width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .small { color: var(--ant-color-text-secondary); font-size: 12px; }
-.messages { display: flex; flex-direction: column; gap: 16px; max-height: min(56vh, 680px); min-height: 180px; overflow: auto; padding: 4px 2px 16px; overflow-anchor: none; }
-.message { min-width: 0; padding: 16px; background: var(--ant-color-fill-quaternary); border-radius: 12px; }
+.messagesArea { position: relative; flex: 1; min-height: 0; }
+.messages { height: 100%; overflow: auto; padding: 4px 2px 16px; overflow-anchor: none; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.messageList { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.jumpToLatest { position: absolute; right: 16px; bottom: 12px; box-shadow: 0 2px 8px #15284b1a; }
+.message { flex-shrink: 0; min-width: 0; padding: 16px; background: var(--ant-color-fill-quaternary); border-radius: 12px; }
 .userMessage { background: var(--ant-color-primary-bg); }
 .messageMeta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; font-size: 12px; }
 .messageText { white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -15,15 +23,23 @@
 .tools { margin-top: 12px; min-width: 0; }
 .tool { margin-top: 8px; padding: 12px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; overflow-wrap: anywhere; }
 .tool pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; margin: 8px 0 0; }
-.historyAction { display: flex; justify-content: center; margin-bottom: 12px; }
-.composer { border-top: 1px solid var(--ant-color-border-secondary); padding-top: 16px; }
+.historyAction { display: flex; flex-shrink: 0; justify-content: center; margin-bottom: 12px; }
+.composer { flex-shrink: 0; border-top: 1px solid var(--ant-color-border-secondary); padding-top: 16px; }
 .composer :global(.ant-form-item) { margin-bottom: 10px; }
 .composerActions { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.feedback { margin-bottom: 12px; }
+.feedback { flex-shrink: 1; min-height: 40px; max-height: 30%; margin-bottom: 12px; overflow: auto; }
 .recordNote { font-size: 12px; }
+@media (max-height: 640px) {
+  .workspace { min-height: 400px; }
+  .composer textarea { max-height: 18dvh !important; overflow-y: auto !important; }
+}
+@media (max-width: 767px) {
+  .workspace { height: calc(100dvh - 112px); }
+}
 @media (max-width: 760px) {
-  .workspace { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  .list { max-height: 220px; }
-  .messages { max-height: 480px; }
+  .workspace { grid-template-columns: minmax(0, 1fr); gap: 16px; height: auto; }
+  .sidebar { height: min(320px, 38dvh); }
+  .conversation { height: calc(100dvh - 112px); min-height: 460px; }
+  .conversation > :global(.ant-card-body) { padding: 16px; }
   .message { padding: 12px; }
 }

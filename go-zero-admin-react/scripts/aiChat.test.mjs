@@ -54,24 +54,22 @@ test('AI对话关键边界', async t => {
       assert.equal(calls.length, 3, '失败不自动重试');
     });
 
-    await t.test('流式通道持有发送锁；重查复用原请求ID', async () => {
-      const calls = [];
-      let serial = 0;
-      const sender = helpers.createMessageSender(request => {
-        calls.push(request);
-        return Promise.resolve({ conversation_id: 9 });
-      }, () => `10000000-0000-4000-8000-${String(++serial).padStart(12, '0')}`);
-      const request = sender.startStream(8, '流式内容');
-      assert.ok(request, 'startStream 应返回请求对象');
-      assert.equal(sender.startStream(8, '第二次'), null, '流式进行中不接受第二个请求');
-      assert.equal(sender.start(8, '第三次'), null, '流式进行中一元入口同样拒绝');
-      sender.finish();
-      // 重查复用同一 request_id，不新建调用
-      const recheck = sender.recheck();
-      assert.ok(recheck, 'recheck 应返回尝试对象');
-      assert.equal(recheck.request.request_id, request.request_id, '重查沿用原 request_id');
-      await recheck.promise;
-      assert.equal(calls.length, 1);
+    await t.test('流式通道保存meta和原请求，卸载中止后不接受迟到结果', async () => {
+      const pending = deferred();
+      let signal;
+      const sender = helpers.createMessageSender((request, handlers, abortSignal) => {
+        signal = abortSignal;
+        handlers.onMeta({ conversation_id: 9, user_message_id: 1, ai_message_id: 2 });
+        return pending.promise;
+      });
+      const attempt = sender.start(0, '首条内容');
+      assert.equal(sender.start(0, '第二次'), null);
+      await Promise.resolve();
+      assert.equal(attempt.meta.conversation_id, 9);
+      sender.abort();
+      assert.equal(signal.aborted, true);
+      pending.resolve({ conversation_id: 9 });
+      await assert.rejects(attempt.promise, error => error.name === 'AbortError');
     });
 
     await t.test('游标页去重按时间正序，重复或倒退无效的游标终止', () => {
@@ -132,6 +130,25 @@ test('AI对话关键边界', async t => {
       assert.ok(!markup.includes('免费'));
     });
 
+    await t.test('刷新入口放在会话列表标题栏，不再占用独立页面标题区', async () => {
+      const { AIChatAccess } = await server.ssrLoadModule('/src/pages/ai/AIChat.tsx');
+      const { conversationListOptions } = await server.ssrLoadModule('/src/pages/ai/chatQueries.ts');
+      const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
+      const scope = ['test-session', 1, 1];
+      const permCodes = ['sys:ai:conversation:list', 'sys:ai:conversation:create'];
+      useAuthStore.getState().setPermCodes(permCodes);
+      const client = new QueryClient();
+      try {
+        client.setQueryData(conversationListOptions(scope, 1).queryKey, { list: [], total: 0 });
+        const markup = renderToStaticMarkup(createElement(QueryClientProvider, { client }, createElement(AIChatAccess,
+          { scope, permissionsReady: true, permCodes })));
+        assert.ok(!markup.includes('与 AI 助手对话，查看消息'), '不再渲染独立页面标题区');
+        const title = markup.indexOf('我的会话');
+        const refresh = markup.indexOf('aria-label="刷新会话"');
+        assert.ok(title >= 0 && refresh > title && refresh < markup.indexOf('ant-card-body', title), '刷新按钮应位于会话列表标题栏');
+      } finally { client.clear(); }
+    });
+
     await t.test('权限未就绪或缺少查看码时页面不创建会话查询，授权不足显示403', async () => {
       const { AIChatAccess } = await server.ssrLoadModule('/src/pages/ai/AIChat.tsx');
       const client = new QueryClient();
@@ -147,7 +164,8 @@ test('AI对话关键边界', async t => {
     await t.test('AI写请求在权限就绪前及撤权后被统一请求层拒绝', async () => {
       const { request } = await server.ssrLoadModule('/src/utils/request.ts');
       const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
-      const { createAiConversation, deleteAiConversation, sendAiMessage } = await server.ssrLoadModule('/src/api/ai.ts');
+      const { createAiConversation, deleteAiConversation } = await server.ssrLoadModule('/src/api/ai.ts');
+      const { sendAiMessageStream } = await server.ssrLoadModule('/src/api/aiStream.ts');
       let calls = 0;
       request.defaults.adapter = async config => { calls += 1; return { data: { code: 200, result: {} }, status: 200, statusText: 'OK', headers: {}, config }; };
       useAuthStore.getState().clearPermissions();
@@ -155,7 +173,7 @@ test('AI对话关键边界', async t => {
       useAuthStore.getState().setPermCodes(['sys:ai:conversation:create']);
       await createAiConversation();
       await assert.rejects(deleteAiConversation(7), error => error.code === 403);
-      await assert.rejects(sendAiMessage({ request_id: '00000000-0000-4000-8000-000000000001', conversation_id: 7, content: 'test' }), error => error.code === 403);
+      await assert.rejects(sendAiMessageStream({ request_id: '00000000-0000-4000-8000-000000000001', conversation_id: 7, content: 'test' }, {}), error => error.code === 403);
       assert.equal(calls, 1);
     });
   } finally {

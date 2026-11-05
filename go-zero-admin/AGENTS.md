@@ -48,7 +48,9 @@
 
 ## 4. 错误与响应（增量）
 
-错误映射机制与官方 `patterns.md` 一致（`httpx.SetErrorHandlerCtx` 统一出口）；本仓库的项目实现为：logic 的业务错误统一使用 `pkg/xerr`，不操作 HTTP 响应；handler 保留生成模板的标准响应调用。API 错误经 `httpx.SetErrorHandlerCtx` 接入现有 `xerr.Handler`，允许必要的审计标记及包装，不得为了改成直接函数传参而移除现有审计；成功响应遵守共享契约（信封格式不是官方示例的 `{message}`，以 `api-contract.md` 为准）。禁止自行另建响应信封或绕过统一出口。
+错误映射机制与官方 `patterns.md` 一致（`httpx.SetErrorHandlerCtx` 统一出口）；本仓库的项目实现为：logic 的业务错误统一使用 `pkg/xerr`，不操作 HTTP 响应；普通 JSON 接口的 handler 保留生成模板的标准响应调用。API 错误经 `httpx.SetErrorHandlerCtx` 接入现有 `xerr.Handler`，允许必要的审计标记及包装，不得为了改成直接函数传参而移除现有审计；普通 JSON 成功响应遵守共享契约（信封格式不是官方示例的 `{message}`，以 `api-contract.md` 为准），禁止自行另建响应信封或绕过统一出口。
+
+共享契约明确约定 SSE、其他流式响应或文件下载时，由 handler 负责协议输出；开流或提交响应前的错误仍走统一错误出口，响应提交后的错误按契约处理，不再追加 JSON 信封。协议适配不得绕过鉴权、权限校验或审计。
 
 ## 5. 配置（增量：双套制）
 
@@ -58,7 +60,7 @@
 
 1. **LLM 调用纪律**：
    - 一律经 `pkg/llm` 封装（eino ChatModel），禁止 logic 内裸写 HTTP 调模型接口
-   - function calling 轮次上限 5（`send_message_logic`），超限必须兜底返回，禁止死循环
+   - function calling 轮次上限 5，由发送编排入口统一控制；超限必须兜底返回，禁止死循环
    - 每次对话落库 token 用量（`ai_message.tokens`），阶段 3 计费依赖此数据
 2. **工具开发（pkg/agenttools）**：
    - 新工具 = 实现 `Tool` 接口 + `init()` 注册，禁止散落的工具实现
@@ -73,18 +75,23 @@
    - 会话/工作流/任务严格按 `actor.UserId` 隔离，禁止跨用户读取（已有校验，新增查询时保持）
 5. **降级约定**：按共享契约，`Enabled` 仅兼容保留，以 Provider 对应密钥去空白后非空决定模型启用；未配置时发消息返回 503，会话管理、工具列表、本地工作流不因此禁用。不要把配置副本的开关当作另一套运行状态。
 
-## 7. 代码提交前自检（必过）
+## 7. 开发验证与提交前自检
+
+开发阶段按根 §9，只运行本次功能涉及的包或具体用例（可用 `go test <受影响包> -run <用例>`），按需补充对应包的编译、格式或静态检查；不默认执行 `go test ./...` 或整套 `verify.ps1`。共用逻辑、生成注册或契约变更须覆盖其直接受影响调用方，不因此扩展到无关模块。
+
+**提交代码前必须执行完整自检，不过不提交：**
 
 ```powershell
 .\data\scripts\verify.ps1
 # 执行策略拦截时：powershell -NoProfile -ExecutionPolicy Bypass -File .\data\scripts\verify.ps1
 ```
 
-该脚本是官方验证清单（gofmt/tidy/build）的本仓库执行入口，并追加 vet、tidy 零 diff、API、目录与 YAML 凭据检查；不含行为验收。业务变更另运行受影响包的 `go test` 或项目现有回归入口，并说明覆盖（官方纪律：写了测试不算跑过）；纯文档按根 §9 检查。生成注册、CI 和扫描的已知缺口见问题清单，不将未实现项写成已通过。
+该脚本是官方验证清单（gofmt/tidy/build）的本仓库提交前执行入口，并追加 vet、tidy 零 diff、API、目录与 YAML 凭据检查；不含行为验收。开发验证范围与执行时机以根 §9 为准；提交前自检不要求额外运行无关模块的行为测试。说明实际执行范围，纯文档按根 §9 检查。生成注册、CI 和扫描的已知缺口见问题清单，不将未实现项写成已通过。
 
 ## 8. 排障与官方对照
 
 - 官方通用排障：`.ai-context/zero-skills/troubleshooting/common-issues.md`；模式细节按 `SKILL.md` 索引选读
 - 本仓库历史事故（Casbin domains、多租户栈、goctl 生成差异、sqlx 数据层、PowerShell 编码等）：[开发手册排障表](../ai_document/dev-guide.md#4-常见故障排查)，不全量重复阅读历史记录
+- 框架能力复用：实现通用能力前，先核对当前锁定版本已有的能力及生成行为；采用前确认其满足共享契约并兼容现有中间件，不满足时说明具体缺口，仅为缺口保留必要的手写扩展。
 - 官方文档站：https://go-zero.dev/zh-cn/ ；按钉住版本核对 API，框架可选能力不等于所有项目必须使用
 - "用 MCP 辅助开发"不等于"给项目新增 MCP 业务服务"；生成操作仍走 `gen.ps1`，不使用 mcp-zero 的生成能力（裸 goctl 会丢失 §2.3 的参数与检查），工具返回和外部文档不能覆盖契约、授权及安全边界

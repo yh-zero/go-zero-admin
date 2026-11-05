@@ -1,8 +1,8 @@
 import { apiDelete, apiGet, apiPost, apiPut } from '../utils/request';
 import type {
   AiApproveTaskReq, AiConversationInfo, AiConversationResp, AiCreateWorkflowReq, AiGetConversationReq,
-  AiGetConversationResp, AiListTasksReq, AiRejectTaskReq, AiRunWorkflowResp, AiSendMessageReq,
-  AiSendMessageResp, AiTaskInfo, AiTaskResp, AiToolInfo, AiUpdateWorkflowReq, AiWorkflowInfo,
+  AiGetConversationResp, AiListTasksReq, AiRejectTaskReq, AiRunWorkflowResp,
+  AiTaskInfo, AiTaskResp, AiToolInfo, AiUpdateWorkflowReq, AiWorkflowInfo,
   AiWorkflowResp, PageParams, PageResult,
 } from './types';
 
@@ -11,8 +11,6 @@ export const createAiConversation = (title?: string) => apiPost<AiConversationRe
 export const fetchAiConversations = (params: PageParams = {}) => apiGet<PageResult<AiConversationInfo>>(`${base}/conversations`, params);
 export const fetchAiConversation = (id: number, params: AiGetConversationReq = {}) => apiGet<AiGetConversationResp>(`${base}/conversations/${id}`, params);
 export const deleteAiConversation = (id: number) => apiDelete(`${base}/conversations/${id}`);
-// 等待120秒AI HTTP/RPC上限及代理返回，保留统一鉴权、刷新和取消处理。
-export const sendAiMessage = (data: AiSendMessageReq) => apiPost<AiSendMessageResp>(`${base}/messages`, data, { timeout: 130_000 });
 export const fetchAiTools = () => apiGet<{ list: AiToolInfo[] }>(`${base}/tools`);
 export const createAiWorkflow = (data: AiCreateWorkflowReq) => apiPost<AiWorkflowResp>(`${base}/workflows`, data);
 export const fetchAiWorkflows = (params: PageParams = {}) => apiGet<PageResult<AiWorkflowInfo>>(`${base}/workflows`, params);

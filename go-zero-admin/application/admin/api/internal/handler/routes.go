@@ -51,16 +51,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: ai.DeleteConversationHandler(serverCtx),
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/messages",
-				Handler: ai.SendMessageHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/messages/stream",
-				Handler: ai.SendMessageStreamHandler(serverCtx),
-			},
-			{
 				Method:  http.MethodGet,
 				Path:    "/tasks",
 				Handler: ai.ListAgentTasksHandler(serverCtx),
@@ -118,6 +108,19 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		},
 		rest.WithPrefix("/v1/sys/ai"),
 		rest.WithTimeout(120000*time.Millisecond),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/messages/stream",
+				Handler: ai.SendMessageStreamHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v1/sys/ai"),
+		rest.WithTimeout(120000*time.Millisecond),
+		rest.WithSSE(),
 	)
 
 	server.AddRoutes(

@@ -23,7 +23,6 @@ const (
 	AiService_ListConversations_FullMethodName  = "/aipb.AiService/ListConversations"
 	AiService_GetConversation_FullMethodName    = "/aipb.AiService/GetConversation"
 	AiService_DeleteConversation_FullMethodName = "/aipb.AiService/DeleteConversation"
-	AiService_SendMessage_FullMethodName        = "/aipb.AiService/SendMessage"
 	AiService_SendMessageStream_FullMethodName  = "/aipb.AiService/SendMessageStream"
 	AiService_ListTools_FullMethodName          = "/aipb.AiService/ListTools"
 	AiService_CreateWorkflow_FullMethodName     = "/aipb.AiService/CreateWorkflow"
@@ -46,7 +45,6 @@ type AiServiceClient interface {
 	ListConversations(ctx context.Context, in *ListConversationsRequest, opts ...grpc.CallOption) (*ListConversationsResponse, error)
 	GetConversation(ctx context.Context, in *GetConversationRequest, opts ...grpc.CallOption) (*GetConversationResponse, error)
 	DeleteConversation(ctx context.Context, in *DeleteConversationRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
-	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
 	SendMessageStream(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamChunk], error)
 	ListTools(ctx context.Context, in *ListToolsRequest, opts ...grpc.CallOption) (*ListToolsResponse, error)
 	CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*CreateWorkflowResponse, error)
@@ -103,16 +101,6 @@ func (c *aiServiceClient) DeleteConversation(ctx context.Context, in *DeleteConv
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, AiService_DeleteConversation_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *aiServiceClient) SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SendMessageResponse)
-	err := c.cc.Invoke(ctx, AiService_SendMessage_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +244,6 @@ type AiServiceServer interface {
 	ListConversations(context.Context, *ListConversationsRequest) (*ListConversationsResponse, error)
 	GetConversation(context.Context, *GetConversationRequest) (*GetConversationResponse, error)
 	DeleteConversation(context.Context, *DeleteConversationRequest) (*NoDataResponse, error)
-	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
 	SendMessageStream(*SendMessageRequest, grpc.ServerStreamingServer[StreamChunk]) error
 	ListTools(context.Context, *ListToolsRequest) (*ListToolsResponse, error)
 	CreateWorkflow(context.Context, *CreateWorkflowRequest) (*CreateWorkflowResponse, error)
@@ -290,9 +277,6 @@ func (UnimplementedAiServiceServer) GetConversation(context.Context, *GetConvers
 }
 func (UnimplementedAiServiceServer) DeleteConversation(context.Context, *DeleteConversationRequest) (*NoDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteConversation not implemented")
-}
-func (UnimplementedAiServiceServer) SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method SendMessage not implemented")
 }
 func (UnimplementedAiServiceServer) SendMessageStream(*SendMessageRequest, grpc.ServerStreamingServer[StreamChunk]) error {
 	return status.Error(codes.Unimplemented, "method SendMessageStream not implemented")
@@ -419,24 +403,6 @@ func _AiService_DeleteConversation_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServiceServer).DeleteConversation(ctx, req.(*DeleteConversationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AiService_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SendMessageRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AiServiceServer).SendMessage(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AiService_SendMessage_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AiServiceServer).SendMessage(ctx, req.(*SendMessageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -672,10 +638,6 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteConversation",
 			Handler:    _AiService_DeleteConversation_Handler,
-		},
-		{
-			MethodName: "SendMessage",
-			Handler:    _AiService_SendMessage_Handler,
 		},
 		{
 			MethodName: "ListTools",

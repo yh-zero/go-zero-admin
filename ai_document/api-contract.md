@@ -225,6 +225,8 @@
 
 - ✅ 第一期导航：一级“AI 功能”（`/ai`）与“租户管理”同级，子页面“AI 对话”（`/ai/chat`，页面标识 `ai_chat`）。复用现有会话和消息接口，展示本人会话、消息历史、发送状态、工具调用记录和已知 token 用量。
 - ✅ 页面操作码：查看会话 `sys:ai:conversation:list`（含详情）、新建 `sys:ai:conversation:create`、删除 `sys:ai:conversation:delete`、发送 `sys:ai:message:send`。初始化仅关联超级管理员；菜单/按钮码不替代服务端 Casbin 路由权限，普通角色需要分别获得对应授权。
+- ✅ 三页接入：工作流管理 `/ai/workflows`（`ai_workflow`）、任务中心 `/ai/tasks`（`ai_task`）、工具目录 `/ai/tools`（`ai_tool`），均挂在“AI 功能”下。操作码分别为 `sys:ai:workflow:list/create/edit/delete/run`、`sys:ai:task:list/approve/reject`、`sys:ai:tool:list`（斜杠表示各自独立的末段）。初始化仅关联超级管理员，服务端继续独立校验路由权限与本人归属；已有库通过正常菜单与角色授权入口补齐，不能仅修改初始化 SQL 后就视为当前环境已接入。
+- ✅ 页面行为：工作流使用顺序步骤编辑器，名称搜索仅过滤本页；新建默认启用，启停通过编辑保存。运行使用已保存定义，运行输入仅作记录；任务详情将 `next_step` 转为当前步骤或已完成步数，并保留输入、结果原文，不按最新工作流推断历史总进度。批准、拒绝沿用详情的 `next_step`，写操作期间禁止重复提交；无幂等标识的创建/运行在结果未知时提示先刷新核对，不自动重发。无任务查看权限时，运行成功仅显示返回的任务 ID 与状态，不自动进入任务中心。工具目录只读，允许将已有工具预填到新建工作流，不提供直接调试或调度入口。已通过隔离本地工具 HTTP/浏览器联调，当前开发入口三页导航与只读加载亦已核对。
 - ✅ 同一逻辑请求的结果重查复用 `request_id`；明确再次发起模型调用使用新 ID。发送期间阻止重复提交，切换会话后的迟到响应不能覆盖当前会话；消息正文和工具参数按不可信文本转义显示，工具调用记录不代表实际执行结果或费用明细。显示的是已知 token，零值不能据此推断完整计量或免费。
 
 | 方法与路径 | 请求字段 | result 字段 |
@@ -233,7 +235,7 @@
 | GET `/conversations` | 分页 | list、total |
 | GET `/conversations/:id` | id、before_id（0/省略取最新页）、page_size（0/省略默认20，最大20） | conversation、messages、has_more、next_before_id |
 | DELETE `/conversations/:id` | id | `{}` |
-| POST `/messages` | request_id（规范 UUID，逻辑提交重试复用）、conversation_id（0 自动新建）、content（非空，最多 16000 字节） | conversation_id、user_message、ai_message |
+| POST `/messages/stream` | request_id（规范 UUID，逻辑提交重试复用）、conversation_id（0 自动新建）、content（非空，最多 16000 字节） | ✅ SSE；done.result 含 conversation_id、conversation、user_message、ai_message |
 | GET `/tools` | 无 | list：name、description、parameters_schema |
 | POST `/workflows` | name、definition（JSON 字符串）、interval_seconds（默认 0） | workflow |
 | GET `/workflows` | 分页 | list、total |
@@ -261,19 +263,21 @@
 - 🚧 对话导出：前端支持导出 Markdown / JSON 格式（浏览器下载）。
 - 🚧 新建会话：标题自动取首条消息前 64 字符。
 
-✅ 流式发送：`POST /v1/sys/ai/messages/stream` 请求体与 `/messages` 完全一致（request_id 幂等语义相同），响应为 SSE（`Content-Type: text/event-stream`）。客户端必须带 `Accept: text/event-stream`（go-zero 按此头放行长连接）。事件序列：
+✅ 流式发送与结果回填：仅保留 `POST /v1/sys/ai/messages/stream`，普通 `/messages` HTTP 与 `SendMessage` RPC 退役，不提供兼容别名。请求字段见上表；结果重查仍向本接口提交原始 request_id、conversation_id 和 content。响应为 SSE（`Content-Type: text/event-stream`），客户端必须带 `Accept: text/event-stream`（go-zero 按此头放行长连接）。事件序列：
 
 | event | data 字段 | 说明 |
 |---|---|---|
 | `meta` | conversation_id、user_message_id、ai_message_id | 首帧，消息对预留成功后立即下发 |
 | `delta` | content | 助手正文增量，仅最终回复轮流式；工具调用轮不下发参数片段 |
 | `tool` | name、status（start/done） | 工具调用提示，不代表执行结果或费用 |
-| `done` | tokens、usage_complete | 终帧，status 恒为 succeeded |
+| `done` | tokens、usage_complete、result | ✅ 终帧；result 包含 conversation_id、conversation、user_message、ai_message，消息 status 均为 succeeded |
 | `error` | code、msg | 业务失败终帧，语义同统一信封 |
 
 - ✅ 失败语义不变：error 后消息对终态 failed、助手正文为空；流式已展示的部分内容**不落库、不构成最终回复**，客户端收到 error 后应以服务端状态为准重新拉取。
-- ✅ running 重放与断线：重复 request_id 语义同 `/messages`；流中断不续传，客户端以 request_id 重新查询或换新 ID 重试。每 15 秒发送 `: ping` 心跳注释行防代理空闲超时。
-- ✅ 权限、超时、字节上限与 `/messages` 一致；模型 90 秒上限不变，HTTP 层不再对流式请求施加 120 秒超时（go-zero SSE 旁路），由下游超时兜底。
+- ✅ 权威结果：done 只在消息对终态成功提交后下发；result 中消息正文、工具记录、时间和用量来自本次已保存结果。conversation 为当前会话摘要，执行期间被删除时为 null，客户端不得据此恢复已删除会话。成功重放返回相同消息对和当前有效会话摘要。前端据此精确回填 Query 缓存，保留历史消息和游标，正常成功路径不再重查全部历史页或立即刷新列表；断流、失败或无法确定缓存边界时保留读取兜底。跨标签新增消息超过最新页覆盖范围时重建最新页及服务端游标，历史可继续加载，不能伪装连续完整缓存。
+- ✅ running 重放与断线：用户内 request_id 幂等，内容或原始会话参数不符返回 400；成功补发完整结果，失败返回原安全错误，running 返回处理中且不启动另一调用。流中断不续传；重查复用原始请求，明确发起新意图才换新 ID。每 15 秒发送 `: ping` 心跳注释行防代理空闲超时。
+- ✅ SSE 框架接入：仅发送路由启用 go-zero `WithSSE()`，由框架设置 SSE 响应头并清除连接写入期限；普通 AI 接口继续返回 JSON。开流前的解析、校验及建立 RPC 流失败仍走统一 JSON 错误信封；开流后的写入或 Flush 失败立即结束连接，客户端按原请求重查。客户端继续携带 `Accept: text/event-stream`，事件字段、心跳与结果回填协议不变。已通过包含 Trace/审计中间件的本机 HTTP 桩、Flush 故障及前端客户端回归。
+- ✅ 单一发送流程沿用权限与字节限制；AI.TimeoutSeconds（1..90 秒）作为历史读取、所有模型轮次及工具执行的整体业务截止时间，检查点与终态清理另有有界窗口。HTTP 层对 SSE 旁路超时，业务截止时间由 AI RPC 显式控制。以上已用隔离数据库/Redis、本地模型桩及真实页面联调；不代表外部供应商验收。
 
 会话消息只读取本会话及本人数据。AI 按 YAML 中的 Provider 选择 `AI_<PROVIDER>_KEY`（如 `AI_DEEPSEEK_KEY` 对应 `AI.DeepSeekKey`），该 Key 去除首尾空白后非空即启用，未配置或为空白则关闭；YAML 的 Enabled 字段保留兼容，运行时启用状态以 Key 为准。模型、地址和超时继续使用 YAML。关闭时发送消息返回 503，不产生伪造回答；会话管理、工具列表和本地工作流仍可用。密钥不回显、不记录；长调用等外部验证见[问题清单](README.md#后端剩余事项)。
 
@@ -285,5 +289,5 @@
 
 1. 先明确变更字段/路由/权限/状态语义，在本文标记 🚧；纯整理不能顺带改行为。
 2. 后端修改对应 `.api` / `.proto` 来源，经 `gen.ps1` 生成并实现；前端同步类型与 API 模块，生成物边界见[后端规范](../go-zero-admin/AGENTS.md#2-生成入口与文件边界官方规则之上的项目适配)。
-3. 按[根规范的任务完成定义](../AGENTS.md#9-任务完成定义)运行受影响测试与两端自检；只有真实验证的范围才能标 ✅，未覆盖项记入[问题清单](README.md#后端剩余事项)。
+3. 按[根规范的任务完成定义](../AGENTS.md#9-任务完成定义)，开发阶段只验证本次接口及直接受影响的调用方，提交代码前再执行对应端完整自检；只有真实验证的范围才能标 ✅，未覆盖项记入[问题清单](README.md#后端剩余事项)。
 4. 历史基线、请求次数、临时资源与单次验收过程随提交/PR 保存，不再维护重复状态矩阵；字段、能力限制和风险边界不能因移除历史记录而丢失。
