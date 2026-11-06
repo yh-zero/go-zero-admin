@@ -9,12 +9,22 @@ CacheRedis:
   - Host: redis:6379
     Type: node
 
+# 知识库向量索引；Address 去空白后非空即启用，未配置则知识库检索降级
+Qdrant:
+  Address: qdrant:6334
+  APIKey: ${QDRANT_API_KEY}
+
 AI:
   Enabled: false                 # 兼容旧开关；实际按密钥是否配置自动启停
   Provider: deepseek             # deepseek / qwen
   Model: deepseek-chat
   BaseURL: https://api.deepseek.com/v1
   TimeoutSeconds: 60
+  # Embedding（知识库向量化）：固定走 EmbeddingProvider（当前仅 qwen），密钥取 QwenKey；未配置则知识库摄取/检索降级
+  EmbeddingProvider: qwen
+  EmbeddingModel: text-embedding-v4
+  EmbeddingDimensions: 1024
+  EmbeddingBaseURL: https://dashscope.aliyuncs.com/compatible-mode/v1
 
   # 密钥二选一：
   #   1) 直接填真实值，立即生效（注意别提交到公开仓库）

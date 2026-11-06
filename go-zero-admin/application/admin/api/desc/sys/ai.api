@@ -145,6 +145,64 @@ type (
 		ExpectedStep *int64 `json:"expected_step" validate:"required,min=0"`
 		Reason       string `json:"reason" validate:"max=512"`
 	}
+	AiKbInfo {
+		Id          int64  `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		OwnerId     int64  `json:"owner_id"`
+		DocCount    int64  `json:"doc_count"`
+		ChunkCount  int64  `json:"chunk_count"`
+		CreatedAt   int64  `json:"created_at"`
+		UpdatedAt   int64  `json:"updated_at"`
+	}
+	AiKbDocInfo {
+		Id             int64  `json:"id"`
+		KbId           int64  `json:"kb_id"`
+		Title          string `json:"title"`
+		Status         string `json:"status"`
+		Error          string `json:"error"`
+		ChunkCount     int64  `json:"chunk_count"`
+		EmbeddingModel string `json:"embedding_model"`
+		CreatedAt      int64  `json:"created_at"`
+		UpdatedAt      int64  `json:"updated_at"`
+	}
+	AiCreateKbReq {
+		Name        string `json:"name" validate:"required,max=128"`
+		Description string `json:"description,optional" validate:"omitempty,max=512"`
+	}
+	AiKbResp {
+		Kb *AiKbInfo `json:"kb"`
+	}
+	AiListKbsResp {
+		List  []*AiKbInfo `json:"list"`
+		Total int64       `json:"total"`
+	}
+	AiUpdateKbReq {
+		Id          int64   `path:"id" validate:"min=1"`
+		Name        *string `json:"name,optional" validate:"omitempty,max=128"`
+		Description *string `json:"description,optional" validate:"omitempty,max=512"`
+	}
+	AiCreateKbDocReq {
+		Id      int64  `path:"id" validate:"min=1"`
+		Title   string `json:"title" validate:"required,max=128"`
+		Content string `json:"content" validate:"required,max=65536"`
+	}
+	AiKbDocListReq {
+		Id       int64 `path:"id" validate:"min=1"`
+		Page     int64 `form:"page,optional" validate:"omitempty,min=1"`
+		PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+	}
+	AiKbDocReq {
+		Id    int64 `path:"id" validate:"min=1"`
+		DocId int64 `path:"doc_id" validate:"min=1"`
+	}
+	AiKbDocResp {
+		Doc *AiKbDocInfo `json:"doc"`
+	}
+	AiListKbDocsResp {
+		List  []*AiKbDocInfo `json:"list"`
+		Total int64          `json:"total"`
+	}
 )
 
 @server (
@@ -194,6 +252,33 @@ service admin {
 
 	@handler approveTask
 	post /tasks/:id/approve (AiApproveTaskReq) returns (EmptyResp)
+
+	@handler createKb
+	post /kbs (AiCreateKbReq) returns (AiKbResp)
+
+	@handler listKbs
+	get /kbs (AiPageReq) returns (AiListKbsResp)
+
+	@handler getKb
+	get /kbs/:id (AiIdReq) returns (AiKbResp)
+
+	@handler updateKb
+	put /kbs/:id (AiUpdateKbReq) returns (EmptyResp)
+
+	@handler deleteKb
+	delete /kbs/:id (AiIdReq) returns (EmptyResp)
+
+	@handler createKbDoc
+	post /kbs/:id/docs (AiCreateKbDocReq) returns (AiKbDocResp)
+
+	@handler listKbDocs
+	get /kbs/:id/docs (AiKbDocListReq) returns (AiListKbDocsResp)
+
+	@handler deleteKbDoc
+	delete /kbs/:id/docs/:doc_id (AiKbDocReq) returns (EmptyResp)
+
+	@handler retryKbDoc
+	post /kbs/:id/docs/:doc_id/retry (AiKbDocReq) returns (AiKbDocResp)
 
 	@handler rejectTask
 	post /tasks/:id/reject (AiRejectTaskReq) returns (EmptyResp)

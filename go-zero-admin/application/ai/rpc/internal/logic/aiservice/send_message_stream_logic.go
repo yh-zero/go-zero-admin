@@ -151,7 +151,8 @@ func (l *SendMessageStreamLogic) SendMessageStream(in *aipb.SendMessageRequest, 
 	}
 	messages = append(messages, schema.UserMessage(in.Content))
 
-	answer, complete, err := askModelStream(ctx, l.svcCtx.LLM, messages, send, func(total int64, calls []schema.ToolCall, usageComplete bool) error {
+	// 工具执行需按操作者归属过滤（如 kb_search 只查本人知识库），身份经 ctx 传递而非工具参数（LLM 输出不可信）
+	answer, complete, err := askModelStream(agenttools.WithActor(ctx, in.Actor.UserId), l.svcCtx.LLM, messages, send, func(total int64, calls []schema.ToolCall, usageComplete bool) error {
 		tokens = total
 		record.Calls = calls
 		record.UsageComplete = usageComplete

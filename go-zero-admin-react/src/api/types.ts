@@ -185,3 +185,17 @@ export interface AiListTasksReq extends PageParams { status?: AiTaskStatus; work
 export interface AiTaskResp { task: AiTaskInfo }
 export interface AiApproveTaskReq { expected_step: number }
 export interface AiRejectTaskReq extends AiApproveTaskReq { reason: string }
+// 知识库（Qdrant 向量检索；归属与状态语义见契约"AI 知识库与向量检索"）
+export interface AiKbInfo {
+  id: number; name: string; description: string; owner_id: number;
+  doc_count: number; chunk_count: number; created_at: number; updated_at: number;
+}
+export interface AiKbDocInfo {
+  id: number; kb_id: number; title: string; status: 'pending' | 'ready' | 'failed'; error: string;
+  chunk_count: number; embedding_model: string; created_at: number; updated_at: number;
+}
+export interface AiCreateKbReq { name: string; description?: string }
+export interface AiUpdateKbReq { name?: string; description?: string }
+export interface AiKbResp { kb: AiKbInfo }
+export interface AiCreateKbDocReq { title: string; content: string }
+export interface AiKbDocResp { doc: AiKbDocInfo }

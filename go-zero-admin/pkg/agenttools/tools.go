@@ -30,6 +30,16 @@ func Register(t Tool) {
 	registry[t.Name()] = t
 }
 
+// RegisterIfAbsent 注册依赖注入的工具（如 kb_search 需装配期注入检索能力）；
+// 同名已注册时跳过并返回 false，供服务装配与测试重复构建 svc 场景使用。
+func RegisterIfAbsent(t Tool) bool {
+	if _, exists := registry[t.Name()]; exists {
+		return false
+	}
+	registry[t.Name()] = t
+	return true
+}
+
 // Get 按名取工具
 func Get(name string) (Tool, bool) {
 	t, ok := registry[name]

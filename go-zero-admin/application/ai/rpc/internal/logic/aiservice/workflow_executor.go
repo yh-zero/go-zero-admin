@@ -76,7 +76,7 @@ func executeWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *mode
 		if !ok {
 			return failWorkflow(ctx, svcCtx, task, "步骤工具不可用")
 		}
-		output, err := tool.Execute(ctx, step.Input)
+		output, err := tool.Execute(agenttools.WithActor(ctx, task.CreatedBy), step.Input)
 		if err != nil {
 			return failWorkflow(ctx, svcCtx, task, "步骤工具执行失败")
 		}
@@ -129,6 +129,9 @@ func aiModelError(err error) error {
 	}
 	if errors.Is(err, model.ErrTaskState) {
 		return xerr.NewErrCodeMsg(xerr.REQUEST_PARAM_ERROR, "任务状态已变化，不能重复操作")
+	}
+	if errors.Is(err, model.ErrKbDocState) {
+		return xerr.NewErrCodeMsg(xerr.REQUEST_PARAM_ERROR, "文档状态已变化，仅失败或待摄取的文档可重试")
 	}
 	return xerr.NewErrCode(xerr.DB_ERROR)
 }

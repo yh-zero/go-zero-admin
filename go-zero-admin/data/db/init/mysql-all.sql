@@ -100,6 +100,55 @@ CREATE TABLE `ai_workflow` (
   KEY `idx_next_run` (`enabled`,`next_run_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 工作流';
 
+
+-- ai_kb：知识库。事实源在 MySQL；Qdrant 仅存向量索引（可由本表重建）。
+DROP TABLE IF EXISTS `ai_kb`;
+CREATE TABLE `ai_kb` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `owner_id` bigint unsigned NOT NULL COMMENT '所属用户（仅本人可读写）',
+  `name` varchar(128) NOT NULL COMMENT '知识库名称',
+  `description` varchar(512) NOT NULL DEFAULT '' COMMENT '描述',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` datetime DEFAULT NULL COMMENT '软删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_owner` (`owner_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 知识库';
+
+-- ai_kb_doc：知识库文档（一期为内联文本）。
+DROP TABLE IF EXISTS `ai_kb_doc`;
+CREATE TABLE `ai_kb_doc` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `kb_id` bigint unsigned NOT NULL COMMENT '知识库ID',
+  `title` varchar(128) NOT NULL COMMENT '文档标题',
+  `content` mediumtext NOT NULL COMMENT '原文（一期内联文本，≤64KiB）',
+  `status` varchar(16) NOT NULL DEFAULT 'pending' COMMENT '摄取状态：pending/ready/failed',
+  `error` varchar(512) NOT NULL DEFAULT '' COMMENT '安全错误信息',
+  `chunk_count` int unsigned NOT NULL DEFAULT '0' COMMENT '分块数',
+  `embedding_model` varchar(128) NOT NULL DEFAULT '' COMMENT '使用的 embedding 模型版本',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` datetime DEFAULT NULL COMMENT '软删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_kb` (`kb_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 知识库文档';
+
+-- ai_kb_chunk：文档分块。向量与过滤 payload 在 Qdrant，point_id = 本表 id。
+DROP TABLE IF EXISTS `ai_kb_chunk`;
+CREATE TABLE `ai_kb_chunk` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键（即 Qdrant point_id）',
+  `doc_id` bigint unsigned NOT NULL COMMENT '文档ID',
+  `kb_id` bigint unsigned NOT NULL COMMENT '知识库ID（冗余，检索过滤用）',
+  `seq` int unsigned NOT NULL COMMENT '块序号',
+  `content` text NOT NULL COMMENT '块正文',
+  `token_count` int unsigned NOT NULL DEFAULT '0' COMMENT '估算 token 数',
+  `status` varchar(16) NOT NULL DEFAULT 'pending' COMMENT '索引状态：pending/ready/failed',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_doc` (`doc_id`),
+  KEY `idx_kb_status` (`kb_id`,`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 知识库分块';
+
 -- app_membership_grant
 DROP TABLE IF EXISTS `app_membership_grant`;
 CREATE TABLE `app_membership_grant` (
@@ -487,7 +536,12 @@ INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component
 (9001422,9001420,'批准任务','ai_task_approve',3,'','','sys:ai:task:approve','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001423,9001420,'拒绝任务','ai_task_reject',3,'','','sys:ai:task:reject','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001430,9001400,'工具目录','ai_tool',2,'/ai/tools','ai_tool','','api',3,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
-(9001431,9001430,'查看工具','ai_tool_list',3,'','','sys:ai:tool:list','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00');
+(9001431,9001430,'查看工具','ai_tool_list',3,'','','sys:ai:tool:list','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001440,9001400,'知识库','ai_kb',2,'/ai/knowledge','ai_kb','','database',4,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001441,9001440,'查看知识库','ai_kb_list',3,'','','sys:ai:kb:list','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001442,9001440,'新建知识库','ai_kb_create',3,'','','sys:ai:kb:create','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001443,9001440,'编辑知识库','ai_kb_edit',3,'','','sys:ai:kb:edit','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001444,9001440,'删除知识库','ai_kb_delete',3,'','','sys:ai:kb:delete','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00');
 
 -- 超级管理员获得全部菜单与操作权限；服务端仍独立鉴权。
 INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES
@@ -558,7 +612,12 @@ INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES
 (1,9001422,'2026-01-01 00:00:00'),
 (1,9001423,'2026-01-01 00:00:00'),
 (1,9001430,'2026-01-01 00:00:00'),
-(1,9001431,'2026-01-01 00:00:00');
+(1,9001431,'2026-01-01 00:00:00'),
+(1,9001440,'2026-01-01 00:00:00'),
+(1,9001441,'2026-01-01 00:00:00'),
+(1,9001442,'2026-01-01 00:00:00'),
+(1,9001443,'2026-01-01 00:00:00'),
+(1,9001444,'2026-01-01 00:00:00');
 
 -- 普通演示角色仅显示工作台、用户、部门和个人中心。
 INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES
@@ -741,7 +800,16 @@ INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`,`created_at`,`u
 (92,'sys/user','POST','/v1/sys/user/create','POST /v1/sys/user/create','2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (93,'sys/user','GET','/v1/sys/user/list','GET /v1/sys/user/list','2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (94,'sys/user','POST','/v1/sys/user/password/change','POST /v1/sys/user/password/change','2026-01-01 00:00:00','2026-01-01 00:00:00'),
-(95,'sys/ai','POST','/v1/sys/ai/messages/stream','POST /v1/sys/ai/messages/stream','2026-01-01 00:00:00','2026-01-01 00:00:00');
+(95,'sys/ai','POST','/v1/sys/ai/messages/stream','POST /v1/sys/ai/messages/stream','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(96,'sys/ai','GET','/v1/sys/ai/kbs','GET /v1/sys/ai/kbs','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(97,'sys/ai','POST','/v1/sys/ai/kbs','POST /v1/sys/ai/kbs','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(98,'sys/ai','GET','/v1/sys/ai/kbs/:id','GET /v1/sys/ai/kbs/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(99,'sys/ai','PUT','/v1/sys/ai/kbs/:id','PUT /v1/sys/ai/kbs/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(100,'sys/ai','DELETE','/v1/sys/ai/kbs/:id','DELETE /v1/sys/ai/kbs/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(101,'sys/ai','GET','/v1/sys/ai/kbs/:id/docs','GET /v1/sys/ai/kbs/:id/docs','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(102,'sys/ai','POST','/v1/sys/ai/kbs/:id/docs','POST /v1/sys/ai/kbs/:id/docs','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(103,'sys/ai','DELETE','/v1/sys/ai/kbs/:id/docs/:doc_id','DELETE /v1/sys/ai/kbs/:id/docs/:doc_id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(104,'sys/ai','POST','/v1/sys/ai/kbs/:id/docs/:doc_id/retry','POST /v1/sys/ai/kbs/:id/docs/:doc_id/retry','2026-01-01 00:00:00','2026-01-01 00:00:00');
 
 -- APP 账号属于独立认证域，不用于后台登录；邮箱为保留演示域。
 INSERT INTO `app_user` (`id`,`account`,`identity_kind`,`password_hash`,`nickname`,`remark`,`status`,`review_reason`,`email_verified_at`,`created_at`,`updated_at`) VALUES

@@ -72,6 +72,18 @@ services:
     depends_on:
       mysql: { condition: service_healthy }
       redis: { condition: service_healthy }
+      qdrant: { condition: service_started }
+
+  # 知识库向量索引（仅 ai-rpc 使用）；事实源在 MySQL，本服务数据可从库重建
+  qdrant:
+    image: qdrant/qdrant:v1.20.0
+    # 宿主映射仅供宿主 go run 调试 ai-rpc；16333=REST/面板，16334=gRPC
+    ports: ["127.0.0.1:16333:6333", "127.0.0.1:16334:6334"]
+    environment:
+      # 本地开发约定空值 = 不启用 API Key；生产部署必须配置并仅容器网络可达
+      QDRANT__SERVICE__API_KEY: "${QDRANT_API_KEY:-}"
+    volumes:
+      - qdrant_data:/qdrant/storage
 
   tenant-rpc:
     build: { context: ., dockerfile: docker/Dockerfile, target: tenant-rpc }
@@ -138,6 +150,8 @@ volumes:
     name: gozero-new-mysql-data
   rustfs_data:
     name: gozero-integration-rustfs-data
+  qdrant_data:
+    name: gozero-platform-qdrant-data
 
 networks:
   gozero-edge:

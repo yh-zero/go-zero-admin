@@ -1,4 +1,4 @@
-﻿Name: ai-rpc
+Name: ai-rpc
 ListenOn: 0.0.0.0:6004
 Timeout: 120000
 
@@ -9,12 +9,22 @@ CacheRedis:
   - Host: 127.0.0.1:16379
     Type: node
 
+# 知识库向量索引；Address 去空白后非空即启用，未配置则知识库检索降级
+Qdrant:
+  Address: 127.0.0.1:16334
+  APIKey: ${QDRANT_API_KEY}
+
 AI:
   Enabled: false                 # 鍏煎鏃у紑鍏筹紱瀹為檯鎸?AI_<PROVIDER>_KEY 鏄惁鏈夊€煎惎鍋?
   Provider: deepseek             # deepseek / qwen
   Model: deepseek-chat
   BaseURL: https://api.deepseek.com/v1
   TimeoutSeconds: 60
+  # Embedding（知识库向量化）：固定走 EmbeddingProvider（当前仅 qwen），密钥取 QwenKey；未配置则知识库摄取/检索降级
+  EmbeddingProvider: qwen
+  EmbeddingModel: text-embedding-v4
+  EmbeddingDimensions: 1024
+  EmbeddingBaseURL: https://dashscope.aliyuncs.com/compatible-mode/v1
 
   # 瀵嗛挜浜岄€変竴锛?
   #   1) 鐩存帴濉湡瀹炲€硷紝绔嬪嵆鐢熸晥锛堟敞鎰忓埆鎻愪氦鍒板叕寮€浠撳簱锛?

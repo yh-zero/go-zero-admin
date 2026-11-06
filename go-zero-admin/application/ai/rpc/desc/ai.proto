@@ -87,6 +87,33 @@ message GetAgentTaskResponse { AgentTaskInfo task = 1; }
 message ApproveTaskRequest { Actor actor = 1; int64 task_id = 2; optional int64 expected_step = 3; }
 message RejectTaskRequest { Actor actor = 1; int64 task_id = 2; string reason = 3; optional int64 expected_step = 4; }
 
+
+// ========== 知识库（Qdrant 向量检索；事实源 MySQL，Qdrant 仅索引可重建） ==========
+message KbInfo {
+  int64 id = 1; string name = 2; string description = 3; int64 owner_id = 4;
+  int64 doc_count = 5; int64 chunk_count = 6; int64 created_at = 7; int64 updated_at = 8;
+}
+message KbDocInfo {
+  int64 id = 1; int64 kb_id = 2; string title = 3; string status = 4; string error = 5;
+  int64 chunk_count = 6; string embedding_model = 7; int64 created_at = 8; int64 updated_at = 9;
+}
+message CreateKbRequest { Actor actor = 1; string name = 2; string description = 3; }
+message CreateKbResponse { KbInfo kb = 1; }
+message ListKbsRequest { Actor actor = 1; PageRequest page = 2; }
+message ListKbsResponse { repeated KbInfo list = 1; PageResponse page = 2; }
+message GetKbRequest { Actor actor = 1; int64 kb_id = 2; }
+message GetKbResponse { KbInfo kb = 1; }
+message UpdateKbRequest { Actor actor = 1; int64 kb_id = 2; optional string name = 3; optional string description = 4; }
+message DeleteKbRequest { Actor actor = 1; int64 kb_id = 2; }
+// 创建文档：同步摄取（分块→embed→写入向量索引→置终态），返回最终 status
+message CreateKbDocRequest { Actor actor = 1; int64 kb_id = 2; string title = 3; string content = 4; }
+message CreateKbDocResponse { KbDocInfo doc = 1; }
+message ListKbDocsRequest { Actor actor = 1; int64 kb_id = 2; PageRequest page = 3; }
+message ListKbDocsResponse { repeated KbDocInfo list = 1; PageResponse page = 2; }
+message DeleteKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; }
+message RetryKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; }
+message RetryKbDocResponse { KbDocInfo doc = 1; }
+
 service AiService {
   rpc CreateConversation(CreateConversationRequest) returns (CreateConversationResponse);
   rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse);
@@ -101,6 +128,16 @@ service AiService {
   rpc UpdateWorkflow(UpdateWorkflowRequest) returns (NoDataResponse);
   rpc DeleteWorkflow(DeleteWorkflowRequest) returns (NoDataResponse);
   rpc RunWorkflow(RunWorkflowRequest) returns (RunWorkflowResponse);
+
+  rpc CreateKb(CreateKbRequest) returns (CreateKbResponse);
+  rpc ListKbs(ListKbsRequest) returns (ListKbsResponse);
+  rpc GetKb(GetKbRequest) returns (GetKbResponse);
+  rpc UpdateKb(UpdateKbRequest) returns (NoDataResponse);
+  rpc DeleteKb(DeleteKbRequest) returns (NoDataResponse);
+  rpc CreateKbDoc(CreateKbDocRequest) returns (CreateKbDocResponse);
+  rpc ListKbDocs(ListKbDocsRequest) returns (ListKbDocsResponse);
+  rpc DeleteKbDoc(DeleteKbDocRequest) returns (NoDataResponse);
+  rpc RetryKbDoc(RetryKbDocRequest) returns (RetryKbDocResponse);
 
   rpc ListAgentTasks(ListAgentTasksRequest) returns (ListAgentTasksResponse);
   rpc GetAgentTask(GetAgentTaskRequest) returns (GetAgentTaskResponse);

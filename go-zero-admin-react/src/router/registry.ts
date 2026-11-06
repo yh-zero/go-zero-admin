@@ -13,6 +13,7 @@ export const pages = {
   ai_workflow: lazy(() => import('../pages/ai/AIWorkflows')),
   ai_task: lazy(() => import('../pages/ai/AITasks')),
   ai_tool: lazy(() => import('../pages/ai/AITools')),
+  ai_kb: lazy(() => import('../pages/ai/AIKnowledge')),
 };
 export const pageLinks = [
   { name: 'dashboard', path: '/dashboard', title: '工作台', icon: 'dashboard' },
@@ -30,6 +31,7 @@ export const pageLinks = [
   { name: 'ai_workflow', path: '/ai/workflows', title: '工作流管理', icon: 'apartment' },
   { name: 'ai_task', path: '/ai/tasks', title: '任务中心', icon: 'audit' },
   { name: 'ai_tool', path: '/ai/tools', title: '工具目录', icon: 'api' },
+  { name: 'ai_kb', path: '/ai/knowledge', title: '知识库', icon: 'database' },
   { name: 'app_user', path: '/app/users', title: 'APP用户', icon: 'appuser' },
   { name: 'app_membership', path: '/app/memberships', title: '会员管理', icon: 'membership' },
   { name: 'app_feedback', path: '/app/feedback', title: '意见反馈', icon: 'message' },

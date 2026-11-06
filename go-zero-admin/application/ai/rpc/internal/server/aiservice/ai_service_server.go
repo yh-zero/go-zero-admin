@@ -83,6 +83,51 @@ func (s *AiServiceServer) RunWorkflow(ctx context.Context, in *aipb.RunWorkflowR
 	return l.RunWorkflow(in)
 }
 
+func (s *AiServiceServer) CreateKb(ctx context.Context, in *aipb.CreateKbRequest) (*aipb.CreateKbResponse, error) {
+	l := aiservicelogic.NewCreateKbLogic(ctx, s.svcCtx)
+	return l.CreateKb(in)
+}
+
+func (s *AiServiceServer) ListKbs(ctx context.Context, in *aipb.ListKbsRequest) (*aipb.ListKbsResponse, error) {
+	l := aiservicelogic.NewListKbsLogic(ctx, s.svcCtx)
+	return l.ListKbs(in)
+}
+
+func (s *AiServiceServer) GetKb(ctx context.Context, in *aipb.GetKbRequest) (*aipb.GetKbResponse, error) {
+	l := aiservicelogic.NewGetKbLogic(ctx, s.svcCtx)
+	return l.GetKb(in)
+}
+
+func (s *AiServiceServer) UpdateKb(ctx context.Context, in *aipb.UpdateKbRequest) (*aipb.NoDataResponse, error) {
+	l := aiservicelogic.NewUpdateKbLogic(ctx, s.svcCtx)
+	return l.UpdateKb(in)
+}
+
+func (s *AiServiceServer) DeleteKb(ctx context.Context, in *aipb.DeleteKbRequest) (*aipb.NoDataResponse, error) {
+	l := aiservicelogic.NewDeleteKbLogic(ctx, s.svcCtx)
+	return l.DeleteKb(in)
+}
+
+func (s *AiServiceServer) CreateKbDoc(ctx context.Context, in *aipb.CreateKbDocRequest) (*aipb.CreateKbDocResponse, error) {
+	l := aiservicelogic.NewCreateKbDocLogic(ctx, s.svcCtx)
+	return l.CreateKbDoc(in)
+}
+
+func (s *AiServiceServer) ListKbDocs(ctx context.Context, in *aipb.ListKbDocsRequest) (*aipb.ListKbDocsResponse, error) {
+	l := aiservicelogic.NewListKbDocsLogic(ctx, s.svcCtx)
+	return l.ListKbDocs(in)
+}
+
+func (s *AiServiceServer) DeleteKbDoc(ctx context.Context, in *aipb.DeleteKbDocRequest) (*aipb.NoDataResponse, error) {
+	l := aiservicelogic.NewDeleteKbDocLogic(ctx, s.svcCtx)
+	return l.DeleteKbDoc(in)
+}
+
+func (s *AiServiceServer) RetryKbDoc(ctx context.Context, in *aipb.RetryKbDocRequest) (*aipb.RetryKbDocResponse, error) {
+	l := aiservicelogic.NewRetryKbDocLogic(ctx, s.svcCtx)
+	return l.RetryKbDoc(in)
+}
+
 func (s *AiServiceServer) ListAgentTasks(ctx context.Context, in *aipb.ListAgentTasksRequest) (*aipb.ListAgentTasksResponse, error) {
 	l := aiservicelogic.NewListAgentTasksLogic(ctx, s.svcCtx)
 	return l.ListAgentTasks(in)

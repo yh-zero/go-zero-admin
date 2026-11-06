@@ -1,5 +1,5 @@
 import {
-  ApiOutlined, AppstoreOutlined, ApartmentOutlined, AuditOutlined, BookOutlined, CloudServerOutlined, CrownOutlined,
+  ApiOutlined, AppstoreOutlined, ApartmentOutlined, AuditOutlined, BookOutlined, CloudServerOutlined, CrownOutlined, DatabaseOutlined,
   DashboardOutlined, FileTextOutlined, FolderOpenOutlined, FolderOutlined,
   IdcardOutlined, MenuOutlined, MessageOutlined, RightOutlined, RobotOutlined, SafetyCertificateOutlined, SettingOutlined,
   TeamOutlined, UserOutlined,
@@ -28,6 +28,7 @@ const icons: Record<string, IconEntry> = {
   membership: { icon: CrownOutlined, tone: 'amber' },
   message: { icon: MessageOutlined, tone: 'cyan' },
   robot: { icon: RobotOutlined, tone: 'violet' },
+  database: { icon: DatabaseOutlined, tone: 'green' },
 };
 const aliases: Record<string, string> = {
   home: 'dashboard', users: 'user', safety: 'role', safetycertificate: 'role',

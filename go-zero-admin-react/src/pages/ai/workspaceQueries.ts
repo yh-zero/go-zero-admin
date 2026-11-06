@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { fetchAiTask, fetchAiTasks, fetchAiTools, fetchAiWorkflow, fetchAiWorkflows } from '../../api/ai';
+import { fetchAiKbDocs, fetchAiKbs, fetchAiTask, fetchAiTasks, fetchAiTools, fetchAiWorkflow, fetchAiWorkflows } from '../../api/ai';
 import type { AiListTasksReq, PageParams } from '../../api/types';
 
 export type AiWorkspaceScope = readonly [sessionId: string, sessionVersion: number, departmentVersion: number];
@@ -10,6 +10,8 @@ export const aiWorkspaceKeys = {
   workflow: (scope: AiWorkspaceScope, id: number) => ['ai-workspace', ...scope, 'workflow', id] as const,
   tasks: (scope: AiWorkspaceScope) => ['ai-workspace', ...scope, 'tasks'] as const,
   task: (scope: AiWorkspaceScope, id: number) => ['ai-workspace', ...scope, 'task', id] as const,
+  kbs: (scope: AiWorkspaceScope) => ['ai-workspace', ...scope, 'kbs'] as const,
+  kbDocs: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb-docs', kbId] as const,
 };
 
 // 身份取消由统一请求层处理；Query 取消另行阻止已关闭详情的迟到响应回填。
@@ -43,4 +45,14 @@ export function taskListOptions(scope: AiWorkspaceScope, params: AiListTasksReq)
 export function taskDetailOptions(scope: AiWorkspaceScope, id: number) {
   return queryOptions({ queryKey: aiWorkspaceKeys.task(scope, id), staleTime: 0, retry: false, refetchOnWindowFocus: false,
     queryFn: ({ signal }) => readActive(signal, () => fetchAiTask(id)) });
+}
+
+export function kbListOptions(scope: AiWorkspaceScope, params: PageParams) {
+  return queryOptions({ queryKey: [...aiWorkspaceKeys.kbs(scope), params], staleTime: 30_000, retry: false,
+    queryFn: ({ signal }) => readActive(signal, () => fetchAiKbs(params)) });
+}
+
+export function kbDocListOptions(scope: AiWorkspaceScope, kbId: number, params: PageParams) {
+  return queryOptions({ queryKey: [...aiWorkspaceKeys.kbDocs(scope, kbId), params], staleTime: 0, retry: false,
+    queryFn: ({ signal }) => readActive(signal, () => fetchAiKbDocs(kbId, params)) });
 }

@@ -51,6 +51,51 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: ai.DeleteConversationHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodPost,
+				Path:    "/kbs",
+				Handler: ai.CreateKbHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/kbs",
+				Handler: ai.ListKbsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/kbs/:id",
+				Handler: ai.GetKbHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/kbs/:id",
+				Handler: ai.UpdateKbHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/kbs/:id",
+				Handler: ai.DeleteKbHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/kbs/:id/docs",
+				Handler: ai.CreateKbDocHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/kbs/:id/docs",
+				Handler: ai.ListKbDocsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/kbs/:id/docs/:doc_id",
+				Handler: ai.DeleteKbDocHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/kbs/:id/docs/:doc_id/retry",
+				Handler: ai.RetryKbDocHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodGet,
 				Path:    "/tasks",
 				Handler: ai.ListAgentTasksHandler(serverCtx),

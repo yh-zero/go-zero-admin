@@ -1,8 +1,9 @@
 import { apiDelete, apiGet, apiPost, apiPut } from '../utils/request';
 import type {
-  AiApproveTaskReq, AiConversationInfo, AiConversationResp, AiCreateWorkflowReq, AiGetConversationReq,
-  AiGetConversationResp, AiListTasksReq, AiRejectTaskReq, AiRunWorkflowResp,
-  AiTaskInfo, AiTaskResp, AiToolInfo, AiUpdateWorkflowReq, AiWorkflowInfo,
+  AiApproveTaskReq, AiConversationInfo, AiConversationResp, AiCreateKbDocReq, AiCreateKbReq,
+  AiCreateWorkflowReq, AiGetConversationReq, AiGetConversationResp, AiKbDocInfo, AiKbDocResp,
+  AiKbInfo, AiKbResp, AiListTasksReq, AiRejectTaskReq, AiRunWorkflowResp,
+  AiTaskInfo, AiTaskResp, AiToolInfo, AiUpdateKbReq, AiUpdateWorkflowReq, AiWorkflowInfo,
   AiWorkflowResp, PageParams, PageResult,
 } from './types';
 
@@ -22,3 +23,12 @@ export const fetchAiTasks = (params: AiListTasksReq = {}) => apiGet<PageResult<A
 export const fetchAiTask = (id: number) => apiGet<AiTaskResp>(`${base}/tasks/${id}`);
 export const approveAiTask = (id: number, data: AiApproveTaskReq) => apiPost(`${base}/tasks/${id}/approve`, data);
 export const rejectAiTask = (id: number, data: AiRejectTaskReq) => apiPost(`${base}/tasks/${id}/reject`, data);
+export const createAiKb = (data: AiCreateKbReq) => apiPost<AiKbResp>(`${base}/kbs`, data);
+export const fetchAiKbs = (params: PageParams = {}) => apiGet<PageResult<AiKbInfo>>(`${base}/kbs`, params);
+export const fetchAiKb = (id: number) => apiGet<AiKbResp>(`${base}/kbs/${id}`);
+export const updateAiKb = (id: number, data: AiUpdateKbReq) => apiPut(`${base}/kbs/${id}`, data);
+export const deleteAiKb = (id: number) => apiDelete(`${base}/kbs/${id}`);
+export const createAiKbDoc = (kbId: number, data: AiCreateKbDocReq) => apiPost<AiKbDocResp>(`${base}/kbs/${kbId}/docs`, data);
+export const fetchAiKbDocs = (kbId: number, params: PageParams = {}) => apiGet<PageResult<AiKbDocInfo>>(`${base}/kbs/${kbId}/docs`, params);
+export const deleteAiKbDoc = (kbId: number, docId: number) => apiDelete(`${base}/kbs/${kbId}/docs/${docId}`);
+export const retryAiKbDoc = (kbId: number, docId: number) => apiPost<AiKbDocResp>(`${base}/kbs/${kbId}/docs/${docId}/retry`, {});
