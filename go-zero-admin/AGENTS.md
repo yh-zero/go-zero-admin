@@ -74,6 +74,13 @@
    - LLM 输出（含工具调用参数）一律视为不可信，落库前校验长度与格式；渲染走前端转义，禁止服务端拼接 HTML
    - 会话/工作流/任务严格按 `actor.UserId` 隔离，禁止跨用户读取（已有校验，新增查询时保持）
 5. **降级约定**：按共享契约，`Enabled` 仅兼容保留，以 Provider 对应密钥去空白后非空决定模型启用；未配置时发消息返回 503，会话管理、工具列表、本地工作流不因此禁用。不要把配置副本的开关当作另一套运行状态。
+6. **知识库与向量索引（Qdrant）**：
+   - 存储分工：MySQL 是唯一事实源（知识库/文档/chunk，走事务与归属校验）；Qdrant 仅存向量与过滤 payload（派生索引，可整体重建）；Redis 只做检索缓存与对账标记。写入顺序固定 MySQL 事务提交 → embed → Qdrant upsert → chunk 置 ready，**禁止先写向量索引**；任一步失败置 failed 可重试
+   - 向量操作收敛到 `pkg/vectordb`（`Store` 接口，公共基础设施定位；不 import 任何 internal）；logic 禁止直接持有 Qdrant client；接口方法幂等，Delete 不存在的 ID 不视为错误
+   - 检索必须双层归属过滤：Qdrant filter（owner_id/kb_id）+ 回 MySQL 复核 status/归属/软删后才可取用正文；collection 名携带 embedding 模型与维度，换模型/维度 = 新集合 + 全量重嵌入
+   - Embedding 固定走 `AI.EmbeddingProvider`（当前仅 qwen，密钥取 QwenKey），与聊天 Provider 独立；Qdrant 以 `Qdrant.Address` 非空即启用（无独立开关）；未配置时 CRUD 可用、摄取 503、`kb_search` 对模型不可见，Qdrant 不可达时检索降级不伪造
+   - 工具身份：需要操作者归属的工具经 `agenttools.WithActor` 从 ctx 取身份，禁止从工具参数读用户 ID；依赖注入的工具在 svc 装配期用 `RegisterIfAbsent` 注册（无状态工具仍 init() 注册）
+   - 版本纪律：qdrant 服务端与 go-client minor 版本配对（钉在 compose 与 go.mod）；升级须批准并验证实际生效版本，升级前对数据卷做 snapshot
 
 ## 7. 开发验证与提交前自检
 

@@ -14,6 +14,7 @@
 | RustFS | `127.0.0.1:19000`，控制台 `:19001` | `rustfs:9000`，S3 兼容存储 |
 | admin-api | `127.0.0.1:7001` | `platform-api:7001`，前端代理目标 |
 | admin/app/file/ai/tenant RPC | 默认不映射宿主端口 | 各服务内部 `6001..6005`；tenant 仅平台栈 |
+| Qdrant | `127.0.0.1:16333`（REST/面板）、`:16334`（gRPC） | `qdrant:6334`，知识库向量索引；宿主映射仅供宿主调试 ai-rpc |
 | Nginx | `:80` | 按域名路由；平台为 `localhost` / `platform.localhost` |
 | 前端 dev | `http://127.0.0.1:5999` | 宿主运行，业务请求代理到 API |
 
@@ -146,6 +147,8 @@ AI 工作区入口为 `/ai/workflows`、`/ai/tasks`、`/ai/tools`，页面与操
 | `not matching destination to scan` / 时间查询报数据库错误 | 自定义查询用带 `db` tag 的 row struct，不直扫 pb；时间转 int64 按规则用 `UNIX_TIMESTAMP()` 与显式别名 | 逐列检查查询/目标类型并真实读取，不以编译通过代替扫描验证 |
 | 直接改库后仍读旧数据 | 查看实际生成 model 的 ID/旧新唯一索引缓存键，仅精确失效受影响记录；授权变更核对策略通知 | 重新读取确认；不以 FLUSH 或全库清空代替定位 |
 | AI/SMTP 填了配置却不可用 | 核对[配置双套制](#配置双套制)、实际加载入口、Provider、SMTP 主机/端口/TLS 和容器是否重建 | 区分未配置降级与外部调用失败；不打印密钥或把占位符展开误认为读取 env 文件 |
+| 知识库摄取 503 / 检索无结果 | 核对 `Qdrant.Address` 与 `AI_QWEN_KEY`（Embedding 固定走 qwen）双套配置、ai-rpc 是否重建、qdrant 容器日志；向量维度与 `EmbeddingDimensions` 不一致会在摄取时报维度错误 | 未配置降级是设计行为；Qdrant 数据是派生索引，灾难恢复 = 清空集合后将文档逐个 retry 重建，不修向量数据 |
+| 知识库检索到已删除内容 | 属双写漂移窗口：检索回 MySQL 复核应拦截；若仍出现，查 chunk status 与文档软删标记 | 不得直接改 Qdrant 数据"修复"；以 MySQL 为准重试或等待对账收敛 |
 | PowerShell 中文乱码、解析失败或 SQL 导入乱码 | 区分终端显示、文件编码与数据库存储；先 `Get-Content -Encoding UTF8`/原始字节核对，再考虑修改文件 | 兼容 Windows PowerShell 5.1 的含中文脚本保留 UTF-8 BOM；不要因显示乱码重写源文件 |
 
 ```powershell
