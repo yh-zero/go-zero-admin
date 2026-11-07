@@ -10,6 +10,8 @@ export function requiredWritePermission(method: string, url: string): string | u
   if (verb === 'PUT' && /^\/sys\/ai\/workflows\/\d+$/.test(url)) return 'sys:ai:workflow:edit';
   if (verb === 'DELETE' && /^\/sys\/ai\/workflows\/\d+$/.test(url)) return 'sys:ai:workflow:delete';
   if (verb === 'POST' && /^\/sys\/ai\/workflows\/\d+\/run$/.test(url)) return 'sys:ai:workflow:run';
+  if (verb === 'POST' && url === '/sys/ai/tasks/run') return 'sys:ai:workflow:run';
+  if (verb === 'POST' && /^\/sys\/ai\/kbs\/\d+\/imports\/[^/]+\/stop$/.test(url)) return 'sys:ai:kb:edit';
   if (verb === 'POST' && /^\/sys\/ai\/tasks\/\d+\/approve$/.test(url)) return 'sys:ai:task:approve';
   if (verb === 'POST' && /^\/sys\/ai\/tasks\/\d+\/reject$/.test(url)) return 'sys:ai:task:reject';
   if (verb === 'POST' && /^\/sys\/ai\/tasks\/\d+\/cancel$/.test(url)) return 'sys:ai:task:cancel';

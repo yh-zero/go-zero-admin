@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -35,6 +36,8 @@ type (
 		FindOwned(ctx context.Context, kbId, docId, ownerId int64) (*KbDocRow, error)
 		FindMetadataOwned(ctx context.Context, kbId, docId, ownerId int64) (*KbDocRow, error)
 		ListInKb(ctx context.Context, kbId, ownerId, page, pageSize int64) ([]*KbDocRow, int64, error)
+		SearchInKb(ctx context.Context, kbId, ownerId, page, pageSize int64, query, status string) ([]*KbDocRow, int64, error)
+		CountsInKb(ctx context.Context, kbId, ownerId int64) (*KbDocCounts, error)
 		// InsertWithChunks 在父知识库锁内精确去重并创建分块；created=false 时复用已有文档。
 		InsertWithChunks(ctx context.Context, ownerId int64, doc *KbDocRow, chunks []KbChunkRow) (docId int64, chunkIds []uint64, created bool, err error)
 		// MarkIngested 摄取成功后置文档 ready、chunk ready；MarkFailed 置文档 failed 并记录安全错误
@@ -46,6 +49,7 @@ type (
 		ReplaceChunksForRetry(ctx context.Context, kbId, docId, ownerId int64, chunks []KbChunkRow, expectedVersion ...int64) (oldChunkIds, chunkIds []uint64, err error)
 		ReplaceDocument(ctx context.Context, ownerId, expectedVersion int64, doc *KbDocRow, chunks []KbChunkRow) (oldChunkIds, chunkIds []uint64, err error)
 		MarkIndexing(ctx context.Context, docId int64, chunkIds []uint64) error
+		InvalidateCommitted(ctx context.Context, docId int64) error
 	}
 
 	customAiKbDocModel struct {
@@ -69,6 +73,12 @@ type (
 		Stage          string `db:"ingest_stage"`
 	}
 )
+
+type KbDocCounts struct {
+	ReadyCount   int64 `db:"ready_count"`
+	PendingCount int64 `db:"pending_count"`
+	FailedCount  int64 `db:"failed_count"`
+}
 
 // NewAiKbDocModel returns a model for the database table.
 func NewAiKbDocModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) AiKbDocModel {
@@ -95,19 +105,38 @@ func (m *customAiKbDocModel) FindMetadataOwned(ctx context.Context, kbId, docId,
 }
 
 func (m *customAiKbDocModel) ListInKb(ctx context.Context, kbId, ownerId, page, pageSize int64) ([]*KbDocRow, int64, error) {
+	return m.SearchInKb(ctx, kbId, ownerId, page, pageSize, "", "")
+}
+
+func (m *customAiKbDocModel) SearchInKb(ctx context.Context, kbId, ownerId, page, pageSize int64, query, status string) ([]*KbDocRow, int64, error) {
+	where := "WHERE d.kb_id=? AND k.owner_id=? AND d.deleted_at IS NULL"
+	args := []any{kbId, ownerId}
+	if query != "" {
+		where += " AND d.title LIKE ? ESCAPE '!'"
+		args = append(args, "%"+strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(query)+"%")
+	}
+	if status != "" {
+		where += " AND d.status=?"
+		args = append(args, status)
+	}
 	var count struct {
 		Total int64 `db:"total"`
 	}
 	if err := m.QueryRowNoCacheCtx(ctx, &count,
 		"SELECT COUNT(*) AS total FROM ai_kb_doc d JOIN ai_kb k ON d.kb_id=k.id AND k.deleted_at IS NULL "+
-			"WHERE d.kb_id=? AND k.owner_id=? AND d.deleted_at IS NULL", kbId, ownerId); err != nil {
+			where, args...); err != nil {
 		return nil, 0, err
 	}
 	rows := make([]*KbDocRow, 0)
-	err := m.QueryRowsNoCacheCtx(ctx, &rows, kbDocMetadataSelect+
-		"WHERE d.kb_id=? AND k.owner_id=? AND d.deleted_at IS NULL ORDER BY d.id DESC LIMIT ? OFFSET ?",
-		kbId, ownerId, pageSize, (page-1)*pageSize)
+	args = append(args, pageSize, (page-1)*pageSize)
+	err := m.QueryRowsNoCacheCtx(ctx, &rows, kbDocMetadataSelect+where+" ORDER BY d.id DESC LIMIT ? OFFSET ?", args...)
 	return rows, count.Total, err
+}
+
+func (m *customAiKbDocModel) CountsInKb(ctx context.Context, kbId, ownerId int64) (*KbDocCounts, error) {
+	var row KbDocCounts
+	err := m.QueryRowNoCacheCtx(ctx, &row, "SELECT COALESCE(SUM(d.status='ready'),0) AS ready_count,COALESCE(SUM(d.status='pending'),0) AS pending_count,COALESCE(SUM(d.status='failed'),0) AS failed_count FROM ai_kb k LEFT JOIN ai_kb_doc d ON d.kb_id=k.id AND d.deleted_at IS NULL WHERE k.id=? AND k.owner_id=? AND k.deleted_at IS NULL GROUP BY k.id", kbId, ownerId)
+	return &row, err
 }
 
 func (m *customAiKbDocModel) InsertWithChunks(ctx context.Context, ownerId int64, doc *KbDocRow, chunks []KbChunkRow) (int64, []uint64, bool, error) {
@@ -205,10 +234,18 @@ func (m *customAiKbDocModel) DeleteOwned(ctx context.Context, kbId, docId, owner
 		for _, r := range rows {
 			chunkIds = append(chunkIds, r.Id)
 		}
+		oldIds, err := pendingKbJobVectorIDs(ctx, session, kbId, docId)
+		if err != nil {
+			return err
+		}
+		chunkIds = append(chunkIds, oldIds...)
 		if _, err := session.ExecCtx(ctx, "DELETE FROM ai_kb_chunk WHERE doc_id=?", docId); err != nil {
 			return err
 		}
-		_, err := session.ExecCtx(ctx, "UPDATE ai_kb_doc SET deleted_at=NOW() WHERE id=?", docId)
+		if _, err := session.ExecCtx(ctx, "UPDATE ai_kb_doc SET deleted_at=NOW() WHERE id=?", docId); err != nil {
+			return err
+		}
+		_, err = session.ExecCtx(ctx, "UPDATE ai_kb_ingest_job SET status='cancelled',error='文档已删除',completed_at=NOW(),lease_until=NULL WHERE doc_id=? AND status IN ('queued','running')", docId)
 		return err
 	})
 	if err != nil {
@@ -339,6 +376,10 @@ func (m *customAiKbDocModel) invalidateCommitted(ctx context.Context, docId int6
 		return &KbDocCommittedError{Err: err}
 	}
 	return nil
+}
+
+func (m *customAiKbDocModel) InvalidateCommitted(ctx context.Context, docId int64) error {
+	return m.invalidateCommitted(ctx, docId)
 }
 
 // 全部文档写入按父 KB→doc→chunks 顺序加锁，与 KB 级联删除一致。

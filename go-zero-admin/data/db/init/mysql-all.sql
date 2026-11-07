@@ -80,6 +80,10 @@ CREATE TABLE `ai_task` (
   `next_step` int unsigned NOT NULL DEFAULT '0' COMMENT '下一待执行步骤索引',
   `workflow_snapshot` json DEFAULT NULL COMMENT '执行时工作流定义快照',
   `request_id` varchar(36) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL COMMENT '用户内运行幂等ID',
+  `request_signature` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '' COMMENT '临时运行规范化载荷摘要',
+  `title` varchar(128) NOT NULL DEFAULT '' COMMENT '运行标题快照',
+  `workflow_name` varchar(128) NOT NULL DEFAULT '' COMMENT '流程名快照，临时运行标识用途',
+  `input_summary` varchar(256) NOT NULL DEFAULT '' COMMENT '问题或文本摘要',
   `step_records` json DEFAULT NULL COMMENT '已解析步骤输入及执行记录',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -132,13 +136,56 @@ CREATE TABLE `ai_kb_doc` (
   `chunk_count` int unsigned NOT NULL DEFAULT '0' COMMENT '分块数',
   `embedding_model` varchar(128) NOT NULL DEFAULT '' COMMENT '使用的 embedding 模型版本',
   `version` bigint unsigned NOT NULL DEFAULT '1' COMMENT '正文修订号，替换加一',
-  `ingest_stage` varchar(16) NOT NULL DEFAULT 'embedding' COMMENT 'embedding/indexing/ready/failed',
+  `ingest_stage` varchar(16) NOT NULL DEFAULT 'queued' COMMENT 'queued/embedding/indexing/ready/failed',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL COMMENT '软删除',
   PRIMARY KEY (`id`),
   KEY `idx_kb` (`kb_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 知识库文档';
+
+-- ai_kb_ingest_batch：持久批次，request_id为客户端提前生成的批次UUID。
+DROP TABLE IF EXISTS `ai_kb_ingest_batch`;
+CREATE TABLE `ai_kb_ingest_batch` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `kb_id` bigint unsigned NOT NULL,
+  `owner_id` bigint unsigned NOT NULL,
+  `request_id` varchar(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `stopped` tinyint NOT NULL DEFAULT '0',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_owner_kb_request` (`owner_id`,`kb_id`,`request_id`),
+  KEY `idx_kb_id` (`kb_id`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI资料导入批次';
+
+-- ai_kb_ingest_job：与文档代次同事务接收；running过期不自动重放外部调用。
+DROP TABLE IF EXISTS `ai_kb_ingest_job`;
+CREATE TABLE `ai_kb_ingest_job` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `batch_id` bigint unsigned NOT NULL,
+  `kb_id` bigint unsigned NOT NULL,
+  `doc_id` bigint unsigned NOT NULL,
+  `owner_id` bigint unsigned NOT NULL,
+  `doc_version` bigint unsigned NOT NULL,
+  `request_id` varchar(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `operation` varchar(16) NOT NULL,
+  `request_hash` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'queued' COMMENT 'queued/running/succeeded/failed/cancelled/reused',
+  `error` varchar(512) NOT NULL DEFAULT '',
+  `chunk_ids` text NOT NULL,
+  `old_chunk_ids` text NOT NULL,
+  `lease_token` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '',
+  `lease_until` datetime DEFAULT NULL,
+  `started_at` datetime DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_owner_request` (`owner_id`,`request_id`),
+  KEY `idx_status_id` (`status`,`id`),
+  KEY `idx_batch_id` (`batch_id`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI资料后台摄取作业';
 
 -- ai_kb_chunk：文档分块。向量与过滤 payload 在 Qdrant，point_id = 本表 id。
 DROP TABLE IF EXISTS `ai_kb_chunk`;
@@ -532,18 +579,18 @@ INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component
 (9001403,9001401,'发送消息','ai_message_send',3,'','','sys:ai:message:send','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001404,9001401,'删除会话','ai_conversation_delete',3,'','','sys:ai:conversation:delete','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001405,9001401,'查看会话','ai_conversation_list',3,'','','sys:ai:conversation:list','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
-(9001410,9001400,'工作流管理','ai_workflow',2,'/ai/workflows','ai_workflow','','apartment',1,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001410,9001400,'常用流程','ai_workflow',2,'/ai/workflows','ai_workflow','','apartment',1,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001411,9001410,'查看工作流','ai_workflow_list',3,'','','sys:ai:workflow:list','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001412,9001410,'新建工作流','ai_workflow_create',3,'','','sys:ai:workflow:create','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001413,9001410,'编辑工作流','ai_workflow_edit',3,'','','sys:ai:workflow:edit','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001414,9001410,'删除工作流','ai_workflow_delete',3,'','','sys:ai:workflow:delete','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001415,9001410,'运行工作流','ai_workflow_run',3,'','','sys:ai:workflow:run','',4,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
-(9001420,9001400,'任务中心','ai_task',2,'/ai/tasks','ai_task','','audit',2,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001420,9001400,'运行记录','ai_task',2,'/ai/tasks','ai_task','','audit',2,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001421,9001420,'查看任务','ai_task_list',3,'','','sys:ai:task:list','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001422,9001420,'批准任务','ai_task_approve',3,'','','sys:ai:task:approve','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001423,9001420,'拒绝任务','ai_task_reject',3,'','','sys:ai:task:reject','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001424,9001420,'取消任务','ai_task_cancel',3,'','','sys:ai:task:cancel','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
-(9001430,9001400,'工具目录','ai_tool',2,'/ai/tools','ai_tool','','api',3,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001430,9001400,'工具与能力','ai_tool',2,'/ai/tools','ai_tool','','api',3,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001431,9001430,'查看工具','ai_tool_list',3,'','','sys:ai:tool:list','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001440,9001400,'知识库','ai_kb',2,'/ai/knowledge','ai_kb','','database',4,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001441,9001440,'查看知识库','ai_kb_list',3,'','','sys:ai:kb:list','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
@@ -824,7 +871,11 @@ INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`,`created_at`,`u
 (107,'sys/ai','PUT','/v1/sys/ai/conversations/:id/messages/:message_id/feedback','PUT /v1/sys/ai/conversations/:id/messages/:message_id/feedback','2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (108,'sys/ai','POST','/v1/sys/ai/tasks/:id/cancel','POST /v1/sys/ai/tasks/:id/cancel','2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (109,'sys/ai','GET','/v1/sys/ai/kbs/:id/docs/:doc_id','GET /v1/sys/ai/kbs/:id/docs/:doc_id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
-(110,'sys/ai','PUT','/v1/sys/ai/kbs/:id/docs/:doc_id','PUT /v1/sys/ai/kbs/:id/docs/:doc_id','2026-01-01 00:00:00','2026-01-01 00:00:00');
+(110,'sys/ai','PUT','/v1/sys/ai/kbs/:id/docs/:doc_id','PUT /v1/sys/ai/kbs/:id/docs/:doc_id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(111,'sys/ai','POST','/v1/sys/ai/tasks/run','POST /v1/sys/ai/tasks/run','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(112,'sys/ai','GET','/v1/sys/ai/kbs/:id/imports','GET /v1/sys/ai/kbs/:id/imports','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(113,'sys/ai','GET','/v1/sys/ai/kbs/:id/imports/:batch_id','GET /v1/sys/ai/kbs/:id/imports/:batch_id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(114,'sys/ai','POST','/v1/sys/ai/kbs/:id/imports/:batch_id/stop','POST /v1/sys/ai/kbs/:id/imports/:batch_id/stop','2026-01-01 00:00:00','2026-01-01 00:00:00');
 
 -- APP 账号属于独立认证域，不用于后台登录；邮箱为保留演示域。
 INSERT INTO `app_user` (`id`,`account`,`identity_kind`,`password_hash`,`nickname`,`remark`,`status`,`review_reason`,`email_verified_at`,`created_at`,`updated_at`) VALUES

@@ -204,7 +204,9 @@ function requestContext(url: string) {
   if (!auth.token || publicUrls.has(url)) return { url };
   return { url, authVersion: auth.sessionVersion, departmentVersion: usesDepartment(url) ? auth.departmentVersion : undefined };
 }
-export async function apiGet<T>(url: string, params?: object): Promise<T> { return (await request.get<T>(url, { ...requestContext(url), params })).data; }
+export async function apiGet<T>(url: string, params?: object, options?: { signal?: AbortSignal }): Promise<T> {
+  return (await request.get<T>(url, { ...requestContext(url), params, signal: options?.signal })).data;
+}
 export async function apiPost<T = void>(url: string, data?: unknown, options?: { timeout?: number }): Promise<T> {
   return (await request.post<T>(url, data, { ...requestContext(url), timeout: options?.timeout })).data;
 }

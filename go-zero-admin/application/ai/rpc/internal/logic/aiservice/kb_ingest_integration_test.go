@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -34,6 +35,7 @@ type kbIngestHarness struct {
 	calls atomic.Int64
 	embed func(http.ResponseWriter, *http.Request)
 	store *ingestVectorStore
+	start sync.Once
 }
 
 func newKbIngestHarness(t *testing.T) *kbIngestHarness {
@@ -54,6 +56,7 @@ func newKbIngestHarness(t *testing.T) *kbIngestHarness {
 	h := &kbIngestHarness{t: t, db: db, actor: &aipb.Actor{UserId: time.Now().UnixNano()}, store: &ingestVectorStore{points: make(map[uint64]vectordb.Point)}}
 	h.s = &svc.ServiceContext{DB: conn, Redis: rdb, AiKbModel: model.NewAiKbModel(conn, conf), AiKbDocModel: model.NewAiKbDocModel(conn, conf), AiKbChunkModel: model.NewAiKbChunkModel(conn, conf), VectorStore: h.store}
 	h.s.Config.AI.EmbeddingModel = "text-embedding-v4"
+	h.s.KbIngestQueue = model.NewKbIngestQueue(conn, h.s.AiKbDocModel)
 	result, err := db.Exec("INSERT INTO ai_kb(owner_id,name) VALUES (?,?)", h.actor.UserId, "摄取隔离回归")
 	if err != nil {
 		t.Fatal(err)
@@ -86,7 +89,7 @@ func newKbIngestHarness(t *testing.T) *kbIngestHarness {
 				t.Error("摄取测试文档缓存清理后仍存在或不可核对")
 			}
 		}
-		for _, q := range []string{"DELETE FROM ai_kb_chunk WHERE kb_id=?", "DELETE FROM ai_kb_doc WHERE kb_id=?", "DELETE FROM ai_kb WHERE id=?"} {
+		for _, q := range []string{"DELETE FROM ai_kb_ingest_job WHERE kb_id=?", "DELETE FROM ai_kb_ingest_batch WHERE kb_id=?", "DELETE FROM ai_kb_chunk WHERE kb_id=?", "DELETE FROM ai_kb_doc WHERE kb_id=?", "DELETE FROM ai_kb WHERE id=?"} {
 			if _, err := db.ExecContext(ctx, q, h.kb); err != nil {
 				t.Error(err)
 			}
@@ -97,7 +100,7 @@ func newKbIngestHarness(t *testing.T) *kbIngestHarness {
 		if exists, err := rdb.ExistsCtx(ctx, fmt.Sprintf("cache:gozeroAdmin:aiKb:id:%d", h.kb)); err != nil || exists {
 			t.Error("摄取测试知识库缓存清理后仍存在或不可核对")
 		}
-		for _, q := range []string{"SELECT COUNT(*) FROM ai_kb_chunk WHERE kb_id=?", "SELECT COUNT(*) FROM ai_kb_doc WHERE kb_id=?", "SELECT COUNT(*) FROM ai_kb WHERE id=?"} {
+		for _, q := range []string{"SELECT COUNT(*) FROM ai_kb_ingest_job WHERE kb_id=?", "SELECT COUNT(*) FROM ai_kb_ingest_batch WHERE kb_id=?", "SELECT COUNT(*) FROM ai_kb_chunk WHERE kb_id=?", "SELECT COUNT(*) FROM ai_kb_doc WHERE kb_id=?", "SELECT COUNT(*) FROM ai_kb WHERE id=?"} {
 			var remaining int
 			if err := db.QueryRowContext(ctx, q, h.kb).Scan(&remaining); err != nil || remaining != 0 {
 				t.Error("摄取测试数据清理后仍存在或不可核对")
@@ -134,7 +137,41 @@ func newKbIngestHarness(t *testing.T) *kbIngestHarness {
 }
 
 func (h *kbIngestHarness) create(ctx context.Context) (*aipb.CreateKbDocResponse, error) {
-	return NewCreateKbDocLogic(ctx, h.s).CreateKbDoc(&aipb.CreateKbDocRequest{Actor: h.actor, KbId: h.kb, Title: "相同标题", Content: "相同正文"})
+	h.background()
+	out, err := NewCreateKbDocLogic(ctx, h.s).CreateKbDoc(&aipb.CreateKbDocRequest{Actor: h.actor, KbId: h.kb, Title: "相同标题", Content: "相同正文", RequestId: uuid.NewString()})
+	if err != nil {
+		return out, err
+	}
+	out.Doc, err = h.waitDoc(ctx, out.Doc.Id)
+	return out, err
+}
+
+func (h *kbIngestHarness) background() {
+	h.t.Helper()
+	h.start.Do(func() { stop := h.s.StartKbIngestWorkers(context.Background()); h.t.Cleanup(stop) })
+}
+
+func (h *kbIngestHarness) waitDoc(ctx context.Context, id int64) (*aipb.KbDocInfo, error) {
+	deadline := time.NewTimer(10 * time.Second)
+	defer deadline.Stop()
+	ticker := time.NewTicker(10 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		row, err := h.s.AiKbDocModel.FindMetadataOwned(ctx, h.kb, id, h.actor.UserId)
+		if err != nil {
+			return nil, err
+		}
+		if row.Status != "pending" {
+			return kbDocRowToPb(row), nil
+		}
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-deadline.C:
+			return nil, errors.New("background ingest did not complete")
+		case <-ticker.C:
+		}
+	}
 }
 func (h *kbIngestHarness) pending() (int64, []uint64) {
 	h.t.Helper()
@@ -151,7 +188,13 @@ func (h *kbIngestHarness) pending() (int64, []uint64) {
 	return id, []uint64{uint64(chunk)}
 }
 func (h *kbIngestHarness) retry(id int64) (*aipb.RetryKbDocResponse, error) {
-	return NewRetryKbDocLogic(context.Background(), h.s).RetryKbDoc(&aipb.RetryKbDocRequest{Actor: h.actor, KbId: h.kb, DocId: id})
+	h.background()
+	out, err := NewRetryKbDocLogic(context.Background(), h.s).RetryKbDoc(&aipb.RetryKbDocRequest{Actor: h.actor, KbId: h.kb, DocId: id, RequestId: uuid.NewString()})
+	if err != nil {
+		return out, err
+	}
+	out.Doc, err = h.waitDoc(context.Background(), id)
+	return out, err
 }
 func (h *kbIngestHarness) state(id int64) string {
 	h.t.Helper()
@@ -231,6 +274,13 @@ func TestKbIngestCancellationWritesFailed(t *testing.T) {
 	cancel()
 	<-done
 	close(release)
+	var docId int64
+	if err := h.db.QueryRow("SELECT id FROM ai_kb_doc WHERE kb_id=?", h.kb).Scan(&docId); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.waitDoc(context.Background(), docId); err != nil {
+		t.Fatal(err)
+	}
 	var state string
 	if err := h.db.QueryRow("SELECT status FROM ai_kb_doc WHERE kb_id=?", h.kb).Scan(&state); err != nil {
 		t.Fatal(err)
@@ -361,12 +411,12 @@ func TestKbIngestCrossOwnerDenied(t *testing.T) {
 	h := newKbIngestHarness(t)
 	id, old := h.pending()
 	stranger := &aipb.Actor{UserId: h.actor.UserId + 1}
-	if _, err := NewCreateKbDocLogic(context.Background(), h.s).CreateKbDoc(&aipb.CreateKbDocRequest{Actor: stranger, KbId: h.kb, Title: "标题", Content: "正文"}); err == nil {
+	if _, err := NewCreateKbDocLogic(context.Background(), h.s).CreateKbDoc(&aipb.CreateKbDocRequest{Actor: stranger, KbId: h.kb, Title: "标题", Content: "正文", RequestId: uuid.NewString()}); err == nil {
 		t.Error("cross owner create allowed")
 	} else if ce, ok := xerr.AsCodeError(err); !ok || ce.GetErrCode() != 404 {
 		t.Errorf("cross owner create error=%v, want code 404", err)
 	}
-	if _, err := NewRetryKbDocLogic(context.Background(), h.s).RetryKbDoc(&aipb.RetryKbDocRequest{Actor: stranger, KbId: h.kb, DocId: id}); err == nil {
+	if _, err := NewRetryKbDocLogic(context.Background(), h.s).RetryKbDoc(&aipb.RetryKbDocRequest{Actor: stranger, KbId: h.kb, DocId: id, RequestId: uuid.NewString()}); err == nil {
 		t.Error("cross owner retry allowed")
 	} else if ce, ok := xerr.AsCodeError(err); !ok || ce.GetErrCode() != 404 {
 		t.Errorf("cross owner retry error=%v, want code 404", err)

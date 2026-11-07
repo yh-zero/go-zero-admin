@@ -116,6 +116,21 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: ai.RetryKbDocHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodGet,
+				Path:    "/kbs/:id/imports",
+				Handler: ai.ListKbImportsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/kbs/:id/imports/:batch_id",
+				Handler: ai.GetKbImportHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/kbs/:id/imports/:batch_id/stop",
+				Handler: ai.StopKbImportHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodPost,
 				Path:    "/kbs/:id/search",
 				Handler: ai.SearchKbHandler(serverCtx),
@@ -144,6 +159,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/tasks/:id/reject",
 				Handler: ai.RejectTaskHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/tasks/run",
+				Handler: ai.RunDraftHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,

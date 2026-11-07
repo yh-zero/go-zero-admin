@@ -25,7 +25,11 @@ func (l *ListWorkflowsLogic) ListWorkflows(in *aipb.ListWorkflowsRequest) (*aipb
 	if err != nil {
 		return nil, err
 	}
-	rows, total, err := l.svcCtx.AiWorkflowModel.ListOwned(l.ctx, in.Actor.UserId, page, size)
+	query, err := normalizeWorkspaceQuery(in.Query)
+	if err != nil {
+		return nil, err
+	}
+	rows, total, err := l.svcCtx.AiWorkflowModel.ListSearchOwned(l.ctx, in.Actor.UserId, page, size, query)
 	if err != nil {
 		return nil, aiModelError(err)
 	}

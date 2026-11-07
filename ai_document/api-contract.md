@@ -219,6 +219,21 @@
 - 租户 `slug=platform` 为平台保留标识，创建返回 400；平台 `localhost`、`platform.localhost` 域名不能作为租户路由。平台上游使用独有网络别名，避免共享网络内同名 `api` 解析到租户服务。
 - 租户导航与 APP 管理同级；列表复用 `GET /v1/sys/tenant/list` 的状态筛选，详情复用 `GET /v1/sys/tenant/:id`，详情抽屉只读。公开初始化库提供完整菜单及创建/启停/重置/删除操作码，默认关联超级管理员，租户登记初始为空；实际生命周期需要配置运行环境，验收范围见[问题清单](README.md#后端剩余事项)。
 
+### AI 工作区轻重构（2026-11-07）
+
+本节为用户已批准的四模块契约；与下文旧页面/同步摄取/列表定义说明冲突时以本节为准。✅ 两端已实现并完成本地主栈联调：两篇文本后台导入、离页返回批次、原文与来源跳转、一次真实分析、草稿/保存流程执行、审批、失败提示及服务端筛选。租约、代次、删除竞争与存储异常通过隔离回归；未做生产并发压测、真实供应商断网或付费调用中途重启实验。
+
+- ✅ 使用路径：知识库详情 `/ai/knowledge/:id` 作为隐藏子页沿用 `ai_kb` 权限；资料管理、测试检索和就地分析连续呈现。工作流/任务显示名调整为“常用流程”“运行记录”，现有菜单name、URL、操作码保留。工具目录继续只读并作为编辑器能力选择器；原文跳转保留历史摘录，打开当前版本不能冒充历史版本。
+- ✅ 服务端查找：`GET /workflows`、`GET /tasks`、`GET /kbs`、`GET /kbs/:id/docs` 新增可选 `query`（去首尾空白，最多128字符，LIKE通配符按文字查找）。文档另支持 `status=pending|ready|failed`。所有查找在本人/有效资源及分页之前应用；任务query匹配标题、流程名快照或问题摘要。
+- ✅ 工作流列表返回 `step_count`，`definition` 固定空串；完整定义仅详情/创建返回，运行和编辑先读取详情。任务增加 `title`、`workflow_name`、`input_summary`，创建时持久保存；详情另返回 `definition`（执行快照），列表/元信息返回空串且不读大字段。历史记录缺少可读快照时明确使用历史标识，不按最新工作流名称伪造过去。
+- ✅ `POST /tasks/run`：接收 `request_id`（规范UUID）、`name`（1..128字符）、`definition`（有效顺序DSL，≤65536 UTF-8字节）、`input`（可选JSON对象字符串，≤16000 UTF-8字节）；用于一次性分析和未保存试运行，不创建工作流，返回 `task_id/status`。复用运行操作码 `sys:ai:workflow:run`，仍需服务端路由授权；任务归属、工具参数校验、快照、审批和取消与已保存流程相同。`workflow_id=0` 标识临时运行；同一用户request_id不得跨草稿/保存流程或不同规范化载荷复用，冲突400。重查已接受请求优先于并发容量检查，不重复模型调用。
+- ✅ 新默认知识库模板只有分析这一个有效步骤，`kb_id`和`question`可引用本次input；JSON模板明确为JSON格式整理。已有静态DSL和多步骤流程保持兼容。运行时选择知识库继续由工具检查本人归属。默认“总结/风险”是相关片段分析，不等于全文审阅；PDF/Office/OCR及逐篇全文审阅仍在后续规划。
+- ✅ `GET /tasks/:id` 新增可选 `meta_only`。true仅返回任务状态、摘要与更新时间，`input/result/definition`为空、`steps=[]`；正常元信息读取仅一次摘要SELECT，普通完整详情也仅一次SELECT，超时运行的安全恢复分支例外。状态变化后前端再取完整结果；完成结果优先阅读，过程与技术标识为次级内容；可见列表与详情协调刷新、失败可重新连接但不重提任务。
+- ✅ 能力状态：`GET /tools`、`GET /kbs`和`GET /kbs/:id`响应新增 `capabilities={retrieval_configured,analysis_configured,ingestion_mode}`，最后固定 `background`。布尔值表示服务已配置对应客户端，不等于供应商实时健康；不暴露密钥/地址。知识库Info和文档列表响应新增 `ready_count/pending_count/failed_count`，是该库未筛选有效文档计数，不能用文档总数代替可使用数。
+- ✅ 后台文档摄取：创建、更新和重试均要求 `request_id`（规范UUID），可选 `batch_id`（规范UUID，省略等于request_id）。提交在同事务中保存文档/分块代次、批次和作业，快速返回 `{doc,job_id,batch_id}`；`pending/stage=queued`仅表示已接收，不能当作处理完成。标题/正文/模型去重继续保留；复用已有文档写作业 `reused`，展示doc真实状态，不重复Embedding。更新保留expected_version保护，重查原请求先于版本/状态检查；同ID不同载荷400。
+- ✅ 批次路径：`GET /kbs/:id/imports`接收分页并返回 `list/total`；`GET /kbs/:id/imports/:batch_id`返回 `{batch,list}`；`POST`同路径`/stop`返回同一结构。batch_id为客户端提前生成的UUID，第一文档提交时原子创建，无单独创建请求；尚无任何已接受项的批次返回404。批次Info含 `id`（UUID）、`kb_id/stopped/total/queued/running/succeeded/failed/cancelled/reused/created_at/updated_at`。job含 `id/request_id/doc_id/operation/status/error/doc/created_at/updated_at`；job状态 `queued|running|succeeded|failed|cancelled|reused`，operation为create/update/retry，doc为当前元信息或null。只允许本人且归属此库；每批最多20项。停止只取消queued和后续新入队，running继续，已接受的旧请求仍可重查。
+- ✅ 摄取队列以MySQL为事实源，两个worker、单次90秒和120秒租约；queued可跨重启继续，租约过期running标记失败并提示核对，不自动重放付费调用。领取、版本更换、删除和迟到完成按代次/租约CAS保护；向量补偿只触及对应chunk IDs。前端可关闭窗口并从批次记录返回，结果未知按原request_id/batch_id核对，不自动产生新操作。正文仍≤65536 UTF-8字节，TXT/Markdown每批20项，既有权限与数据范围不变。
+
 ### AI HTTP 与执行约定
 
 统一前缀 `/v1/sys/ai`，仅后台认证用户可访问；Actor 由服务端认证上下文生成。会话、工作流和任务仅其所属用户可读写，越权 ID 与不存在均返回 404。列表接收 `page/page_size`，默认 1/20，page_size 最大 100，响应 `list/total`。

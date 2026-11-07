@@ -1,180 +1,106 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Drawer, Empty, Form, Modal, Popconfirm, Space, Table, Tag, Typography } from 'antd';
+import { Alert, Button, Drawer, Empty, Input, Popconfirm, Select, Space, Table, Tag } from 'antd';
 import { FileTextOutlined, PlusOutlined, RedoOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { AiCreateKbDocReq, AiKbDocInfo, AiKbInfo, PageResult } from '../../api/types';
-import { deleteAiKbDoc } from '../../api/ai';
+import type { AiKbDocInfo, AiKbInfo, AiKbResp, AiListKbDocsReq } from '../../api/types';
+import { deleteAiKbDoc, retryAiKbDoc } from '../../api/ai';
 import { QueryState } from '../../components/QueryState';
+import { correctPageParams } from '../../hooks/usePagedQuery';
+import { useAuthStore } from '../../stores/auth';
 import { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
-import { aiWorkspaceKeys, kbDocListOptions } from './workspaceQueries';
+import { aiWorkspaceKeys, kbDocListOptions, kbImportOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
-import { canRetryDocument, documentStageLabel, documentWriteFailure, documentWriteOptions } from './knowledgeDocuments';
-import { knowledgeDocumentKeys, knowledgeDocumentOptions } from './knowledgeDocumentQueries';
+import { canRetryDocument, documentStageLabel, documentWriteFailure } from './knowledgeDocuments';
+import { readKnowledgeImportAttempt, subscribeKnowledgeImportAttempt, updateKnowledgeImportAttempt, writeKnowledgeImportAttempt } from './knowledgeImport';
+import { knowledgeDocumentKeys } from './knowledgeDocumentQueries';
 import { KnowledgeDocumentModal } from './KnowledgeDocumentModal';
 import { KnowledgeImportModal } from './KnowledgeImportModal';
-import { KnowledgeDocumentFields } from './KnowledgeDocumentFields';
-import { DocumentFeedback } from './KnowledgeDocumentStatus';
-import styles from './knowledgeDocuments.module.css';
+import styles from './workspace.module.css';
 
-const KB_LIST = 'sys:ai:kb:list';
-const KB_EDIT = 'sys:ai:kb:edit';
-const STATUS = { pending: 'processing', ready: 'success', failed: 'error' } as const;
+interface Props { scope: AiWorkspaceScope; kb: AiKbInfo; onChanged: () => void; initialDocId?: number | null }
+const colors = { pending: 'processing', ready: 'success', failed: 'error' } as const;
 
-export function KnowledgeDocumentsDrawer({ scope, kb, onClose, onChanged }: {
-  scope: AiWorkspaceScope; kb: AiKbInfo; onClose: () => void; onChanged: () => void;
-}) {
-  const guard = useAiWorkspaceGuard(scope, KB_LIST);
+export function KnowledgeDocumentsDrawer({ onClose, ...props }: Props & { onClose: () => void }) {
+  return <Drawer open title={`资料：${props.kb.name}`} size={960} onClose={onClose}><KnowledgeDocumentsPanel {...props} /></Drawer>;
+}
+
+export function KnowledgeDocumentsPanel({ scope, kb, onChanged, initialDocId }: Props) {
+  const guard = useAiWorkspaceGuard(scope, 'sys:ai:kb:list');
   const { isCurrent } = guard;
   const client = useQueryClient();
-  const [adding, setAdding] = useState(false);
-  const [importing, setImporting] = useState(false);
-  const [previewId, setPreviewId] = useState<number | null>(null);
-  const [addDocId, setAddDocId] = useState<number | null>(null);
-  const [trackedId, setTrackedId] = useState<number | null>(null);
-  const [unknown, setUnknown] = useState(false);
-  const [addError, setAddError] = useState('');
-  const [draft, setDraft] = useState<AiCreateKbDocReq>();
-  const [rowUnknown, setRowUnknown] = useState(false);
-  const [busyDocId, setBusyDocId] = useState<number | null>(null);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const listOptions = kbDocListOptions(scope, kb.id, { page, page_size: pageSize });
-  const docs = useQuery({ ...listOptions, enabled: guard.can(KB_LIST),
-    refetchInterval: query => guard.writing || query.state.data?.list.some(doc => doc.status === 'pending') ? 3000 : false });
-  const tracked = useQuery({ ...knowledgeDocumentOptions(scope, kb.id, trackedId ?? 0, true), enabled: !!trackedId && guard.can(KB_LIST) });
-  const addDoc = useQuery({ ...knowledgeDocumentOptions(scope, kb.id, addDocId ?? 0, true), enabled: !!addDocId && guard.can(KB_LIST) });
-  const write = useMutation(documentWriteOptions(kb.id));
-  const remove = useMutation({ mutationFn: (id: number) => deleteAiKbDoc(kb.id, id) });
-
+  const departmentId = useAuthStore(state => state.selectedDeptId);
+  const retryKey = `ai-knowledge-retry:${JSON.stringify([scope[0], departmentId, kb.id])}`;
+  const [retryAttempt, setRetryAttempt] = useState(() => { try { return readKnowledgeImportAttempt(sessionStorage, retryKey); } catch { return null; } });
+  const [params, setParams] = useState<AiListKbDocsReq>({ page: 1, page_size: 10 });
+  const [previewId, setPreviewId] = useState<number | null>(initialDocId ?? null);
+  const [importing, setImporting] = useState<'files' | 'paste' | null>(null);
+  const [batchId, setBatchId] = useState<string | undefined>(retryAttempt?.batchId);
+  const [feedback, setFeedback] = useState(retryAttempt ? `请先核对原批次 ${retryAttempt.batchId}，不会自动再次重试。` : '');
+  const docs = useQuery({ ...kbDocListOptions(scope, kb.id, params), enabled: guard.can('sys:ai:kb:list'),
+    refetchInterval: query => !importing && !guard.writing && !query.state.error && query.state.data?.pending_count ? 3000 : false });
+  const retry = useMutation({ mutationFn: ({ id, request_id }: { id: number; request_id: string }) => retryAiKbDoc(kb.id, id, { request_id }), retry: false });
+  const remove = useMutation({ mutationFn: (id: number) => deleteAiKbDoc(kb.id, id), retry: false });
+  const retryReceipt = useQuery({ ...kbImportOptions(scope, kb.id, retryAttempt?.batchId ?? ''), enabled: !!retryAttempt && !guard.writing && !importing && isCurrent() });
+  useEffect(() => subscribeKnowledgeImportAttempt(sessionStorage, retryKey, latest => {
+    if (!isCurrent()) return;
+    setRetryAttempt(latest); setFeedback(latest ? `请先核对原批次 ${latest.batchId}，不会自动再次重试。` : '');
+  }), [retryKey, isCurrent]);
   useEffect(() => {
-    // oxlint-disable-next-line react/set-state-in-effect -- 删除后以服务端总数修正分页。
-    if (docs.data && isCurrent()) setPage(current => Math.min(current, Math.max(1, Math.ceil(docs.data.total / pageSize))));
-  }, [docs.data, pageSize, isCurrent]);
+    if (!retryAttempt || !retryReceipt.data || !isCurrent() || !retryAttempt.requestIds.every(id => retryReceipt.data.list.some(job => job.request_id === id))) return;
+    try { if (updateKnowledgeImportAttempt(sessionStorage, retryKey, retryAttempt.batchId, () => null)) return; }
+    catch { /* 共享内存保留确认结果，不覆盖其他批次。 */ }
+    // oxlint-disable-next-line react/set-state-in-effect -- 原请求回执确认接收后解除未知锁。
+    setRetryAttempt(null); setFeedback('');
+    void client.invalidateQueries({ queryKey: aiWorkspaceKeys.kbDocs(scope, kb.id) });
+  }, [retryAttempt, retryReceipt.data, isCurrent, retryKey, client, scope, kb.id]);
   useEffect(() => {
-    if (!isCurrent() || guard.writing || !addDoc.data || addDoc.dataUpdatedAt <= write.submittedAt) return;
-    // oxlint-disable-next-line react/set-state-in-effect -- 同ID新鲜查询确认当前状态，失败或处理中也不再是未知结果。
-    setUnknown(false);
-    if (addDoc.data.doc.status === 'ready') { setAdding(false); setDraft(undefined); }
-  }, [addDoc.data, addDoc.dataUpdatedAt, isCurrent, guard.writing, write.submittedAt]);
+    if (!docs.data || !isCurrent()) return;
+    const { ready_count, pending_count, failed_count } = docs.data;
+    client.setQueryData<AiKbResp>(aiWorkspaceKeys.kb(scope, kb.id), previous => previous ? { ...previous, kb: { ...previous.kb, ready_count, pending_count, failed_count, doc_count: ready_count + pending_count + failed_count } } : previous);
+  }, [docs.data, client, scope, kb.id, isCurrent]);
   useEffect(() => {
-    // oxlint-disable-next-line react/set-state-in-effect -- 网络未知后仅用新鲜的同ID读取确认状态。
-    if (isCurrent() && !guard.writing && tracked.data && !tracked.isFetching && tracked.dataUpdatedAt > write.submittedAt) setRowUnknown(false);
-  }, [tracked.data, tracked.dataUpdatedAt, tracked.isFetching, isCurrent, guard.writing, write.submittedAt]);
-
-  function remember(doc: AiKbDocInfo) {
-    client.setQueryData(knowledgeDocumentKeys.detail(scope, kb.id, doc.id, true), { doc, content: '' });
-    client.setQueriesData<PageResult<AiKbDocInfo>>({ queryKey: aiWorkspaceKeys.kbDocs(scope, kb.id) }, value => value
-      ? { ...value, list: value.list.map(item => item.id === doc.id ? doc : item) } : value);
-    setTrackedId(doc.id);
-  }
+    if (!docs.data || docs.isFetching || !isCurrent()) return;
+    // oxlint-disable-next-line react/set-state-in-effect -- 删除后只校正返回本次总数的页码。
+    setParams(current => current === params ? correctPageParams(current, docs.data.total) : current);
+  }, [docs.data, docs.isFetching, params, isCurrent]);
   function refresh() {
     if (!guard.isCurrent()) return;
     void client.invalidateQueries({ queryKey: aiWorkspaceKeys.kbDocs(scope, kb.id) });
     void client.invalidateQueries({ queryKey: knowledgeDocumentKeys.all(scope, kb.id) });
+    if (retryAttempt) void retryReceipt.refetch();
     onChanged();
   }
-
-  return <Drawer className={styles.documentDrawer} open title={`文档管理：${kb.name}`} size={900} onClose={() => { if (!guard.writing) onClose(); }}
-    closable={!guard.writing} keyboard={!guard.writing} maskClosable={!guard.writing}
-    extra={<Space wrap><Button icon={<ReloadOutlined />} loading={docs.isFetching || tracked.isFetching} onClick={refresh}>刷新状态</Button>
-      {guard.can(KB_EDIT) && <><Button icon={<UploadOutlined />} disabled={guard.writing || adding} onClick={() => setImporting(true)}>批量导入</Button>
-        <Button type="primary" icon={<PlusOutlined />} disabled={guard.writing || adding} onClick={() => {
-          if (addDoc.data?.doc.status === 'ready') { setAddDocId(null); setDraft(undefined); setUnknown(false); }
-          setAdding(true);
-        }}>{draft || unknown ? '继续添加' : '添加文档'}</Button></>}</Space>}>
-    <Typography.Paragraph type="secondary">支持粘贴原文或批量导入 UTF-8 的 TXT / Markdown 文件，每篇最多64 KiB。处理状态每3秒刷新，失败时重试已有文档。</Typography.Paragraph>
-    <QueryState isPending={docs.isPending} error={docs.error} onRetry={() => docs.refetch()} />
-    {trackedId && tracked.error && <Alert type="warning" showIcon title="暂未能读取所提交文档的状态" description="已保留文档ID，请刷新状态。文档可能已经删除，不会自动重新创建。" />}
-    {rowUnknown && <Alert type="warning" showIcon title="重试结果尚未确认" description="请刷新同一文档的状态，网络错误不代表服务端撤销。" />}
-    {tracked.data && <DocumentFeedback doc={tracked.data.doc} />}
-    {!docs.isPending && !docs.error && !docs.data?.total && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无文档，添加后可用于知识库对话与分析" />}
-    {!!docs.data?.total && <Table<AiKbDocInfo> rowKey="id" size="small" scroll={{ x: 680 }}
-      pagination={{ current: page, pageSize, total: docs.data.total, showSizeChanger: true, disabled: guard.writing,
-        onChange: (next, size) => { setPage(size === pageSize ? next : 1); setPageSize(size); } }} dataSource={docs.data.list}
-      columns={[
-        { title: '标题', dataIndex: 'title', ellipsis: true },
-        { title: '处理阶段', width: 180, render: (_, doc) => <Space orientation="vertical" size={0}><Tag color={STATUS[doc.status]}>{documentStageLabel(doc)}</Tag>
-          {doc.status === 'failed' && <Typography.Text type="danger">{doc.error || '请重试已有文档'}</Typography.Text>}</Space> },
-        { title: '版本', dataIndex: 'version', width: 65, render: value => `v${value}` },
-        { title: '分块', dataIndex: 'chunk_count', width: 60 },
-        { title: '操作', width: 245, render: (_, doc) => <Space>
-          <Button type="link" icon={<FileTextOutlined />} disabled={guard.writing} onClick={() => setPreviewId(doc.id)}>原文</Button>
-          {guard.can(KB_EDIT) && doc.status !== 'ready' && <Button type="link" icon={<RedoOutlined />} disabled={guard.writing || !canRetryDocument(doc)}
-            loading={busyDocId === doc.id && write.isPending} title="处理中需等待120秒保护期结束" onClick={() => void retry(doc)}>重试</Button>}
-          {guard.can(KB_EDIT) && <Popconfirm title="删除该文档？" disabled={guard.writing} onConfirm={() => removeDoc(doc.id)}><Button type="link" danger disabled={guard.writing} loading={busyDocId === doc.id && remove.isPending}>删除</Button></Popconfirm>}
-        </Space> },
-      ]} />}
-    {adding && <DocumentAddModal writing={guard.writing} doc={addDoc.data?.doc} unknown={unknown} error={addError} initialValues={draft}
-      onCancel={() => { if (!guard.writing) setAdding(false); }} onRefresh={refresh}
-      onEdit={() => { setAddDocId(null); setUnknown(false); }} onSubmit={submit} />}
-    {previewId && <KnowledgeDocumentModal scope={scope} kbId={kb.id} docId={previewId} onClose={() => setPreviewId(null)}
-      canEdit={guard.can(KB_EDIT)} beginWrite={() => guard.beginWrite(KB_EDIT)} finishWrite={guard.finishWrite} writing={guard.writing}
-      isCurrent={guard.isCurrent} onChanged={doc => { remember(doc); refresh(); }} />}
-    {importing && <KnowledgeImportModal kbId={kb.id} isCurrent={guard.isCurrent} writing={guard.writing}
-      beginWrite={() => guard.beginWrite(KB_EDIT)} finishWrite={guard.finishWrite}
-      onClose={() => setImporting(false)} onChanged={refresh} onPreview={id => { setImporting(false); setPreviewId(id); }} />}
-  </Drawer>;
-
-  async function submit(values: AiCreateKbDocReq) {
-    if (!guard.beginWrite(KB_EDIT)) return;
-    setDraft(values); setAddError('');
-    try {
-      await client.cancelQueries({ queryKey: aiWorkspaceKeys.kbDocs(scope, kb.id) });
-      await client.cancelQueries({ queryKey: knowledgeDocumentKeys.all(scope, kb.id) });
-      if (!guard.isCurrent()) return;
-      const { doc } = await write.mutateAsync({ values, doc: addDoc.data?.doc });
-      if (!guard.isCurrent()) return;
-      remember(doc); setAddDocId(doc.id); setUnknown(false);
-      if (doc.status === 'ready') { setAdding(false); setDraft(undefined); }
-      refresh();
-    } catch (cause) {
-      if (guard.isCurrent()) { const failure = documentWriteFailure(cause); setUnknown(failure.uncertain); setAddError(failure.message); refresh(); }
-    }
+  async function retryDocument(doc: AiKbDocInfo) {
+    if (retryAttempt || !canRetryDocument(doc) || !guard.beginWrite('sys:ai:kb:edit')) return;
+    const request_id = crypto.randomUUID(); setFeedback('');
+    const original = { batchId: request_id, requestIds: [request_id] }; setRetryAttempt(original);
+    try { writeKnowledgeImportAttempt(sessionStorage, retryKey, original); } catch { setFeedback(`请保留原请求标识：${request_id}`); }
+    try { const receipt = await retry.mutateAsync({ id: doc.id, request_id }); try { updateKnowledgeImportAttempt(sessionStorage, retryKey, request_id, () => null); } catch { /* 保留的原回执不会重复提交。 */ } if (guard.isCurrent()) { setBatchId(receipt.batch_id); setRetryAttempt(null); refresh(); } }
+    catch (cause) { const failure = documentWriteFailure(cause); if (!failure.uncertain) { try { updateKnowledgeImportAttempt(sessionStorage, retryKey, request_id, () => null); } catch { /* 返回时只读核对。 */ } } if (guard.isCurrent()) { if (failure.uncertain) { setBatchId(request_id); setFeedback(`请核对原批次 ${request_id}；页面不会自动再次重试。`); } else { setBatchId(undefined); setRetryAttempt(null); setFeedback(failure.message); } } }
     finally { guard.finishWrite(); }
   }
-  async function retry(doc: AiKbDocInfo) {
-    if (!canRetryDocument(doc) || !guard.beginWrite(KB_EDIT)) return;
-    setBusyDocId(doc.id); setTrackedId(doc.id);
-    await client.cancelQueries({ queryKey: knowledgeDocumentKeys.detail(scope, kb.id, doc.id, true) });
-    try {
-      if (!guard.isCurrent()) return;
-      const result = await write.mutateAsync({ values: { title: '', content: '' }, doc });
-      if (guard.isCurrent()) { remember(result.doc); setRowUnknown(false); refresh(); }
-    } catch { if (guard.isCurrent()) { setRowUnknown(true); refresh(); } }
-    finally { if (guard.isCurrent()) setBusyDocId(null); guard.finishWrite(); }
+  async function deleteDocument(id: number) {
+    if (!guard.beginWrite('sys:ai:kb:edit')) return;
+    try { await remove.mutateAsync(id); refresh(); }
+    catch { /* 请求层反馈，列表保留。 */ }
+    finally { guard.finishWrite(); }
   }
-  async function removeDoc(id: number) {
-    if (!guard.beginWrite(KB_EDIT)) return;
-    setBusyDocId(id);
-    try {
-      await remove.mutateAsync(id);
-      if (guard.isCurrent()) {
-        if (trackedId === id) setTrackedId(null);
-        if (addDocId === id) setAddDocId(null);
-        client.removeQueries({ queryKey: [...knowledgeDocumentKeys.all(scope, kb.id), id] }); refresh();
-      }
-    } catch { /* 统一请求层反馈。 */ }
-    finally { if (guard.isCurrent()) setBusyDocId(null); guard.finishWrite(); }
-  }
-}
-
-function DocumentAddModal({ writing, doc, unknown, error, initialValues, onCancel, onSubmit, onEdit, onRefresh }: {
-  writing: boolean; doc?: AiKbDocInfo; unknown: boolean; error: string; initialValues?: AiCreateKbDocReq;
-  onCancel: () => void; onSubmit: (values: AiCreateKbDocReq) => Promise<void>; onEdit: () => void; onRefresh: () => void;
-}) {
-  const [form] = Form.useForm<AiCreateKbDocReq>();
-  const content = Form.useWatch('content', form) ?? '';
-  return <Modal open title="添加文档" width={680} okText={doc ? '重试已有文档' : '保存并处理'} confirmLoading={writing}
-    closable={!writing} keyboard={!writing} mask={{ closable: !writing }} cancelButtonProps={{ disabled: writing }}
-    okButtonProps={{ disabled: unknown || (!!doc && !canRetryDocument(doc)) }} onCancel={onCancel}
-    onOk={() => { void form.validateFields().then(onSubmit).catch(() => undefined); }} destroyOnHidden>
-    {doc && <DocumentFeedback doc={doc} />}
-    {unknown && <Alert type="warning" showIcon title="结果尚未确认，草稿已保留" description="请先刷新列表确认，避免重复提交。网络错误不代表服务端撤销。" />}
-    {error && !unknown && <Alert type="error" showIcon title="本次保存未完成" description={error} />}
-    {(doc || unknown) && <Space><Button disabled={writing} onClick={onRefresh}>刷新状态</Button>
-      <Popconfirm title="继续编辑将作为新资料提交，已有文档仍会保留。请先确认处理结果。" onConfirm={onEdit}><Button disabled={writing}>编辑新资料</Button></Popconfirm></Space>}
-    <Form form={form} layout="vertical" disabled={writing || !!doc || unknown} initialValues={initialValues} preserve={false}>
-      <KnowledgeDocumentFields content={content} />
-    </Form>
-  </Modal>;
+  return <div>
+    <div className={styles.toolbar}><Input.Search className={styles.search} allowClear aria-label="查找资料名称" placeholder="查找资料名称" onSearch={query => setParams(current => ({ ...current, page: 1, query: query.trim() || undefined }))} />
+      <Select<AiKbDocInfo['status'] | ''> className={styles.statusSelect} aria-label="资料状态" value={params.status ?? ''} onChange={status => setParams(current => ({ ...current, page: 1, status: status || undefined }))} options={[{ value: '', label: '全部状态' }, { value: 'ready', label: '可使用' }, { value: 'pending', label: '处理中' }, { value: 'failed', label: '处理失败' }]} />
+      <Button icon={<ReloadOutlined />} aria-label="刷新资料" loading={docs.isFetching} onClick={refresh} /></div>
+    <Space wrap><Tag>全部 {(docs.data?.ready_count ?? kb.ready_count) + (docs.data?.pending_count ?? kb.pending_count) + (docs.data?.failed_count ?? kb.failed_count)}</Tag><Tag color="success">可使用 {docs.data?.ready_count ?? kb.ready_count}</Tag><Tag color="processing">处理中 {docs.data?.pending_count ?? kb.pending_count}</Tag><Tag color="error">失败 {docs.data?.failed_count ?? kb.failed_count}</Tag></Space>
+    <QueryState isPending={docs.isPending} error={docs.error} onRetry={() => docs.refetch()} />
+    {feedback && <Alert showIcon type="warning" title="操作结果待核对" description={feedback} />}
+    {!docs.isPending && !docs.error && !docs.data?.total && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={params.query || params.status ? '没有符合条件的资料' : '添加资料后，开始带来源的分析'} />}
+    {!!docs.data?.total && <Table<AiKbDocInfo> rowKey="id" size="small" scroll={{ x: 580 }} dataSource={docs.data.list} pagination={{ current: params.page, pageSize: params.page_size, total: docs.data.total, showSizeChanger: true, onChange: (page, page_size) => setParams(current => ({ ...current, page: page_size === current.page_size ? page : 1, page_size })) }} columns={[
+      { title: '资料', dataIndex: 'title', render: (_, doc) => <><Button type="link" onClick={() => setPreviewId(doc.id)}>{doc.title}</Button><div className={styles.help}>第 {doc.version} 版</div></> },
+      { title: '状态', render: (_, doc) => <Space orientation="vertical" size={0}><Tag color={colors[doc.status]}>{documentStageLabel(doc)}</Tag>{doc.error && <span className={styles.help}>{doc.error}</span>}</Space> },
+      { title: '操作', width: 180, render: (_, doc) => <Space size={0}><Button type="link" icon={<FileTextOutlined />} onClick={() => setPreviewId(doc.id)}>原文</Button>
+        {guard.can('sys:ai:kb:edit') && <><Button type="text" icon={<RedoOutlined />} aria-label={`重试${doc.title}`} disabled={guard.writing || !!retryAttempt || !canRetryDocument(doc)} onClick={() => void retryDocument(doc)} /><Popconfirm title="删除这篇资料？" onConfirm={() => deleteDocument(doc.id)}><Button type="link" danger disabled={guard.writing}>删除</Button></Popconfirm></>}</Space> },
+    ]} />}
+    <div className={styles.batchLink}><Space wrap>{guard.can('sys:ai:kb:edit') && <><Button icon={<UploadOutlined />} disabled={guard.writing} onClick={() => setImporting('files')}>导入 TXT / Markdown</Button><Button icon={<PlusOutlined />} disabled={guard.writing} onClick={() => setImporting('paste')}>粘贴资料</Button></>}</Space><Button type="link" onClick={() => setImporting('files')}>查看导入批次</Button></div>
+    {previewId && <KnowledgeDocumentModal scope={scope} kbId={kb.id} docId={previewId} metadata={docs.error ? undefined : docs.data?.list.find(doc => doc.id === previewId)} metadataUpdatedAt={docs.dataUpdatedAt} onClose={() => { setPreviewId(null); refresh(); }} canEdit={guard.can('sys:ai:kb:edit')} beginWrite={() => guard.beginWrite('sys:ai:kb:edit')} finishWrite={guard.finishWrite} writing={guard.writing} isCurrent={guard.isCurrent} onChanged={refresh} />}
+    {importing && <KnowledgeImportModal scope={scope} kbId={kb.id} canEdit={guard.can('sys:ai:kb:edit')} initialMode={importing} initialBatchId={batchId} writing={guard.writing} beginWrite={() => guard.beginWrite('sys:ai:kb:edit')} finishWrite={guard.finishWrite} isCurrent={guard.isCurrent} onClose={() => { setImporting(null); refresh(); }} onChanged={refresh} onPreview={id => { setImporting(null); setPreviewId(id); }} />}
+  </div>;
 }

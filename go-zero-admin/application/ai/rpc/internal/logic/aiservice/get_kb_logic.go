@@ -27,5 +27,5 @@ func (l *GetKbLogic) GetKb(in *aipb.GetKbRequest) (*aipb.GetKbResponse, error) {
 	if err != nil {
 		return nil, aiModelError(err)
 	}
-	return &aipb.GetKbResponse{Kb: kbRowToPb(row)}, nil
+	return &aipb.GetKbResponse{Kb: kbRowToPb(row), Capabilities: capabilitiesProto(l.svcCtx)}, nil
 }

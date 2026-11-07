@@ -46,7 +46,7 @@ func TestKbDocumentsAPIMapsActorVersionStageAndMetadata(t *testing.T) {
 	if err != nil || out.Doc.Version != 4 || out.Doc.Stage != "indexing" || out.Content != "" {
 		t.Fatalf("GET=%+v err=%v", out, err)
 	}
-	updated, err := NewUpdateKbDocLogic(ctx, s).UpdateKbDoc(&types.AiUpdateKbDocReq{Id: 2, DocId: 3, Title: "文档", Content: "原文\r\n", ExpectedVersion: 3})
+	updated, err := NewUpdateKbDocLogic(ctx, s).UpdateKbDoc(&types.AiUpdateKbDocReq{Id: 2, DocId: 3, Title: "文档", Content: "原文\r\n", ExpectedVersion: 3, RequestId: "f7cb82a2-3549-4680-b9c5-8fd295dd9e80"})
 	if err != nil || updated.Doc.Stage != "indexing" || updated.Doc.Version != 4 {
 		t.Fatalf("PUT=%+v err=%v", updated, err)
 	}

@@ -15,7 +15,9 @@ import { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
 import { aiWorkspaceKeys, workflowDetailOptions, workflowListOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
 import { WorkflowDefinitionView, WorkflowRunResultNotice } from './WorkflowEditor';
-import { parseWorkflow, prepareWorkflowRunInput, validateRunInput, workflowRunFields } from './workflowDefinition';
+import { prepareWorkflowRunInput, validateRunInput, workflowRunFields } from './workflowDefinition';
+import { KnowledgeChoice } from './WorkflowParameters';
+import { TaskDetail } from './TaskDetail';
 import { clearWorkflowRunAttempt, readWorkflowRunAttempt, saveWorkflowRunAttempt, workflowRunAttemptKey } from './workflowRunAttempts';
 import type { WorkflowRunAttempt } from './workflowRunAttempts';
 import styles from './workflow.module.css';
@@ -33,10 +35,12 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { can, isCurrent, beginWrite, finishWrite, writing } = useAiWorkspaceGuard(scope, readCode);
-  const [pageParams, setPageParams] = useState({ page: 1, page_size: 20 });
+  const guard = useAiWorkspaceGuard(scope, readCode);
+  const { can, isCurrent, beginWrite, finishWrite, writing } = guard;
+  const [pageParams, setPageParams] = useState<{ page: number; page_size: number; query?: string }>({ page: 1, page_size: 20 });
   const { page, page_size: pageSize } = pageParams;
   const [search, setSearch] = useState('');
+  const [selectedTask, setSelectedTask] = useState<number | null>(null);
   const [panel, setPanel] = useState<Panel | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AiWorkflowInfo | null>(null);
   const [uncertain, setUncertain] = useState<'run' | null>(null);
@@ -44,7 +48,7 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
   const [runAttempt, setRunAttempt] = useState<(AiRunWorkflowReq & { workflowId: number }) | null>(null);
   const [runError, setRunError] = useState('');
   const runAttempts = useRef(new Map<string, WorkflowRunAttempt>());
-  const [runForm] = Form.useForm<{ input: string; question?: string; text?: string }>();
+  const [runForm] = Form.useForm<{ input: string; question?: string; text?: string; kb_id?: number }>();
   const departmentId = useAuthStore(state => state.selectedDeptId);
   const sessionId = scope[0];
   const attemptKey = (id: number) => workflowRunAttemptKey(sessionId, departmentId, id);
@@ -70,7 +74,7 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
   const workflow = detail.data?.workflow;
   const remove = useMutation({ mutationFn: deleteAiWorkflow, retry: false });
   const run = useMutation({ mutationFn: ({ workflowId, ...data }: AiRunWorkflowReq & { workflowId: number }) => runAiWorkflow(workflowId, data), retry: false });
-  let runFields = { question: false, text: false };
+  let runFields = { question: false, text: false, kb_id: false };
   try { if (workflow) runFields = workflowRunFields(workflow.definition); } catch { /* 详情会展示原始定义；运行时服务端再次校验。 */ }
 
   useEffect(() => {
@@ -125,7 +129,7 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
     } catch { /* 失败保留确认上下文，由请求层展示错误。 */ }
     finally { finishWrite(); }
   }
-  async function runWorkflow(values: { input?: string; question?: string; text?: string }) {
+  async function runWorkflow(values: { input?: string; question?: string; text?: string; kb_id?: number }) {
     if (!workflow || panel?.mode !== 'run' || detail.isFetching || detail.error || workflow.enabled !== 1 || !isCurrent()) return;
     let attempt = runAttempt;
     if (!uncertain || !attempt) {
@@ -148,7 +152,7 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
       if (mayReadTasks()) await client.invalidateQueries({ queryKey: aiWorkspaceKeys.tasks(scope) });
       if (!isCurrent()) return;
       setPanel(null);
-      if (mayReadTasks()) navigate(`/ai/tasks?task_id=${result.task_id}`);
+      if (mayReadTasks()) setSelectedTask(result.task_id);
       else setLastRunWithoutAccess(result);
     } catch (error) {
       if (isCurrent() && (!(error instanceof ApiError) || error.code >= 500)) setUncertain('run');
@@ -156,11 +160,11 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
     } finally { finishWrite(); }
   }
 
-  const displayed = (list.data?.list ?? []).filter(item => item.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
+  const displayed = list.data?.list ?? [];
 
   return <div className={styles.workspace}>
     <Card>
-      <div className={styles.header}><div><Space><ApartmentOutlined /><Typography.Title level={3}>工作流管理</Typography.Title><Tag>{list.data?.total ?? 0} 个工作流</Tag></Space><p className={styles.headerNote}>将工具组织为顺序步骤，在关键步骤前确认</p></div><Space>
+      <div className={styles.header}><div><Space><ApartmentOutlined /><Typography.Title level={3}>常用流程</Typography.Title><Tag>{list.data?.total ?? 0} 个流程</Tag></Space><p className={styles.headerNote}>保存常用的分析方式，每次单独填写资料与问题</p></div><Space>
         <Button icon={<ReloadOutlined />} aria-label="刷新工作流列表" disabled={writing} onClick={() => void refreshList()} />
         {canCreate && <Button type="primary" icon={<PlusOutlined />} disabled={writing || !canReadTools} title={!canReadTools ? '需要查看工具权限才能选择注册工具' : undefined} onClick={() => navigate('/ai/workflows/new')}>新建工作流</Button>}
       </Space></div>
@@ -168,11 +172,11 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
     {lastRunWithoutAccess && <WorkflowRunResultNotice result={lastRunWithoutAccess} />}
     {canCreate && !canReadTools && <Alert type="info" showIcon title="尚无查看工具权限，可查看已有定义；新建和编辑步骤需要查看工具权限。" />}
     <Card>
-      <div className={styles.toolbar}><Input className={styles.search} prefix={<SearchOutlined />} allowClear aria-label="筛选当前页工作流" placeholder="筛选当前页工作流名称" value={search} onChange={event => setSearch(event.target.value)} /><Typography.Text type="secondary">仅显示我创建的工作流 · 名称搜索仅过滤本页</Typography.Text></div>
+      <div className={styles.toolbar}><Input.Search className={styles.search} prefix={<SearchOutlined />} allowClear aria-label="搜索流程名称" placeholder="搜索流程名称" value={search} onChange={event => setSearch(event.target.value)} onSearch={query => setPageParams(current => ({ ...current, page: 1, query: query.trim() || undefined }))} /><Typography.Text type="secondary">仅显示我创建的流程</Typography.Text></div>
       <QueryState error={list.error} onRetry={list.refetch} />
-      {!list.error && <Table<AiWorkflowInfo> rowKey="id" loading={list.isPending} dataSource={displayed} scroll={{ x: 790 }} pagination={{ current: page, pageSize, total: list.data?.total ?? 0, showSizeChanger: true, pageSizeOptions: [10, 20, 50, 100], showTotal: total => `共 ${total} 个工作流`, onChange: (next, size) => { if (!writing) setPageParams({ page: size !== pageSize ? 1 : next, page_size: size }); }, disabled: writing }} columns={[
+      {!list.error && <Table<AiWorkflowInfo> rowKey="id" loading={list.isPending} dataSource={displayed} scroll={{ x: 790 }} pagination={{ current: page, pageSize, total: list.data?.total ?? 0, showSizeChanger: true, pageSizeOptions: [10, 20, 50, 100], showTotal: total => `共 ${total} 个工作流`, onChange: (next, size) => { if (!writing) setPageParams(current => ({ ...current, page: size !== pageSize ? 1 : next, page_size: size })); }, disabled: writing }} columns={[
         { title: '工作流', dataIndex: 'name', render: (_: unknown, row) => <><Button type="link" className={styles.workflowName} disabled={writing} onClick={() => openExisting(row.id, 'view')}>{row.name}</Button><div className={styles.rowNote}>#{row.id} · 手动运行</div></> },
-        { title: '步骤', width: 90, render: (_: unknown, row) => { try { return `${parseWorkflow(row.definition).length} 步`; } catch { return '定义异常'; } } },
+        { title: '步骤', width: 90, render: (_: unknown, row) => `${row.step_count} 步` },
         { title: '状态', width: 100, dataIndex: 'enabled', render: (enabled: number) => <Tag color={enabled === 1 ? 'success' : 'default'}>{enabled === 1 ? '已启用' : '已停用'}</Tag> },
         { title: '更新于', dataIndex: 'updated_at', render: formatTime, responsive: ['lg'] },
         { title: '操作', width: 330, render: (_: unknown, row) => <Space size={4}>
@@ -183,6 +187,7 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
         </Space> },
       ]} />}
     </Card>
+    {selectedTask && <Card title="本次运行结果"><TaskDetail key={selectedTask} inline scope={scope} taskId={selectedTask} guard={guard} onClose={() => setSelectedTask(null)} /></Card>}
     <Drawer open={panel?.mode === 'view'} title="工作流详情" size={880} onClose={closePanel} destroyOnHidden>
       <QueryState isPending={detail.isPending || detail.isFetching} error={detail.error} onRetry={detail.refetch} />
       {workflow && !detail.isFetching && !detail.error && <WorkflowDefinitionView name={workflow.name} definition={workflow.definition} />}
@@ -194,6 +199,7 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
         {workflow.enabled !== 1 && <Alert type="warning" showIcon title="此工作流已停用，请在编辑中启用后再运行。" />}
         <details className={styles.runDetails}><summary>查看本次已保存定义</summary><WorkflowDefinitionView name={workflow.name} definition={workflow.definition} /></details>
         <Form form={runForm} layout="vertical" initialValues={{ input: '', question: undefined, text: undefined }} onFinish={runWorkflow} disabled={writing || !!uncertain} clearOnDestroy>
+          {runFields.kb_id && <Form.Item label="本次使用的知识库" name="kb_id" rules={[{ required: true, message: '请选择本次使用的知识库' }]}><KnowledgeChoice knowledge={{ scope, canRead: can('sys:ai:kb:list') }} disabled={writing || !!uncertain} /></Form.Item>}
           {runFields.question && <Form.Item label="本次问题" name="question" rules={[{ required: true, whitespace: true, message: '请输入本次希望分析的问题' }]}><Input.TextArea rows={4} placeholder="希望从资料中了解什么？" /></Form.Item>}
           {runFields.text && <Form.Item label="本次文本" name="text" rules={[{ required: true, message: '请输入本次需要处理的文本' }]}><Input.TextArea rows={5} placeholder="粘贴本次运行需要处理的文本" /></Form.Item>}
           {!runFields.question && !runFields.text && <Typography.Paragraph type="secondary">本工作流使用已保存的固定参数；提交后可以关闭页面，在任务中心查看进度。</Typography.Paragraph>}

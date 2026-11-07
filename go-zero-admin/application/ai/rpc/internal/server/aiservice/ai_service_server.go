@@ -93,6 +93,11 @@ func (s *AiServiceServer) RunWorkflow(ctx context.Context, in *aipb.RunWorkflowR
 	return l.RunWorkflow(in)
 }
 
+func (s *AiServiceServer) RunDraft(ctx context.Context, in *aipb.RunDraftRequest) (*aipb.RunWorkflowResponse, error) {
+	l := aiservicelogic.NewRunDraftLogic(ctx, s.svcCtx)
+	return l.RunDraft(in)
+}
+
 func (s *AiServiceServer) CreateKb(ctx context.Context, in *aipb.CreateKbRequest) (*aipb.CreateKbResponse, error) {
 	l := aiservicelogic.NewCreateKbLogic(ctx, s.svcCtx)
 	return l.CreateKb(in)
@@ -151,6 +156,21 @@ func (s *AiServiceServer) DeleteKbDoc(ctx context.Context, in *aipb.DeleteKbDocR
 func (s *AiServiceServer) RetryKbDoc(ctx context.Context, in *aipb.RetryKbDocRequest) (*aipb.RetryKbDocResponse, error) {
 	l := aiservicelogic.NewRetryKbDocLogic(ctx, s.svcCtx)
 	return l.RetryKbDoc(in)
+}
+
+func (s *AiServiceServer) ListKbImports(ctx context.Context, in *aipb.ListKbImportsRequest) (*aipb.ListKbImportsResponse, error) {
+	l := aiservicelogic.NewListKbImportsLogic(ctx, s.svcCtx)
+	return l.ListKbImports(in)
+}
+
+func (s *AiServiceServer) GetKbImport(ctx context.Context, in *aipb.GetKbImportRequest) (*aipb.GetKbImportResponse, error) {
+	l := aiservicelogic.NewGetKbImportLogic(ctx, s.svcCtx)
+	return l.GetKbImport(in)
+}
+
+func (s *AiServiceServer) StopKbImport(ctx context.Context, in *aipb.StopKbImportRequest) (*aipb.GetKbImportResponse, error) {
+	l := aiservicelogic.NewStopKbImportLogic(ctx, s.svcCtx)
+	return l.StopKbImport(in)
 }
 
 func (s *AiServiceServer) ListAgentTasks(ctx context.Context, in *aipb.ListAgentTasksRequest) (*aipb.ListAgentTasksResponse, error) {

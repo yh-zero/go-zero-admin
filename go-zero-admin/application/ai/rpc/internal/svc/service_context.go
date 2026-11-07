@@ -24,9 +24,10 @@ type ServiceContext struct {
 	LLM    *llm.Client // 当前服务商未配置 Key 时为 nil
 
 	// 知识库检索：Qdrant.Address 或 Embedding 未配置时为 nil，对应功能按契约降级
-	VectorStore vectordb.Store
-	Embedder    *llm.Embedder
-	KbSearcher  agenttools.KbSearcher
+	VectorStore   vectordb.Store
+	Embedder      *llm.Embedder
+	KbSearcher    agenttools.KbSearcher
+	KbIngestQueue *model.KbIngestQueue
 
 	AiConversationModel model.AiConversationModel
 	AiMessageModel      model.AiMessageModel
@@ -59,6 +60,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		AiKbDocModel:        model.NewAiKbDocModel(conn, c.CacheRedis),
 		AiKbChunkModel:      model.NewAiKbChunkModel(conn, c.CacheRedis),
 	}
+	svcCtx.KbIngestQueue = model.NewKbIngestQueue(conn, svcCtx.AiKbDocModel)
 	svcCtx.Embedder = newEmbedder(ai)
 	svcCtx.VectorStore = newVectorStore(c)
 	if svcCtx.VectorStore != nil && svcCtx.Embedder != nil {

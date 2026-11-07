@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"go-zero-admin/pkg/logsafe"
@@ -40,6 +41,8 @@ func main() {
 		}
 	}
 	ctx := svc.NewServiceContext(c)
+	stopKbWorkers := ctx.StartKbIngestWorkers(context.Background())
+	defer stopKbWorkers()
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		aipb.RegisterAiServiceServer(grpcServer, aiserviceServer.NewAiServiceServer(ctx))

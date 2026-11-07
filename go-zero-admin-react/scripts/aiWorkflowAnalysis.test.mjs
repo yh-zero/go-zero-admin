@@ -97,7 +97,7 @@ test('工作流知识库分析展示与等待范围', async t => {
       assert.ok(!oldMarkup.includes('分析内容'));
     });
 
-    await t.test('后台运行与批准保留默认等待，文档同步摄取仍等待125秒', async () => {
+    await t.test('运行与文档摄取都只等待提交，检索保留独立等待上限', async () => {
       const api = await server.ssrLoadModule('/src/api/ai.ts');
       const { request } = await server.ssrLoadModule('/src/utils/request.ts');
       const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
@@ -109,8 +109,8 @@ test('工作流知识库分析展示与等待范围', async t => {
       request.defaults.adapter = async config => { calls.push(config); return { data: { code: 200, result: {} }, status: 200, statusText: 'OK', headers: {}, config }; };
       await api.runAiWorkflow(8, { request_id: '11111111-1111-4111-8111-111111111111', input: '{"question":"本次问题"}' });
       await api.approveAiTask(7, { expected_step: 0 });
-      await api.createAiKbDoc(7, { title: '测试资料', content: '本地适配器' });
-      await api.retryAiKbDoc(7, 9);
+      await api.createAiKbDoc(7, { title: '测试资料', content: '本地适配器', request_id: '22222222-2222-4222-8222-222222222222' });
+      await api.retryAiKbDoc(7, 9, { request_id: '33333333-3333-4333-8333-333333333333' });
       await api.createAiWorkflow({ name: '测试', definition: '{"steps":[]}' });
       await api.updateAiWorkflow(8, { enabled: 1 });
       await api.fetchAiWorkflow(8);
@@ -118,7 +118,7 @@ test('工作流知识库分析展示与等待范围', async t => {
       await api.rejectAiTask(7, { expected_step: 0, reason: '拒绝' });
       await api.searchAiKb(7, { query: '资料' });
       await api.cancelAiTask(7);
-      assert.deepEqual(calls.map(config => config.timeout), [30000, 30000, 125000, 125000, 30000, 30000, 30000, 30000, 30000, 15000, 30000]);
+      assert.deepEqual(calls.map(config => config.timeout), [30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 15000, 30000]);
       assert.equal(calls[0].url, '/sys/ai/workflows/8/run');
       assert.deepEqual(JSON.parse(calls[0].data), { request_id: '11111111-1111-4111-8111-111111111111', input: '{"question":"本次问题"}' });
       assert.equal(calls[1].url, '/sys/ai/tasks/7/approve');

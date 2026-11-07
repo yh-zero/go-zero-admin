@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Button, Drawer, Form, Input, Modal, Space, Tag } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { approveAiTask, cancelAiTask, rejectAiTask } from '../../api/ai';
 import type { AiTaskInfo, AiWorkflowStepInfo } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { formatTime } from '../../utils/format';
 import type { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
-import { aiWorkspaceKeys, taskDetailOptions } from './workspaceQueries';
+import { aiWorkspaceKeys, taskDetailOptions, taskMetadataOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
 import { captureTaskDecision, formatTaskValue, isTaskDecisionCurrent, taskPollInterval, taskStatuses, taskStepLabel, validateRejectReason } from './taskState';
 import type { TaskDecision } from './taskState';
@@ -21,9 +22,13 @@ interface TaskDetailProps {
   taskId: number;
   guard: ReturnType<typeof useAiWorkspaceGuard>;
   onClose: () => void;
+  inline?: boolean;
+  metadata?: AiTaskInfo;
+  metadataUpdatedAt?: number;
+  showSaveAction?: boolean;
 }
 
-export function TaskDetail({ scope, taskId, guard, onClose }: TaskDetailProps) {
+export function TaskDetail({ scope, taskId, guard, onClose, inline = false, metadata, metadataUpdatedAt = 0, showSaveAction = true }: TaskDetailProps) {
   const client = useQueryClient();
   const [decision, setDecision] = useState<TaskDecision | null>(null);
   const [feedback, setFeedback] = useState<string>();
@@ -31,12 +36,25 @@ export function TaskDetail({ scope, taskId, guard, onClose }: TaskDetailProps) {
   const [form] = Form.useForm<{ reason: string }>();
   const mounted = useRef(true);
   const pollStartedAt = useRef(0);
+  const lastMetadata = useRef('');
   const details = useQuery({
     ...taskDetailOptions(scope, taskId),
     enabled: guard.can('sys:ai:task:list'),
-    refetchInterval: query => taskPollInterval(query.state.data?.task.status, !guard.writing && !decision && !cancelConfirm && guard.isCurrent(), Date.now() - pollStartedAt.current, query.state.fetchFailureCount),
-    refetchIntervalInBackground: false,
   });
+  const metaOptions = taskMetadataOptions(scope, taskId, details.data?.task, metadata);
+  const meta = useQuery({ ...metaOptions,
+    enabled: metaOptions.enabled && guard.can('sys:ai:task:list'),
+    refetchInterval: query => taskPollInterval(query.state.data?.task.status ?? details.data?.task.status, !guard.writing && !decision && !cancelConfirm && guard.isCurrent(), Date.now() - pollStartedAt.current, query.state.fetchFailureCount),
+    refetchIntervalInBackground: false });
+  const latest = metadata && metadataUpdatedAt > details.dataUpdatedAt ? metadata : meta.dataUpdatedAt > details.dataUpdatedAt ? meta.data?.task : undefined;
+  useEffect(() => {
+    if (!latest || !details.data || guard.writing || !guard.isCurrent()) return;
+    const signature = `${latest.updated_at}:${latest.status}:${latest.next_step}`;
+    if (lastMetadata.current === signature) return;
+    lastMetadata.current = signature;
+    const current = details.data.task;
+    if (latest.status !== current.status || latest.updated_at !== current.updated_at || latest.next_step !== current.next_step) void client.invalidateQueries({ queryKey: aiWorkspaceKeys.task(scope, taskId), exact: true });
+  }, [latest, details.data, guard, client, scope, taskId]);
   const mutation = useMutation({ mutationFn: async ({ snapshot, reason }: { snapshot: TaskDecision; reason?: string }) => {
     if (snapshot.action === 'approve') return approveAiTask(snapshot.id, { expected_step: snapshot.expected_step });
     return rejectAiTask(snapshot.id, { expected_step: snapshot.expected_step, reason: reason!.trim() });
@@ -113,21 +131,24 @@ export function TaskDetail({ scope, taskId, guard, onClose }: TaskDetailProps) {
       guard.finishWrite();
     }
   }
+  const actions = <Space wrap className={styles.drawerActions}><Button disabled={guard.writing} onClick={onClose}>{inline ? '收起结果' : '关闭'}</Button>
+    {showSaveAction && task?.definition && guard.can('sys:ai:workflow:create') && guard.can('sys:ai:workflow:list') && guard.can('sys:ai:tool:list') && <Link to={`/ai/workflows/new?from_task=${taskId}`}><Button disabled={guard.writing}>{task.status === 'failed' ? '带入原问题' : '保存为常用流程'}</Button></Link>}
+    {cancellable && guard.can('sys:ai:task:cancel') && <Button danger disabled={guard.writing} onClick={() => setCancelConfirm(true)}>取消任务</Button>}
+    {approvalAvailable && guard.can('sys:ai:task:reject') && <Button danger disabled={guard.writing} onClick={() => openDecision('reject')}>拒绝</Button>}
+    {approvalAvailable && guard.can('sys:ai:task:approve') && <Button type="primary" disabled={guard.writing} onClick={() => openDecision('approve')}>确认并继续</Button>}
+  </Space>;
+  const content = <>
+    <QueryState isPending={details.isPending} error={details.error} onRetry={() => details.refetch()} />
+    {feedback && <Alert className={styles.feedback} title={feedback} type="info" showIcon />}
+    {task && !details.error && <TaskDetailContent task={task} />}
+  </>;
   return <>
-    <Drawer open title={`任务 #${taskId}`} size={620} className={styles.drawer} onClose={() => { if (!guard.writing) onClose(); }}
+    {inline ? <section className={styles.inlineDetail} aria-label="运行结果"><div className={styles.inlineActions}><Button icon={<ReloadOutlined />} disabled={guard.writing} onClick={() => { pollStartedAt.current = Date.now(); void details.refetch(); }}>刷新状态</Button>{actions}</div>{content}</section> : <Drawer open title={task?.title || `运行记录 #${taskId}`} size={820} className={styles.drawer} onClose={() => { if (!guard.writing) onClose(); }}
       closable={!guard.writing} maskClosable={!guard.writing && !decision && !cancelConfirm} keyboard={!guard.writing && !decision && !cancelConfirm}
       extra={<Button icon={<ReloadOutlined />} aria-label="刷新任务详情" disabled={guard.writing || !!decision} onClick={() => {
         if (!current()) return; pollStartedAt.current = Date.now(); void details.refetch();
       }} />}
-      footer={<Space wrap className={styles.drawerActions}><Button disabled={guard.writing} onClick={onClose}>关闭</Button>
-        {cancellable && guard.can('sys:ai:task:cancel') && <Button danger disabled={guard.writing} onClick={() => setCancelConfirm(true)}>取消任务</Button>}
-        {approvalAvailable && guard.can('sys:ai:task:reject') && <Button danger disabled={guard.writing} onClick={() => openDecision('reject')}>拒绝</Button>}
-        {approvalAvailable && guard.can('sys:ai:task:approve') && <Button type="primary" disabled={guard.writing} onClick={() => openDecision('approve')}>批准当前步骤</Button>}
-      </Space>}>
-      <QueryState isPending={details.isPending} error={details.error} onRetry={() => details.refetch()} />
-      {feedback && <Alert className={styles.feedback} title={feedback} type="info" showIcon />}
-      {task && !details.error && <TaskDetailContent task={task} />}
-    </Drawer>
+      footer={actions}>{content}</Drawer>}
     <Modal open={!!decision} title={decision?.action === 'approve' ? '批准当前步骤' : '拒绝任务'} onOk={() => void submitDecision()}
       onCancel={() => { if (!guard.writing) setDecision(null); }} confirmLoading={guard.writing} closable={!guard.writing} mask={{ closable: !guard.writing }} keyboard={!guard.writing}
       okText={decision?.action === 'approve' ? '确认批准' : '确认拒绝'} cancelText="取消" cancelButtonProps={{ disabled: guard.writing }} destroyOnHidden>
@@ -149,21 +170,26 @@ export function TaskDetail({ scope, taskId, guard, onClose }: TaskDetailProps) {
 export function TaskDetailContent({ task }: { task: AiTaskInfo }) {
   const analyses = parseTaskAnalyses(task.result, task.next_step);
   return <div className={styles.detailContent}>
+    {task.title && <h2>{task.title}</h2>}
+    {task.input_summary && <p className={styles.question}>问题：{task.input_summary}</p>}
     <div className={styles.state}><Tag color={taskStatuses[task.status]?.color}>{taskStatuses[task.status]?.label ?? task.status}</Tag>
       <p>{task.status === 'pending_approval' ? '等待你确认当前步骤，该步骤尚未执行。' : '展示本次任务已记录的状态与结果。'}</p></div>
+    <h3>执行结果 <CopyTextButton text={analyses.map(item => item.result.analysis).join('\n\n') || task.result} label="复制结果" /></h3>
+    {analyses.map(analysis => <WorkflowAnalysisResult key={analysis.step} analysis={analysis} />)}
+    {analyses.length ? <details><summary>原始执行记录</summary><pre className={styles.code}>{task.result}</pre></details>
+      : <TaskRecordedValue value={task.result} empty={task.status === 'pending_approval' ? '确认后开始当前步骤' : '尚无执行结果'} />}
+    {task.error && <Alert type="error" showIcon title="本次运行未完成" description={<pre className={styles.errorText}>{task.error}</pre>} />}
+    <details className={styles.technicalDetails}><summary>执行过程与技术详情</summary>
     <dl className={styles.facts}>
-      <div><dt>工作流 ID</dt><dd>#{task.workflow_id}</dd></div><div><dt>当前步骤</dt><dd>{taskStepLabel(task)}</dd></div>
+      <div><dt>流程</dt><dd>{task.workflow_name || (task.workflow_id ? `流程 #${task.workflow_id}` : '一次性分析')}</dd></div><div><dt>当前步骤</dt><dd>{taskStepLabel(task)}</dd></div>
       <div><dt>创建时间</dt><dd>{formatTime(task.created_at)}</dd></div><div><dt>完成时间</dt><dd>{formatTime(task.completed_at)}</dd></div>
       <div><dt>最近更新</dt><dd>{formatTime(task.updated_at)}</dd></div>
       <div><dt>审批范围</dt><dd>本人任务</dd></div><div><dt>审批人 ID</dt><dd>{task.approved_by || '—'}</dd></div>
     </dl>
     <h3>本次输入</h3><TaskRecordedValue value={task.input} empty="未提供输入" />
     {!!task.steps?.length && <><h3>步骤执行过程</h3><ol className={styles.stepRecords}>{task.steps.map(step => <li key={step.id}><TaskStepRecord step={step} /></li>)}</ol></>}
-    <h3>执行结果</h3>
-    {analyses.map(analysis => <WorkflowAnalysisResult key={analysis.step} analysis={analysis} />)}
-    {analyses.length ? <details><summary>原始执行记录</summary><pre className={styles.code}>{task.result}</pre></details>
-      : <TaskRecordedValue value={task.result} empty="尚无执行结果" />}
     {task.error && <><h3>错误 / 拒绝原因</h3><pre className={styles.code}>{task.error}</pre></>}
+    </details>
     {task.status === 'pending_approval' && <Alert type="warning" showIcon title="批准后继续执行当前步骤；拒绝后本次任务结束。" />}
   </div>;
 }

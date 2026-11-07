@@ -57,6 +57,10 @@ type (
 		NextStep         uint64         `db:"next_step"`         // 下一待执行步骤索引
 		WorkflowSnapshot sql.NullString `db:"workflow_snapshot"` // 执行时工作流定义快照
 		RequestId        sql.NullString `db:"request_id"`        // 用户内运行幂等ID
+		RequestSignature string         `db:"request_signature"` // 临时运行规范化载荷摘要
+		Title            string         `db:"title"`             // 运行标题快照
+		WorkflowName     string         `db:"workflow_name"`     // 流程名快照，临时运行标识用途
+		InputSummary     string         `db:"input_summary"`     // 问题或文本摘要
 		StepRecords      sql.NullString `db:"step_records"`      // 已解析步骤输入及执行记录
 		UpdatedAt        time.Time      `db:"updated_at"`
 	}
@@ -125,8 +129,8 @@ func (m *defaultAiTaskModel) Insert(ctx context.Context, data *AiTask) (sql.Resu
 	gozeroAdminAiTaskCreatedByRequestIdKey := fmt.Sprintf("%s%v:%v", cacheGozeroAdminAiTaskCreatedByRequestIdPrefix, data.CreatedBy, data.RequestId)
 	gozeroAdminAiTaskIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiTaskIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, aiTaskRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.WorkflowId, data.ConversationId, data.Status, data.Input, data.Result, data.Error, data.ApprovedBy, data.CompletedAt, data.CreatedBy, data.NextStep, data.WorkflowSnapshot, data.RequestId, data.StepRecords)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, aiTaskRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.WorkflowId, data.ConversationId, data.Status, data.Input, data.Result, data.Error, data.ApprovedBy, data.CompletedAt, data.CreatedBy, data.NextStep, data.WorkflowSnapshot, data.RequestId, data.RequestSignature, data.Title, data.WorkflowName, data.InputSummary, data.StepRecords)
 	}, gozeroAdminAiTaskCreatedByRequestIdKey, gozeroAdminAiTaskIdKey)
 	return ret, err
 }
@@ -141,7 +145,7 @@ func (m *defaultAiTaskModel) Update(ctx context.Context, newData *AiTask) error 
 	gozeroAdminAiTaskIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiTaskIdPrefix, data.Id)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, aiTaskRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.WorkflowId, newData.ConversationId, newData.Status, newData.Input, newData.Result, newData.Error, newData.ApprovedBy, newData.CompletedAt, newData.CreatedBy, newData.NextStep, newData.WorkflowSnapshot, newData.RequestId, newData.StepRecords, newData.Id)
+		return conn.ExecCtx(ctx, query, newData.WorkflowId, newData.ConversationId, newData.Status, newData.Input, newData.Result, newData.Error, newData.ApprovedBy, newData.CompletedAt, newData.CreatedBy, newData.NextStep, newData.WorkflowSnapshot, newData.RequestId, newData.RequestSignature, newData.Title, newData.WorkflowName, newData.InputSummary, newData.StepRecords, newData.Id)
 	}, gozeroAdminAiTaskCreatedByRequestIdKey, gozeroAdminAiTaskIdKey)
 	return err
 }

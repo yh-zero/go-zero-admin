@@ -68,7 +68,7 @@ func mapAiWorkflow(row *aipb.WorkflowInfo) *types.AiWorkflowInfo {
 	if row == nil {
 		return nil
 	}
-	return &types.AiWorkflowInfo{Id: row.Id, Name: row.Name, Definition: row.Definition, IntervalSeconds: row.IntervalSeconds, Enabled: row.Enabled, NextRunAt: row.NextRunAt, CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}
+	return &types.AiWorkflowInfo{Id: row.Id, Name: row.Name, Definition: row.Definition, IntervalSeconds: row.IntervalSeconds, Enabled: row.Enabled, NextRunAt: row.NextRunAt, CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, StepCount: row.StepCount}
 }
 func mapAiTask(row *aipb.AgentTaskInfo) *types.AiTaskInfo {
 	if row == nil {
@@ -80,5 +80,5 @@ func mapAiTask(row *aipb.AgentTaskInfo) *types.AiTaskInfo {
 			steps = append(steps, &types.AiWorkflowStepInfo{Index: r.Index, Id: r.Id, Name: r.Name, Tool: r.Tool, Input: r.Input, Output: r.Output, Status: r.Status, Error: r.Error, StartedAt: r.StartedAt, CompletedAt: r.CompletedAt})
 		}
 	}
-	return &types.AiTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt, NextStep: row.NextStep, Steps: steps, UpdatedAt: row.UpdatedAt, RequestId: row.RequestId}
+	return &types.AiTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt, NextStep: row.NextStep, Steps: steps, UpdatedAt: row.UpdatedAt, RequestId: row.RequestId, Title: row.Title, WorkflowName: row.WorkflowName, InputSummary: row.InputSummary, Definition: row.Definition}
 }

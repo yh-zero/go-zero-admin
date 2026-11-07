@@ -19,7 +19,7 @@ type ListWorkflowsLogic struct {
 func NewListWorkflowsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ListWorkflowsLogic {
 	return &ListWorkflowsLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
-func (l *ListWorkflowsLogic) ListWorkflows(req *types.AiPageReq) (*types.AiListWorkflowsResp, error) {
+func (l *ListWorkflowsLogic) ListWorkflows(req *types.AiListWorkflowsReq) (*types.AiListWorkflowsResp, error) {
 	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
@@ -27,7 +27,7 @@ func (l *ListWorkflowsLogic) ListWorkflows(req *types.AiPageReq) (*types.AiListW
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.ListWorkflows(l.ctx, &aipb.ListWorkflowsRequest{Actor: actor, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}})
+	out, err := l.svcCtx.AiRpc.ListWorkflows(l.ctx, &aipb.ListWorkflowsRequest{Actor: actor, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}, Query: req.Query})
 	if err != nil {
 		return nil, err
 	}

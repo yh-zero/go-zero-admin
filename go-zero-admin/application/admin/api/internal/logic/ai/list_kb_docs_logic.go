@@ -28,7 +28,7 @@ func (l *ListKbDocsLogic) ListKbDocs(req *types.AiKbDocListReq) (*types.AiListKb
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.ListKbDocs(l.ctx, &aipb.ListKbDocsRequest{Actor: actor, KbId: req.Id, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}})
+	out, err := l.svcCtx.AiRpc.ListKbDocs(l.ctx, &aipb.ListKbDocsRequest{Actor: actor, KbId: req.Id, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}, Query: req.Query, Status: req.Status})
 	if err != nil {
 		return nil, err
 	}
@@ -36,5 +36,5 @@ func (l *ListKbDocsLogic) ListKbDocs(req *types.AiKbDocListReq) (*types.AiListKb
 	for _, item := range out.List {
 		list = append(list, mapAiKbDoc(item))
 	}
-	return &types.AiListKbDocsResp{List: list, Total: out.GetPage().GetTotal()}, nil
+	return &types.AiListKbDocsResp{List: list, Total: out.GetPage().GetTotal(), ReadyCount: out.ReadyCount, PendingCount: out.PendingCount, FailedCount: out.FailedCount}, nil
 }

@@ -60,7 +60,7 @@ test('独立工作流编辑：参数、草稿及菜单访问边界', async t => 
       assert.match(html, /有效本地草稿/);
       assert.match(html, /原始参数/);
       assert.match(html, /第 1 步的类型已不可用/);
-      const save = [...html.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/g)].find(match => match[0].includes('保存工作流'))?.[0];
+      const save = [...html.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/g)].find(match => match[0].includes('保存为常用流程'))?.[0];
       assert.match(save, /disabled/);
     });
     await t.test('草稿刷新可恢复，身份、部门和新建编辑隔离，提交中恢复为未知', () => {

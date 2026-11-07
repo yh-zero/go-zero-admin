@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"strings"
 	"time"
 )
 
@@ -17,7 +18,9 @@ type (
 	AiTaskModel interface {
 		aiTaskModel
 		FindOwned(ctx context.Context, id, ownerId int64) (*TaskRow, error)
+		FindSummaryOwned(ctx context.Context, id, ownerId int64) (*TaskRow, error)
 		ListOwned(ctx context.Context, ownerId, page, pageSize int64, status string, workflowId int64) ([]*TaskRow, int64, error)
+		ListSearchOwned(ctx context.Context, ownerId, page, pageSize int64, status string, workflowId int64, query string) ([]*TaskRow, int64, error)
 		ClaimApproval(ctx context.Context, id, ownerId, expectedStep int64) error
 		RejectOwned(ctx context.Context, id, ownerId, expectedStep int64, reason string) error
 		Advance(ctx context.Context, id, ownerId, expectedStep, nextStep int64, status, result, errorMessage string) error
@@ -61,16 +64,26 @@ type TaskRow struct {
 	RequestId        string `db:"request_id"`
 	StepRecords      string `db:"step_records"`
 	UpdatedAt        int64  `db:"updated_at"`
+	RequestSignature string `db:"request_signature"`
+	Title            string `db:"title"`
+	WorkflowName     string `db:"workflow_name"`
+	InputSummary     string `db:"input_summary"`
 }
 
-const taskSelect = "SELECT id,COALESCE(workflow_id,0) AS workflow_id,COALESCE(conversation_id,0) AS conversation_id,status,COALESCE(input,'') AS input,COALESCE(result,'') AS result,error,COALESCE(approved_by,0) AS approved_by,UNIX_TIMESTAMP(created_at) AS created_at,COALESCE(UNIX_TIMESTAMP(completed_at),0) AS completed_at,created_by,next_step,COALESCE(CAST(workflow_snapshot AS CHAR),'') AS workflow_snapshot,COALESCE(request_id,'') AS request_id,COALESCE(CAST(step_records AS CHAR),'[]') AS step_records,UNIX_TIMESTAMP(updated_at) AS updated_at FROM ai_task "
+const taskSelect = "SELECT id,COALESCE(workflow_id,0) AS workflow_id,COALESCE(conversation_id,0) AS conversation_id,status,COALESCE(input,'') AS input,COALESCE(result,'') AS result,error,COALESCE(approved_by,0) AS approved_by,UNIX_TIMESTAMP(created_at) AS created_at,COALESCE(UNIX_TIMESTAMP(completed_at),0) AS completed_at,created_by,next_step,COALESCE(CAST(workflow_snapshot AS CHAR),'') AS workflow_snapshot,COALESCE(request_id,'') AS request_id,COALESCE(CAST(step_records AS CHAR),'[]') AS step_records,UNIX_TIMESTAMP(updated_at) AS updated_at,request_signature,title,workflow_name,input_summary FROM ai_task "
 
 // 列表不读取大字段；100 条最大分页仍保持有界，执行内容仅在本人详情中读取。
-const taskSummarySelect = "SELECT id,COALESCE(workflow_id,0) AS workflow_id,COALESCE(conversation_id,0) AS conversation_id,status,'' AS input,'' AS result,error,COALESCE(approved_by,0) AS approved_by,UNIX_TIMESTAMP(created_at) AS created_at,COALESCE(UNIX_TIMESTAMP(completed_at),0) AS completed_at,created_by,next_step,'' AS workflow_snapshot,COALESCE(request_id,'') AS request_id,'[]' AS step_records,UNIX_TIMESTAMP(updated_at) AS updated_at FROM ai_task "
+const taskSummarySelect = "SELECT id,COALESCE(workflow_id,0) AS workflow_id,COALESCE(conversation_id,0) AS conversation_id,status,'' AS input,'' AS result,error,COALESCE(approved_by,0) AS approved_by,UNIX_TIMESTAMP(created_at) AS created_at,COALESCE(UNIX_TIMESTAMP(completed_at),0) AS completed_at,created_by,next_step,'' AS workflow_snapshot,COALESCE(request_id,'') AS request_id,'[]' AS step_records,UNIX_TIMESTAMP(updated_at) AS updated_at,request_signature,title,workflow_name,input_summary FROM ai_task "
 
 func (m *customAiTaskModel) FindOwned(ctx context.Context, id, ownerId int64) (*TaskRow, error) {
 	var row TaskRow
 	err := m.QueryRowNoCacheCtx(ctx, &row, taskSelect+"WHERE id=? AND created_by=?", id, ownerId)
+	return &row, err
+}
+
+func (m *customAiTaskModel) FindSummaryOwned(ctx context.Context, id, ownerId int64) (*TaskRow, error) {
+	var row TaskRow
+	err := m.QueryRowNoCacheCtx(ctx, &row, taskSummarySelect+"WHERE id=? AND created_by=?", id, ownerId)
 	return &row, err
 }
 
@@ -81,6 +94,10 @@ func (m *customAiTaskModel) CheckRunningOwned(ctx context.Context, id, ownerId i
 }
 
 func (m *customAiTaskModel) ListOwned(ctx context.Context, ownerId, page, pageSize int64, status string, workflowId int64) ([]*TaskRow, int64, error) {
+	return m.ListSearchOwned(ctx, ownerId, page, pageSize, status, workflowId, "")
+}
+
+func (m *customAiTaskModel) ListSearchOwned(ctx context.Context, ownerId, page, pageSize int64, status string, workflowId int64, query string) ([]*TaskRow, int64, error) {
 	where := "created_by=?"
 	args := []any{ownerId}
 	if status != "" {
@@ -90,6 +107,11 @@ func (m *customAiTaskModel) ListOwned(ctx context.Context, ownerId, page, pageSi
 	if workflowId > 0 {
 		where += " AND workflow_id=?"
 		args = append(args, workflowId)
+	}
+	if query != "" {
+		where += " AND (title LIKE ? ESCAPE '!' OR workflow_name LIKE ? ESCAPE '!' OR input_summary LIKE ? ESCAPE '!')"
+		pattern := "%" + strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(query) + "%"
+		args = append(args, pattern, pattern, pattern)
 	}
 	var count struct {
 		Total int64 `db:"total"`

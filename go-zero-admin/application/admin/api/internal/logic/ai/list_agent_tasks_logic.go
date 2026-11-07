@@ -27,7 +27,7 @@ func (l *ListAgentTasksLogic) ListAgentTasks(req *types.AiListTasksReq) (*types.
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.ListAgentTasks(l.ctx, &aipb.ListAgentTasksRequest{Actor: actor, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}, Status: req.Status, WorkflowId: req.WorkflowId})
+	out, err := l.svcCtx.AiRpc.ListAgentTasks(l.ctx, &aipb.ListAgentTasksRequest{Actor: actor, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}, Status: req.Status, WorkflowId: req.WorkflowId, Query: req.Query})
 	if err != nil {
 		return nil, err
 	}

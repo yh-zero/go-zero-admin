@@ -2,7 +2,6 @@ package aiservicelogic
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"github.com/google/uuid"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -25,19 +24,13 @@ func (l *RunWorkflowLogic) RunWorkflow(in *aipb.RunWorkflowRequest) (*aipb.RunWo
 	if err := requireAiActor(in.Actor); err != nil {
 		return nil, err
 	}
-	input := in.Input
-	if input == "" {
-		input = "{}"
+	if in.WorkflowId < 1 {
+		return nil, xerr.NewErrCodeMsg(400, "工作流ID必须为正整数")
 	}
-	if len(input) > 16000 || !json.Valid([]byte(input)) {
-		return nil, xerr.NewErrCodeMsg(400, "input 必须为最多 16000 字节的 JSON")
+	input, err := normalizeWorkflowInput(in.Input)
+	if err != nil {
+		return nil, err
 	}
-	var object map[string]json.RawMessage
-	if json.Unmarshal([]byte(input), &object) != nil || object == nil {
-		return nil, xerr.NewErrCodeMsg(400, "运行输入必须为 JSON 对象")
-	}
-	canonical, _ := json.Marshal(object)
-	input = string(canonical)
 	parsed, err := uuid.Parse(in.RequestId)
 	if err != nil || parsed.String() != in.RequestId {
 		return nil, xerr.NewErrCodeMsg(400, "request_id 必须为规范 UUID")

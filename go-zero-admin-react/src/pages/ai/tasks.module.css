@@ -24,6 +24,23 @@
 .facts dd { margin: 0; overflow-wrap: anywhere; font-size: 13px; }
 .code { margin: 10px 0 18px; padding: 14px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; background: var(--ant-color-fill-quaternary); color: var(--ant-color-text); font: 12px/1.7 Consolas, 'Microsoft YaHei', monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
 .feedback { margin-bottom: 18px; }
+.workflowSelect { width: 250px; }
+.taskLayout { display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.taskList { display: flex; flex-direction: column; gap: 12px; }
+.taskItem { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; background: var(--ant-color-bg-container); color: var(--ant-color-text); padding: 16px; text-align: left; cursor: pointer; min-width: 0; overflow-wrap: anywhere; }
+.taskItem:hover, .selectedTask { border-color: var(--ant-color-primary); background: var(--ant-color-primary-bg); }
+.taskItem:focus-visible { outline: 2px solid var(--ant-color-primary); outline-offset: 2px; }
+.taskItem:disabled { cursor: default; opacity: .6; }
+.taskItem strong { font-size: 14px; }
+.taskSummary { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 13px; color: var(--ant-color-text-secondary); }
+.resultWorkspace { min-width: 0; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; padding: 22px; }
+@media (max-width: 900px) { .taskLayout { grid-template-columns: minmax(0, 1fr); } .taskList { max-height: 340px; overflow: auto; } }
+.inlineDetail { min-width: 0; }
+.inlineActions { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.technicalDetails { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--ant-color-border-secondary); }
+.technicalDetails summary { cursor: pointer; color: var(--ant-color-text-secondary); margin-bottom: 18px; }
+.question { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ant-color-text-secondary); }
+.errorText { font-family: inherit; white-space: pre-wrap; margin: 0; }
 @media (max-width: 900px) { .optional { display: none; } }
 @media (max-width: 600px) {
   .workspace :global(.ant-card-head) { padding: 16px 14px; }

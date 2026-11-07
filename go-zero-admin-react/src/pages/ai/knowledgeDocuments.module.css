@@ -2,6 +2,7 @@
 .documentBody { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 52vh; overflow: auto; margin: 0; padding: 16px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; background: var(--ant-color-fill-quaternary); }
 .filePicker { padding: 12px 0; }
 .knowledgePage { min-width: 0; }
+.kbSearch { width: min(100%, 360px); margin-bottom: 20px; }
 @media (max-width: 640px) {
   .knowledgePage :global(.ant-card-head-wrapper) { flex-wrap: wrap; gap: 12px; padding-block: 12px; }
   .knowledgePage :global(.ant-card-extra) { margin-inline-start: 0; }

@@ -160,17 +160,21 @@ export interface AiChatMessage {
 export interface AiWorkflowInfo {
   id: number; name: string; definition: string; interval_seconds: number; enabled: number;
   next_run_at: number; created_by: number; created_at: number; updated_at: number;
+  step_count: number;
 }
 export interface AiTaskInfo {
   id: number; workflow_id: number; conversation_id: number; status: AiTaskStatus; input: string;
   result: string; error: string; approved_by: number; created_at: number; completed_at: number; next_step: number;
   steps: AiWorkflowStepInfo[]; updated_at: number; request_id: string;
+  title: string; workflow_name: string; input_summary: string; definition: string;
 }
 export interface AiWorkflowStepInfo {
   index: number; id: string; name: string; tool: string; input: string; status: 'pending_approval' | 'running' | 'succeeded' | 'failed' | 'cancelled';
   output: string; error: string; started_at: number; completed_at: number;
 }
 export interface AiToolInfo { name: string; description: string; parameters_schema: string }
+export interface AiCapabilities { retrieval_configured: boolean; analysis_configured: boolean; ingestion_mode: string }
+export interface AiListToolsResp { list: AiToolInfo[]; capabilities: AiCapabilities }
 export interface AiConversationResp { conversation: AiConversationInfo }
 export interface AiGetConversationReq { before_id?: number; page_size?: number }
 export interface AiGetConversationResp extends AiConversationResp {
@@ -192,8 +196,11 @@ export interface AiCreateWorkflowReq { name: string; definition: string; interva
 export interface AiUpdateWorkflowReq { name?: string; definition?: string; interval_seconds?: number; enabled?: 0 | 1 }
 export interface AiWorkflowResp { workflow: AiWorkflowInfo }
 export interface AiRunWorkflowReq { request_id: string; input?: string }
+export interface AiRunDraftReq extends AiRunWorkflowReq { name: string; definition: string }
+export interface AiListWorkflowsReq extends PageParams { query?: string }
 export interface AiRunWorkflowResp { task_id: number; status: AiTaskStatus }
-export interface AiListTasksReq extends PageParams { status?: AiTaskStatus; workflow_id?: number }
+export interface AiListTasksReq extends PageParams { status?: AiTaskStatus; workflow_id?: number; query?: string }
+export interface AiGetTaskReq { meta_only?: boolean }
 export interface AiTaskResp { task: AiTaskInfo }
 export interface AiApproveTaskReq { expected_step: number }
 export interface AiRejectTaskReq extends AiApproveTaskReq { reason: string }
@@ -201,21 +208,37 @@ export interface AiRejectTaskReq extends AiApproveTaskReq { reason: string }
 export interface AiKbInfo {
   id: number; name: string; description: string; owner_id: number;
   doc_count: number; chunk_count: number; created_at: number; updated_at: number;
+  ready_count: number; pending_count: number; failed_count: number;
 }
 export interface AiKbDocInfo {
   id: number; kb_id: number; title: string; status: 'pending' | 'ready' | 'failed'; error: string;
   chunk_count: number; embedding_model: string; created_at: number; updated_at: number;
-  version: number; stage: 'embedding' | 'indexing' | 'ready' | 'failed';
+  version: number; stage: 'queued' | 'embedding' | 'indexing' | 'ready' | 'failed';
 }
 export interface AiCreateKbReq { name: string; description?: string }
 export interface AiUpdateKbReq { name?: string; description?: string }
-export interface AiKbResp { kb: AiKbInfo }
-export interface AiCreateKbDocReq { title: string; content: string }
-export interface AiKbDocResp { doc: AiKbDocInfo }
-export interface AiKbDocDetailResp extends AiKbDocResp { content: string }
+export interface AiKbResp { kb: AiKbInfo; capabilities: AiCapabilities }
+export interface AiListKbsReq extends PageParams { query?: string }
+export interface AiListKbsResp extends PageResult<AiKbInfo> { capabilities: AiCapabilities }
+export interface AiListKbDocsReq extends PageParams { query?: string; status?: AiKbDocInfo['status'] }
+export interface AiListKbDocsResp extends PageResult<AiKbDocInfo> { ready_count: number; pending_count: number; failed_count: number }
+export interface AiKbIngestReq { request_id: string; batch_id?: string }
+export interface AiCreateKbDocReq extends AiKbIngestReq { title: string; content: string }
+export interface AiKbDocResp { doc: AiKbDocInfo; job_id: number; batch_id: string }
+export interface AiKbDocDetailResp { doc: AiKbDocInfo; content: string }
 export interface AiUpdateKbDocReq extends AiCreateKbDocReq { expected_version: number }
 export interface AiSearchKbReq { query: string }
 export interface AiSearchKbHit {
   chunk_id: number; kb_id: number; doc_id: number; doc_title: string; snippet: string; score: number;
 }
 export interface AiSearchKbResp { list: AiSearchKbHit[]; elapsed_ms: number }
+export type AiKbIngestJobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'reused';
+export interface AiKbIngestBatchInfo {
+  id: string; kb_id: number; stopped: boolean; total: number; queued: number; running: number;
+  succeeded: number; failed: number; cancelled: number; reused: number; created_at: number; updated_at: number;
+}
+export interface AiKbIngestJobInfo {
+  id: number; request_id: string; doc_id: number; operation: 'create' | 'update' | 'retry'; status: AiKbIngestJobStatus;
+  error: string; doc: AiKbDocInfo | null; created_at: number; updated_at: number;
+}
+export interface AiKbImportResp { batch: AiKbIngestBatchInfo; list: AiKbIngestJobInfo[] }

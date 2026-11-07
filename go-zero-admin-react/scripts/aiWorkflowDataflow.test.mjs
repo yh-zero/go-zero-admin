@@ -24,7 +24,7 @@ test('工作流变量、运行表单和步骤快照', async t => {
     });
     await t.test('普通运行字段从引用推导，合并高级参数并检查总字节', () => {
       const raw = dsl.serializeWorkflow([{ ...dsl.newWorkflowStep('text_stats'), input: '{"text":{"$ref":"input.question"}}' }], tools);
-      assert.deepEqual(dsl.workflowRunFields(raw), { question: true, text: false });
+      assert.deepEqual(dsl.workflowRunFields(raw), { question: true, text: false, kb_id: false });
       assert.deepEqual(JSON.parse(dsl.prepareWorkflowRunInput({ input: '{"extra":7,"question":"旧"}', question: '本次问题' })), { extra: 7, question: '本次问题' });
       assert.throws(() => dsl.prepareWorkflowRunInput({ input: '[]' }), /对象/);
       assert.throws(() => dsl.prepareWorkflowRunInput({ text: '中'.repeat(6000) }), /16000/);

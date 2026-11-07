@@ -48,7 +48,7 @@
 .stepSettingsRow :global(.ant-form-item) { margin-bottom: 16px; }
 .stepOptions { margin-bottom: 12px; }
 .stepOptions > summary { color: var(--ant-color-text-secondary, #64748b); cursor: pointer; font-size: 12px; margin-bottom: 12px; }
-.editorPage .editorGrid { grid-template-columns: 240px minmax(0, 1fr); min-height: 380px; }
+.editorPage .editorGrid { grid-template-columns: 160px minmax(0, 1fr); min-height: 380px; }
 .editorPage .editorFooter { position: sticky; bottom: 0; z-index: 2; background: var(--ant-color-bg-container, white); padding: 16px 0; }
 .saveHint { margin-right: auto; font-size: 12px; }
 .fullWidth { width: 100%; }

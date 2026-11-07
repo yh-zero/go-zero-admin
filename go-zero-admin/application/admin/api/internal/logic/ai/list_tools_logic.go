@@ -35,5 +35,5 @@ func (l *ListToolsLogic) ListTools(req *types.AiListToolsReq) (*types.AiListTool
 	for _, item := range out.List {
 		list = append(list, &types.AiToolInfo{Name: item.Name, Description: item.Description, ParametersSchema: item.ParametersSchema})
 	}
-	return &types.AiListToolsResp{List: list}, nil
+	return &types.AiListToolsResp{List: list, Capabilities: capabilitiesInfo(out.Capabilities)}, nil
 }

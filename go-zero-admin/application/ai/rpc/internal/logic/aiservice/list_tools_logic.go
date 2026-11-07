@@ -38,5 +38,5 @@ func (l *ListToolsLogic) ListTools(in *aipb.ListToolsRequest) (*aipb.ListToolsRe
 		list = append(list, &aipb.ToolInfo{Name: tool.Name(), Description: tool.Description(), ParametersSchema: string(encoded)})
 	}
 	sort.Slice(list, func(i, j int) bool { return list[i].Name < list[j].Name })
-	return &aipb.ListToolsResponse{List: list}, nil
+	return &aipb.ListToolsResponse{List: list, Capabilities: capabilitiesProto(l.svcCtx)}, nil
 }

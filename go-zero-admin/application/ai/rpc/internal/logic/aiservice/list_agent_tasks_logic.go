@@ -33,7 +33,11 @@ func (l *ListAgentTasksLogic) ListAgentTasks(in *aipb.ListAgentTasksRequest) (*a
 	if in.WorkflowId < 0 {
 		return nil, xerr.NewErrCodeMsg(400, "工作流 ID 不合法")
 	}
-	rows, total, err := l.svcCtx.AiTaskModel.ListOwned(l.ctx, in.Actor.UserId, page, size, in.Status, in.WorkflowId)
+	query, err := normalizeWorkspaceQuery(in.Query)
+	if err != nil {
+		return nil, err
+	}
+	rows, total, err := l.svcCtx.AiTaskModel.ListSearchOwned(l.ctx, in.Actor.UserId, page, size, in.Status, in.WorkflowId, query)
 	if err != nil {
 		return nil, aiModelError(err)
 	}

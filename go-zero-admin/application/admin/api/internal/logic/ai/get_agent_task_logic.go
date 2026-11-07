@@ -19,7 +19,7 @@ type GetAgentTaskLogic struct {
 func NewGetAgentTaskLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetAgentTaskLogic {
 	return &GetAgentTaskLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
-func (l *GetAgentTaskLogic) GetAgentTask(req *types.AiIdReq) (*types.AiTaskResp, error) {
+func (l *GetAgentTaskLogic) GetAgentTask(req *types.AiGetTaskReq) (*types.AiTaskResp, error) {
 	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
@@ -27,7 +27,7 @@ func (l *GetAgentTaskLogic) GetAgentTask(req *types.AiIdReq) (*types.AiTaskResp,
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.GetAgentTask(l.ctx, &aipb.GetAgentTaskRequest{Actor: actor, TaskId: req.Id})
+	out, err := l.svcCtx.AiRpc.GetAgentTask(l.ctx, &aipb.GetAgentTaskRequest{Actor: actor, TaskId: req.Id, MetaOnly: req.MetaOnly})
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package aiservicelogic
 
 import (
 	"context"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/ai/rpc/aipb"
@@ -21,12 +22,22 @@ func (l *GetAgentTaskLogic) GetAgentTask(in *aipb.GetAgentTaskRequest) (*aipb.Ge
 	if err := requireAiActor(in.Actor); err != nil {
 		return nil, err
 	}
-	if err := l.svcCtx.AiTaskModel.FailStaleOwned(l.ctx, in.TaskId, in.Actor.UserId); err != nil {
-		return nil, aiModelError(err)
+	read := l.svcCtx.AiTaskModel.FindOwned
+	if in.MetaOnly {
+		read = l.svcCtx.AiTaskModel.FindSummaryOwned
 	}
-	row, err := l.svcCtx.AiTaskModel.FindOwned(l.ctx, in.TaskId, in.Actor.UserId)
+	row, err := read(l.ctx, in.TaskId, in.Actor.UserId)
 	if err != nil {
 		return nil, aiModelError(err)
+	}
+	if row.Status == "running" && row.UpdatedAt <= time.Now().Add(-100*time.Second).Unix() {
+		if err := l.svcCtx.AiTaskModel.FailStaleOwned(l.ctx, in.TaskId, in.Actor.UserId); err != nil {
+			return nil, aiModelError(err)
+		}
+		row, err = read(l.ctx, in.TaskId, in.Actor.UserId)
+		if err != nil {
+			return nil, aiModelError(err)
+		}
 	}
 	return &aipb.GetAgentTaskResponse{Task: taskProto(row)}, nil
 }

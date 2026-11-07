@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import { fetchAiKbDoc } from '../../api/ai';
-import type { AiKbDocDetailResp } from '../../api/types';
+import type { AiKbDocDetailResp, AiKbDocInfo } from '../../api/types';
 import type { AiWorkspaceScope } from './workspaceQueries';
 
 export const knowledgeDocumentKeys = {
@@ -15,9 +15,13 @@ export function knowledgeDocumentOptions(scope: AiWorkspaceScope, kbId: number, 
     refetchIntervalInBackground: false,
     queryFn: async ({ signal }) => {
       signal.throwIfAborted();
-      const result = await fetchAiKbDoc(kbId, docId, metaOnly);
+      const result = await fetchAiKbDoc(kbId, docId, metaOnly, signal);
       signal.throwIfAborted();
       return result;
     },
   });
+}
+
+export function knowledgeDocumentMetadataOptions(scope: AiWorkspaceScope, kbId: number, docId: number, doc?: AiKbDocInfo, parentMetadata?: AiKbDocInfo) {
+  return { ...knowledgeDocumentOptions(scope, kbId, docId, true), enabled: doc?.status === 'pending' && !parentMetadata };
 }

@@ -89,7 +89,7 @@ test('工作流 DSL 与只读呈现边界', async t => {
       const html = renderToStaticMarkup(createElement(WorkflowEditor, { initial: { name: '未保存草稿', enabled: true, steps: [step] }, tools, existing: true, saving: false, saveDisabled: true, onSave: async () => {}, onCancel() {} }));
       assert.ok(html.includes('value="未保存草稿"'));
       assert.ok(html.includes('原文'));
-      const saveButton = [...html.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/g)].find(match => match[0].includes('保存工作流'))?.[0];
+      const saveButton = [...html.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/g)].find(match => match[0].includes('保存为常用流程'))?.[0];
       assert.ok(saveButton);
       assert.match(saveButton, /disabled/);
     });

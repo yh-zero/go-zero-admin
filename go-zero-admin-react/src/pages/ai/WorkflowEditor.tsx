@@ -1,12 +1,15 @@
-import { useState } from 'react';
-import { Alert, Button, Empty, Form, Input, Select, Space, Switch, Tag, Typography } from 'antd';
+import { useRef, useState } from 'react';
+import { Alert, Button, Drawer, Empty, Form, Input, Select, Space, Switch, Tag, Typography } from 'antd';
 import { ArrowDownOutlined, ArrowUpOutlined, CopyOutlined, DeleteOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons';
-import type { AiRunWorkflowResp, AiTaskStatus, AiToolInfo } from '../../api/types';
+import type { AiCapabilities, AiRunWorkflowResp, AiTaskStatus, AiToolInfo } from '../../api/types';
 import { changeWorkflowStepTool, copyWorkflowStep, moveWorkflowStep, newWorkflowStep, parseStepInput, parseWorkflow, serializeWorkflow, validateWorkflowName, workflowToolLabels } from './workflowDefinition';
 import type { WorkflowDraft, WorkflowStepDraft } from './workflowDefinition';
 import { WorkflowParameters } from './WorkflowParameters';
 import type { WorkflowKnowledgeAccess } from './WorkflowParameters';
+import { ToolCard, ToolDetailContent } from './AITools';
+import { filterToolsByPurpose } from './toolGuides';
 import styles from './workflow.module.css';
+import workspaceStyles from './workspace.module.css';
 
 interface WorkflowEditorProps {
   initial: WorkflowDraft;
@@ -18,13 +21,18 @@ interface WorkflowEditorProps {
   onCancel: () => void;
   onChange?: (draft: WorkflowDraft) => void;
   knowledge?: WorkflowKnowledgeAccess;
+  capabilities?: AiCapabilities;
 }
 
-export function WorkflowEditor({ initial, tools, existing, saving, saveDisabled, onSave, onCancel, onChange, knowledge }: WorkflowEditorProps) {
+export function WorkflowEditor({ initial, tools, existing, saving, saveDisabled, onSave, onCancel, onChange, knowledge, capabilities }: WorkflowEditorProps) {
   const [form] = Form.useForm<WorkflowDraft>();
   const steps: WorkflowStepDraft[] = Form.useWatch('steps', { form, preserve: true }) ?? initial.steps;
   const [selectedKey, setSelectedKey] = useState(initial.steps[0]?.key);
   const [validationError, setValidationError] = useState('');
+  const [choosing, setChoosing] = useState(false);
+  const [toolSearch, setToolSearch] = useState('');
+  const [viewingTool, setViewingTool] = useState<string | null>(null);
+  const selectingTool = useRef(false);
   const selectedIndex = Math.max(0, steps.findIndex(step => step.key === selectedKey));
   const missingTools = steps.flatMap((step, index) => step.tool && !tools.some(tool => tool.name === step.tool) ? [index + 1] : []);
   const nameRule = { validator: (_: unknown, value: string) => {
@@ -33,12 +41,17 @@ export function WorkflowEditor({ initial, tools, existing, saving, saveDisabled,
   } };
 
   function replaceSteps(next: WorkflowStepDraft[]) { form.setFieldValue('steps', next); setValidationError(''); onChange?.(form.getFieldsValue(true)); }
-  function addStep() {
+  function addStep(tool: string) {
+    if (selectingTool.current || saving) return;
     const current: WorkflowStepDraft[] = form.getFieldValue('steps');
     if (current.length >= 32) return;
-    const next = newWorkflowStep(tools[0]?.name);
+    selectingTool.current = true;
+    const next = newWorkflowStep(tool);
+    if (tool === 'kb_analyze' || tool === 'kb_search') next.input = JSON.stringify({ kb_id: { $ref: 'input.kb_id' }, query: { $ref: 'input.question' } }, null, 2);
+    if (tool === 'json_formatter' || tool === 'text_stats') next.input = JSON.stringify({ text: { $ref: 'input.text' } }, null, 2);
     replaceSteps([...current, next]);
     setSelectedKey(next.key);
+    setChoosing(false);
   }
   function removeStep(key: string) {
     const current: WorkflowStepDraft[] = form.getFieldValue('steps');
@@ -79,7 +92,7 @@ export function WorkflowEditor({ initial, tools, existing, saving, saveDisabled,
     {!!missingTools.length && <Alert type="warning" showIcon title={`第 ${missingTools.join('、')} 步的类型已不可用，原参数已保留。请选择可用类型后再保存。`} />}
     <div className={styles.editorGrid}>
       <aside className={styles.stepNavigation} aria-label="执行步骤">
-        <div className={styles.stepHeading}><Typography.Text type="secondary">执行步骤 · {steps.length}/32</Typography.Text><Button size="small" icon={<PlusOutlined />} aria-label="添加步骤" disabled={saving || steps.length >= 32 || !tools.length} onClick={addStep} /></div>
+        <div className={styles.stepHeading}><Typography.Text type="secondary">执行步骤 · {steps.length}/32</Typography.Text><Button size="small" icon={<PlusOutlined />} aria-label="添加步骤" disabled={saving || steps.length >= 32 || !tools.length} onClick={() => { selectingTool.current = false; setChoosing(true); }} /></div>
         {steps.map((step, index) => <button key={step.key} type="button" className={`${styles.stepButton} ${index === selectedIndex ? styles.selectedStep : ''}`} aria-pressed={index === selectedIndex} disabled={saving} onClick={() => setSelectedKey(step.key)}>
           <span className={styles.stepNumber}>{index + 1}</span><span className={styles.stepSummary}><strong>{step.name || '未命名步骤'}</strong><small>{step.approval ? '执行前确认' : workflowToolLabels[step.tool] ?? (step.tool || '请选择工具')}</small></span>
         </button>)}
@@ -118,7 +131,12 @@ export function WorkflowEditor({ initial, tools, existing, saving, saveDisabled,
       </div>
     </div>
     {validationError && <Alert type="error" showIcon title={validationError} />}
-    <footer className={styles.editorFooter}><Typography.Text type="secondary" className={styles.saveHint}>保存后可在工作流列表运行</Typography.Text><Button onClick={onCancel} disabled={saving}>返回列表</Button><Button type="primary" icon={<SaveOutlined />} htmlType="submit" loading={saving} disabled={saveDisabled || !tools.length || !!missingTools.length}>保存工作流</Button></footer>
+    <footer className={styles.editorFooter}><Typography.Text type="secondary" className={styles.saveHint}>先试运行，再保存为常用流程</Typography.Text><Button onClick={onCancel} disabled={saving}>返回列表</Button><Button type="primary" icon={<SaveOutlined />} htmlType="submit" loading={saving} disabled={saveDisabled || !tools.length || !!missingTools.length}>保存为常用流程</Button></footer>
+    <Drawer open={choosing} title="按用途选择能力" size={900} onClose={() => setChoosing(false)}>
+      <Input.Search allowClear placeholder="搜索分析资料、整理 JSON 等用途" onSearch={setToolSearch} />
+      {viewingTool && tools.find(tool => tool.name === viewingTool) && <><Button type="link" onClick={() => setViewingTool(null)}>收起输入输出</Button><ToolDetailContent tool={tools.find(tool => tool.name === viewingTool)!} capabilities={capabilities} /></>}
+      <div className={workspaceStyles.capabilityGrid}>{filterToolsByPurpose([...tools], toolSearch).map(tool => <ToolCard key={tool.name} tool={tool} capabilities={capabilities} canUse={!saving && steps.length < 32 && (!(tool.name === 'kb_analyze' || tool.name === 'kb_search') || !!knowledge?.canRead)} onView={() => setViewingTool(tool.name)} onSelect={() => addStep(tool.name)} />)}</div>
+    </Drawer>
   </Form>;
 }
 

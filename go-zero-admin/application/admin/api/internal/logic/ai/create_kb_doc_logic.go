@@ -28,9 +28,9 @@ func (l *CreateKbDocLogic) CreateKbDoc(req *types.AiCreateKbDocReq) (*types.AiKb
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.CreateKbDoc(l.ctx, &aipb.CreateKbDocRequest{Actor: actor, KbId: req.Id, Title: req.Title, Content: req.Content})
+	out, err := l.svcCtx.AiRpc.CreateKbDoc(l.ctx, &aipb.CreateKbDocRequest{Actor: actor, KbId: req.Id, Title: req.Title, Content: req.Content, RequestId: req.RequestId, BatchId: req.BatchId})
 	if err != nil {
 		return nil, err
 	}
-	return &types.AiKbDocResp{Doc: mapAiKbDoc(out.Doc)}, nil
+	return &types.AiKbDocResp{Doc: mapAiKbDoc(out.Doc), JobId: out.JobId, BatchId: out.BatchId}, nil
 }

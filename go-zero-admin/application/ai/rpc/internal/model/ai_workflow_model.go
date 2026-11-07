@@ -20,11 +20,13 @@ type (
 		aiWorkflowModel
 		FindOwned(ctx context.Context, id, ownerId int64) (*WorkflowRow, error)
 		ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*WorkflowRow, int64, error)
+		ListSearchOwned(ctx context.Context, ownerId, page, pageSize int64, query string) ([]*WorkflowRow, int64, error)
 		UpdateOwned(ctx context.Context, id, ownerId int64, patch WorkflowPatch) error
 		DeleteOwned(ctx context.Context, id, ownerId int64) error
 		CreateTaskOwned(ctx context.Context, id, ownerId int64, input string) (*TaskRow, error)
 		CreateTaskIdempotent(ctx context.Context, id, ownerId int64, input, requestId string) (*TaskRow, bool, error)
 		FindTaskRequestOwned(ctx context.Context, ownerId int64, requestId string) (*TaskRow, error)
+		CreateDraftTaskIdempotent(ctx context.Context, ownerId int64, name, definition, input, requestId, signature string) (*TaskRow, bool, error)
 	}
 
 	customAiWorkflowModel struct {
@@ -82,7 +84,8 @@ func (m *customAiWorkflowModel) CreateTaskIdempotent(ctx context.Context, id, ow
 		if workflow.Enabled != 1 {
 			return ErrWorkflowDisabled
 		}
-		result, err := session.ExecCtx(ctx, "INSERT INTO ai_task (workflow_id,status,input,created_by,workflow_snapshot,request_id,step_records) VALUES (?,'running',?,?,?,?,'[]')", id, input, ownerId, workflow.Definition, requestId)
+		summary := workflowInputSummary(input)
+		result, err := session.ExecCtx(ctx, "INSERT INTO ai_task (workflow_id,status,input,created_by,workflow_snapshot,request_id,step_records,title,workflow_name,input_summary) VALUES (?,'running',?,?,?,?,'[]',?,?,?)", id, input, ownerId, workflow.Definition, requestId, workflow.Name, workflow.Name, summary)
 		if err != nil {
 			return err
 		}
@@ -90,7 +93,7 @@ func (m *customAiWorkflowModel) CreateTaskIdempotent(ctx context.Context, id, ow
 		if err != nil {
 			return err
 		}
-		task = &TaskRow{Id: taskId, WorkflowId: id, Status: "running", Input: input, CreatedBy: ownerId, WorkflowSnapshot: workflow.Definition, RequestId: requestId, StepRecords: "[]"}
+		task = &TaskRow{Id: taskId, WorkflowId: id, Status: "running", Input: input, CreatedBy: ownerId, WorkflowSnapshot: workflow.Definition, RequestId: requestId, StepRecords: "[]", Title: workflow.Name, WorkflowName: workflow.Name, InputSummary: summary}
 		return nil
 	})
 	if err != nil {
@@ -118,6 +121,7 @@ type WorkflowRow struct {
 	CreatedBy       int64  `db:"created_by"`
 	CreatedAt       int64  `db:"created_at"`
 	UpdatedAt       int64  `db:"updated_at"`
+	StepCount       int64  `db:"step_count"`
 }
 
 type WorkflowPatch struct {
@@ -125,7 +129,8 @@ type WorkflowPatch struct {
 	IntervalSeconds, Enabled *int64
 }
 
-const workflowSelect = "SELECT id,name,CAST(definition AS CHAR) AS definition,interval_seconds,enabled,COALESCE(UNIX_TIMESTAMP(next_run_at),0) AS next_run_at,created_by,UNIX_TIMESTAMP(created_at) AS created_at,UNIX_TIMESTAMP(updated_at) AS updated_at FROM ai_workflow "
+const workflowSelect = "SELECT id,name,CAST(definition AS CHAR) AS definition,interval_seconds,enabled,COALESCE(UNIX_TIMESTAMP(next_run_at),0) AS next_run_at,created_by,UNIX_TIMESTAMP(created_at) AS created_at,UNIX_TIMESTAMP(updated_at) AS updated_at,COALESCE(JSON_LENGTH(definition,'$.steps'),0) AS step_count FROM ai_workflow "
+const workflowSummarySelect = "SELECT id,name,'' AS definition,interval_seconds,enabled,COALESCE(UNIX_TIMESTAMP(next_run_at),0) AS next_run_at,created_by,UNIX_TIMESTAMP(created_at) AS created_at,UNIX_TIMESTAMP(updated_at) AS updated_at,COALESCE(JSON_LENGTH(definition,'$.steps'),0) AS step_count FROM ai_workflow "
 
 func (m *customAiWorkflowModel) FindOwned(ctx context.Context, id, ownerId int64) (*WorkflowRow, error) {
 	var row WorkflowRow
@@ -134,14 +139,24 @@ func (m *customAiWorkflowModel) FindOwned(ctx context.Context, id, ownerId int64
 }
 
 func (m *customAiWorkflowModel) ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*WorkflowRow, int64, error) {
+	return m.ListSearchOwned(ctx, ownerId, page, pageSize, "")
+}
+
+func (m *customAiWorkflowModel) ListSearchOwned(ctx context.Context, ownerId, page, pageSize int64, query string) ([]*WorkflowRow, int64, error) {
+	where := "created_by=? AND deleted_at IS NULL"
+	args := []any{ownerId}
+	if query != "" {
+		where += " AND name LIKE ? ESCAPE '!'"
+		args = append(args, "%"+strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(query)+"%")
+	}
 	var count struct {
 		Total int64 `db:"total"`
 	}
-	if err := m.QueryRowNoCacheCtx(ctx, &count, "SELECT COUNT(*) AS total FROM ai_workflow WHERE created_by=? AND deleted_at IS NULL", ownerId); err != nil {
+	if err := m.QueryRowNoCacheCtx(ctx, &count, "SELECT COUNT(*) AS total FROM ai_workflow WHERE "+where, args...); err != nil {
 		return nil, 0, err
 	}
 	rows := make([]*WorkflowRow, 0)
-	err := m.QueryRowsNoCacheCtx(ctx, &rows, workflowSelect+"WHERE created_by=? AND deleted_at IS NULL ORDER BY id DESC LIMIT ? OFFSET ?", ownerId, pageSize, (page-1)*pageSize)
+	err := m.QueryRowsNoCacheCtx(ctx, &rows, workflowSummarySelect+"WHERE "+where+" ORDER BY id DESC LIMIT ? OFFSET ?", append(args, pageSize, (page-1)*pageSize)...)
 	return rows, count.Total, err
 }
 

@@ -48,5 +48,5 @@ func (l *CreateKbLogic) CreateKb(in *aipb.CreateKbRequest) (*aipb.CreateKbRespon
 	if err != nil {
 		return nil, aiModelError(err)
 	}
-	return &aipb.CreateKbResponse{Kb: kbRowToPb(row)}, nil
+	return &aipb.CreateKbResponse{Kb: kbRowToPb(row), Capabilities: capabilitiesProto(l.svcCtx)}, nil
 }

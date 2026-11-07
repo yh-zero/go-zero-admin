@@ -13,8 +13,9 @@ func kbRowToPb(r *model.KbRow) *aipb.KbInfo {
 		OwnerId:     r.OwnerId,
 		DocCount:    r.DocCount,
 		ChunkCount:  r.ChunkCount,
-		CreatedAt:   r.CreatedAt,
-		UpdatedAt:   r.UpdatedAt,
+		ReadyCount:  r.ReadyCount, PendingCount: r.PendingCount, FailedCount: r.FailedCount,
+		CreatedAt: r.CreatedAt,
+		UpdatedAt: r.UpdatedAt,
 	}
 }
 
@@ -38,8 +39,24 @@ func kbDocumentStage(r *model.KbDocRow) string {
 	if r.Status == "ready" || r.Status == "failed" {
 		return r.Status
 	}
-	if r.Stage == "indexing" {
+	if r.Stage == "indexing" || r.Stage == "queued" {
 		return r.Stage
 	}
 	return "embedding"
+}
+
+func kbBatchToPb(r *model.KbIngestBatchRow) *aipb.KbIngestBatchInfo {
+	return &aipb.KbIngestBatchInfo{Id: r.Id, KbId: r.KbId, Stopped: r.Stopped, Total: r.Total, Queued: r.Queued, Running: r.Running, Succeeded: r.Succeeded, Failed: r.Failed, Cancelled: r.Cancelled, Reused: r.Reused, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+}
+
+func kbImportToPb(batch *model.KbIngestBatchRow, jobs []*model.KbIngestJobView) *aipb.GetKbImportResponse {
+	list := make([]*aipb.KbIngestJobInfo, 0, len(jobs))
+	for _, r := range jobs {
+		row := &aipb.KbIngestJobInfo{Id: r.Id, RequestId: r.RequestId, DocId: r.DocId, Operation: r.Operation, Status: r.Status, Error: r.Error, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+		if r.Doc != nil {
+			row.Doc = kbDocRowToPb(r.Doc)
+		}
+		list = append(list, row)
+	}
+	return &aipb.GetKbImportResponse{Batch: kbBatchToPb(batch), List: list}
 }

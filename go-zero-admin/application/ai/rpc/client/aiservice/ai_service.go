@@ -18,6 +18,7 @@ type (
 	AgentTaskInfo              = aipb.AgentTaskInfo
 	ApproveTaskRequest         = aipb.ApproveTaskRequest
 	CancelTaskRequest          = aipb.CancelTaskRequest
+	Capabilities               = aipb.Capabilities
 	ChatMessage                = aipb.ChatMessage
 	ConversationInfo           = aipb.ConversationInfo
 	CreateConversationRequest  = aipb.CreateConversationRequest
@@ -38,12 +39,16 @@ type (
 	GetConversationResponse    = aipb.GetConversationResponse
 	GetKbDocRequest            = aipb.GetKbDocRequest
 	GetKbDocResponse           = aipb.GetKbDocResponse
+	GetKbImportRequest         = aipb.GetKbImportRequest
+	GetKbImportResponse        = aipb.GetKbImportResponse
 	GetKbRequest               = aipb.GetKbRequest
 	GetKbResponse              = aipb.GetKbResponse
 	GetWorkflowRequest         = aipb.GetWorkflowRequest
 	GetWorkflowResponse        = aipb.GetWorkflowResponse
 	KbDocInfo                  = aipb.KbDocInfo
 	KbInfo                     = aipb.KbInfo
+	KbIngestBatchInfo          = aipb.KbIngestBatchInfo
+	KbIngestJobInfo            = aipb.KbIngestJobInfo
 	KbSearchHit                = aipb.KbSearchHit
 	ListAgentTasksRequest      = aipb.ListAgentTasksRequest
 	ListAgentTasksResponse     = aipb.ListAgentTasksResponse
@@ -51,6 +56,8 @@ type (
 	ListConversationsResponse  = aipb.ListConversationsResponse
 	ListKbDocsRequest          = aipb.ListKbDocsRequest
 	ListKbDocsResponse         = aipb.ListKbDocsResponse
+	ListKbImportsRequest       = aipb.ListKbImportsRequest
+	ListKbImportsResponse      = aipb.ListKbImportsResponse
 	ListKbsRequest             = aipb.ListKbsRequest
 	ListKbsResponse            = aipb.ListKbsResponse
 	ListToolsRequest           = aipb.ListToolsRequest
@@ -63,6 +70,7 @@ type (
 	RejectTaskRequest          = aipb.RejectTaskRequest
 	RetryKbDocRequest          = aipb.RetryKbDocRequest
 	RetryKbDocResponse         = aipb.RetryKbDocResponse
+	RunDraftRequest            = aipb.RunDraftRequest
 	RunWorkflowRequest         = aipb.RunWorkflowRequest
 	RunWorkflowResponse        = aipb.RunWorkflowResponse
 	SearchKbRequest            = aipb.SearchKbRequest
@@ -70,6 +78,7 @@ type (
 	SendMessageRequest         = aipb.SendMessageRequest
 	SendMessageResponse        = aipb.SendMessageResponse
 	SetMessageFeedbackRequest  = aipb.SetMessageFeedbackRequest
+	StopKbImportRequest        = aipb.StopKbImportRequest
 	StreamChunk                = aipb.StreamChunk
 	ToolInfo                   = aipb.ToolInfo
 	UpdateConversationRequest  = aipb.UpdateConversationRequest
@@ -95,6 +104,7 @@ type (
 		UpdateWorkflow(ctx context.Context, in *UpdateWorkflowRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		DeleteWorkflow(ctx context.Context, in *DeleteWorkflowRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		RunWorkflow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunWorkflowResponse, error)
+		RunDraft(ctx context.Context, in *RunDraftRequest, opts ...grpc.CallOption) (*RunWorkflowResponse, error)
 		CreateKb(ctx context.Context, in *CreateKbRequest, opts ...grpc.CallOption) (*CreateKbResponse, error)
 		ListKbs(ctx context.Context, in *ListKbsRequest, opts ...grpc.CallOption) (*ListKbsResponse, error)
 		GetKb(ctx context.Context, in *GetKbRequest, opts ...grpc.CallOption) (*GetKbResponse, error)
@@ -107,6 +117,9 @@ type (
 		UpdateKbDoc(ctx context.Context, in *UpdateKbDocRequest, opts ...grpc.CallOption) (*UpdateKbDocResponse, error)
 		DeleteKbDoc(ctx context.Context, in *DeleteKbDocRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		RetryKbDoc(ctx context.Context, in *RetryKbDocRequest, opts ...grpc.CallOption) (*RetryKbDocResponse, error)
+		ListKbImports(ctx context.Context, in *ListKbImportsRequest, opts ...grpc.CallOption) (*ListKbImportsResponse, error)
+		GetKbImport(ctx context.Context, in *GetKbImportRequest, opts ...grpc.CallOption) (*GetKbImportResponse, error)
+		StopKbImport(ctx context.Context, in *StopKbImportRequest, opts ...grpc.CallOption) (*GetKbImportResponse, error)
 		ListAgentTasks(ctx context.Context, in *ListAgentTasksRequest, opts ...grpc.CallOption) (*ListAgentTasksResponse, error)
 		GetAgentTask(ctx context.Context, in *GetAgentTaskRequest, opts ...grpc.CallOption) (*GetAgentTaskResponse, error)
 		ApproveTask(ctx context.Context, in *ApproveTaskRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
@@ -195,6 +208,11 @@ func (m *defaultAiService) RunWorkflow(ctx context.Context, in *RunWorkflowReque
 	return client.RunWorkflow(ctx, in, opts...)
 }
 
+func (m *defaultAiService) RunDraft(ctx context.Context, in *RunDraftRequest, opts ...grpc.CallOption) (*RunWorkflowResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.RunDraft(ctx, in, opts...)
+}
+
 func (m *defaultAiService) CreateKb(ctx context.Context, in *CreateKbRequest, opts ...grpc.CallOption) (*CreateKbResponse, error) {
 	client := aipb.NewAiServiceClient(m.cli.Conn())
 	return client.CreateKb(ctx, in, opts...)
@@ -253,6 +271,21 @@ func (m *defaultAiService) DeleteKbDoc(ctx context.Context, in *DeleteKbDocReque
 func (m *defaultAiService) RetryKbDoc(ctx context.Context, in *RetryKbDocRequest, opts ...grpc.CallOption) (*RetryKbDocResponse, error) {
 	client := aipb.NewAiServiceClient(m.cli.Conn())
 	return client.RetryKbDoc(ctx, in, opts...)
+}
+
+func (m *defaultAiService) ListKbImports(ctx context.Context, in *ListKbImportsRequest, opts ...grpc.CallOption) (*ListKbImportsResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.ListKbImports(ctx, in, opts...)
+}
+
+func (m *defaultAiService) GetKbImport(ctx context.Context, in *GetKbImportRequest, opts ...grpc.CallOption) (*GetKbImportResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.GetKbImport(ctx, in, opts...)
+}
+
+func (m *defaultAiService) StopKbImport(ctx context.Context, in *StopKbImportRequest, opts ...grpc.CallOption) (*GetKbImportResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.StopKbImport(ctx, in, opts...)
 }
 
 func (m *defaultAiService) ListAgentTasks(ctx context.Context, in *ListAgentTasksRequest, opts ...grpc.CallOption) (*ListAgentTasksResponse, error) {

@@ -20,7 +20,7 @@ func NewListKbsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ListKbsLo
 	return &ListKbsLogic{Logger: logx.WithContext(ctx), ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *ListKbsLogic) ListKbs(req *types.AiPageReq) (*types.AiListKbsResp, error) {
+func (l *ListKbsLogic) ListKbs(req *types.AiListKbsReq) (*types.AiListKbsResp, error) {
 	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
@@ -28,7 +28,7 @@ func (l *ListKbsLogic) ListKbs(req *types.AiPageReq) (*types.AiListKbsResp, erro
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.ListKbs(l.ctx, &aipb.ListKbsRequest{Actor: actor, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}})
+	out, err := l.svcCtx.AiRpc.ListKbs(l.ctx, &aipb.ListKbsRequest{Actor: actor, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}, Query: req.Query})
 	if err != nil {
 		return nil, err
 	}
@@ -36,5 +36,5 @@ func (l *ListKbsLogic) ListKbs(req *types.AiPageReq) (*types.AiListKbsResp, erro
 	for _, item := range out.List {
 		list = append(list, mapAiKb(item))
 	}
-	return &types.AiListKbsResp{List: list, Total: out.GetPage().GetTotal()}, nil
+	return &types.AiListKbsResp{List: list, Total: out.GetPage().GetTotal(), Capabilities: capabilitiesInfo(out.Capabilities)}, nil
 }

@@ -1347,6 +1347,12 @@
             "name": "page_size",
             "in": "query",
             "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "query",
+            "in": "query",
+            "allowEmptyValue": true
           }
         ],
         "responses": {
@@ -1355,6 +1361,25 @@
             "schema": {
               "type": "object",
               "properties": {
+                "capabilities": {
+                  "type": "object",
+                  "required": [
+                    "retrieval_configured",
+                    "analysis_configured",
+                    "ingestion_mode"
+                  ],
+                  "properties": {
+                    "analysis_configured": {
+                      "type": "boolean"
+                    },
+                    "ingestion_mode": {
+                      "type": "string"
+                    },
+                    "retrieval_configured": {
+                      "type": "boolean"
+                    }
+                  }
+                },
                 "list": {
                   "type": "array",
                   "items": {
@@ -1367,7 +1392,10 @@
                       "doc_count",
                       "chunk_count",
                       "created_at",
-                      "updated_at"
+                      "updated_at",
+                      "ready_count",
+                      "pending_count",
+                      "failed_count"
                     ],
                     "properties": {
                       "chunk_count": {
@@ -1382,6 +1410,9 @@
                       "doc_count": {
                         "type": "integer"
                       },
+                      "failed_count": {
+                        "type": "integer"
+                      },
                       "id": {
                         "type": "integer"
                       },
@@ -1389,6 +1420,12 @@
                         "type": "string"
                       },
                       "owner_id": {
+                        "type": "integer"
+                      },
+                      "pending_count": {
+                        "type": "integer"
+                      },
+                      "ready_count": {
                         "type": "integer"
                       },
                       "updated_at": {
@@ -1444,6 +1481,25 @@
             "schema": {
               "type": "object",
               "properties": {
+                "capabilities": {
+                  "type": "object",
+                  "required": [
+                    "retrieval_configured",
+                    "analysis_configured",
+                    "ingestion_mode"
+                  ],
+                  "properties": {
+                    "analysis_configured": {
+                      "type": "boolean"
+                    },
+                    "ingestion_mode": {
+                      "type": "string"
+                    },
+                    "retrieval_configured": {
+                      "type": "boolean"
+                    }
+                  }
+                },
                 "kb": {
                   "type": "object",
                   "required": [
@@ -1454,7 +1510,10 @@
                     "doc_count",
                     "chunk_count",
                     "created_at",
-                    "updated_at"
+                    "updated_at",
+                    "ready_count",
+                    "pending_count",
+                    "failed_count"
                   ],
                   "properties": {
                     "chunk_count": {
@@ -1469,6 +1528,9 @@
                     "doc_count": {
                       "type": "integer"
                     },
+                    "failed_count": {
+                      "type": "integer"
+                    },
                     "id": {
                       "type": "integer"
                     },
@@ -1476,6 +1538,12 @@
                       "type": "string"
                     },
                     "owner_id": {
+                      "type": "integer"
+                    },
+                    "pending_count": {
+                      "type": "integer"
+                    },
+                    "ready_count": {
                       "type": "integer"
                     },
                     "updated_at": {
@@ -1513,6 +1581,25 @@
             "schema": {
               "type": "object",
               "properties": {
+                "capabilities": {
+                  "type": "object",
+                  "required": [
+                    "retrieval_configured",
+                    "analysis_configured",
+                    "ingestion_mode"
+                  ],
+                  "properties": {
+                    "analysis_configured": {
+                      "type": "boolean"
+                    },
+                    "ingestion_mode": {
+                      "type": "string"
+                    },
+                    "retrieval_configured": {
+                      "type": "boolean"
+                    }
+                  }
+                },
                 "kb": {
                   "type": "object",
                   "required": [
@@ -1523,7 +1610,10 @@
                     "doc_count",
                     "chunk_count",
                     "created_at",
-                    "updated_at"
+                    "updated_at",
+                    "ready_count",
+                    "pending_count",
+                    "failed_count"
                   ],
                   "properties": {
                     "chunk_count": {
@@ -1538,6 +1628,9 @@
                     "doc_count": {
                       "type": "integer"
                     },
+                    "failed_count": {
+                      "type": "integer"
+                    },
                     "id": {
                       "type": "integer"
                     },
@@ -1545,6 +1638,12 @@
                       "type": "string"
                     },
                     "owner_id": {
+                      "type": "integer"
+                    },
+                    "pending_count": {
+                      "type": "integer"
+                    },
+                    "ready_count": {
                       "type": "integer"
                     },
                     "updated_at": {
@@ -1660,6 +1759,18 @@
             "name": "page_size",
             "in": "query",
             "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "query",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "status",
+            "in": "query",
+            "allowEmptyValue": true
           }
         ],
         "responses": {
@@ -1668,6 +1779,9 @@
             "schema": {
               "type": "object",
               "properties": {
+                "failed_count": {
+                  "type": "integer"
+                },
                 "list": {
                   "type": "array",
                   "items": {
@@ -1722,6 +1836,12 @@
                     }
                   }
                 },
+                "pending_count": {
+                  "type": "integer"
+                },
+                "ready_count": {
+                  "type": "integer"
+                },
                 "total": {
                   "type": "integer"
                 }
@@ -1757,10 +1877,17 @@
               "type": "object",
               "required": [
                 "title",
-                "content"
+                "content",
+                "request_id"
               ],
               "properties": {
+                "batch_id": {
+                  "type": "string"
+                },
                 "content": {
+                  "type": "string"
+                },
+                "request_id": {
                   "type": "string"
                 },
                 "title": {
@@ -1776,6 +1903,9 @@
             "schema": {
               "type": "object",
               "properties": {
+                "batch_id": {
+                  "type": "string"
+                },
                 "doc": {
                   "type": "object",
                   "required": [
@@ -1826,6 +1956,9 @@
                       "type": "integer"
                     }
                   }
+                },
+                "job_id": {
+                  "type": "integer"
                 }
               }
             }
@@ -1962,14 +2095,21 @@
               "required": [
                 "title",
                 "content",
-                "expected_version"
+                "expected_version",
+                "request_id"
               ],
               "properties": {
+                "batch_id": {
+                  "type": "string"
+                },
                 "content": {
                   "type": "string"
                 },
                 "expected_version": {
                   "type": "integer"
+                },
+                "request_id": {
+                  "type": "string"
                 },
                 "title": {
                   "type": "string"
@@ -1984,6 +2124,9 @@
             "schema": {
               "type": "object",
               "properties": {
+                "batch_id": {
+                  "type": "string"
+                },
                 "doc": {
                   "type": "object",
                   "required": [
@@ -2034,6 +2177,9 @@
                       "type": "integer"
                     }
                   }
+                },
+                "job_id": {
+                  "type": "integer"
                 }
               }
             }
@@ -2079,7 +2225,7 @@
     "/v1/sys/ai/kbs/{id}/docs/{doc_id}/retry": {
       "post": {
         "consumes": [
-          "application/x-www-form-urlencoded"
+          "application/json"
         ],
         "produces": [
           "application/json"
@@ -2101,6 +2247,25 @@
             "name": "doc_id",
             "in": "path",
             "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "request_id"
+              ],
+              "properties": {
+                "batch_id": {
+                  "type": "string"
+                },
+                "request_id": {
+                  "type": "string"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -2109,6 +2274,9 @@
             "schema": {
               "type": "object",
               "properties": {
+                "batch_id": {
+                  "type": "string"
+                },
                 "doc": {
                   "type": "object",
                   "required": [
@@ -2157,6 +2325,485 @@
                     },
                     "version": {
                       "type": "integer"
+                    }
+                  }
+                },
+                "job_id": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/imports": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "listKbImports",
+        "operationId": "aiListKbImports",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "kb_id",
+                      "stopped",
+                      "total",
+                      "queued",
+                      "running",
+                      "succeeded",
+                      "failed",
+                      "cancelled",
+                      "reused",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "cancelled": {
+                        "type": "integer"
+                      },
+                      "created_at": {
+                        "type": "integer"
+                      },
+                      "failed": {
+                        "type": "integer"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "kb_id": {
+                        "type": "integer"
+                      },
+                      "queued": {
+                        "type": "integer"
+                      },
+                      "reused": {
+                        "type": "integer"
+                      },
+                      "running": {
+                        "type": "integer"
+                      },
+                      "stopped": {
+                        "type": "boolean"
+                      },
+                      "succeeded": {
+                        "type": "integer"
+                      },
+                      "total": {
+                        "type": "integer"
+                      },
+                      "updated_at": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/imports/{batch_id}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "getKbImport",
+        "operationId": "aiGetKbImport",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "batch_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "batch": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "stopped",
+                    "total",
+                    "queued",
+                    "running",
+                    "succeeded",
+                    "failed",
+                    "cancelled",
+                    "reused",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "properties": {
+                    "cancelled": {
+                      "type": "integer"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "failed": {
+                      "type": "integer"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "queued": {
+                      "type": "integer"
+                    },
+                    "reused": {
+                      "type": "integer"
+                    },
+                    "running": {
+                      "type": "integer"
+                    },
+                    "stopped": {
+                      "type": "boolean"
+                    },
+                    "succeeded": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "request_id",
+                      "doc_id",
+                      "operation",
+                      "status",
+                      "error",
+                      "doc",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "created_at": {
+                        "type": "integer"
+                      },
+                      "doc": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "kb_id",
+                          "title",
+                          "status",
+                          "error",
+                          "chunk_count",
+                          "embedding_model",
+                          "created_at",
+                          "updated_at",
+                          "version",
+                          "stage"
+                        ],
+                        "properties": {
+                          "chunk_count": {
+                            "type": "integer"
+                          },
+                          "created_at": {
+                            "type": "integer"
+                          },
+                          "embedding_model": {
+                            "type": "string"
+                          },
+                          "error": {
+                            "type": "string"
+                          },
+                          "id": {
+                            "type": "integer"
+                          },
+                          "kb_id": {
+                            "type": "integer"
+                          },
+                          "stage": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "integer"
+                          },
+                          "version": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "doc_id": {
+                        "type": "integer"
+                      },
+                      "error": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "operation": {
+                        "type": "string"
+                      },
+                      "request_id": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/imports/{batch_id}/stop": {
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "stopKbImport",
+        "operationId": "aiStopKbImport",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "batch_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "batch": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "stopped",
+                    "total",
+                    "queued",
+                    "running",
+                    "succeeded",
+                    "failed",
+                    "cancelled",
+                    "reused",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "properties": {
+                    "cancelled": {
+                      "type": "integer"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "failed": {
+                      "type": "integer"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "queued": {
+                      "type": "integer"
+                    },
+                    "reused": {
+                      "type": "integer"
+                    },
+                    "running": {
+                      "type": "integer"
+                    },
+                    "stopped": {
+                      "type": "boolean"
+                    },
+                    "succeeded": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "request_id",
+                      "doc_id",
+                      "operation",
+                      "status",
+                      "error",
+                      "doc",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "created_at": {
+                        "type": "integer"
+                      },
+                      "doc": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "kb_id",
+                          "title",
+                          "status",
+                          "error",
+                          "chunk_count",
+                          "embedding_model",
+                          "created_at",
+                          "updated_at",
+                          "version",
+                          "stage"
+                        ],
+                        "properties": {
+                          "chunk_count": {
+                            "type": "integer"
+                          },
+                          "created_at": {
+                            "type": "integer"
+                          },
+                          "embedding_model": {
+                            "type": "string"
+                          },
+                          "error": {
+                            "type": "string"
+                          },
+                          "id": {
+                            "type": "integer"
+                          },
+                          "kb_id": {
+                            "type": "integer"
+                          },
+                          "stage": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "integer"
+                          },
+                          "version": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "doc_id": {
+                        "type": "integer"
+                      },
+                      "error": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "operation": {
+                        "type": "string"
+                      },
+                      "request_id": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "integer"
+                      }
                     }
                   }
                 }
@@ -2545,6 +3192,12 @@
             "name": "workflow_id",
             "in": "query",
             "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "query",
+            "in": "query",
+            "allowEmptyValue": true
           }
         ],
         "responses": {
@@ -2571,7 +3224,11 @@
                       "next_step",
                       "steps",
                       "updated_at",
-                      "request_id"
+                      "request_id",
+                      "title",
+                      "workflow_name",
+                      "input_summary",
+                      "definition"
                     ],
                     "properties": {
                       "approved_by": {
@@ -2586,6 +3243,9 @@
                       "created_at": {
                         "type": "integer"
                       },
+                      "definition": {
+                        "type": "string"
+                      },
                       "error": {
                         "type": "string"
                       },
@@ -2593,6 +3253,9 @@
                         "type": "integer"
                       },
                       "input": {
+                        "type": "string"
+                      },
+                      "input_summary": {
                         "type": "string"
                       },
                       "next_step": {
@@ -2657,16 +3320,82 @@
                           }
                         }
                       },
+                      "title": {
+                        "type": "string"
+                      },
                       "updated_at": {
                         "type": "integer"
                       },
                       "workflow_id": {
                         "type": "integer"
+                      },
+                      "workflow_name": {
+                        "type": "string"
                       }
                     }
                   }
                 },
                 "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/tasks/run": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "runDraft",
+        "operationId": "aiRunDraft",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "name",
+                "definition",
+                "request_id"
+              ],
+              "properties": {
+                "definition": {
+                  "type": "string"
+                },
+                "input": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "request_id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                },
+                "task_id": {
                   "type": "integer"
                 }
               }
@@ -2691,6 +3420,12 @@
             "name": "id",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "boolean",
+            "name": "meta_only",
+            "in": "query",
+            "allowEmptyValue": true
           }
         ],
         "responses": {
@@ -2715,7 +3450,11 @@
                     "next_step",
                     "steps",
                     "updated_at",
-                    "request_id"
+                    "request_id",
+                    "title",
+                    "workflow_name",
+                    "input_summary",
+                    "definition"
                   ],
                   "properties": {
                     "approved_by": {
@@ -2730,6 +3469,9 @@
                     "created_at": {
                       "type": "integer"
                     },
+                    "definition": {
+                      "type": "string"
+                    },
                     "error": {
                       "type": "string"
                     },
@@ -2737,6 +3479,9 @@
                       "type": "integer"
                     },
                     "input": {
+                      "type": "string"
+                    },
+                    "input_summary": {
                       "type": "string"
                     },
                     "next_step": {
@@ -2801,11 +3546,17 @@
                         }
                       }
                     },
+                    "title": {
+                      "type": "string"
+                    },
                     "updated_at": {
                       "type": "integer"
                     },
                     "workflow_id": {
                       "type": "integer"
+                    },
+                    "workflow_name": {
+                      "type": "string"
                     }
                   }
                 }
@@ -2960,6 +3711,25 @@
             "schema": {
               "type": "object",
               "properties": {
+                "capabilities": {
+                  "type": "object",
+                  "required": [
+                    "retrieval_configured",
+                    "analysis_configured",
+                    "ingestion_mode"
+                  ],
+                  "properties": {
+                    "analysis_configured": {
+                      "type": "boolean"
+                    },
+                    "ingestion_mode": {
+                      "type": "string"
+                    },
+                    "retrieval_configured": {
+                      "type": "boolean"
+                    }
+                  }
+                },
                 "list": {
                   "type": "array",
                   "items": {
@@ -3010,6 +3780,12 @@
             "name": "page_size",
             "in": "query",
             "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "query",
+            "in": "query",
+            "allowEmptyValue": true
           }
         ],
         "responses": {
@@ -3031,7 +3807,8 @@
                       "next_run_at",
                       "created_by",
                       "created_at",
-                      "updated_at"
+                      "updated_at",
+                      "step_count"
                     ],
                     "properties": {
                       "created_at": {
@@ -3056,6 +3833,9 @@
                         "type": "string"
                       },
                       "next_run_at": {
+                        "type": "integer"
+                      },
+                      "step_count": {
                         "type": "integer"
                       },
                       "updated_at": {
@@ -3126,7 +3906,8 @@
                     "next_run_at",
                     "created_by",
                     "created_at",
-                    "updated_at"
+                    "updated_at",
+                    "step_count"
                   ],
                   "properties": {
                     "created_at": {
@@ -3151,6 +3932,9 @@
                       "type": "string"
                     },
                     "next_run_at": {
+                      "type": "integer"
+                    },
+                    "step_count": {
                       "type": "integer"
                     },
                     "updated_at": {
@@ -3199,7 +3983,8 @@
                     "next_run_at",
                     "created_by",
                     "created_at",
-                    "updated_at"
+                    "updated_at",
+                    "step_count"
                   ],
                   "properties": {
                     "created_at": {
@@ -3224,6 +4009,9 @@
                       "type": "string"
                     },
                     "next_run_at": {
+                      "type": "integer"
+                    },
+                    "step_count": {
                       "type": "integer"
                     },
                     "updated_at": {
@@ -8067,7 +8855,7 @@
       }
     }
   },
-  "x-date": "2026-11-07 01:20:09",
+  "x-date": "2026-11-07 12:21:11",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

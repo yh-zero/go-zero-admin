@@ -3,6 +3,7 @@ package aiservicelogic
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
 	"net/http"
 	"strings"
 	"sync"
@@ -39,7 +40,10 @@ func TestKbDocumentsDetailMetadataAndVersionedUpdate(t *testing.T) {
 		t.Fatalf("list projection rows=%+v total=%d err=%v", rows, total, err)
 	}
 	body := "\ufeff资料原文\r\n第二行\r\n"
-	updated, err := NewUpdateKbDocLogic(context.Background(), h.s).UpdateKbDoc(&aipb.UpdateKbDocRequest{Actor: h.actor, KbId: h.kb, DocId: id, Title: " 新标题 ", Content: body, ExpectedVersion: 1})
+	updated, err := NewUpdateKbDocLogic(context.Background(), h.s).UpdateKbDoc(&aipb.UpdateKbDocRequest{Actor: h.actor, KbId: h.kb, DocId: id, Title: " 新标题 ", Content: body, ExpectedVersion: 1, RequestId: uuid.NewString()})
+	if err == nil {
+		updated.Doc, err = h.waitDoc(context.Background(), id)
+	}
 	if err != nil || updated.Doc.Version != 2 || updated.Doc.Stage != "ready" || updated.Doc.Status != "ready" {
 		t.Fatalf("update=%+v err=%v", updated, err)
 	}
@@ -47,7 +51,7 @@ func TestKbDocumentsDetailMetadataAndVersionedUpdate(t *testing.T) {
 		t.Fatalf("original body changed: %+v", got)
 	}
 	calls := h.calls.Load()
-	_, err = NewUpdateKbDocLogic(context.Background(), h.s).UpdateKbDoc(&aipb.UpdateKbDocRequest{Actor: h.actor, KbId: h.kb, DocId: id, Title: "旧版本", Content: "不能覆盖", ExpectedVersion: 1})
+	_, err = NewUpdateKbDocLogic(context.Background(), h.s).UpdateKbDoc(&aipb.UpdateKbDocRequest{Actor: h.actor, KbId: h.kb, DocId: id, Title: "旧版本", Content: "不能覆盖", ExpectedVersion: 1, RequestId: uuid.NewString()})
 	if ce, ok := xerr.AsCodeError(err); !ok || ce.GetErrCode() != 400 || calls != h.calls.Load() {
 		t.Fatalf("version conflict err=%v calls=%d", err, h.calls.Load())
 	}
@@ -152,12 +156,12 @@ func TestKbDocumentsOwnershipDeletedAndInvalidInput(t *testing.T) {
 			t.Fatalf("read ownership err=%v", err)
 		}
 	}
-	_, err := NewUpdateKbDocLogic(context.Background(), h.s).UpdateKbDoc(&aipb.UpdateKbDocRequest{Actor: stranger, KbId: h.kb, DocId: id, Title: "越权", Content: "越权", ExpectedVersion: 1})
+	_, err := NewUpdateKbDocLogic(context.Background(), h.s).UpdateKbDoc(&aipb.UpdateKbDocRequest{Actor: stranger, KbId: h.kb, DocId: id, Title: "越权", Content: "越权", ExpectedVersion: 1, RequestId: uuid.NewString()})
 	if ce, ok := xerr.AsCodeError(err); !ok || ce.GetErrCode() != 404 {
 		t.Fatalf("update ownership err=%v", err)
 	}
 	for _, content := range []string{"", " \n\t", strings.Repeat("中", 21846), string([]byte{0xff})} {
-		_, err := NewUpdateKbDocLogic(context.Background(), h.s).UpdateKbDoc(&aipb.UpdateKbDocRequest{Actor: h.actor, KbId: h.kb, DocId: id, Title: "正文校验", Content: content, ExpectedVersion: 1})
+		_, err := NewUpdateKbDocLogic(context.Background(), h.s).UpdateKbDoc(&aipb.UpdateKbDocRequest{Actor: h.actor, KbId: h.kb, DocId: id, Title: "正文校验", Content: content, ExpectedVersion: 1, RequestId: uuid.NewString()})
 		if ce, ok := xerr.AsCodeError(err); !ok || ce.GetErrCode() != 400 {
 			t.Fatalf("invalid body accepted: %v", err)
 		}
@@ -201,7 +205,11 @@ func TestKbDocumentsUpdateFailureRetainsNewRevisionForRetry(t *testing.T) {
 	h := newKbIngestHarness(t)
 	id, _ := h.pending()
 	h.embed = func(w http.ResponseWriter, _ *http.Request) { http.Error(w, "isolated provider failure", 500) }
-	out, err := NewUpdateKbDocLogic(context.Background(), h.s).UpdateKbDoc(&aipb.UpdateKbDocRequest{Actor: h.actor, KbId: h.kb, DocId: id, Title: "更新后的资料", Content: "失败后仍应保留的新正文\r\n", ExpectedVersion: 1})
+	h.background()
+	out, err := NewUpdateKbDocLogic(context.Background(), h.s).UpdateKbDoc(&aipb.UpdateKbDocRequest{Actor: h.actor, KbId: h.kb, DocId: id, Title: "更新后的资料", Content: "失败后仍应保留的新正文\r\n", ExpectedVersion: 1, RequestId: uuid.NewString()})
+	if err == nil {
+		out.Doc, err = h.waitDoc(context.Background(), id)
+	}
 	if err != nil || out.Doc.Id != id || out.Doc.Version != 2 || out.Doc.Status != "failed" || out.Doc.Stage != "failed" {
 		t.Fatalf("failed update=%+v err=%v", out, err)
 	}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button, Card, Empty, Form, Input, Modal, Popconfirm, Space, Table, Tag } from 'antd';
 import { DatabaseOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import type { AiKbInfo } from '../../api/types';
 import { createAiKb, deleteAiKb, updateAiKb } from '../../api/ai';
 import { QueryState } from '../../components/QueryState';
@@ -9,8 +10,6 @@ import { AIWorkspaceAccess } from './AIWorkspaceAccess';
 import { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
 import { aiWorkspaceKeys, kbListOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
-import { KnowledgeDocumentsDrawer as KbDocsDrawer } from './KnowledgeDocumentsDrawer';
-import KbSearchModal from './KbSearchModal';
 import styles from './knowledgeDocuments.module.css';
 
 const KB_LIST = 'sys:ai:kb:list';
@@ -26,15 +25,15 @@ export function AIKnowledgeSession({ scope }: { scope: AiWorkspaceScope }) {
   const guard = useAiWorkspaceGuard(scope, KB_LIST);
   const { isCurrent } = guard;
   const client = useQueryClient();
+  const navigate = useNavigate();
   const [editing, setEditing] = useState<AiKbInfo | 'create' | null>(null);
-  const [docsOf, setDocsOf] = useState<AiKbInfo | null>(null);
-  const [searchOf, setSearchOf] = useState<AiKbInfo | null>(null);
+  const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const kbs = useQuery({ ...kbListOptions(scope, { page, page_size: pageSize }), enabled: guard.can(KB_LIST) });
+  const kbs = useQuery({ ...kbListOptions(scope, { page, page_size: pageSize, query }), enabled: guard.can(KB_LIST) });
   const save = useMutation({ mutationFn: async ({ kb, values }: { kb: AiKbInfo | 'create'; values: KbFormValues }) => {
-    if (kb === 'create') await createAiKb(values);
+    if (kb === 'create') return createAiKb(values);
     else await updateAiKb(kb.id, values);
   } });
   const remove = useMutation({ mutationFn: deleteAiKb });
@@ -45,11 +44,12 @@ export function AIKnowledgeSession({ scope }: { scope: AiWorkspaceScope }) {
 
   const refresh = () => { if (guard.isCurrent()) void client.invalidateQueries({ queryKey: aiWorkspaceKeys.kbs(scope) }); };
 
-  return <Card className={styles.knowledgePage} title={<Space><DatabaseOutlined /><span>知识库</span><Tag>向量检索</Tag></Space>}
+  return <Card className={styles.knowledgePage} title={<Space><DatabaseOutlined /><span>知识库</span><Tag>资料与分析</Tag></Space>}
     extra={<Space>
       <Button icon={<ReloadOutlined />} loading={kbs.isFetching} onClick={refresh}>刷新</Button>
       {guard.can(KB_CREATE) && <Button type="primary" icon={<PlusOutlined />} disabled={guard.writing} onClick={() => setEditing('create')}>新建知识库</Button>}
     </Space>}>
+    <Input.Search allowClear className={styles.kbSearch} aria-label="搜索知识库名称" placeholder="搜索知识库名称" onSearch={value => { setQuery(value.trim()); setPage(1); }} />
     <QueryState isPending={kbs.isPending} error={kbs.error} onRetry={() => kbs.refetch()} />
     {!kbs.isPending && !kbs.error && !(kbs.data?.total) && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无知识库" />}
     {!!kbs.data?.total && <Table<AiKbInfo> rowKey="id" size="middle" scroll={{ x: 850 }}
@@ -57,13 +57,12 @@ export function AIKnowledgeSession({ scope }: { scope: AiWorkspaceScope }) {
         onChange: (next, size) => { setPage(size === pageSize ? next : 1); setPageSize(size); } }}
       dataSource={kbs.data.list}
       columns={[
-        { title: '名称', dataIndex: 'name' },
+        { title: '名称', dataIndex: 'name', render: (_, kb) => <Button type="link" onClick={() => navigate(`/ai/knowledge/${kb.id}`)}>{kb.name}</Button> },
         { title: '描述', dataIndex: 'description', ellipsis: true },
-        { title: '文档数', dataIndex: 'doc_count', width: 90 },
+        { title: '资料', width: 180, render: (_, kb) => <Space wrap><Tag color="success">可使用 {kb.ready_count}</Tag>{kb.pending_count > 0 && <Tag color="processing">处理 {kb.pending_count}</Tag>}{kb.failed_count > 0 && <Tag color="error">失败 {kb.failed_count}</Tag>}</Space> },
         { title: '更新时间', dataIndex: 'updated_at', width: 170, render: (v: number) => new Date(v * 1000).toLocaleString() },
         { title: '操作', width: 340, render: (_, kb) => <Space>
-          <Button type="link" disabled={guard.writing} onClick={() => setDocsOf(kb)}>文档</Button>
-          <Button type="link" disabled={guard.writing} onClick={() => { if (guard.can(KB_LIST)) setSearchOf(kb); }}>召回测试</Button>
+          <Button type="link" disabled={guard.writing} onClick={() => navigate(`/ai/knowledge/${kb.id}`)}>进入工作区</Button>
           {guard.can(KB_EDIT) && <Button type="link" icon={<EditOutlined />} disabled={guard.writing} onClick={() => setEditing(kb)}>编辑</Button>}
           {guard.can(KB_DELETE) && <Popconfirm title="删除知识库及其全部文档？" disabled={guard.writing} onConfirm={() => removeKb(kb.id)}><Button type="link" danger disabled={guard.writing} loading={deletingId === kb.id} icon={<DeleteOutlined />}>删除</Button></Popconfirm>}
         </Space> },
@@ -73,13 +72,11 @@ export function AIKnowledgeSession({ scope }: { scope: AiWorkspaceScope }) {
       onSubmit={async values => {
         if (!guard.beginWrite(editing === 'create' ? KB_CREATE : KB_EDIT)) return;
         try {
-          await save.mutateAsync({ kb: editing, values });
-          if (guard.isCurrent()) { setEditing(null); refresh(); }
+          const result = await save.mutateAsync({ kb: editing, values });
+          if (guard.isCurrent()) { setEditing(null); refresh(); if (result) navigate(`/ai/knowledge/${result.kb.id}`); }
         } catch { /* 请求层已反馈错误，表单保留。 */ }
         finally { guard.finishWrite(); }
       }} />}
-    {docsOf && <KbDocsDrawer scope={scope} kb={docsOf} onClose={() => setDocsOf(null)} onChanged={refresh} />}
-    {searchOf && <KbSearchModal key={searchOf.id} scope={scope} kb={searchOf} onCancel={() => setSearchOf(null)} />}
   </Card>;
 
   async function removeKb(id: number) {

@@ -36,9 +36,9 @@ func (l *UpdateKbDocLogic) UpdateKbDoc(req *types.AiUpdateKbDocReq) (resp *types
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.UpdateKbDoc(l.ctx, &aipb.UpdateKbDocRequest{Actor: actor, KbId: req.Id, DocId: req.DocId, Title: req.Title, Content: req.Content, ExpectedVersion: req.ExpectedVersion})
+	out, err := l.svcCtx.AiRpc.UpdateKbDoc(l.ctx, &aipb.UpdateKbDocRequest{Actor: actor, KbId: req.Id, DocId: req.DocId, Title: req.Title, Content: req.Content, ExpectedVersion: req.ExpectedVersion, RequestId: req.RequestId, BatchId: req.BatchId})
 	if err != nil {
 		return nil, err
 	}
-	return &types.AiKbDocResp{Doc: mapAiKbDoc(out.Doc)}, nil
+	return &types.AiKbDocResp{Doc: mapAiKbDoc(out.Doc), JobId: out.JobId, BatchId: out.BatchId}, nil
 }

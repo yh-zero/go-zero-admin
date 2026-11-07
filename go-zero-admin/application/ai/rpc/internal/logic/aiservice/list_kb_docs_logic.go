@@ -2,6 +2,9 @@ package aiservicelogic
 
 import (
 	"context"
+	"go-zero-admin/pkg/xerr"
+	"strings"
+	"unicode/utf8"
 
 	"go-zero-admin/application/ai/rpc/aipb"
 	"go-zero-admin/application/ai/rpc/internal/svc"
@@ -27,7 +30,14 @@ func (l *ListKbDocsLogic) ListKbDocs(in *aipb.ListKbDocsRequest) (*aipb.ListKbDo
 	if err != nil {
 		return nil, err
 	}
-	rows, total, err := l.svcCtx.AiKbDocModel.ListInKb(l.ctx, in.KbId, in.Actor.UserId, page, size)
+	if !utf8.ValidString(in.Query) || utf8.RuneCountInString(in.Query) > 128 || (in.Status != "" && in.Status != "ready" && in.Status != "pending" && in.Status != "failed") {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
+	counts, err := l.svcCtx.AiKbDocModel.CountsInKb(l.ctx, in.KbId, in.Actor.UserId)
+	if err != nil {
+		return nil, aiModelError(err)
+	}
+	rows, total, err := l.svcCtx.AiKbDocModel.SearchInKb(l.ctx, in.KbId, in.Actor.UserId, page, size, strings.TrimSpace(in.Query), in.Status)
 	if err != nil {
 		return nil, aiModelError(err)
 	}
@@ -35,5 +45,5 @@ func (l *ListKbDocsLogic) ListKbDocs(in *aipb.ListKbDocsRequest) (*aipb.ListKbDo
 	for _, r := range rows {
 		list = append(list, kbDocRowToPb(r))
 	}
-	return &aipb.ListKbDocsResponse{List: list, Page: &aipb.PageResponse{Total: total}}, nil
+	return &aipb.ListKbDocsResponse{List: list, Page: &aipb.PageResponse{Total: total}, ReadyCount: counts.ReadyCount, PendingCount: counts.PendingCount, FailedCount: counts.FailedCount}, nil
 }

@@ -59,18 +59,20 @@ message StreamChunk {
 // ========== 工具注册表（阶段 1） ==========
 message ToolInfo { string name = 1; string description = 2; string parameters_schema = 3; }
 message ListToolsRequest { Actor actor = 1; }
-message ListToolsResponse { repeated ToolInfo list = 1; }
+message Capabilities { bool retrieval_configured = 1; bool analysis_configured = 2; string ingestion_mode = 3; }
+message ListToolsResponse { repeated ToolInfo list = 1; Capabilities capabilities = 2; }
 
 // ========== 工作流（阶段 2） ==========
 message WorkflowInfo {
   int64 id = 1; string name = 2; string definition = 3; int64 interval_seconds = 4;
   int64 enabled = 5; int64 next_run_at = 6; int64 created_by = 7; int64 created_at = 8; int64 updated_at = 9;
+  int64 step_count = 10;
 }
 
 // definition JSON DSL：{"steps":[{"name":"","tool":"","input":{},"approval":true}]}
 message CreateWorkflowRequest { Actor actor = 1; string name = 2; string definition = 3; int64 interval_seconds = 4; }
 message CreateWorkflowResponse { WorkflowInfo workflow = 1; }
-message ListWorkflowsRequest { Actor actor = 1; PageRequest page = 2; }
+message ListWorkflowsRequest { Actor actor = 1; PageRequest page = 2; string query = 3; }
 message ListWorkflowsResponse { repeated WorkflowInfo list = 1; PageResponse page = 2; }
 message GetWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; }
 message GetWorkflowResponse { WorkflowInfo workflow = 1; }
@@ -78,6 +80,7 @@ message UpdateWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; optional
 message DeleteWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; }
 message RunWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; string input = 3; string request_id = 4; }
 message RunWorkflowResponse { int64 task_id = 1; string status = 2; }
+message RunDraftRequest { Actor actor = 1; string name = 2; string definition = 3; string input = 4; string request_id = 5; }
 
 // ========== 任务与审批（阶段 2） ==========
 message AgentTaskInfo {
@@ -87,15 +90,16 @@ message AgentTaskInfo {
   int64 next_step = 11;
   repeated WorkflowStepInfo steps = 12;
   int64 updated_at = 13; string request_id = 14;
+  string title = 15; string workflow_name = 16; string input_summary = 17; string definition = 18;
 }
 message WorkflowStepInfo {
   int64 index = 1; string id = 2; string name = 3; string tool = 4;
   string input = 5; string status = 6; string output = 7; string error = 8;
   int64 started_at = 9; int64 completed_at = 10;
 }
-message ListAgentTasksRequest { Actor actor = 1; PageRequest page = 2; string status = 3; int64 workflow_id = 4; }
+message ListAgentTasksRequest { Actor actor = 1; PageRequest page = 2; string status = 3; int64 workflow_id = 4; string query = 5; }
 message ListAgentTasksResponse { repeated AgentTaskInfo list = 1; PageResponse page = 2; }
-message GetAgentTaskRequest { Actor actor = 1; int64 task_id = 2; }
+message GetAgentTaskRequest { Actor actor = 1; int64 task_id = 2; bool meta_only = 3; }
 message GetAgentTaskResponse { AgentTaskInfo task = 1; }
 message ApproveTaskRequest { Actor actor = 1; int64 task_id = 2; optional int64 expected_step = 3; }
 message RejectTaskRequest { Actor actor = 1; int64 task_id = 2; string reason = 3; optional int64 expected_step = 4; }
@@ -106,6 +110,7 @@ message CancelTaskRequest { Actor actor = 1; int64 task_id = 2; }
 message KbInfo {
   int64 id = 1; string name = 2; string description = 3; int64 owner_id = 4;
   int64 doc_count = 5; int64 chunk_count = 6; int64 created_at = 7; int64 updated_at = 8;
+  int64 ready_count = 9; int64 pending_count = 10; int64 failed_count = 11;
 }
 message KbDocInfo {
   int64 id = 1; int64 kb_id = 2; string title = 3; string status = 4; string error = 5;
@@ -113,11 +118,11 @@ message KbDocInfo {
   int64 version = 10; string stage = 11;
 }
 message CreateKbRequest { Actor actor = 1; string name = 2; string description = 3; }
-message CreateKbResponse { KbInfo kb = 1; }
-message ListKbsRequest { Actor actor = 1; PageRequest page = 2; }
-message ListKbsResponse { repeated KbInfo list = 1; PageResponse page = 2; }
+message CreateKbResponse { KbInfo kb = 1; Capabilities capabilities = 2; }
+message ListKbsRequest { Actor actor = 1; PageRequest page = 2; string query = 3; }
+message ListKbsResponse { repeated KbInfo list = 1; PageResponse page = 2; Capabilities capabilities = 3; }
 message GetKbRequest { Actor actor = 1; int64 kb_id = 2; }
-message GetKbResponse { KbInfo kb = 1; }
+message GetKbResponse { KbInfo kb = 1; Capabilities capabilities = 2; }
 message SearchKbRequest { Actor actor = 1; int64 kb_id = 2; string query = 3; }
 message KbSearchHit {
   int64 chunk_id = 1; int64 kb_id = 2; int64 doc_id = 3; string doc_title = 4;
@@ -126,18 +131,32 @@ message KbSearchHit {
 message SearchKbResponse { repeated KbSearchHit list = 1; int64 elapsed_ms = 2; }
 message UpdateKbRequest { Actor actor = 1; int64 kb_id = 2; optional string name = 3; optional string description = 4; }
 message DeleteKbRequest { Actor actor = 1; int64 kb_id = 2; }
-// 创建文档：同步摄取（分块→embed→写入向量索引→置终态），返回最终 status
-message CreateKbDocRequest { Actor actor = 1; int64 kb_id = 2; string title = 3; string content = 4; }
-message CreateKbDocResponse { KbDocInfo doc = 1; }
-message ListKbDocsRequest { Actor actor = 1; int64 kb_id = 2; PageRequest page = 3; }
-message ListKbDocsResponse { repeated KbDocInfo list = 1; PageResponse page = 2; }
+// 创建文档原子保存接收凭证并后台摄取，pending不表示完成。
+message CreateKbDocRequest { Actor actor = 1; int64 kb_id = 2; string title = 3; string content = 4; string request_id = 5; string batch_id = 6; }
+message CreateKbDocResponse { KbDocInfo doc = 1; int64 job_id = 2; string batch_id = 3; }
+message ListKbDocsRequest { Actor actor = 1; int64 kb_id = 2; PageRequest page = 3; string query = 4; string status = 5; }
+message ListKbDocsResponse { repeated KbDocInfo list = 1; PageResponse page = 2; int64 ready_count = 3; int64 pending_count = 4; int64 failed_count = 5; }
 message GetKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; bool meta_only = 4; }
 message GetKbDocResponse { KbDocInfo doc = 1; string content = 2; }
-message UpdateKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; string title = 4; string content = 5; int64 expected_version = 6; }
-message UpdateKbDocResponse { KbDocInfo doc = 1; }
+message UpdateKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; string title = 4; string content = 5; int64 expected_version = 6; string request_id = 7; string batch_id = 8; }
+message UpdateKbDocResponse { KbDocInfo doc = 1; int64 job_id = 2; string batch_id = 3; }
 message DeleteKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; }
-message RetryKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; }
-message RetryKbDocResponse { KbDocInfo doc = 1; }
+message RetryKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; string request_id = 4; string batch_id = 5; }
+message RetryKbDocResponse { KbDocInfo doc = 1; int64 job_id = 2; string batch_id = 3; }
+message KbIngestBatchInfo {
+  string id = 1; int64 kb_id = 2; bool stopped = 3; int64 total = 4; int64 queued = 5;
+  int64 running = 6; int64 succeeded = 7; int64 failed = 8; int64 cancelled = 9; int64 reused = 10;
+  int64 created_at = 11; int64 updated_at = 12;
+}
+message KbIngestJobInfo {
+  int64 id = 1; string request_id = 2; int64 doc_id = 3; string operation = 4; string status = 5;
+  string error = 6; KbDocInfo doc = 7; int64 created_at = 8; int64 updated_at = 9;
+}
+message ListKbImportsRequest { Actor actor = 1; int64 kb_id = 2; PageRequest page = 3; }
+message ListKbImportsResponse { repeated KbIngestBatchInfo list = 1; PageResponse page = 2; }
+message GetKbImportRequest { Actor actor = 1; int64 kb_id = 2; string batch_id = 3; }
+message GetKbImportResponse { KbIngestBatchInfo batch = 1; repeated KbIngestJobInfo list = 2; }
+message StopKbImportRequest { Actor actor = 1; int64 kb_id = 2; string batch_id = 3; }
 
 service AiService {
   rpc CreateConversation(CreateConversationRequest) returns (CreateConversationResponse);
@@ -155,6 +174,7 @@ service AiService {
   rpc UpdateWorkflow(UpdateWorkflowRequest) returns (NoDataResponse);
   rpc DeleteWorkflow(DeleteWorkflowRequest) returns (NoDataResponse);
   rpc RunWorkflow(RunWorkflowRequest) returns (RunWorkflowResponse);
+  rpc RunDraft(RunDraftRequest) returns (RunWorkflowResponse);
 
   rpc CreateKb(CreateKbRequest) returns (CreateKbResponse);
   rpc ListKbs(ListKbsRequest) returns (ListKbsResponse);
@@ -168,6 +188,9 @@ service AiService {
   rpc UpdateKbDoc(UpdateKbDocRequest) returns (UpdateKbDocResponse);
   rpc DeleteKbDoc(DeleteKbDocRequest) returns (NoDataResponse);
   rpc RetryKbDoc(RetryKbDocRequest) returns (RetryKbDocResponse);
+  rpc ListKbImports(ListKbImportsRequest) returns (ListKbImportsResponse);
+  rpc GetKbImport(GetKbImportRequest) returns (GetKbImportResponse);
+  rpc StopKbImport(StopKbImportRequest) returns (GetKbImportResponse);
 
   rpc ListAgentTasks(ListAgentTasksRequest) returns (ListAgentTasksResponse);
   rpc GetAgentTask(GetAgentTaskRequest) returns (GetAgentTaskResponse);

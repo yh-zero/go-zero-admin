@@ -32,5 +32,5 @@ func (l *CreateKbLogic) CreateKb(req *types.AiCreateKbReq) (*types.AiKbResp, err
 	if err != nil {
 		return nil, err
 	}
-	return &types.AiKbResp{Kb: mapAiKb(out.Kb)}, nil
+	return &types.AiKbResp{Kb: mapAiKb(out.Kb), Capabilities: capabilitiesInfo(out.Capabilities)}, nil
 }

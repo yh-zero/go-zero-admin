@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Alert, Card, Empty, Form, Input, Modal, Space, Typography } from 'antd';
+import { Alert, Button, Card, Empty, Form, Input, Modal, Space, Typography } from 'antd';
 import { useMutation } from '@tanstack/react-query';
 import type { AiKbInfo, AiSearchKbReq, AiSearchKbResp } from '../../api/types';
 import { KB_SEARCH_MAX_BYTES, kbSearchOptions, kbSearchQueryBytes, validateKbSearchQuery } from './knowledgeSearch';
@@ -55,17 +55,18 @@ export default function KbSearchModal({ scope, kb, onCancel }: KbSearchModalProp
   }
 }
 
-export function KbSearchResults({ result }: { result: AiSearchKbResp }) {
+export function KbSearchResults({ result, onOpenDoc }: { result: AiSearchKbResp; onOpenDoc?: (docId: number) => void }) {
   return <Space orientation="vertical" size="middle" className="kb-search-content">
     <Typography.Text type="secondary">召回 {result.list.length} 个片段 · 服务端检索耗时 {result.elapsed_ms} ms</Typography.Text>
     {!result.list.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="未召回片段，可调整查询后重试" />}
     {result.list.map((hit, rank) => <Card key={hit.chunk_id} size="small" title={`${rank + 1}. ${hit.doc_title}`}>
-      <Space wrap size="middle">
+      <details><summary>技术详情</summary><Space wrap size="middle">
         <Typography.Text type="secondary">文档 ID：{hit.doc_id}</Typography.Text>
         <Typography.Text type="secondary">分块 ID：{hit.chunk_id}</Typography.Text>
         <Typography.Text>相似度：{hit.score}</Typography.Text>
-      </Space>
+      </Space></details>
       <Typography.Paragraph className="kb-search-snippet">{hit.snippet}</Typography.Paragraph>
+      {onOpenDoc && <Button type="link" onClick={() => onOpenDoc(hit.doc_id)}>查看当前原文</Button>}
     </Card>)}
   </Space>;
 }

@@ -7,7 +7,7 @@ const storage = () => {
   return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
 };
 
-test('知识库摄取等待覆盖业务截止时间，普通管理请求保留默认超时', async () => {
+test('知识库后台摄取返回接收凭证，提交与普通管理请求保留默认超时', async () => {
   const previousWindow = globalThis.window;
   globalThis.window = { localStorage: storage(), sessionStorage: storage(), addEventListener() {} };
   const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', server: { middlewareMode: true, watch: null, ws: false } });
@@ -21,22 +21,25 @@ test('知识库摄取等待覆盖业务截止时间，普通管理请求保留�
     const requests = [];
     request.defaults.adapter = async config => {
       requests.push(config);
-      return { data: { code: 200, result: { doc: { id: 9, status: 'ready' } } }, status: 200, statusText: 'OK', headers: {}, config };
+      return { data: { code: 200, result: { doc: { id: 9, kb_id: 7, title: '本地摄取测试', status: 'pending', stage: 'queued', version: 1, error: '', chunk_count: 1, embedding_model: 'fixture-embedding', created_at: 1, updated_at: 1 }, job_id: 4, batch_id: '11111111-1111-4111-8111-111111111111' } }, status: 200, statusText: 'OK', headers: {}, config };
     };
-    const content = { title: '本地摄取测试', content: '只通过请求适配器检查，不调用模型。' };
-    assert.equal((await api.createAiKbDoc(7, content)).doc.status, 'ready');
-    assert.equal(requests[0].timeout, 125_000);
+    const content = { title: '本地摄取测试', content: '只通过请求适配器检查，不调用模型。', request_id: '11111111-1111-4111-8111-111111111111' };
+    const accepted = await api.createAiKbDoc(7, content);
+    assert.equal(accepted.doc.status, 'pending');
+    assert.equal(accepted.job_id, 4);
+    assert.equal(accepted.batch_id, content.request_id);
+    assert.equal(requests[0].timeout, 30_000);
     assert.equal(requests[0].url, '/sys/ai/kbs/7/docs');
     assert.deepEqual(JSON.parse(requests[0].data), content);
-    await api.retryAiKbDoc(7, 9);
-    assert.equal(requests[1].timeout, 125_000);
+    await api.retryAiKbDoc(7, 9, { request_id: '22222222-2222-4222-8222-222222222222' });
+    assert.equal(requests[1].timeout, 30_000);
     assert.equal(requests[1].url, '/sys/ai/kbs/7/docs/9/retry');
     await api.fetchAiKbDocs(7);
     assert.equal(requests[2].timeout, 30_000);
     await api.fetchAiTools();
     assert.equal(requests[3].timeout, 30_000);
     await api.updateAiKbDoc(7, 9, { ...content, expected_version: 2 });
-    assert.equal(requests[4].timeout, 125_000);
+    assert.equal(requests[4].timeout, 30_000);
     assert.equal(requests[4].url, '/sys/ai/kbs/7/docs/9');
     assert.equal(JSON.parse(requests[4].data).expected_version, 2);
     await api.updateAiKb(7, { name: '更新标题' });
@@ -64,42 +67,39 @@ test('知识库文档提交与状态恢复行为', async t => {
       assert.ok(documents.validateDocumentContent('中'.repeat(21846)));
       assert.ok(documents.validateDocumentContent(' \n\t '));
     });
-    await t.test('pending按最近更新时间保护120秒，failed可重试、ready不可重试', () => {
+    await t.test('pending保持后台作业身份，failed可重试、ready不可重试', () => {
       assert.equal(typeof documents.canRetryDocument, 'function', '缺少重试保护');
       const pending = { id: 9, status: 'pending', created_at: 1, updated_at: 100 };
       assert.equal(documents.canRetryDocument(pending, 219999), false);
-      assert.equal(documents.canRetryDocument(pending, 220000), true);
+      assert.equal(documents.canRetryDocument(pending, 220000), false);
       assert.equal(documents.canRetryDocument({ ...pending, status: 'failed' }, 100001), true);
       assert.equal(documents.canRetryDocument({ ...pending, status: 'ready' }, 999999), false);
     });
-    await t.test('创建失败结果保留doc供下次retry；pending保护期不发送重试请求', async () => {
-      assert.equal(typeof documents.documentWriteOptions, 'function', '缺少可恢复的文档提交');
+    await t.test('后台批次逐篇使用预生成标识提交，接收后不自动重放', async () => {
+      const { prepareKnowledgeBatch, runKnowledgeImport } = await server.ssrLoadModule('/src/pages/ai/knowledgeImport.ts');
+      const { createAiKbDoc } = await server.ssrLoadModule('/src/api/ai.ts');
       const { QueryClient, MutationObserver } = await import('@tanstack/react-query');
       const { request } = await server.ssrLoadModule('/src/utils/request.ts');
       const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
       useAuthStore.setState({ token: 'local-doc-test', sessionId: 'local-doc-session', sessionVersion: 1, departmentVersion: 1,
         expiresAt: Date.now() / 1000 + 3600, permissionsReady: true, permCodes: ['sys:ai:kb:edit'], isLoggingOut: false });
-      const client = new QueryClient();
-      const responses = ['failed', 'pending', 'ready'];
+      const client = new QueryClient({ defaultOptions: { queries: { gcTime: 0 }, mutations: { gcTime: 0 } } });
+      const responses = ['pending', 'ready'];
       const calls = [];
       request.defaults.adapter = async config => {
-        calls.push(config.url);
+        calls.push({ url: config.url, data: JSON.parse(config.data) });
         return { data: { code: 200, result: { doc: { id: 9, status: responses.shift(), error: '索引服务暂不可用', updated_at: Math.floor(Date.now() / 1000) } } },
           status: 200, statusText: 'OK', headers: {}, config };
       };
       try {
-        const mutation = new MutationObserver(client, documents.documentWriteOptions(7));
-        const values = { title: '文档', content: '正文' };
-        const failed = (await mutation.mutate({ values })).doc;
-        assert.equal(failed.status, 'failed');
-        assert.equal(failed.id, 9);
-        const pending = (await mutation.mutate({ values, doc: failed })).doc;
-        assert.equal(pending.status, 'pending');
-        await assert.rejects(mutation.mutate({ values, doc: pending }), /等待/);
+        const mutation = new MutationObserver(client, { mutationFn: values => createAiKbDoc(7, values), retry: false });
+        const prepared = prepareKnowledgeBatch([{ title: '文档甲', content: '正文甲' }, { title: '文档乙', content: '正文乙' }]);
+        const changes = [];
+        await runKnowledgeImport(prepared.items, values => mutation.mutate(values), change => changes.push(change), () => true);
         assert.equal(calls.length, 2);
-        const recovered = (await mutation.mutate({ values, doc: { ...pending, updated_at: Math.floor(Date.now() / 1000) - 121 } })).doc;
-        assert.equal(recovered.status, 'ready');
-        assert.deepEqual(calls, ['/sys/ai/kbs/7/docs', '/sys/ai/kbs/7/docs/9/retry', '/sys/ai/kbs/7/docs/9/retry']);
+        assert.deepEqual(calls.map(call => call.data.request_id).sort(), prepared.items.map(item => item.id).sort());
+        assert.ok(calls.every(call => call.url === '/sys/ai/kbs/7/docs' && call.data.batch_id === prepared.batchId));
+        assert.deepEqual(changes.filter(change => change.doc).map(change => change.state).sort(), ['pending', 'ready']);
       } finally { client.clear(); }
     });
     await t.test('文档查询仅pending时每3秒刷新，不在隐藏页面持续轮询', async () => {

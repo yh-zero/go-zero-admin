@@ -270,7 +270,7 @@ func messageProto(row *model.MessageRow) *aipb.ChatMessage {
 	return &aipb.ChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: calls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: status, Error: message, Sources: sources, Feedback: feedback, FeedbackNote: feedbackNote}
 }
 func workflowProto(row *model.WorkflowRow) *aipb.WorkflowInfo {
-	return &aipb.WorkflowInfo{Id: row.Id, Name: row.Name, Definition: row.Definition, IntervalSeconds: row.IntervalSeconds, Enabled: row.Enabled, NextRunAt: row.NextRunAt, CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}
+	return &aipb.WorkflowInfo{Id: row.Id, Name: row.Name, Definition: row.Definition, IntervalSeconds: row.IntervalSeconds, Enabled: row.Enabled, NextRunAt: row.NextRunAt, CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, StepCount: row.StepCount}
 }
 func taskProto(row *model.TaskRow) *aipb.AgentTaskInfo {
 	records, _ := model.ReadWorkflowStepRecords(row.StepRecords)
@@ -278,5 +278,12 @@ func taskProto(row *model.TaskRow) *aipb.AgentTaskInfo {
 	for _, r := range records {
 		steps = append(steps, &aipb.WorkflowStepInfo{Index: r.Index, Id: r.Id, Name: r.Name, Tool: r.Tool, Input: r.Input, Output: r.Output, Status: r.Status, Error: r.Error, StartedAt: r.StartedAt, CompletedAt: r.CompletedAt})
 	}
-	return &aipb.AgentTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt, NextStep: row.NextStep, Steps: steps, UpdatedAt: row.UpdatedAt, RequestId: row.RequestId}
+	title, workflowName := row.Title, row.WorkflowName
+	if title == "" {
+		title = "历史任务 #" + strconv.FormatInt(row.Id, 10)
+	}
+	if workflowName == "" && row.WorkflowId > 0 {
+		workflowName = "历史流程 #" + strconv.FormatInt(row.WorkflowId, 10)
+	}
+	return &aipb.AgentTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt, NextStep: row.NextStep, Steps: steps, UpdatedAt: row.UpdatedAt, RequestId: row.RequestId, Title: title, WorkflowName: workflowName, InputSummary: row.InputSummary, Definition: row.WorkflowSnapshot}
 }

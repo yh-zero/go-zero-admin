@@ -16,9 +16,9 @@ $menus = @([regex]::Matches($sql, "(?m)^\((?<id>\d+),(?<parent>\d+),'(?<title>[^
     [pscustomobject]$row
 })
 $pages = @(
-    @{ Id='9001410'; Name='ai_workflow'; Path='/ai/workflows'; Title='工作流管理'; Icon='apartment'; Sort='1'; Prefix='sys:ai:workflow:'; Operations=@('list','create','edit','delete','run') },
-    @{ Id='9001420'; Name='ai_task'; Path='/ai/tasks'; Title='任务中心'; Icon='audit'; Sort='2'; Prefix='sys:ai:task:'; Operations=@('list','approve','reject') },
-    @{ Id='9001430'; Name='ai_tool'; Path='/ai/tools'; Title='工具目录'; Icon='api'; Sort='3'; Prefix='sys:ai:tool:'; Operations=@('list') }
+    @{ Id='9001410'; Name='ai_workflow'; Path='/ai/workflows'; Title='常用流程'; Icon='apartment'; Sort='1'; Prefix='sys:ai:workflow:'; Operations=@('list','create','edit','delete','run') },
+    @{ Id='9001420'; Name='ai_task'; Path='/ai/tasks'; Title='运行记录'; Icon='audit'; Sort='2'; Prefix='sys:ai:task:'; Operations=@('list','approve','reject','cancel') },
+    @{ Id='9001430'; Name='ai_tool'; Path='/ai/tools'; Title='工具与能力'; Icon='api'; Sort='3'; Prefix='sys:ai:tool:'; Operations=@('list') }
 )
 $newIds = @()
 foreach ($page in $pages) {
@@ -55,5 +55,5 @@ foreach ($id in $newIds) {
     Assert-Equal $grants.Count 1 "菜单关联必须唯一：$id"
     Assert-Equal $grants[0].Groups['role'].Value '1' "新增 AI 菜单只能授予超级管理员：$id"
 }
-Write-Host 'AI workspace seed regression passed: 3 pages, 9 operations, role 1 only.'
+Write-Host 'AI workspace seed regression passed: 3 pages, 10 operations, role 1 only.'
 exit 0

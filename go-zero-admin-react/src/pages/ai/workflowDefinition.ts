@@ -224,14 +224,18 @@ export function workflowReferences(value: unknown, depth = 0): string[] {
 export function workflowRunFields(definition: string) {
   const steps = parseWorkflow(definition);
   const refs = steps.flatMap(step => workflowReferences(JSON.parse(step.input)));
-  return { question: refs.some(ref => ref === 'input.question'), text: refs.some(ref => ref === 'input.text') };
+  return { question: refs.some(ref => ref === 'input.question'), text: refs.some(ref => ref === 'input.text'), kb_id: refs.some(ref => ref === 'input.kb_id') };
 }
 
-export function prepareWorkflowRunInput(values: { input?: string; question?: string; text?: string }) {
+export function prepareWorkflowRunInput(values: { input?: string; question?: string; text?: string; kb_id?: number }) {
   const error = validateRunInput(values.input ?? ''); if (error) throw new Error(error);
   const input: Record<string, unknown> = values.input ? JSON.parse(values.input) : {};
   if (values.question !== undefined) input.question = values.question;
   if (values.text !== undefined) input.text = values.text;
+  if (values.kb_id !== undefined) {
+    if (!Number.isSafeInteger(values.kb_id) || values.kb_id < 1) throw new Error('请选择有效的知识库');
+    input.kb_id = values.kb_id;
+  }
   const raw = JSON.stringify(input); if (byteLength(raw) > 16000) throw new Error('运行输入最多 16000 UTF-8 字节');
   return raw;
 }
@@ -242,10 +246,12 @@ export function copyWorkflowStep(step: WorkflowStepDraft): WorkflowStepDraft {
 
 export function workflowTemplate(tool: string, tools: readonly AiToolInfo[]): WorkflowDraft {
   if (tool === 'kb_analyze') {
-    const first = newWorkflowStep(tool); first.name = '分析知识库资料'; first.input = JSON.stringify({ query: { $ref: 'input.question' } }, null, 2);
-    const steps = [first];
-    if (tools.some(item => item.name === 'text_stats')) { const next = newWorkflowStep('text_stats'); next.name = '统计分析文本'; next.input = JSON.stringify({ text: { $ref: `steps.${first.key}.analysis` } }, null, 2); steps.push(next); }
-    return { name: '知识库分析与复核', enabled: true, steps };
+    const first = newWorkflowStep(tool); first.name = '分析知识库资料'; first.input = JSON.stringify({ kb_id: { $ref: 'input.kb_id' }, query: { $ref: 'input.question' } }, null, 2);
+    return { name: '资料分析', enabled: true, steps: [first] };
+  }
+  if (tool === 'json_formatter') {
+    const first = newWorkflowStep(tool); first.name = '整理本次 JSON'; first.input = JSON.stringify({ text: { $ref: 'input.text' } }, null, 2);
+    return { name: 'JSON 格式整理', enabled: true, steps: [first] };
   }
   if (tool === 'text_stats' && tools.some(item => item.name === 'json_formatter')) {
     const first = newWorkflowStep('json_formatter'); first.name = '整理本次 JSON'; first.input = JSON.stringify({ text: { $ref: 'input.text' } }, null, 2);

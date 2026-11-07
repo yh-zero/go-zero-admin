@@ -122,7 +122,7 @@ func TestChatExperienceGroundingNoMatchesAndOwnership(t *testing.T) {
 	req := &aipb.SendMessageRequest{Actor: &aipb.Actor{UserId: owner}, RequestId: uuid.NewString(), Content: "问题", KbId: 2, Grounded: true}
 	result := runAITestStream(t, context.Background(), service, req, nil).last()
 	if result.Type != "done" || calls.Load() != 0 || searcher.calls != 1 || result.Tokens != 0 || len(result.Result.AiMessage.Sources) != 0 || !strings.Contains(result.Result.AiMessage.Content, "未检索到") {
-		t.Fatal("无资料必须确定拒答且零聊天调用")
+		t.Fatalf("无资料必须确定拒答且零聊天调用：type=%s code=%d tokens=%d search=%d chat=%d sources=%d", result.Type, result.ErrorCode, result.Tokens, searcher.calls, calls.Load(), len(result.GetResult().GetAiMessage().GetSources()))
 	}
 	req.RequestId, req.KbId = uuid.NewString(), 99
 	result = runAITestStream(t, context.Background(), service, req, nil).last()
