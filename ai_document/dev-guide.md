@@ -180,6 +180,46 @@ AI 四模块入口为“知识库”`/ai/knowledge`、“常用流程”`/ai/wor
 
 [变更 HTTP 回归入口](../go-zero-admin/test/mutation_e2e.ps1) 仅接受本机地址，使用具备管理权限的开发测试账号，覆盖角色/菜单/字典部分更新和本地 `text_stats` 两审批点。凭据与正常图形码通过 `MUTATION_E2E_*` 参数/环境变量传入，清理清单须指向仓库内被忽略的新文件；脚本精确软删本轮对象并仅退出本次会话，无删除入口的任务 ID 留在清单供精确清理，不调用模型或邮件。
 
+### 知识库效果评测
+
+[quality-cases.json](ai-rag/quality-cases.json)含40题，保留首轮development24/validation16分组；当前两组均已用于检查或失败修复，应作为历史回归，新的独立检查需另留业务样本。[标注说明](ai-rag/quality-cases.md)列出正负例、证据与规则边界。题集沿用11篇合成演示资料，不是真实用户数据。以下命令均从仓库根目录执行：
+
+```powershell
+# 默认模式等同--plan，仅校验本地题集与素材，0 HTTP请求
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan --split development
+
+# 本地HTTP桩回归，不调用真实供应商
+node --test go-zero-admin/data/scripts/eval-kb-quality.test.mjs
+
+# 显式实跑：先准备正常登录result、KB映射、脱敏运行上下文和已存在的tmp目录
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --run --phase baseline --split all --auth-file tmp/auth-private.json --kb-map tmp/kb-map.json --context-file tmp/quality-context.json --output tmp/quality-baseline.jsonl
+
+# 从既有JSONL生成报告，或比较baseline与candidate；不会请求服务
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --report tmp/quality-baseline.jsonl --output tmp/quality-baseline.md
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --compare tmp/quality-baseline.jsonl tmp/quality-candidate.jsonl --output tmp/quality-compare.md
+```
+
+`--run`每题串行执行正式search和草稿`kb_analyze`，会产生真实查询Embedding和聊天费用；完整40题一轮最多提交40次分析、调用80次查询Embedding，文档核对与任务轮询的HTTP请求另计。默认API为`http://127.0.0.1:7001`，`--base`只接受本机HTTP根地址。`--auth-file`保存正常登录的result，`--kb-map`填写实际知识库ID；`--context-file`必须包含`binary_sha`、`model`、`embedding`、`config`，记录实际构建摘要、模型与预算/TopK等配置标签，不能放令牌、密钥或邮箱。每份输出必须使用仓库忽略目录`tmp/`下的新路径，不覆盖旧报告。
+
+复验使用相同实跑命令，将`--phase`改为`candidate`并指定新的JSONL；可用`--split development|validation|all`或`--case-ids`显式选题。工具先读取当前全文核对SHA256、版本与ready状态，结束再次核对；比较要求同题集、同题目、同语料库存/版本/哈希及同聊天/Embedding模型、预算和检索配置，构建摘要变化会保留在报告。失败或不完整运行不计算提升；请求结果未知时保留原UUID、任务ID和记录，先核对原任务，不自动重试或换UUID重发。
+
+先用开发集失败样本确定优化方案，再检查验证集，不按验证集反馈调参或改题。报告把检索命中/多文档召回/证据覆盖、回答规则标记与异常分开，异常不能计为空召回或错误回答。规则未标记也需人工核对语义，引用后否定禁答短语可能误报；这些结果不是语义准确率。P50/P95仅是注明样本量的串行经验分位数，11篇合成资料不能代表真实业务质量、生产并发或容量；已知聊天tokens不包含Embedding费用。
+
+回答一致性修复使用独立的 [12题开发回归](ai-rag/answer-regression-cases.md) 和实测坏答夹具，原40题保持冻结。仅分析专用 `ChatBounded` 固定temperature=0，普通Chat/Stream不变；记录运行上下文时补充 `config.analysis_temperature`，旧默认采样也须明确标注，不能靠省略标签绕过同配置比较。模型内部逐问项回复由服务端校验和渲染，外部结果结构及旧任务兼容；非法回复安全失败，不自动再次付费调用。
+
+```powershell
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan --cases ai_document/ai-rag/answer-regression-cases.json
+# 规则变化时离线生成重算副本；不发HTTP，也不修改原始结果
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --rescore tmp/answer-original.jsonl --cases ai_document/ai-rag/answer-regression-cases.json --output tmp/answer-rescored.jsonl
+```
+
+rescore仅重算派生指标并保留源SHA、任务、答案、来源、计时和原调用数；不完整、异题集、非法接受状态或事件链不一致仍拒绝写出。副本不是新执行；评分修正规则不等于业务已修复。最新构建、复验范围及残留限制见[后续基线记录](ai-rag/quality-baseline.md#回答矛盾与问项范围的后续修复)。
+
+评测器要求完整的构建/模型/Embedding/预算标签，成功接受状态只允许pending/running/succeeded，完成记录须严格逐题串行；空召回不得夹带聊天正用量。终态耗时在GET确认时捕获。相关失败边界通过本地桩回归，无需为检查工具追加真实模型调用。前端问项转义回归在`go-zero-admin-react/`目录执行 `node --test scripts/safeMarkdown.test.mjs scripts/aiWorkflowAnalysis.test.mjs`，覆盖真实展示组件与现有聊天格式。
+
+演示资料及题集的换行由[根属性文件](../.gitattributes)限定：两素材目录CRLF、题集元数据JSON为LF，以保持原始SHA。首次检出已验证兼容`core.autocrlf=false/true`；既有工作树不保证自动重写全部文件，校验失败时先保存并核对本地差异、用隔离新检出确认，不能用批量还原覆盖用户改动。
+
 ## 4. 常见故障排查
 
 通用 go-zero 问题（生成、配置、运行时）先查[官方排障](../.ai-context/zero-skills/troubleshooting/common-issues.md)；本表只保留本仓库历史事故的检查路径，不维护次数或重复禁令；查看日志时不回显凭据/完整请求，涉及写库或停服务先核对授权。下列 Compose 命令在后端目录执行：

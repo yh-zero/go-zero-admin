@@ -14,13 +14,15 @@ export function CopyTextButton({ text, label = '复制' }: { text: string; label
 // 只创建 React 元素；原始 HTML、图片和非 HTTP 链接始终作为文字保留。
 function inline(text: string): ReactNode[] {
   const parts: ReactNode[] = [];
-  const tokens = /(`[^`\n]+`|\*\*[^*\n]+\*\*|\[[^\]\n]{1,300}\]\([^\s)\n]{1,2000}\))/g;
+  // 先消费转义标点为文字；先整体反转义会把分析问项重新激活成链接、代码等语法。
+  const tokens = /\\[!-/:-@[-`{-~]|`[^`\n]+`|\*\*[^*\n]+\*\*|\[[^\]\n]{1,300}\]\([^\s)\n]{1,2000}\)/g;
   let previous = 0;
   for (const match of text.matchAll(tokens)) {
     const start = match.index;
     if (start > previous) parts.push(text.slice(previous, start));
     const value = match[0];
-    if (value.startsWith('`')) parts.push(<code key={start}>{value.slice(1, -1)}</code>);
+    if (value.startsWith('\\')) parts.push(value[1]);
+    else if (value.startsWith('`')) parts.push(<code key={start}>{value.slice(1, -1)}</code>);
     else if (value.startsWith('**')) parts.push(<strong key={start}>{value.slice(2, -2)}</strong>);
     else {
       const split = value.indexOf('](');
@@ -36,8 +38,19 @@ function inline(text: string): ReactNode[] {
   return parts;
 }
 
-function cells(line: string): string[] {
-  return line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(cell => cell.trim());
+function cells(line: string): string[] | null {
+  const values: string[] = [];
+  let start = 0;
+  for (const match of line.matchAll(/\\[!-/:-@[-`{-~]|\|/g)) {
+    if (match[0] !== '|') continue;
+    values.push(line.slice(start, match.index).trim());
+    start = match.index + 1;
+  }
+  if (values.length === 0) return null;
+  values.push(line.slice(start).trim());
+  if (values[0] === '') values.shift();
+  if (values.at(-1) === '') values.pop();
+  return values;
 }
 
 export function SafeMarkdown({ content }: { content: string }) {
@@ -57,12 +70,14 @@ export function SafeMarkdown({ content }: { content: string }) {
       continue;
     }
     const next = lines[index + 1];
-    if (line.includes('|') && next && /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(next)) {
-      const headers = cells(line);
+    const headers = cells(line);
+    if (headers && next && /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(next)) {
       const rows: { key: number; values: string[] }[] = [];
       index += 2;
-      while (index < lines.length && lines[index]!.trim() && lines[index]!.includes('|')) {
-        rows.push({ key: index, values: cells(lines[index++]!) });
+      while (index < lines.length && lines[index]!.trim()) {
+        const values = cells(lines[index]!);
+        if (!values) break;
+        rows.push({ key: index++, values });
       }
       blocks.push(<div className={styles.tableWrap} key={key}><table><thead><tr>{headers.map((cell, column) => <th key={`${key}:${column}`}>{inline(cell)}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.key}>{headers.map((_, column) => <td key={`${row.key}:${column}`}>{inline(row.values[column] ?? '')}</td>)}</tr>)}</tbody></table></div>);
       continue;

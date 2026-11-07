@@ -84,6 +84,16 @@ AI 页面集中在侧栏 **AI 功能**：AI 对话、知识库、常用流程、
 
 相似度表示向量接近程度，不是答案正确率；当前没有最低分阈值，命中片段也可能不足以回答。仓库提供 [11 篇合成演示资料与固定题集](ai_document/ai-rag/README.md)，可按需用于练习与召回评测，不会自动导入。
 
+知识库效果评测使用独立的 [40题题集](ai_document/ai-rag/quality-cases.md)，分为 development24题与 validation16题，分别记录检索、回答规则筛查和串行耗时。以下命令从仓库根目录执行，默认模式与显式 `--plan` 均为 **0 HTTP 请求**：
+
+```powershell
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan
+```
+
+显式 `--run` 会调用真实检索与一次分析，产生查询 Embedding 和聊天模型费用。认证、运行上下文、报告及 baseline/candidate 比较入口见[开发手册](ai_document/dev-guide.md#知识库效果评测)。后续应先根据开发集确定方案，再用新保留集检查回退；当前40题已用于检查或修复，应作为历史回归。回答规则筛查需人工复核，不能称为语义准确率，11篇合成资料的结果也不代表真实业务或生产容量。
+
+回答矛盾与范围问题另有 [12题失败回归](ai_document/ai-rag/answer-regression-cases.md)，覆盖重复、改写和部分资料不足。当前分析按问项展示依据与未知项；[修复与验收记录](ai_document/ai-rag/quality-baseline.md#回答矛盾与问项范围的后续修复)保留已发现的失败与能力边界。
+
 当前支持文本资料与浏览器读取 TXT/Markdown 后提交正文，尚未接入 PDF、Office、OCR 或通用附件解析；知识库仅供本人使用，不提供跨用户共享。检索采用向量召回，尚未实现混合检索或重排。完整语义与能力边界见 [API 契约](ai_document/api-contract.md#ai-http-与执行约定)。
 
 ### 常用流程、运行记录与能力目录
@@ -147,7 +157,7 @@ Rive 猫咪默认开启互动，支持呼吸、眨眼、鼠标跟随、输入密
 ## 开发文档
 
 - [开发手册](ai_document/dev-guide.md)：环境、启动、初始化、排障与猫咪动画维护
-- [知识库演示与召回评测](ai_document/ai-rag/README.md)：合成资料、固定题集与评测工具
+- [知识库演示与效果评测](ai_document/ai-rag/README.md)：合成资料、召回与回答规则筛查工具
 - [API 契约](ai_document/api-contract.md)：当前字段、权限、业务语义和能力边界；未完成事项见[问题清单](ai_document/README.md#后端剩余事项)
 - [架构规划](ai_document/refactor-plan.md)：架构与后续方向
 - [前端说明](go-zero-admin-react/README.md)：页面、命令与对接约定

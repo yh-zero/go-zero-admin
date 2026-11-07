@@ -1,0 +1,4 @@
+# 演示语料按已冻结的CRLF原始字节检出，题集元数据固定LF以保持跨平台SHA256。
+/ai_document/ai-rag/*.json text eol=lf
+/ai_document/ai-rag/kb1-a股投资知识/* text eol=crlf
+/ai_document/ai-rag/kb2-运维发布SOP/* text eol=crlf

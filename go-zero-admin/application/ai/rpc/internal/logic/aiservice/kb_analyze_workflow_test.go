@@ -79,7 +79,14 @@ func TestAIWorkspaceIntegrationKbAnalyzeFinalApprovalRunsOnce(t *testing.T) {
 			t.Error("分析请求必须有界且不提供工具")
 		}
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"choices":[{"message":{"role":"assistant","content":"预算五万元。[1]"},"finish_reason":"stop"}],"usage":{"prompt_tokens":100,"completion_tokens":10,"total_tokens":110}}`)
+		content := `{"answers":[{"target":"预算","state":"supported","text":"预算五万元。","citations":[1]}]}`
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"choices": []any{map[string]any{
+				"message":       map[string]any{"role": "assistant", "content": content},
+				"finish_reason": "stop",
+			}},
+			"usage": map[string]int{"prompt_tokens": 100, "completion_tokens": 10, "total_tokens": 110},
+		})
 	}))
 	defer server.Close()
 	client, err := llm.New(llm.Config{BaseURL: server.URL + "/v1", APIKey: "local-test-only", Model: "local-test", Timeout: 2})
@@ -117,7 +124,7 @@ func TestAIWorkspaceIntegrationKbAnalyzeFinalApprovalRunsOnce(t *testing.T) {
 		t.Fatalf("并发批准只能分析一次: success=%d owned=%d search=%d chat=%d", success, ownership.Load(), searcher.calls.Load(), chats.Load())
 	}
 	done := h.task(id)
-	if done.Status != "succeeded" || done.NextStep != 2 || !strings.Contains(done.Result, `"type":"kb_analysis"`) || strings.Count(done.Result, "[2/2]") != 1 {
+	if done.Status != "succeeded" || done.NextStep != 2 || !strings.Contains(done.Result, `"type":"kb_analysis"`) || !strings.Contains(done.Result, "预算五万元。 [1]") || strings.Count(done.Result, "[2/2]") != 1 {
 		t.Fatal("分析结果未持久化")
 	}
 	assertWorkspaceCode(t, h.approve(id, 1), 400)

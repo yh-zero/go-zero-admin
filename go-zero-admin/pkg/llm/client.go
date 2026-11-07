@@ -51,12 +51,12 @@ func (c *Client) Chat(ctx context.Context, messages []*schema.Message, tools []*
 	return c.generate(ctx, messages, opts...)
 }
 
-// ChatBounded 用于工作流内单次纯文本分析；不提供工具，并显式限制回答 token。
+// ChatBounded 用于工作流内单次纯文本分析；不提供工具，限制回答 token 并使用零温度减少采样变动。
 func (c *Client) ChatBounded(ctx context.Context, messages []*schema.Message, maxTokens int) (*schema.Message, *schema.TokenUsage, error) {
 	if maxTokens <= 0 {
 		return nil, nil, errors.New("回答预算必须为正数")
 	}
-	return c.generate(ctx, messages, model.WithMaxTokens(maxTokens))
+	return c.generate(ctx, messages, model.WithMaxTokens(maxTokens), model.WithTemperature(0))
 }
 
 func (c *Client) generate(ctx context.Context, messages []*schema.Message, opts ...model.Option) (*schema.Message, *schema.TokenUsage, error) {

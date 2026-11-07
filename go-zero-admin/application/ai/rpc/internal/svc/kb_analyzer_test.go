@@ -46,7 +46,14 @@ func TestKbAnalyzerReusesActualSearcherAfterMySQLOwnership(t *testing.T) {
 		if json.NewDecoder(r.Body).Decode(&request) != nil || request.MaxTokens != 2048 || len(request.Tools) > 0 {
 			t.Error("分析模型须有界且无工具")
 		}
-		fmt.Fprint(w, `{"choices":[{"message":{"role":"assistant","content":"依据资料分析。[1]"},"finish_reason":"stop"}],"usage":{"prompt_tokens":40,"completion_tokens":10,"total_tokens":50}}`)
+		content := `{"answers":[{"target":"资料分析","state":"supported","text":"依据资料分析。","citations":[1]}]}`
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"choices": []any{map[string]any{
+				"message":       map[string]any{"role": "assistant", "content": content},
+				"finish_reason": "stop",
+			}},
+			"usage": map[string]int{"prompt_tokens": 40, "completion_tokens": 10, "total_tokens": 50},
+		})
 	}))
 	defer server.Close()
 	embedder, err := llm.NewEmbedder(llm.EmbedConfig{BaseURL: server.URL, APIKey: "local-test", Model: "local-test", Dims: 2})
@@ -74,7 +81,7 @@ func TestKbAnalyzerReusesActualSearcherAfterMySQLOwnership(t *testing.T) {
 		t.Fatalf("实际检索与模型各一次: err=%v owns=%d embeds=%d chats=%d", err, owned.calls, embeds.Load(), chats.Load())
 	}
 	var result agenttools.KbAnalysisResult
-	if json.Unmarshal([]byte(out), &result) != nil || len(result.Sources) != 5 || result.Usage.TotalTokens != 50 || store.owner != 7 || store.kb != 2 || chunks.owner != 7 || chunks.kb != 2 {
+	if json.Unmarshal([]byte(out), &result) != nil || result.Analysis != "资料分析：依据资料分析。 [1]" || len(result.Sources) != 5 || result.Usage.TotalTokens != 50 || store.owner != 7 || store.kb != 2 || chunks.owner != 7 || chunks.kb != 2 {
 		t.Fatal("结果或检索身份未复用实际实现")
 	}
 	s.LLM = nil

@@ -1,0 +1,705 @@
+{
+  "version": 1,
+  "description": "回答剩余问题的12题开发回归集；全部为已经使用的开发/回归数据，非独立holdout。复用11篇合成演示资料；3个原失败query各新增两次重复、3个同目标改写、3个部分已知加明确未知目标。9题完整已知目标absence_policy=forbidden，3题部分缺失absence_policy=required；全部kind=answerable。词法提示只供复核，不能证明语义或缺口范围正确，不构成真实投资建议或权威运维规范。",
+  "documents": [
+    {
+      "key": "stocks-trading",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/01-交易基础规则.md",
+      "title": "交易基础规则",
+      "sha256": "86d705028bb39a44b5862af3224b9d7f4ac454a8ae50c83c403a46e6ad3b37c8"
+    },
+    {
+      "key": "stocks-suspension",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/02-涨跌停与停牌制度.txt",
+      "title": "涨跌停与停牌制度",
+      "sha256": "b4178216acd043da7c6fe361d21a0287593d89b113da45865bcff83f63aa4f97"
+    },
+    {
+      "key": "stocks-board",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/03-板块差异对照.csv",
+      "title": "板块差异对照",
+      "sha256": "1449b5f552eceef7336e4387fe1b88ab246e37efa13b4b624efffc823bfa7cc9"
+    },
+    {
+      "key": "stocks-margin",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/04-融资融券指南.md",
+      "title": "融资融券指南",
+      "sha256": "f46d2ba24de2001c3aa3766254665174c37855d33cfbd62b3d6a736083cad78e"
+    },
+    {
+      "key": "stocks-dividend",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/05-分红除权与股息税.txt",
+      "title": "分红除权与股息税",
+      "sha256": "bd253ebd75ae8d4826f336ff76da7ca94cd41ca539973dc4c02deeb1a5bcd865"
+    },
+    {
+      "key": "stocks-valuation",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/06-常见指标口径.json",
+      "title": "常见指标口径",
+      "sha256": "7a6cd0f23ab357f95142f5f041d4c29f036ec5a7da7ec62b8640904d6b6a1dce"
+    },
+    {
+      "key": "ops-release",
+      "kb": "ops",
+      "source": "ai_document/ai-rag/kb2-运维发布SOP/01-发布流程规范.md",
+      "title": "发布流程规范",
+      "sha256": "3d65ecb20a76ccd7a33a3d2081a2dc6bc4dff941f201268b34673aa51e6754fb"
+    },
+    {
+      "key": "ops-incident",
+      "kb": "ops",
+      "source": "ai_document/ai-rag/kb2-运维发布SOP/02-值班与故障响应.txt",
+      "title": "值班与故障响应",
+      "sha256": "7cac1d70d6390d518021d977c65f81a3e93b4aeddbe3425d7c0ded8c9b46d328"
+    },
+    {
+      "key": "ops-windows",
+      "kb": "ops",
+      "source": "ai_document/ai-rag/kb2-运维发布SOP/03-变更窗口与回滚.csv",
+      "title": "变更窗口与回滚",
+      "sha256": "39152584cd00cc7069b788c3856065b91f02327f970a60d21f7905d9a4986bd8"
+    },
+    {
+      "key": "ops-alert",
+      "kb": "ops",
+      "source": "ai_document/ai-rag/kb2-运维发布SOP/04-监控告警分级.json",
+      "title": "监控告警分级",
+      "sha256": "676db395ed053c1e4205c7b9a84f3c773bd22b8d84c15ec14bfd15b59d5a42b3"
+    },
+    {
+      "key": "ops-database",
+      "kb": "ops",
+      "source": "ai_document/ai-rag/kb2-运维发布SOP/05-数据库变更规范.md",
+      "title": "数据库变更规范",
+      "sha256": "3218cd55063e332f168f4d01c0965c479aa8e9345842a80b0a92d0699150687e"
+    }
+  ],
+  "cases": [
+    {
+      "id": "answer-regression-backup-repeat-1",
+      "split": "development",
+      "category": "paraphrase",
+      "kb": "ops",
+      "query": "执行数据库变更前，拿初始化建库脚本当备份可以吗？要保留怎样的运行数据副本，以及哪两项导出记录？",
+      "expected_documents": [
+        "ops-database"
+      ],
+      "evidence": [
+        {
+          "document": "ops-database",
+          "groups": [
+            [
+              "受影响表的快照或全库备份"
+            ],
+            [
+              "记录导出时间与校验值"
+            ],
+            [
+              "禁止用初始化脚本代替运行库备份"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "不能",
+            "不可",
+            "禁止",
+            "不得"
+          ],
+          [
+            "快照",
+            "全库备份"
+          ],
+          [
+            "导出时间"
+          ],
+          [
+            "校验值",
+            "校验和",
+            "哈希值"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。原失败query逐字复制的第1个额外重复；与本轮原40题中的一次运行合成同query三次观察，不是三个独立问题。数据库变更规范执行纪律第2条明确受影响表快照或全库备份、导出时间与校验值，以及初始化脚本不能替代运行库备份。本题所问目标完整已知，不应额外声称这些目标缺失；词法提示仍需复核语义及范围。",
+      "source_case_id": "quality-dev-runtime-backup"
+    },
+    {
+      "id": "answer-regression-backup-repeat-2",
+      "split": "development",
+      "category": "paraphrase",
+      "kb": "ops",
+      "query": "执行数据库变更前，拿初始化建库脚本当备份可以吗？要保留怎样的运行数据副本，以及哪两项导出记录？",
+      "expected_documents": [
+        "ops-database"
+      ],
+      "evidence": [
+        {
+          "document": "ops-database",
+          "groups": [
+            [
+              "受影响表的快照或全库备份"
+            ],
+            [
+              "记录导出时间与校验值"
+            ],
+            [
+              "禁止用初始化脚本代替运行库备份"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "不能",
+            "不可",
+            "禁止",
+            "不得"
+          ],
+          [
+            "快照",
+            "全库备份"
+          ],
+          [
+            "导出时间"
+          ],
+          [
+            "校验值",
+            "校验和",
+            "哈希值"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。原失败query逐字复制的第2个额外重复；与本轮原40题中的一次运行合成同query三次观察，不是三个独立问题。数据库变更规范执行纪律第2条明确受影响表快照或全库备份、导出时间与校验值，以及初始化脚本不能替代运行库备份。本题所问目标完整已知，不应额外声称这些目标缺失；词法提示仍需复核语义及范围。",
+      "source_case_id": "quality-dev-runtime-backup"
+    },
+    {
+      "id": "answer-regression-backup-paraphrase",
+      "split": "development",
+      "category": "paraphrase",
+      "kb": "ops",
+      "query": "数据库变更前怎样保留运行数据副本，必须记哪两项导出信息？初始化建库脚本能替代这种备份吗？",
+      "expected_documents": [
+        "ops-database"
+      ],
+      "evidence": [
+        {
+          "document": "ops-database",
+          "groups": [
+            [
+              "受影响表的快照或全库备份"
+            ],
+            [
+              "记录导出时间与校验值"
+            ],
+            [
+              "禁止用初始化脚本代替运行库备份"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "不能",
+            "不可",
+            "禁止",
+            "不得"
+          ],
+          [
+            "快照",
+            "全库备份"
+          ],
+          [
+            "导出时间"
+          ],
+          [
+            "校验值",
+            "校验和",
+            "哈希值"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。同一已知目标的改写，不能作为独立验证。数据库变更规范执行纪律第2条明确受影响表快照或全库备份、导出时间与校验值，以及初始化脚本不能替代运行库备份。没有添加新的事实目标，不应附加与本题无关的资料缺口。",
+      "source_case_id": "quality-dev-runtime-backup"
+    },
+    {
+      "id": "answer-regression-backup-partial-gap",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "ops",
+      "query": "按本库演示规范，数据库变更前应保留怎样的运行数据副本、记录哪两项导出信息，初始化建库脚本能否代替？另外，备份文件必须至少保存多少天？请分别回答已知要求和保存天数。",
+      "expected_documents": [
+        "ops-database"
+      ],
+      "evidence": [
+        {
+          "document": "ops-database",
+          "groups": [
+            [
+              "受影响表的快照或全库备份"
+            ],
+            [
+              "记录导出时间与校验值"
+            ],
+            [
+              "禁止用初始化脚本代替运行库备份"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "不能",
+            "不可",
+            "禁止",
+            "不得"
+          ],
+          [
+            "快照",
+            "全库备份"
+          ],
+          [
+            "导出时间"
+          ],
+          [
+            "校验值",
+            "校验和",
+            "哈希值"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "required"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。部分有答案：数据库变更规范执行纪律第2条明确受影响表快照或全库备份、导出时间与校验值，以及初始化脚本不能替代运行库备份。明确未知目标：全部11篇资料均未规定备份文件至少保存多少天；观察日志30分钟、复盘或补评审24小时等是其他目标的时限，不能用作备份保留天数。expected_documents、evidence与required_groups仅支持已知目标；仍须对缺失目标明确说明资料未提供或无法确定，不能给该目标编造事实。",
+      "source_case_id": "quality-dev-runtime-backup"
+    },
+    {
+      "id": "answer-regression-second-line-repeat-1",
+      "split": "development",
+      "category": "paraphrase",
+      "kb": "ops",
+      "query": "一线值班接到故障后一直没找到原因，拖到多久必须找二线？资料里的二线具体是什么角色？",
+      "expected_documents": [
+        "ops-incident"
+      ],
+      "evidence": [
+        {
+          "document": "ops-incident",
+          "groups": [
+            [
+              "一线 15 分钟无法定位时升级二线"
+            ],
+            [
+              "二线为模块负责人"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "15分钟",
+            "十五分钟"
+          ],
+          [
+            "升级二线",
+            "升级至二线",
+            "联系二线",
+            "二线介入"
+          ],
+          [
+            "模块负责人"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。原失败query逐字复制的第1个额外重复；与本轮原40题中的一次运行合成同query三次观察，不是三个独立问题。值班制度首段明确一线15分钟无法定位时升级二线，二线为模块负责人。本题所问目标完整已知，不应额外声称这些目标缺失；词法提示仍需复核语义及范围。",
+      "source_case_id": "quality-dev-incident-second-line"
+    },
+    {
+      "id": "answer-regression-second-line-repeat-2",
+      "split": "development",
+      "category": "paraphrase",
+      "kb": "ops",
+      "query": "一线值班接到故障后一直没找到原因，拖到多久必须找二线？资料里的二线具体是什么角色？",
+      "expected_documents": [
+        "ops-incident"
+      ],
+      "evidence": [
+        {
+          "document": "ops-incident",
+          "groups": [
+            [
+              "一线 15 分钟无法定位时升级二线"
+            ],
+            [
+              "二线为模块负责人"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "15分钟",
+            "十五分钟"
+          ],
+          [
+            "升级二线",
+            "升级至二线",
+            "联系二线",
+            "二线介入"
+          ],
+          [
+            "模块负责人"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。原失败query逐字复制的第2个额外重复；与本轮原40题中的一次运行合成同query三次观察，不是三个独立问题。值班制度首段明确一线15分钟无法定位时升级二线，二线为模块负责人。本题所问目标完整已知，不应额外声称这些目标缺失；词法提示仍需复核语义及范围。",
+      "source_case_id": "quality-dev-incident-second-line"
+    },
+    {
+      "id": "answer-regression-second-line-paraphrase",
+      "split": "development",
+      "category": "paraphrase",
+      "kb": "ops",
+      "query": "一线故障排查持续多长时间仍未定位时，应升级到二线？这里的二线由什么角色担任？",
+      "expected_documents": [
+        "ops-incident"
+      ],
+      "evidence": [
+        {
+          "document": "ops-incident",
+          "groups": [
+            [
+              "一线 15 分钟无法定位时升级二线"
+            ],
+            [
+              "二线为模块负责人"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "15分钟",
+            "十五分钟"
+          ],
+          [
+            "升级二线",
+            "升级至二线",
+            "联系二线",
+            "二线介入"
+          ],
+          [
+            "模块负责人"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。同一已知目标的改写，不能作为独立验证。值班制度首段明确一线15分钟无法定位时升级二线，二线为模块负责人。没有添加新的事实目标，不应附加与本题无关的资料缺口。",
+      "source_case_id": "quality-dev-incident-second-line"
+    },
+    {
+      "id": "answer-regression-second-line-partial-gap",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "ops",
+      "query": "一线值班无法定位故障多久应升级二线，二线是什么角色？另外，本库给出的二线值班联系电话是多少？请分别回答升级要求和联系电话。",
+      "expected_documents": [
+        "ops-incident"
+      ],
+      "evidence": [
+        {
+          "document": "ops-incident",
+          "groups": [
+            [
+              "一线 15 分钟无法定位时升级二线"
+            ],
+            [
+              "二线为模块负责人"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "15分钟",
+            "十五分钟"
+          ],
+          [
+            "升级二线",
+            "升级至二线",
+            "联系二线",
+            "二线介入"
+          ],
+          [
+            "模块负责人"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "required"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。部分有答案：值班制度首段明确一线15分钟无法定位时升级二线，二线为模块负责人。明确未知目标：全部11篇资料均未给出二线值班的具体电话号码；一线7x24电话可达是可联系时间，不是二线电话号码，也不能从模块负责人角色推导号码。expected_documents、evidence与required_groups仅支持已知目标；仍须对缺失目标明确说明资料未提供或无法确定，不能给该目标编造事实。",
+      "source_case_id": "quality-dev-incident-second-line"
+    },
+    {
+      "id": "answer-regression-intraday-halt-repeat-1",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "stocks",
+      "query": "依本库演示资料，创业板与科创板盘中相对开盘价首次涨跌达到哪些比例会临时停牌、单次多久，期间能否申报撤单、复牌怎样成交？",
+      "expected_documents": [
+        "stocks-suspension"
+      ],
+      "evidence": [
+        {
+          "document": "stocks-suspension",
+          "groups": [
+            [
+              "首次上涨或下跌达到或超过 30%、60%"
+            ],
+            [
+              "单次停牌 10 分钟"
+            ],
+            [
+              "停牌期间可以申报也可以撤单"
+            ],
+            [
+              "复牌时集合竞价"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "30%"
+          ],
+          [
+            "60%"
+          ],
+          [
+            "10分钟",
+            "十分钟"
+          ],
+          [
+            "申报"
+          ],
+          [
+            "撤单"
+          ],
+          [
+            "集合竞价"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。原失败query逐字复制的第1个额外重复；与本轮原40题中的一次运行合成同query三次观察，不是三个独立问题。停牌资料的盘中临时停牌段明确相对开盘价首次涨跌达到或超过30%、60%，单次10分钟，可申报、撤单，复牌集合竞价。本题所问目标完整已知，不应额外声称这些目标缺失；词法提示仍需复核语义及范围。",
+      "source_case_id": "quality-val-intraday-halt"
+    },
+    {
+      "id": "answer-regression-intraday-halt-repeat-2",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "stocks",
+      "query": "依本库演示资料，创业板与科创板盘中相对开盘价首次涨跌达到哪些比例会临时停牌、单次多久，期间能否申报撤单、复牌怎样成交？",
+      "expected_documents": [
+        "stocks-suspension"
+      ],
+      "evidence": [
+        {
+          "document": "stocks-suspension",
+          "groups": [
+            [
+              "首次上涨或下跌达到或超过 30%、60%"
+            ],
+            [
+              "单次停牌 10 分钟"
+            ],
+            [
+              "停牌期间可以申报也可以撤单"
+            ],
+            [
+              "复牌时集合竞价"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "30%"
+          ],
+          [
+            "60%"
+          ],
+          [
+            "10分钟",
+            "十分钟"
+          ],
+          [
+            "申报"
+          ],
+          [
+            "撤单"
+          ],
+          [
+            "集合竞价"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。原失败query逐字复制的第2个额外重复；与本轮原40题中的一次运行合成同query三次观察，不是三个独立问题。停牌资料的盘中临时停牌段明确相对开盘价首次涨跌达到或超过30%、60%，单次10分钟，可申报、撤单，复牌集合竞价。本题所问目标完整已知，不应额外声称这些目标缺失；词法提示仍需复核语义及范围。",
+      "source_case_id": "quality-val-intraday-halt"
+    },
+    {
+      "id": "answer-regression-intraday-halt-paraphrase",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "stocks",
+      "query": "本库对创业板和科创板盘中临时停牌怎样规定：相对当日开盘价首次涨跌达到哪两个比例会触发、每次停多久，停牌期间是否允许申报和撤单，复牌采用什么竞价方式？",
+      "expected_documents": [
+        "stocks-suspension"
+      ],
+      "evidence": [
+        {
+          "document": "stocks-suspension",
+          "groups": [
+            [
+              "首次上涨或下跌达到或超过 30%、60%"
+            ],
+            [
+              "单次停牌 10 分钟"
+            ],
+            [
+              "停牌期间可以申报也可以撤单"
+            ],
+            [
+              "复牌时集合竞价"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "30%"
+          ],
+          [
+            "60%"
+          ],
+          [
+            "10分钟",
+            "十分钟"
+          ],
+          [
+            "申报"
+          ],
+          [
+            "撤单"
+          ],
+          [
+            "集合竞价"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。同一已知目标的改写，不能作为独立验证。停牌资料的盘中临时停牌段明确相对开盘价首次涨跌达到或超过30%、60%，单次10分钟，可申报、撤单，复牌集合竞价。没有添加新的事实目标，不应附加与本题无关的资料缺口。",
+      "source_case_id": "quality-val-intraday-halt"
+    },
+    {
+      "id": "answer-regression-intraday-halt-partial-gap",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "stocks",
+      "query": "依本库演示资料，创业板与科创板盘中相对开盘价首次涨跌达到哪些比例会临时停牌、单次多久，期间能否申报撤单、复牌怎样成交？另外，这套两板块盘中临时停牌规则正式生效的年月日是什么？请分别回答规则和生效日期。",
+      "expected_documents": [
+        "stocks-suspension"
+      ],
+      "evidence": [
+        {
+          "document": "stocks-suspension",
+          "groups": [
+            [
+              "首次上涨或下跌达到或超过 30%、60%"
+            ],
+            [
+              "单次停牌 10 分钟"
+            ],
+            [
+              "停牌期间可以申报也可以撤单"
+            ],
+            [
+              "复牌时集合竞价"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "30%"
+          ],
+          [
+            "60%"
+          ],
+          [
+            "10分钟",
+            "十分钟"
+          ],
+          [
+            "申报"
+          ],
+          [
+            "撤单"
+          ],
+          [
+            "集合竞价"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "required"
+      },
+      "rationale": "已使用的开发/回归题，非独立holdout。部分有答案：停牌资料的盘中临时停牌段明确相对开盘价首次涨跌达到或超过30%、60%，单次10分钟，可申报、撤单，复牌集合竞价。明确未知目标：全部11篇资料均未给出这套创业板/科创板盘中临时停牌规则的正式生效年月日；交易基础中沪市2018年后的收盘集合竞价是另一制度，不能冒充该规则生效日期。expected_documents、evidence与required_groups仅支持已知目标；仍须对缺失目标明确说明资料未提供或无法确定，不能给该目标编造事实。",
+      "source_case_id": "quality-val-intraday-halt"
+    }
+  ]
+}

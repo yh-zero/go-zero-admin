@@ -41,7 +41,7 @@ func (c *analysisChat) ChatBounded(_ context.Context, m []*schema.Message, maxTo
 	return c.response, c.usage, c.err
 }
 func analysisFixture() (*analysisSearcher, *analysisChat) {
-	return &analysisSearcher{hits: []KbSearchHit{{ChunkID: 1, KbID: 3, DocID: 2, DocTitle: "资料", Snippet: "预算为五万元。", Score: .9}}}, &analysisChat{response: schema.AssistantMessage("预算为五万元。[1]", nil), usage: &schema.TokenUsage{PromptTokens: 100, CompletionTokens: 20, TotalTokens: 120}}
+	return &analysisSearcher{hits: []KbSearchHit{{ChunkID: 1, KbID: 3, DocID: 2, DocTitle: "资料", Snippet: "预算为五万元。", Score: .9}}}, &analysisChat{response: schema.AssistantMessage(`{"answers":[{"target":"目标","state":"supported","text":"预算为五万元。","citations":[1]}]}`, nil), usage: &schema.TokenUsage{PromptTokens: 100, CompletionTokens: 20, TotalTokens: 120}}
 }
 
 func TestKbAnalyzeRejectsArgumentsBeforeDependencies(t *testing.T) {
@@ -85,6 +85,7 @@ func TestKbAnalyzeSingleSearchChatAndUsage(t *testing.T) {
 	for _, known := range []bool{true, false} {
 		t.Run(map[bool]string{true: "known", false: "missing"}[known], func(t *testing.T) {
 			s, c := analysisFixture()
+			c.response.Content = `{"answers":[{"target":"预算","state":"supported","text":"预算为五万元。","citations":[1]}]}`
 			if !known {
 				c.usage = nil
 			}

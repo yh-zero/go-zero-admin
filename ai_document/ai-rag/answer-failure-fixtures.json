@@ -1,0 +1,590 @@
+{
+  "version": 1,
+  "description": "三条历史candidate回答及一条v1定向复验回答的离线词法复核回归。完整保留原回答与实际送入模型的sources；评阅结论和简洁正答均为AI辅助产生，无真人签署。资料均为合成演示数据。原validation样本已使用，不能再作为独立holdout。命中缺口措辞只提示人工复核，不能证明矛盾、事实错误或语义正确。",
+  "provenance": {
+    "source_log": "tmp/ai-product-20261107/quality-candidate.jsonl",
+    "source_log_sha256": "12cc64401d6b4611f3dec8ace8eae55e2e58517736c7c56a29a29c581c1cac48",
+    "dataset_sha256": "538f6de8322da47a77bb51db7bea76e2aaa9a3ae8de34767824a61698dcb5b4c",
+    "candidate_binary_sha256": "842d153bbe3af9bf8ea301abb7f7417180fa1288e2d58fa6c44e937f540e0abf"
+  },
+  "bound_documents": [
+    {
+      "key": "stocks-trading",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/01-交易基础规则.md",
+      "title": "交易基础规则",
+      "sha256": "86d705028bb39a44b5862af3224b9d7f4ac454a8ae50c83c403a46e6ad3b37c8",
+      "doc_id": 1,
+      "kb_id": 1,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "86d705028bb39a44b5862af3224b9d7f4ac454a8ae50c83c403a46e6ad3b37c8"
+    },
+    {
+      "key": "stocks-suspension",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/02-涨跌停与停牌制度.txt",
+      "title": "涨跌停与停牌制度",
+      "sha256": "b4178216acd043da7c6fe361d21a0287593d89b113da45865bcff83f63aa4f97",
+      "doc_id": 2,
+      "kb_id": 1,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "b4178216acd043da7c6fe361d21a0287593d89b113da45865bcff83f63aa4f97"
+    },
+    {
+      "key": "stocks-board",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/03-板块差异对照.csv",
+      "title": "板块差异对照",
+      "sha256": "1449b5f552eceef7336e4387fe1b88ab246e37efa13b4b624efffc823bfa7cc9",
+      "doc_id": 3,
+      "kb_id": 1,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "1449b5f552eceef7336e4387fe1b88ab246e37efa13b4b624efffc823bfa7cc9"
+    },
+    {
+      "key": "stocks-margin",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/04-融资融券指南.md",
+      "title": "融资融券指南",
+      "sha256": "f46d2ba24de2001c3aa3766254665174c37855d33cfbd62b3d6a736083cad78e",
+      "doc_id": 4,
+      "kb_id": 1,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "f46d2ba24de2001c3aa3766254665174c37855d33cfbd62b3d6a736083cad78e"
+    },
+    {
+      "key": "stocks-dividend",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/05-分红除权与股息税.txt",
+      "title": "分红除权与股息税",
+      "sha256": "bd253ebd75ae8d4826f336ff76da7ca94cd41ca539973dc4c02deeb1a5bcd865",
+      "doc_id": 5,
+      "kb_id": 1,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "bd253ebd75ae8d4826f336ff76da7ca94cd41ca539973dc4c02deeb1a5bcd865"
+    },
+    {
+      "key": "stocks-valuation",
+      "kb": "stocks",
+      "source": "ai_document/ai-rag/kb1-a股投资知识/06-常见指标口径.json",
+      "title": "常见指标口径",
+      "sha256": "7a6cd0f23ab357f95142f5f041d4c29f036ec5a7da7ec62b8640904d6b6a1dce",
+      "doc_id": 6,
+      "kb_id": 1,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "7a6cd0f23ab357f95142f5f041d4c29f036ec5a7da7ec62b8640904d6b6a1dce"
+    },
+    {
+      "key": "ops-release",
+      "kb": "ops",
+      "source": "ai_document/ai-rag/kb2-运维发布SOP/01-发布流程规范.md",
+      "title": "发布流程规范",
+      "sha256": "3d65ecb20a76ccd7a33a3d2081a2dc6bc4dff941f201268b34673aa51e6754fb",
+      "doc_id": 7,
+      "kb_id": 2,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "3d65ecb20a76ccd7a33a3d2081a2dc6bc4dff941f201268b34673aa51e6754fb"
+    },
+    {
+      "key": "ops-incident",
+      "kb": "ops",
+      "source": "ai_document/ai-rag/kb2-运维发布SOP/02-值班与故障响应.txt",
+      "title": "值班与故障响应",
+      "sha256": "7cac1d70d6390d518021d977c65f81a3e93b4aeddbe3425d7c0ded8c9b46d328",
+      "doc_id": 8,
+      "kb_id": 2,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "7cac1d70d6390d518021d977c65f81a3e93b4aeddbe3425d7c0ded8c9b46d328"
+    },
+    {
+      "key": "ops-windows",
+      "kb": "ops",
+      "source": "ai_document/ai-rag/kb2-运维发布SOP/03-变更窗口与回滚.csv",
+      "title": "变更窗口与回滚",
+      "sha256": "39152584cd00cc7069b788c3856065b91f02327f970a60d21f7905d9a4986bd8",
+      "doc_id": 9,
+      "kb_id": 2,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "39152584cd00cc7069b788c3856065b91f02327f970a60d21f7905d9a4986bd8"
+    },
+    {
+      "key": "ops-alert",
+      "kb": "ops",
+      "source": "ai_document/ai-rag/kb2-运维发布SOP/04-监控告警分级.json",
+      "title": "监控告警分级",
+      "sha256": "676db395ed053c1e4205c7b9a84f3c773bd22b8d84c15ec14bfd15b59d5a42b3",
+      "doc_id": 10,
+      "kb_id": 2,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "676db395ed053c1e4205c7b9a84f3c773bd22b8d84c15ec14bfd15b59d5a42b3"
+    },
+    {
+      "key": "ops-database",
+      "kb": "ops",
+      "source": "ai_document/ai-rag/kb2-运维发布SOP/05-数据库变更规范.md",
+      "title": "数据库变更规范",
+      "sha256": "3218cd55063e332f168f4d01c0965c479aa8e9345842a80b0a92d0699150687e",
+      "doc_id": 11,
+      "kb_id": 2,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "3218cd55063e332f168f4d01c0965c479aa8e9345842a80b0a92d0699150687e"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "quality-dev-runtime-backup",
+      "source_line": 50,
+      "original_split": "development",
+      "category": "paraphrase",
+      "kb_id": 2,
+      "query": "执行数据库变更前，拿初始化建库脚本当备份可以吗？要保留怎样的运行数据副本，以及哪两项导出记录？",
+      "absence_policy": "forbidden",
+      "original_answer": "不可以。数据库变更规范明确禁止用初始化脚本代替运行库备份，要求变更前导出受影响表的快照或全库备份，并记录导出时间与校验值[1]。\n\n需要保留的是受影响表的快照或全库备份，并同时记录导出时间与校验值[1]。资料中未提及两项导出记录的具体名称；从现有片段只能确定备份导出需记录导出时间与校验值，无法确定第二项导出记录是什么，资料不足。",
+      "original_sources": [
+        {
+          "index": 1,
+          "chunk_id": 15,
+          "kb_id": 2,
+          "doc_id": 11,
+          "doc_title": "数据库变更规范",
+          "snippet": "# 数据库变更规范（演示数据）\r\n\r\n## 变更分类\r\n\r\n- 低风险：加索引、加可空列、扩大 varchar 长度。工作日窗口内执行，DBA 复核即可。\r\n- 中风险：新建表、删除索引、修改列默认值。须评审 + 备份 + 回滚方案。\r\n- 高风险：删列、改列类型、删表、大表 DDL。原则上禁止直接执行，须走\"建新表 + 双写 + 迁移 + 校验 + 切换\"的绕行方案；大表使用在线 DDL 工具并限速。\r\n\r\n## 执行纪律\r\n\r\n1. 任何变更前先确认目标实例与库名，禁止凭连接别名记忆操作；变更脚本与回滚脚本成对评审。\r\n2. 完整备份优先：变更前导出受影响表的快照或全库备份，记录导出时间与校验值；禁止用初始化脚本代替运行库备份。\r\n3. 禁止全表无条件 UPDATE/DELETE；批量数据修复须分批、带 WHERE 边界并先 SELECT 核对行数。\r\n4. 变更完成后 30 分钟内观察慢查询与错误日志，确认无回归后关闭变更单。\r\n\r\n## 缓存一致性\r\n\r\n涉及被缓存行的变更，须在提交后精确失效对应缓存键；禁止用 FLUSHALL/FLUSHDB 代替精确失效。缓存失效失败时必须",
+          "score": 0.6858294
+        },
+        {
+          "index": 2,
+          "chunk_id": 11,
+          "kb_id": 2,
+          "doc_id": 7,
+          "doc_title": "发布流程规范",
+          "snippet": "# 生产发布流程规范（演示数据）\r\n\r\n## 发布前\r\n\r\n1. 代码须通过 CI 全部门禁：静态检查、单元测试、构建；禁止带着失败的流水线申请发布。\r\n2. 数据库变更必须先导出备份，回滚 SQL 与变更 SQL 同时评审；破坏性变更（删列、改类型）须先在评审中确认数据处理方案。\r\n3. 发布单须注明：影响范围、回滚步骤、验证清单、值班负责人。缺任何一项打回。\r\n\r\n## 发布窗口\r\n\r\n常规发布窗口为工作日 10:00-17:00。冻结期（大促、节假日保障期）只允许紧急修复发布，须经值班主管与业务负责人双审批。周五 15:00 后原则上不发布非紧急变更。\r\n\r\n## 发布执行\r\n\r\n采用分批灰度：先 1 台验证实例，观察 10 分钟核心指标（错误率、P99 延迟、业务关键日志）无异常后全量。任何一批出现异常立即执行回滚，不允许\"再观察看看\"。\r\n\r\n## 发布后\r\n\r\n发布完成后 30 分钟内值班同学须核对验证清单逐项确认，并在发布单上关闭。48 小时内出现的关联告警须在复盘记录中关联该发布单。",
+          "score": 0.56649935
+        },
+        {
+          "index": 3,
+          "chunk_id": 16,
+          "kb_id": 2,
+          "doc_id": 11,
+          "doc_title": "数据库变更规范",
+          "snippet": "提交后精确失效对应缓存键；禁止用 FLUSHALL/FLUSHDB 代替精确失效。缓存失效失败时必须在变更单中记录\"库已提交、缓存未清\"的状态，不得宣称已回滚。",
+          "score": 0.5424115
+        },
+        {
+          "index": 4,
+          "chunk_id": 13,
+          "kb_id": 2,
+          "doc_id": 9,
+          "doc_title": "变更窗口与回滚",
+          "snippet": "变更类型,窗口要求,回滚时限,审批链,备注\r\n常规应用发布,工作日10:00-17:00,15分钟内完成,模块负责人,灰度先行\r\n数据库结构变更,工作日10:00-12:00,依赖备份恢复时长,DBA+模块负责人,回滚SQL随变更评审\r\n中间件配置变更,低峰期(13:00-15:00),10分钟内,中间件负责人,先改单机验证\r\n网络/防火墙变更,周二/周四下午,5分钟内回退,网络组+安全组,变更期间双人复核\r\n紧急修复,任意时间,立即,值班主管+业务负责人,事后24小时补评审\r\n大促冻结期变更,禁止,不适用,例外需部门负责人,只允许P0修复",
+          "score": 0.5337874
+        },
+        {
+          "index": 5,
+          "chunk_id": 12,
+          "kb_id": 2,
+          "doc_id": 8,
+          "doc_title": "值班与故障响应",
+          "snippet": "值班与故障响应规范（演示数据）\r\n\r\n值班制度：一线值班 7x24 电话可达，5 分钟内响应告警电话；二线为模块负责人，一线 15 分钟无法定位时升级二线；重大故障 30 分钟内拉齐应急群并指定故障指挥官（Incident Commander），指挥官统一调度，禁止多人各自执行恢复操作。\r\n\r\n故障分级：\r\nP0 全站不可用或核心交易中断：5 分钟内响应，30 分钟内给出处置方案，恢复后 24 小时内出复盘报告。\r\nP1 核心功能受损但有降级方案：15 分钟响应，2 小时内恢复或降级。\r\nP2 非核心功能异常：工作时间 4 小时内处理。\r\nP3 体验类问题：排期修复。\r\n\r\n故障处置原则：先恢复、再定位、后追责。恢复手段优先级：回滚 > 降级 > 重启 > 修复上线。任何人在故障期间禁止直接修改生产数据库数据，确需修数须故障指挥官批准并双人复核。\r\n\r\n复盘要求：复盘只对流程不对人（blameless）；必须产出根因、时间线、改进项与负责人、完成期限。改进项逾期未闭环升级至部门负责人。",
+          "score": 0.4837647
+        }
+      ],
+      "source_hashes": [
+        {
+          "index": 1,
+          "chunk_id": 15,
+          "document_key": "ops-database",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/05-数据库变更规范.md",
+          "document_sha256": "3218cd55063e332f168f4d01c0965c479aa8e9345842a80b0a92d0699150687e",
+          "snippet_sha256": "d7347fda042866b7e0dad37be5ef67e84fad8c4f6679ff3cf58c38db14c1e90f"
+        },
+        {
+          "index": 2,
+          "chunk_id": 11,
+          "document_key": "ops-release",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/01-发布流程规范.md",
+          "document_sha256": "3d65ecb20a76ccd7a33a3d2081a2dc6bc4dff941f201268b34673aa51e6754fb",
+          "snippet_sha256": "5585c252cd33e35d6af7659105edcb868a5684a81cfc070e47691dc0c083c895"
+        },
+        {
+          "index": 3,
+          "chunk_id": 16,
+          "document_key": "ops-database",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/05-数据库变更规范.md",
+          "document_sha256": "3218cd55063e332f168f4d01c0965c479aa8e9345842a80b0a92d0699150687e",
+          "snippet_sha256": "6819fa3f05500e4605e417c878b34db70245d52b6acd1f21c8903849da9b6117"
+        },
+        {
+          "index": 4,
+          "chunk_id": 13,
+          "document_key": "ops-windows",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/03-变更窗口与回滚.csv",
+          "document_sha256": "39152584cd00cc7069b788c3856065b91f02327f970a60d21f7905d9a4986bd8",
+          "snippet_sha256": "7763e725ca817a2ea7a6add9935954c742f45281941c937118023bb4f1b224d2"
+        },
+        {
+          "index": 5,
+          "chunk_id": 12,
+          "document_key": "ops-incident",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/02-值班与故障响应.txt",
+          "document_sha256": "7cac1d70d6390d518021d977c65f81a3e93b4aeddbe3425d7c0ded8c9b46d328",
+          "snippet_sha256": "199cf96d65d8bed04886851eb9f60a70242a9d7a58264a2074dd2356eaf08015"
+        }
+      ],
+      "manual_review": {
+        "outcome": "incorrect_claim",
+        "certainty": "confirmed",
+        "reason": "前文已正确列出导出时间与校验值，末段又声称两项记录的名称未提及、无法确定第二项，与所给source[1]及自身前文矛盾。"
+      },
+      "expected_rule_reason": "additional_absence_claim_needs_review",
+      "corrected_answer": "不可以。变更前应导出受影响表的快照或全库备份，两项导出记录是导出时间和校验值；禁止用初始化脚本代替运行库备份[1]。"
+    },
+    {
+      "case_id": "quality-dev-incident-second-line",
+      "source_line": 44,
+      "original_split": "development",
+      "category": "paraphrase",
+      "kb_id": 2,
+      "query": "一线值班接到故障后一直没找到原因，拖到多久必须找二线？资料里的二线具体是什么角色？",
+      "absence_policy": "forbidden",
+      "original_answer": "一线值班接到故障后，若 **15 分钟**内无法定位，应升级二线[1]。资料中二线的具体角色是**模块负责人**[1]。\n\n资料未提供“15 分钟内无法定位”之外的其他升级时限，也未说明二线在升级后承担哪些具体职责。",
+      "original_sources": [
+        {
+          "index": 1,
+          "chunk_id": 12,
+          "kb_id": 2,
+          "doc_id": 8,
+          "doc_title": "值班与故障响应",
+          "snippet": "值班与故障响应规范（演示数据）\r\n\r\n值班制度：一线值班 7x24 电话可达，5 分钟内响应告警电话；二线为模块负责人，一线 15 分钟无法定位时升级二线；重大故障 30 分钟内拉齐应急群并指定故障指挥官（Incident Commander），指挥官统一调度，禁止多人各自执行恢复操作。\r\n\r\n故障分级：\r\nP0 全站不可用或核心交易中断：5 分钟内响应，30 分钟内给出处置方案，恢复后 24 小时内出复盘报告。\r\nP1 核心功能受损但有降级方案：15 分钟响应，2 小时内恢复或降级。\r\nP2 非核心功能异常：工作时间 4 小时内处理。\r\nP3 体验类问题：排期修复。\r\n\r\n故障处置原则：先恢复、再定位、后追责。恢复手段优先级：回滚 > 降级 > 重启 > 修复上线。任何人在故障期间禁止直接修改生产数据库数据，确需修数须故障指挥官批准并双人复核。\r\n\r\n复盘要求：复盘只对流程不对人（blameless）；必须产出根因、时间线、改进项与负责人、完成期限。改进项逾期未闭环升级至部门负责人。",
+          "score": 0.72215
+        },
+        {
+          "index": 2,
+          "chunk_id": 13,
+          "kb_id": 2,
+          "doc_id": 9,
+          "doc_title": "变更窗口与回滚",
+          "snippet": "变更类型,窗口要求,回滚时限,审批链,备注\r\n常规应用发布,工作日10:00-17:00,15分钟内完成,模块负责人,灰度先行\r\n数据库结构变更,工作日10:00-12:00,依赖备份恢复时长,DBA+模块负责人,回滚SQL随变更评审\r\n中间件配置变更,低峰期(13:00-15:00),10分钟内,中间件负责人,先改单机验证\r\n网络/防火墙变更,周二/周四下午,5分钟内回退,网络组+安全组,变更期间双人复核\r\n紧急修复,任意时间,立即,值班主管+业务负责人,事后24小时补评审\r\n大促冻结期变更,禁止,不适用,例外需部门负责人,只允许P0修复",
+          "score": 0.52771354
+        },
+        {
+          "index": 3,
+          "chunk_id": 14,
+          "kb_id": 2,
+          "doc_id": 10,
+          "doc_title": "监控告警分级",
+          "snippet": "{\r\n  \"说明\": \"监控告警分级与通知渠道（演示数据）\",\r\n  \"级别\": [\r\n    {\"级别\": \"critical\", \"定义\": \"服务不可用或核心指标越限\", \"通知\": \"电话+短信+IM\", \"响应\": \"5分钟\", \"示例\": \"全站5xx错误率>5%持续2分钟\"},\r\n    {\"级别\": \"warning\", \"定义\": \"指标异常但未影响用户\", \"通知\": \"IM群\", \"响应\": \"30分钟\", \"示例\": \"单机CPU>85%持续10分钟\"},\r\n    {\"级别\": \"info\", \"定义\": \"需要关注但不需立即处理\", \"通知\": \"日报汇总\", \"响应\": \"次工作日\", \"示例\": \"磁盘使用率>70%\"}\r\n  ],\r\n  \"静默规则\": \"同一告警30分钟内不重复电话通知；计划内变更期间可临时静默，须登记静默窗口与范围\",\r\n  \"升级规则\": \"critical告警10分钟未认领自动升级至值班主管，30分钟未恢复升级至部门负责人\"\r\n}",
+          "score": 0.50364876
+        },
+        {
+          "index": 4,
+          "chunk_id": 11,
+          "kb_id": 2,
+          "doc_id": 7,
+          "doc_title": "发布流程规范",
+          "snippet": "# 生产发布流程规范（演示数据）\r\n\r\n## 发布前\r\n\r\n1. 代码须通过 CI 全部门禁：静态检查、单元测试、构建；禁止带着失败的流水线申请发布。\r\n2. 数据库变更必须先导出备份，回滚 SQL 与变更 SQL 同时评审；破坏性变更（删列、改类型）须先在评审中确认数据处理方案。\r\n3. 发布单须注明：影响范围、回滚步骤、验证清单、值班负责人。缺任何一项打回。\r\n\r\n## 发布窗口\r\n\r\n常规发布窗口为工作日 10:00-17:00。冻结期（大促、节假日保障期）只允许紧急修复发布，须经值班主管与业务负责人双审批。周五 15:00 后原则上不发布非紧急变更。\r\n\r\n## 发布执行\r\n\r\n采用分批灰度：先 1 台验证实例，观察 10 分钟核心指标（错误率、P99 延迟、业务关键日志）无异常后全量。任何一批出现异常立即执行回滚，不允许\"再观察看看\"。\r\n\r\n## 发布后\r\n\r\n发布完成后 30 分钟内值班同学须核对验证清单逐项确认，并在发布单上关闭。48 小时内出现的关联告警须在复盘记录中关联该发布单。",
+          "score": 0.47892958
+        },
+        {
+          "index": 5,
+          "chunk_id": 16,
+          "kb_id": 2,
+          "doc_id": 11,
+          "doc_title": "数据库变更规范",
+          "snippet": "提交后精确失效对应缓存键；禁止用 FLUSHALL/FLUSHDB 代替精确失效。缓存失效失败时必须在变更单中记录\"库已提交、缓存未清\"的状态，不得宣称已回滚。",
+          "score": 0.46884578
+        }
+      ],
+      "source_hashes": [
+        {
+          "index": 1,
+          "chunk_id": 12,
+          "document_key": "ops-incident",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/02-值班与故障响应.txt",
+          "document_sha256": "7cac1d70d6390d518021d977c65f81a3e93b4aeddbe3425d7c0ded8c9b46d328",
+          "snippet_sha256": "199cf96d65d8bed04886851eb9f60a70242a9d7a58264a2074dd2356eaf08015"
+        },
+        {
+          "index": 2,
+          "chunk_id": 13,
+          "document_key": "ops-windows",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/03-变更窗口与回滚.csv",
+          "document_sha256": "39152584cd00cc7069b788c3856065b91f02327f970a60d21f7905d9a4986bd8",
+          "snippet_sha256": "7763e725ca817a2ea7a6add9935954c742f45281941c937118023bb4f1b224d2"
+        },
+        {
+          "index": 3,
+          "chunk_id": 14,
+          "document_key": "ops-alert",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/04-监控告警分级.json",
+          "document_sha256": "676db395ed053c1e4205c7b9a84f3c773bd22b8d84c15ec14bfd15b59d5a42b3",
+          "snippet_sha256": "f6382401a84bb9c99f5752fc53b137fb5bef549b4b6169d742c0cd4b8e53d7ce"
+        },
+        {
+          "index": 4,
+          "chunk_id": 11,
+          "document_key": "ops-release",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/01-发布流程规范.md",
+          "document_sha256": "3d65ecb20a76ccd7a33a3d2081a2dc6bc4dff941f201268b34673aa51e6754fb",
+          "snippet_sha256": "5585c252cd33e35d6af7659105edcb868a5684a81cfc070e47691dc0c083c895"
+        },
+        {
+          "index": 5,
+          "chunk_id": 16,
+          "document_key": "ops-database",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/05-数据库变更规范.md",
+          "document_sha256": "3218cd55063e332f168f4d01c0965c479aa8e9345842a80b0a92d0699150687e",
+          "snippet_sha256": "6819fa3f05500e4605e417c878b34db70245d52b6acd1f21c8903849da9b6117"
+        }
+      ],
+      "manual_review": {
+        "outcome": "scope_ambiguity",
+        "certainty": "requires_manual_review",
+        "reason": "核心二线角色与15分钟时限正确；末段泛称未提供其他升级时限，按字面与实际source[3]的critical10/30分钟升级规则冲突，也可被窄解为仅升级二线，故只标记范围歧义待复核。"
+      },
+      "expected_rule_reason": "additional_absence_claim_needs_review",
+      "corrected_answer": "一线15分钟无法定位时升级二线；二线为模块负责人[1]。"
+    },
+    {
+      "case_id": "quality-val-intraday-halt",
+      "source_line": 182,
+      "original_split": "validation",
+      "category": "multi_fact",
+      "kb_id": 1,
+      "query": "依本库演示资料，创业板与科创板盘中相对开盘价首次涨跌达到哪些比例会临时停牌、单次多久，期间能否申报撤单、复牌怎样成交？",
+      "absence_policy": "forbidden",
+      "original_answer": "创业板、科创板股票盘中交易价格较当日开盘价首次上涨或下跌达到或超过 30%、60% 时，实施盘中临时停牌，单次停牌 10 分钟；停牌期间可以申报也可以撤单，复牌时集合竞价。[1]\n\n资料未提供其他触发比例或停牌时长。",
+      "original_sources": [
+        {
+          "index": 1,
+          "chunk_id": 3,
+          "kb_id": 1,
+          "doc_id": 2,
+          "doc_title": "涨跌停与停牌制度",
+          "snippet": "涨跌停与停牌制度（演示数据）\r\n\r\n涨跌停板机制：股票价格达到当日涨跌幅限制时称为涨停或跌停。涨停后仍可卖出（有买单排队），跌停后仍可买入。连续涨跌停常见于有重大利好或利空的股票。\r\n\r\n临时停牌（盘中）：\r\n创业板、科创板股票盘中交易价格较当日开盘价首次上涨或下跌达到或超过 30%、60% 时，实施盘中临时停牌，单次停牌 10 分钟。停牌期间可以申报也可以撤单，复牌时集合竞价。\r\n\r\n长期停牌情形：\r\n1. 重大资产重组：筹划重大事项可申请停牌，交易所对停牌时长有严格约束，原则上不超过 10 个交易日，破产重整等特殊情形除外。\r\n2. 连续异常波动：连续三个交易日内涨跌幅偏离值累计达到 ±20%（主板）属异常波动，需披露异常波动公告，但通常不停牌。\r\n3. 退市整理期：进入退市整理期的股票交易 15 个交易日，主板涨跌幅 ±10%，期间不得筹划重大资产重组。\r\n\r\n新股临时停牌：主板新股上市首日盘中成交价较开盘价首次涨跌达到或超过 10% 时临时停牌 30 分钟，达到或超过 20% 时停牌至 14:55。\r\n\r\n注意：停牌期间持有的股票无法卖出，资金被锁定，这是重仓单票的重要流动性风",
+          "score": 0.7823043
+        },
+        {
+          "index": 2,
+          "chunk_id": 5,
+          "kb_id": 1,
+          "doc_id": 3,
+          "doc_title": "板块差异对照",
+          "snippet": "板块,代码段,涨跌幅限制,开户门槛,最小申报单位,上市制度\r\n沪市主板,600/601/603/605,±10%,无特殊门槛,100股,核准制(注册制过渡完成)\r\n深市主板,000/001/002/003,±10%,无特殊门槛,100股,核准制(注册制过渡完成)\r\n创业板,300/301,±20%,10万元+24个月交易经验,100股,注册制\r\n科创板,688,±20%,50万元+24个月交易经验,200股起按1股递增,注册制\r\n北交所,8开头/920,±30%,50万元+24个月交易经验,100股,注册制\r\nST股票,各板块,*ST为退市风险警示,±5%(主板),无额外门槛,100股,风险警示板",
+          "score": 0.6154891
+        },
+        {
+          "index": 3,
+          "chunk_id": 1,
+          "kb_id": 1,
+          "doc_id": 1,
+          "doc_title": "交易基础规则",
+          "snippet": "# A 股交易基础规则（演示数据）\r\n\r\n> 本文件为知识库联调演示素材，内容为公开常识性规则整理，不构成投资建议。\r\n\r\n## 交易时间\r\n\r\nA 股每个交易日的交易时段为：9:15-9:25 集合竞价（其中 9:20-9:25 不可撤单），9:30-11:30 与 13:00-15:00 连续竞价。14:57-15:00 为深市收盘集合竞价，沪市 2018 年后同样采用收盘集合竞价。法定节假日与周末休市，调休工作日不开市。\r\n\r\n## T+1 制度\r\n\r\nA 股实行 T+1 交收：当日买入的股票次日才能卖出；当日卖出股票所得资金当日可用（可继续买入），次日可取（转出到银行卡）。这与港股、美股的 T+0 有本质区别，短线交易者必须注意当日买入无法当日止损。\r\n\r\n## 委托与成交\r\n\r\n委托方式包括限价委托与市价委托。市价委托有五种类型（最优五档即时成交剩余撤销等）。委托当日有效，未成交部分收盘后自动撤单。买入委托以 100 股（一手）为最小单位，卖出可以是零股；科创板单笔申报最低 200 股，超过 200 股的部分以 1 股递增。\r\n\r\n## 涨跌幅限制\r\n\r\n主板普通股票涨跌幅限",
+          "score": 0.61351144
+        },
+        {
+          "index": 4,
+          "chunk_id": 2,
+          "kb_id": 1,
+          "doc_id": 1,
+          "doc_title": "交易基础规则",
+          "snippet": "00 股，超过 200 股的部分以 1 股递增。\r\n\r\n## 涨跌幅限制\r\n\r\n主板普通股票涨跌幅限制为 ±10%，ST 股票为 ±5%；创业板与科创板为 ±20%；北交所为 ±30%。新股上市首日规则特殊：主板新股首日最高涨幅 44%，创业板/科创板注册制新股上市前 5 个交易日不设涨跌幅限制，之后恢复 ±20%。",
+          "score": 0.61312324
+        },
+        {
+          "index": 5,
+          "chunk_id": 4,
+          "kb_id": 1,
+          "doc_id": 2,
+          "doc_title": "涨跌停与停牌制度",
+          "snippet": "停牌至 14:55。\r\n\r\n注意：停牌期间持有的股票无法卖出，资金被锁定，这是重仓单票的重要流动性风险来源。",
+          "score": 0.57676727
+        }
+      ],
+      "source_hashes": [
+        {
+          "index": 1,
+          "chunk_id": 3,
+          "document_key": "stocks-suspension",
+          "document_source": "ai_document/ai-rag/kb1-a股投资知识/02-涨跌停与停牌制度.txt",
+          "document_sha256": "b4178216acd043da7c6fe361d21a0287593d89b113da45865bcff83f63aa4f97",
+          "snippet_sha256": "9dd40eef211c23214ad8d0b1b68603c8f737a61ad5f2881f3ee11412aa393fbc"
+        },
+        {
+          "index": 2,
+          "chunk_id": 5,
+          "document_key": "stocks-board",
+          "document_source": "ai_document/ai-rag/kb1-a股投资知识/03-板块差异对照.csv",
+          "document_sha256": "1449b5f552eceef7336e4387fe1b88ab246e37efa13b4b624efffc823bfa7cc9",
+          "snippet_sha256": "efc2de41f535a77077d2b11c467185045ac1be020732293be856e1207d8d6873"
+        },
+        {
+          "index": 3,
+          "chunk_id": 1,
+          "document_key": "stocks-trading",
+          "document_source": "ai_document/ai-rag/kb1-a股投资知识/01-交易基础规则.md",
+          "document_sha256": "86d705028bb39a44b5862af3224b9d7f4ac454a8ae50c83c403a46e6ad3b37c8",
+          "snippet_sha256": "e0236d045f18ccf24ed35ef2496664cbad6aa57fb001084bed40ab038ecde2bd"
+        },
+        {
+          "index": 4,
+          "chunk_id": 2,
+          "document_key": "stocks-trading",
+          "document_source": "ai_document/ai-rag/kb1-a股投资知识/01-交易基础规则.md",
+          "document_sha256": "86d705028bb39a44b5862af3224b9d7f4ac454a8ae50c83c403a46e6ad3b37c8",
+          "snippet_sha256": "2ab44b2717134815377d4ec3d30363740157956684660023f6f8abd45ac58db7"
+        },
+        {
+          "index": 5,
+          "chunk_id": 4,
+          "document_key": "stocks-suspension",
+          "document_source": "ai_document/ai-rag/kb1-a股投资知识/02-涨跌停与停牌制度.txt",
+          "document_sha256": "b4178216acd043da7c6fe361d21a0287593d89b113da45865bcff83f63aa4f97",
+          "snippet_sha256": "dea0260092f3d2fc9828d6eee68f6eabd72a0c3c4cbc7160345ecb88ffa4544c"
+        }
+      ],
+      "manual_review": {
+        "outcome": "scope_ambiguity",
+        "certainty": "requires_manual_review",
+        "reason": "所问创业板与科创板核心答案正确；末句未限定板块与制度，source[1]另含主板新股10%/20%触发与30分钟/14:55时长。该措辞范围过宽需复核，不标成核心事实错误。"
+      },
+      "expected_rule_reason": "additional_absence_claim_needs_review",
+      "corrected_answer": "按所问创业板、科创板规则：盘中相对当日开盘价首次上涨或下跌达到或超过30%、60%时临时停牌，单次10分钟；停牌期间可申报、可撤单，复牌时集合竞价[1]。"
+    }
+  ],
+  "variants": [
+    {
+      "case_id": "answer-regression-second-line-repeat-1",
+      "source_case_id": "quality-dev-incident-second-line",
+      "provenance": {
+        "source_log": "tmp/ai-product-20261107/answer-fix-targeted.jsonl",
+        "source_log_sha256": "881a99e7d0e4b4480233f72942d9b8da33589a9e8073316ee92a65a86ecc9a07",
+        "dataset_sha256": "844a999cfa03179bba7370299a6bf8e3ad2fd6dc463611c8d980b5104e586ee4",
+        "candidate_binary_sha256": "72d435004ce5535196d9e750e25555eec0c1b095419a945509989b446dd19dc7",
+        "source_line": 32
+      },
+      "original_split": "development",
+      "category": "paraphrase",
+      "kb_id": 2,
+      "query": "一线值班接到故障后一直没找到原因，拖到多久必须找二线？资料里的二线具体是什么角色？",
+      "absence_policy": "forbidden",
+      "original_answer": "一线值班接到故障后，若 15 分钟无法定位，应升级二线；二线是模块负责人。[1]\n\n本次片段未涉及其他升级时限或二线角色的更多说明。",
+      "original_sources": [
+        {
+          "index": 1,
+          "chunk_id": 12,
+          "kb_id": 2,
+          "doc_id": 8,
+          "doc_title": "值班与故障响应",
+          "snippet": "值班与故障响应规范（演示数据）\r\n\r\n值班制度：一线值班 7x24 电话可达，5 分钟内响应告警电话；二线为模块负责人，一线 15 分钟无法定位时升级二线；重大故障 30 分钟内拉齐应急群并指定故障指挥官（Incident Commander），指挥官统一调度，禁止多人各自执行恢复操作。\r\n\r\n故障分级：\r\nP0 全站不可用或核心交易中断：5 分钟内响应，30 分钟内给出处置方案，恢复后 24 小时内出复盘报告。\r\nP1 核心功能受损但有降级方案：15 分钟响应，2 小时内恢复或降级。\r\nP2 非核心功能异常：工作时间 4 小时内处理。\r\nP3 体验类问题：排期修复。\r\n\r\n故障处置原则：先恢复、再定位、后追责。恢复手段优先级：回滚 > 降级 > 重启 > 修复上线。任何人在故障期间禁止直接修改生产数据库数据，确需修数须故障指挥官批准并双人复核。\r\n\r\n复盘要求：复盘只对流程不对人（blameless）；必须产出根因、时间线、改进项与负责人、完成期限。改进项逾期未闭环升级至部门负责人。",
+          "score": 0.72215
+        },
+        {
+          "index": 2,
+          "chunk_id": 13,
+          "kb_id": 2,
+          "doc_id": 9,
+          "doc_title": "变更窗口与回滚",
+          "snippet": "变更类型,窗口要求,回滚时限,审批链,备注\r\n常规应用发布,工作日10:00-17:00,15分钟内完成,模块负责人,灰度先行\r\n数据库结构变更,工作日10:00-12:00,依赖备份恢复时长,DBA+模块负责人,回滚SQL随变更评审\r\n中间件配置变更,低峰期(13:00-15:00),10分钟内,中间件负责人,先改单机验证\r\n网络/防火墙变更,周二/周四下午,5分钟内回退,网络组+安全组,变更期间双人复核\r\n紧急修复,任意时间,立即,值班主管+业务负责人,事后24小时补评审\r\n大促冻结期变更,禁止,不适用,例外需部门负责人,只允许P0修复",
+          "score": 0.52771354
+        },
+        {
+          "index": 3,
+          "chunk_id": 14,
+          "kb_id": 2,
+          "doc_id": 10,
+          "doc_title": "监控告警分级",
+          "snippet": "{\r\n  \"说明\": \"监控告警分级与通知渠道（演示数据）\",\r\n  \"级别\": [\r\n    {\"级别\": \"critical\", \"定义\": \"服务不可用或核心指标越限\", \"通知\": \"电话+短信+IM\", \"响应\": \"5分钟\", \"示例\": \"全站5xx错误率>5%持续2分钟\"},\r\n    {\"级别\": \"warning\", \"定义\": \"指标异常但未影响用户\", \"通知\": \"IM群\", \"响应\": \"30分钟\", \"示例\": \"单机CPU>85%持续10分钟\"},\r\n    {\"级别\": \"info\", \"定义\": \"需要关注但不需立即处理\", \"通知\": \"日报汇总\", \"响应\": \"次工作日\", \"示例\": \"磁盘使用率>70%\"}\r\n  ],\r\n  \"静默规则\": \"同一告警30分钟内不重复电话通知；计划内变更期间可临时静默，须登记静默窗口与范围\",\r\n  \"升级规则\": \"critical告警10分钟未认领自动升级至值班主管，30分钟未恢复升级至部门负责人\"\r\n}",
+          "score": 0.50364876
+        },
+        {
+          "index": 4,
+          "chunk_id": 11,
+          "kb_id": 2,
+          "doc_id": 7,
+          "doc_title": "发布流程规范",
+          "snippet": "# 生产发布流程规范（演示数据）\r\n\r\n## 发布前\r\n\r\n1. 代码须通过 CI 全部门禁：静态检查、单元测试、构建；禁止带着失败的流水线申请发布。\r\n2. 数据库变更必须先导出备份，回滚 SQL 与变更 SQL 同时评审；破坏性变更（删列、改类型）须先在评审中确认数据处理方案。\r\n3. 发布单须注明：影响范围、回滚步骤、验证清单、值班负责人。缺任何一项打回。\r\n\r\n## 发布窗口\r\n\r\n常规发布窗口为工作日 10:00-17:00。冻结期（大促、节假日保障期）只允许紧急修复发布，须经值班主管与业务负责人双审批。周五 15:00 后原则上不发布非紧急变更。\r\n\r\n## 发布执行\r\n\r\n采用分批灰度：先 1 台验证实例，观察 10 分钟核心指标（错误率、P99 延迟、业务关键日志）无异常后全量。任何一批出现异常立即执行回滚，不允许\"再观察看看\"。\r\n\r\n## 发布后\r\n\r\n发布完成后 30 分钟内值班同学须核对验证清单逐项确认，并在发布单上关闭。48 小时内出现的关联告警须在复盘记录中关联该发布单。",
+          "score": 0.47892958
+        },
+        {
+          "index": 5,
+          "chunk_id": 16,
+          "kb_id": 2,
+          "doc_id": 11,
+          "doc_title": "数据库变更规范",
+          "snippet": "提交后精确失效对应缓存键；禁止用 FLUSHALL/FLUSHDB 代替精确失效。缓存失效失败时必须在变更单中记录\"库已提交、缓存未清\"的状态，不得宣称已回滚。",
+          "score": 0.46884578
+        }
+      ],
+      "source_hashes": [
+        {
+          "index": 1,
+          "chunk_id": 12,
+          "document_key": "ops-incident",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/02-值班与故障响应.txt",
+          "document_sha256": "7cac1d70d6390d518021d977c65f81a3e93b4aeddbe3425d7c0ded8c9b46d328",
+          "snippet_sha256": "199cf96d65d8bed04886851eb9f60a70242a9d7a58264a2074dd2356eaf08015"
+        },
+        {
+          "index": 2,
+          "chunk_id": 13,
+          "document_key": "ops-windows",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/03-变更窗口与回滚.csv",
+          "document_sha256": "39152584cd00cc7069b788c3856065b91f02327f970a60d21f7905d9a4986bd8",
+          "snippet_sha256": "7763e725ca817a2ea7a6add9935954c742f45281941c937118023bb4f1b224d2"
+        },
+        {
+          "index": 3,
+          "chunk_id": 14,
+          "document_key": "ops-alert",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/04-监控告警分级.json",
+          "document_sha256": "676db395ed053c1e4205c7b9a84f3c773bd22b8d84c15ec14bfd15b59d5a42b3",
+          "snippet_sha256": "f6382401a84bb9c99f5752fc53b137fb5bef549b4b6169d742c0cd4b8e53d7ce"
+        },
+        {
+          "index": 4,
+          "chunk_id": 11,
+          "document_key": "ops-release",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/01-发布流程规范.md",
+          "document_sha256": "3d65ecb20a76ccd7a33a3d2081a2dc6bc4dff941f201268b34673aa51e6754fb",
+          "snippet_sha256": "5585c252cd33e35d6af7659105edcb868a5684a81cfc070e47691dc0c083c895"
+        },
+        {
+          "index": 5,
+          "chunk_id": 16,
+          "document_key": "ops-database",
+          "document_source": "ai_document/ai-rag/kb2-运维发布SOP/05-数据库变更规范.md",
+          "document_sha256": "3218cd55063e332f168f4d01c0965c479aa8e9345842a80b0a92d0699150687e",
+          "snippet_sha256": "6819fa3f05500e4605e417c878b34db70245d52b6acd1f21c8903849da9b6117"
+        }
+      ],
+      "manual_review": {
+        "outcome": "scope_ambiguity",
+        "certainty": "requires_manual_review",
+        "reason": "核心15分钟升级二线及模块负责人正确；自由尾注“未涉及其他升级时限”范围过宽，实际source[3]含critical10/30分钟升级。该词法漏检属于同根因复现，不能据此证明语义错误。"
+      },
+      "expected_rule_reason": "additional_absence_claim_needs_review",
+      "corrected_answer": "一线15分钟无法定位时升级二线；二线为模块负责人[1]。"
+    }
+  ]
+}
