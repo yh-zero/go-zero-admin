@@ -29,6 +29,12 @@
 .composerActions { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .feedback { flex-shrink: 1; min-height: 40px; max-height: 30%; margin-bottom: 12px; overflow: auto; }
 .recordNote { font-size: 12px; }
+.knowledgePicker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.knowledgeSelect { min-width: 220px; max-width: 100%; }
+.sources { margin: 12px 0; }
+.sources details { border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; padding: 8px 12px; margin-top: 6px; }
+.sources summary { cursor: pointer; overflow-wrap: anywhere; }
+.conversationSearch { margin-bottom: 12px; }
 @media (max-height: 640px) {
   .workspace { min-height: 400px; }
   .composer textarea { max-height: 18dvh !important; overflow-y: auto !important; }

@@ -50,6 +50,23 @@ if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .en
 - 重置已有库：须明确授权、确认目标并备份；不能把重跑初始化或删除数据卷当作通用排障手段。
 - 演示账号与默认凭据见[快速开始](../README.md#快速开始)，仅限开发、部署前必须替换；后台图形验证码由 admin-rpc 的 `Captcha.Enabled` 控制。
 
+### AI 本地开发免图形验证码
+
+AI 在本机开发、联调和功能验收启动时，默认使用忽略的本地覆盖配置关闭图形验证码，账号密码和会话/权限仍正常校验。将 `docker/etc/admin-rpc.yaml` 复制为 `docker/etc/admin-rpc.ai-dev.local.yaml`，只把副本的 `Captcha.Enabled` 改为 `false`；原文件保持默认值。已有副本先核对，不覆盖其中本地设置。
+
+本地 `docker-compose.ai-dev.local.yaml` 内容为：
+
+```yaml
+services:
+  admin-rpc:
+    volumes:
+      - ./docker/etc/admin-rpc.ai-dev.local.yaml:/app/etc/admin.yaml:ro
+```
+
+从后端目录使用 `docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.ai-dev.local.yaml up -d --no-deps --no-build --wait admin-rpc` 应用验证码配置；其他服务按各自启动流程处理，后端代码改变仍须先编译并构建对应镜像。通过 `/v1/sys/auth/captcha` 核对 `enabled=false` 且图片、ID 为空，再用有效测试账号正常登录。两个 `*.local.yaml` 文件均被忽略，不提交；远程/生产/租户启动不使用这个本地覆盖文件。验证码专项验收改用标准配置并核对 `enabled=true`。
+
+开源初始化的演示管理员为 `admin / Admin@123456`，属于可公开的开发默认凭据，可以写入规范和文档。AI 可直接核对本地开发库与完整初始化 SQL 后正常登录，无需重复索要这些演示凭据。若 README 的本地改动与 SQL 不一致，以实际初始化来源和运行库核对结果为准，保留用户既有文档改动；此流程不授权改密、重置账号或公开真实凭据、AI Key、会话令牌。
+
 ### 数据库备份
 
 - 备份默认保留运行库的完整原始 SQL，不擅自删行、改值、脱敏或加密；历史备份不覆盖，初始化来源 `mysql-all.sql` 不作为运行库备份替代物。
@@ -121,11 +138,25 @@ if ($ready.code -ne 200 -or -not $ready.result.ready) { throw "API 尚未就绪"
 
 AI 发送与 model 已恢复 Go 回归：本地模型桩验证工具检查点与 SSE 终帧，真实数据库/缓存回归需显式设置 `GOZERO_AI_TEST_DSN`、`GOZERO_AI_TEST_REDIS` 并使用独立 MySQL/Redis 实例；变量缺失时这些集成用例明确跳过，不能记为业务验证通过。运行 `go test ./application/ai/rpc/internal/logic/aiservice ./application/ai/rpc/internal/model ./application/admin/api/internal/handler/ai -count=1` 可复验。其他模块仍缺少 Go 行为回归；`test/verify_script_test.ps1` 继续在独立临时夹具中验证自检脚本的失败出口，CI 默认环境不代表数据库/Redis 集成验证。
 
+知识库创建/重试保持同步摄取：业务截止 90 秒，前端单独等待 125 秒；失败清理有独立的 5 秒窗口。相同知识库内标题、正文和 Embedding 模型完全相同的创建复用现有文档，失败后使用文档“重试”；`pending` 在 120 秒保护期内拒绝重试，过期可恢复。模型、文本分块和上下文预算语义见共享契约。相关回归为 `go test ./pkg/llm ./pkg/agenttools ./application/ai/rpc/internal/svc ./application/ai/rpc/internal/model ./application/ai/rpc/internal/logic/aiservice -run '^(TestEmbed|TestKb|TestCompact|TestContextBudget|TestAIStream)' -count=1`；摄取用例也需上述隔离数据库/Redis，Embedding 和聊天使用本地 HTTP 桩，向量操作使用受控桩，不调用付费服务。前端运行 `node --test scripts/aiKnowledge.test.mjs scripts/aiClient.test.mjs` 检查摄取等待范围及普通请求超时。测试用例仅覆盖指定边界，不等同于真实供应商或生产负载验收。
+
+知识库页面在文档 `ready` 后关闭新增表单；`failed` 保留文档 ID，重试原记录；网络中断提示结果未知，不自动重建。正文按 UTF-8 字节校验非空白且不超过 65536 字节。列表只读取元信息，已知文档按ID使用 `meta_only=true` 每3秒查询处理阶段，不再逐页定位。原文预览单独取正文，编辑携带expected_version，冲突先核对新版本，旧摄取结果不能覆盖新修订。批量导入支持UTF-8 TXT/Markdown，每批20文件、2并发，保留BOM/CRLF，各文件独立显示就绪、失败或结果未知；不自动重放。对应前端回归为 `node --test --test-force-exit scripts/aiKnowledgeDocuments.test.mjs scripts/aiKnowledge.test.mjs`，交互与移动布局仍需浏览器验收。仓库合成演示素材见 [ai-rag](ai-rag/README.md)，共11篇；PDF/Office/OCR尚未接入。
+
+知识库“召回测试”通过 `POST /v1/sys/ai/kbs/:id/search` 返回真实片段、来源 ID、相似度及服务端耗时，复用线上检索器；服务端 10 秒截止、前端等待 15 秒，不调用聊天模型。查看页面操作码和服务端 Casbin 路由授权分别生效，知识库归属仍须通过。新增路由通过“接口管理 → 同步路由”登记目录，保留原角色权限，不因页面入口可见就自动授予 API。现有实例不要重导初始化 SQL。固定题集与评测工具使用方式见 [直接召回测试](ai-rag/README.md#直接召回测试)，先用真实片段区分检索问题与回答问题，再评估分段、阈值或重排；目前无最低相似度阈值。
+
 AI SSE 路由单独在 `desc/sys/ai.api` 的 `@server` 块声明 `sse: true`，经 `gen.ps1 api` 生成 `rest.WithSSE()`；同名 `group: ai` 不会合并不同块的路由选项，不要给包含普通 JSON 接口的整个块启用 SSE。框架接管 SSE 响应头及连接写入期限，客户端仍需 `Accept: text/event-stream` 旁路普通 HTTP 超时；业务截止时间继续由 AI RPC 控制。handler 保留代理防缓冲、命名事件、心跳及 gRPC 桥接；Flush 沿当前审计/go-zero 透传 writer 展开并优先保留 `FlushError`，再交给 `ResponseController`，避免框架无错误返回的 `Flush` 吞掉底层错误。写入或 Flush 失败即退出，不要用直接断言 `http.Flusher` 的 `httpx.Stream` 覆盖该行为。路由与错误边界可运行 `go test ./application/admin/api/internal/handler/... -count=1` 复验，无需数据库或模型凭据。
 
 前端 AI 回归在前端目录运行 `node --test scripts/aiClient.test.mjs scripts/aiChat.test.mjs scripts/aiSend.test.mjs scripts/chatScroll.test.mjs`，验证流式鉴权、权限、原请求重查、防重复发送、权威结果回填、分页游标、迟到响应、安全文本渲染，以及滚动跟随、上翻暂停和历史锚点；不调用真实模型。AI 对话入口为 `/ai/chat`，位于一级“AI 功能”下；只读、创建、发送、删除需分别配置菜单操作码，服务端仍需对应 Casbin 路由授权。新增库使用完整 SQL 内置菜单，已有库通过正常菜单/角色接口精确添加并保留原授权，不能重导初始化 SQL。
 
 AI 工作区入口为 `/ai/workflows`、`/ai/tasks`、`/ai/tools`，页面与操作码见共享契约。已有开发库需要在“菜单管理”下给现有“AI 功能”补三个页面及九个操作权限，再在“角色管理 → 功能授权”中补勾对应资源，保留原授权；新增菜单不会自动关联超级管理员。保存前核对界面“已选 N 项”，保存后重新读取或从侧栏进入三页确认，不以 DOM 勾选属性或源码中已有注册替代实际生效检查。已有业务记录、账号与接口策略无需因菜单接入而重置。
+
+工作流列表的“新建工作流”和“编辑”进入独立页面 `/ai/workflows/new`、`/ai/workflows/:id/edit`，沿用工作流父菜单权限，不新增侧栏菜单。模板连接本次问题/文本与后序工具；普通参数通过来源下拉选择固定内容、本次输入或前一步结果，复杂参数保留高级JSON，服务端按v2引用规则和工具Schema校验。支持复制工作流和步骤。草稿仅保留在当前标签页，并按会话、部门和工作流隔离；刷新可恢复，保存成功或明确丢弃后清除。保存后打开运行确认，输入每次单独填写；运行request_id和原载荷保留到结果确认，结果未知时复用核对，不生成新任务标识。存储配额失败同页内存仍保留标识；刷新前须到任务中心核对。
+
+`kb_analyze` 仅在检索和聊天模型均配置时出现在工具目录，内部一次检索和一次有界分析；不向聊天Agent暴露该嵌套模型工具。结果展示分析、实际参考片段和已知聊天用量，不含Embedding，供应商未返回时明确标记不完整。运行和批准仅等待提交（普通请求30秒），后台每轮90秒、每实例8并发，任务详情显示步骤真实输入/输出/耗时。审批前预览本次已解析参数；取消停止后续步骤且不撤回已有外部作用。进程中断不自动重放，详情读取会将连续100秒未更新的running标记未知失败。任务列表使用摘要、详情单独读取完整记录。前端回归可运行 `node --test --test-concurrency=1 --test-force-exit scripts/aiWorkflowDataflow.test.mjs scripts/aiWorkflowEditor.test.mjs scripts/aiWorkflowAnalysis.test.mjs scripts/aiTasksTools.test.mjs`；浏览器探针 `scripts/aiWorkflowRun.browser.js` 在全API响应桩下验证自动弹窗、存储失败和未知结果重查，不能直接对真实业务运行此桩。
+
+对话输入区可以指定本人知识库并选择“仅依据资料回答”；实际检索片段保存为历史来源快照，后续文档修改不会改写旧消息。依据模式的问题最多2000 UTF-8字节，无可用片段时不调用聊天模型；候选片段不等于一定有答案，资料不足仍需模型按约束说明。会话支持标题/正文搜索、重命名/置顶，成功助手消息可评价并补充说明。完整导出逐页读取，支持取消与身份切换保护；已加载消息导出单独标明。受限Markdown只创建React元素，不渲染原始HTML或自动加载图片。
+
+本轮性能验证范围：相同owner/KB/软删过滤下，11篇演示资料的列表CLI UTF-8序列化结果从13095降到914字节（剔除12181字节正文），COUNT+分页仍为2次SQL；单文档状态只查1次元信息。任务摘要固定夹具从197068降到80字节，仍2次SQL；后台取消观察每秒只读status。阶段可见性增加一次摄取CAS事务，以上是读取量与请求路径证据，不代表模型时延或并发吞吐提升。需要压测时使用更大的独立资料/任务集和隔离负载。
 
 本次三页相关前端回归为 `node --test scripts/aiWorkspace.test.mjs scripts/aiWorkflows.test.mjs scripts/aiTasksTools.test.mjs`；后端菜单源检查为 `powershell -NoProfile -ExecutionPolicy Bypass -File test/ai_workspace_seed_test.ps1`。隔离工作流回归使用 `go test ./application/ai/rpc/internal/logic/aiservice -run '^TestAIWorkspace' -count=1 -v`；只有显式设置 `GOZERO_AI_TEST_DSN`、`GOZERO_AI_TEST_REDIS` 才执行数据库/缓存场景，缺环境时明确跳过。三页验收覆盖工具带入、步骤增删排序、编辑启停、运行、两个审批点与拒绝、删除后历史任务，以及权限、分页回退和草稿保留；仅使用本地工具，不调用模型。运行命令按本次影响范围选择，不因此默认重跑聊天或其他模块。
 
@@ -148,7 +179,7 @@ AI 工作区入口为 `/ai/workflows`、`/ai/tasks`、`/ai/tools`，页面与操
 | 直接改库后仍读旧数据 | 查看实际生成 model 的 ID/旧新唯一索引缓存键，仅精确失效受影响记录；授权变更核对策略通知 | 重新读取确认；不以 FLUSH 或全库清空代替定位 |
 | AI/SMTP 填了配置却不可用 | 核对[配置双套制](#配置双套制)、实际加载入口、Provider、SMTP 主机/端口/TLS 和容器是否重建 | 区分未配置降级与外部调用失败；不打印密钥或把占位符展开误认为读取 env 文件 |
 | 知识库摄取 503 / 检索无结果 | 核对 `Qdrant.Address` 与 `AI_QWEN_KEY`（Embedding 固定走 qwen）双套配置、ai-rpc 是否重建、qdrant 容器日志；向量维度与 `EmbeddingDimensions` 不一致会在摄取时报维度错误 | 未配置降级是设计行为；Qdrant 数据是派生索引，灾难恢复 = 清空集合后将文档逐个 retry 重建，不修向量数据 |
-| 知识库检索到已删除内容 | 属双写漂移窗口：检索回 MySQL 复核应拦截；若仍出现，查 chunk status 与文档软删标记 | 不得直接改 Qdrant 数据"修复"；以 MySQL 为准重试或等待对账收敛 |
+| 知识库检索到已删除内容 | 属双写漂移窗口：检索回 MySQL 复核应拦截；若仍出现，查 chunk status 与文档软删标记 | 以 MySQL 为准核对并按明确文档/分块 ID 人工补偿；当前没有运行期自动对账任务，不能等待其自动收敛 |
 | PowerShell 中文乱码、解析失败或 SQL 导入乱码 | 区分终端显示、文件编码与数据库存储；先 `Get-Content -Encoding UTF8`/原始字节核对，再考虑修改文件 | 兼容 Windows PowerShell 5.1 的含中文脚本保留 UTF-8 BOM；不要因显示乱码重写源文件 |
 
 ```powershell

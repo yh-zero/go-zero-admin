@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Button, Drawer, Form, Input, Modal, Space, Tag } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { approveAiTask, rejectAiTask } from '../../api/ai';
-import type { AiTaskInfo } from '../../api/types';
+import { approveAiTask, cancelAiTask, rejectAiTask } from '../../api/ai';
+import type { AiTaskInfo, AiWorkflowStepInfo } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { formatTime } from '../../utils/format';
 import type { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
@@ -11,6 +11,9 @@ import { aiWorkspaceKeys, taskDetailOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
 import { captureTaskDecision, formatTaskValue, isTaskDecisionCurrent, taskPollInterval, taskStatuses, taskStepLabel, validateRejectReason } from './taskState';
 import type { TaskDecision } from './taskState';
+import { parseTaskAnalyses } from './workflowAnalysis';
+import { WorkflowAnalysisResult } from './WorkflowAnalysisResult';
+import { CopyTextButton } from './SafeMarkdown';
 import styles from './tasks.module.css';
 
 interface TaskDetailProps {
@@ -24,19 +27,21 @@ export function TaskDetail({ scope, taskId, guard, onClose }: TaskDetailProps) {
   const client = useQueryClient();
   const [decision, setDecision] = useState<TaskDecision | null>(null);
   const [feedback, setFeedback] = useState<string>();
+  const [cancelConfirm, setCancelConfirm] = useState(false);
   const [form] = Form.useForm<{ reason: string }>();
   const mounted = useRef(true);
   const pollStartedAt = useRef(0);
   const details = useQuery({
     ...taskDetailOptions(scope, taskId),
     enabled: guard.can('sys:ai:task:list'),
-    refetchInterval: query => taskPollInterval(query.state.data?.task.status, !guard.writing && !decision && guard.isCurrent(), Date.now() - pollStartedAt.current, query.state.fetchFailureCount),
+    refetchInterval: query => taskPollInterval(query.state.data?.task.status, !guard.writing && !decision && !cancelConfirm && guard.isCurrent(), Date.now() - pollStartedAt.current, query.state.fetchFailureCount),
     refetchIntervalInBackground: false,
   });
   const mutation = useMutation({ mutationFn: async ({ snapshot, reason }: { snapshot: TaskDecision; reason?: string }) => {
     if (snapshot.action === 'approve') return approveAiTask(snapshot.id, { expected_step: snapshot.expected_step });
     return rejectAiTask(snapshot.id, { expected_step: snapshot.expected_step, reason: reason!.trim() });
   }, retry: false });
+  const cancellation = useMutation({ mutationFn: () => cancelAiTask(taskId), retry: false });
 
   useEffect(() => {
     mounted.current = true;
@@ -53,7 +58,6 @@ export function TaskDetail({ scope, taskId, guard, onClose }: TaskDetailProps) {
     if (!current() || guard.writing || !details.data || details.error) return;
     const snapshot = captureTaskDecision(details.data.task, action);
     if (!snapshot) return;
-    form.resetFields();
     setFeedback(undefined);
     setDecision(snapshot);
   }
@@ -86,6 +90,7 @@ export function TaskDetail({ scope, taskId, guard, onClose }: TaskDetailProps) {
     } finally {
       if (current()) {
         setDecision(null);
+        pollStartedAt.current = Date.now();
         await Promise.allSettled([
           client.invalidateQueries({ queryKey: aiWorkspaceKeys.task(scope, taskId) }),
           client.invalidateQueries({ queryKey: aiWorkspaceKeys.tasks(scope) }),
@@ -97,13 +102,25 @@ export function TaskDetail({ scope, taskId, guard, onClose }: TaskDetailProps) {
 
   const task = details.data?.task;
   const approvalAvailable = task?.status === 'pending_approval' && !details.error;
+  const cancellable = task && ['pending', 'running', 'pending_approval'].includes(task.status) && !details.error;
+  const pendingStep = task?.steps?.find(step => step.index === decision?.expected_step && step.status === 'pending_approval');
+  async function submitCancel() {
+    if (!current() || !guard.beginWrite('sys:ai:task:cancel')) return;
+    try { await cancellation.mutateAsync(); if (current()) setFeedback('已取消后续执行；已发生的外部操作不会撤回。'); }
+    catch { if (current()) setFeedback('取消结果待核对，请刷新任务状态；不会自动重新提交。'); }
+    finally {
+      if (current()) { setCancelConfirm(false); await Promise.allSettled([client.invalidateQueries({ queryKey: aiWorkspaceKeys.task(scope, taskId) }), client.invalidateQueries({ queryKey: aiWorkspaceKeys.tasks(scope) })]); }
+      guard.finishWrite();
+    }
+  }
   return <>
     <Drawer open title={`任务 #${taskId}`} size={620} className={styles.drawer} onClose={() => { if (!guard.writing) onClose(); }}
-      closable={!guard.writing} maskClosable={!guard.writing && !decision} keyboard={!guard.writing && !decision}
+      closable={!guard.writing} maskClosable={!guard.writing && !decision && !cancelConfirm} keyboard={!guard.writing && !decision && !cancelConfirm}
       extra={<Button icon={<ReloadOutlined />} aria-label="刷新任务详情" disabled={guard.writing || !!decision} onClick={() => {
         if (!current()) return; pollStartedAt.current = Date.now(); void details.refetch();
       }} />}
       footer={<Space wrap className={styles.drawerActions}><Button disabled={guard.writing} onClick={onClose}>关闭</Button>
+        {cancellable && guard.can('sys:ai:task:cancel') && <Button danger disabled={guard.writing} onClick={() => setCancelConfirm(true)}>取消任务</Button>}
         {approvalAvailable && guard.can('sys:ai:task:reject') && <Button danger disabled={guard.writing} onClick={() => openDecision('reject')}>拒绝</Button>}
         {approvalAvailable && guard.can('sys:ai:task:approve') && <Button type="primary" disabled={guard.writing} onClick={() => openDecision('approve')}>批准当前步骤</Button>}
       </Space>}>
@@ -112,33 +129,53 @@ export function TaskDetail({ scope, taskId, guard, onClose }: TaskDetailProps) {
       {task && !details.error && <TaskDetailContent task={task} />}
     </Drawer>
     <Modal open={!!decision} title={decision?.action === 'approve' ? '批准当前步骤' : '拒绝任务'} onOk={() => void submitDecision()}
-      onCancel={() => { if (!guard.writing) setDecision(null); }} confirmLoading={guard.writing} closable={!guard.writing} maskClosable={!guard.writing} keyboard={!guard.writing}
+      onCancel={() => { if (!guard.writing) setDecision(null); }} confirmLoading={guard.writing} closable={!guard.writing} mask={{ closable: !guard.writing }} keyboard={!guard.writing}
       okText={decision?.action === 'approve' ? '确认批准' : '确认拒绝'} cancelText="取消" cancelButtonProps={{ disabled: guard.writing }} destroyOnHidden>
       <p>任务 #{decision?.id} · 第 {decision ? decision.expected_step + 1 : ''} 步</p>
       <p>{decision?.action === 'approve' ? '仅批准当前等待确认的步骤，批准后将继续执行。' : '拒绝后本次任务结束。'}</p>
-      {decision?.action === 'reject' && <Form form={form} layout="vertical" preserve={false}>
+      {pendingStep ? <TaskStepRecord step={pendingStep} preview /> : decision?.action === 'approve' && <Alert type="warning" title="此历史任务没有可展示的步骤输入，批准前请核对本次快照与运行记录。" />}
+      {decision?.action === 'reject' && <Form form={form} layout="vertical" preserve={false} clearOnDestroy>
         <Form.Item name="reason" label="拒绝原因" rules={[{ validator: (_, value: string | undefined) => {
           const error = validateRejectReason(value ?? ''); return error ? Promise.reject(new Error(error)) : Promise.resolve();
         } }]}><Input.TextArea rows={4} disabled={guard.writing} placeholder="请填写拒绝原因（最多 512 个字符）" /></Form.Item>
       </Form>}
     </Modal>
+    <Modal open={cancelConfirm} title="取消任务" okText="确认取消" okButtonProps={{ danger: true }} confirmLoading={guard.writing} onOk={() => void submitCancel()} onCancel={() => { if (!guard.writing) setCancelConfirm(false); }} closable={!guard.writing} mask={{ closable: !guard.writing }} keyboard={!guard.writing}>
+      <p>取消后停止后续步骤，当前工具会收到取消信号。已经发生的模型调用或外部操作不会撤回，当前步骤结果可能未知。</p>
+    </Modal>
   </>;
 }
 
 export function TaskDetailContent({ task }: { task: AiTaskInfo }) {
+  const analyses = parseTaskAnalyses(task.result, task.next_step);
   return <div className={styles.detailContent}>
     <div className={styles.state}><Tag color={taskStatuses[task.status]?.color}>{taskStatuses[task.status]?.label ?? task.status}</Tag>
       <p>{task.status === 'pending_approval' ? '等待你确认当前步骤，该步骤尚未执行。' : '展示本次任务已记录的状态与结果。'}</p></div>
     <dl className={styles.facts}>
       <div><dt>工作流 ID</dt><dd>#{task.workflow_id}</dd></div><div><dt>当前步骤</dt><dd>{taskStepLabel(task)}</dd></div>
       <div><dt>创建时间</dt><dd>{formatTime(task.created_at)}</dd></div><div><dt>完成时间</dt><dd>{formatTime(task.completed_at)}</dd></div>
+      <div><dt>最近更新</dt><dd>{formatTime(task.updated_at)}</dd></div>
       <div><dt>审批范围</dt><dd>本人任务</dd></div><div><dt>审批人 ID</dt><dd>{task.approved_by || '—'}</dd></div>
     </dl>
     <h3>本次输入</h3><TaskRecordedValue value={task.input} empty="未提供输入" />
-    <h3>执行结果</h3><TaskRecordedValue value={task.result} empty="尚无执行结果" />
+    {!!task.steps?.length && <><h3>步骤执行过程</h3><ol className={styles.stepRecords}>{task.steps.map(step => <li key={step.id}><TaskStepRecord step={step} /></li>)}</ol></>}
+    <h3>执行结果</h3>
+    {analyses.map(analysis => <WorkflowAnalysisResult key={analysis.step} analysis={analysis} />)}
+    {analyses.length ? <details><summary>原始执行记录</summary><pre className={styles.code}>{task.result}</pre></details>
+      : <TaskRecordedValue value={task.result} empty="尚无执行结果" />}
     {task.error && <><h3>错误 / 拒绝原因</h3><pre className={styles.code}>{task.error}</pre></>}
     {task.status === 'pending_approval' && <Alert type="warning" showIcon title="批准后继续执行当前步骤；拒绝后本次任务结束。" />}
   </div>;
+}
+
+function TaskStepRecord({ step, preview = false }: { step: AiWorkflowStepInfo; preview?: boolean }) {
+  const elapsed = step.started_at > 0 && step.completed_at >= step.started_at ? `${step.completed_at - step.started_at} 毫秒` : '—';
+  return <section className={styles.stepRecord}>
+    <strong>第 {step.index + 1} 步 · {step.name}</strong><p><Tag>{step.tool}</Tag><Tag color={taskStatuses[step.status]?.color}>{taskStatuses[step.status]?.label ?? step.status}</Tag>{!preview && <span>耗时：{elapsed}</span>}</p>
+    <details open={preview || step.status === 'pending_approval'}><summary>本次实际输入</summary><pre className={styles.code}>{formatTaskValue(step.input)}</pre></details>
+    {!preview && step.output && <details><summary>步骤输出 <CopyTextButton text={step.output} label="复制输出" /></summary><pre className={styles.code}>{formatTaskValue(step.output)}</pre></details>}
+    {step.error && <Alert type="warning" title={step.error} />}
+  </section>;
 }
 
 function TaskRecordedValue({ value, empty }: { value: string; empty: string }) {

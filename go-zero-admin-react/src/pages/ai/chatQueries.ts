@@ -10,13 +10,13 @@ export const aiChatKeys = {
   messages: (scope: AiChatScope, id: number) => ['ai-chat', ...scope, 'messages', id] as const,
 };
 
-export function conversationListOptions(scope: AiChatScope, page: number) {
+export function conversationListOptions(scope: AiChatScope, page: number, query = '') {
   return queryOptions({
-    queryKey: [...aiChatKeys.lists(scope), page],
+    queryKey: [...aiChatKeys.lists(scope), page, ...(query ? [query] : [])],
     staleTime: 30_000,
     queryFn: async ({ signal }) => {
       signal.throwIfAborted();
-      const data = await fetchAiConversations({ page, page_size: 20 });
+      const data = await fetchAiConversations({ page, page_size: 20, ...(query ? { query } : {}) });
       signal.throwIfAborted();
       return data;
     },
@@ -123,10 +123,12 @@ async function updateConversationLists(client: QueryClient, scope: AiChatScope, 
   const prefix = aiChatKeys.lists(scope);
   await client.cancelQueries({ queryKey: prefix });
   if (!options.isCurrent()) return;
+  await client.invalidateQueries({ queryKey: prefix, predicate: query => query.queryKey.length > prefix.length + 1 });
+  if (!options.isCurrent()) return;
   const entries = client.getQueryCache().findAll({ queryKey: prefix }).flatMap(query => {
     const page = query.queryKey[prefix.length];
     const data = query.state.data as PageResult<AiConversationInfo> | undefined;
-    return typeof page === 'number' && data ? [{ page, data, queryKey: query.queryKey, updatedAt: query.state.dataUpdatedAt }] : [];
+    return typeof page === 'number' && data && query.queryKey.length === prefix.length + 1 ? [{ page, data, queryKey: query.queryKey, updatedAt: query.state.dataUpdatedAt }] : [];
   }).sort((a, b) => a.page - b.page);
   const contiguous = entries.filter((entry, index) => entry.page === index + 1);
   const first = contiguous[0];
@@ -142,7 +144,7 @@ async function updateConversationLists(client: QueryClient, scope: AiChatScope, 
   const total = first.data.total + (!known && options.newConversation ? 1 : 0);
   const byId = new Map(contiguous.flatMap(entry => entry.data.list).map(row => [row.id, row]));
   byId.set(conversation.id, conversation);
-  const rows = [...byId.values()].sort((a, b) => b.updated_at - a.updated_at || b.id - a.id);
+  const rows = [...byId.values()].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.updated_at - a.updated_at || b.id - a.id);
   const pages = complete ? Math.max(contiguous.length, Math.ceil(rows.length / 20)) : contiguous.length;
   for (let index = 0; index < pages; index++) {
     client.setQueryData<PageResult<AiConversationInfo>>([...prefix, index + 1], { list: rows.slice(index * 20, (index + 1) * 20), total });

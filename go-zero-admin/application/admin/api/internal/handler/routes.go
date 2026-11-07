@@ -41,6 +41,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: ai.ListConversationsHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodPut,
+				Path:    "/conversations/:id",
+				Handler: ai.UpdateConversationHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodGet,
 				Path:    "/conversations/:id",
 				Handler: ai.GetConversationHandler(serverCtx),
@@ -49,6 +54,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodDelete,
 				Path:    "/conversations/:id",
 				Handler: ai.DeleteConversationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/conversations/:id/messages/:message_id/feedback",
+				Handler: ai.SetMessageFeedbackHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodPost,
@@ -86,6 +96,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: ai.ListKbDocsHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodGet,
+				Path:    "/kbs/:id/docs/:doc_id",
+				Handler: ai.GetKbDocHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/kbs/:id/docs/:doc_id",
+				Handler: ai.UpdateKbDocHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodDelete,
 				Path:    "/kbs/:id/docs/:doc_id",
 				Handler: ai.DeleteKbDocHandler(serverCtx),
@@ -94,6 +114,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/kbs/:id/docs/:doc_id/retry",
 				Handler: ai.RetryKbDocHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/kbs/:id/search",
+				Handler: ai.SearchKbHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,
@@ -109,6 +134,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/tasks/:id/approve",
 				Handler: ai.ApproveTaskHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/tasks/:id/cancel",
+				Handler: ai.CancelTaskHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodPost,

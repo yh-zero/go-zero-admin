@@ -1,5 +1,5 @@
 -- go-zero-admin 开源初始化：单库完整结构 + 虚构演示数据
--- 仅用于新建或重置开发数据库：本文件会 DROP 并重建列出的 20 张表。
+-- 仅用于新建或重置开发数据库：本文件会 DROP 并重建下列业务表。
 -- 首次 docker compose up -d 时，MySQL 空数据卷自动导入；已有卷不会重复执行。
 -- 手动导入：mysql -h 127.0.0.1 -P 3307 -u root -p < mysql-all.sql
 -- 后台账号：admin、demo_all、demo_tree、demo_dept、demo_self（密码均为 Admin@123456）。
@@ -30,6 +30,7 @@ CREATE TABLE `ai_conversation` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `user_id` bigint unsigned NOT NULL COMMENT '所属用户',
   `title` varchar(128) NOT NULL DEFAULT '' COMMENT '会话标题',
+  `pinned` tinyint NOT NULL DEFAULT '0' COMMENT '本人置顶',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL COMMENT '软删除',
@@ -68,7 +69,7 @@ CREATE TABLE `ai_task` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `workflow_id` bigint unsigned DEFAULT NULL COMMENT '工作流ID（对话触发的任务为空）',
   `conversation_id` bigint unsigned DEFAULT NULL COMMENT '会话ID',
-  `status` varchar(24) NOT NULL DEFAULT 'pending' COMMENT '状态：pending/running/pending_approval/succeeded/failed/rejected',
+  `status` varchar(24) NOT NULL DEFAULT 'pending' COMMENT '状态：pending/running/pending_approval/succeeded/failed/rejected/cancelled',
   `input` text COMMENT '输入（JSON）',
   `result` text COMMENT '执行结果',
   `error` varchar(512) NOT NULL DEFAULT '' COMMENT '错误信息',
@@ -78,7 +79,11 @@ CREATE TABLE `ai_task` (
   `created_by` bigint unsigned NOT NULL DEFAULT '0' COMMENT '任务所属用户，0表示历史归属待确认',
   `next_step` int unsigned NOT NULL DEFAULT '0' COMMENT '下一待执行步骤索引',
   `workflow_snapshot` json DEFAULT NULL COMMENT '执行时工作流定义快照',
+  `request_id` varchar(36) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL COMMENT '用户内运行幂等ID',
+  `step_records` json DEFAULT NULL COMMENT '已解析步骤输入及执行记录',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_owner_request` (`created_by`,`request_id`),
   KEY `idx_workflow` (`workflow_id`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 任务';
@@ -126,6 +131,8 @@ CREATE TABLE `ai_kb_doc` (
   `error` varchar(512) NOT NULL DEFAULT '' COMMENT '安全错误信息',
   `chunk_count` int unsigned NOT NULL DEFAULT '0' COMMENT '分块数',
   `embedding_model` varchar(128) NOT NULL DEFAULT '' COMMENT '使用的 embedding 模型版本',
+  `version` bigint unsigned NOT NULL DEFAULT '1' COMMENT '正文修订号，替换加一',
+  `ingest_stage` varchar(16) NOT NULL DEFAULT 'embedding' COMMENT 'embedding/indexing/ready/failed',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL COMMENT '软删除',
@@ -535,6 +542,7 @@ INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component
 (9001421,9001420,'查看任务','ai_task_list',3,'','','sys:ai:task:list','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001422,9001420,'批准任务','ai_task_approve',3,'','','sys:ai:task:approve','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001423,9001420,'拒绝任务','ai_task_reject',3,'','','sys:ai:task:reject','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001424,9001420,'取消任务','ai_task_cancel',3,'','','sys:ai:task:cancel','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001430,9001400,'工具目录','ai_tool',2,'/ai/tools','ai_tool','','api',3,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001431,9001430,'查看工具','ai_tool_list',3,'','','sys:ai:tool:list','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001440,9001400,'知识库','ai_kb',2,'/ai/knowledge','ai_kb','','database',4,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
@@ -611,6 +619,7 @@ INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES
 (1,9001421,'2026-01-01 00:00:00'),
 (1,9001422,'2026-01-01 00:00:00'),
 (1,9001423,'2026-01-01 00:00:00'),
+(1,9001424,'2026-01-01 00:00:00'),
 (1,9001430,'2026-01-01 00:00:00'),
 (1,9001431,'2026-01-01 00:00:00'),
 (1,9001440,'2026-01-01 00:00:00'),
@@ -809,7 +818,13 @@ INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`,`created_at`,`u
 (101,'sys/ai','GET','/v1/sys/ai/kbs/:id/docs','GET /v1/sys/ai/kbs/:id/docs','2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (102,'sys/ai','POST','/v1/sys/ai/kbs/:id/docs','POST /v1/sys/ai/kbs/:id/docs','2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (103,'sys/ai','DELETE','/v1/sys/ai/kbs/:id/docs/:doc_id','DELETE /v1/sys/ai/kbs/:id/docs/:doc_id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
-(104,'sys/ai','POST','/v1/sys/ai/kbs/:id/docs/:doc_id/retry','POST /v1/sys/ai/kbs/:id/docs/:doc_id/retry','2026-01-01 00:00:00','2026-01-01 00:00:00');
+(104,'sys/ai','POST','/v1/sys/ai/kbs/:id/docs/:doc_id/retry','POST /v1/sys/ai/kbs/:id/docs/:doc_id/retry','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(105,'sys/ai','POST','/v1/sys/ai/kbs/:id/search','POST /v1/sys/ai/kbs/:id/search','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(106,'sys/ai','PUT','/v1/sys/ai/conversations/:id','PUT /v1/sys/ai/conversations/:id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(107,'sys/ai','PUT','/v1/sys/ai/conversations/:id/messages/:message_id/feedback','PUT /v1/sys/ai/conversations/:id/messages/:message_id/feedback','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(108,'sys/ai','POST','/v1/sys/ai/tasks/:id/cancel','POST /v1/sys/ai/tasks/:id/cancel','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(109,'sys/ai','GET','/v1/sys/ai/kbs/:id/docs/:doc_id','GET /v1/sys/ai/kbs/:id/docs/:doc_id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(110,'sys/ai','PUT','/v1/sys/ai/kbs/:id/docs/:doc_id','PUT /v1/sys/ai/kbs/:id/docs/:doc_id','2026-01-01 00:00:00','2026-01-01 00:00:00');
 
 -- APP 账号属于独立认证域，不用于后台登录；邮箱为保留演示域。
 INSERT INTO `app_user` (`id`,`account`,`identity_kind`,`password_hash`,`nickname`,`remark`,`status`,`review_reason`,`email_verified_at`,`created_at`,`updated_at`) VALUES

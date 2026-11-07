@@ -1,0 +1,107 @@
+{
+  "source_container": "gozero-new-mysql",
+  "database": "gozero_admin",
+  "exported_at": "2026-11-07T03:42:26.985Z",
+  "timezone": "Asia/Shanghai",
+  "filename": "gozero_admin-full-20261107114226.sql",
+  "bytes": 149672,
+  "sha256": "e4af2d3e73fe46010959af62580f3695fb470203e43355fb47f62836d35f0f5d",
+  "tables": {
+    "ai_conversation": {
+      "rows": 7,
+      "sha256": "3bcd773481712cf76f0b86afa635aa8acf30089aea3f194dd90e96e4c1b7581e"
+    },
+    "ai_kb": {
+      "rows": 3,
+      "sha256": "ccd83d781d7967872e2aca8940ac41a03e3599c34006cb05a83d6f2077302a3b"
+    },
+    "ai_kb_chunk": {
+      "rows": 16,
+      "sha256": "270a3d1eb48ce2e0a321a265d95f1c089c33d0dc248147090c021df91e3cbe85"
+    },
+    "ai_kb_doc": {
+      "rows": 14,
+      "sha256": "5687cade742b0536a544e5bdd41373984f82e6d8c51cbf7dff1268d8d501b737"
+    },
+    "ai_message": {
+      "rows": 14,
+      "sha256": "5dbf2af67b599c7a7d91b4212a2752802c971a668d36bf80ff9c56cd7c16f09a"
+    },
+    "ai_task": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ai_workflow": {
+      "rows": 3,
+      "sha256": "285687586c2741deb24bc7b33dad8e95f2bb74575baca75c71c9af0bb2108995"
+    },
+    "app_feedback": {
+      "rows": 3,
+      "sha256": "25ba1ec1fe8f6230943636405e62e7e73d4a5c6da4b3590b40cdc98442dccffe"
+    },
+    "app_membership_grant": {
+      "rows": 4,
+      "sha256": "03784a7fa137ebc2b4977afdb2adf032b56e2324339bce39f9d5a07d7fb6be2d"
+    },
+    "app_user": {
+      "rows": 5,
+      "sha256": "0f78cd8a7c7be924f21e7df6735caf1ad042218c85548839b1e337c8b3d5f09c"
+    },
+    "casbin_rule": {
+      "rows": 50,
+      "sha256": "e5a975ae3126cbc3f97b2929f86df48d0c93f4fcb72e92294f72b8db8a6dfcd0"
+    },
+    "sys_api": {
+      "rows": 109,
+      "sha256": "a39e2dde86be3f72617d44e8ba95d2587387d110cec6c1cbacccc3b58129ff3f"
+    },
+    "sys_audit_log": {
+      "rows": 101,
+      "sha256": "b1b2b52bbcc55a49f055f8bf436de7e5ac3c1f4994fcdc4c93de9ddc8e04160e"
+    },
+    "sys_dept": {
+      "rows": 6,
+      "sha256": "d6159f9f8208950864c07560436929cee6f52625b3d1d34dffcb7b8d413b090f"
+    },
+    "sys_dict": {
+      "rows": 4,
+      "sha256": "c1a488bc4ba767b17a31855e4811d20744006bef1fc02bd346b664eea4643f17"
+    },
+    "sys_file": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sys_file_reference": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sys_menu": {
+      "rows": 74,
+      "sha256": "d11f0bc41dd5022e936b5bbda53ca4fd6ad0accd8973f730e9f231bd25e7ba29"
+    },
+    "sys_menu_lock": {
+      "rows": 1,
+      "sha256": "43de3a417d75f4818c5a553268b80ce3a5805109a3bbc6b605e9fb0b8f50b485"
+    },
+    "sys_role": {
+      "rows": 6,
+      "sha256": "6cf9359e00528514372ef7e1b6f8bcf4fa3e6d9758c6129947b252c32daff622"
+    },
+    "sys_role_menu": {
+      "rows": 98,
+      "sha256": "32acb1f06d47b39b5057206181655f75f9078dc6017c30373712b95af6bcb769"
+    },
+    "sys_user": {
+      "rows": 8,
+      "sha256": "1e3dfa9dc5a104b98bfa67e77ce8b7085d423eee29c2e891c477febebdcdf71e"
+    },
+    "tenant_registry": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "restore_container": "gozero-backup-check-20261107",
+  "restore_verified": true,
+  "demo_login_verified": true,
+  "restore_verified_at": "2026-11-07T03:44:01.914Z"
+}

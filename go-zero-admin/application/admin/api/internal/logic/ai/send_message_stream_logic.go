@@ -29,7 +29,7 @@ func (l *SendMessageStreamLogic) SendMessageStream(req *types.AiSendMessageReq) 
 	if err != nil {
 		return nil, err
 	}
-	stream, err := l.svcCtx.AiRpc.SendMessageStream(l.ctx, &aipb.SendMessageRequest{Actor: actor, ConversationId: req.ConversationId, Content: req.Content, RequestId: req.RequestId})
+	stream, err := l.svcCtx.AiRpc.SendMessageStream(l.ctx, &aipb.SendMessageRequest{Actor: actor, ConversationId: req.ConversationId, Content: req.Content, RequestId: req.RequestId, KbId: req.KbId, Grounded: req.Grounded})
 	if err != nil {
 		return nil, err
 	}

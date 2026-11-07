@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/zeromicro/go-zero/core/logx"
 	"strconv"
 	"strings"
 	"time"
@@ -17,13 +18,15 @@ import (
 )
 
 type workflowStep struct {
+	Id       string          `json:"id,omitempty"`
 	Name     string          `json:"name"`
 	Tool     string          `json:"tool"`
 	Input    json.RawMessage `json:"input"`
 	Approval bool            `json:"approval"`
 }
 type workflowDefinition struct {
-	Steps []workflowStep `json:"steps"`
+	Version int            `json:"version,omitempty"`
+	Steps   []workflowStep `json:"steps"`
 }
 
 func parseWorkflow(raw string) (*workflowDefinition, error) {
@@ -36,7 +39,18 @@ func parseWorkflow(raw string) (*workflowDefinition, error) {
 	if !json.Valid([]byte(raw)) || decoder.Decode(&definition) != nil || len(definition.Steps) == 0 || len(definition.Steps) > 32 {
 		return nil, xerr.NewErrCodeMsg(400, "工作流须包含 1..32 个有效步骤")
 	}
-	for _, step := range definition.Steps {
+	if definition.Version != 0 && definition.Version != 2 {
+		return nil, xerr.NewErrCodeMsg(400, "工作流版本不支持")
+	}
+	prior := make(map[string]bool)
+	for index := range definition.Steps {
+		step := &definition.Steps[index]
+		if definition.Version == 0 && step.Id == "" {
+			step.Id = "legacy_" + strconv.Itoa(index+1)
+		}
+		if !workflowStepID.MatchString(step.Id) || prior[step.Id] {
+			return nil, xerr.NewErrCodeMsg(400, "步骤 ID 无效或重复")
+		}
 		if strings.TrimSpace(step.Name) == "" || utf8.RuneCountInString(step.Name) > 128 {
 			return nil, xerr.NewErrCodeMsg(400, "步骤名称不能为空且最多 128 字符")
 		}
@@ -47,6 +61,14 @@ func parseWorkflow(raw string) (*workflowDefinition, error) {
 		if json.Unmarshal(step.Input, &input) != nil || input == nil {
 			return nil, xerr.NewErrCodeMsg(400, "步骤 input 必须为 JSON 对象")
 		}
+		value, err := readWorkflowJSON(string(step.Input))
+		if err != nil {
+			return nil, xerr.NewErrCodeMsg(400, "步骤参数无效")
+		}
+		if err := checkWorkflowReferences(value, prior, 0); err != nil {
+			return nil, xerr.NewErrCodeMsg(400, err.Error())
+		}
+		prior[step.Id] = true
 	}
 	return &definition, nil
 }
@@ -60,25 +82,62 @@ func executeWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *mode
 	if task.NextStep < 0 || task.NextStep >= int64(len(definition.Steps)) {
 		return failWorkflow(ctx, svcCtx, task, "工作流断点无效")
 	}
+	records, err := model.ReadWorkflowStepRecords(task.StepRecords)
+	if err != nil || len(records) < int(task.NextStep) {
+		return failWorkflow(ctx, svcCtx, task, "历史任务缺少有效步骤记录，不能安全续跑")
+	}
 	for task.NextStep < int64(len(definition.Steps)) {
 		if ctx.Err() != nil {
 			return failWorkflow(ctx, svcCtx, task, "工作流执行已取消或超时")
 		}
 		step := definition.Steps[task.NextStep]
+		var input json.RawMessage
+		if approved && int64(len(records)) > task.NextStep && records[task.NextStep].Status == "pending_approval" {
+			// 本次审批展示的输入已持久化，不受工作流更新或前端参数影响。
+			input = json.RawMessage(records[task.NextStep].Input)
+		} else {
+			input, err = resolveWorkflowInput(definition, task.NextStep, task.Input, records)
+			if err != nil {
+				return failWorkflow(ctx, svcCtx, task, "步骤参数解析失败："+err.Error())
+			}
+		}
+		record := model.WorkflowStepRecord{Index: task.NextStep, Id: step.Id, Name: step.Name, Tool: step.Tool, Input: string(input), Status: "running", StartedAt: time.Now().UnixMilli()}
+		if int64(len(records)) == task.NextStep {
+			records = append(records, record)
+		} else if int64(len(records)) == task.NextStep+1 {
+			records[task.NextStep] = record
+		} else {
+			return failWorkflow(ctx, svcCtx, task, "步骤记录与断点不一致")
+		}
 		if step.Approval && !approved {
-			if err := svcCtx.AiTaskModel.Advance(ctx, task.Id, task.CreatedBy, task.NextStep, task.NextStep, "pending_approval", task.Result, ""); err != nil {
+			records[task.NextStep].Status = "pending_approval"
+			records[task.NextStep].StartedAt = 0
+			if err := persistWorkflowStep(ctx, svcCtx, task, task.NextStep, "pending_approval", task.Result, "", records); err != nil {
 				return "", aiModelError(err)
 			}
 			return "pending_approval", nil
 		}
 		approved = false
+		if err := persistWorkflowStep(ctx, svcCtx, task, task.NextStep, "running", task.Result, "", records); err != nil {
+			return "", aiModelError(err)
+		}
 		tool, ok := agenttools.Get(step.Tool)
 		if !ok {
 			return failWorkflow(ctx, svcCtx, task, "步骤工具不可用")
 		}
-		output, err := tool.Execute(agenttools.WithActor(ctx, task.CreatedBy), step.Input)
+		if ctx.Err() != nil {
+			return failWorkflow(ctx, svcCtx, task, "执行已取消或超时，当前工具结果可能未知")
+		}
+		output, err := tool.Execute(agenttools.WithActor(ctx, task.CreatedBy), input)
 		if err != nil {
+			var safe *agenttools.ExecutionError
+			if errors.As(err, &safe) {
+				return failWorkflow(ctx, svcCtx, task, safe.Message)
+			}
 			return failWorkflow(ctx, svcCtx, task, "步骤工具执行失败")
+		}
+		if ctx.Err() != nil {
+			return failWorkflow(ctx, svcCtx, task, "执行已取消或超时，当前工具结果可能未知")
 		}
 		result := task.Result
 		if result != "" {
@@ -92,7 +151,10 @@ func executeWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *mode
 		if task.NextStep+1 == int64(len(definition.Steps)) {
 			status = "succeeded"
 		}
-		if err := svcCtx.AiTaskModel.Advance(ctx, task.Id, task.CreatedBy, task.NextStep, task.NextStep+1, status, result, ""); err != nil {
+		records[task.NextStep].Status = "succeeded"
+		records[task.NextStep].Output = output
+		records[task.NextStep].CompletedAt = time.Now().UnixMilli()
+		if err := persistWorkflowStep(ctx, svcCtx, task, task.NextStep+1, status, result, "", records); err != nil {
 			return "", aiModelError(err)
 		}
 		task.NextStep++
@@ -107,10 +169,29 @@ func executeWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *mode
 func failWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *model.TaskRow, message string) (string, error) {
 	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
 	defer cancel()
-	if err := svcCtx.AiTaskModel.Advance(cleanupCtx, task.Id, task.CreatedBy, task.NextStep, task.NextStep, "failed", task.Result, message); err != nil {
+	records, _ := model.ReadWorkflowStepRecords(task.StepRecords)
+	if task.NextStep < int64(len(records)) {
+		r := &records[task.NextStep]
+		r.Status = "failed"
+		r.Error = message
+		r.CompletedAt = time.Now().UnixMilli()
+	}
+	if err := persistWorkflowStep(cleanupCtx, svcCtx, task, task.NextStep, "failed", task.Result, message, records); err != nil {
 		return "", aiModelError(err)
 	}
 	return "failed", nil
+}
+
+func persistWorkflowStep(ctx context.Context, svcCtx *svc.ServiceContext, task *model.TaskRow, next int64, status, result, message string, records []model.WorkflowStepRecord) error {
+	if err := svcCtx.AiTaskModel.AdvanceRecorded(ctx, task.Id, task.CreatedBy, task.NextStep, next, status, result, message, records); err != nil {
+		if !errors.Is(err, model.ErrTaskCommitted) {
+			return err
+		}
+		logx.WithContext(ctx).Errorf("workflow task %d progress committed; cache invalidation failed", task.Id)
+	}
+	raw, _ := json.Marshal(records)
+	task.StepRecords = string(raw)
+	return nil
 }
 
 func requireAiActor(actor *aipb.Actor) error {
@@ -121,6 +202,12 @@ func requireAiActor(actor *aipb.Actor) error {
 }
 
 func aiModelError(err error) error {
+	if errors.Is(err, model.ErrTaskCommitted) {
+		return xerr.NewErrCodeMsg(503, "任务状态已提交，缓存刷新失败，请刷新详情核对")
+	}
+	if errors.Is(err, model.ErrTaskRequestConflict) {
+		return xerr.NewErrCodeMsg(400, "同一 request_id 的工作流或输入不同")
+	}
 	if errors.Is(err, model.ErrWorkflowDisabled) {
 		return xerr.NewErrCodeMsg(400, "工作流已停用")
 	}
@@ -151,7 +238,7 @@ func aiPagination(page *aipb.PageRequest) (int64, int64, error) {
 }
 
 func conversationProto(row *model.ConversationRow) *aipb.ConversationInfo {
-	return &aipb.ConversationInfo{Id: row.Id, Title: row.Title, UserId: row.UserId, MessageCount: row.MessageCount, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}
+	return &aipb.ConversationInfo{Id: row.Id, Title: row.Title, UserId: row.UserId, MessageCount: row.MessageCount, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, Pinned: row.Pinned}
 }
 func messageProto(row *model.MessageRow) *aipb.ChatMessage {
 	status := row.Status
@@ -160,6 +247,8 @@ func messageProto(row *model.MessageRow) *aipb.ChatMessage {
 	}
 	calls := "[]"
 	message := ""
+	sources := make([]*aipb.KbSearchHit, 0)
+	feedback, feedbackNote := "", ""
 	if strings.HasPrefix(strings.TrimSpace(row.ToolCalls), "[") && json.Valid([]byte(row.ToolCalls)) {
 		calls = row.ToolCalls
 	} else {
@@ -170,13 +259,24 @@ func messageProto(row *model.MessageRow) *aipb.ChatMessage {
 				calls = string(data)
 			}
 			message = record.Error
+			if row.Role == "assistant" {
+				for _, hit := range record.Sources {
+					sources = append(sources, &aipb.KbSearchHit{ChunkId: hit.ChunkID, KbId: hit.KbID, DocId: hit.DocID, DocTitle: hit.DocTitle, Snippet: hit.Snippet, Score: hit.Score})
+				}
+				feedback, feedbackNote = record.Feedback, record.FeedbackNote
+			}
 		}
 	}
-	return &aipb.ChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: calls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: status, Error: message}
+	return &aipb.ChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: calls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: status, Error: message, Sources: sources, Feedback: feedback, FeedbackNote: feedbackNote}
 }
 func workflowProto(row *model.WorkflowRow) *aipb.WorkflowInfo {
 	return &aipb.WorkflowInfo{Id: row.Id, Name: row.Name, Definition: row.Definition, IntervalSeconds: row.IntervalSeconds, Enabled: row.Enabled, NextRunAt: row.NextRunAt, CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}
 }
 func taskProto(row *model.TaskRow) *aipb.AgentTaskInfo {
-	return &aipb.AgentTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt, NextStep: row.NextStep}
+	records, _ := model.ReadWorkflowStepRecords(row.StepRecords)
+	steps := make([]*aipb.WorkflowStepInfo, 0, len(records))
+	for _, r := range records {
+		steps = append(steps, &aipb.WorkflowStepInfo{Index: r.Index, Id: r.Id, Name: r.Name, Tool: r.Tool, Input: r.Input, Output: r.Output, Status: r.Status, Error: r.Error, StartedAt: r.StartedAt, CompletedAt: r.CompletedAt})
+	}
+	return &aipb.AgentTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt, NextStep: row.NextStep, Steps: steps, UpdatedAt: row.UpdatedAt, RequestId: row.RequestId}
 }

@@ -1,4 +1,5 @@
 import { lazy } from 'react';
+export { hiddenPageLinks } from './hiddenPages';
 export const pages = {
   dashboard: lazy(() => import('../pages/dashboard')), user: lazy(() => import('../pages/user')),
   role: lazy(() => import('../pages/role')), dept: lazy(() => import('../pages/dept')),
@@ -11,6 +12,7 @@ export const pages = {
   tenant_list: lazy(() => import('../pages/tenant/TenantList')),
   ai_chat: lazy(() => import('../pages/ai/AIChat')),
   ai_workflow: lazy(() => import('../pages/ai/AIWorkflows')),
+  ai_workflow_editor: lazy(() => import('../pages/ai/WorkflowEditorPage')),
   ai_task: lazy(() => import('../pages/ai/AITasks')),
   ai_tool: lazy(() => import('../pages/ai/AITools')),
   ai_kb: lazy(() => import('../pages/ai/AIKnowledge')),

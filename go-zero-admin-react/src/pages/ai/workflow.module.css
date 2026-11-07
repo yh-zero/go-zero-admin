@@ -31,7 +31,36 @@
 .readSteps { padding-left: 24px; }
 .readSteps li { margin-bottom: 20px; }
 .runDetails { margin: 16px 0; }
+.editorPage { max-width: 1260px; margin: 0 auto; padding-bottom: 20px; gap: 14px; }
+.pageHeading { display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
+.pageHeading h3 { margin: 0; }
+.pageHeading p { margin: 0; }
+.templateGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.templateButton { height: auto; padding: 12px 16px; text-align: left; justify-content: flex-start; white-space: normal; gap: 12px; }
+.templateButton > .anticon { font-size: 22px; color: var(--ant-color-primary, #1677ff); }
+.templateButton span:has(> strong) { display: flex; flex-direction: column; gap: 3px; }
+.templateButton strong { font-size: 15px; font-weight: 600; }
+.templateButton small { color: var(--ant-color-text-secondary, #64748b); font-size: 12px; }
+.editorCard { min-width: 0; }
+.editorPage .editorForm { gap: 16px; }
+.editorPage .nameRow :global(.ant-form-item) { margin-bottom: 0; }
+.stepSettingsRow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.stepSettingsRow :global(.ant-form-item) { margin-bottom: 16px; }
+.stepOptions { margin-bottom: 12px; }
+.stepOptions > summary { color: var(--ant-color-text-secondary, #64748b); cursor: pointer; font-size: 12px; margin-bottom: 12px; }
+.editorPage .editorGrid { grid-template-columns: 240px minmax(0, 1fr); min-height: 380px; }
+.editorPage .editorFooter { position: sticky; bottom: 0; z-index: 2; background: var(--ant-color-bg-container, white); padding: 16px 0; }
+.saveHint { margin-right: auto; font-size: 12px; }
+.fullWidth { width: 100%; }
+.choicePagination { padding: 10px; border-top: 1px solid var(--ant-color-border-secondary, #edf0f4); }
+.advancedParameters > summary { cursor: pointer; color: var(--ant-color-text-secondary, #64748b); margin-bottom: 12px; font-size: 12px; }
+.parameterFields > .ant-form-item { margin-bottom: 20px; }
 @media (max-width: 700px) {
+  .templateGrid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .templateButton { padding: 14px; }
+  .stepSettingsRow { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .editorPage .editorGrid { grid-template-columns: minmax(0, 1fr); }
+  .saveHint { display: none; }
   .editorGrid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .stepNavigation { max-height: 220px; overflow-y: auto; }
   .stepEditor { border-left: 0; border-top: 1px solid var(--ant-color-border-secondary, #edf0f4); padding: 20px 0 0; }

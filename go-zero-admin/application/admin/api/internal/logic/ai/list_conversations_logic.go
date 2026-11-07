@@ -19,7 +19,7 @@ type ListConversationsLogic struct {
 func NewListConversationsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ListConversationsLogic {
 	return &ListConversationsLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
-func (l *ListConversationsLogic) ListConversations(req *types.AiPageReq) (*types.AiListConversationsResp, error) {
+func (l *ListConversationsLogic) ListConversations(req *types.AiListConversationsReq) (*types.AiListConversationsResp, error) {
 	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
@@ -27,7 +27,7 @@ func (l *ListConversationsLogic) ListConversations(req *types.AiPageReq) (*types
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.ListConversations(l.ctx, &aipb.ListConversationsRequest{Actor: actor, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}})
+	out, err := l.svcCtx.AiRpc.ListConversations(l.ctx, &aipb.ListConversationsRequest{Actor: actor, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}, Query: req.Query})
 	if err != nil {
 		return nil, err
 	}

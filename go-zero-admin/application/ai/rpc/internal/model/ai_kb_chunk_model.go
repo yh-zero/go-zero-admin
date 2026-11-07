@@ -14,8 +14,8 @@ type (
 	// AiKbChunkModel 知识库分块数据层；向量索引命中后回表复核用（status=ready + 归属 + 未删除）
 	AiKbChunkModel interface {
 		aiKbChunkModel
-		// FindReadyByIDs 按 ID 批量取可展示的 chunk（JOIN 复核归属与软删），不存在/不可用的 ID 静默跳过
-		FindReadyByIDs(ctx context.Context, ids []uint64, ownerId int64) ([]*KbChunkRow, error)
+		// FindReadyByIDs 复核 owner、指定库（0 为全部）、文档/分块 ready、库一致与软删；不可用 ID 静默跳过。
+		FindReadyByIDs(ctx context.Context, ids []uint64, ownerId, kbId int64) ([]*KbChunkRow, error)
 		// ListReadyIDs 全量 ready chunk ID（对账用）
 		ListReadyIDs(ctx context.Context) (map[uint64]struct{}, error)
 	}
@@ -42,23 +42,28 @@ func NewAiKbChunkModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Optio
 	return &customAiKbChunkModel{defaultAiKbChunkModel: newAiKbChunkModel(conn, c, opts...), conn: conn}
 }
 
-func (m *customAiKbChunkModel) FindReadyByIDs(ctx context.Context, ids []uint64, ownerId int64) ([]*KbChunkRow, error) {
+func (m *customAiKbChunkModel) FindReadyByIDs(ctx context.Context, ids []uint64, ownerId, kbId int64) ([]*KbChunkRow, error) {
 	rows := make([]*KbChunkRow, 0)
 	if len(ids) == 0 {
 		return rows, nil
 	}
 	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(ids)), ",")
-	args := make([]any, 0, len(ids)+1)
+	args := make([]any, 0, len(ids)+2)
 	args = append(args, ownerId)
+	kbFilter := ""
+	if kbId > 0 {
+		kbFilter = " AND c.kb_id=?"
+		args = append(args, kbId)
+	}
 	for _, id := range ids {
 		args = append(args, id)
 	}
 	err := m.QueryRowsNoCacheCtx(ctx, &rows,
 		"SELECT c.id,c.doc_id,c.kb_id,c.seq,c.content,c.token_count,d.title AS doc_title "+
 			"FROM ai_kb_chunk c "+
-			"JOIN ai_kb_doc d ON c.doc_id=d.id AND d.deleted_at IS NULL "+
+			"JOIN ai_kb_doc d ON c.doc_id=d.id AND d.kb_id=c.kb_id AND d.status='ready' AND d.deleted_at IS NULL "+
 			"JOIN ai_kb k ON c.kb_id=k.id AND k.deleted_at IS NULL "+
-			"WHERE k.owner_id=? AND c.status='ready' AND c.id IN ("+placeholders+")", args...)
+			"WHERE k.owner_id=?"+kbFilter+" AND c.status='ready' AND c.id IN ("+placeholders+")", args...)
 	return rows, err
 }
 

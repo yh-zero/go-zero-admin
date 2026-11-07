@@ -29,5 +29,17 @@ func kbDocRowToPb(r *model.KbDocRow) *aipb.KbDocInfo {
 		EmbeddingModel: r.EmbeddingModel,
 		CreatedAt:      r.CreatedAt,
 		UpdatedAt:      r.UpdatedAt,
+		Version:        r.Version,
+		Stage:          kbDocumentStage(r),
 	}
+}
+
+func kbDocumentStage(r *model.KbDocRow) string {
+	if r.Status == "ready" || r.Status == "failed" {
+		return r.Status
+	}
+	if r.Stage == "indexing" {
+		return r.Stage
+	}
+	return "embedding"
 }

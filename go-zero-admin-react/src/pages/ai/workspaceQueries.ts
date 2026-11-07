@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import { fetchAiKbDocs, fetchAiKbs, fetchAiTask, fetchAiTasks, fetchAiTools, fetchAiWorkflow, fetchAiWorkflows } from '../../api/ai';
-import type { AiListTasksReq, PageParams } from '../../api/types';
+import type { AiKbDocInfo, AiListTasksReq, PageParams, PageResult } from '../../api/types';
 
 export type AiWorkspaceScope = readonly [sessionId: string, sessionVersion: number, departmentVersion: number];
 
@@ -53,6 +53,8 @@ export function kbListOptions(scope: AiWorkspaceScope, params: PageParams) {
 }
 
 export function kbDocListOptions(scope: AiWorkspaceScope, kbId: number, params: PageParams) {
-  return queryOptions({ queryKey: [...aiWorkspaceKeys.kbDocs(scope, kbId), params], staleTime: 0, retry: false,
+  return queryOptions<PageResult<AiKbDocInfo>>({ queryKey: [...aiWorkspaceKeys.kbDocs(scope, kbId), params], staleTime: 0, retry: false,
+    refetchInterval: query => query.state.data?.list.some(doc => doc.status === 'pending') ? 3000 : false,
+    refetchIntervalInBackground: false,
     queryFn: ({ signal }) => readActive(signal, () => fetchAiKbDocs(kbId, params)) });
 }

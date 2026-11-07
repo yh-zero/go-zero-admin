@@ -16,5 +16,6 @@ func mapAiKbDoc(row *aipb.KbDocInfo) *types.AiKbDocInfo {
 	return &types.AiKbDocInfo{
 		Id: row.Id, KbId: row.KbId, Title: row.Title, Status: row.Status, Error: row.Error,
 		ChunkCount: row.ChunkCount, EmbeddingModel: row.EmbeddingModel, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
+		Version: row.Version, Stage: row.Stage,
 	}
 }

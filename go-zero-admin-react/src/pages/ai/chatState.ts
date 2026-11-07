@@ -59,14 +59,36 @@ export function createMessageSender(send: (request: AiSendMessageReq, handlers: 
   }
 
   return {
-    start(conversationId: number, content: string, handlers: AiStreamHandlers = {}): MessageAttempt | null {
+    start(conversationId: number, content: string, handlers: AiStreamHandlers = {}, knowledge: Pick<AiSendMessageReq, 'kb_id' | 'grounded'> = {}): MessageAttempt | null {
       if (active || validateMessageContent(content)) return null;
-      return begin({ request: { request_id: newId(), conversation_id: conversationId || createdConversationId, content }, startedAt: Date.now() }, handlers);
+      if (knowledge.grounded && (!(knowledge.kb_id && knowledge.kb_id > 0) || new TextEncoder().encode(content).length > 2000)) return null;
+      return begin({ request: { request_id: newId(), conversation_id: conversationId || createdConversationId, content, ...knowledge }, startedAt: Date.now() }, handlers);
     },
     // 重查复用原请求 ID，确认服务端是否已处理，不会新建调用。
     recheck(handlers: AiStreamHandlers = {}) { return previous ? begin(previous, handlers) : null; },
     abort() { active?.controller.abort(); },
   };
+}
+
+// 从最新页建立本次导出快照，向前读取到起点；范围超限或身份变化时整体失败，不下载残缺文件。
+export async function readEntireConversation(readPage: (beforeId: number) => Promise<AiGetConversationResp>, isCurrent: () => boolean, signal: AbortSignal): Promise<AiGetConversationResp> {
+  let beforeId = 0;
+  let bytes = 0;
+  const pages: AiGetConversationResp[] = [];
+  const ensureCurrent = () => { signal.throwIfAborted(); if (!isCurrent()) throw new DOMException('身份已变化，导出已取消', 'AbortError'); };
+  for (let count = 0; count < 5000; count++) {
+    ensureCurrent();
+    const page = await readPage(beforeId);
+    ensureCurrent();
+    bytes += new TextEncoder().encode(JSON.stringify(page)).length;
+    if (bytes > 16 * 1024 * 1024) throw new Error('会话超过 16 MiB 导出限制，请使用已加载消息导出');
+    pages.push(page);
+    if (!page.has_more) return { ...pages[0]!, messages: mergeMessagePages(pages), has_more: false, next_before_id: 0 };
+    const next = nextMessageCursor(page, beforeId);
+    if (!next) throw new Error('消息分页游标无效，未导出不完整会话');
+    beforeId = next;
+  }
+  throw new Error('会话超过导出页数限制，请使用已加载消息导出');
 }
 // 导出会话为 Markdown 或 JSON，触发浏览器下载。
 export function exportConversation(title: string, messages: AiChatMessage[], format: 'md' | 'json'): void {

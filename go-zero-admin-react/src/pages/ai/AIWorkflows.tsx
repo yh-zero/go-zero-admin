@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, App, Button, Card, Drawer, Form, Input, Modal, Space, Table, Tag, Typography } from 'antd';
-import { ApartmentOutlined, DeleteOutlined, EditOutlined, PlayCircleOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { ApartmentOutlined, CopyOutlined, DeleteOutlined, EditOutlined, PlayCircleOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { createAiWorkflow, deleteAiWorkflow, runAiWorkflow, updateAiWorkflow } from '../../api/ai';
-import type { AiCreateWorkflowReq, AiRunWorkflowResp, AiUpdateWorkflowReq, AiWorkflowInfo } from '../../api/types';
+import { deleteAiWorkflow, runAiWorkflow } from '../../api/ai';
+import type { AiRunWorkflowReq, AiRunWorkflowResp, AiWorkflowInfo } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { correctPageParams } from '../../hooks/usePagedQuery';
 import { useAuthStore } from '../../stores/auth';
@@ -12,16 +12,17 @@ import { formatTime } from '../../utils/format';
 import { ApiError } from '../../utils/response';
 import { AIWorkspaceAccess } from './AIWorkspaceAccess';
 import { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
-import { aiWorkspaceKeys, toolListOptions, workflowDetailOptions, workflowListOptions } from './workspaceQueries';
+import { aiWorkspaceKeys, workflowDetailOptions, workflowListOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
-import { WorkflowDefinitionView, WorkflowEditor, WorkflowRunResultNotice } from './WorkflowEditor';
-import { newWorkflowStep, parseWorkflow, retainWorkflowDraftSeed, validateRunInput } from './workflowDefinition';
-import type { WorkflowDraft, WorkflowDraftSeed } from './workflowDefinition';
+import { WorkflowDefinitionView, WorkflowRunResultNotice } from './WorkflowEditor';
+import { parseWorkflow, prepareWorkflowRunInput, validateRunInput, workflowRunFields } from './workflowDefinition';
+import { clearWorkflowRunAttempt, readWorkflowRunAttempt, saveWorkflowRunAttempt, workflowRunAttemptKey } from './workflowRunAttempts';
+import type { WorkflowRunAttempt } from './workflowRunAttempts';
 import styles from './workflow.module.css';
 
 const readCode = 'sys:ai:workflow:list';
 const permission = (operation: string) => `sys:ai:workflow:${operation}`;
-type Panel = { mode: 'create'; key: string; tool?: string } | { mode: 'view' | 'edit' | 'run'; id: number; key: string };
+type Panel = { mode: 'view' | 'run'; id: number; key: string };
 
 export default function AIWorkflows() {
   return <AIWorkspaceAccess code={readCode} title="工作流管理">{scope => <AIWorkflowsSession scope={scope} />}</AIWorkspaceAccess>;
@@ -31,34 +32,46 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
   const client = useQueryClient();
   const { message } = App.useApp();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const { can, isCurrent, beginWrite, finishWrite, writing } = useAiWorkspaceGuard(scope, readCode);
   const [pageParams, setPageParams] = useState({ page: 1, page_size: 20 });
   const { page, page_size: pageSize } = pageParams;
   const [search, setSearch] = useState('');
   const [panel, setPanel] = useState<Panel | null>(null);
-  const [draftSeed, setDraftSeed] = useState<WorkflowDraftSeed | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AiWorkflowInfo | null>(null);
-  const [uncertain, setUncertain] = useState<'create' | 'run' | null>(null);
+  const [uncertain, setUncertain] = useState<'run' | null>(null);
   const [lastRunWithoutAccess, setLastRunWithoutAccess] = useState<AiRunWorkflowResp | null>(null);
-  const [runForm] = Form.useForm<{ input: string }>();
+  const [runAttempt, setRunAttempt] = useState<(AiRunWorkflowReq & { workflowId: number }) | null>(null);
+  const [runError, setRunError] = useState('');
+  const runAttempts = useRef(new Map<string, WorkflowRunAttempt>());
+  const [runForm] = Form.useForm<{ input: string; question?: string; text?: string }>();
+  const departmentId = useAuthStore(state => state.selectedDeptId);
+  const sessionId = scope[0];
+  const attemptKey = (id: number) => workflowRunAttemptKey(sessionId, departmentId, id);
   const incomingTool = searchParams.get('tool');
+  const requestedRun = searchParams.get('run');
   const canReadTools = can('sys:ai:tool:list');
   const canCreate = can(permission('create'));
   const canEdit = can(permission('edit'));
   const canReadTasks = can('sys:ai:task:list');
+  const canRun = can(permission('run'));
+  const consumedRun = useRef<string | null>(null);
+  const restoreRunAttempt = useCallback((id: number) => {
+    setUncertain(null); setRunAttempt(null); setRunError('');
+    try {
+      const stored = readWorkflowRunAttempt(sessionStorage, runAttempts.current, workflowRunAttemptKey(sessionId, departmentId, id), id);
+      if (stored) { setRunAttempt(stored); setUncertain('run'); }
+    } catch { setUncertain('run'); setRunError('浏览器无法恢复运行标识，请先到任务中心核对上次运行。'); }
+  }, [sessionId, departmentId]);
   const list = useQuery(workflowListOptions(scope, pageParams));
   const completedTotal = list.isSuccess && !list.isFetching ? list.data.total : undefined;
-  const needTools = (!!incomingTool && canCreate) || panel?.mode === 'create' || (panel?.mode === 'edit' && canEdit);
-  const toolQuery = useQuery({ ...toolListOptions(scope), enabled: canReadTools && needTools });
-  const tools = canReadTools ? toolQuery.data?.list ?? [] : [];
-  const detailId = panel && panel.mode !== 'create' ? panel.id : 0;
+  const detailId = panel?.id ?? 0;
   const detail = useQuery({ ...workflowDetailOptions(scope, detailId), enabled: detailId > 0, refetchOnMount: 'always' });
   const workflow = detail.data?.workflow;
-  const create = useMutation({ mutationFn: (request: AiCreateWorkflowReq) => createAiWorkflow(request), retry: false });
-  const update = useMutation({ mutationFn: ({ id, request }: { id: number; request: AiUpdateWorkflowReq }) => updateAiWorkflow(id, request), retry: false });
   const remove = useMutation({ mutationFn: deleteAiWorkflow, retry: false });
-  const run = useMutation({ mutationFn: ({ id, input }: { id: number; input: string }) => runAiWorkflow(id, input === '' ? undefined : input), retry: false });
+  const run = useMutation({ mutationFn: ({ workflowId, ...data }: AiRunWorkflowReq & { workflowId: number }) => runAiWorkflow(workflowId, data), retry: false });
+  let runFields = { question: false, text: false };
+  try { if (workflow) runFields = workflowRunFields(workflow.definition); } catch { /* 详情会展示原始定义；运行时服务端再次校验。 */ }
 
   useEffect(() => {
     if (completedTotal === undefined) return;
@@ -68,16 +81,17 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
   }, [completedTotal, pageParams]);
 
   useEffect(() => {
-    if (!incomingTool || writing || !canCreate || !canReadTools || !toolQuery.data || !isCurrent()) return;
-    if (!toolQuery.data.list.some(tool => tool.name === incomingTool)) return;
-    // 路由查询参数来自工具目录；注册表与实时权限确认后，将外部导航同步为一次本地编辑草稿。
+    if (incomingTool && canCreate && canReadTools && isCurrent()) navigate('/ai/workflows/new?tool=' + encodeURIComponent(incomingTool), { replace: true });
+  }, [incomingTool, canCreate, canReadTools, isCurrent, navigate]);
+  useEffect(() => {
+    if (!requestedRun || consumedRun.current === requestedRun || !/^[1-9]\d*$/.test(requestedRun) || !Number.isSafeInteger(Number(requestedRun)) || !canRun || !isCurrent()) return;
+    consumedRun.current = requestedRun;
+    restoreRunAttempt(Number(requestedRun));
+    // 保存后只打开确认表单，真正执行仍需用户确认。
     // oxlint-disable-next-line react/set-state-in-effect
-    setPanel({ mode: 'create', key: crypto.randomUUID(), tool: incomingTool });
-    setUncertain(null);
-    const next = new URLSearchParams(searchParams);
-    next.delete('tool');
-    setSearchParams(next, { replace: true });
-  }, [incomingTool, writing, canCreate, canReadTools, toolQuery.data, isCurrent, searchParams, setSearchParams]);
+    setPanel({ mode: 'run', id: Number(requestedRun), key: crypto.randomUUID() });
+    navigate('/ai/workflows', { replace: true });
+  }, [requestedRun, canRun, isCurrent, navigate, restoreRunAttempt]);
 
   function closePanel() {
     if (writing) return;
@@ -85,34 +99,15 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
     setPanel(null);
     setUncertain(null);
   }
-  function openExisting(id: number, mode: 'view' | 'edit' | 'run') {
+  function openExisting(id: number, mode: 'view' | 'run') {
     if (writing || !isCurrent()) return;
     setUncertain(null);
-    runForm.resetFields();
+    if (mode === 'run') {
+      restoreRunAttempt(id);
+    }
     setPanel({ id, mode, key: crypto.randomUUID() });
   }
   async function refreshList() { await client.invalidateQueries({ queryKey: aiWorkspaceKeys.workflows(scope) }); }
-  async function saveWorkflow(draft: WorkflowDraft, definition: string) {
-    if (!panel || panel.mode === 'run' || uncertain || !canReadTools || !toolQuery.data || toolQuery.isFetching || toolQuery.error || (panel.mode !== 'create' && (detail.isFetching || detail.error))) return;
-    const creating = panel.mode === 'create';
-    if (!beginWrite(permission(creating ? 'create' : 'edit'))) return;
-    try {
-      if (creating) await create.mutateAsync({ name: draft.name.trim(), definition, interval_seconds: 0 });
-      else await update.mutateAsync({ id: panel.id, request: { name: draft.name.trim(), definition, enabled: draft.enabled ? 1 : 0 } });
-      if (!isCurrent()) return;
-      if (!creating) {
-        await client.cancelQueries({ queryKey: aiWorkspaceKeys.workflow(scope, panel.id) });
-        client.removeQueries({ queryKey: aiWorkspaceKeys.workflow(scope, panel.id) });
-      }
-      if (!isCurrent()) return;
-      setPanel(null);
-      setSearch('');
-      void message.success(creating ? '工作流已创建，默认启用' : '工作流已保存');
-      await refreshList();
-    } catch (error) {
-      if (isCurrent() && creating && (!(error instanceof ApiError) || error.code >= 500)) setUncertain('create');
-    } finally { finishWrite(); }
-  }
   async function deleteWorkflow() {
     if (!deleteTarget || !beginWrite(permission('delete'))) return;
     const id = deleteTarget.id;
@@ -130,12 +125,22 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
     } catch { /* 失败保留确认上下文，由请求层展示错误。 */ }
     finally { finishWrite(); }
   }
-  async function runWorkflow({ input }: { input: string }) {
-    if (!workflow || panel?.mode !== 'run' || detail.isFetching || detail.error || workflow.enabled !== 1 || uncertain || !beginWrite(permission('run'))) return;
+  async function runWorkflow(values: { input?: string; question?: string; text?: string }) {
+    if (!workflow || panel?.mode !== 'run' || detail.isFetching || detail.error || workflow.enabled !== 1 || !isCurrent()) return;
+    let attempt = runAttempt;
+    if (!uncertain || !attempt) {
+      try { attempt = { workflowId: workflow.id, request_id: crypto.randomUUID(), input: prepareWorkflowRunInput(values) }; }
+      catch (error) { setRunError(error instanceof Error ? error.message : '请核对运行输入'); return; }
+    }
+    if (!beginWrite(permission('run'))) return;
+    setRunAttempt(attempt); setRunError('');
+    try { saveWorkflowRunAttempt(sessionStorage, runAttempts.current, attemptKey(workflow.id), attempt); } catch { setRunError('运行标识暂时只能保留在本页面，刷新前请先核对任务结果。'); }
     try {
-      const result = await run.mutateAsync({ id: workflow.id, input });
+      const result = await run.mutateAsync(attempt);
       if (!isCurrent()) return;
       if (!Number.isSafeInteger(result.task_id) || result.task_id <= 0) { setUncertain('run'); return; }
+      try { clearWorkflowRunAttempt(sessionStorage, runAttempts.current, attemptKey(workflow.id)); } catch { /* 同一幂等标识仍只会读回原任务。 */ }
+      setRunAttempt(null);
       const mayReadTasks = () => {
         const auth = useAuthStore.getState();
         return auth.permissionsReady && auth.permCodes.includes('sys:ai:task:list');
@@ -147,36 +152,19 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
       else setLastRunWithoutAccess(result);
     } catch (error) {
       if (isCurrent() && (!(error instanceof ApiError) || error.code >= 500)) setUncertain('run');
+      else if (isCurrent()) { setRunAttempt(null); try { clearWorkflowRunAttempt(sessionStorage, runAttempts.current, attemptKey(workflow.id)); } catch { /* 留存的幂等标识不会触发自动执行。 */ } }
     } finally { finishWrite(); }
   }
 
-  const { initial, definitionError } = useMemo((): { initial?: WorkflowDraft; definitionError?: string } => {
-    const available = canReadTools ? toolQuery.data?.list ?? [] : [];
-    if (panel?.mode === 'create') return { initial: { name: panel.tool ? `${panel.tool}工作流` : '', enabled: true, steps: [newWorkflowStep(panel.tool ?? available[0]?.name)] } };
-    if (workflow && panel?.mode === 'edit' && canEdit && canReadTools && toolQuery.data) {
-      try { return { initial: { name: workflow.name, enabled: workflow.enabled === 1, steps: parseWorkflow(workflow.definition, available) } }; }
-      catch (error) { return { definitionError: error instanceof Error ? error.message : '定义暂不可编辑' }; }
-    }
-    return {};
-  }, [panel, workflow, canEdit, canReadTools, toolQuery.data]);
-  const incomingError = incomingTool && (!canCreate || !canReadTools ? '需要新建工作流与查看工具权限，才能使用工具创建工作流。'
-    : toolQuery.data && !tools.some(tool => tool.name === incomingTool) ? '工具不存在或已从注册表移除，请在工具目录重新选择。' : '');
-  const canUseEditor = panel?.mode === 'create' ? canCreate && canReadTools : panel?.mode === 'edit' && canEdit && canReadTools;
-  const initialReady = canUseEditor && !toolQuery.isPending && !toolQuery.error && (panel?.mode === 'create' || !detail.isFetching && !detail.error);
-  const nextDraftSeed = retainWorkflowDraftSeed(draftSeed, canUseEditor ? panel?.key : undefined, initialReady ? initial : undefined);
-  // 首次成功加载后由 Form 持有编辑值。只按抽屉标识切换种子，后台查询状态不会卸载当前表单。
-  if (nextDraftSeed !== draftSeed) setDraftSeed(nextDraftSeed);
-  const editorSaveDisabled = !!uncertain || toolQuery.isFetching || !!toolQuery.error || !tools.length || (panel?.mode !== 'create' && (detail.isFetching || !!detail.error));
   const displayed = (list.data?.list ?? []).filter(item => item.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
 
   return <div className={styles.workspace}>
     <Card>
       <div className={styles.header}><div><Space><ApartmentOutlined /><Typography.Title level={3}>工作流管理</Typography.Title><Tag>{list.data?.total ?? 0} 个工作流</Tag></Space><p className={styles.headerNote}>将工具组织为顺序步骤，在关键步骤前确认</p></div><Space>
         <Button icon={<ReloadOutlined />} aria-label="刷新工作流列表" disabled={writing} onClick={() => void refreshList()} />
-        {canCreate && <Button type="primary" icon={<PlusOutlined />} disabled={writing || !canReadTools} title={!canReadTools ? '需要查看工具权限才能选择注册工具' : undefined} onClick={() => { setUncertain(null); setPanel({ mode: 'create', key: crypto.randomUUID() }); }}>新建工作流</Button>}
+        {canCreate && <Button type="primary" icon={<PlusOutlined />} disabled={writing || !canReadTools} title={!canReadTools ? '需要查看工具权限才能选择注册工具' : undefined} onClick={() => navigate('/ai/workflows/new')}>新建工作流</Button>}
       </Space></div>
     </Card>
-    {incomingError && <Alert type="warning" showIcon title={incomingError} />}
     {lastRunWithoutAccess && <WorkflowRunResultNotice result={lastRunWithoutAccess} />}
     {canCreate && !canReadTools && <Alert type="info" showIcon title="尚无查看工具权限，可查看已有定义；新建和编辑步骤需要查看工具权限。" />}
     <Card>
@@ -187,37 +175,37 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
         { title: '步骤', width: 90, render: (_: unknown, row) => { try { return `${parseWorkflow(row.definition).length} 步`; } catch { return '定义异常'; } } },
         { title: '状态', width: 100, dataIndex: 'enabled', render: (enabled: number) => <Tag color={enabled === 1 ? 'success' : 'default'}>{enabled === 1 ? '已启用' : '已停用'}</Tag> },
         { title: '更新于', dataIndex: 'updated_at', render: formatTime, responsive: ['lg'] },
-        { title: '操作', width: 260, render: (_: unknown, row) => <Space size={4}>
-          {canEdit && <Button type="text" size="small" icon={<EditOutlined />} disabled={writing || !canReadTools} onClick={() => openExisting(row.id, 'edit')}>编辑</Button>}
+        { title: '操作', width: 330, render: (_: unknown, row) => <Space size={4}>
+          {canCreate && <Button type="text" size="small" icon={<CopyOutlined />} disabled={writing || !canReadTools} onClick={() => navigate(`/ai/workflows/new?copy=${row.id}`)}>复制</Button>}
+          {canEdit && <Button type="text" size="small" icon={<EditOutlined />} disabled={writing || !canReadTools} onClick={() => navigate(`/ai/workflows/${row.id}/edit`)}>编辑</Button>}
           {can(permission('run')) && <Button type="text" size="small" icon={<PlayCircleOutlined />} disabled={writing || row.enabled !== 1} onClick={() => openExisting(row.id, 'run')}>运行</Button>}
           {can(permission('delete')) && <Button type="text" size="small" danger icon={<DeleteOutlined />} disabled={writing} onClick={() => setDeleteTarget(row)}>删除</Button>}
         </Space> },
       ]} />}
     </Card>
-    <Drawer open={!!panel && panel.mode !== 'run'} title={panel?.mode === 'create' ? '新建工作流' : panel?.mode === 'edit' && canUseEditor ? '编辑工作流' : '工作流详情'} size={880} onClose={closePanel} closable={!writing} maskClosable={!writing} keyboard={!writing} destroyOnHidden>
-      {uncertain === 'create' && <Alert type="warning" showIcon title="创建结果未知，请先刷新列表核对，确认未创建后再新建。" description="本次创建没有幂等标识，不会自动重试。" action={<Button onClick={() => { void refreshList(); closePanel(); }}>刷新列表核对</Button>} />}
-      {detailId > 0 && <QueryState isPending={!nextDraftSeed && (detail.isPending || detail.isFetching)} error={detail.error} onRetry={detail.refetch} />}
-      {canUseEditor && <QueryState isPending={!nextDraftSeed && toolQuery.isPending} error={toolQuery.error} onRetry={toolQuery.refetch} />}
-      {nextDraftSeed && (detail.isFetching || toolQuery.isFetching) && <Alert type="info" showIcon title="正在核对已保存定义与工具目录，未保存草稿已保留；完成后可继续保存。" />}
-      {nextDraftSeed && (detail.error || toolQuery.error) && <Alert type="warning" showIcon title="后台数据核对失败，未保存草稿已保留；请重新加载成功后再保存。" />}
-      {canUseEditor && toolQuery.data && !tools.length && <Alert type="info" showIcon title="工具注册表为空，暂时无法保存步骤。请刷新工具目录后重试。" />}
-      {definitionError && <Alert type="warning" showIcon title="此定义暂不可编辑" description={definitionError} />}
-      {canUseEditor && nextDraftSeed ? <WorkflowEditor key={nextDraftSeed.key} initial={nextDraftSeed.draft} tools={tools} existing={panel?.mode !== 'create'} saving={writing} saveDisabled={editorSaveDisabled} onSave={saveWorkflow} onCancel={closePanel} />
-        : workflow && detailId > 0 && !detail.isFetching && !detail.error && <WorkflowDefinitionView name={workflow.name} definition={workflow.definition} />}
+    <Drawer open={panel?.mode === 'view'} title="工作流详情" size={880} onClose={closePanel} destroyOnHidden>
+      <QueryState isPending={detail.isPending || detail.isFetching} error={detail.error} onRetry={detail.refetch} />
+      {workflow && !detail.isFetching && !detail.error && <WorkflowDefinitionView name={workflow.name} definition={workflow.definition} />}
     </Drawer>
-    <Modal open={panel?.mode === 'run'} title="确认运行工作流" onCancel={closePanel} closable={!writing} maskClosable={!writing} keyboard={!writing} confirmLoading={writing} okText="确认运行" okButtonProps={{ disabled: !workflow || workflow.enabled !== 1 || detail.isFetching || !!detail.error || !!uncertain || !can(permission('run')) }} onOk={() => runForm.submit()} destroyOnHidden>
+    <Modal open={panel?.mode === 'run'} title="确认运行工作流" onCancel={closePanel} closable={!writing} mask={{ closable: !writing }} keyboard={!writing} confirmLoading={writing} okText={uncertain ? '核对原任务' : '开始后台运行'} okButtonProps={{ disabled: !workflow || workflow.enabled !== 1 || detail.isFetching || !!detail.error || (!!uncertain && !runAttempt) || !can(permission('run')) }} onOk={() => uncertain ? void runWorkflow({}) : runForm.submit()} destroyOnHidden>
       <QueryState isPending={detail.isPending || detail.isFetching} error={detail.error} onRetry={detail.refetch} />
       {workflow && !detail.isFetching && !detail.error && <>
         <Typography.Paragraph>将运行已保存的工作流「{workflow.name}」，不会使用未保存的编辑内容。</Typography.Paragraph>
         {workflow.enabled !== 1 && <Alert type="warning" showIcon title="此工作流已停用，请在编辑中启用后再运行。" />}
         <details className={styles.runDetails}><summary>查看本次已保存定义</summary><WorkflowDefinitionView name={workflow.name} definition={workflow.definition} /></details>
-        <Form form={runForm} layout="vertical" initialValues={{ input: '' }} onFinish={runWorkflow} disabled={writing}>
-          <Form.Item label="运行输入 JSON（可选）" name="input" extra="仅保存为本次运行记录，不会注入步骤参数；最多 16000 UTF-8 字节。" rules={[{ validator: (_: unknown, value: string) => { const error = validateRunInput(value ?? ''); return error ? Promise.reject(new Error(error)) : Promise.resolve(); } }]}><Input.TextArea rows={4} spellCheck={false} placeholder="{}" className={styles.jsonInput} /></Form.Item>
+        <Form form={runForm} layout="vertical" initialValues={{ input: '', question: undefined, text: undefined }} onFinish={runWorkflow} disabled={writing || !!uncertain} clearOnDestroy>
+          {runFields.question && <Form.Item label="本次问题" name="question" rules={[{ required: true, whitespace: true, message: '请输入本次希望分析的问题' }]}><Input.TextArea rows={4} placeholder="希望从资料中了解什么？" /></Form.Item>}
+          {runFields.text && <Form.Item label="本次文本" name="text" rules={[{ required: true, message: '请输入本次需要处理的文本' }]}><Input.TextArea rows={5} placeholder="粘贴本次运行需要处理的文本" /></Form.Item>}
+          {!runFields.question && !runFields.text && <Typography.Paragraph type="secondary">本工作流使用已保存的固定参数；提交后可以关闭页面，在任务中心查看进度。</Typography.Paragraph>}
+          <details className={styles.runDetails}><summary>高级运行选项（可选）</summary>
+          <Form.Item label="运行输入 JSON（可选）" name="input" extra="JSON 对象中的字段可由 input.字段名 引用；上方问题和文本覆盖同名字段，总计最多 16000 UTF-8 字节。" rules={[{ validator: (_: unknown, value: string) => { const error = validateRunInput(value ?? ''); return error ? Promise.reject(new Error(error)) : Promise.resolve(); } }]}><Input.TextArea rows={4} spellCheck={false} placeholder="{}" className={styles.jsonInput} /></Form.Item>
+          </details>
         </Form>
       </>}
-      {uncertain === 'run' && <Alert type="warning" showIcon title={canReadTasks ? '运行结果未知，请先到任务中心刷新核对，确认未创建任务后再发起。' : '运行结果未知，请联系管理员授予任务查看权限后核对，确认未创建任务前请勿重复运行。'} description="本次运行没有幂等标识，不会自动重试。" action={canReadTasks ? <Button onClick={() => navigate('/ai/tasks')}>前往任务中心核对</Button> : undefined} />}
+      {runError && <Alert type="warning" showIcon title={runError} />}
+      {uncertain === 'run' && <Alert type="warning" showIcon title="上次运行结果待确认" description="点击“核对原任务”会复用原请求标识和输入，已有任务会直接返回，不会重复执行；也可到任务中心查看。" action={canReadTasks ? <Button onClick={() => navigate('/ai/tasks')}>前往任务中心</Button> : undefined} />}
     </Modal>
-    <Modal open={!!deleteTarget} title="删除工作流" okText="确认删除" okButtonProps={{ danger: true, disabled: !can(permission('delete')) }} confirmLoading={writing} onOk={() => void deleteWorkflow()} onCancel={() => { if (!writing) setDeleteTarget(null); }} closable={!writing} maskClosable={!writing} keyboard={!writing}>
+    <Modal open={!!deleteTarget} title="删除工作流" okText="确认删除" okButtonProps={{ danger: true, disabled: !can(permission('delete')) }} confirmLoading={writing} onOk={() => void deleteWorkflow()} onCancel={() => { if (!writing) setDeleteTarget(null); }} closable={!writing} mask={{ closable: !writing }} keyboard={!writing}>
       <Typography.Paragraph>确定删除「{deleteTarget?.name}」？已有任务记录保留，删除后无法再运行此工作流。</Typography.Paragraph>
     </Modal>
   </div>;

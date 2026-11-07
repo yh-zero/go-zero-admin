@@ -2,8 +2,10 @@ package aiservicelogic
 
 import (
 	"context"
+	"errors"
 	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/ai/rpc/aipb"
+	"go-zero-admin/application/ai/rpc/internal/model"
 	"go-zero-admin/application/ai/rpc/internal/svc"
 	"go-zero-admin/pkg/xerr"
 )
@@ -38,11 +40,18 @@ func (l *ApproveTaskLogic) ApproveTask(in *aipb.ApproveTaskRequest) (*aipb.NoDat
 	if task.NextStep < 0 || task.NextStep >= int64(len(definition.Steps)) || !definition.Steps[task.NextStep].Approval {
 		return nil, xerr.NewErrCodeMsg(400, "任务审批断点无效")
 	}
+	if !reserveWorkflowSlot() {
+		return nil, xerr.NewErrCodeMsg(503, "工作流繁忙，请刷新后重试批准")
+	}
 	if err := l.svcCtx.AiTaskModel.ClaimApproval(l.ctx, task.Id, in.Actor.UserId, *in.ExpectedStep); err != nil {
+		if errors.Is(err, model.ErrTaskCommitted) {
+			launchWorkflow(l.ctx, l.svcCtx, task, true)
+			l.Error("workflow approval committed; cache invalidation failed")
+			return nil, aiModelError(err)
+		}
+		releaseWorkflowSlot()
 		return nil, aiModelError(err)
 	}
-	if _, err := executeWorkflow(l.ctx, l.svcCtx, task, true); err != nil {
-		return nil, err
-	}
+	launchWorkflow(l.ctx, l.svcCtx, task, true)
 	return &aipb.NoDataResponse{}, nil
 }

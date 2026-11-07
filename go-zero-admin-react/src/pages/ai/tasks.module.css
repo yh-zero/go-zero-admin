@@ -38,3 +38,5 @@
   .table .name, .table .actions { grid-column: 1 / -1; }
   .table .actions { text-align: right; }
 }
+.stepRecords { padding-left: 24px; }
+.stepRecord { margin: 12px 0; padding: 12px; border: 1px solid var(--ant-color-border-secondary, #e8e8e8); border-radius: 8px; overflow-wrap: anywhere; }

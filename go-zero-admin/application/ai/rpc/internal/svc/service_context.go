@@ -26,6 +26,7 @@ type ServiceContext struct {
 	// 知识库检索：Qdrant.Address 或 Embedding 未配置时为 nil，对应功能按契约降级
 	VectorStore vectordb.Store
 	Embedder    *llm.Embedder
+	KbSearcher  agenttools.KbSearcher
 
 	AiConversationModel model.AiConversationModel
 	AiMessageModel      model.AiMessageModel
@@ -61,12 +62,16 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	svcCtx.Embedder = newEmbedder(ai)
 	svcCtx.VectorStore = newVectorStore(c)
 	if svcCtx.VectorStore != nil && svcCtx.Embedder != nil {
-		agenttools.RegisterIfAbsent(agenttools.NewKbSearch(&kbSearcher{
+		svcCtx.KbSearcher = &kbSearcher{
 			store:         svcCtx.VectorStore,
 			embedder:      svcCtx.Embedder,
 			chunks:        svcCtx.AiKbChunkModel,
 			snippetBudget: ai.MaxContextTokens / 4,
-		}))
+		}
+		agenttools.RegisterIfAbsent(agenttools.NewKbSearch(svcCtx.KbSearcher))
+	}
+	if analyzer := newKbAnalyzer(svcCtx); analyzer != nil {
+		agenttools.RegisterIfAbsent(analyzer)
 	}
 	return svcCtx
 }

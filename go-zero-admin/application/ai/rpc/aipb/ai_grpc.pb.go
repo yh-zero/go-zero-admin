@@ -23,6 +23,8 @@ const (
 	AiService_ListConversations_FullMethodName  = "/aipb.AiService/ListConversations"
 	AiService_GetConversation_FullMethodName    = "/aipb.AiService/GetConversation"
 	AiService_DeleteConversation_FullMethodName = "/aipb.AiService/DeleteConversation"
+	AiService_UpdateConversation_FullMethodName = "/aipb.AiService/UpdateConversation"
+	AiService_SetMessageFeedback_FullMethodName = "/aipb.AiService/SetMessageFeedback"
 	AiService_SendMessageStream_FullMethodName  = "/aipb.AiService/SendMessageStream"
 	AiService_ListTools_FullMethodName          = "/aipb.AiService/ListTools"
 	AiService_CreateWorkflow_FullMethodName     = "/aipb.AiService/CreateWorkflow"
@@ -34,16 +36,20 @@ const (
 	AiService_CreateKb_FullMethodName           = "/aipb.AiService/CreateKb"
 	AiService_ListKbs_FullMethodName            = "/aipb.AiService/ListKbs"
 	AiService_GetKb_FullMethodName              = "/aipb.AiService/GetKb"
+	AiService_SearchKb_FullMethodName           = "/aipb.AiService/SearchKb"
 	AiService_UpdateKb_FullMethodName           = "/aipb.AiService/UpdateKb"
 	AiService_DeleteKb_FullMethodName           = "/aipb.AiService/DeleteKb"
 	AiService_CreateKbDoc_FullMethodName        = "/aipb.AiService/CreateKbDoc"
 	AiService_ListKbDocs_FullMethodName         = "/aipb.AiService/ListKbDocs"
+	AiService_GetKbDoc_FullMethodName           = "/aipb.AiService/GetKbDoc"
+	AiService_UpdateKbDoc_FullMethodName        = "/aipb.AiService/UpdateKbDoc"
 	AiService_DeleteKbDoc_FullMethodName        = "/aipb.AiService/DeleteKbDoc"
 	AiService_RetryKbDoc_FullMethodName         = "/aipb.AiService/RetryKbDoc"
 	AiService_ListAgentTasks_FullMethodName     = "/aipb.AiService/ListAgentTasks"
 	AiService_GetAgentTask_FullMethodName       = "/aipb.AiService/GetAgentTask"
 	AiService_ApproveTask_FullMethodName        = "/aipb.AiService/ApproveTask"
 	AiService_RejectTask_FullMethodName         = "/aipb.AiService/RejectTask"
+	AiService_CancelTask_FullMethodName         = "/aipb.AiService/CancelTask"
 )
 
 // AiServiceClient is the client API for AiService service.
@@ -54,6 +60,8 @@ type AiServiceClient interface {
 	ListConversations(ctx context.Context, in *ListConversationsRequest, opts ...grpc.CallOption) (*ListConversationsResponse, error)
 	GetConversation(ctx context.Context, in *GetConversationRequest, opts ...grpc.CallOption) (*GetConversationResponse, error)
 	DeleteConversation(ctx context.Context, in *DeleteConversationRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	UpdateConversation(ctx context.Context, in *UpdateConversationRequest, opts ...grpc.CallOption) (*CreateConversationResponse, error)
+	SetMessageFeedback(ctx context.Context, in *SetMessageFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	SendMessageStream(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamChunk], error)
 	ListTools(ctx context.Context, in *ListToolsRequest, opts ...grpc.CallOption) (*ListToolsResponse, error)
 	CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*CreateWorkflowResponse, error)
@@ -65,16 +73,20 @@ type AiServiceClient interface {
 	CreateKb(ctx context.Context, in *CreateKbRequest, opts ...grpc.CallOption) (*CreateKbResponse, error)
 	ListKbs(ctx context.Context, in *ListKbsRequest, opts ...grpc.CallOption) (*ListKbsResponse, error)
 	GetKb(ctx context.Context, in *GetKbRequest, opts ...grpc.CallOption) (*GetKbResponse, error)
+	SearchKb(ctx context.Context, in *SearchKbRequest, opts ...grpc.CallOption) (*SearchKbResponse, error)
 	UpdateKb(ctx context.Context, in *UpdateKbRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	DeleteKb(ctx context.Context, in *DeleteKbRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	CreateKbDoc(ctx context.Context, in *CreateKbDocRequest, opts ...grpc.CallOption) (*CreateKbDocResponse, error)
 	ListKbDocs(ctx context.Context, in *ListKbDocsRequest, opts ...grpc.CallOption) (*ListKbDocsResponse, error)
+	GetKbDoc(ctx context.Context, in *GetKbDocRequest, opts ...grpc.CallOption) (*GetKbDocResponse, error)
+	UpdateKbDoc(ctx context.Context, in *UpdateKbDocRequest, opts ...grpc.CallOption) (*UpdateKbDocResponse, error)
 	DeleteKbDoc(ctx context.Context, in *DeleteKbDocRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	RetryKbDoc(ctx context.Context, in *RetryKbDocRequest, opts ...grpc.CallOption) (*RetryKbDocResponse, error)
 	ListAgentTasks(ctx context.Context, in *ListAgentTasksRequest, opts ...grpc.CallOption) (*ListAgentTasksResponse, error)
 	GetAgentTask(ctx context.Context, in *GetAgentTaskRequest, opts ...grpc.CallOption) (*GetAgentTaskResponse, error)
 	ApproveTask(ctx context.Context, in *ApproveTaskRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	RejectTask(ctx context.Context, in *RejectTaskRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	CancelTask(ctx context.Context, in *CancelTaskRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 }
 
 type aiServiceClient struct {
@@ -119,6 +131,26 @@ func (c *aiServiceClient) DeleteConversation(ctx context.Context, in *DeleteConv
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(NoDataResponse)
 	err := c.cc.Invoke(ctx, AiService_DeleteConversation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) UpdateConversation(ctx context.Context, in *UpdateConversationRequest, opts ...grpc.CallOption) (*CreateConversationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateConversationResponse)
+	err := c.cc.Invoke(ctx, AiService_UpdateConversation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) SetMessageFeedback(ctx context.Context, in *SetMessageFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, AiService_SetMessageFeedback_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -244,6 +276,16 @@ func (c *aiServiceClient) GetKb(ctx context.Context, in *GetKbRequest, opts ...g
 	return out, nil
 }
 
+func (c *aiServiceClient) SearchKb(ctx context.Context, in *SearchKbRequest, opts ...grpc.CallOption) (*SearchKbResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchKbResponse)
+	err := c.cc.Invoke(ctx, AiService_SearchKb_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *aiServiceClient) UpdateKb(ctx context.Context, in *UpdateKbRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(NoDataResponse)
@@ -278,6 +320,26 @@ func (c *aiServiceClient) ListKbDocs(ctx context.Context, in *ListKbDocsRequest,
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListKbDocsResponse)
 	err := c.cc.Invoke(ctx, AiService_ListKbDocs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) GetKbDoc(ctx context.Context, in *GetKbDocRequest, opts ...grpc.CallOption) (*GetKbDocResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKbDocResponse)
+	err := c.cc.Invoke(ctx, AiService_GetKbDoc_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) UpdateKbDoc(ctx context.Context, in *UpdateKbDocRequest, opts ...grpc.CallOption) (*UpdateKbDocResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateKbDocResponse)
+	err := c.cc.Invoke(ctx, AiService_UpdateKbDoc_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -344,6 +406,16 @@ func (c *aiServiceClient) RejectTask(ctx context.Context, in *RejectTaskRequest,
 	return out, nil
 }
 
+func (c *aiServiceClient) CancelTask(ctx context.Context, in *CancelTaskRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NoDataResponse)
+	err := c.cc.Invoke(ctx, AiService_CancelTask_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AiServiceServer is the server API for AiService service.
 // All implementations must embed UnimplementedAiServiceServer
 // for forward compatibility.
@@ -352,6 +424,8 @@ type AiServiceServer interface {
 	ListConversations(context.Context, *ListConversationsRequest) (*ListConversationsResponse, error)
 	GetConversation(context.Context, *GetConversationRequest) (*GetConversationResponse, error)
 	DeleteConversation(context.Context, *DeleteConversationRequest) (*NoDataResponse, error)
+	UpdateConversation(context.Context, *UpdateConversationRequest) (*CreateConversationResponse, error)
+	SetMessageFeedback(context.Context, *SetMessageFeedbackRequest) (*NoDataResponse, error)
 	SendMessageStream(*SendMessageRequest, grpc.ServerStreamingServer[StreamChunk]) error
 	ListTools(context.Context, *ListToolsRequest) (*ListToolsResponse, error)
 	CreateWorkflow(context.Context, *CreateWorkflowRequest) (*CreateWorkflowResponse, error)
@@ -363,16 +437,20 @@ type AiServiceServer interface {
 	CreateKb(context.Context, *CreateKbRequest) (*CreateKbResponse, error)
 	ListKbs(context.Context, *ListKbsRequest) (*ListKbsResponse, error)
 	GetKb(context.Context, *GetKbRequest) (*GetKbResponse, error)
+	SearchKb(context.Context, *SearchKbRequest) (*SearchKbResponse, error)
 	UpdateKb(context.Context, *UpdateKbRequest) (*NoDataResponse, error)
 	DeleteKb(context.Context, *DeleteKbRequest) (*NoDataResponse, error)
 	CreateKbDoc(context.Context, *CreateKbDocRequest) (*CreateKbDocResponse, error)
 	ListKbDocs(context.Context, *ListKbDocsRequest) (*ListKbDocsResponse, error)
+	GetKbDoc(context.Context, *GetKbDocRequest) (*GetKbDocResponse, error)
+	UpdateKbDoc(context.Context, *UpdateKbDocRequest) (*UpdateKbDocResponse, error)
 	DeleteKbDoc(context.Context, *DeleteKbDocRequest) (*NoDataResponse, error)
 	RetryKbDoc(context.Context, *RetryKbDocRequest) (*RetryKbDocResponse, error)
 	ListAgentTasks(context.Context, *ListAgentTasksRequest) (*ListAgentTasksResponse, error)
 	GetAgentTask(context.Context, *GetAgentTaskRequest) (*GetAgentTaskResponse, error)
 	ApproveTask(context.Context, *ApproveTaskRequest) (*NoDataResponse, error)
 	RejectTask(context.Context, *RejectTaskRequest) (*NoDataResponse, error)
+	CancelTask(context.Context, *CancelTaskRequest) (*NoDataResponse, error)
 	mustEmbedUnimplementedAiServiceServer()
 }
 
@@ -394,6 +472,12 @@ func (UnimplementedAiServiceServer) GetConversation(context.Context, *GetConvers
 }
 func (UnimplementedAiServiceServer) DeleteConversation(context.Context, *DeleteConversationRequest) (*NoDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteConversation not implemented")
+}
+func (UnimplementedAiServiceServer) UpdateConversation(context.Context, *UpdateConversationRequest) (*CreateConversationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateConversation not implemented")
+}
+func (UnimplementedAiServiceServer) SetMessageFeedback(context.Context, *SetMessageFeedbackRequest) (*NoDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetMessageFeedback not implemented")
 }
 func (UnimplementedAiServiceServer) SendMessageStream(*SendMessageRequest, grpc.ServerStreamingServer[StreamChunk]) error {
 	return status.Error(codes.Unimplemented, "method SendMessageStream not implemented")
@@ -428,6 +512,9 @@ func (UnimplementedAiServiceServer) ListKbs(context.Context, *ListKbsRequest) (*
 func (UnimplementedAiServiceServer) GetKb(context.Context, *GetKbRequest) (*GetKbResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetKb not implemented")
 }
+func (UnimplementedAiServiceServer) SearchKb(context.Context, *SearchKbRequest) (*SearchKbResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchKb not implemented")
+}
 func (UnimplementedAiServiceServer) UpdateKb(context.Context, *UpdateKbRequest) (*NoDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateKb not implemented")
 }
@@ -439,6 +526,12 @@ func (UnimplementedAiServiceServer) CreateKbDoc(context.Context, *CreateKbDocReq
 }
 func (UnimplementedAiServiceServer) ListKbDocs(context.Context, *ListKbDocsRequest) (*ListKbDocsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListKbDocs not implemented")
+}
+func (UnimplementedAiServiceServer) GetKbDoc(context.Context, *GetKbDocRequest) (*GetKbDocResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetKbDoc not implemented")
+}
+func (UnimplementedAiServiceServer) UpdateKbDoc(context.Context, *UpdateKbDocRequest) (*UpdateKbDocResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateKbDoc not implemented")
 }
 func (UnimplementedAiServiceServer) DeleteKbDoc(context.Context, *DeleteKbDocRequest) (*NoDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteKbDoc not implemented")
@@ -457,6 +550,9 @@ func (UnimplementedAiServiceServer) ApproveTask(context.Context, *ApproveTaskReq
 }
 func (UnimplementedAiServiceServer) RejectTask(context.Context, *RejectTaskRequest) (*NoDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RejectTask not implemented")
+}
+func (UnimplementedAiServiceServer) CancelTask(context.Context, *CancelTaskRequest) (*NoDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelTask not implemented")
 }
 func (UnimplementedAiServiceServer) mustEmbedUnimplementedAiServiceServer() {}
 func (UnimplementedAiServiceServer) testEmbeddedByValue()                   {}
@@ -547,6 +643,42 @@ func _AiService_DeleteConversation_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServiceServer).DeleteConversation(ctx, req.(*DeleteConversationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_UpdateConversation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateConversationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).UpdateConversation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_UpdateConversation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).UpdateConversation(ctx, req.(*UpdateConversationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_SetMessageFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetMessageFeedbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).SetMessageFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_SetMessageFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).SetMessageFeedback(ctx, req.(*SetMessageFeedbackRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -742,6 +874,24 @@ func _AiService_GetKb_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AiService_SearchKb_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchKbRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).SearchKb(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_SearchKb_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).SearchKb(ctx, req.(*SearchKbRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AiService_UpdateKb_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateKbRequest)
 	if err := dec(in); err != nil {
@@ -810,6 +960,42 @@ func _AiService_ListKbDocs_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServiceServer).ListKbDocs(ctx, req.(*ListKbDocsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_GetKbDoc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKbDocRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GetKbDoc(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_GetKbDoc_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GetKbDoc(ctx, req.(*GetKbDocRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_UpdateKbDoc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateKbDocRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).UpdateKbDoc(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_UpdateKbDoc_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).UpdateKbDoc(ctx, req.(*UpdateKbDocRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -922,6 +1108,24 @@ func _AiService_RejectTask_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AiService_CancelTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelTaskRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).CancelTask(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_CancelTask_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).CancelTask(ctx, req.(*CancelTaskRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AiService_ServiceDesc is the grpc.ServiceDesc for AiService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -944,6 +1148,14 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteConversation",
 			Handler:    _AiService_DeleteConversation_Handler,
+		},
+		{
+			MethodName: "UpdateConversation",
+			Handler:    _AiService_UpdateConversation_Handler,
+		},
+		{
+			MethodName: "SetMessageFeedback",
+			Handler:    _AiService_SetMessageFeedback_Handler,
 		},
 		{
 			MethodName: "ListTools",
@@ -986,6 +1198,10 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AiService_GetKb_Handler,
 		},
 		{
+			MethodName: "SearchKb",
+			Handler:    _AiService_SearchKb_Handler,
+		},
+		{
 			MethodName: "UpdateKb",
 			Handler:    _AiService_UpdateKb_Handler,
 		},
@@ -1000,6 +1216,14 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListKbDocs",
 			Handler:    _AiService_ListKbDocs_Handler,
+		},
+		{
+			MethodName: "GetKbDoc",
+			Handler:    _AiService_GetKbDoc_Handler,
+		},
+		{
+			MethodName: "UpdateKbDoc",
+			Handler:    _AiService_UpdateKbDoc_Handler,
 		},
 		{
 			MethodName: "DeleteKbDoc",
@@ -1024,6 +1248,10 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RejectTask",
 			Handler:    _AiService_RejectTask_Handler,
+		},
+		{
+			MethodName: "CancelTask",
+			Handler:    _AiService_CancelTask_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

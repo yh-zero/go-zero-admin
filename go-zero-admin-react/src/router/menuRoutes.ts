@@ -1,4 +1,10 @@
 import type { MenuInfo } from '../api/types';
+import { hiddenPageForPath } from './hiddenPages';
+export function pageMenuPath(path: string): string | null {
+  const safe = safeMenuPath(path);
+  return safe ? hiddenPageForPath(safe)?.menuPath ?? safe : null;
+}
+export const isPageAccessible = (path: string, accessible: ReadonlySet<string>) => accessible.has(pageMenuPath(path) ?? '');
 export function safeMenuPath(path: string): string | null {
   if (!path.startsWith('/') || path.startsWith('//') || /[?#:*\\]/.test(path) || path.split('/').some(part => part === '..' || part === '.')) return null;
   return path.replace(/\/+$/, '') || '/';

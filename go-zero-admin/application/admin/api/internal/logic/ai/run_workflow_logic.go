@@ -27,7 +27,7 @@ func (l *RunWorkflowLogic) RunWorkflow(req *types.AiRunWorkflowReq) (*types.AiRu
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.RunWorkflow(l.ctx, &aipb.RunWorkflowRequest{Actor: actor, WorkflowId: req.Id, Input: req.Input})
+	out, err := l.svcCtx.AiRpc.RunWorkflow(l.ctx, &aipb.RunWorkflowRequest{Actor: actor, WorkflowId: req.Id, Input: req.Input, RequestId: req.RequestId})
 	if err != nil {
 		return nil, err
 	}

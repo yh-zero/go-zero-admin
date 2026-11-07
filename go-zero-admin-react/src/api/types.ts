@@ -147,13 +147,15 @@ export interface CreateTenantResp {
 
 // ===== AI 会话与工作流 =====
 export type AiMessageStatus = 'running' | 'succeeded' | 'failed';
-export type AiTaskStatus = 'pending' | 'running' | 'pending_approval' | 'succeeded' | 'failed' | 'rejected';
+export type AiTaskStatus = 'pending' | 'running' | 'pending_approval' | 'succeeded' | 'failed' | 'rejected' | 'cancelled';
 export interface AiConversationInfo {
   id: number; title: string; user_id: number; message_count: number; created_at: number; updated_at: number;
+  pinned: boolean;
 }
 export interface AiChatMessage {
   id: number; role: string; content: string; tool_calls: string; tokens: number; created_at: number;
   status: AiMessageStatus; error: string;
+  sources: AiSearchKbHit[]; feedback: AiMessageFeedback; feedback_note: string;
 }
 export interface AiWorkflowInfo {
   id: number; name: string; definition: string; interval_seconds: number; enabled: number;
@@ -162,6 +164,11 @@ export interface AiWorkflowInfo {
 export interface AiTaskInfo {
   id: number; workflow_id: number; conversation_id: number; status: AiTaskStatus; input: string;
   result: string; error: string; approved_by: number; created_at: number; completed_at: number; next_step: number;
+  steps: AiWorkflowStepInfo[]; updated_at: number; request_id: string;
+}
+export interface AiWorkflowStepInfo {
+  index: number; id: string; name: string; tool: string; input: string; status: 'pending_approval' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+  output: string; error: string; started_at: number; completed_at: number;
 }
 export interface AiToolInfo { name: string; description: string; parameters_schema: string }
 export interface AiConversationResp { conversation: AiConversationInfo }
@@ -170,7 +177,11 @@ export interface AiGetConversationResp extends AiConversationResp {
   messages: AiChatMessage[]; has_more: boolean; next_before_id: number;
 }
 // 同一逻辑提交重试必须复用 request_id；用户有意发起新调用时由调用者生成新的 UUID。
-export interface AiSendMessageReq { request_id: string; conversation_id: number; content: string }
+export interface AiSendMessageReq { request_id: string; conversation_id: number; content: string; kb_id?: number; grounded?: boolean }
+export interface AiListConversationsReq extends PageParams { query?: string }
+export interface AiUpdateConversationReq { title?: string; pinned?: boolean }
+export type AiMessageFeedback = '' | 'helpful' | 'irrelevant_source' | 'missing_knowledge';
+export interface AiMessageFeedbackReq { feedback: AiMessageFeedback; note: string }
 export interface AiSendMessageResult {
   conversation_id: number; conversation: AiConversationInfo | null;
   user_message: AiChatMessage; ai_message: AiChatMessage;
@@ -180,6 +191,7 @@ export interface AiStreamDone { tokens: number; usage_complete: boolean; result:
 export interface AiCreateWorkflowReq { name: string; definition: string; interval_seconds?: number }
 export interface AiUpdateWorkflowReq { name?: string; definition?: string; interval_seconds?: number; enabled?: 0 | 1 }
 export interface AiWorkflowResp { workflow: AiWorkflowInfo }
+export interface AiRunWorkflowReq { request_id: string; input?: string }
 export interface AiRunWorkflowResp { task_id: number; status: AiTaskStatus }
 export interface AiListTasksReq extends PageParams { status?: AiTaskStatus; workflow_id?: number }
 export interface AiTaskResp { task: AiTaskInfo }
@@ -193,9 +205,17 @@ export interface AiKbInfo {
 export interface AiKbDocInfo {
   id: number; kb_id: number; title: string; status: 'pending' | 'ready' | 'failed'; error: string;
   chunk_count: number; embedding_model: string; created_at: number; updated_at: number;
+  version: number; stage: 'embedding' | 'indexing' | 'ready' | 'failed';
 }
 export interface AiCreateKbReq { name: string; description?: string }
 export interface AiUpdateKbReq { name?: string; description?: string }
 export interface AiKbResp { kb: AiKbInfo }
 export interface AiCreateKbDocReq { title: string; content: string }
 export interface AiKbDocResp { doc: AiKbDocInfo }
+export interface AiKbDocDetailResp extends AiKbDocResp { content: string }
+export interface AiUpdateKbDocReq extends AiCreateKbDocReq { expected_version: number }
+export interface AiSearchKbReq { query: string }
+export interface AiSearchKbHit {
+  chunk_id: number; kb_id: number; doc_id: number; doc_title: string; snippet: string; score: number;
+}
+export interface AiSearchKbResp { list: AiSearchKbHit[]; elapsed_ms: number }

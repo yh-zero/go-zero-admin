@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -39,6 +40,7 @@ func workspaceEnvironment(t *testing.T) (string, string) {
 func newWorkspaceHarness(t *testing.T) *workspaceHarness {
 	t.Helper()
 	dsn, address := workspaceEnvironment(t)
+	sqlx.DisableLog()
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	t.Cleanup(cancel)
 	db, err := sql.Open("mysql", dsn)
@@ -72,12 +74,28 @@ func newWorkspaceHarness(t *testing.T) *workspaceHarness {
 				continue
 			}
 			for _, id := range ids {
+				requestKey := ""
+				if item.table == "ai_task" {
+					var request struct {
+						RequestId sql.NullString `db:"request_id"`
+					}
+					if err := conn.QueryRowCtx(cleanupCtx, &request, "SELECT request_id FROM ai_task WHERE id=? AND created_by=?", id, h.actor.UserId); err != nil {
+						t.Error("读取本轮请求缓存键失败")
+					} else if request.RequestId.Valid {
+						requestKey = fmt.Sprintf("cache:gozeroAdmin:aiTask:createdBy:requestId:%v:%v", h.actor.UserId, request.RequestId)
+					}
+				}
 				if _, err := conn.ExecCtx(cleanupCtx, "DELETE FROM "+item.table+" WHERE id=? AND created_by=?", id, h.actor.UserId); err != nil {
 					t.Error("清理本轮隔离行失败")
 				}
 				key := fmt.Sprintf("%s%d", item.prefix, id)
 				if _, err := rdb.DelCtx(cleanupCtx, key); err != nil {
 					t.Error("清理本轮精确缓存键失败")
+				}
+				if requestKey != "" {
+					if _, err := rdb.DelCtx(cleanupCtx, requestKey); err != nil {
+						t.Error("清理本轮请求索引缓存失败")
+					}
 				}
 				if exists, err := rdb.ExistsCtx(cleanupCtx, key); err != nil || exists {
 					t.Error("本轮精确缓存键清理后仍存在或无法核对")
@@ -109,20 +127,32 @@ func (h *workspaceHarness) create(definition string) int64 {
 func (h *workspaceHarness) run(id int64) int64 {
 	h.t.Helper()
 	response, err := NewRunWorkflowLogic(h.ctx, h.service).RunWorkflow(&aipb.RunWorkflowRequest{
-		Actor: h.actor, WorkflowId: id, Input: `{"record":"only"}`})
+		Actor: h.actor, WorkflowId: id, Input: `{"record":"only"}`, RequestId: uuid.NewString()})
 	if err != nil {
 		h.t.Fatal(err)
 	}
 	task := h.task(response.TaskId)
-	if response.Status != task.Status || task.Input != `{"record":"only"}` {
-		h.t.Fatal("运行响应必须匹配落库状态，输入须保存为本次记录")
+	if response.Status != "running" || task.Input != `{"record":"only"}` {
+		h.t.Fatal("运行应立即返回running，输入须保存为本次记录")
 	}
 	return response.TaskId
 }
 
 func (h *workspaceHarness) task(id int64) *aipb.AgentTaskInfo {
 	h.t.Helper()
-	response, err := NewGetAgentTaskLogic(h.ctx, h.service).GetAgentTask(&aipb.GetAgentTaskRequest{Actor: h.actor, TaskId: id})
+	var response *aipb.GetAgentTaskResponse
+	var err error
+	deadline := time.Now().Add(4 * time.Second)
+	for {
+		response, err = NewGetAgentTaskLogic(h.ctx, h.service).GetAgentTask(&aipb.GetAgentTaskRequest{Actor: h.actor, TaskId: id})
+		if err != nil || response.Task.Status != "running" {
+			break
+		}
+		if time.Now().After(deadline) {
+			h.t.Fatal("后台任务未在桩测试期限内到达稳定状态")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
 	if err != nil {
 		h.t.Fatal(err)
 	}
@@ -136,6 +166,9 @@ func (h *workspaceHarness) task(id int64) *aipb.AgentTaskInfo {
 
 func (h *workspaceHarness) approve(id, step int64) error {
 	_, err := NewApproveTaskLogic(h.ctx, h.service).ApproveTask(&aipb.ApproveTaskRequest{Actor: h.actor, TaskId: id, ExpectedStep: &step})
+	if err == nil {
+		h.task(id)
+	}
 	return err
 }
 
@@ -230,7 +263,7 @@ func TestAIWorkspaceIntegrationSnapshotSurvivesWorkflowChanges(t *testing.T) {
 				t.Fatal("工作流写入后 ID 缓存必须反映新状态")
 			}
 			if action != "edit" {
-				_, err := NewRunWorkflowLogic(h.ctx, h.service).RunWorkflow(&aipb.RunWorkflowRequest{Actor: h.actor, WorkflowId: workflowId})
+				_, err := NewRunWorkflowLogic(h.ctx, h.service).RunWorkflow(&aipb.RunWorkflowRequest{Actor: h.actor, WorkflowId: workflowId, RequestId: uuid.NewString()})
 				code := uint32(400)
 				if action == "delete" {
 					code = 404
@@ -280,6 +313,9 @@ func TestAIWorkspaceIntegrationRejectReasonAndReplay(t *testing.T) {
 	if before.Status != "rejected" || before.Error != reason || before.ApprovedBy != h.actor.UserId || before.CompletedAt == 0 || before.NextStep != 0 || before.Result != "" {
 		t.Fatal("拒绝必须去除原因空白并终结任务，不执行工具")
 	}
+	if len(before.Steps) != 1 || before.Steps[0].Status != "cancelled" || before.Steps[0].Error != reason {
+		t.Fatal("拒绝任务必须原子停止待审批步骤并保存原因")
+	}
 	_, err = NewRejectTaskLogic(h.ctx, h.service).RejectTask(&aipb.RejectTaskRequest{Actor: h.actor, TaskId: id, ExpectedStep: &zero, Reason: "重放原因"})
 	assertWorkspaceCode(t, err, 400)
 	assertWorkspaceCode(t, h.approve(id, 0), 400)
@@ -299,7 +335,7 @@ func TestAIWorkspaceIntegrationOwnershipAndFilters(t *testing.T) {
 	assertWorkspaceCode(t, err, 404)
 	_, err = NewDeleteWorkflowLogic(h.ctx, h.service).DeleteWorkflow(&aipb.DeleteWorkflowRequest{Actor: foreign, WorkflowId: workflowId})
 	assertWorkspaceCode(t, err, 404)
-	_, err = NewRunWorkflowLogic(h.ctx, h.service).RunWorkflow(&aipb.RunWorkflowRequest{Actor: foreign, WorkflowId: workflowId})
+	_, err = NewRunWorkflowLogic(h.ctx, h.service).RunWorkflow(&aipb.RunWorkflowRequest{Actor: foreign, WorkflowId: workflowId, RequestId: uuid.NewString()})
 	assertWorkspaceCode(t, err, 404)
 	_, err = NewGetAgentTaskLogic(h.ctx, h.service).GetAgentTask(&aipb.GetAgentTaskRequest{Actor: foreign, TaskId: id})
 	assertWorkspaceCode(t, err, 404)

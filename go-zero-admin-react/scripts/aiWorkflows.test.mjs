@@ -65,10 +65,10 @@ test('工作流 DSL 与只读呈现边界', async t => {
       assert.throws(() => dsl.serializeWorkflow([{ ...step, input: JSON.stringify({ text: '中'.repeat(5334) }) }], tools), /16000/);
       assert.throws(() => dsl.serializeWorkflow(Array(5).fill({ ...step, input: JSON.stringify({ text: 'a'.repeat(16000) }) }), tools), /65536/);
       assert.throws(() => dsl.parseWorkflow(' '.repeat(65537)), /65536/);
-      assert.equal(dsl.validateRunInput('"' + '中'.repeat(5332) + 'aa"'), undefined);
+      assert.equal(dsl.validateRunInput('{"text":"' + '中'.repeat(5329) + 'aa"}'), undefined);
       assert.match(dsl.validateRunInput('"' + '中'.repeat(5333) + '"'), /16000/);
       assert.equal(dsl.validateRunInput(''), undefined);
-      assert.equal(dsl.validateRunInput('[1,true,null]'), undefined);
+      assert.match(dsl.validateRunInput('[1,true,null]'), /对象/);
       assert.match(dsl.validateRunInput('{oops'), /JSON/);
     });
     await t.test('无工具读取权限时已存定义仍可只读解析', () => {

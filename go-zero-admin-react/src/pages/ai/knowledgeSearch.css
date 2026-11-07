@@ -1,0 +1,14 @@
+.kb-search-content {
+  width: 100%;
+}
+
+.kb-search-query,
+.kb-search-snippet {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.kb-search-snippet {
+  margin-top: 12px;
+  margin-bottom: 0;
+}

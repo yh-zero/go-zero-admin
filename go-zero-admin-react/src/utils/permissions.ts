@@ -1,7 +1,10 @@
 export function requiredWritePermission(method: string, url: string): string | undefined {
   const verb = method.toUpperCase();
   if (verb === 'POST' && url === '/sys/ai/conversations') return 'sys:ai:conversation:create';
+  if (verb === 'PUT' && /^\/sys\/ai\/conversations\/\d+$/.test(url)) return 'sys:ai:conversation:create';
+  if (verb === 'PUT' && /^\/sys\/ai\/conversations\/\d+\/messages\/\d+\/feedback$/.test(url)) return 'sys:ai:message:send';
   if (verb === 'POST' && url === '/sys/ai/messages/stream') return 'sys:ai:message:send';
+  if (verb === 'PUT' && /^\/sys\/ai\/kbs\/\d+\/docs\/\d+$/.test(url)) return 'sys:ai:kb:edit';
   if (verb === 'DELETE' && /^\/sys\/ai\/conversations\/\d+$/.test(url)) return 'sys:ai:conversation:delete';
   if (verb === 'POST' && url === '/sys/ai/workflows') return 'sys:ai:workflow:create';
   if (verb === 'PUT' && /^\/sys\/ai\/workflows\/\d+$/.test(url)) return 'sys:ai:workflow:edit';
@@ -9,6 +12,7 @@ export function requiredWritePermission(method: string, url: string): string | u
   if (verb === 'POST' && /^\/sys\/ai\/workflows\/\d+\/run$/.test(url)) return 'sys:ai:workflow:run';
   if (verb === 'POST' && /^\/sys\/ai\/tasks\/\d+\/approve$/.test(url)) return 'sys:ai:task:approve';
   if (verb === 'POST' && /^\/sys\/ai\/tasks\/\d+\/reject$/.test(url)) return 'sys:ai:task:reject';
+  if (verb === 'POST' && /^\/sys\/ai\/tasks\/\d+\/cancel$/.test(url)) return 'sys:ai:task:cancel';
   if (verb === 'PUT' && /^\/sys\/app\/users\/\d+$/.test(url)) return 'sys:app:user:edit';
   if (verb === 'PUT' && /^\/sys\/app\/feedback\/\d+$/.test(url)) return 'sys:app:feedback:reply';
   if (verb === 'POST' && /^\/sys\/app\/users\/\d+\/review$/.test(url)) return 'sys:app:user:review';

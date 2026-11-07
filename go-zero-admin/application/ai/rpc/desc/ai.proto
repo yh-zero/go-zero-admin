@@ -14,14 +14,18 @@ message Actor { int64 user_id = 1; string username = 2; int64 dept_id = 3; strin
 message ChatMessage {
   int64 id = 1; string role = 2; string content = 3; string tool_calls = 4; int64 tokens = 5; int64 created_at = 6;
   string status = 7; string error = 8;
+  repeated KbSearchHit sources = 9; string feedback = 10; string feedback_note = 11;
 }
 message ConversationInfo {
   int64 id = 1; string title = 2; int64 user_id = 3; int64 message_count = 4; int64 created_at = 5; int64 updated_at = 6;
+  bool pinned = 7;
 }
 
 message CreateConversationRequest { Actor actor = 1; string title = 2; }
 message CreateConversationResponse { ConversationInfo conversation = 1; }
-message ListConversationsRequest { Actor actor = 1; PageRequest page = 2; }
+message ListConversationsRequest { Actor actor = 1; PageRequest page = 2; string query = 3; }
+message UpdateConversationRequest { Actor actor = 1; int64 conversation_id = 2; optional string title = 3; optional bool pinned = 4; }
+message SetMessageFeedbackRequest { Actor actor = 1; int64 conversation_id = 2; int64 message_id = 3; string feedback = 4; string note = 5; }
 message ListConversationsResponse { repeated ConversationInfo list = 1; PageResponse page = 2; }
 message GetConversationRequest { Actor actor = 1; int64 conversation_id = 2; int64 before_id = 3; int64 page_size = 4; }
 message GetConversationResponse { ConversationInfo conversation = 1; repeated ChatMessage messages = 2; bool has_more = 3; int64 next_before_id = 4; }
@@ -33,6 +37,8 @@ message SendMessageRequest {
   int64 conversation_id = 2;   // 0 = 自动创建新会话
   string content = 3;
   string request_id = 4;
+  int64 kb_id = 5;
+  bool grounded = 6;
 }
 message SendMessageResponse { ChatMessage user_message = 1; ChatMessage ai_message = 2; int64 conversation_id = 3; ConversationInfo conversation = 4; }
 
@@ -70,7 +76,7 @@ message GetWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; }
 message GetWorkflowResponse { WorkflowInfo workflow = 1; }
 message UpdateWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; optional string name = 3; optional string definition = 4; optional int64 interval_seconds = 5; optional int64 enabled = 6; }
 message DeleteWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; }
-message RunWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; string input = 3; }
+message RunWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; string input = 3; string request_id = 4; }
 message RunWorkflowResponse { int64 task_id = 1; string status = 2; }
 
 // ========== 任务与审批（阶段 2） ==========
@@ -79,6 +85,13 @@ message AgentTaskInfo {
   string input = 5; string result = 6; string error = 7; int64 approved_by = 8;
   int64 created_at = 9; int64 completed_at = 10;
   int64 next_step = 11;
+  repeated WorkflowStepInfo steps = 12;
+  int64 updated_at = 13; string request_id = 14;
+}
+message WorkflowStepInfo {
+  int64 index = 1; string id = 2; string name = 3; string tool = 4;
+  string input = 5; string status = 6; string output = 7; string error = 8;
+  int64 started_at = 9; int64 completed_at = 10;
 }
 message ListAgentTasksRequest { Actor actor = 1; PageRequest page = 2; string status = 3; int64 workflow_id = 4; }
 message ListAgentTasksResponse { repeated AgentTaskInfo list = 1; PageResponse page = 2; }
@@ -86,6 +99,7 @@ message GetAgentTaskRequest { Actor actor = 1; int64 task_id = 2; }
 message GetAgentTaskResponse { AgentTaskInfo task = 1; }
 message ApproveTaskRequest { Actor actor = 1; int64 task_id = 2; optional int64 expected_step = 3; }
 message RejectTaskRequest { Actor actor = 1; int64 task_id = 2; string reason = 3; optional int64 expected_step = 4; }
+message CancelTaskRequest { Actor actor = 1; int64 task_id = 2; }
 
 
 // ========== 知识库（Qdrant 向量检索；事实源 MySQL，Qdrant 仅索引可重建） ==========
@@ -96,6 +110,7 @@ message KbInfo {
 message KbDocInfo {
   int64 id = 1; int64 kb_id = 2; string title = 3; string status = 4; string error = 5;
   int64 chunk_count = 6; string embedding_model = 7; int64 created_at = 8; int64 updated_at = 9;
+  int64 version = 10; string stage = 11;
 }
 message CreateKbRequest { Actor actor = 1; string name = 2; string description = 3; }
 message CreateKbResponse { KbInfo kb = 1; }
@@ -103,6 +118,12 @@ message ListKbsRequest { Actor actor = 1; PageRequest page = 2; }
 message ListKbsResponse { repeated KbInfo list = 1; PageResponse page = 2; }
 message GetKbRequest { Actor actor = 1; int64 kb_id = 2; }
 message GetKbResponse { KbInfo kb = 1; }
+message SearchKbRequest { Actor actor = 1; int64 kb_id = 2; string query = 3; }
+message KbSearchHit {
+  int64 chunk_id = 1; int64 kb_id = 2; int64 doc_id = 3; string doc_title = 4;
+  string snippet = 5; float score = 6;
+}
+message SearchKbResponse { repeated KbSearchHit list = 1; int64 elapsed_ms = 2; }
 message UpdateKbRequest { Actor actor = 1; int64 kb_id = 2; optional string name = 3; optional string description = 4; }
 message DeleteKbRequest { Actor actor = 1; int64 kb_id = 2; }
 // 创建文档：同步摄取（分块→embed→写入向量索引→置终态），返回最终 status
@@ -110,6 +131,10 @@ message CreateKbDocRequest { Actor actor = 1; int64 kb_id = 2; string title = 3;
 message CreateKbDocResponse { KbDocInfo doc = 1; }
 message ListKbDocsRequest { Actor actor = 1; int64 kb_id = 2; PageRequest page = 3; }
 message ListKbDocsResponse { repeated KbDocInfo list = 1; PageResponse page = 2; }
+message GetKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; bool meta_only = 4; }
+message GetKbDocResponse { KbDocInfo doc = 1; string content = 2; }
+message UpdateKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; string title = 4; string content = 5; int64 expected_version = 6; }
+message UpdateKbDocResponse { KbDocInfo doc = 1; }
 message DeleteKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; }
 message RetryKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; }
 message RetryKbDocResponse { KbDocInfo doc = 1; }
@@ -119,6 +144,8 @@ service AiService {
   rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse);
   rpc GetConversation(GetConversationRequest) returns (GetConversationResponse);
   rpc DeleteConversation(DeleteConversationRequest) returns (NoDataResponse);
+  rpc UpdateConversation(UpdateConversationRequest) returns (CreateConversationResponse);
+  rpc SetMessageFeedback(SetMessageFeedbackRequest) returns (NoDataResponse);
   rpc SendMessageStream(SendMessageRequest) returns (stream StreamChunk);
   rpc ListTools(ListToolsRequest) returns (ListToolsResponse);
 
@@ -132,10 +159,13 @@ service AiService {
   rpc CreateKb(CreateKbRequest) returns (CreateKbResponse);
   rpc ListKbs(ListKbsRequest) returns (ListKbsResponse);
   rpc GetKb(GetKbRequest) returns (GetKbResponse);
+  rpc SearchKb(SearchKbRequest) returns (SearchKbResponse);
   rpc UpdateKb(UpdateKbRequest) returns (NoDataResponse);
   rpc DeleteKb(DeleteKbRequest) returns (NoDataResponse);
   rpc CreateKbDoc(CreateKbDocRequest) returns (CreateKbDocResponse);
   rpc ListKbDocs(ListKbDocsRequest) returns (ListKbDocsResponse);
+  rpc GetKbDoc(GetKbDocRequest) returns (GetKbDocResponse);
+  rpc UpdateKbDoc(UpdateKbDocRequest) returns (UpdateKbDocResponse);
   rpc DeleteKbDoc(DeleteKbDocRequest) returns (NoDataResponse);
   rpc RetryKbDoc(RetryKbDocRequest) returns (RetryKbDocResponse);
 
@@ -143,4 +173,5 @@ service AiService {
   rpc GetAgentTask(GetAgentTaskRequest) returns (GetAgentTaskResponse);
   rpc ApproveTask(ApproveTaskRequest) returns (NoDataResponse);
   rpc RejectTask(RejectTaskRequest) returns (NoDataResponse);
+  rpc CancelTask(CancelTaskRequest) returns (NoDataResponse);
 }

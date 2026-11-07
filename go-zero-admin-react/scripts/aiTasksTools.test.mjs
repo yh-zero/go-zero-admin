@@ -98,7 +98,7 @@ test('任务审批、状态与工具安全展示', async t => {
       const denied = renderToStaticMarkup(createElement(ToolCard, { tool, canUse: false, onView() {} }));
       assert.ok(!denied.includes('/ai/workflows'));
       const allowed = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(ToolCard, { tool, canUse: true, onView() {} })));
-      assert.ok(allowed.includes('/ai/workflows?tool=%3Cscript%3Etool%3C%2Fscript%3E'));
+      assert.ok(allowed.includes('/ai/workflows/new?tool=%3Cscript%3Etool%3C%2Fscript%3E'));
     });
   } finally { await server.close(); globalThis.window = originalWindow; }
 });

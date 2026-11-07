@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, Card, Empty, Pagination, Popconfirm, Result, Skeleton, Space } from 'antd';
-import { DeleteOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Button, Card, Dropdown, Empty, Form, Input, Modal, Pagination, Popconfirm, Result, Skeleton, Space } from 'antd';
+import { DeleteOutlined, MoreOutlined, PlusOutlined, PushpinFilled, ReloadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { deleteAiConversation } from '../../api/ai';
-import type { AiSendMessageResult } from '../../api/types';
+import { deleteAiConversation, updateAiConversation } from '../../api/ai';
+import type { AiConversationInfo, AiSendMessageResult, AiUpdateConversationReq } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { useAuthStore } from '../../stores/auth';
 import { formatTime } from '../../utils/format';
@@ -11,6 +11,7 @@ import { aiChatKeys, conversationListOptions } from './chatQueries';
 import type { AiChatScope } from './chatQueries';
 import { Conversation } from './Conversation';
 import { NewConversationComposer } from './NewConversationComposer';
+import type { ChatKnowledgeSelection } from './ChatKnowledgePicker';
 import type { ChatScrollPosition } from './useChatScroll';
 import styles from './chat.module.css';
 
@@ -37,6 +38,9 @@ function AIChatSession({ scope }: { scope: AiChatScope }) {
   const canSend = auth.permissionsReady && auth.permCodes.includes('sys:ai:message:send');
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [renaming, setRenaming] = useState<AiConversationInfo | null>(null);
+  const [knowledge, setKnowledge] = useState<ChatKnowledgeSelection>({ kb_id: 0, grounded: false });
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [composerVersion, setComposerVersion] = useState(0);
   const [writing, setWriting] = useState(false);
@@ -60,8 +64,20 @@ function AIChatSession({ scope }: { scope: AiChatScope }) {
     return true;
   }
   function finishWrite() { busy.current = false; if (isCurrent()) setWriting(false); }
-  const conversations = useQuery({ ...conversationListOptions(scope, page), enabled: canRead });
+  const conversations = useQuery({ ...conversationListOptions(scope, page, search), enabled: canRead });
   const remove = useMutation({ mutationFn: deleteAiConversation, retry: false });
+  const update = useMutation({ mutationFn: ({ id, data }: { id: number; data: AiUpdateConversationReq }) => updateAiConversation(id, data), retry: false });
+
+  async function organize(id: number, data: AiUpdateConversationReq) {
+    if (!beginWrite('sys:ai:conversation:create')) return;
+    try {
+      await update.mutateAsync({ id, data });
+      if (!isCurrent()) return;
+      setRenaming(null);
+      await Promise.all([refreshLists(), queryClient.invalidateQueries({ queryKey: aiChatKeys.messages(scope, id), exact: true })]);
+    } catch { /* 表单与原列表保留，允许用户修正或重试。 */ }
+    finally { finishWrite(); }
+  }
 
   async function refreshLists() { await queryClient.invalidateQueries({ queryKey: aiChatKeys.lists(scope) }); }
   function onSendCompleted(result: AiSendMessageResult) {
@@ -99,6 +115,7 @@ function AIChatSession({ scope }: { scope: AiChatScope }) {
       }} />
       {canCreate && <Button size="small" type="primary" icon={<PlusOutlined />} disabled={writing} onClick={() => { setScrollPosition({ current: null }); setSelectedId(null); setComposerVersion(version => version + 1); }}>新建会话</Button>}
     </Space>}>
+        <Input.Search className={styles.conversationSearch} placeholder="搜索会话标题或正文" aria-label="搜索会话" maxLength={128} allowClear disabled={writing} onSearch={value => { setPage(1); setSearch(value.trim()); }} />
         <div className={styles.list}>
           <QueryState isPending={conversations.isPending} error={conversations.error} onRetry={() => conversations.refetch()} />
           {!conversations.isPending && !conversations.error && !conversations.data?.list.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无会话" />}
@@ -106,9 +123,10 @@ function AIChatSession({ scope }: { scope: AiChatScope }) {
             className={`${styles.conversationItem} ${selectedId === row.id ? styles.selected : ''}`}>
             <Button type="text" className={styles.selectConversation} disabled={writing} aria-pressed={selectedId === row.id}
               onClick={() => { if (!busy.current && !removedIds.has(row.id)) { if (selectedId !== row.id) setScrollPosition({ current: null }); setSelectedId(row.id); } }}>
-              <span className={styles.title} title={row.title}>{row.title || '未命名会话'}</span>
+              <span className={styles.title} title={row.title}>{row.pinned && <PushpinFilled />} {row.title || '未命名会话'}</span>
               <span className={styles.small}>{row.message_count} 条消息 · {formatTime(row.updated_at)}</span>
             </Button>
+            {canCreate && <Dropdown menu={{ items: [{ key: 'rename', label: '重命名' }, { key: 'pin', label: row.pinned ? '取消置顶' : '置顶' }], onClick: ({ key }) => { if (writing) return; if (key === 'rename') setRenaming(row); else void organize(row.id, { pinned: !row.pinned }); } }}><Button type="text" icon={<MoreOutlined />} disabled={writing} aria-label={`整理会话 ${row.title || row.id}`} /></Dropdown>}
             {canDelete && <Popconfirm title="删除此会话？" description="会话与消息删除后无法继续使用。" disabled={writing}
               onConfirm={() => deleteConversation(row.id)} okButtonProps={{ danger: true }}>
               <Button type="text" danger icon={<DeleteOutlined />} disabled={writing} aria-label={`删除会话 ${row.title || row.id}`} />
@@ -118,12 +136,26 @@ function AIChatSession({ scope }: { scope: AiChatScope }) {
         <Pagination simple current={page} pageSize={20} total={conversations.data?.total ?? 0} disabled={writing}
           onChange={next => { if (!busy.current) setPage(next); }} showSizeChanger={false} />
       </Card>
+      {renaming && <RenameConversationDialog conversation={renaming} writing={writing} saving={update.isPending} onCancel={() => setRenaming(null)} onSave={values => organize(renaming.id, values)} />}
       {selectedId === null ? <NewConversationComposer key={composerVersion}
           scope={scope} canSend={canSend} writing={writing} scrollPosition={scrollPosition}
+          knowledge={knowledge} onKnowledgeChange={setKnowledge}
           isCurrent={isCurrent} beginWrite={beginWrite} finishWrite={finishWrite}
           onCompleted={onSendCompleted} />
         : <Conversation key={selectedId} id={selectedId} scope={scope} canRead={canRead} canSend={canSend} writing={writing} scrollPosition={scrollPosition}
+          knowledge={knowledge} onKnowledgeChange={setKnowledge}
           isCurrent={() => isCurrent() && !removedIds.has(selectedId)} beginWrite={beginWrite} finishWrite={finishWrite}
           onCompleted={onSendCompleted} />}
   </div>;
+}
+
+function RenameConversationDialog({ conversation, writing, saving, onCancel, onSave }: {
+  conversation: AiConversationInfo; writing: boolean; saving: boolean; onCancel: () => void; onSave: (values: { title: string }) => Promise<void>;
+}) {
+  const [form] = Form.useForm<{ title: string }>();
+  return <Modal open title="重命名会话" confirmLoading={saving} closable={!writing} mask={{ closable: !writing }} onCancel={() => { if (!writing) onCancel(); }} onOk={() => form.submit()}>
+    <Form form={form} initialValues={{ title: conversation.title }} onFinish={onSave}>
+      <Form.Item name="title" label="名称" rules={[{ required: true, whitespace: true }, { validator: (_, value: string) => Array.from(value ?? '').length <= 128 ? Promise.resolve() : Promise.reject(new Error('名称最多 128 个字符')) }]}><Input autoFocus /></Form.Item>
+    </Form>
+  </Modal>;
 }

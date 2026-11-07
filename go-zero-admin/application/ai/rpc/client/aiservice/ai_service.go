@@ -17,6 +17,7 @@ type (
 	Actor                      = aipb.Actor
 	AgentTaskInfo              = aipb.AgentTaskInfo
 	ApproveTaskRequest         = aipb.ApproveTaskRequest
+	CancelTaskRequest          = aipb.CancelTaskRequest
 	ChatMessage                = aipb.ChatMessage
 	ConversationInfo           = aipb.ConversationInfo
 	CreateConversationRequest  = aipb.CreateConversationRequest
@@ -35,12 +36,15 @@ type (
 	GetAgentTaskResponse       = aipb.GetAgentTaskResponse
 	GetConversationRequest     = aipb.GetConversationRequest
 	GetConversationResponse    = aipb.GetConversationResponse
+	GetKbDocRequest            = aipb.GetKbDocRequest
+	GetKbDocResponse           = aipb.GetKbDocResponse
 	GetKbRequest               = aipb.GetKbRequest
 	GetKbResponse              = aipb.GetKbResponse
 	GetWorkflowRequest         = aipb.GetWorkflowRequest
 	GetWorkflowResponse        = aipb.GetWorkflowResponse
 	KbDocInfo                  = aipb.KbDocInfo
 	KbInfo                     = aipb.KbInfo
+	KbSearchHit                = aipb.KbSearchHit
 	ListAgentTasksRequest      = aipb.ListAgentTasksRequest
 	ListAgentTasksResponse     = aipb.ListAgentTasksResponse
 	ListConversationsRequest   = aipb.ListConversationsRequest
@@ -61,19 +65,28 @@ type (
 	RetryKbDocResponse         = aipb.RetryKbDocResponse
 	RunWorkflowRequest         = aipb.RunWorkflowRequest
 	RunWorkflowResponse        = aipb.RunWorkflowResponse
+	SearchKbRequest            = aipb.SearchKbRequest
+	SearchKbResponse           = aipb.SearchKbResponse
 	SendMessageRequest         = aipb.SendMessageRequest
 	SendMessageResponse        = aipb.SendMessageResponse
+	SetMessageFeedbackRequest  = aipb.SetMessageFeedbackRequest
 	StreamChunk                = aipb.StreamChunk
 	ToolInfo                   = aipb.ToolInfo
+	UpdateConversationRequest  = aipb.UpdateConversationRequest
+	UpdateKbDocRequest         = aipb.UpdateKbDocRequest
+	UpdateKbDocResponse        = aipb.UpdateKbDocResponse
 	UpdateKbRequest            = aipb.UpdateKbRequest
 	UpdateWorkflowRequest      = aipb.UpdateWorkflowRequest
 	WorkflowInfo               = aipb.WorkflowInfo
+	WorkflowStepInfo           = aipb.WorkflowStepInfo
 
 	AiService interface {
 		CreateConversation(ctx context.Context, in *CreateConversationRequest, opts ...grpc.CallOption) (*CreateConversationResponse, error)
 		ListConversations(ctx context.Context, in *ListConversationsRequest, opts ...grpc.CallOption) (*ListConversationsResponse, error)
 		GetConversation(ctx context.Context, in *GetConversationRequest, opts ...grpc.CallOption) (*GetConversationResponse, error)
 		DeleteConversation(ctx context.Context, in *DeleteConversationRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		UpdateConversation(ctx context.Context, in *UpdateConversationRequest, opts ...grpc.CallOption) (*CreateConversationResponse, error)
+		SetMessageFeedback(ctx context.Context, in *SetMessageFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		SendMessageStream(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (aipb.AiService_SendMessageStreamClient, error)
 		ListTools(ctx context.Context, in *ListToolsRequest, opts ...grpc.CallOption) (*ListToolsResponse, error)
 		CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*CreateWorkflowResponse, error)
@@ -85,16 +98,20 @@ type (
 		CreateKb(ctx context.Context, in *CreateKbRequest, opts ...grpc.CallOption) (*CreateKbResponse, error)
 		ListKbs(ctx context.Context, in *ListKbsRequest, opts ...grpc.CallOption) (*ListKbsResponse, error)
 		GetKb(ctx context.Context, in *GetKbRequest, opts ...grpc.CallOption) (*GetKbResponse, error)
+		SearchKb(ctx context.Context, in *SearchKbRequest, opts ...grpc.CallOption) (*SearchKbResponse, error)
 		UpdateKb(ctx context.Context, in *UpdateKbRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		DeleteKb(ctx context.Context, in *DeleteKbRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		CreateKbDoc(ctx context.Context, in *CreateKbDocRequest, opts ...grpc.CallOption) (*CreateKbDocResponse, error)
 		ListKbDocs(ctx context.Context, in *ListKbDocsRequest, opts ...grpc.CallOption) (*ListKbDocsResponse, error)
+		GetKbDoc(ctx context.Context, in *GetKbDocRequest, opts ...grpc.CallOption) (*GetKbDocResponse, error)
+		UpdateKbDoc(ctx context.Context, in *UpdateKbDocRequest, opts ...grpc.CallOption) (*UpdateKbDocResponse, error)
 		DeleteKbDoc(ctx context.Context, in *DeleteKbDocRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		RetryKbDoc(ctx context.Context, in *RetryKbDocRequest, opts ...grpc.CallOption) (*RetryKbDocResponse, error)
 		ListAgentTasks(ctx context.Context, in *ListAgentTasksRequest, opts ...grpc.CallOption) (*ListAgentTasksResponse, error)
 		GetAgentTask(ctx context.Context, in *GetAgentTaskRequest, opts ...grpc.CallOption) (*GetAgentTaskResponse, error)
 		ApproveTask(ctx context.Context, in *ApproveTaskRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		RejectTask(ctx context.Context, in *RejectTaskRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		CancelTask(ctx context.Context, in *CancelTaskRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	}
 
 	defaultAiService struct {
@@ -126,6 +143,16 @@ func (m *defaultAiService) GetConversation(ctx context.Context, in *GetConversat
 func (m *defaultAiService) DeleteConversation(ctx context.Context, in *DeleteConversationRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := aipb.NewAiServiceClient(m.cli.Conn())
 	return client.DeleteConversation(ctx, in, opts...)
+}
+
+func (m *defaultAiService) UpdateConversation(ctx context.Context, in *UpdateConversationRequest, opts ...grpc.CallOption) (*CreateConversationResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.UpdateConversation(ctx, in, opts...)
+}
+
+func (m *defaultAiService) SetMessageFeedback(ctx context.Context, in *SetMessageFeedbackRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.SetMessageFeedback(ctx, in, opts...)
 }
 
 func (m *defaultAiService) SendMessageStream(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (aipb.AiService_SendMessageStreamClient, error) {
@@ -183,6 +210,11 @@ func (m *defaultAiService) GetKb(ctx context.Context, in *GetKbRequest, opts ...
 	return client.GetKb(ctx, in, opts...)
 }
 
+func (m *defaultAiService) SearchKb(ctx context.Context, in *SearchKbRequest, opts ...grpc.CallOption) (*SearchKbResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.SearchKb(ctx, in, opts...)
+}
+
 func (m *defaultAiService) UpdateKb(ctx context.Context, in *UpdateKbRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := aipb.NewAiServiceClient(m.cli.Conn())
 	return client.UpdateKb(ctx, in, opts...)
@@ -201,6 +233,16 @@ func (m *defaultAiService) CreateKbDoc(ctx context.Context, in *CreateKbDocReque
 func (m *defaultAiService) ListKbDocs(ctx context.Context, in *ListKbDocsRequest, opts ...grpc.CallOption) (*ListKbDocsResponse, error) {
 	client := aipb.NewAiServiceClient(m.cli.Conn())
 	return client.ListKbDocs(ctx, in, opts...)
+}
+
+func (m *defaultAiService) GetKbDoc(ctx context.Context, in *GetKbDocRequest, opts ...grpc.CallOption) (*GetKbDocResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.GetKbDoc(ctx, in, opts...)
+}
+
+func (m *defaultAiService) UpdateKbDoc(ctx context.Context, in *UpdateKbDocRequest, opts ...grpc.CallOption) (*UpdateKbDocResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.UpdateKbDoc(ctx, in, opts...)
 }
 
 func (m *defaultAiService) DeleteKbDoc(ctx context.Context, in *DeleteKbDocRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
@@ -231,4 +273,9 @@ func (m *defaultAiService) ApproveTask(ctx context.Context, in *ApproveTaskReque
 func (m *defaultAiService) RejectTask(ctx context.Context, in *RejectTaskRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := aipb.NewAiServiceClient(m.cli.Conn())
 	return client.RejectTask(ctx, in, opts...)
+}
+
+func (m *defaultAiService) CancelTask(ctx context.Context, in *CancelTaskRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.CancelTask(ctx, in, opts...)
 }

@@ -19,6 +19,7 @@ type (
 		ReserveCall(ctx context.Context, ownerId, conversationId int64, callId, content, metadata string) (*CallPair, bool, error)
 		SaveCallUsage(ctx context.Context, ownerId int64, pair *CallPair, tokens int64, metadata string) error
 		FinishCall(ctx context.Context, ownerId int64, pair *CallPair, status, answer, metadata string, tokens int64) error
+		SetFeedbackOwned(ctx context.Context, ownerId, conversationId, messageId int64, feedback, note string) error
 	}
 
 	customAiMessageModel struct {

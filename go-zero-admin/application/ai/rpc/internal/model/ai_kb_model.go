@@ -106,11 +106,16 @@ func (m *customAiKbModel) UpdateOwned(ctx context.Context, id, ownerId int64, pa
 
 func (m *customAiKbModel) DeleteOwned(ctx context.Context, id, ownerId int64) ([]uint64, error) {
 	chunkIds := make([]uint64, 0)
+	var docIds []int64
 	err := m.conn.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
 		var owner struct {
 			Id int64 `db:"id"`
 		}
 		if err := session.QueryRowCtx(ctx, &owner, "SELECT id FROM ai_kb WHERE id=? AND owner_id=? AND deleted_at IS NULL FOR UPDATE", id, ownerId); err != nil {
+			return err
+		}
+		// 与创建、重试和摄取终态统一按 KB→doc→chunk 加锁，避免删除与摄取交叉。
+		if err := session.QueryRowsCtx(ctx, &docIds, "SELECT id FROM ai_kb_doc WHERE kb_id=? ORDER BY id FOR UPDATE", id); err != nil {
 			return err
 		}
 		rows := make([]struct {
@@ -134,8 +139,12 @@ func (m *customAiKbModel) DeleteOwned(ctx context.Context, id, ownerId int64) ([
 	if err != nil {
 		return nil, err
 	}
-	if err := m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminAiKbIdPrefix, id)); err != nil {
-		return nil, err
+	keys := []string{fmt.Sprintf("%s%d", cacheGozeroAdminAiKbIdPrefix, id)}
+	for _, docId := range docIds {
+		keys = append(keys, fmt.Sprintf("%s%d", cacheGozeroAdminAiKbDocIdPrefix, docId))
+	}
+	if err := m.DelCacheCtx(ctx, keys...); err != nil {
+		return chunkIds, &KbDocCommittedError{Err: err}
 	}
 	return chunkIds, nil
 }

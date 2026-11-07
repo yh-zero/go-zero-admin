@@ -43,6 +43,16 @@ func (s *AiServiceServer) DeleteConversation(ctx context.Context, in *aipb.Delet
 	return l.DeleteConversation(in)
 }
 
+func (s *AiServiceServer) UpdateConversation(ctx context.Context, in *aipb.UpdateConversationRequest) (*aipb.CreateConversationResponse, error) {
+	l := aiservicelogic.NewUpdateConversationLogic(ctx, s.svcCtx)
+	return l.UpdateConversation(in)
+}
+
+func (s *AiServiceServer) SetMessageFeedback(ctx context.Context, in *aipb.SetMessageFeedbackRequest) (*aipb.NoDataResponse, error) {
+	l := aiservicelogic.NewSetMessageFeedbackLogic(ctx, s.svcCtx)
+	return l.SetMessageFeedback(in)
+}
+
 func (s *AiServiceServer) SendMessageStream(in *aipb.SendMessageRequest, stream aipb.AiService_SendMessageStreamServer) error {
 	l := aiservicelogic.NewSendMessageStreamLogic(stream.Context(), s.svcCtx)
 	return l.SendMessageStream(in, stream)
@@ -98,6 +108,11 @@ func (s *AiServiceServer) GetKb(ctx context.Context, in *aipb.GetKbRequest) (*ai
 	return l.GetKb(in)
 }
 
+func (s *AiServiceServer) SearchKb(ctx context.Context, in *aipb.SearchKbRequest) (*aipb.SearchKbResponse, error) {
+	l := aiservicelogic.NewSearchKbLogic(ctx, s.svcCtx)
+	return l.SearchKb(in)
+}
+
 func (s *AiServiceServer) UpdateKb(ctx context.Context, in *aipb.UpdateKbRequest) (*aipb.NoDataResponse, error) {
 	l := aiservicelogic.NewUpdateKbLogic(ctx, s.svcCtx)
 	return l.UpdateKb(in)
@@ -116,6 +131,16 @@ func (s *AiServiceServer) CreateKbDoc(ctx context.Context, in *aipb.CreateKbDocR
 func (s *AiServiceServer) ListKbDocs(ctx context.Context, in *aipb.ListKbDocsRequest) (*aipb.ListKbDocsResponse, error) {
 	l := aiservicelogic.NewListKbDocsLogic(ctx, s.svcCtx)
 	return l.ListKbDocs(in)
+}
+
+func (s *AiServiceServer) GetKbDoc(ctx context.Context, in *aipb.GetKbDocRequest) (*aipb.GetKbDocResponse, error) {
+	l := aiservicelogic.NewGetKbDocLogic(ctx, s.svcCtx)
+	return l.GetKbDoc(in)
+}
+
+func (s *AiServiceServer) UpdateKbDoc(ctx context.Context, in *aipb.UpdateKbDocRequest) (*aipb.UpdateKbDocResponse, error) {
+	l := aiservicelogic.NewUpdateKbDocLogic(ctx, s.svcCtx)
+	return l.UpdateKbDoc(in)
 }
 
 func (s *AiServiceServer) DeleteKbDoc(ctx context.Context, in *aipb.DeleteKbDocRequest) (*aipb.NoDataResponse, error) {
@@ -146,4 +171,9 @@ func (s *AiServiceServer) ApproveTask(ctx context.Context, in *aipb.ApproveTaskR
 func (s *AiServiceServer) RejectTask(ctx context.Context, in *aipb.RejectTaskRequest) (*aipb.NoDataResponse, error) {
 	l := aiservicelogic.NewRejectTaskLogic(ctx, s.svcCtx)
 	return l.RejectTask(in)
+}
+
+func (s *AiServiceServer) CancelTask(ctx context.Context, in *aipb.CancelTaskRequest) (*aipb.NoDataResponse, error) {
+	l := aiservicelogic.NewCancelTaskLogic(ctx, s.svcCtx)
+	return l.CancelTask(in)
 }

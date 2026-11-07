@@ -1,0 +1,12 @@
+.result { margin: 12px 0 20px; padding: 16px; border: 1px solid var(--ant-color-border-secondary); border-radius: 10px; background: var(--ant-color-bg-container); }
+.heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; overflow-wrap: anywhere; }
+.text { margin: 8px 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.8; }
+.note, .metadata, .usage { color: var(--ant-color-text-secondary); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.note { margin-top: 0; }
+.sources { padding-left: 24px; margin: 12px 0; }
+.sources li { margin: 0 0 18px; padding-left: 3px; }
+.sources .text { font-size: 13px; }
+.metadata p, .usage p { margin: 7px 0 0; }
+.metadata summary, .usage summary { cursor: pointer; }
+.usage { padding-top: 12px; border-top: 1px solid var(--ant-color-border-secondary); }
+@media (max-width: 600px) { .result { padding: 12px; } }

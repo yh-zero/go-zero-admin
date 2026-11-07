@@ -2,9 +2,12 @@ import { memo } from 'react';
 import { Tag, Typography } from 'antd';
 import type { AiChatMessage } from '../../api/types';
 import { formatTime } from '../../utils/format';
+import { CopyTextButton, SafeMarkdown } from './SafeMarkdown';
+import { ChatMessageFeedback } from './ChatMessageFeedback';
+import type { ChatFeedbackContext } from './ChatMessageFeedback';
 import styles from './chat.module.css';
 
-interface Props { message: AiChatMessage }
+interface Props { message: AiChatMessage; feedbackContext?: ChatFeedbackContext }
 interface ToolCallRecord { id?: string; type?: string; function: { name: string; arguments: string }; key: string }
 
 function readToolCalls(raw: string): ToolCallRecord[] | null {
@@ -38,7 +41,7 @@ const statuses = {
   failed: { color: 'error', title: '失败' },
 };
 
-export const MessageRecord = memo(function MessageRecord({ message }: Props) {
+export const MessageRecord = memo(function MessageRecord({ message, feedbackContext }: Props) {
   const status = statuses[message.status] ?? (message.status ? { color: 'default', title: message.status } : statuses.succeeded);
   const calls = readToolCalls(message.tool_calls);
   return <article className={`${styles.message} ${message.role === 'user' ? styles.userMessage : ''}`}>
@@ -47,7 +50,12 @@ export const MessageRecord = memo(function MessageRecord({ message }: Props) {
       <Tag color={status.color}>{status.title}</Tag>
       <Typography.Text type="secondary">{formatTime(message.created_at)}</Typography.Text>
     </div>
-    {message.content && <div className={styles.messageText}>{message.content}</div>}
+    {message.content && (message.role === 'assistant' ? <SafeMarkdown content={message.content} /> : <div className={styles.messageText}>{message.content}</div>)}
+    {message.content && <CopyTextButton text={message.content} label={message.role === 'assistant' ? '复制回答' : '复制内容'} />}
+    {message.role === 'assistant' && (message.sources ?? []).length > 0 && <div className={styles.sources}><Typography.Text strong>参考资料（实际检索片段）</Typography.Text>{message.sources.map((source, position) => <details key={`${source.kb_id}:${source.chunk_id}`}>
+      <summary>[{position + 1}] {source.doc_title || `文档 #${source.doc_id}`}</summary><Typography.Paragraph type="secondary">知识库 ID：{source.kb_id} · 文档 ID：{source.doc_id} · 分块 ID：{source.chunk_id} · 相似度：{source.score}</Typography.Paragraph><div className={styles.messageText}>{source.snippet}</div>
+    </details>)}</div>}
+    {message.role === 'assistant' && message.status === 'succeeded' && feedbackContext && <ChatMessageFeedback message={message} context={feedbackContext} />}
     {message.error && <Typography.Paragraph type="danger" className={styles.messageText}>{message.error}</Typography.Paragraph>}
     {message.role === 'assistant' && <Typography.Paragraph type="secondary" className={styles.usage}>
       已知 token：{message.tokens}。用量可能不完整，不代表最终计费。

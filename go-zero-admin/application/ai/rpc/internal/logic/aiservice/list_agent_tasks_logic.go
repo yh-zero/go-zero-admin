@@ -26,7 +26,7 @@ func (l *ListAgentTasksLogic) ListAgentTasks(in *aipb.ListAgentTasksRequest) (*a
 		return nil, err
 	}
 	switch in.Status {
-	case "", "pending", "running", "pending_approval", "succeeded", "failed", "rejected":
+	case "", "pending", "running", "pending_approval", "succeeded", "failed", "rejected", "cancelled":
 	default:
 		return nil, xerr.NewErrCodeMsg(400, "任务状态不合法")
 	}

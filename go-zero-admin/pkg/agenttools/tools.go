@@ -20,6 +20,17 @@ type Tool interface {
 	Execute(ctx context.Context, args json.RawMessage) (string, error)
 }
 
+// IsWorkflowOnly 识别仅允许工作流执行的工具；未声明的既有工具保持聊天可用。
+func IsWorkflowOnly(t Tool) bool {
+	marker, ok := t.(interface{ WorkflowOnly() bool })
+	return ok && marker.WorkflowOnly()
+}
+
+// ExecutionError 仅携带可向任务用户展示的固定安全原因，不包装供应商或基础设施原始错误。
+type ExecutionError struct{ Message string }
+
+func (e *ExecutionError) Error() string { return e.Message }
+
 var registry = map[string]Tool{}
 
 // Register 注册工具（重复注册 panic）
@@ -50,6 +61,9 @@ func Get(name string) (Tool, bool) {
 func LLMTools() []*schema.ToolInfo {
 	out := make([]*schema.ToolInfo, 0, len(registry))
 	for _, t := range registry {
+		if IsWorkflowOnly(t) {
+			continue
+		}
 		out = append(out, &schema.ToolInfo{
 			Name:        t.Name(),
 			Desc:        t.Description(),

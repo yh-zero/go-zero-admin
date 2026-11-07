@@ -8,6 +8,7 @@ export const taskStatuses: Record<AiTaskStatus, { label: string; color: string }
   succeeded: { label: '已完成', color: 'success' },
   failed: { label: '执行失败', color: 'error' },
   rejected: { label: '已拒绝', color: 'default' },
+  cancelled: { label: '已取消', color: 'default' },
 };
 
 export interface TaskDecision { id: number; expected_step: number; action: 'approve' | 'reject' }
@@ -19,7 +20,7 @@ export function correctTaskPageParams(current: AiListTasksReq, requested: AiList
 }
 
 export function taskStepLabel(task: Pick<AiTaskInfo, 'status' | 'next_step'>): string {
-  return ['succeeded', 'failed', 'rejected'].includes(task.status) ? `已完成 ${task.next_step} 步` : `第 ${task.next_step + 1} 步`;
+  return ['succeeded', 'failed', 'rejected', 'cancelled'].includes(task.status) ? `已完成 ${task.next_step} 步` : `第 ${task.next_step + 1} 步`;
 }
 
 export function captureTaskDecision(task: Pick<AiTaskInfo, 'id' | 'status' | 'next_step'>, action: TaskDecision['action']): TaskDecision | null {

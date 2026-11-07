@@ -131,7 +131,11 @@ function validMessage(value: unknown, id: number, role: string): value is AiChat
   const message = value as AiChatMessage;
   return message.id === id && message.role === role && message.status === 'succeeded' && message.error === ''
     && typeof message.content === 'string' && typeof message.tool_calls === 'string'
-    && nonNegativeInteger(message.tokens) && nonNegativeInteger(message.created_at);
+    && nonNegativeInteger(message.tokens) && nonNegativeInteger(message.created_at)
+    && (message.sources === undefined || Array.isArray(message.sources) && message.sources.length <= 20 && message.sources.every(hit => hit && typeof hit === 'object'
+      && positiveInteger(hit.chunk_id) && positiveInteger(hit.kb_id) && positiveInteger(hit.doc_id) && typeof hit.doc_title === 'string' && typeof hit.snippet === 'string' && typeof hit.score === 'number' && Number.isFinite(hit.score)))
+    && (message.feedback === undefined || ['', 'helpful', 'irrelevant_source', 'missing_knowledge'].includes(message.feedback))
+    && (message.feedback_note === undefined || typeof message.feedback_note === 'string');
 }
 function validConversation(value: unknown, id: number): value is AiConversationInfo {
   if (!value || typeof value !== 'object') return false;

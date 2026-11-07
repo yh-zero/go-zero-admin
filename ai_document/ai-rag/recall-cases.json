@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "description": "知识库直接召回固定题集；全部资料为演示合成数据，不构成投资建议或真实运维规范。",
+  "metric_notes": "每个正例仅一个相关文档，前K指实际返回的前K个片段，Hit@K与Recall@K同值；另核对证据覆盖，负例不进入正例分母。",
+  "documents": [
+    {"key":"stocks-trading","kb":"stocks","source":"ai_document/ai-rag/kb1-a股投资知识/01-交易基础规则.md","title":"交易基础规则","sha256":"86d705028bb39a44b5862af3224b9d7f4ac454a8ae50c83c403a46e6ad3b37c8"},
+    {"key":"stocks-suspension","kb":"stocks","source":"ai_document/ai-rag/kb1-a股投资知识/02-涨跌停与停牌制度.txt","title":"涨跌停与停牌制度","sha256":"b4178216acd043da7c6fe361d21a0287593d89b113da45865bcff83f63aa4f97"},
+    {"key":"stocks-board","kb":"stocks","source":"ai_document/ai-rag/kb1-a股投资知识/03-板块差异对照.csv","title":"板块差异对照","sha256":"1449b5f552eceef7336e4387fe1b88ab246e37efa13b4b624efffc823bfa7cc9"},
+    {"key":"stocks-margin","kb":"stocks","source":"ai_document/ai-rag/kb1-a股投资知识/04-融资融券指南.md","title":"融资融券指南","sha256":"f46d2ba24de2001c3aa3766254665174c37855d33cfbd62b3d6a736083cad78e"},
+    {"key":"stocks-dividend","kb":"stocks","source":"ai_document/ai-rag/kb1-a股投资知识/05-分红除权与股息税.txt","title":"分红除权与股息税","sha256":"bd253ebd75ae8d4826f336ff76da7ca94cd41ca539973dc4c02deeb1a5bcd865"},
+    {"key":"stocks-valuation","kb":"stocks","source":"ai_document/ai-rag/kb1-a股投资知识/06-常见指标口径.json","title":"常见指标口径","sha256":"7a6cd0f23ab357f95142f5f041d4c29f036ec5a7da7ec62b8640904d6b6a1dce"},
+    {"key":"ops-release","kb":"ops","source":"ai_document/ai-rag/kb2-运维发布SOP/01-发布流程规范.md","title":"发布流程规范","sha256":"3d65ecb20a76ccd7a33a3d2081a2dc6bc4dff941f201268b34673aa51e6754fb"},
+    {"key":"ops-incident","kb":"ops","source":"ai_document/ai-rag/kb2-运维发布SOP/02-值班与故障响应.txt","title":"值班与故障响应","sha256":"7cac1d70d6390d518021d977c65f81a3e93b4aeddbe3425d7c0ded8c9b46d328"},
+    {"key":"ops-windows","kb":"ops","source":"ai_document/ai-rag/kb2-运维发布SOP/03-变更窗口与回滚.csv","title":"变更窗口与回滚","sha256":"39152584cd00cc7069b788c3856065b91f02327f970a60d21f7905d9a4986bd8"},
+    {"key":"ops-alert","kb":"ops","source":"ai_document/ai-rag/kb2-运维发布SOP/04-监控告警分级.json","title":"监控告警分级","sha256":"676db395ed053c1e4205c7b9a84f3c773bd22b8d84c15ec14bfd15b59d5a42b3"},
+    {"key":"ops-database","kb":"ops","source":"ai_document/ai-rag/kb2-运维发布SOP/05-数据库变更规范.md","title":"数据库变更规范","sha256":"3218cd55063e332f168f4d01c0965c479aa8e9345842a80b0a92d0699150687e"}
+  ],
+  "cases": [
+    {"id":"stock-settlement","kb":"stocks","query":"今天买入的A股下午跌了3%，当天能卖出止损吗？卖出所得资金何时可用和转出？","expected_document":"stocks-trading","evidence_groups":[["当日买入的股票次日才能卖出","当日买入次日才能卖出"],["当日可用"],["次日可取"]]},
+    {"id":"stock-suspension","kb":"stocks","query":"主板股票连续三个交易日涨跌幅偏离值累计达到22%，是否通常会自动停牌？","expected_document":"stocks-suspension","evidence_groups":[["累计达到±20%"],["通常不停牌"]]},
+    {"id":"stock-board","kb":"stocks","query":"科创板股票的代码段、开户资产和经验门槛、单笔最小买入股数分别是什么？","expected_document":"stocks-board","evidence_groups":[["688"],["50万元+24个月交易经验"],["200股起按1股递增"]]},
+    {"id":"stock-margin","kb":"stocks","query":"开通融资融券需要多少资产和交易经验？维持担保比例降到哪条线可能被平仓？","expected_document":"stocks-margin","evidence_groups":[["50万元资产+半年交易经验"],["平仓线130%"]]},
+    {"id":"stock-dividend","kb":"stocks","query":"持股8个月卖出的股息税是多少？登记日收盘持有、除权日卖出还享有分红吗？","expected_document":"stocks-dividend","evidence_groups":[["1个月至1年（含）：税负10%"],["次日（除权日）卖出不影响分红资格","次日卖出不影响分红资格"]]},
+    {"id":"stock-valuation","kb":"stocks","query":"企业亏损时PE估值还有意义吗？可以改看哪些估值指标？","expected_document":"stocks-valuation","evidence_groups":[["亏损企业PE为负无意义"],["PB或PS"]]},
+    {"id":"ops-release","kb":"ops","query":"周五下午4点可以发布普通需求吗？第一批灰度应观察多久和哪些指标？","expected_document":"ops-release","evidence_groups":[["周五15:00后"],["非紧急变更"],["观察10分钟"],["错误率"],["P99延迟"],["业务关键日志"]]},
+    {"id":"ops-incident","kb":"ops","query":"故障期间确需修改生产数据，要谁批准和怎样复核？恢复手段的优先顺序是什么？","expected_document":"ops-incident","evidence_groups":[["故障指挥官批准"],["双人复核"],["回滚>降级>重启>修复上线"]]},
+    {"id":"ops-firewall","kb":"ops","query":"调整防火墙规则应安排什么时间、由谁审批和复核？","expected_document":"ops-windows","evidence_groups":[["周二/周四下午"],["网络组+安全组"],["双人复核"]]},
+    {"id":"ops-escalation","kb":"ops","query":"critical告警10分钟未认领和30分钟未恢复，分别升级给谁？","expected_document":"ops-alert","evidence_groups":[["10分钟未认领自动升级至值班主管"],["30分钟未恢复升级至部门负责人"]]},
+    {"id":"ops-destructive-ddl","kb":"ops","query":"要删除大表的一列，规范要求走怎样的方案？执行大表DDL还需注意什么？","expected_document":"ops-database","evidence_groups":[["建新表+双写+迁移+校验+切换"],["在线DDL工具并限速"]]},
+    {"id":"ops-cache-consistency","kb":"ops","query":"数据库已经提交，但缓存失效失败，变更单应写什么？可否记为已回滚或执行FLUSHALL？","expected_document":"ops-database","evidence_groups":[["库已提交、缓存未清"],["不得宣称已回滚"],["禁止用FLUSHALL/FLUSHDB代替精确失效"]]},
+    {"id":"stocks-no-release","kb":"stocks","query":"周五下午4点能否发布普通功能？规范规定的截止时间是什么？","expected_document":null,"evidence_groups":[],"forbidden_kb":"ops"},
+    {"id":"ops-no-dividend","kb":"ops","query":"A股持股8个月卖出的股息红利税税率是多少？","expected_document":null,"evidence_groups":[],"forbidden_kb":"stocks"}
+  ]
+}

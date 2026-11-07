@@ -9,7 +9,8 @@ import { fetchMyDepts } from '../api/dept';
 import { useAuthStore } from '../stores/auth';
 import { pageLinks } from '../router/registry';
 import { getMenuAncestorKeys, toMenuItems } from './navigation';
-import { getAccessiblePagePaths, safeMenuPath } from '../router/menuRoutes';
+import { getAccessiblePagePaths, isPageAccessible, pageMenuPath } from '../router/menuRoutes';
+import { hiddenPageForPath } from '../router/hiddenPages';
 import { switchDepartment } from '../utils/request';
 import { QueryState } from '../components/QueryState';
 import { BrandMark } from '../components/BrandMark';
@@ -44,7 +45,8 @@ export default function BasicLayout() {
     if (!departmentReady || permissions.isFetching || permissions.isError) clearPermissions();
     else if (permissions.data) setPermCodes(permissions.data);
   }, [permissions.data, permissions.dataUpdatedAt, permissions.isFetching, permissions.isError, setPermCodes, clearPermissions, departmentVersion, departmentReady]);
-  const title = pageLinks.find(page => page.path === location.pathname)?.title ?? '管理工作台';
+  const menuPath = pageMenuPath(location.pathname) ?? location.pathname;
+  const title = hiddenPageForPath(location.pathname)?.title ?? pageLinks.find(page => page.path === location.pathname)?.title ?? '管理工作台';
   const accessiblePaths = getAccessiblePagePaths(menus.isSuccess && departmentReady ? menus.data ?? [] : []);
   const remoteItems = toMenuItems(menus.isSuccess && departmentReady ? menus.data ?? [] : []);
   const menuItems = [{ key: '/dashboard', label: '工作台', icon: <DashboardOutlined /> }, ...remoteItems.filter(item => item?.key !== '/dashboard')];
@@ -52,14 +54,14 @@ export default function BasicLayout() {
     ? <QueryState error={departments.error} onRetry={() => departments.refetch()} />
     : !departmentReady || menus.isPending ? <Spin className="route-spinner" />
       : menus.isError ? <QueryState error={menus.error} onRetry={() => menus.refetch()} />
-        : accessiblePaths.has(safeMenuPath(location.pathname) ?? '') ? <Outlet /> : <Navigate to="/dashboard" replace />;
+        : isPageAccessible(location.pathname, accessiblePaths) ? <Outlet /> : <Navigate to="/dashboard" replace />;
   // 异步菜单或路由祖先变化时重建初始展开状态，调宽和同目录跳转保留用户选择。
-  const routeParentKeys = getMenuAncestorKeys(menuItems, location.pathname) ?? [];
+  const routeParentKeys = getMenuAncestorKeys(menuItems, menuPath) ?? [];
   const navigation = <>
     <div className="app-brand"><BrandMark /><span className="brand-copy"><strong>go-zero-admin</strong><span>管理控制台</span></span></div>
     <div className="navigation-caption">工作空间</div>
     <WorkspaceMenu key={JSON.stringify(routeParentKeys)} parentKeys={routeParentKeys}
-      collapsed={!isMobile && collapsed} items={menuItems} pathname={location.pathname}
+      collapsed={!isMobile && collapsed} items={menuItems} pathname={menuPath}
       onClick={({ key }) => { if (key.startsWith('/')) { navigate(key); setMobileOpen(false); } }} />
   </>;
   return <Layout className="app-layout">

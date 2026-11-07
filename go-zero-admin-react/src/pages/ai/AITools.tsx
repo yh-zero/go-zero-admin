@@ -10,6 +10,7 @@ import { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
 import { aiWorkspaceKeys, toolListOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
 import { formatTaskValue } from './taskState';
+import { toolGuides } from './toolGuides';
 import styles from './tools.module.css';
 
 export default function AITools() {
@@ -23,7 +24,7 @@ export function AIToolSession({ scope }: { scope: AiWorkspaceScope }) {
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const tools = useQuery({ ...toolListOptions(scope), enabled: guard.can('sys:ai:tool:list') });
   const query = search.trim().toLocaleLowerCase();
-  const list = (tools.data?.list ?? []).filter(tool => `${tool.name}\n${tool.description}`.toLocaleLowerCase().includes(query));
+  const list = (tools.data?.list ?? []).filter(tool => `${tool.name}\n${tool.description}\n${toolGuides[tool.name]?.title ?? ''}\n${toolGuides[tool.name]?.purpose ?? ''}`.toLocaleLowerCase().includes(query));
   const selected = tools.data?.list.find(tool => tool.name === selectedName);
   const canCreateWorkflow = guard.can('sys:ai:workflow:list') && guard.can('sys:ai:workflow:create');
 
@@ -40,7 +41,7 @@ export function AIToolSession({ scope }: { scope: AiWorkspaceScope }) {
     }} />)}</div>}
     <Drawer open={!!selected && !tools.error} title="工具详情" size={520} className={styles.drawer} onClose={() => setSelectedName(null)}
       footer={<Space wrap className={styles.drawerActions}><Button onClick={() => setSelectedName(null)}>关闭</Button>
-        {selected && canCreateWorkflow && <Link to={`/ai/workflows?tool=${encodeURIComponent(selected.name)}`}><Button type="primary" icon={<PlusOutlined />}>用此工具创建工作流</Button></Link>}
+        {selected && canCreateWorkflow && <Link to={`/ai/workflows/new?tool=${encodeURIComponent(selected.name)}`}><Button type="primary" icon={<PlusOutlined />}>用此工具创建工作流</Button></Link>}
       </Space>}>
       {selected && <ToolDetailContent tool={selected} />}
     </Drawer>
@@ -48,18 +49,25 @@ export function AIToolSession({ scope }: { scope: AiWorkspaceScope }) {
 }
 
 export function ToolCard({ tool, canUse, onView }: { tool: AiToolInfo; canUse: boolean; onView: () => void }) {
+  const guide = toolGuides[tool.name];
   return <article className={styles.toolCard}>
     <div className={styles.symbol}><AppstoreOutlined /></div>
-    <h3 className={styles.toolName}>{tool.name}</h3><p className={styles.description}>{tool.description || '暂无说明'}</p>
+    <h3 className={styles.toolName}>{guide?.title ?? tool.name}</h3><Tag>{tool.name}</Tag><p className={styles.description}>{guide?.purpose ?? tool.description ?? '暂无说明'}</p>
     <div className={styles.cardActions}><Button type="link" onClick={onView}>查看参数</Button>
-      {canUse && <Link to={`/ai/workflows?tool=${encodeURIComponent(tool.name)}`}><Button icon={<PlusOutlined />}>用于工作流</Button></Link>}
+      {canUse && <Link to={`/ai/workflows/new?tool=${encodeURIComponent(tool.name)}`}><Button icon={<PlusOutlined />}>用于工作流</Button></Link>}
     </div>
   </article>;
 }
 
 export function ToolDetailContent({ tool }: { tool: AiToolInfo }) {
+  const guide = toolGuides[tool.name];
   return <div className={styles.detailContent}><div className={styles.symbol}><AppstoreOutlined /></div><h3 className={styles.toolName}>{tool.name}</h3>
-    <p className={styles.description}>{tool.description || '暂无说明'}</p><h3>参数 Schema</h3>
+    <p className={styles.description}>{tool.description || '暂无说明'}</p>
+    {guide && <><h3>{guide.title} · 使用示例</h3><p>{guide.purpose}</p>
+      <h4>示例输入</h4><pre className={styles.code}>{formatTaskValue(guide.input)}</pre>
+      <h4>示例输出</h4><pre className={styles.code}>{guide.output}</pre>
+      {guide.note && <p className={styles.muted}>{guide.note}</p>}</>}
+    <h3>参数 Schema</h3>
     <pre className={styles.code}>{tool.parameters_schema ? formatTaskValue(tool.parameters_schema) : '未提供参数 Schema'}</pre>
     <p className={styles.muted}>参数按服务端注册定义展示。请选择工作流步骤来使用工具。</p>
   </div>;

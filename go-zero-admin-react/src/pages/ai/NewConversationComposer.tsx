@@ -4,6 +4,9 @@ import { DownOutlined, SendOutlined } from '@ant-design/icons';
 import type { AiSendMessageResult } from '../../api/types';
 import type { AiChatScope } from './chatQueries';
 import { validateMessageContent } from './chatState';
+import { ChatKnowledgePicker } from './ChatKnowledgePicker';
+import type { ChatKnowledgeSelection } from './ChatKnowledgePicker';
+import { SafeMarkdown } from './SafeMarkdown';
 import { useMessageSend } from './useMessageSend';
 import { useChatScroll } from './useChatScroll';
 import type { ChatScrollPosition } from './useChatScroll';
@@ -13,12 +16,13 @@ type ComposerValues = { content: string };
 interface Props {
   scope: AiChatScope; canSend: boolean; writing: boolean; isCurrent: () => boolean;
   scrollPosition: { current: ChatScrollPosition | null };
+  knowledge?: ChatKnowledgeSelection; onKnowledgeChange?: (value: ChatKnowledgeSelection) => void;
   beginWrite: (permission: string) => boolean; finishWrite: () => void;
   onCompleted: (result: AiSendMessageResult) => void;
 }
 
 // 第一条消息由流式发送自动创建会话，成功结果直接填充正式会话缓存。
-export function NewConversationComposer({ scope, canSend, writing, scrollPosition, isCurrent, beginWrite, finishWrite, onCompleted }: Props) {
+export function NewConversationComposer({ scope, canSend, writing, scrollPosition, knowledge = { kb_id: 0, grounded: false }, onKnowledgeChange, isCurrent, beginWrite, finishWrite, onCompleted }: Props) {
   const [form] = Form.useForm<ComposerValues>();
   const draft = Form.useWatch('content', form) ?? '';
   const revision = useRef(0);
@@ -39,7 +43,7 @@ export function NewConversationComposer({ scope, canSend, writing, scrollPositio
     const submittedRevision = revision.current;
     start(values.content, request => {
       if (revision.current === submittedRevision && form.getFieldValue('content') === request.content) form.setFieldValue('content', '');
-    });
+    }, knowledge);
   }
   return <Card className={styles.conversation} title="新会话">
     {retainedResult && <Alert className={styles.feedback} type="success" showIcon title="会话已创建，新草稿已保留"
@@ -58,7 +62,7 @@ export function NewConversationComposer({ scope, canSend, writing, scrollPositio
         {streamState.tools.map(tool => <div className={styles.tool} key={tool.key}>
           <Typography.Text type="secondary">工具 {tool.name} {tool.status === 'start' ? '调用中…' : '已完成'}</Typography.Text>
         </div>)}
-        {streamState.content ? <div className={styles.messageText}>{streamState.content}</div> : <Typography.Text type="secondary">正在生成…</Typography.Text>}
+        {streamState.content ? <SafeMarkdown content={streamState.content} /> : <Typography.Text type="secondary">正在生成…</Typography.Text>}
       </article>}
       </div>
     </div>
@@ -71,8 +75,9 @@ export function NewConversationComposer({ scope, canSend, writing, scrollPositio
         {canSend && <Button size="small" disabled={writing} onClick={recheck}>重查本次结果</Button>}
       </Space>} />}
     {canSend ? <Form<ComposerValues> form={form} className={styles.composer} onFinish={handleSend} initialValues={{ content: '' }}>
+      {onKnowledgeChange && <ChatKnowledgePicker scope={scope} value={knowledge} onChange={onKnowledgeChange} disabled={writing} />}
       <Form.Item name="content" rules={[{ validator: (_, value: string) => {
-        const error = validateMessageContent(value ?? '');
+        const error = validateMessageContent(value ?? '') || (knowledge.grounded && new TextEncoder().encode(value ?? '').length > 2000 ? '仅依据资料回答时，问题最多 2000 UTF-8 字节' : undefined);
         return error ? Promise.reject(new Error(error)) : Promise.resolve();
       } }]}>
         <Input.TextArea autoSize={{ minRows: 3, maxRows: 8 }} placeholder="输入第一条消息，发送后自动创建会话..." aria-label="消息内容"
@@ -84,7 +89,7 @@ export function NewConversationComposer({ scope, canSend, writing, scrollPositio
           }} />
       </Form.Item>
       <div className={styles.composerActions}>
-        <Typography.Text type="secondary" className={styles.recordNote}>{new TextEncoder().encode(draft).length} / 16000 UTF-8 字节</Typography.Text>
+        <Typography.Text type="secondary" className={styles.recordNote}>{new TextEncoder().encode(draft).length} / {knowledge.grounded ? 2000 : 16000} UTF-8 字节</Typography.Text>
         <Button type="primary" htmlType="submit" icon={<SendOutlined />} loading={sending} disabled={writing || !draft.trim()}>
           {feedback?.state === 'unknown' ? '重新发送（新请求）' : '发送'}
         </Button>

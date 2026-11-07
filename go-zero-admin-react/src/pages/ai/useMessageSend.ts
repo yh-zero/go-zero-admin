@@ -56,9 +56,9 @@ export function useMessageSend({ conversationId, scope, isCurrent, beginWrite, f
   }
   return {
     feedback, streamState, sending: mutation.isPending || streamState !== null,
-    start(content: string, onSuccess?: (request: AiSendMessageReq) => void) {
+    start(content: string, onSuccess?: (request: AiSendMessageReq) => void, knowledge: Pick<AiSendMessageReq, 'kb_id' | 'grounded'> = {}) {
       if (!beginWrite('sys:ai:message:send')) return;
-      const attempt = sender.start(conversationId, content, handlers);
+      const attempt = sender.start(conversationId, content, handlers, knowledge);
       if (!attempt) { finishWrite(); return; }
       void settle(attempt, onSuccess);
     },

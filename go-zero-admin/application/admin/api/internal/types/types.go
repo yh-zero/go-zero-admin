@@ -9,14 +9,17 @@ type AiApproveTaskReq struct {
 }
 
 type AiChatMessage struct {
-	Id        int64  `json:"id"`
-	Role      string `json:"role"`
-	Content   string `json:"content"`
-	ToolCalls string `json:"tool_calls"`
-	Tokens    int64  `json:"tokens"`
-	CreatedAt int64  `json:"created_at"`
-	Status    string `json:"status"`
-	Error     string `json:"error"`
+	Id           int64            `json:"id"`
+	Role         string           `json:"role"`
+	Content      string           `json:"content"`
+	ToolCalls    string           `json:"tool_calls"`
+	Tokens       int64            `json:"tokens"`
+	CreatedAt    int64            `json:"created_at"`
+	Status       string           `json:"status"`
+	Error        string           `json:"error"`
+	Sources      []*AiKbSearchHit `json:"sources"`
+	Feedback     string           `json:"feedback"`
+	FeedbackNote string           `json:"feedback_note"`
 }
 
 type AiConversationInfo struct {
@@ -26,6 +29,7 @@ type AiConversationInfo struct {
 	MessageCount int64  `json:"message_count"`
 	CreatedAt    int64  `json:"created_at"`
 	UpdatedAt    int64  `json:"updated_at"`
+	Pinned       bool   `json:"pinned"`
 }
 
 type AiConversationResp struct {
@@ -66,8 +70,19 @@ type AiGetConversationResp struct {
 	NextBeforeId int64               `json:"next_before_id"`
 }
 
+type AiGetKbDocReq struct {
+	Id       int64 `path:"id" validate:"min=1"`
+	DocId    int64 `path:"doc_id" validate:"min=1"`
+	MetaOnly bool  `form:"meta_only,optional"`
+}
+
 type AiIdReq struct {
 	Id int64 `path:"id" validate:"min=1"`
+}
+
+type AiKbDocDetailResp struct {
+	Doc     *AiKbDocInfo `json:"doc"`
+	Content string       `json:"content"`
 }
 
 type AiKbDocInfo struct {
@@ -80,6 +95,8 @@ type AiKbDocInfo struct {
 	EmbeddingModel string `json:"embedding_model"`
 	CreatedAt      int64  `json:"created_at"`
 	UpdatedAt      int64  `json:"updated_at"`
+	Version        int64  `json:"version"`
+	Stage          string `json:"stage"`
 }
 
 type AiKbDocListReq struct {
@@ -112,6 +129,21 @@ type AiKbResp struct {
 	Kb *AiKbInfo `json:"kb"`
 }
 
+type AiKbSearchHit struct {
+	ChunkId  int64   `json:"chunk_id"`
+	KbId     int64   `json:"kb_id"`
+	DocId    int64   `json:"doc_id"`
+	DocTitle string  `json:"doc_title"`
+	Snippet  string  `json:"snippet"`
+	Score    float32 `json:"score"`
+}
+
+type AiListConversationsReq struct {
+	Page     int64  `form:"page,optional" validate:"omitempty,min=1"`
+	PageSize int64  `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+	Query    string `form:"query,optional" validate:"omitempty,max=128"`
+}
+
 type AiListConversationsResp struct {
 	List  []*AiConversationInfo `json:"list"`
 	Total int64                 `json:"total"`
@@ -130,7 +162,7 @@ type AiListKbsResp struct {
 type AiListTasksReq struct {
 	Page       int64  `form:"page,optional" validate:"omitempty,min=1"`
 	PageSize   int64  `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
-	Status     string `form:"status,optional" validate:"omitempty,oneof=pending running pending_approval succeeded failed rejected"`
+	Status     string `form:"status,optional" validate:"omitempty,oneof=pending running pending_approval succeeded failed rejected cancelled"`
 	WorkflowId int64  `form:"workflow_id,optional" validate:"omitempty,min=1"`
 }
 
@@ -151,6 +183,13 @@ type AiListWorkflowsResp struct {
 	Total int64             `json:"total"`
 }
 
+type AiMessageFeedbackReq struct {
+	Id        int64  `path:"id" validate:"min=1"`
+	MessageId int64  `path:"message_id" validate:"min=1"`
+	Feedback  string `json:"feedback" validate:"omitempty,oneof=helpful irrelevant_source missing_knowledge"`
+	Note      string `json:"note,optional" validate:"omitempty,maxbytes=1000"`
+}
+
 type AiPageReq struct {
 	Page     int64 `form:"page,optional" validate:"omitempty,min=1"`
 	PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
@@ -163,8 +202,9 @@ type AiRejectTaskReq struct {
 }
 
 type AiRunWorkflowReq struct {
-	Id    int64  `path:"id" validate:"min=1"`
-	Input string `json:"input,optional" validate:"omitempty,max=16000"`
+	Id        int64  `path:"id" validate:"min=1"`
+	Input     string `json:"input,optional" validate:"omitempty,max=16000"`
+	RequestId string `json:"request_id" validate:"required,uuid"`
 }
 
 type AiRunWorkflowResp struct {
@@ -172,10 +212,22 @@ type AiRunWorkflowResp struct {
 	Status string `json:"status"`
 }
 
+type AiSearchKbReq struct {
+	Id    int64  `path:"id" validate:"min=1"`
+	Query string `json:"query" validate:"required,maxbytes=2000"`
+}
+
+type AiSearchKbResp struct {
+	List      []*AiKbSearchHit `json:"list"`
+	ElapsedMs int64            `json:"elapsed_ms"`
+}
+
 type AiSendMessageReq struct {
 	RequestId      string `json:"request_id" validate:"required,uuid"`
 	ConversationId int64  `json:"conversation_id" validate:"min=0"`
 	Content        string `json:"content" validate:"max=16000"`
+	KbId           int64  `json:"kb_id,optional" validate:"min=0"`
+	Grounded       bool   `json:"grounded,optional"`
 }
 
 type AiSendMessageResp struct {
@@ -186,17 +238,20 @@ type AiSendMessageResp struct {
 }
 
 type AiTaskInfo struct {
-	Id             int64  `json:"id"`
-	WorkflowId     int64  `json:"workflow_id"`
-	ConversationId int64  `json:"conversation_id"`
-	Status         string `json:"status"`
-	Input          string `json:"input"`
-	Result         string `json:"result"`
-	Error          string `json:"error"`
-	ApprovedBy     int64  `json:"approved_by"`
-	CreatedAt      int64  `json:"created_at"`
-	CompletedAt    int64  `json:"completed_at"`
-	NextStep       int64  `json:"next_step"`
+	Id             int64                 `json:"id"`
+	WorkflowId     int64                 `json:"workflow_id"`
+	ConversationId int64                 `json:"conversation_id"`
+	Status         string                `json:"status"`
+	Input          string                `json:"input"`
+	Result         string                `json:"result"`
+	Error          string                `json:"error"`
+	ApprovedBy     int64                 `json:"approved_by"`
+	CreatedAt      int64                 `json:"created_at"`
+	CompletedAt    int64                 `json:"completed_at"`
+	NextStep       int64                 `json:"next_step"`
+	Steps          []*AiWorkflowStepInfo `json:"steps"`
+	UpdatedAt      int64                 `json:"updated_at"`
+	RequestId      string                `json:"request_id"`
 }
 
 type AiTaskResp struct {
@@ -207,6 +262,20 @@ type AiToolInfo struct {
 	Name             string `json:"name"`
 	Description      string `json:"description"`
 	ParametersSchema string `json:"parameters_schema"`
+}
+
+type AiUpdateConversationReq struct {
+	Id     int64   `path:"id" validate:"min=1"`
+	Title  *string `json:"title,optional" validate:"omitempty,max=128"`
+	Pinned *bool   `json:"pinned,optional"`
+}
+
+type AiUpdateKbDocReq struct {
+	Id              int64  `path:"id" validate:"min=1"`
+	DocId           int64  `path:"doc_id" validate:"min=1"`
+	Title           string `json:"title" validate:"required,max=128"`
+	Content         string `json:"content" validate:"required,maxbytes=65536"`
+	ExpectedVersion int64  `json:"expected_version" validate:"min=1"`
 }
 
 type AiUpdateKbReq struct {
@@ -237,6 +306,19 @@ type AiWorkflowInfo struct {
 
 type AiWorkflowResp struct {
 	Workflow *AiWorkflowInfo `json:"workflow"`
+}
+
+type AiWorkflowStepInfo struct {
+	Index       int64  `json:"index"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Tool        string `json:"tool"`
+	Input       string `json:"input"`
+	Status      string `json:"status"`
+	Output      string `json:"output"`
+	Error       string `json:"error"`
+	StartedAt   int64  `json:"started_at"`
+	CompletedAt int64  `json:"completed_at"`
 }
 
 type ApiInfo struct {

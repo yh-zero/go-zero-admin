@@ -1,0 +1,13 @@
+.markdown { min-width: 0; overflow-wrap: anywhere; line-height: 1.7; }
+.line { white-space: pre-wrap; min-height: 1em; }
+.heading { font-weight: 600; font-size: 1.1em; margin: 12px 0 6px; }
+.listLine { display: flex; align-items: baseline; gap: 10px; padding-left: 8px; }
+.markdown blockquote { border-left: 3px solid var(--ant-color-border); padding-left: 12px; margin: 8px 0; color: var(--ant-color-text-secondary); }
+.markdown :not(pre) > code { padding: 2px 5px; border-radius: 4px; background: var(--ant-color-fill-secondary); }
+.codeBlock { min-width: 0; margin: 10px 0; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; overflow: hidden; }
+.codeHeading { display: flex; justify-content: space-between; align-items: center; padding: 4px 10px; background: var(--ant-color-fill-tertiary); }
+.codeBlock pre { margin: 0; padding: 12px; overflow: auto; max-height: 480px; white-space: pre; }
+.tableWrap { overflow-x: auto; margin: 10px 0; }
+.tableWrap table { width: 100%; border-collapse: collapse; }
+.tableWrap th, .tableWrap td { text-align: left; border: 1px solid var(--ant-color-border-secondary); padding: 7px 10px; min-width: 100px; }
+.tableWrap th { background: var(--ant-color-fill-tertiary); }

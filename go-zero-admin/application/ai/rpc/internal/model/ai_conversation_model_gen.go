@@ -44,6 +44,7 @@ type (
 		Id        uint64       `db:"id"`      // 主键
 		UserId    uint64       `db:"user_id"` // 所属用户
 		Title     string       `db:"title"`   // 会话标题
+		Pinned    int64        `db:"pinned"`  // 本人置顶
 		CreatedAt time.Time    `db:"created_at"`
 		UpdatedAt time.Time    `db:"updated_at"`
 		DeletedAt sql.NullTime `db:"deleted_at"` // 软删除
@@ -86,8 +87,8 @@ func (m *defaultAiConversationModel) FindOne(ctx context.Context, id uint64) (*A
 func (m *defaultAiConversationModel) Insert(ctx context.Context, data *AiConversation) (sql.Result, error) {
 	gozeroAdminAiConversationIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiConversationIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?)", m.table, aiConversationRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.UserId, data.Title, data.DeletedAt)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?)", m.table, aiConversationRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.UserId, data.Title, data.Pinned, data.DeletedAt)
 	}, gozeroAdminAiConversationIdKey)
 	return ret, err
 }
@@ -96,7 +97,7 @@ func (m *defaultAiConversationModel) Update(ctx context.Context, data *AiConvers
 	gozeroAdminAiConversationIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiConversationIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, aiConversationRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.UserId, data.Title, data.DeletedAt, data.Id)
+		return conn.ExecCtx(ctx, query, data.UserId, data.Title, data.Pinned, data.DeletedAt, data.Id)
 	}, gozeroAdminAiConversationIdKey)
 	return err
 }

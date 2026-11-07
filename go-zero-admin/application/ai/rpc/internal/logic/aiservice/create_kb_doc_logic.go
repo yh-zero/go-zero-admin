@@ -25,6 +25,8 @@ func NewCreateKbDocLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Creat
 
 // CreateKbDoc 创建文档并同步摄取（契约：摄取在请求内完成并返回最终 status）
 func (l *CreateKbDocLogic) CreateKbDoc(in *aipb.CreateKbDocRequest) (*aipb.CreateKbDocResponse, error) {
+	ctx, cancel := context.WithTimeout(l.ctx, kbIngestTimeout)
+	defer cancel()
 	if err := requireAiActor(in.Actor); err != nil {
 		return nil, err
 	}
@@ -36,7 +38,7 @@ func (l *CreateKbDocLogic) CreateKbDoc(in *aipb.CreateKbDocRequest) (*aipb.Creat
 		return nil, xerr.NewErrCodeMsg(400, "文档内容须为 1..65536 字节")
 	}
 	// 归属/存在性校验先于就绪校验：404 语义不受降级影响
-	if _, err := l.svcCtx.AiKbModel.FindOwned(l.ctx, in.KbId, in.Actor.UserId); err != nil {
+	if _, err := l.svcCtx.AiKbModel.FindOwned(ctx, in.KbId, in.Actor.UserId); err != nil {
 		return nil, aiModelError(err)
 	}
 	if err := requireKbReady(l.svcCtx); err != nil {
@@ -46,7 +48,7 @@ func (l *CreateKbDocLogic) CreateKbDoc(in *aipb.CreateKbDocRequest) (*aipb.Creat
 	if len(chunks) == 0 {
 		return nil, xerr.NewErrCodeMsg(400, "文档内容无法分块（全为空白）")
 	}
-	docId, chunkIds, err := l.svcCtx.AiKbDocModel.InsertWithChunks(l.ctx, &model.KbDocRow{
+	docId, chunkIds, created, err := l.svcCtx.AiKbDocModel.InsertWithChunks(ctx, in.Actor.UserId, &model.KbDocRow{
 		KbId:           in.KbId,
 		Title:          title,
 		Content:        in.Content,
@@ -55,8 +57,10 @@ func (l *CreateKbDocLogic) CreateKbDoc(in *aipb.CreateKbDocRequest) (*aipb.Creat
 	if err != nil {
 		return nil, aiModelError(err)
 	}
-	if err := ingestChunks(l.ctx, l.svcCtx, docId, in.KbId, in.Actor.UserId, chunks, chunkIds); err != nil {
-		l.Errorf("文档 %d 摄取失败: %v", docId, err)
+	if created {
+		if err := ingestChunks(ctx, l.svcCtx, docId, in.KbId, in.Actor.UserId, chunks, chunkIds); err != nil {
+			l.Errorf("文档 %d 摄取失败: %v", docId, err)
+		}
 	}
 	row, err := l.svcCtx.AiKbDocModel.FindOwned(l.ctx, in.KbId, docId, in.Actor.UserId)
 	if err != nil {

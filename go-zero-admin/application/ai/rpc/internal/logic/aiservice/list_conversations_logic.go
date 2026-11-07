@@ -2,10 +2,13 @@ package aiservicelogic
 
 import (
 	"context"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-admin/application/ai/rpc/aipb"
 	"go-zero-admin/application/ai/rpc/internal/svc"
+	"go-zero-admin/pkg/xerr"
 )
 
 type ListConversationsLogic struct {
@@ -25,7 +28,10 @@ func (l *ListConversationsLogic) ListConversations(in *aipb.ListConversationsReq
 	if err != nil {
 		return nil, err
 	}
-	rows, total, err := l.svcCtx.AiConversationModel.ListOwned(l.ctx, in.Actor.UserId, page, size)
+	if !utf8.ValidString(in.Query) || utf8.RuneCountInString(in.Query) > 128 {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
+	rows, total, err := l.svcCtx.AiConversationModel.SearchOwned(l.ctx, in.Actor.UserId, page, size, strings.TrimSpace(in.Query))
 	if err != nil {
 		return nil, aiModelError(err)
 	}

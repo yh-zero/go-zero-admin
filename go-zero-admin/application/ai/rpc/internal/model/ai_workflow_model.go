@@ -2,8 +2,10 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"strings"
@@ -21,6 +23,8 @@ type (
 		UpdateOwned(ctx context.Context, id, ownerId int64, patch WorkflowPatch) error
 		DeleteOwned(ctx context.Context, id, ownerId int64) error
 		CreateTaskOwned(ctx context.Context, id, ownerId int64, input string) (*TaskRow, error)
+		CreateTaskIdempotent(ctx context.Context, id, ownerId int64, input, requestId string) (*TaskRow, bool, error)
+		FindTaskRequestOwned(ctx context.Context, ownerId int64, requestId string) (*TaskRow, error)
 	}
 
 	customAiWorkflowModel struct {
@@ -38,9 +42,37 @@ func NewAiWorkflowModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Opti
 }
 
 var ErrWorkflowDisabled = errors.New("workflow disabled")
+var ErrTaskRequestConflict = errors.New("workflow request payload mismatch")
+
+func (m *customAiWorkflowModel) FindTaskRequestOwned(ctx context.Context, ownerId int64, requestId string) (*TaskRow, error) {
+	var row TaskRow
+	err := m.QueryRowNoCacheCtx(ctx, &row, taskSelect+"WHERE created_by=? AND request_id=?", ownerId, requestId)
+	return &row, err
+}
 
 // CreateTaskOwned 与修改/停用/删除使用同一行锁，只有锁内仍启用的快照可创建任务。
 func (m *customAiWorkflowModel) CreateTaskOwned(ctx context.Context, id, ownerId int64, input string) (*TaskRow, error) {
+	task, _, err := m.CreateTaskIdempotent(ctx, id, ownerId, input, uuid.NewString())
+	return task, err
+}
+
+func (m *customAiWorkflowModel) CreateTaskIdempotent(ctx context.Context, id, ownerId int64, input, requestId string) (*TaskRow, bool, error) {
+	find := func() (*TaskRow, error) {
+		var row TaskRow
+		err := m.QueryRowNoCacheCtx(ctx, &row, taskSelect+"WHERE created_by=? AND request_id=?", ownerId, requestId)
+		if err != nil {
+			return nil, err
+		}
+		if row.WorkflowId != id || row.Input != input {
+			return nil, ErrTaskRequestConflict
+		}
+		return &row, nil
+	}
+	if existing, err := find(); err == nil {
+		return existing, false, nil
+	} else if !errors.Is(err, ErrNotFound) {
+		return nil, false, err
+	}
 	var task *TaskRow
 	err := m.conn.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
 		var workflow WorkflowRow
@@ -50,7 +82,7 @@ func (m *customAiWorkflowModel) CreateTaskOwned(ctx context.Context, id, ownerId
 		if workflow.Enabled != 1 {
 			return ErrWorkflowDisabled
 		}
-		result, err := session.ExecCtx(ctx, "INSERT INTO ai_task (workflow_id,status,input,created_by,workflow_snapshot) VALUES (?,'running',?,?,?)", id, input, ownerId, workflow.Definition)
+		result, err := session.ExecCtx(ctx, "INSERT INTO ai_task (workflow_id,status,input,created_by,workflow_snapshot,request_id,step_records) VALUES (?,'running',?,?,?,?,'[]')", id, input, ownerId, workflow.Definition, requestId)
 		if err != nil {
 			return err
 		}
@@ -58,16 +90,22 @@ func (m *customAiWorkflowModel) CreateTaskOwned(ctx context.Context, id, ownerId
 		if err != nil {
 			return err
 		}
-		task = &TaskRow{Id: taskId, WorkflowId: id, Status: "running", Input: input, CreatedBy: ownerId, WorkflowSnapshot: workflow.Definition}
+		task = &TaskRow{Id: taskId, WorkflowId: id, Status: "running", Input: input, CreatedBy: ownerId, WorkflowSnapshot: workflow.Definition, RequestId: requestId, StepRecords: "[]"}
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		// 同一请求可能在另一个实例先提交；唯一键失败只读回原任务，不重复执行。
+		if existing, readErr := find(); readErr == nil {
+			return existing, false, nil
+		} else if errors.Is(readErr, ErrTaskRequestConflict) {
+			return nil, false, readErr
+		}
+		return nil, false, err
 	}
-	if err := m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminAiTaskIdPrefix, task.Id)); err != nil {
-		return nil, err
+	if err := m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminAiTaskIdPrefix, task.Id), fmt.Sprintf("%s%v:%v", cacheGozeroAdminAiTaskCreatedByRequestIdPrefix, ownerId, sql.NullString{String: requestId, Valid: true})); err != nil {
+		return task, true, ErrTaskCommitted
 	}
-	return task, nil
+	return task, true, nil
 }
 
 type WorkflowRow struct {

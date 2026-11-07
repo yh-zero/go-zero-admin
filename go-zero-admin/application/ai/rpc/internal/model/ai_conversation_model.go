@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"strings"
 	"time"
 )
 
@@ -19,6 +20,8 @@ type (
 		CheckOwned(ctx context.Context, id, ownerId int64) error
 		FindOwned(ctx context.Context, id, ownerId int64) (*ConversationRow, error)
 		ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*ConversationRow, int64, error)
+		SearchOwned(ctx context.Context, ownerId, page, pageSize int64, query string) ([]*ConversationRow, int64, error)
+		UpdateOwned(ctx context.Context, id, ownerId int64, title *string, pinned *bool) error
 		DeleteOwned(ctx context.Context, id, ownerId int64) error
 		AppendTurn(ctx context.Context, id, ownerId int64, userContent, assistantContent, toolCalls string, tokens int64) (int64, int64, error)
 	}
@@ -41,13 +44,14 @@ type ConversationRow struct {
 	Id           int64  `db:"id"`
 	UserId       int64  `db:"user_id"`
 	Title        string `db:"title"`
+	Pinned       bool   `db:"pinned"`
 	MessageCount int64  `db:"message_count"`
 	CreatedAt    int64  `db:"created_at"`
 	UpdatedAt    int64  `db:"updated_at"`
 	Deleted      bool   `db:"deleted"`
 }
 
-const conversationSelect = "SELECT c.id,c.user_id,c.title,(SELECT COUNT(*) FROM ai_message m WHERE m.conversation_id=c.id) AS message_count,UNIX_TIMESTAMP(c.created_at) AS created_at,UNIX_TIMESTAMP(c.updated_at) AS updated_at,c.deleted_at IS NOT NULL AS deleted FROM ai_conversation c "
+const conversationSelect = "SELECT c.id,c.user_id,c.title,c.pinned,(SELECT COUNT(*) FROM ai_message m WHERE m.conversation_id=c.id) AS message_count,UNIX_TIMESTAMP(c.created_at) AS created_at,UNIX_TIMESTAMP(c.updated_at) AS updated_at,c.deleted_at IS NOT NULL AS deleted FROM ai_conversation c "
 
 func (m *customAiConversationModel) CheckOwned(ctx context.Context, id, ownerId int64) error {
 	var ownedId int64
@@ -61,15 +65,59 @@ func (m *customAiConversationModel) FindOwned(ctx context.Context, id, ownerId i
 }
 
 func (m *customAiConversationModel) ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*ConversationRow, int64, error) {
+	return m.SearchOwned(ctx, ownerId, page, pageSize, "")
+}
+
+func (m *customAiConversationModel) SearchOwned(ctx context.Context, ownerId, page, pageSize int64, query string) ([]*ConversationRow, int64, error) {
+	where := " WHERE c.user_id=? AND c.deleted_at IS NULL"
+	args := []any{ownerId}
+	if query != "" {
+		pattern := "%" + strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(query) + "%"
+		where += " AND (c.title LIKE ? ESCAPE '!' OR EXISTS (SELECT 1 FROM ai_message search_message WHERE search_message.conversation_id=c.id AND search_message.content LIKE ? ESCAPE '!'))"
+		args = append(args, pattern, pattern)
+	}
 	var count struct {
 		Total int64 `db:"total"`
 	}
-	if err := m.QueryRowNoCacheCtx(ctx, &count, "SELECT COUNT(*) AS total FROM ai_conversation WHERE user_id=? AND deleted_at IS NULL", ownerId); err != nil {
+	if err := m.QueryRowNoCacheCtx(ctx, &count, "SELECT COUNT(*) AS total FROM ai_conversation c"+where, args...); err != nil {
 		return nil, 0, err
 	}
 	rows := make([]*ConversationRow, 0)
-	err := m.QueryRowsNoCacheCtx(ctx, &rows, conversationSelect+"WHERE c.user_id=? AND c.deleted_at IS NULL ORDER BY c.updated_at DESC,c.id DESC LIMIT ? OFFSET ?", ownerId, pageSize, (page-1)*pageSize)
+	args = append(args, pageSize, (page-1)*pageSize)
+	err := m.QueryRowsNoCacheCtx(ctx, &rows, conversationSelect+where+" ORDER BY c.pinned DESC,c.updated_at DESC,c.id DESC LIMIT ? OFFSET ?", args...)
 	return rows, count.Total, err
+}
+
+func (m *customAiConversationModel) UpdateOwned(ctx context.Context, id, ownerId int64, title *string, pinned *bool) error {
+	err := m.conn.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
+		var owned int64
+		if err := session.QueryRowCtx(ctx, &owned, "SELECT id FROM ai_conversation WHERE id=? AND user_id=? AND deleted_at IS NULL FOR UPDATE", id, ownerId); err != nil {
+			return err
+		}
+		sets := make([]string, 0, 2)
+		args := make([]any, 0, 3)
+		if title != nil {
+			sets = append(sets, "title=?")
+			args = append(args, *title)
+		}
+		if pinned != nil {
+			sets = append(sets, "pinned=?")
+			args = append(args, *pinned)
+		}
+		if len(sets) == 0 {
+			return nil
+		}
+		args = append(args, id)
+		_, err := session.ExecCtx(ctx, "UPDATE ai_conversation SET "+strings.Join(sets, ",")+" WHERE id=?", args...)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	if err := m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminAiConversationIdPrefix, id)); err != nil {
+		return ErrCallCommitted
+	}
+	return nil
 }
 
 func (m *customAiConversationModel) DeleteOwned(ctx context.Context, id, ownerId int64) error {

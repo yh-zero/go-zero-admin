@@ -21,6 +21,9 @@ func (l *GetAgentTaskLogic) GetAgentTask(in *aipb.GetAgentTaskRequest) (*aipb.Ge
 	if err := requireAiActor(in.Actor); err != nil {
 		return nil, err
 	}
+	if err := l.svcCtx.AiTaskModel.FailStaleOwned(l.ctx, in.TaskId, in.Actor.UserId); err != nil {
+		return nil, aiModelError(err)
+	}
 	row, err := l.svcCtx.AiTaskModel.FindOwned(l.ctx, in.TaskId, in.Actor.UserId)
 	if err != nil {
 		return nil, aiModelError(err)

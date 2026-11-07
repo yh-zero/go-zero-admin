@@ -44,12 +44,24 @@ func New(cfg Config) (*Client, error) {
 
 // Chat 对话（eino 统一接口，自动处理 function calling 协议）
 func (c *Client) Chat(ctx context.Context, messages []*schema.Message, tools []*schema.ToolInfo) (*schema.Message, *schema.TokenUsage, error) {
-	ctx, cancel := context.WithTimeout(ctx, c.timeout)
-	defer cancel()
 	opts := []model.Option{}
 	if len(tools) > 0 {
 		opts = append(opts, model.WithTools(tools))
 	}
+	return c.generate(ctx, messages, opts...)
+}
+
+// ChatBounded 用于工作流内单次纯文本分析；不提供工具，并显式限制回答 token。
+func (c *Client) ChatBounded(ctx context.Context, messages []*schema.Message, maxTokens int) (*schema.Message, *schema.TokenUsage, error) {
+	if maxTokens <= 0 {
+		return nil, nil, errors.New("回答预算必须为正数")
+	}
+	return c.generate(ctx, messages, model.WithMaxTokens(maxTokens))
+}
+
+func (c *Client) generate(ctx context.Context, messages []*schema.Message, opts ...model.Option) (*schema.Message, *schema.TokenUsage, error) {
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
 	resp, err := c.model.Generate(ctx, messages, opts...)
 	if err != nil {
 		return nil, nil, err

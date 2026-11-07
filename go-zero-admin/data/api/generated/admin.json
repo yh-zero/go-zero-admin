@@ -856,6 +856,12 @@
             "name": "page_size",
             "in": "query",
             "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "query",
+            "in": "query",
+            "allowEmptyValue": true
           }
         ],
         "responses": {
@@ -874,7 +880,8 @@
                       "user_id",
                       "message_count",
                       "created_at",
-                      "updated_at"
+                      "updated_at",
+                      "pinned"
                     ],
                     "properties": {
                       "created_at": {
@@ -885,6 +892,9 @@
                       },
                       "message_count": {
                         "type": "integer"
+                      },
+                      "pinned": {
+                        "type": "boolean"
                       },
                       "title": {
                         "type": "string"
@@ -947,7 +957,8 @@
                     "user_id",
                     "message_count",
                     "created_at",
-                    "updated_at"
+                    "updated_at",
+                    "pinned"
                   ],
                   "properties": {
                     "created_at": {
@@ -958,6 +969,9 @@
                     },
                     "message_count": {
                       "type": "integer"
+                    },
+                    "pinned": {
+                      "type": "boolean"
                     },
                     "title": {
                       "type": "string"
@@ -1020,7 +1034,8 @@
                     "user_id",
                     "message_count",
                     "created_at",
-                    "updated_at"
+                    "updated_at",
+                    "pinned"
                   ],
                   "properties": {
                     "created_at": {
@@ -1031,6 +1046,9 @@
                     },
                     "message_count": {
                       "type": "integer"
+                    },
+                    "pinned": {
+                      "type": "boolean"
                     },
                     "title": {
                       "type": "string"
@@ -1058,7 +1076,10 @@
                       "tokens",
                       "created_at",
                       "status",
-                      "error"
+                      "error",
+                      "sources",
+                      "feedback",
+                      "feedback_note"
                     ],
                     "properties": {
                       "content": {
@@ -1070,11 +1091,51 @@
                       "error": {
                         "type": "string"
                       },
+                      "feedback": {
+                        "type": "string"
+                      },
+                      "feedback_note": {
+                        "type": "string"
+                      },
                       "id": {
                         "type": "integer"
                       },
                       "role": {
                         "type": "string"
+                      },
+                      "sources": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "chunk_id",
+                            "kb_id",
+                            "doc_id",
+                            "doc_title",
+                            "snippet",
+                            "score"
+                          ],
+                          "properties": {
+                            "chunk_id": {
+                              "type": "integer"
+                            },
+                            "doc_id": {
+                              "type": "integer"
+                            },
+                            "doc_title": {
+                              "type": "string"
+                            },
+                            "kb_id": {
+                              "type": "integer"
+                            },
+                            "score": {
+                              "type": "number"
+                            },
+                            "snippet": {
+                              "type": "string"
+                            }
+                          }
+                        }
                       },
                       "status": {
                         "type": "string"
@@ -1090,6 +1151,88 @@
                 },
                 "next_before_id": {
                   "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "updateConversation",
+        "operationId": "aiUpdateConversation",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "pinned": {
+                  "type": "boolean"
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "conversation": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "title",
+                    "user_id",
+                    "message_count",
+                    "created_at",
+                    "updated_at",
+                    "pinned"
+                  ],
+                  "properties": {
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "message_count": {
+                      "type": "integer"
+                    },
+                    "pinned": {
+                      "type": "boolean"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    },
+                    "user_id": {
+                      "type": "integer"
+                    }
+                  }
                 }
               }
             }
@@ -1121,6 +1264,989 @@
             "description": "",
             "schema": {
               "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/conversations/{id}/messages/{message_id}/feedback": {
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "setMessageFeedback",
+        "operationId": "aiSetMessageFeedback",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "message_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "feedback"
+              ],
+              "properties": {
+                "feedback": {
+                  "type": "string"
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "listKbs",
+        "operationId": "aiListKbs",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "page",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "name",
+                      "description",
+                      "owner_id",
+                      "doc_count",
+                      "chunk_count",
+                      "created_at",
+                      "updated_at"
+                    ],
+                    "properties": {
+                      "chunk_count": {
+                        "type": "integer"
+                      },
+                      "created_at": {
+                        "type": "integer"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "doc_count": {
+                        "type": "integer"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "owner_id": {
+                        "type": "integer"
+                      },
+                      "updated_at": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "createKb",
+        "operationId": "aiCreateKb",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "kb": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "owner_id",
+                    "doc_count",
+                    "chunk_count",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "properties": {
+                    "chunk_count": {
+                      "type": "integer"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "doc_count": {
+                      "type": "integer"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "owner_id": {
+                      "type": "integer"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "getKb",
+        "operationId": "aiGetKb",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "kb": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "owner_id",
+                    "doc_count",
+                    "chunk_count",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "properties": {
+                    "chunk_count": {
+                      "type": "integer"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "doc_count": {
+                      "type": "integer"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "owner_id": {
+                      "type": "integer"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "updateKb",
+        "operationId": "aiUpdateKb",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "delete": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "deleteKb",
+        "operationId": "aiDeleteKb",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/docs": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "listKbDocs",
+        "operationId": "aiListKbDocs",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "kb_id",
+                      "title",
+                      "status",
+                      "error",
+                      "chunk_count",
+                      "embedding_model",
+                      "created_at",
+                      "updated_at",
+                      "version",
+                      "stage"
+                    ],
+                    "properties": {
+                      "chunk_count": {
+                        "type": "integer"
+                      },
+                      "created_at": {
+                        "type": "integer"
+                      },
+                      "embedding_model": {
+                        "type": "string"
+                      },
+                      "error": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "kb_id": {
+                        "type": "integer"
+                      },
+                      "stage": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "integer"
+                      },
+                      "version": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "createKbDoc",
+        "operationId": "aiCreateKbDoc",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "title",
+                "content"
+              ],
+              "properties": {
+                "content": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "doc": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "title",
+                    "status",
+                    "error",
+                    "chunk_count",
+                    "embedding_model",
+                    "created_at",
+                    "updated_at",
+                    "version",
+                    "stage"
+                  ],
+                  "properties": {
+                    "chunk_count": {
+                      "type": "integer"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "embedding_model": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "stage": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    },
+                    "version": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/docs/{doc_id}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "getKbDoc",
+        "operationId": "aiGetKbDoc",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "doc_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "boolean",
+            "name": "meta_only",
+            "in": "query",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string"
+                },
+                "doc": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "title",
+                    "status",
+                    "error",
+                    "chunk_count",
+                    "embedding_model",
+                    "created_at",
+                    "updated_at",
+                    "version",
+                    "stage"
+                  ],
+                  "properties": {
+                    "chunk_count": {
+                      "type": "integer"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "embedding_model": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "stage": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    },
+                    "version": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "updateKbDoc",
+        "operationId": "aiUpdateKbDoc",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "doc_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "title",
+                "content",
+                "expected_version"
+              ],
+              "properties": {
+                "content": {
+                  "type": "string"
+                },
+                "expected_version": {
+                  "type": "integer"
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "doc": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "title",
+                    "status",
+                    "error",
+                    "chunk_count",
+                    "embedding_model",
+                    "created_at",
+                    "updated_at",
+                    "version",
+                    "stage"
+                  ],
+                  "properties": {
+                    "chunk_count": {
+                      "type": "integer"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "embedding_model": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "stage": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    },
+                    "version": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "deleteKbDoc",
+        "operationId": "aiDeleteKbDoc",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "doc_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/docs/{doc_id}/retry": {
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "retryKbDoc",
+        "operationId": "aiRetryKbDoc",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "doc_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "doc": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "title",
+                    "status",
+                    "error",
+                    "chunk_count",
+                    "embedding_model",
+                    "created_at",
+                    "updated_at",
+                    "version",
+                    "stage"
+                  ],
+                  "properties": {
+                    "chunk_count": {
+                      "type": "integer"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "embedding_model": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "stage": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    },
+                    "version": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/search": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "searchKb",
+        "operationId": "aiSearchKb",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "query"
+              ],
+              "properties": {
+                "query": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "elapsed_ms": {
+                  "type": "integer"
+                },
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "chunk_id",
+                      "kb_id",
+                      "doc_id",
+                      "doc_title",
+                      "snippet",
+                      "score"
+                    ],
+                    "properties": {
+                      "chunk_id": {
+                        "type": "integer"
+                      },
+                      "doc_id": {
+                        "type": "integer"
+                      },
+                      "doc_title": {
+                        "type": "string"
+                      },
+                      "kb_id": {
+                        "type": "integer"
+                      },
+                      "score": {
+                        "type": "number"
+                      },
+                      "snippet": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -1158,6 +2284,12 @@
                 "conversation_id": {
                   "type": "integer"
                 },
+                "grounded": {
+                  "type": "boolean"
+                },
+                "kb_id": {
+                  "type": "integer"
+                },
                 "request_id": {
                   "type": "string"
                 }
@@ -1181,7 +2313,10 @@
                     "tokens",
                     "created_at",
                     "status",
-                    "error"
+                    "error",
+                    "sources",
+                    "feedback",
+                    "feedback_note"
                   ],
                   "properties": {
                     "content": {
@@ -1193,11 +2328,51 @@
                     "error": {
                       "type": "string"
                     },
+                    "feedback": {
+                      "type": "string"
+                    },
+                    "feedback_note": {
+                      "type": "string"
+                    },
                     "id": {
                       "type": "integer"
                     },
                     "role": {
                       "type": "string"
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "chunk_id",
+                          "kb_id",
+                          "doc_id",
+                          "doc_title",
+                          "snippet",
+                          "score"
+                        ],
+                        "properties": {
+                          "chunk_id": {
+                            "type": "integer"
+                          },
+                          "doc_id": {
+                            "type": "integer"
+                          },
+                          "doc_title": {
+                            "type": "string"
+                          },
+                          "kb_id": {
+                            "type": "integer"
+                          },
+                          "score": {
+                            "type": "number"
+                          },
+                          "snippet": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     },
                     "status": {
                       "type": "string"
@@ -1218,7 +2393,8 @@
                     "user_id",
                     "message_count",
                     "created_at",
-                    "updated_at"
+                    "updated_at",
+                    "pinned"
                   ],
                   "properties": {
                     "created_at": {
@@ -1229,6 +2405,9 @@
                     },
                     "message_count": {
                       "type": "integer"
+                    },
+                    "pinned": {
+                      "type": "boolean"
                     },
                     "title": {
                       "type": "string"
@@ -1254,7 +2433,10 @@
                     "tokens",
                     "created_at",
                     "status",
-                    "error"
+                    "error",
+                    "sources",
+                    "feedback",
+                    "feedback_note"
                   ],
                   "properties": {
                     "content": {
@@ -1266,11 +2448,51 @@
                     "error": {
                       "type": "string"
                     },
+                    "feedback": {
+                      "type": "string"
+                    },
+                    "feedback_note": {
+                      "type": "string"
+                    },
                     "id": {
                       "type": "integer"
                     },
                     "role": {
                       "type": "string"
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "chunk_id",
+                          "kb_id",
+                          "doc_id",
+                          "doc_title",
+                          "snippet",
+                          "score"
+                        ],
+                        "properties": {
+                          "chunk_id": {
+                            "type": "integer"
+                          },
+                          "doc_id": {
+                            "type": "integer"
+                          },
+                          "doc_title": {
+                            "type": "string"
+                          },
+                          "kb_id": {
+                            "type": "integer"
+                          },
+                          "score": {
+                            "type": "number"
+                          },
+                          "snippet": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     },
                     "status": {
                       "type": "string"
@@ -1346,7 +2568,10 @@
                       "approved_by",
                       "created_at",
                       "completed_at",
-                      "next_step"
+                      "next_step",
+                      "steps",
+                      "updated_at",
+                      "request_id"
                     ],
                     "properties": {
                       "approved_by": {
@@ -1373,11 +2598,67 @@
                       "next_step": {
                         "type": "integer"
                       },
+                      "request_id": {
+                        "type": "string"
+                      },
                       "result": {
                         "type": "string"
                       },
                       "status": {
                         "type": "string"
+                      },
+                      "steps": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "id",
+                            "name",
+                            "tool",
+                            "input",
+                            "status",
+                            "output",
+                            "error",
+                            "started_at",
+                            "completed_at"
+                          ],
+                          "properties": {
+                            "completed_at": {
+                              "type": "integer"
+                            },
+                            "error": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "index": {
+                              "type": "integer"
+                            },
+                            "input": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "output": {
+                              "type": "string"
+                            },
+                            "started_at": {
+                              "type": "integer"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "tool": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      },
+                      "updated_at": {
+                        "type": "integer"
                       },
                       "workflow_id": {
                         "type": "integer"
@@ -1431,7 +2712,10 @@
                     "approved_by",
                     "created_at",
                     "completed_at",
-                    "next_step"
+                    "next_step",
+                    "steps",
+                    "updated_at",
+                    "request_id"
                   ],
                   "properties": {
                     "approved_by": {
@@ -1458,11 +2742,67 @@
                     "next_step": {
                       "type": "integer"
                     },
+                    "request_id": {
+                      "type": "string"
+                    },
                     "result": {
                       "type": "string"
                     },
                     "status": {
                       "type": "string"
+                    },
+                    "steps": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "index",
+                          "id",
+                          "name",
+                          "tool",
+                          "input",
+                          "status",
+                          "output",
+                          "error",
+                          "started_at",
+                          "completed_at"
+                        ],
+                        "properties": {
+                          "completed_at": {
+                            "type": "integer"
+                          },
+                          "error": {
+                            "type": "string"
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "index": {
+                            "type": "integer"
+                          },
+                          "input": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "output": {
+                            "type": "string"
+                          },
+                          "started_at": {
+                            "type": "integer"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "tool": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "updated_at": {
+                      "type": "integer"
                     },
                     "workflow_id": {
                       "type": "integer"
@@ -1510,6 +2850,37 @@
                 }
               }
             }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/tasks/{id}/cancel": {
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "cancelTask",
+        "operationId": "aiCancelTask",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
           }
         ],
         "responses": {
@@ -1972,8 +3343,14 @@
             "required": true,
             "schema": {
               "type": "object",
+              "required": [
+                "request_id"
+              ],
               "properties": {
                 "input": {
+                  "type": "string"
+                },
+                "request_id": {
                   "type": "string"
                 }
               }
@@ -6690,7 +8067,7 @@
       }
     }
   },
-  "x-date": "2026-11-05 21:08:23",
+  "x-date": "2026-11-07 01:20:09",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

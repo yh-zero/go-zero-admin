@@ -24,13 +24,15 @@ var (
 	aiTaskRowsExpectAutoSet   = strings.Join(stringx.Remove(aiTaskFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	aiTaskRowsWithPlaceHolder = strings.Join(stringx.Remove(aiTaskFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheGozeroAdminAiTaskIdPrefix = "cache:gozeroAdmin:aiTask:id:"
+	cacheGozeroAdminAiTaskIdPrefix                 = "cache:gozeroAdmin:aiTask:id:"
+	cacheGozeroAdminAiTaskCreatedByRequestIdPrefix = "cache:gozeroAdmin:aiTask:createdBy:requestId:"
 )
 
 type (
 	aiTaskModel interface {
 		Insert(ctx context.Context, data *AiTask) (sql.Result, error)
 		FindOne(ctx context.Context, id uint64) (*AiTask, error)
+		FindOneByCreatedByRequestId(ctx context.Context, createdBy uint64, requestId sql.NullString) (*AiTask, error)
 		Update(ctx context.Context, data *AiTask) error
 		Delete(ctx context.Context, id uint64) error
 	}
@@ -44,7 +46,7 @@ type (
 		Id               uint64         `db:"id"`              // 主键
 		WorkflowId       sql.NullInt64  `db:"workflow_id"`     // 工作流ID（对话触发的任务为空）
 		ConversationId   sql.NullInt64  `db:"conversation_id"` // 会话ID
-		Status           string         `db:"status"`          // 状态：pending/running/pending_approval/succeeded/failed/rejected
+		Status           string         `db:"status"`          // 状态：pending/running/pending_approval/succeeded/failed/rejected/cancelled
 		Input            sql.NullString `db:"input"`           // 输入（JSON）
 		Result           sql.NullString `db:"result"`          // 执行结果
 		Error            string         `db:"error"`           // 错误信息
@@ -54,6 +56,9 @@ type (
 		CreatedBy        uint64         `db:"created_by"`        // 任务所属用户，0表示历史归属待确认
 		NextStep         uint64         `db:"next_step"`         // 下一待执行步骤索引
 		WorkflowSnapshot sql.NullString `db:"workflow_snapshot"` // 执行时工作流定义快照
+		RequestId        sql.NullString `db:"request_id"`        // 用户内运行幂等ID
+		StepRecords      sql.NullString `db:"step_records"`      // 已解析步骤输入及执行记录
+		UpdatedAt        time.Time      `db:"updated_at"`
 	}
 )
 
@@ -65,11 +70,17 @@ func newAiTaskModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) 
 }
 
 func (m *defaultAiTaskModel) Delete(ctx context.Context, id uint64) error {
+	data, err := m.FindOne(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	gozeroAdminAiTaskCreatedByRequestIdKey := fmt.Sprintf("%s%v:%v", cacheGozeroAdminAiTaskCreatedByRequestIdPrefix, data.CreatedBy, data.RequestId)
 	gozeroAdminAiTaskIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiTaskIdPrefix, id)
-	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, gozeroAdminAiTaskIdKey)
+	}, gozeroAdminAiTaskCreatedByRequestIdKey, gozeroAdminAiTaskIdKey)
 	return err
 }
 
@@ -90,21 +101,48 @@ func (m *defaultAiTaskModel) FindOne(ctx context.Context, id uint64) (*AiTask, e
 	}
 }
 
+func (m *defaultAiTaskModel) FindOneByCreatedByRequestId(ctx context.Context, createdBy uint64, requestId sql.NullString) (*AiTask, error) {
+	gozeroAdminAiTaskCreatedByRequestIdKey := fmt.Sprintf("%s%v:%v", cacheGozeroAdminAiTaskCreatedByRequestIdPrefix, createdBy, requestId)
+	var resp AiTask
+	err := m.QueryRowIndexCtx(ctx, &resp, gozeroAdminAiTaskCreatedByRequestIdKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
+		query := fmt.Sprintf("select %s from %s where `created_by` = ? and `request_id` = ? limit 1", aiTaskRows, m.table)
+		if err := conn.QueryRowCtx(ctx, &resp, query, createdBy, requestId); err != nil {
+			return nil, err
+		}
+		return resp.Id, nil
+	}, m.queryPrimary)
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
 func (m *defaultAiTaskModel) Insert(ctx context.Context, data *AiTask) (sql.Result, error) {
+	gozeroAdminAiTaskCreatedByRequestIdKey := fmt.Sprintf("%s%v:%v", cacheGozeroAdminAiTaskCreatedByRequestIdPrefix, data.CreatedBy, data.RequestId)
 	gozeroAdminAiTaskIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiTaskIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, aiTaskRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.WorkflowId, data.ConversationId, data.Status, data.Input, data.Result, data.Error, data.ApprovedBy, data.CompletedAt, data.CreatedBy, data.NextStep, data.WorkflowSnapshot)
-	}, gozeroAdminAiTaskIdKey)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, aiTaskRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.WorkflowId, data.ConversationId, data.Status, data.Input, data.Result, data.Error, data.ApprovedBy, data.CompletedAt, data.CreatedBy, data.NextStep, data.WorkflowSnapshot, data.RequestId, data.StepRecords)
+	}, gozeroAdminAiTaskCreatedByRequestIdKey, gozeroAdminAiTaskIdKey)
 	return ret, err
 }
 
-func (m *defaultAiTaskModel) Update(ctx context.Context, data *AiTask) error {
+func (m *defaultAiTaskModel) Update(ctx context.Context, newData *AiTask) error {
+	data, err := m.FindOne(ctx, newData.Id)
+	if err != nil {
+		return err
+	}
+
+	gozeroAdminAiTaskCreatedByRequestIdKey := fmt.Sprintf("%s%v:%v", cacheGozeroAdminAiTaskCreatedByRequestIdPrefix, data.CreatedBy, data.RequestId)
 	gozeroAdminAiTaskIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiTaskIdPrefix, data.Id)
-	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, aiTaskRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.WorkflowId, data.ConversationId, data.Status, data.Input, data.Result, data.Error, data.ApprovedBy, data.CompletedAt, data.CreatedBy, data.NextStep, data.WorkflowSnapshot, data.Id)
-	}, gozeroAdminAiTaskIdKey)
+		return conn.ExecCtx(ctx, query, newData.WorkflowId, newData.ConversationId, newData.Status, newData.Input, newData.Result, newData.Error, newData.ApprovedBy, newData.CompletedAt, newData.CreatedBy, newData.NextStep, newData.WorkflowSnapshot, newData.RequestId, newData.StepRecords, newData.Id)
+	}, gozeroAdminAiTaskCreatedByRequestIdKey, gozeroAdminAiTaskIdKey)
 	return err
 }
 

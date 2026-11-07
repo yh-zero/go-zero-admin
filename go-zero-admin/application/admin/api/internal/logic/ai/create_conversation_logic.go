@@ -52,13 +52,17 @@ func mapAiConversation(row *aipb.ConversationInfo) *types.AiConversationInfo {
 	if row == nil {
 		return nil
 	}
-	return &types.AiConversationInfo{Id: row.Id, Title: row.Title, UserId: row.UserId, MessageCount: row.MessageCount, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}
+	return &types.AiConversationInfo{Id: row.Id, Title: row.Title, UserId: row.UserId, MessageCount: row.MessageCount, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, Pinned: row.Pinned}
 }
 func mapAiMessage(row *aipb.ChatMessage) *types.AiChatMessage {
 	if row == nil {
 		return nil
 	}
-	return &types.AiChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: row.ToolCalls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: row.Status, Error: row.Error}
+	sources := make([]*types.AiKbSearchHit, 0, len(row.Sources))
+	for _, hit := range row.Sources {
+		sources = append(sources, &types.AiKbSearchHit{ChunkId: hit.ChunkId, KbId: hit.KbId, DocId: hit.DocId, DocTitle: hit.DocTitle, Snippet: hit.Snippet, Score: hit.Score})
+	}
+	return &types.AiChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: row.ToolCalls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: row.Status, Error: row.Error, Sources: sources, Feedback: row.Feedback, FeedbackNote: row.FeedbackNote}
 }
 func mapAiWorkflow(row *aipb.WorkflowInfo) *types.AiWorkflowInfo {
 	if row == nil {
@@ -70,5 +74,11 @@ func mapAiTask(row *aipb.AgentTaskInfo) *types.AiTaskInfo {
 	if row == nil {
 		return nil
 	}
-	return &types.AiTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt, NextStep: row.NextStep}
+	steps := make([]*types.AiWorkflowStepInfo, 0, len(row.Steps))
+	for _, r := range row.Steps {
+		if r != nil {
+			steps = append(steps, &types.AiWorkflowStepInfo{Index: r.Index, Id: r.Id, Name: r.Name, Tool: r.Tool, Input: r.Input, Output: r.Output, Status: r.Status, Error: r.Error, StartedAt: r.StartedAt, CompletedAt: r.CompletedAt})
+		}
+	}
+	return &types.AiTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt, NextStep: row.NextStep, Steps: steps, UpdatedAt: row.UpdatedAt, RequestId: row.RequestId}
 }

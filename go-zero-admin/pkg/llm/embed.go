@@ -31,8 +31,11 @@ type EmbedConfig struct {
 	Timeout int64  // 秒
 }
 
-// embedBatchSize DashScope 等厂商单次批量上限为 25 条，统一按此分批
+// embedBatchSize 通用兼容接口的默认单次批量上限
 const embedBatchSize = 25
+
+// qwenEmbedBatchSize 是 Qwen text-embedding-v3/v4 的单次批量上限。
+const qwenEmbedBatchSize = 10
 
 // NewEmbedder 创建 Embedding 客户端；配置无效返回错误，由调用方决定降级
 func NewEmbedder(cfg EmbedConfig) (*Embedder, error) {
@@ -60,9 +63,13 @@ func (e *Embedder) Embed(ctx context.Context, texts []string) ([][]float32, erro
 	if len(texts) == 0 {
 		return nil, nil
 	}
+	batchSize := embedBatchSize
+	if strings.EqualFold(strings.TrimSpace(e.model), "text-embedding-v3") || strings.EqualFold(strings.TrimSpace(e.model), "text-embedding-v4") {
+		batchSize = qwenEmbedBatchSize
+	}
 	out := make([][]float32, 0, len(texts))
-	for start := 0; start < len(texts); start += embedBatchSize {
-		end := start + embedBatchSize
+	for start := 0; start < len(texts); start += batchSize {
+		end := start + batchSize
 		if end > len(texts) {
 			end = len(texts)
 		}
@@ -126,14 +133,24 @@ func (e *Embedder) embedBatch(ctx context.Context, texts []string) ([][]float32,
 		return nil, fmt.Errorf("embedding 返回数量 %d 与请求 %d 不一致", len(parsed.Data), len(texts))
 	}
 	vecs := make([][]float32, len(texts))
+	seen := make([]bool, len(texts))
 	for _, d := range parsed.Data {
 		if d.Index < 0 || d.Index >= len(texts) {
 			return nil, fmt.Errorf("embedding 响应索引越界: %d", d.Index)
+		}
+		if seen[d.Index] {
+			return nil, fmt.Errorf("embedding 响应索引重复: %d", d.Index)
 		}
 		if len(d.Embedding) != e.dims {
 			return nil, fmt.Errorf("embedding 维度 %d 与配置 %d 不一致", len(d.Embedding), e.dims)
 		}
 		vecs[d.Index] = d.Embedding
+		seen[d.Index] = true
+	}
+	for i, found := range seen {
+		if !found {
+			return nil, fmt.Errorf("embedding 响应缺少索引: %d", i)
+		}
 	}
 	return vecs, nil
 }

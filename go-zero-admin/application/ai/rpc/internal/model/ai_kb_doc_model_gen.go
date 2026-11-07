@@ -49,6 +49,8 @@ type (
 		Error          string       `db:"error"`           // 安全错误信息
 		ChunkCount     uint64       `db:"chunk_count"`     // 分块数
 		EmbeddingModel string       `db:"embedding_model"` // 使用的 embedding 模型版本
+		Version        uint64       `db:"version"`         // 正文修订号，替换加一
+		IngestStage    string       `db:"ingest_stage"`    // embedding/indexing/ready/failed
 		CreatedAt      time.Time    `db:"created_at"`
 		UpdatedAt      time.Time    `db:"updated_at"`
 		DeletedAt      sql.NullTime `db:"deleted_at"` // 软删除
@@ -91,8 +93,8 @@ func (m *defaultAiKbDocModel) FindOne(ctx context.Context, id uint64) (*AiKbDoc,
 func (m *defaultAiKbDocModel) Insert(ctx context.Context, data *AiKbDoc) (sql.Result, error) {
 	gozeroAdminAiKbDocIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiKbDocIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?)", m.table, aiKbDocRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.KbId, data.Title, data.Content, data.Status, data.Error, data.ChunkCount, data.EmbeddingModel, data.DeletedAt)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, aiKbDocRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.KbId, data.Title, data.Content, data.Status, data.Error, data.ChunkCount, data.EmbeddingModel, data.Version, data.IngestStage, data.DeletedAt)
 	}, gozeroAdminAiKbDocIdKey)
 	return ret, err
 }
@@ -101,7 +103,7 @@ func (m *defaultAiKbDocModel) Update(ctx context.Context, data *AiKbDoc) error {
 	gozeroAdminAiKbDocIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiKbDocIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, aiKbDocRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.KbId, data.Title, data.Content, data.Status, data.Error, data.ChunkCount, data.EmbeddingModel, data.DeletedAt, data.Id)
+		return conn.ExecCtx(ctx, query, data.KbId, data.Title, data.Content, data.Status, data.Error, data.ChunkCount, data.EmbeddingModel, data.Version, data.IngestStage, data.DeletedAt, data.Id)
 	}, gozeroAdminAiKbDocIdKey)
 	return err
 }
