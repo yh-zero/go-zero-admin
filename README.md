@@ -2,9 +2,8 @@
 #### 右上角求点个star 谢谢大佬们
 ### 右上角求点个star 谢谢大佬们
 
-## 📺 视频教程
-
-[![视频教程](https://img.shields.io/badge/Video_Tutorial-Bilibili-00A1D6?logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV15mW76qE3J/)
+## 📺 视频教程：[![视频教程](https://img.shields.io/badge/Video_Tutorial-Bilibili-00A1D6?logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV15mW76qE3J/)
+[Bilibili - 项目演示与快速上手:https://www.bilibili.com/video/BV15mW76qE3J/](https://www.bilibili.com/video/BV15mW76qE3J/)
 
 
 # go-zero-admin
