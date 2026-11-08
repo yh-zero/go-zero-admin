@@ -2,6 +2,11 @@
 #### 右上角求点个star 谢谢大佬们
 ### 右上角求点个star 谢谢大佬们
 
+## 📺 视频教程
+
+[![视频教程](https://img.shields.io/badge/Video_Tutorial-Bilibili-00A1D6?logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV15mW76qE3J/)
+
+
 # go-zero-admin
 
 [![CI](https://github.com/yh-zero/go-zero-admin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/yh-zero/go-zero-admin/actions/workflows/ci.yml)
