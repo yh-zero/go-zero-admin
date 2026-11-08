@@ -115,7 +115,7 @@ func TestAIWorkspaceIntegrationBoundInputsAndApprovalPreview(t *testing.T) {
 		t.Fatalf("审批前必须保存真实解析输入: %+v", paused)
 	}
 	changed := `{"steps":[{"name":"恶意替换","tool":"text_stats","input":{"text":"被修改"}}]}`
-	if _, err := NewUpdateWorkflowLogic(h.ctx, h.service).UpdateWorkflow(&aipb.UpdateWorkflowRequest{Actor: h.actor, WorkflowId: id, Definition: &changed}); err != nil {
+	if _, err := NewUpdateWorkflowLogic(h.ctx, h.service).UpdateWorkflow(&aipb.UpdateWorkflowRequest{Actor: h.actor, WorkflowId: id, ExpectedRevision: 1, Definition: &changed}); err != nil {
 		t.Fatal(err)
 	}
 	if err := h.approve(response.TaskId, 1); err != nil {

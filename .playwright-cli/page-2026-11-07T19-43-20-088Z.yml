@@ -1,0 +1,12 @@
+- main [ref=e2]:
+  - generic [ref=e3]: GO-ZERO-ADMIN · 本地开发演示
+  - heading "启动前端开发服务" [level=1] [ref=e4]
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: 执行目录：go-zero-admin-react
+      - button "执行此步骤" [ref=e8] [cursor=pointer]
+    - generic [ref=e9]: corepack pnpm dev --host 127.0.0.1 --port 5999 --strictPort
+    - generic [ref=e10]: 真实子进程输出；常驻开发服务以就绪检查为准
+    - generic [ref=e11]: 尚未执行。点击后运行真实命令。
+    - generic [ref=e12]: 未启动
+  - generic [ref=e13]: "--strictPort 确保端口占用时直接报错，不悄悄切换地址。成功后在浏览器打开 http://127.0.0.1:5999；开发服务持续运行。"

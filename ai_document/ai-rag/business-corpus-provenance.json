@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "material_kind": "actual_project_document_excerpts",
+  "source_revision": "fc226fbc8d1cd196453617fa7ff2fcdb548ba945",
+  "frozen_at": "2026-11-07",
+  "note": "正文是冻结提交的精确连续章节摘录；多段摘录以一个LF连接，不改写原文。源SHA针对Git blob原始UTF-8字节，非当前工作树换行。当前文档后续修订不覆盖冻结素材。",
+  "documents": [
+    {
+      "key": "ops-environment",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/01-开发环境与配置.md",
+      "title": "开发环境与配置",
+      "sha256": "ce3eb80aaefee71f0ee2ff7aeddf94d1c9860ef3fd6b051bfb6d76ff7d988d1d",
+      "excerpt_joiner": "\n",
+      "excerpts": [
+        {
+          "origin_path": "ai_document/dev-guide.md",
+          "origin_sha256": "272e0d0e72d2afa548e9fcd05c85b782164cbd0944242509b7269cebb4deb600",
+          "start_line": 6,
+          "end_line_exclusive": 45,
+          "start_marker": "## 1. 开发环境与配置",
+          "end_marker_exclusive": "### 数据初始化",
+          "excerpt_sha256": "ce3eb80aaefee71f0ee2ff7aeddf94d1c9860ef3fd6b051bfb6d76ff7d988d1d"
+        }
+      ]
+    },
+    {
+      "key": "ops-data",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/02-数据初始化与备份.md",
+      "title": "数据初始化与备份",
+      "sha256": "3a9e4b7849bc7986497cca644e2f97ee6415ec94005165d478b84d4e933dce39",
+      "excerpt_joiner": "\n",
+      "excerpts": [
+        {
+          "origin_path": "ai_document/dev-guide.md",
+          "origin_sha256": "272e0d0e72d2afa548e9fcd05c85b782164cbd0944242509b7269cebb4deb600",
+          "start_line": 45,
+          "end_line_exclusive": 77,
+          "start_marker": "### 数据初始化",
+          "end_marker_exclusive": "## 2. 构建、启动与就绪检查",
+          "excerpt_sha256": "3a9e4b7849bc7986497cca644e2f97ee6415ec94005165d478b84d4e933dce39"
+        }
+      ]
+    },
+    {
+      "key": "ops-build",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/03-构建启动与验收.md",
+      "title": "构建启动与验收",
+      "sha256": "b9ef7fe283e6d5a7e2f3fef4ac3b83195a210defba8874fed97feb4fb54cb8a2",
+      "excerpt_joiner": "\n",
+      "excerpts": [
+        {
+          "origin_path": "ai_document/dev-guide.md",
+          "origin_sha256": "272e0d0e72d2afa548e9fcd05c85b782164cbd0944242509b7269cebb4deb600",
+          "start_line": 77,
+          "end_line_exclusive": 135,
+          "start_marker": "## 2. 构建、启动与就绪检查",
+          "end_marker_exclusive": "## 3. 日常开发与验证流程",
+          "excerpt_sha256": "b9ef7fe283e6d5a7e2f3fef4ac3b83195a210defba8874fed97feb4fb54cb8a2"
+        }
+      ]
+    },
+    {
+      "key": "ops-cleanup",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/04-临时资源清理.md",
+      "title": "临时资源清理",
+      "sha256": "1bfe5d2b323965c686051cf238cc659d89b48705590ab25f14de7f4a21135ea7",
+      "excerpt_joiner": "\n",
+      "excerpts": [
+        {
+          "origin_path": "ai_document/dev-guide.md",
+          "origin_sha256": "272e0d0e72d2afa548e9fcd05c85b782164cbd0944242509b7269cebb4deb600",
+          "start_line": 253,
+          "end_line_exclusive": 260,
+          "start_marker": "## 5. 清理与恢复",
+          "end_marker_exclusive": "## 6. 专项维护入口",
+          "excerpt_sha256": "1bfe5d2b323965c686051cf238cc659d89b48705590ab25f14de7f4a21135ea7"
+        }
+      ]
+    },
+    {
+      "key": "ai-models",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/05-模型与向量存储.md",
+      "title": "模型与向量存储",
+      "sha256": "bdbe896880111a07df8e71a23225588a68c4738245ac343ccdcc038ac48377c3",
+      "excerpt_joiner": "\n",
+      "excerpts": [
+        {
+          "origin_path": "README.md",
+          "origin_sha256": "aa0ccdcce3e9c1a4f6f71ac1bf0b153e3eca2116361f2df5a87f1518bedcab3b",
+          "start_line": 68,
+          "end_line_exclusive": 76,
+          "start_marker": "### 配置模型与检索",
+          "end_marker_exclusive": "### 从资料到有来源的回答",
+          "excerpt_sha256": "bdbe896880111a07df8e71a23225588a68c4738245ac343ccdcc038ac48377c3"
+        }
+      ]
+    },
+    {
+      "key": "ai-knowledge",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/06-知识库资料与回答.md",
+      "title": "知识库资料与回答",
+      "sha256": "f88c7abd52edbd4f9512f62ac43bc8f1bd80439a91672e8646a9d42a1eb4dea7",
+      "excerpt_joiner": "\n",
+      "excerpts": [
+        {
+          "origin_path": "README.md",
+          "origin_sha256": "aa0ccdcce3e9c1a4f6f71ac1bf0b153e3eca2116361f2df5a87f1518bedcab3b",
+          "start_line": 76,
+          "end_line_exclusive": 87,
+          "start_marker": "### 从资料到有来源的回答",
+          "end_marker_exclusive": "知识库效果评测使用独立的",
+          "excerpt_sha256": "f88c7abd52edbd4f9512f62ac43bc8f1bd80439a91672e8646a9d42a1eb4dea7"
+        }
+      ]
+    },
+    {
+      "key": "ai-workflows",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/07-常用流程与运行记录.md",
+      "title": "常用流程与运行记录",
+      "sha256": "9d44db5fc5ec567a98b8e80e21a48fa2e4e20375863195ed55032b84fee49e11",
+      "excerpt_joiner": "\n",
+      "excerpts": [
+        {
+          "origin_path": "README.md",
+          "origin_sha256": "aa0ccdcce3e9c1a4f6f71ac1bf0b153e3eca2116361f2df5a87f1518bedcab3b",
+          "start_line": 99,
+          "end_line_exclusive": 107,
+          "start_marker": "### 常用流程、运行记录与能力目录",
+          "end_marker_exclusive": "## 界面预览",
+          "excerpt_sha256": "9d44db5fc5ec567a98b8e80e21a48fa2e4e20375863195ed55032b84fee49e11"
+        }
+      ]
+    },
+    {
+      "key": "ai-access",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/08-身份权限与数据隔离.md",
+      "title": "身份权限与数据隔离",
+      "sha256": "9e98bad2f29114f1536cd386c48f73bfce8d831879a099644bb06eca3c4039dc",
+      "excerpt_joiner": "\n",
+      "excerpts": [
+        {
+          "origin_path": "ai_document/api-contract.md",
+          "origin_sha256": "f38db9737f90daea1792f7546883d2950a6b5ae2afa4eb1a3ba7c64ef0cae9eb",
+          "start_line": 63,
+          "end_line_exclusive": 79,
+          "start_marker": "## 3. 鉴权",
+          "end_marker_exclusive": "## 4. 通用结构",
+          "excerpt_sha256": "58feac5130bfb8977c620da5c99b93d430a1ece20afb8238f25c0e5bba671865"
+        },
+        {
+          "origin_path": "ai_document/api-contract.md",
+          "origin_sha256": "f38db9737f90daea1792f7546883d2950a6b5ae2afa4eb1a3ba7c64ef0cae9eb",
+          "start_line": 237,
+          "end_line_exclusive": 241,
+          "start_marker": "### AI HTTP 与执行约定",
+          "end_marker_exclusive": "- ✅ 第一期导航",
+          "excerpt_sha256": "6d3d9d42b3006d455e7cca9e5d1568ec15cafdc528cceb3a4f0ca34498d2d5a3"
+        },
+        {
+          "origin_path": "README.md",
+          "origin_sha256": "aa0ccdcce3e9c1a4f6f71ac1bf0b153e3eca2116361f2df5a87f1518bedcab3b",
+          "start_line": 64,
+          "end_line_exclusive": 68,
+          "start_marker": "## AI 与知识库使用",
+          "end_marker_exclusive": "### 配置模型与检索",
+          "excerpt_sha256": "bdf7873661f70e9bed617468dd6711835e0f7e871c0225c24a7cad7911ffd22e"
+        }
+      ]
+    }
+  ]
+}

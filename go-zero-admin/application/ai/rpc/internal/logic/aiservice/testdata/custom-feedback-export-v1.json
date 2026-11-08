@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "description": "反馈 #3 版本 4 的开发题。采纳反馈不等于质量签署；规则仅做词法筛查，仍需人工核对。",
+  "documents": [
+    {
+      "key": "doc-9",
+      "kb": "kb-7",
+      "source": "inline:doc-9",
+      "title": "发布资料",
+      "sha256": "3fc156a06e2b84c26a4ec00f872751adf50c0f908980b3128a9a8362a9a1cbbe",
+      "source_doc_id": 9,
+      "source_doc_version": 2,
+      "content": "发布前必须备份数据库。验收通过后才可切换流量。"
+    }
+  ],
+  "cases": [
+    {
+      "id": "feedback-7-3-r4",
+      "kb": "kb-7",
+      "split": "development",
+      "category": "feedback_regression",
+      "query": "如何发布？",
+      "rationale": "人工逐字核对",
+      "expected_documents": [
+        "doc-9"
+      ],
+      "evidence": [
+        {
+          "document": "doc-9",
+          "groups": [
+            [
+              "发布前必须备份数据库。验收通过后才可切换流量。"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "备份数据库"
+          ],
+          [
+            "切换流量"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "expected_answer_example": "先备份数据库，再切换流量。",
+      "checks": [
+        {
+          "label": "备份数据库",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "切换流量",
+          "kind": "fact",
+          "required_group": 1
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "feedback_regressions": [
+      {
+        "case_id": "feedback-7-3-r4",
+        "feedback_id": 3,
+        "revision": 4,
+        "kb_id": 7,
+        "task_id": 8,
+        "step_index": 0,
+        "reviewed_at": 1794071838,
+        "export_sha256": "74ebde795fefd20d5e15c2d9482ab266d20e93efc82f72b66c18675fdf3f9b50",
+        "snapshot_sha256": "7e7909815c919f0e10a802b90647531b92d4ec213e36e394d24ac55462a01e3a",
+        "review_origin": "exported_review_record",
+        "human_identity_verified": false,
+        "note": "采纳记录只说明本次版本与来源核对，不证明审核者身份或语义质量。"
+      }
+    ]
+  }
+}

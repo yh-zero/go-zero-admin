@@ -64,6 +64,26 @@ func newWorkspaceHarness(t *testing.T) *workspaceHarness {
 	t.Cleanup(func() {
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cleanupCancel()
+		var history []struct {
+			Id          int64 `db:"id"`
+			WorkflowId  int64 `db:"workflow_id"`
+			RevisionSeq int64 `db:"revision_seq"`
+		}
+		if err := conn.QueryRowsCtx(cleanupCtx, &history, "SELECT id,workflow_id,revision_seq FROM ai_workflow_revision WHERE owner_id=?", h.actor.UserId); err != nil {
+			t.Error("读取本轮历史清理ID失败")
+		}
+		for _, row := range history {
+			if _, err := conn.ExecCtx(cleanupCtx, "DELETE FROM ai_workflow_revision WHERE id=? AND owner_id=?", row.Id, h.actor.UserId); err != nil {
+				t.Error("清理本轮工作流历史失败")
+			}
+			if _, err := rdb.DelCtx(cleanupCtx, fmt.Sprintf("cache:gozeroAdmin:aiWorkflowRevision:id:%d", row.Id), fmt.Sprintf("cache:gozeroAdmin:aiWorkflowRevision:workflowId:revisionSeq:%d:%d", row.WorkflowId, row.RevisionSeq)); err != nil {
+				t.Error("清理本轮历史缓存失败")
+			}
+		}
+		var remainingHistory int64
+		if err := conn.QueryRowCtx(cleanupCtx, &remainingHistory, "SELECT COUNT(*) FROM ai_workflow_revision WHERE owner_id=?", h.actor.UserId); err != nil || remainingHistory != 0 {
+			t.Error("本轮历史清理后仍存在或不可核对")
+		}
 		for _, item := range []struct{ table, prefix string }{
 			{"ai_task", "cache:gozeroAdmin:aiTask:id:"},
 			{"ai_workflow", "cache:gozeroAdmin:aiWorkflow:id:"},
@@ -248,10 +268,10 @@ func TestAIWorkspaceIntegrationSnapshotSurvivesWorkflowChanges(t *testing.T) {
 			switch action {
 			case "edit":
 				changed := `{"steps":[{"name":"新定义步骤","tool":"text_stats","input":{"text":"新定义"}}]}`
-				_, err = NewUpdateWorkflowLogic(h.ctx, h.service).UpdateWorkflow(&aipb.UpdateWorkflowRequest{Actor: h.actor, WorkflowId: workflowId, Definition: &changed})
+				_, err = NewUpdateWorkflowLogic(h.ctx, h.service).UpdateWorkflow(&aipb.UpdateWorkflowRequest{Actor: h.actor, WorkflowId: workflowId, ExpectedRevision: 1, Definition: &changed})
 			case "disable":
 				disabled := int64(0)
-				_, err = NewUpdateWorkflowLogic(h.ctx, h.service).UpdateWorkflow(&aipb.UpdateWorkflowRequest{Actor: h.actor, WorkflowId: workflowId, Enabled: &disabled})
+				_, err = NewUpdateWorkflowLogic(h.ctx, h.service).UpdateWorkflow(&aipb.UpdateWorkflowRequest{Actor: h.actor, WorkflowId: workflowId, ExpectedRevision: 1, Enabled: &disabled})
 			case "delete":
 				_, err = NewDeleteWorkflowLogic(h.ctx, h.service).DeleteWorkflow(&aipb.DeleteWorkflowRequest{Actor: h.actor, WorkflowId: workflowId})
 			}
@@ -331,7 +351,7 @@ func TestAIWorkspaceIntegrationOwnershipAndFilters(t *testing.T) {
 	foreign, zero := &aipb.Actor{UserId: h.actor.UserId + 1}, int64(0)
 	_, err := NewGetWorkflowLogic(h.ctx, h.service).GetWorkflow(&aipb.GetWorkflowRequest{Actor: foreign, WorkflowId: workflowId})
 	assertWorkspaceCode(t, err, 404)
-	_, err = NewUpdateWorkflowLogic(h.ctx, h.service).UpdateWorkflow(&aipb.UpdateWorkflowRequest{Actor: foreign, WorkflowId: workflowId, Enabled: &zero})
+	_, err = NewUpdateWorkflowLogic(h.ctx, h.service).UpdateWorkflow(&aipb.UpdateWorkflowRequest{Actor: foreign, WorkflowId: workflowId, ExpectedRevision: 1, Enabled: &zero})
 	assertWorkspaceCode(t, err, 404)
 	_, err = NewDeleteWorkflowLogic(h.ctx, h.service).DeleteWorkflow(&aipb.DeleteWorkflowRequest{Actor: foreign, WorkflowId: workflowId})
 	assertWorkspaceCode(t, err, 404)

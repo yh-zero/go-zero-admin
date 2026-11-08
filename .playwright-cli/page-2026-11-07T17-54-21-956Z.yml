@@ -1,0 +1,43 @@
+- main [ref=f3e4]:
+  - generic [ref=f3e5]:
+    - region "go-zero-admin 管理工作台" [ref=f3e6]:
+      - generic [ref=f3e7]: go-zero-admin
+      - generic [ref=f3e13]:
+        - text: 管理工作台
+        - heading "统一管理， 专注每一天的工作。" [level=1] [ref=f3e14]: 统一管理，专注每一天的工作。
+        - paragraph [ref=f3e15]: 连接用户、权限与业务，让日常管理井然有序。
+      - figure [ref=f3e16]:
+        - generic [ref=f3e17]: 登录成功，一起开工吧
+      - generic [ref=f3e19]: 简洁 · 有序 · 高效
+    - region [ref=f3e21]:
+      - generic [ref=f3e22]:
+        - generic [ref=f3e23]:
+          - text: 账号登录
+          - heading "欢迎回来" [level=2] [ref=f3e24]
+          - generic [ref=f3e25]: 登录账号，开始今天的工作。
+        - generic [ref=f3e26]:
+          - generic [ref=f3e28]:
+            - generic "用户名" [ref=f3e30]: "* 用户名"
+            - generic [ref=f3e34]:
+              - img "user" [ref=f3e36]
+              - textbox "* 用户名" [disabled] [ref=f3e39]:
+                - /placeholder: 请输入用户名
+                - text: admin
+          - generic [ref=f3e41]:
+            - generic "密码" [ref=f3e43]: "* 密码"
+            - generic [ref=f3e47]:
+              - img "lock" [ref=f3e49]
+              - textbox "* 密码" [disabled] [ref=f3e52]:
+                - /placeholder: 请输入密码
+                - text: Admin@123456
+              - button "显示" [disabled] [ref=f3e54]:
+                - img "eye-invisible" [ref=f3e55]
+          - button "loading 登录成功，正在进入 arrow-right" [disabled] [ref=f3e91]:
+            - generic:
+              - img "loading"
+            - generic: 登录成功，正在进入
+            - img "arrow-right"
+        - generic [ref=f3e79]:
+          - img "lock" [ref=f3e80]
+          - generic [ref=f3e83]: 使用您的管理账号登录
+      - generic [ref=f3e84]: go-zero-admin · 管理工作台

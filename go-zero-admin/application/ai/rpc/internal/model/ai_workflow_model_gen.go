@@ -50,7 +50,8 @@ type (
 		CreatedBy       uint64       `db:"created_by"`       // 创建者用户ID
 		CreatedAt       time.Time    `db:"created_at"`
 		UpdatedAt       time.Time    `db:"updated_at"`
-		DeletedAt       sql.NullTime `db:"deleted_at"` // 软删除
+		DeletedAt       sql.NullTime `db:"deleted_at"`   // 软删除
+		RevisionSeq     uint64       `db:"revision_seq"` // 单调版本号，更新及恢复时递增
 	}
 )
 
@@ -90,8 +91,8 @@ func (m *defaultAiWorkflowModel) FindOne(ctx context.Context, id uint64) (*AiWor
 func (m *defaultAiWorkflowModel) Insert(ctx context.Context, data *AiWorkflow) (sql.Result, error) {
 	gozeroAdminAiWorkflowIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiWorkflowIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?)", m.table, aiWorkflowRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Name, data.Definition, data.IntervalSeconds, data.Enabled, data.NextRunAt, data.CreatedBy, data.DeletedAt)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?)", m.table, aiWorkflowRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Name, data.Definition, data.IntervalSeconds, data.Enabled, data.NextRunAt, data.CreatedBy, data.DeletedAt, data.RevisionSeq)
 	}, gozeroAdminAiWorkflowIdKey)
 	return ret, err
 }
@@ -100,7 +101,7 @@ func (m *defaultAiWorkflowModel) Update(ctx context.Context, data *AiWorkflow) e
 	gozeroAdminAiWorkflowIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminAiWorkflowIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, aiWorkflowRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.Name, data.Definition, data.IntervalSeconds, data.Enabled, data.NextRunAt, data.CreatedBy, data.DeletedAt, data.Id)
+		return conn.ExecCtx(ctx, query, data.Name, data.Definition, data.IntervalSeconds, data.Enabled, data.NextRunAt, data.CreatedBy, data.DeletedAt, data.RevisionSeq, data.Id)
 	}, gozeroAdminAiWorkflowIdKey)
 	return err
 }

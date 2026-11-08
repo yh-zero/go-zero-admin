@@ -1,0 +1,127 @@
+- generic [ref=f4e4]:
+  - complementary [ref=f4e5]:
+    - generic [ref=f4e6]:
+      - generic [ref=f4e7]:
+        - generic [ref=f4e13]:
+          - strong [ref=f4e14]: go-zero-admin
+          - generic [ref=f4e15]: 管理控制台
+        - generic [ref=f4e16]: 工作空间
+        - menu [ref=f4e86]:
+          - menuitem "dashboard 工作台" [ref=f4e87] [cursor=pointer]:
+            - img "dashboard" [ref=f4e88]
+            - generic [ref=f4e91]: 工作台
+          - menuitem "系统管理" [ref=f4e92] [cursor=pointer]
+          - menuitem "APP管理" [ref=f4e98] [cursor=pointer]
+          - menuitem "租户管理" [ref=f4e104] [cursor=pointer]
+          - menuitem "AI 功能" [expanded] [ref=f4e112] [cursor=pointer]
+          - menu [ref=f4e118]:
+            - menuitem "AI 对话" [ref=f4e119] [cursor=pointer]
+            - menuitem "常用流程" [ref=f4e125] [cursor=pointer]
+            - menuitem "运行记录" [ref=f4e131] [cursor=pointer]
+            - menuitem "工具与能力" [ref=f4e137] [cursor=pointer]
+            - menuitem "知识库" [ref=f4e143] [cursor=pointer]
+      - button "折叠侧栏" [ref=f4e23] [cursor=pointer]:
+        - img "left" [ref=f4e25]
+        - generic [ref=f4e28]: 收起侧栏
+      - separator "调整侧栏宽度" [ref=f4e29]
+  - generic [ref=f4e30]:
+    - banner [ref=f4e31]:
+      - generic [ref=f4e32]:
+        - button "收起导航" [expanded] [ref=f4e33] [cursor=pointer]:
+          - img "menu-fold" [ref=f4e35]
+        - navigation [ref=f4e39]:
+          - list [ref=f4e40]:
+            - listitem [ref=f4e41]:
+              - generic [ref=f4e42]:
+                - img "home" [ref=f4e43]
+                - text: 控制台
+            - listitem [ref=f4e46]: /
+            - listitem [ref=f4e47]: 知识库工作区
+      - generic [ref=f4e48]:
+        - generic [ref=f4e51]:
+          - img "apartment" [ref=f4e53]
+          - generic "默认部门" [ref=f4e56]:
+            - text: 默认部门
+            - combobox "切换部门" [ref=f4e57]
+          - img "down" [ref=f4e149]
+        - button "超级管理员，账号菜单" [ref=f4e152] [cursor=pointer]:
+          - img "user" [ref=f4e64]
+          - generic [ref=f4e67]: 超级管理员
+          - img "down" [ref=f4e68]
+        - button "退出登录" [ref=f4e71] [cursor=pointer]:
+          - img "logout" [ref=f4e73]
+    - main [ref=f4e77]:
+      - generic [ref=f4e160]:
+        - generic [ref=f4e161]:
+          - generic [ref=f4e162]:
+            - button "arrow-left 全部知识库" [ref=f4e163] [cursor=pointer]:
+              - img "arrow-left" [ref=f4e165]
+              - generic [ref=f4e168]: 全部知识库
+            - heading "项目运维实践" [level=3] [ref=f4e169]
+            - generic [ref=f4e170]:
+              - generic [ref=f4e171]: 4 篇可使用
+              - generic [ref=f4e173]: 0 篇处理中
+              - generic [ref=f4e175]: 基于仓库真实文档的AI辅助业务题集；来源冻结fc226fb，非真人历史问答。
+          - generic [ref=f4e176]:
+            - button "质量验收" [ref=f4e178] [cursor=pointer]
+            - button "reload 刷新" [ref=f4e181] [cursor=pointer]:
+              - img "reload" [ref=f4e183]
+              - generic [ref=f4e186]: 刷新
+        - generic [ref=f4e187]:
+          - generic [ref=f4e190]:
+            - tablist [ref=f4e191]:
+              - generic [ref=f4e193]:
+                - tab "资料" [ref=f4e195] [cursor=pointer]
+                - tab "测试资料检索" [ref=f4e197] [cursor=pointer]
+                - tab "反馈与复核" [selected] [ref=f4e199] [cursor=pointer]
+            - tabpanel "反馈与复核" [ref=f4e202]:
+              - region "知识库反馈与复核" [ref=f4e203]:
+                - generic [ref=f4e204]: 这里保留本人知识库分析的评价。复核后可下载回归样本；采纳不会自动重跑分析或修改模型。
+                - generic [ref=f4e205]:
+                  - generic: 已采纳
+                  - generic [ref=f4e206] [cursor=pointer]:
+                    - generic "已采纳" [ref=f4e292]:
+                      - text: 已采纳
+                      - combobox "反馈状态" [active] [ref=f4e208]
+                    - img "down" [ref=f4e210]
+                  - button "reload 刷新评价" [ref=f4e213] [cursor=pointer]:
+                    - img "reload" [ref=f4e294]
+                    - generic [ref=f4e218]: 刷新评价
+                - article [ref=f4e298]:
+                  - generic [ref=f4e299]:
+                    - generic [ref=f4e300]: 有帮助
+                    - generic [ref=f4e301]: 已采纳
+                    - generic [ref=f4e302]: "任务 #434 · 第 1 步"
+                  - paragraph [ref=f4e303]: 排查配置没有生效时，宿主go run与Compose各应检查哪套YAML？如果YAML直填值与终端环境变量不同，哪一个生效？修改.env.local后只做restart、看到/ready通过就能结束验收吗？
+                  - paragraph [ref=f4e304]: AI辅助功能回归：宿主与Compose路径、环境变量重建及就绪不替代业务验收已补齐，6条实际来源均可查看；保留本次快照供复核，非真人签署。
+                  - generic [ref=f4e305]:
+                    - button "查看并复核" [ref=f4e307] [cursor=pointer]
+                    - generic [ref=f4e309]: 2026-11-07 23:24:05
+                - list [ref=f4e310]:
+                  - listitem [ref=f4e311]: 共 1 条
+                  - listitem "上一页" [ref=f4e312]:
+                    - button [disabled] [ref=f4e313]:
+                      - img "left" [ref=f4e314]
+                  - listitem "1" [ref=f4e317] [cursor=pointer]
+                  - listitem "下一页" [ref=f4e319]:
+                    - button [disabled] [ref=f4e320]:
+                      - img "right" [ref=f4e321]
+                  - listitem [ref=f4e324]:
+                    - generic [ref=f4e325]:
+                      - generic "10 条/页" [ref=f4e326]:
+                        - text: 10 条/页
+                        - combobox "页码" [ref=f4e327]
+                      - img "down" [ref=f4e329]
+          - generic [ref=f4e257]:
+            - heading "用这些资料完成工作" [level=4] [ref=f4e258]
+            - generic [ref=f4e259]: 按问题检索相关片段，生成带来源的结果。资料不足时会说明。
+            - generic [ref=f4e260]:
+              - generic [ref=f4e262]:
+                - generic "你希望了解什么？" [ref=f4e264]: "* 你希望了解什么？"
+                - textbox "* 你希望了解什么？" [ref=f4e268]:
+                  - /placeholder: 例如：总结关键步骤、列出风险与依据，并说明还缺哪些信息。
+              - group [ref=f4e269]:
+                - generic "高级运行参数" [ref=f4e270] [cursor=pointer]
+              - button "play-circle 开始分析" [ref=f4e271] [cursor=pointer]:
+                - img "play-circle" [ref=f4e273]
+                - generic [ref=f4e277]: 开始分析

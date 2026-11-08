@@ -29,7 +29,10 @@ function isAnalysis(value: unknown): value is WorkflowAnalysisResult {
   if (!hasFields(value, ['version', 'type', 'status', 'analysis', 'sources', 'usage'])
     || value.version !== 1 || value.type !== 'kb_analysis'
     || !['completed', 'no_matches', 'truncated'].includes(String(value.status))
-    || typeof value.analysis !== 'string' || !Array.isArray(value.sources)) return false;
+    || typeof value.analysis !== 'string' || !Array.isArray(value.sources) || value.sources.length > 8) return false;
+  const encoder = new TextEncoder();
+  if (encoder.encode(value.analysis).length > 12000 || encoder.encode(JSON.stringify(value.analysis)).length > 13000) return false;
+  if (encoder.encode(JSON.stringify(value.sources)).length > 10000 || encoder.encode(JSON.stringify(value)).length > 24000) return false;
   if (value.status === 'no_matches' ? value.sources.length !== 0 : !value.sources.length || !value.analysis.trim()) return false;
   if (!value.sources.every((source: unknown, index: number) => hasFields(source, ['index', 'chunk_id', 'kb_id', 'doc_id', 'doc_title', 'snippet', 'score'])
     && source.index === index + 1 && isCount(source.chunk_id, 1) && isCount(source.kb_id, 1) && isCount(source.doc_id, 1)

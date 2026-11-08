@@ -8,6 +8,7 @@ import (
 	"time"
 
 	ai "go-zero-admin/application/admin/api/internal/handler/ai"
+	aiusage "go-zero-admin/application/admin/api/internal/handler/aiusage"
 	api "go-zero-admin/application/admin/api/internal/handler/api"
 	appadmin "go-zero-admin/application/admin/api/internal/handler/appadmin"
 	appauth "go-zero-admin/application/admin/api/internal/handler/appauth"
@@ -117,6 +118,46 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 			{
 				Method:  http.MethodGet,
+				Path:    "/kbs/:id/evaluation-datasets",
+				Handler: ai.ListKbEvaluationDatasetsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/kbs/:id/evaluations",
+				Handler: ai.StartKbEvaluationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/kbs/:id/evaluations",
+				Handler: ai.ListKbEvaluationsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/kbs/:id/evaluations/:evaluation_id",
+				Handler: ai.GetKbEvaluationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/kbs/:id/evaluations/:evaluation_id/stop",
+				Handler: ai.StopKbEvaluationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/kbs/:id/feedback",
+				Handler: ai.ListKbFeedbackHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/kbs/:id/feedback/:feedback_id",
+				Handler: ai.GetKbFeedbackHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/kbs/:id/feedback/:feedback_id/review",
+				Handler: ai.ReviewKbFeedbackHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
 				Path:    "/kbs/:id/imports",
 				Handler: ai.ListKbImportsHandler(serverCtx),
 			},
@@ -154,6 +195,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/tasks/:id/cancel",
 				Handler: ai.CancelTaskHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/tasks/:id/feedback",
+				Handler: ai.ListTaskFeedbackHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/tasks/:id/feedback",
+				Handler: ai.SetTaskFeedbackHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodPost,
@@ -196,6 +247,21 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: ai.DeleteWorkflowHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodGet,
+				Path:    "/workflows/:id/revisions",
+				Handler: ai.ListWorkflowRevisionsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/workflows/:id/revisions/:revision",
+				Handler: ai.GetWorkflowRevisionHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/workflows/:id/revisions/:revision/restore",
+				Handler: ai.RestoreWorkflowRevisionHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodPost,
 				Path:    "/workflows/:id/run",
 				Handler: ai.RunWorkflowHandler(serverCtx),
@@ -216,6 +282,47 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		rest.WithPrefix("/v1/sys/ai"),
 		rest.WithTimeout(120000*time.Millisecond),
 		rest.WithSSE(),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/admin/calls",
+				Handler: aiusage.AdminListUsageCallsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/admin/policies",
+				Handler: aiusage.AdminListUsagePoliciesHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/admin/policies/:user_id",
+				Handler: aiusage.AdminSetUsagePolicyHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/admin/summary",
+				Handler: aiusage.AdminGetUsageSummaryHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/calls",
+				Handler: aiusage.ListUsageCallsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/policy",
+				Handler: aiusage.GetUsagePolicyHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/summary",
+				Handler: aiusage.GetUsageSummaryHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v1/sys/ai/usage"),
 	)
 
 	server.AddRoutes(
@@ -484,6 +591,19 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				Method:  http.MethodPost,
+				Path:    "/upload",
+				Handler: file.UploadFileHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v1/sys/file"),
+		rest.WithTimeout(45000*time.Millisecond),
+		rest.WithMaxBytes(14680064),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
 				Method:  http.MethodDelete,
 				Path:    "/:id",
 				Handler: file.DeleteFileHandler(serverCtx),
@@ -498,14 +618,8 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/list",
 				Handler: file.GetFileListHandler(serverCtx),
 			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/upload",
-				Handler: file.UploadFileHandler(serverCtx),
-			},
 		},
 		rest.WithPrefix("/v1/sys/file"),
-		rest.WithMaxBytes(14680064),
 	)
 
 	server.AddRoutes(

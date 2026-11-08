@@ -27,7 +27,24 @@
 | YAML 直填 | 所用配置字段的字面值 | 不因同名环境变量存在而自动覆盖 |
 | YAML `${ENV_VAR}` | 进程环境变量 | 仅启用 `conf.UseEnv()` 的加载入口展开；字段留空仍为空 |
 
-六个服务主入口和租户存储二次加载均启用 `UseEnv()`；变更配置时仍须核对宿主/容器两套，以及目标进程实际获得的环境变量。Compose 目前只为 AI/App 注入 `.env.local`，其他服务需要占位符时须显式配置注入。
+六个服务主入口和租户存储二次加载均启用 `UseEnv()`；变更配置时仍须核对宿主/容器两套，以及目标进程实际获得的环境变量。Compose 的整份 `.env.local` 通过 `env_file` 注入 AI/App；API、tenant-rpc 另有显式代理地址注入。Compose 插值和服务进程环境是两层，不能以服务的 `env_file` 代替 Compose 的 `--env-file` 或启动终端环境。
+
+### 可信代理与文件上传预算
+
+API 的 `TrustedProxies` 是显式 IP/CIDR 列表，宿主配置默认为 `[]`。只有 TCP 对端在列表内才读取来源头；`X-Forwarded-For` 从右向左跳过可信代理，坏链回退 TCP 地址，没有该头时才读取合法单 IP 的 `X-Real-IP`。直接请求即使伪造这些头，也不能改变审计和 IP 配额使用的地址。额外反向代理需按实际来源显式配置，不使用全来源信任。
+
+新 Compose 部署为 Nginx 保留静态地址，动态池避开该地址：
+
+| 网络 | 默认子网 | 默认动态池 | 默认 Nginx 地址与信任范围 |
+|---|---|---|---|
+| 平台 `default` | `172.20.0.0/16` | `172.20.128.0/17` | `172.20.0.3`，平台 API 仅信任该 `/32` |
+| 租户边缘 `gozero-edge` | `172.21.0.0/16` | `172.21.128.0/17` | `172.21.0.2`，新租户 API 仅信任该 `/32` |
+
+切换环境时整体设置 `GOZERO_PLATFORM_SUBNET`、`GOZERO_PLATFORM_IP_RANGE`、`GOZERO_PLATFORM_PROXY_IP`，以及对应的 `GOZERO_EDGE_*` 三项；代理 IP 同时用于 Nginx 地址和 API 的可信 `/32` 注入。代理必须位于对应子网内、动态池外，不能占用显式网关或默认首个可用地址，子网不得与本机其他网络冲突。[verify-network.ps1](../go-zero-admin/data/scripts/verify-network.ps1) 只渲染 Compose 并检查上述关系，存在后端 `.env.local` 时显式加载，不要求 Docker 引擎在线、不打印完整配置；构建入口先执行该检查。多文件配置可用其 `-ComposeFiles` 参数核对。外部网络不重复要求 IPAM，须另行只读核对实际子网、动态池与代理地址。此处仅说明新部署；已有网络和已生成的租户配置不自动迁移，不用 `down` 或重建网络代替迁移核对。
+
+已有栈迁移网络前记录容器ID、端点和卷，确认无在途任务，保留基础服务的数据及登录状态。本机 Redis 容器可能没有数据卷，不能通过删容器重建处理网络问题。本轮在保留原容器重连后出现“容器内正常、宿主映射端口超时”，正常重启原基础容器才刷新端口转发；Redis先确认`SAVE`成功，再逐个核对原ID、挂载、握手及健康，不使用`down -v`、prune或批量清缓存。其他项目端点和既有租户栈不在平台迁移范围内。
+
+文件上传预算按对象存储 30 秒 → file-rpc 服务端 35 秒 → API 的 FileRpc 客户端 40 秒 → 上传 HTTP 45 秒 → 前端上传 50 秒逐层留余量；宿主、Compose 与新租户配置同步。只有上传 HTTP 路由获得 45 秒，其他文件 HTTP 路由保留原预算。修改任一层时核对调用链与生成路由，超时/取消不证明对象写入回滚，仍按文件引用与补偿机制核对结果。
 
 ### AI 与邮件
 
@@ -80,16 +97,16 @@ services:
 
 ### Compose（日常默认）
 
-[Dockerfile](../go-zero-admin/docker/Dockerfile)只复制宿主预编译的 Linux 二进制，`docker compose --build` **不会编译 Go 源码**。首次运行或后端代码变更后，先执行[构建入口](../go-zero-admin/data/scripts/build-images.ps1)；构建失败立即停止，不部署旧产物。
+[Dockerfile](../go-zero-admin/docker/Dockerfile)只复制宿主预编译的 Linux 二进制，`docker compose --build` **不会编译 Go 源码**。以下示例沿用快速开始中已创建的 `.env.local`，保证启动与网络预检查使用同一变量文件。首次运行或后端代码变更后，先执行[构建入口](../go-zero-admin/data/scripts/build-images.ps1)；构建失败立即停止，不部署旧产物。
 
 ```powershell
 # 终端 A：从仓库根目录执行
 cd go-zero-admin
 powershell -NoProfile -ExecutionPolicy Bypass -File ./data/scripts/build-images.ps1
 if ($LASTEXITCODE -ne 0) { throw "后端编译失败，停止部署" }
-docker compose up -d --build --wait
+docker compose --env-file .env.local up -d --build --wait
 if ($LASTEXITCODE -ne 0) { throw "Compose 启动失败，先排查日志" }
-docker compose ps
+docker compose --env-file .env.local ps
 if ($LASTEXITCODE -ne 0) { throw "无法读取容器状态" }
 ```
 
@@ -103,7 +120,7 @@ if ($LASTEXITCODE -ne 0) { throw "依赖安装失败，停止启动" }
 pnpm dev
 ```
 
-只改 YAML：重启读取它的服务；修改 `.env.local`：在后端目录 `docker compose up -d --force-recreate ai-rpc app-rpc`，检查退出码并复验对应功能。代码变更则先重新编译、构建镜像再创建容器，不用 restart 代替部署。
+只改 YAML：重启读取它的服务；修改 `.env.local` 中的 AI/SMTP 变量：在后端目录 `docker compose --env-file .env.local up -d --force-recreate ai-rpc app-rpc`，检查退出码并复验对应功能。其他变量按实际归属处理；既有网络变化先单独核对迁移方案，不套用普通重建。代码变更则先重新编译、构建镜像再创建容器，不用 restart 代替部署。
 
 ### 宿主单服务调试（手动重启，不是自动热更新）
 
@@ -111,7 +128,7 @@ pnpm dev
 
 ```powershell
 # 工作目录：go-zero-admin/；先确认不会干扰现有实例和数据
-docker compose up -d mysql redis rustfs
+docker compose --env-file .env.local up -d mysql redis rustfs
 if ($LASTEXITCODE -ne 0) { throw "基础依赖启动失败" }
 go run ./application/admin/rpc -f application/admin/rpc/etc/admin.yaml
 ```
@@ -156,11 +173,17 @@ AI 四模块入口为“知识库”`/ai/knowledge`、“常用流程”`/ai/wor
 
 “常用流程”的新建和编辑进入 `/ai/workflows/new`、`/ai/workflows/:id/edit`，沿用父菜单权限，不新增侧栏项。资料分析模板默认只有一步，知识库与问题引用本次输入，运行时单独填写；JSON 模板明确为格式整理，已有多步骤与静态参数定义继续兼容。编辑器可以直接加入能力，普通参数选择固定内容、本次输入或前一步结果，复杂参数保留高级 JSON，服务端按 v2 引用规则和工具 Schema 校验。支持复制流程和步骤，审批等高级选项按需展开。
 
+流程保存携带读到的 `expected_revision`；真正变更在同一事务归档旧完整版本并递增 `revision`，空 patch/同值不增版本。编辑器的“版本历史”分页读取摘要、按需读取完整定义；恢复携带当前条件版本，创建更高的新版本，不执行任务、审批或工具，也不改写旧任务快照。409 先核对当前版本和草稿，网络未知先核对原目标历史版本与原条件版本，不自动重复恢复或替草稿提升基线。历史读取沿用流程查看权限，恢复需要编辑权限，服务端另核对本人归属与路由授权。
+
 当前未保存内容可“试运行并查看结果”，知识库工作区也可直接“开始分析”；两者通过 `POST /v1/sys/ai/tasks/run` 留下正式任务，`workflow_id=0` 表示未关联常用流程，不自动创建流程。可在结果确认后“保存为常用流程”，也可直接保存；已保存流程的手动运行使用保存定义。草稿按当前会话、部门和流程保留在当前标签页，刷新可恢复，保存成功或明确丢弃后清除。运行 `request_id`、原定义和原输入保留到结果确认，结果未知时核对原运行，不生成另一任务标识。浏览器存储失败时同页内存仍保留标识；刷新前须到运行记录核对。
 
 `kb_analyze` 的注册能力始终可见，运行仍要求检索与聊天模型均已配置；内部执行一次检索和一次有界分析，不向聊天 Agent 暴露该嵌套模型工具。模型适配沿用 Eino；生成与 Embedding 按供应商计费。结果展示分析、实际参考片段和已知聊天用量，不含 Embedding，供应商未返回时标记不完整，0 不等于免费。运行和批准只等待提交（普通请求 30 秒），工作流后台每轮 90 秒、每实例 8 并发。审批前预览本次已解析参数；取消停止后续步骤且不撤回已有模型调用或外部作用。进程中断不自动重放，详情读取会将连续 100 秒未更新的 `running` 标记未知失败；工作流持久执行队列、定时调度和跨人审批仍未实现。
 
+任务执行槽与供应商并发是不同边界：任务数不能当作模型请求次数，内部检索、分析及重定向可能产生多个实际 HTTP 尝试，另受下述全栈供应商额度约束。
+
 “运行记录”以可读标题、流程名快照和输入摘要查找本人任务，详情优先显示结果、实际引用来源与已知用量；输入、步骤记录、耗时、原始输出和错误放在可展开的技术详情。未保存试运行与已保存流程统一留存，历史记录不按最新流程定义重算。列表和详情状态刷新协调：有父列表元信息时复用其变化，独立详情按元信息接口观察状态，变化后补读完整记录；后台标签页不轮询，终态、写操作与失败停止自动刷新，任务自动观察最多 2 分钟。这是实现行为说明，实际请求量与并发性能需另行测量。
+
+终态运行可选择另一条本人终态记录作对照，使用服务端搜索、状态和分页，按实际步骤标识配对输入、输出、状态、来源与已记录用量，不运行新任务或重算历史。缺失用量明确显示未记录；创建至结束耗时含等待，文字或耗时差异不能单独证明质量和性能提升。
 
 “工具与能力”按中文用途展示资料分析、查找资料、JSON 格式整理及本地工具的输入输出示例，可从目录创建流程或在编辑器加入当前流程；参数 Schema 默认折叠。`retrieval_configured`、`analysis_configured` 表示服务端对应客户端已配置，**不是供应商实时健康探测**；未知、未配置与读取失败分别展示，不能据“已配置”推定本次调用成功。目录与工作区不回显密钥或供应商地址。
 
@@ -180,7 +203,37 @@ AI 四模块入口为“知识库”`/ai/knowledge`、“常用流程”`/ai/wor
 
 [变更 HTTP 回归入口](../go-zero-admin/test/mutation_e2e.ps1) 仅接受本机地址，使用具备管理权限的开发测试账号，覆盖角色/菜单/字典部分更新和本地 `text_stats` 两审批点。凭据与正常图形码通过 `MUTATION_E2E_*` 参数/环境变量传入，清理清单须指向仓库内被忽略的新文件；脚本精确软删本轮对象并仅退出本次会话，无删除入口的任务 ID 留在清单供精确清理，不调用模型或邮件。
 
+### 用量治理与持久结构维护
+
+“用量与额度”位于 `/ai/usage`：`sys:ai:usage:read` 读取本人账本，`sys:ai:usage:admin` 查看全局，`sys:ai:usage:manage` 管理策略；管理端还实时核对超级管理员身份，前端隐藏不能代替后端授权。默认每用户每日 1000 次实际供应商 HTTP 尝试、全栈并发 8、已知 token 提醒关闭；日期按上海时区。Embedding 按真实批次、重定向按各 HTTP 尝试记账，聊天、分析、独立检索、后台摄取和质量验收统一记录来源，不拿任务数冒充调用数，也不重复累加原消息和步骤的历史 token。
+
+MySQL 按全局策略行→用户策略行顺序锁定，统一检查全栈未过期活跃预留和用户当天额度；Redis 只作快速租约挡板，丢失活跃 key 不能放宽最终准入。活跃显示来自同口径的 MySQL 状态/租约，无法核对时显示未确认。供应商调用有 90 秒上限、活跃预留租约 120 秒；过期预留保守转 `unknown`，不自动重放。并发范围是同一独立栈及共享其 MySQL/Redis 的实例，不代表跨独立租户栈统一计额。
+
+账本区分预留、明确未发出的 `not_sent`、确认发送与不确定结果。`not_sent` 退回预留，已进入传输但尚未确认发送就取消的尝试仍保守占额，并纳入未知提醒；失败、取消、流中断和崩溃不能推定免费。已收到的有效数字即使 SDK/业务校验拒绝仍保留，字段缺失不补零，部分已知值标记不完整；明细不保存 prompt、正文、Key 或 headers。token 阈值只提醒已知值，没有未知费用的 token/金额硬封顶，也不发送邮件。
+
+额度或容量拒绝为业务码 429，DB/Redis/账本不可用时 503 且不启动新的供应商请求；策略 409 保留草稿，先显式读取新版本再决定保存。普通 HTTP 仍使用现有响应信封，SSE 开流后的错误走事件，不能把这些拒绝变成自动重试。
+
+已有库升级先备份并按完整初始化来源精确核对 `ai_workflow.revision_seq`（API字段为`revision`）、`ai_workflow_revision`、`ai_usage_call`、`ai_usage_policy` 及新增索引，补齐全局策略 `owner_id=0` 和菜单/接口授权；包括 `ai_usage_call` 的 `idx_status_lease`，不能仅建表后漏索引。先在隔离库验证增量 DDL 和 model 生成来源，再对授权目标执行，不重导会 DROP 的初始化 SQL、不重置原授权。已有调用不回填成已计费账本，账本启用时间用于解释历史范围；缺表或默认策略时不得放行未计量调用。
+
+本轮流程历史/对照、用量页、反馈题集、可信代理和上传预算已完成本地主栈验证；权限、额度、取消及竞争边界另有本地桩/隔离回归。一题公开项目反馈的保留样本记录了3次实际供应商请求（1聊天/2Embedding）、已知合计4596tokens；这不是供应商账单或生产容量验收。复验按影响范围选择：前端 `scripts/aiWorkflowRevisions.test.mjs`、`scripts/aiTaskComparison.test.mjs`、`scripts/aiUsage.test.mjs`；后端 `TestUsage` 系列及 `pkg/llm` 重定向/取消用例。数据库回归仅使用显式隔离连接，各次唯一 ID/key 精确清理，禁止清库或 `FLUSHDB/FLUSHALL`。
+
+### Qdrant 启动恢复与孤儿索引对账
+
+Qdrant 配置有效但初始集合暂不可用时，ai-rpc 保留客户端，后续就绪检查按 1 秒起、最高 30 秒退避重探测，同实例并发只做一次探测。摄取 worker 先核对就绪再领取，检索/摄取先核对再调用付费 Embedding；不能仅因启动先后暂态故障就判定必须重启。配置缺失、无效地址或持续故障仍须修正配置和服务，不承诺已有失败调用自动重试。
+
+ai-rpc 启动约 5 秒后执行首次孤儿对账，此后每轮结束等待 5 分钟；同地址/集合由 Redis 150 秒租约协调，单轮最多 120 秒。先完整读取至多 100 万索引 ID，再按每批 500 个回查 MySQL：有效知识库、文档和 `pending/ready` 分块继续保留，已失效/孤立 ID 才删除。索引快照不完整不驱动删除，批次事实源查询失败不驱动该批删除；失败/部分删除在后续周期按实际快照再核对，超扫描上限明确要求人工处理，不能据一条完成日志声称跨库事务或全部恢复。
+
+对账只删除孤儿，不补缺失向量、不重放 Embedding，也不自动清空集合。集合丢失或模型/维度变更仍需先核对 MySQL 原文、当前集合和配置，按明确文档范围人工重试重建并评估费用；清空集合、跨库批量补偿或重建须有对应授权。检索回 MySQL 的归属、软删与 ready 校验继续生效。本轮真实小集合验证自动删除1个专用孤立点且原40个点及payload保持；恢复、代次竞争及失败另有本地桩/隔离回归，持续真实故障、大集合和生产恢复仍单独验收。
+
 ### 知识库效果评测
+
+知识库工作区增加“反馈与复核”，实际知识库分析步骤可评价；评价写入需要 `sys:ai:task:feedback`，复核需要 `sys:ai:kb:review`，读取继续使用任务/知识库查看权限。服务端Casbin及本人归属独立校验，首版无跨人审核。已有库从完整初始化来源精确添加 `ai_kb_feedback` 新表，不重导初始化SQL；通过正常菜单/角色接口补齐两个操作码并保留原授权，再使用“接口管理→同步路由”新增5个路由目录项。
+
+复核采纳需预期答案、事实关键词、逐字引用与说明；每个事实须同时在答案与所选摘录出现，资料不足题则无事实/摘录。并发版本冲突先刷新核对，失败保留草稿，不能自动重放。采纳样本下载后按 [业务题集流程](ai-rag/business-cases.md#采纳反馈成为可运行回归)离线转为新题集，原资料/历史题集不覆盖。来源SHA和文档版本在反馈采集时核对，不冒充模型调用时的全库快照；不匹配资料须重新复核。页面采纳仅表示操作结论，AI辅助验收不等于真人签署或语义准确率。
+
+页面已支持在采纳反馈上“生成验收题集”：读取前后两次核对反馈revision，按历史资料ID/版本及正文SHA重读当前原文，来源变化先重新复核。预览可以下载完整冻结JSON或带入质量验收页，导入也使用同一格式；生成/预览/下载不触发模型，明确开始才执行。无原文绑定的资料不足题需额外确认已核对当前资料，不能由原来的no_matches推定全库无答案。自定义快照最多256KiB、100篇资料/100题、单批最多30题；每篇正文最多64KiB。前端和CLI共用严格解析器，拒绝BOM、坏UTF-8、重复字段和不匹配证据。原字节SHA/精确ID/版本在服务端再次校验，未知结果保留原UUID与快照，不自动换标识重跑。
+
+本轮反馈回归入口：前端 `node --test scripts/aiKnowledgeFeedback.test.mjs scripts/aiFeedbackDataset.test.mjs scripts/aiWorkflowAnalysis.test.mjs`；后端 `go test ./application/ai/rpc/internal/logic/aiservice -run 'TestKbFeedback|TestCustomEvaluation' -count=1 -v`（数据库场景必须传显式隔离DSN/Redis），API边界 `go test ./application/admin/api/internal/logic/ai -run TestKbFeedback -count=1`。新增业务题、离线转换及并发工具可运行 `node --test go-zero-admin/data/scripts/business-cases.test.mjs go-zero-admin/data/scripts/merge-kb-feedback.test.mjs go-zero-admin/data/scripts/bench-kb-quality.test.mjs go-zero-admin/data/scripts/kb-custom-dataset.test.mjs`，均为本地桩或离线验证。真实测量另见 [性能基线](ai-rag/performance-baseline.md)，模型调用需在已授权供应商和数据范围内。
 
 [quality-cases.json](ai-rag/quality-cases.json)含40题，保留首轮development24/validation16分组；当前两组均已用于检查或失败修复，应作为历史回归，新的独立检查需另留业务样本。[标注说明](ai-rag/quality-cases.md)列出正负例、证据与规则边界。题集沿用11篇合成演示资料，不是真实用户数据。以下命令均从仓库根目录执行：
 
@@ -226,7 +279,7 @@ rescore仅重算派生指标并保留源SHA、任务、答案、来源、计时�
 
 | 症状 | 先检查与处理 | 如何确认 / 边界 |
 |---|---|---|
-| API 退出、反复重启 | `docker compose logs api admin-rpc --tail 50`；检查 admin-rpc 就绪、Casbin 策略与数据库/Redis | restart 策略只缓解启动时序；持续失败必须查因，再验证 `/ready` 与业务 |
+| API 退出、反复重启 | `docker compose --env-file .env.local logs api admin-rpc --tail 50`；检查 admin-rpc 就绪、Casbin 策略与数据库/Redis | restart 策略只缓解启动时序；持续失败必须查因，再验证 `/ready` 与业务 |
 | 7001 可达、Nginx 502 | API 重建后可能缓存旧上游地址，确认平台上游服务，再按下例校验并 reload | 用平台 Host 复验；未知 Host/IP 直访默认站点 404 是域名隔离设计 |
 | 404 / 连接拒绝 / 请求到旧服务 | `netstat -ano` 查端口、PID 与容器映射，核对请求域名和代理目标 | 不停无关项目；选择独立测试端口，确认命中本轮实例 |
 | `unknown service` / 新 RPC 不生效 | 核对调用方连接的模块/端口及 main 的服务注册，不能把 FileRpc 误连 admin-rpc；查 `gen.ps1 rpc` 告警 | 生成命令成功不保证已有 main 已补注册；调用新增方法复验 |
@@ -234,15 +287,15 @@ rescore仅重算派生指标并保留源SHA、任务、答案、来源、计时�
 | `not matching destination to scan` / 时间查询报数据库错误 | 自定义查询用带 `db` tag 的 row struct，不直扫 pb；时间转 int64 按规则用 `UNIX_TIMESTAMP()` 与显式别名 | 逐列检查查询/目标类型并真实读取，不以编译通过代替扫描验证 |
 | 直接改库后仍读旧数据 | 查看实际生成 model 的 ID/旧新唯一索引缓存键，仅精确失效受影响记录；授权变更核对策略通知 | 重新读取确认；不以 FLUSH 或全库清空代替定位 |
 | AI/SMTP 填了配置却不可用 | 核对[配置双套制](#配置双套制)、实际加载入口、Provider、SMTP 主机/端口/TLS 和容器是否重建 | 区分未配置降级与外部调用失败；不打印密钥或把占位符展开误认为读取 env 文件 |
-| 知识库摄取 503 / 检索无结果 | 核对 `Qdrant.Address` 与 `AI_QWEN_KEY`（Embedding 固定走 qwen）双套配置、ai-rpc 是否重建、qdrant 容器日志；向量维度与 `EmbeddingDimensions` 不一致会在摄取时报维度错误 | 未配置降级是设计行为；Qdrant 数据是派生索引，灾难恢复 = 清空集合后将文档逐个 retry 重建，不修向量数据 |
-| 知识库检索到已删除内容 | 属双写漂移窗口：检索回 MySQL 复核应拦截；若仍出现，查 chunk status 与文档软删标记 | 以 MySQL 为准核对并按明确文档/分块 ID 人工补偿；当前没有运行期自动对账任务，不能等待其自动收敛 |
+| 知识库摄取 503 / 检索无结果 | 核对 `Qdrant.Address` 与 `AI_QWEN_KEY`（Embedding 固定走 qwen）双套配置、实际产物与 qdrant 日志；再区分启动探测、配置/维度错误及供应商故障 | 初始暂态不可用会退避重探测；缺失向量不自动重建，按[恢复边界](#qdrant-启动恢复与孤儿索引对账)核对范围与费用，不先清空集合 |
+| 知识库检索到已删除内容 | 属双写漂移窗口：检索回 MySQL 复核应拦截；若仍出现，查 chunk/doc/KB 状态、归属与软删标记 | 自动对账仅按完整索引快照及 MySQL 事实删除孤儿；失败/超限需核对日志和实际 ID，不能以等待一轮代替确认或自动补向量 |
 | PowerShell 中文乱码、解析失败或 SQL 导入乱码 | 区分终端显示、文件编码与数据库存储；先 `Get-Content -Encoding UTF8`/原始字节核对，再考虑修改文件 | 兼容 Windows PowerShell 5.1 的含中文脚本保留 UTF-8 BOM；不要因显示乱码重写源文件 |
 
 ```powershell
 # 后端目录；仅在本项目确需刷新上游时执行，校验失败不 reload
-docker compose exec -T nginx nginx -t
+docker compose --env-file .env.local exec -T nginx nginx -t
 if ($LASTEXITCODE -ne 0) { throw "Nginx 配置校验失败" }
-docker compose exec -T nginx nginx -s reload
+docker compose --env-file .env.local exec -T nginx nginx -s reload
 if ($LASTEXITCODE -ne 0) { throw "Nginx reload 失败" }
 ```
 

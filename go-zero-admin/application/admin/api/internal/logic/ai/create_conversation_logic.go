@@ -68,7 +68,7 @@ func mapAiWorkflow(row *aipb.WorkflowInfo) *types.AiWorkflowInfo {
 	if row == nil {
 		return nil
 	}
-	return &types.AiWorkflowInfo{Id: row.Id, Name: row.Name, Definition: row.Definition, IntervalSeconds: row.IntervalSeconds, Enabled: row.Enabled, NextRunAt: row.NextRunAt, CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, StepCount: row.StepCount}
+	return &types.AiWorkflowInfo{Id: row.Id, Name: row.Name, Definition: row.Definition, IntervalSeconds: row.IntervalSeconds, Enabled: row.Enabled, NextRunAt: row.NextRunAt, CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, StepCount: row.StepCount, Revision: row.Revision}
 }
 func mapAiTask(row *aipb.AgentTaskInfo) *types.AiTaskInfo {
 	if row == nil {
@@ -77,7 +77,11 @@ func mapAiTask(row *aipb.AgentTaskInfo) *types.AiTaskInfo {
 	steps := make([]*types.AiWorkflowStepInfo, 0, len(row.Steps))
 	for _, r := range row.Steps {
 		if r != nil {
-			steps = append(steps, &types.AiWorkflowStepInfo{Index: r.Index, Id: r.Id, Name: r.Name, Tool: r.Tool, Input: r.Input, Output: r.Output, Status: r.Status, Error: r.Error, StartedAt: r.StartedAt, CompletedAt: r.CompletedAt})
+			step := &types.AiWorkflowStepInfo{Index: r.Index, Id: r.Id, Name: r.Name, Tool: r.Tool, Input: r.Input, Output: r.Output, Status: r.Status, Error: r.Error, StartedAt: r.StartedAt, CompletedAt: r.CompletedAt}
+			if r.Usage != nil {
+				step.Usage = &types.AiWorkflowStepUsage{Scope: r.Usage.Scope, PromptTokens: r.Usage.PromptTokens, CompletionTokens: r.Usage.CompletionTokens, TotalTokens: r.Usage.TotalTokens, Complete: r.Usage.Complete}
+			}
+			steps = append(steps, step)
 		}
 	}
 	return &types.AiTaskInfo{Id: row.Id, WorkflowId: row.WorkflowId, ConversationId: row.ConversationId, Status: row.Status, Input: row.Input, Result: row.Result, Error: row.Error, ApprovedBy: row.ApprovedBy, CreatedAt: row.CreatedAt, CompletedAt: row.CompletedAt, NextStep: row.NextStep, Steps: steps, UpdatedAt: row.UpdatedAt, RequestId: row.RequestId, Title: row.Title, WorkflowName: row.WorkflowName, InputSummary: row.InputSummary, Definition: row.Definition}

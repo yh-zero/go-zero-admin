@@ -9,7 +9,7 @@ function applySharedSession(apply: () => void) {
   try { apply(); } finally { endSharedSessionWrite(); }
 }
 
-// 高频 API 调用时避免重复读 localStorage + JSON.parse（1 秒内不重复同步）。
+// 普通读取可节流；storage事件和会话关键边界必须强制读取，不能复用旧令牌。
 let lastSyncAt = 0;
 const syncThrottleMs = 1000;
 
@@ -39,7 +39,7 @@ export function initAuthStorageSync(): void {
   if (typeof window === 'undefined') return;
   window.addEventListener('storage', (event) => {
     if (event.storageArea === window.localStorage && (event.key === 'go-zero-auth' || event.key === null)) {
-      syncAuthFromStorage();
+      syncAuthFromStorage(true);
     }
   });
 }

@@ -70,9 +70,65 @@ Hit/Recall/MRR@1/3/5按原始前K片段排名计算，文档Recall去重并使�
 
 报告按split/category列出成功题指标；失败不算空召回或错误回答。耗时区分search client/server与分析提交到终态，P50/P95注明串行经验分位数和N，不代表生产并发容量。chat tokens仅为供应商已知聊天用量，不含Embedding费用；正常调用上限和成功分析推定次数不等于供应商实测计费次数。比较前用同SHA256冻结题集及原始记录复算，要求同题、同语料版本和同模型/预算/TopK；仅构建、源码版本及实验说明可变化，失败、不完整或记录不一致时拒绝计算提升。JSONL不带数字签名，一致性核对不能证明日志来源未被修改。
 
+## 知识库质量验收页与24题项目场景
+
+从 **AI 功能 → 知识库 → 本人知识库工作区 → 质量验收** 进入 `/ai/knowledge/:id/quality`。页面提供[24题原场景](business-acceptance-cases.md)、[24题证据覆盖验收校准版](business-evidence-cases.md)、[32题历史业务题](business-cases.md)和[14题失败回归](business-failure-regression-cases.md)，适合在同一批资料上核对回答、实际引用、关键条件与风险，以及检索和分析耗时。题目基于仓库公开项目文档，由AI辅助编制，不是真实用户历史，也没有真人签署。
+
+24题复用 `business-docs/` 中8篇冻结资料：16题开发、8题初始预留，运维与AI题组各12题。`project_ops`、`project_ai`分别对应正文及SHA一致的本人知识库；已有相同资料可直接复用。题集原始SHA为 `176e20b4563d8c892b375fe45af89a4a27b78ee1d62c9686e9b49b3956696760`。这8道初始预留题已在本轮实际执行并用于复核，现为已使用回归数据；页面保留的“初始预留题”标签不代表未见过的独立验证集。实际观察与剩余问题见[业务基线续记](business-baseline.md#质量验收页与24题场景的中间观察)。
+
+1. 选择题集、与当前资料对应的题组及1..30道题。读取使用 `sys:ai:kb:list`，开始和停止评测另需 `sys:ai:kb:evaluate`；页面入口可见不代替服务端权限及知识库归属检查。模型与检索配置齐备、资料正文/版本/ready/库存核对一致后才能运行。
+2. 点击“开始评测”创建持久化批次，每批串行执行。正常每题包含一次直接检索和一次分析内部检索，最多两次逻辑查询Embedding及一次有界聊天；真实运行按已配置供应商计费。执行失败会停止余题；“停止后续题目”仅阻止未开始项，已发生的调用不会撤回。
+3. 刷新或返回页面后从“历史批次”查看进度。提交待确认时先“核对原请求”，保留原UUID、题目与载荷；需要继续原提交时使用原标识，不自动换UUID重跑。逐题结果未知时先按请求标识核对原运行记录，不能直接单题复测；明确进行单题复测会新建独立批次并产生新的调用。
+4. 展开题目，对照实际答案、实际来源和中文检查项。执行成功只代表任务完成；规则是字符串筛查，0警报也不等于事实完整、语义正确或人审通过。执行失败/未知单列，不算空召回或错误答案，未取得的用量不能按零解释。成功分析可使用原有评价入口加入反馈复核；缺少来源时不能补造引用。
+5. 在完整成功、语料前后复核通过的历史批次中“设为对照”。只有题集SHA、题目集合、题组、知识库、语料版本/正文指纹/库存及模型、Embedding、预算、TopK等context一致时才比较；构建变化单列。不完整、失败、未知或配置不同的批次不能计算提升，也不能把不同批次的成功片段拼成一轮完整结果。
+
+CLI仍可使用同一份题集，离线计划不会请求服务：
+
+```powershell
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan --cases ai_document/ai-rag/business-acceptance-cases.json --split development
+```
+
+页面批次保存内部调用的观测，CLI保存客户端HTTP事件，两种记录不能冒充相同的HTTP日志。真实模型效果、费用与小样本耗时必须以对应构建的实际结果为准；本轮中间结果不代表后续构建已通过验收。
+
+## 关键证据覆盖与完整题集基线
+
+直接召回测试与普通 `kb_search` 仍返回最多5个片段，Hit/Recall及证据覆盖@5描述这组直接检索结果。工作流 `kb_analyze` 在一次分析中可使用同次向量召回、归属/ready/软删复核后的最多20个真实候选；候选来源JSON不超过24000 UTF-8字节及上下文四分之一的本地估算额度，完整请求仍保留问题与回答空间。模型只调用一次，最终保留实际引用的最多8个片段并连续编号，来源JSON不超过10000字节，工具整体不超过24000字节；所有来源仍是实际送入模型的片段，不拼接其他分块冒充原chunk。引用过多或输出无效安全失败，不静默删引用或自动追加模型调用。
+
+因此，**直接检索证据@5**与**分析实际引用证据覆盖**需要分开读取。前者未改善不等于分析没有取得更多依据，后者有引用也不证明每句话正确。扩大候选可能增加同一次聊天的输入tokens，需和已知用量、耗时一并衡量。
+
+[派生校准24题](business-evidence-cases.md)保留原问题、split及8篇文档指纹，把原问未要求的产物格式、额外状态码、验证接口等降为补充复核，并记录每项旧值、新值和依据；原24题与历史警报保留。源码与环境变量更新、宿主与Compose配置路径两类真实失败的必答要求没有删改。校准也是AI辅助判读，仍需人工复核。
+
+`eval-kb-cohort.mjs`用于同一完整题集的串行前后基线。与页面批次和原质量CLI不同，它仅在已有合法receipt及明确失败终态时记录失败、继续尚未开始的下一题；网络、超时、结果未知、语料变化或日志写入/关闭失败会停止，禁止自动重试。每题保留独立v1原始日志，整轮另存manifest；所有输出在请求前独占预留，存在旧文件时拒绝运行。
+
+以下命令从仓库根目录执行；正常登录的result保存在被忽略的认证文件，知识库映射填写实际的 `project_ops`、`project_ai` ID，context只放已核对的脱敏运行标签：
+
+```powershell
+# 默认与显式plan都只校验素材、展示24题计划，0 HTTP
+node go-zero-admin/data/scripts/eval-kb-cohort.mjs --plan --cases ai_document/ai-rag/business-evidence-cases.json
+
+# 真实调用：每题最多一次分析，正常包含直接检索和分析内部检索
+node go-zero-admin/data/scripts/eval-kb-cohort.mjs --run --phase baseline --cases ai_document/ai-rag/business-evidence-cases.json --auth-file tmp/auth-private.json --kb-map tmp/project-kb-map.json --context-file tmp/evidence-baseline-context.json --output tmp/evidence-baseline.jsonl
+node go-zero-admin/data/scripts/eval-kb-cohort.mjs --run --phase candidate --cases ai_document/ai-rag/business-evidence-cases.json --auth-file tmp/auth-private.json --kb-map tmp/project-kb-map.json --context-file tmp/evidence-candidate-context.json --output tmp/evidence-candidate.jsonl
+
+# 只读复算/比较，JSON结果输出到终端，不调用服务或模型
+node go-zero-admin/data/scripts/eval-kb-cohort.mjs --report tmp/evidence-baseline.jsonl --cases ai_document/ai-rag/business-evidence-cases.json
+node go-zero-admin/data/scripts/eval-kb-cohort.mjs --compare tmp/evidence-baseline.jsonl tmp/evidence-candidate.jsonl --cases ai_document/ai-rag/business-evidence-cases.json
+node --test go-zero-admin/data/scripts/eval-kb-cohort.test.mjs
+```
+
+全题都有已知成功/失败终态、每题原始链合法、整轮资料库存/正文SHA/版本/状态一致时，才记为 `complete_cohort=true`。报告分别显示全题执行成功率、成功题质量分母、分析已引用证据与必答事实字符串覆盖，以及共同成功子集；失败不是空召回或错误答案，未知用量不按零费用。`http`仅为此CLI实际HTTP尝试，包含语料核对与轮询，不等于Embedding或供应商尝试数。页面持久批次仍执行失败即停，不因CLI能继续而改变。
+
+比较要求同题集SHA、全部题目顺序、KB映射、语料指纹/库存及模型、Embedding、上下文与输出预算；构建和明确记录的实验变量单列。候选与最终来源限额变化须写入实验说明，不能称作所有检索条件完全相同。共同成功子集或不同轮次的成功记录不能拼成另一轮完整结果；字符串覆盖和小样本P50/P95都不是人工正确率或生产容量。
+
 ## 回答一致性失败回归
 
+实际项目场景另见 [32题业务题集](business-cases.md)：8份冻结项目文档、20题开发与12题初始预留，明确AI辅助编题及首次使用边界。知识库分析评价可在“反馈与复核”中补充预期答案和逐字依据，采纳后下载；`merge-kb-feedback.mjs`离线核对KB映射、原文指纹与事实项，写出新题集后复用现有质量评测。聊天原有评价暂不合并为知识库复核记录。
+
+[性能基线](performance-baseline.md)使用独立manifest及每工作原v1日志，显式选择开发题依次观测1/3/5并发，共9次分析。默认plan不发HTTP，真实运行按已配置供应商计费，单列元数据请求、已知聊天用量及不完整证据；不把并发日志伪装为原工具的串行质量记录。
+
 [12题开发回归](answer-regression-cases.md)覆盖原问重复、改写和部分缺资料，[实测夹具](answer-failure-fixtures.json)保留坏答与实际来源。原40题不改；新题是已使用的开发数据，不是新独立验证集。
+
+[14题业务失败回归](business-failure-regression-cases.md)覆盖跨文档漏召回、背景引述的额外不足，以及真正要求回答的引号内问题。复用8篇冻结项目文档，保留任务178/190的原始坏答和实际来源，不补造当时漏掉的引用；修复前后结果续记于[业务基线](business-baseline.md)。
 
 ```powershell
 node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan --cases ai_document/ai-rag/answer-regression-cases.json

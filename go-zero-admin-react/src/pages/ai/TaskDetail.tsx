@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Alert, Button, Drawer, Form, Input, Modal, Space, Tag } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +15,8 @@ import { captureTaskDecision, formatTaskValue, isTaskDecisionCurrent, taskPollIn
 import type { TaskDecision } from './taskState';
 import { parseTaskAnalyses } from './workflowAnalysis';
 import { WorkflowAnalysisResult } from './WorkflowAnalysisResult';
+import type { TaskAnalysis } from './workflowAnalysis';
+import { TaskAnalysisFeedback } from './TaskAnalysisFeedback';
 import { CopyTextButton } from './SafeMarkdown';
 import styles from './tasks.module.css';
 
@@ -140,7 +143,8 @@ export function TaskDetail({ scope, taskId, guard, onClose, inline = false, meta
   const content = <>
     <QueryState isPending={details.isPending} error={details.error} onRetry={() => details.refetch()} />
     {feedback && <Alert className={styles.feedback} title={feedback} type="info" showIcon />}
-    {task && !details.error && <TaskDetailContent task={task} />}
+    {task && !details.error && <TaskDetailContent task={task} renderFeedback={analysis => task.steps.some(step => step.index === analysis.step - 1 && step.tool === 'kb_analyze' && step.status === 'succeeded')
+      ? <TaskAnalysisFeedback scope={scope} taskId={taskId} stepIndex={analysis.step - 1} guard={guard} /> : null} />}
   </>;
   return <>
     {inline ? <section className={styles.inlineDetail} aria-label="运行结果"><div className={styles.inlineActions}><Button icon={<ReloadOutlined />} disabled={guard.writing} onClick={() => { pollStartedAt.current = Date.now(); void details.refetch(); }}>刷新状态</Button>{actions}</div>{content}</section> : <Drawer open title={task?.title || `运行记录 #${taskId}`} size={820} className={styles.drawer} onClose={() => { if (!guard.writing) onClose(); }}
@@ -167,7 +171,7 @@ export function TaskDetail({ scope, taskId, guard, onClose, inline = false, meta
   </>;
 }
 
-export function TaskDetailContent({ task }: { task: AiTaskInfo }) {
+export function TaskDetailContent({ task, renderFeedback }: { task: AiTaskInfo; renderFeedback?: (analysis: TaskAnalysis) => ReactNode }) {
   const analyses = parseTaskAnalyses(task.result, task.next_step);
   return <div className={styles.detailContent}>
     {task.title && <h2>{task.title}</h2>}
@@ -175,7 +179,7 @@ export function TaskDetailContent({ task }: { task: AiTaskInfo }) {
     <div className={styles.state}><Tag color={taskStatuses[task.status]?.color}>{taskStatuses[task.status]?.label ?? task.status}</Tag>
       <p>{task.status === 'pending_approval' ? '等待你确认当前步骤，该步骤尚未执行。' : '展示本次任务已记录的状态与结果。'}</p></div>
     <h3>执行结果 <CopyTextButton text={analyses.map(item => item.result.analysis).join('\n\n') || task.result} label="复制结果" /></h3>
-    {analyses.map(analysis => <WorkflowAnalysisResult key={analysis.step} analysis={analysis} />)}
+    {analyses.map(analysis => <div key={analysis.step}><WorkflowAnalysisResult analysis={analysis} />{renderFeedback?.(analysis)}</div>)}
     {analyses.length ? <details><summary>原始执行记录</summary><pre className={styles.code}>{task.result}</pre></details>
       : <TaskRecordedValue value={task.result} empty={task.status === 'pending_approval' ? '确认后开始当前步骤' : '尚无执行结果'} />}
     {task.error && <Alert type="error" showIcon title="本次运行未完成" description={<pre className={styles.errorText}>{task.error}</pre>} />}
@@ -196,8 +200,15 @@ export function TaskDetailContent({ task }: { task: AiTaskInfo }) {
 
 function TaskStepRecord({ step, preview = false }: { step: AiWorkflowStepInfo; preview?: boolean }) {
   const elapsed = step.started_at > 0 && step.completed_at >= step.started_at ? `${step.completed_at - step.started_at} 毫秒` : '—';
+  const usage = step.usage?.scope === 'chat'
+    && [step.usage.prompt_tokens, step.usage.completion_tokens, step.usage.total_tokens].every(value => Number.isSafeInteger(value) && value >= 0)
+    ? step.usage : undefined;
+  const usageComplete = usage?.complete === true && usage.total_tokens === usage.prompt_tokens + usage.completion_tokens;
   return <section className={styles.stepRecord}>
     <strong>第 {step.index + 1} 步 · {step.name}</strong><p><Tag>{step.tool}</Tag><Tag color={taskStatuses[step.status]?.color}>{taskStatuses[step.status]?.label ?? step.status}</Tag>{!preview && <span>耗时：{elapsed}</span>}</p>
+    {!preview && usage && <div aria-label="步骤聊天用量"><p>已知聊天用量：输入 {usage.prompt_tokens} · 输出 {usage.completion_tokens} · 合计 {usage.total_tokens} tokens；不含 Embedding。</p>
+      {!usageComplete && <Alert type="warning" title="用量不完整（实际费用可能更高）" description="仅包含已知聊天用量，0 不代表免费。" />}
+    </div>}
     <details open={preview || step.status === 'pending_approval'}><summary>本次实际输入</summary><pre className={styles.code}>{formatTaskValue(step.input)}</pre></details>
     {!preview && step.output && <details><summary>步骤输出 <CopyTextButton text={step.output} label="复制输出" /></summary><pre className={styles.code}>{formatTaskValue(step.output)}</pre></details>}
     {step.error && <Alert type="warning" title={step.error} />}

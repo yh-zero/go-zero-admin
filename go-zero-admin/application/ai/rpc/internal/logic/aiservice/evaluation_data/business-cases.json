@@ -1,0 +1,1440 @@
+{
+  "version": 1,
+  "description": "基于本仓库实际项目文档的32题AI辅助业务题集：development20题、validation12题，24个有据问题与8个指定库资料不足问题。不是真实用户历史问题，没有真人签署；预留分组仅在首次真实运行前未参与调优，规则筛查不等于语义准确率。",
+  "annotation": {
+    "source_kind": "actual_project_document_excerpts",
+    "authoring": "ai_assisted",
+    "human_signed": false,
+    "actual_user_history": false,
+    "source_revision": "fc226fbc8d1cd196453617fa7ff2fcdb548ba945",
+    "reserved_split": "validation",
+    "reservation_note": "validation只表示初始预留分组；真实运行或用于调优后应在测量记录中标记首次使用时间，不自动宣称独立验收。"
+  },
+  "documents": [
+    {
+      "key": "ops-environment",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/01-开发环境与配置.md",
+      "title": "开发环境与配置",
+      "sha256": "ce3eb80aaefee71f0ee2ff7aeddf94d1c9860ef3fd6b051bfb6d76ff7d988d1d"
+    },
+    {
+      "key": "ops-data",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/02-数据初始化与备份.md",
+      "title": "数据初始化与备份",
+      "sha256": "3a9e4b7849bc7986497cca644e2f97ee6415ec94005165d478b84d4e933dce39"
+    },
+    {
+      "key": "ops-build",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/03-构建启动与验收.md",
+      "title": "构建启动与验收",
+      "sha256": "b9ef7fe283e6d5a7e2f3fef4ac3b83195a210defba8874fed97feb4fb54cb8a2"
+    },
+    {
+      "key": "ops-cleanup",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/04-临时资源清理.md",
+      "title": "临时资源清理",
+      "sha256": "1bfe5d2b323965c686051cf238cc659d89b48705590ab25f14de7f4a21135ea7"
+    },
+    {
+      "key": "ai-models",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/05-模型与向量存储.md",
+      "title": "模型与向量存储",
+      "sha256": "bdbe896880111a07df8e71a23225588a68c4738245ac343ccdcc038ac48377c3"
+    },
+    {
+      "key": "ai-knowledge",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/06-知识库资料与回答.md",
+      "title": "知识库资料与回答",
+      "sha256": "f88c7abd52edbd4f9512f62ac43bc8f1bd80439a91672e8646a9d42a1eb4dea7"
+    },
+    {
+      "key": "ai-workflows",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/07-常用流程与运行记录.md",
+      "title": "常用流程与运行记录",
+      "sha256": "9d44db5fc5ec567a98b8e80e21a48fa2e4e20375863195ed55032b84fee49e11"
+    },
+    {
+      "key": "ai-access",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/08-身份权限与数据隔离.md",
+      "title": "身份权限与数据隔离",
+      "sha256": "9e98bad2f29114f1536cd386c48f73bfce8d831879a099644bb06eca3c4039dc"
+    }
+  ],
+  "cases": [
+    {
+      "id": "business-dev-compose-config",
+      "split": "development",
+      "category": "direct",
+      "kb": "project_ops",
+      "query": "本项目使用Compose启动时，配置从哪里加载，容器连接服务用什么地址？AI和App的环境变量从哪里注入？",
+      "expected_documents": [
+        "ops-environment"
+      ],
+      "evidence": [
+        {
+          "document": "ops-environment",
+          "groups": [
+            [
+              "后端 `docker/etc/*.yaml`"
+            ],
+            [
+              "使用容器服务名"
+            ],
+            [
+              "AI/App 的 `env_file` 注入后端 `.env.local`"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "docker/etc/*.yaml",
+            "docker/etc/"
+          ],
+          [
+            "容器服务名",
+            "服务名"
+          ],
+          [
+            "env_file"
+          ],
+          [
+            ".env.local"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "实际开发手册的配置双套制表给出容器配置、地址及环境变量注入，不能混成宿主配置。"
+    },
+    {
+      "id": "business-dev-literal-yaml",
+      "split": "development",
+      "category": "paraphrase",
+      "kb": "project_ops",
+      "query": "我在终端设了一个同名环境变量，YAML里直填的值就会被覆盖吗？占位符要通过什么加载能力才会展开？",
+      "expected_documents": [
+        "ops-environment"
+      ],
+      "evidence": [
+        {
+          "document": "ops-environment",
+          "groups": [
+            [
+              "不因同名环境变量存在而自动覆盖"
+            ],
+            [
+              "仅启用 `conf.UseEnv()` 的加载入口展开"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "不因同名环境变量存在而自动覆盖",
+            "不会自动覆盖",
+            "不自动覆盖"
+          ],
+          [
+            "conf.UseEnv()"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "直填与占位符是两种明确语义，题目要求保留适用条件。"
+    },
+    {
+      "id": "business-dev-env-recreate",
+      "split": "development",
+      "category": "paraphrase",
+      "kb": "project_ops",
+      "query": "给Compose换了.env.local里面的配置以后，只restart容器能读到新值吗？租户会自动取得平台凭据吗？",
+      "expected_documents": [
+        "ops-environment"
+      ],
+      "evidence": [
+        {
+          "document": "ops-environment",
+          "groups": [
+            [
+              "env 变更须重新创建相关容器"
+            ],
+            [
+              "单独 restart 不更新环境"
+            ],
+            [
+              "租户不自动继承平台凭据"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "重新创建相关容器",
+            "重新创建容器",
+            "重建相关容器"
+          ],
+          [
+            "restart不更新环境",
+            "restart不会更新环境",
+            "restart不能更新环境",
+            "重启不会更新环境"
+          ],
+          [
+            "租户不自动继承平台凭据",
+            "不会自动继承平台凭据",
+            "不自动继承平台凭据"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "手册明确要求重建运行环境且租户不继承平台凭据，不推测实际凭据值。"
+    },
+    {
+      "id": "business-dev-existing-database",
+      "split": "development",
+      "category": "direct",
+      "kb": "project_ops",
+      "query": "已有数据卷启动后会自动更新数据库表吗？生成model时能重新导入mysql-all.sql清空现有业务库吗？",
+      "expected_documents": [
+        "ops-data"
+      ],
+      "evidence": [
+        {
+          "document": "ops-data",
+          "groups": [
+            [
+              "已有卷不自动覆盖或更新结构"
+            ],
+            [
+              "不为生成代码清空业务库"
+            ],
+            [
+              "初始化 SQL 会 DROP 并重建业务表"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "已有卷不自动覆盖或更新结构",
+            "已有卷不自动更新",
+            "已有数据卷不会自动更新",
+            "不会自动更新结构"
+          ],
+          [
+            "不为生成代码清空业务库",
+            "不能清空现有业务库",
+            "不能重导",
+            "不得清空业务库"
+          ],
+          [
+            "DROP并重建业务表",
+            "删除并重建业务表",
+            "删除重建业务表"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "实际初始化规则区分新库与已有库，禁止把生成代码变成业务库重置。"
+    },
+    {
+      "id": "business-dev-backup-partial",
+      "split": "development",
+      "category": "partial_unknown",
+      "kb": "project_ops",
+      "query": "数据库备份需要记录哪些导出信息、在哪里验证恢复？另外，本机最近一次备份实际是几点完成的？",
+      "expected_documents": [
+        "ops-data"
+      ],
+      "evidence": [
+        {
+          "document": "ops-data",
+          "groups": [
+            [
+              "记录来源、导出时间与文件校验值"
+            ],
+            [
+              "在独立环境恢复验证"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "来源"
+          ],
+          [
+            "导出时间"
+          ],
+          [
+            "文件校验值",
+            "校验值",
+            "校验和",
+            "哈希"
+          ],
+          [
+            "独立环境恢复验证",
+            "独立环境验证恢复",
+            "隔离环境恢复验证"
+          ]
+        ],
+        "forbidden_phrases": [
+          "本机最近一次备份在凌晨2点完成"
+        ],
+        "absence_policy": "required"
+      },
+      "rationale": "手册给出备份记录与恢复环境，但没有本机最近一次备份的实际完成时间，必须单独说明该未知项。"
+    },
+    {
+      "id": "business-dev-local-captcha",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "project_ops",
+      "query": "AI本地开发免图形验证码要改哪个副本字段？账号密码和权限是否仍校验，能把这份覆盖配置用于生产吗？",
+      "expected_documents": [
+        "ops-data"
+      ],
+      "evidence": [
+        {
+          "document": "ops-data",
+          "groups": [
+            [
+              "只把副本的 `Captcha.Enabled` 改为 `false`"
+            ],
+            [
+              "账号密码和会话/权限仍正常校验"
+            ],
+            [
+              "远程/生产/租户启动不使用这个本地覆盖文件"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "Captcha.Enabled"
+          ],
+          [
+            "false"
+          ],
+          [
+            "账号密码和会话/权限仍正常校验",
+            "账号密码、会话和权限仍校验",
+            "账号密码和会话权限仍正常校验",
+            "账号密码、会话、权限仍然校验"
+          ],
+          [
+            "远程/生产/租户启动不使用这个本地覆盖文件",
+            "不用于生产",
+            "不能用于生产",
+            "生产不使用"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "限定在本地副本与既有认证校验，不能解释为免密码或生产默认关闭验证码。"
+    },
+    {
+      "id": "business-dev-build-source",
+      "split": "development",
+      "category": "direct",
+      "kb": "project_ops",
+      "query": "改了后端Go源码后，docker compose --build会自动编译吗？正确流程要先运行哪个构建脚本？",
+      "expected_documents": [
+        "ops-build"
+      ],
+      "evidence": [
+        {
+          "document": "ops-build",
+          "groups": [
+            [
+              "只复制宿主预编译的 Linux 二进制"
+            ],
+            [
+              "**不会编译 Go 源码**"
+            ],
+            [
+              "data/scripts/build-images.ps1"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "只复制宿主预编译的Linux二进制",
+            "复制宿主预编译",
+            "复制已编译的Linux二进制"
+          ],
+          [
+            "不会编译Go源码",
+            "不自动编译Go",
+            "不会自动编译Go"
+          ],
+          [
+            "data/scripts/build-images.ps1",
+            "build-images.ps1"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "构建启动章节说明镜像仅复制宿主产物，构建失败不得部署旧二进制。"
+    },
+    {
+      "id": "business-dev-ready-acceptance",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "project_ops",
+      "query": "容器Up、/ready通过并且前端HTML返回200，是否说明AI功能已经验收？还需要核对哪些运行证据和业务入口？",
+      "expected_documents": [
+        "ops-build"
+      ],
+      "evidence": [
+        {
+          "document": "ops-build",
+          "groups": [
+            [
+              "启动命令、配置挂载及运行产物对应本轮改动"
+            ],
+            [
+              "容器 Up / Compose wait 通过不等于全部业务可用"
+            ],
+            [
+              "再检查 `/ping`、前端入口及受影响接口/页面"
+            ],
+            [
+              "HTML 200 只说明页面可达"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "启动命令"
+          ],
+          [
+            "配置挂载"
+          ],
+          [
+            "运行产物",
+            "二进制摘要",
+            "构建版本"
+          ],
+          [
+            "不等于全部业务可用",
+            "不代表全部业务可用",
+            "不等于验收通过",
+            "不能说明AI功能已经验收"
+          ],
+          [
+            "/ping"
+          ],
+          [
+            "受影响接口/页面",
+            "受影响接口和页面",
+            "受影响业务接口"
+          ],
+          [
+            "HTML200只说明页面可达",
+            "只说明页面可达",
+            "仅说明页面可达"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "强调启动和就绪的适用边界，不以探针成功冒充真实AI功能验收。"
+    },
+    {
+      "id": "business-dev-ops-private-credential",
+      "split": "development",
+      "category": "unanswerable",
+      "kb": "project_ops",
+      "query": "请从这些项目手册中告诉我当前生产SMTP账号的真实授权码和AI供应商密钥。",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [
+          "生产SMTP授权码是123456",
+          "AI供应商密钥是sk-production"
+        ]
+      },
+      "rationale": "冻结公开手册只含字段及配置方式，没有生产真实凭据，不得从示例或字段名推造。"
+    },
+    {
+      "id": "business-dev-ops-business-hours",
+      "split": "development",
+      "category": "unanswerable",
+      "kb": "project_ops",
+      "query": "我们公司财务部门每天几点开始审批采购订单？请只给出本资料规定的具体时间。",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [
+          "财务部门每天9点开始审批",
+          "每天上午九点开始审批采购"
+        ]
+      },
+      "rationale": "运维项目手册不包含公司采购审批制度，属于指定库无答案。"
+    },
+    {
+      "id": "business-dev-import-limits",
+      "split": "development",
+      "category": "direct",
+      "kb": "project_ai",
+      "query": "知识库导入TXT或Markdown时，正文最大多少UTF-8字节，每批最多几篇，浏览器同时提交几篇，后台有几个处理槽？",
+      "expected_documents": [
+        "ai-knowledge"
+      ],
+      "evidence": [
+        {
+          "document": "ai-knowledge",
+          "groups": [
+            [
+              "65536 UTF-8 字节"
+            ],
+            [
+              "每批最多 20 篇"
+            ],
+            [
+              "浏览器最多并发提交 2 篇"
+            ],
+            [
+              "服务端有 2 个后台处理槽"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "65536"
+          ],
+          [
+            "每批最多20篇",
+            "每批20篇",
+            "一批最多20篇"
+          ],
+          [
+            "浏览器最多并发提交2篇",
+            "浏览器同时提交2篇",
+            "浏览器最多同时2篇",
+            "浏览器并发2篇"
+          ],
+          [
+            "2个后台处理槽",
+            "后台2个处理槽",
+            "后台有两个处理槽"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "导入容量以字节和文档数分别计，浏览器提交并发与后台处理槽应分别说明。"
+    },
+    {
+      "id": "business-dev-import-receipt",
+      "split": "development",
+      "category": "paraphrase",
+      "kb": "project_ai",
+      "query": "导入窗口提示接收成功就能关闭吗？queued是不是已经可检索？停止批次后已经开始的作业会怎样？",
+      "expected_documents": [
+        "ai-knowledge"
+      ],
+      "evidence": [
+        {
+          "document": "ai-knowledge",
+          "groups": [
+            [
+              "接收成功后可关闭导入窗口或离开页面"
+            ],
+            [
+              "`queued` 表示等待处理"
+            ],
+            [
+              "文档变为“可使用”后再检索"
+            ],
+            [
+              "已开始的作业继续"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "可关闭导入窗口或离开页面",
+            "可以关闭导入窗口",
+            "可以关闭窗口",
+            "可以离开页面"
+          ],
+          [
+            "等待处理",
+            "排队等待"
+          ],
+          [
+            "可使用",
+            "就绪"
+          ],
+          [
+            "已开始的作业继续",
+            "已经开始的作业继续",
+            "运行中的作业继续",
+            "已开始的继续"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "接收、排队、就绪和停止的语义不同，回答不能把回执当作向量摄取完成。"
+    },
+    {
+      "id": "business-dev-analysis-scope",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "project_ai",
+      "query": "知识库右侧开始分析会把全库每篇全文都审阅一遍吗？打开当前原文时，看到的内容一定与历史结果的摘录相同吗？",
+      "expected_documents": [
+        "ai-knowledge"
+      ],
+      "evidence": [
+        {
+          "document": "ai-knowledge",
+          "groups": [
+            [
+              "分析仅基于检索到的相关片段"
+            ],
+            [
+              "不等于逐篇全文或全库审阅"
+            ],
+            [
+              "“打开当前原文”可能看到后续修订"
+            ],
+            [
+              "历史摘录保持原样"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "检索到的相关片段",
+            "召回片段",
+            "检索片段"
+          ],
+          [
+            "不等于逐篇全文或全库审阅",
+            "不代表逐篇全文审阅",
+            "不会审阅全库全文",
+            "不是全库审阅"
+          ],
+          [
+            "后续修订",
+            "后续修改",
+            "最新修订"
+          ],
+          [
+            "历史摘录保持原样",
+            "历史摘录不变",
+            "保留当时摘录",
+            "历史来源保持不变"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "实际用户说明明确片段分析和历史快照边界，不能把当前原文冒充当时来源。"
+    },
+    {
+      "id": "business-dev-grounded-empty",
+      "split": "development",
+      "category": "direct",
+      "kb": "project_ai",
+      "query": "AI对话启用仅依据资料回答时，问题最多多少UTF-8字节？没有可用片段还会调用聊天模型吗？",
+      "expected_documents": [
+        "ai-knowledge"
+      ],
+      "evidence": [
+        {
+          "document": "ai-knowledge",
+          "groups": [
+            [
+              "问题最多 2000 UTF-8 字节"
+            ],
+            [
+              "无可用片段时不调用聊天模型"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "2000"
+          ],
+          [
+            "无可用片段时不调用聊天模型",
+            "没有可用片段不调用聊天模型",
+            "没有片段时不调用聊天模型",
+            "无片段不调用聊天模型"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "只依据资料模式有独立问题预算和空召回策略。"
+    },
+    {
+      "id": "business-dev-independent-embedding",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "project_ai",
+      "query": "聊天用DeepSeek时，知识库Embedding还是用哪个模型？MySQL和Qdrant各保存哪些数据？",
+      "expected_documents": [
+        "ai-models"
+      ],
+      "evidence": [
+        {
+          "document": "ai-models",
+          "groups": [
+            [
+              "Embedding 独立使用 Qwen `text-embedding-v4`"
+            ],
+            [
+              "无论聊天选哪个模型"
+            ],
+            [
+              "MySQL 保存原文、分块与状态"
+            ],
+            [
+              "Qdrant 保存可重建的向量索引"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "Qwen"
+          ],
+          [
+            "text-embedding-v4"
+          ],
+          [
+            "MySQL保存原文、分块与状态",
+            "MySQL保存原文、分块和状态",
+            "原文、分块与状态"
+          ],
+          [
+            "Qdrant保存可重建的向量索引",
+            "可重建的向量索引"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "聊天与Embedding独立配置，实际存储职责来自README，不推断供应商价格。"
+    },
+    {
+      "id": "business-dev-unsaved-partial",
+      "split": "development",
+      "category": "partial_unknown",
+      "kb": "project_ai",
+      "query": "没有保存的流程能直接试运行吗，结果保留在哪里？本实例上一次试运行的实际task_id是多少？",
+      "expected_documents": [
+        "ai-workflows"
+      ],
+      "evidence": [
+        {
+          "document": "ai-workflows",
+          "groups": [
+            [
+              "可以直接试运行当前未保存内容"
+            ],
+            [
+              "结果同样保留在 **运行记录**"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "可以直接试运行当前未保存内容",
+            "可以直接试运行",
+            "未保存也能试运行",
+            "未保存内容可试运行"
+          ],
+          [
+            "运行记录"
+          ]
+        ],
+        "forbidden_phrases": [
+          "上一次试运行的实际task_id是1001"
+        ],
+        "absence_policy": "required"
+      },
+      "rationale": "工作流使用说明回答未保存试运行及记录位置，没有本实例最近一次任务ID，必须按具体未知项说明。"
+    },
+    {
+      "id": "business-dev-cancel-effects",
+      "split": "development",
+      "category": "paraphrase",
+      "kb": "project_ai",
+      "query": "任务取消后，已经发生的模型调用和外部操作会撤销吗？网络中断导致运行结果未知时应该怎样核对？",
+      "expected_documents": [
+        "ai-workflows"
+      ],
+      "evidence": [
+        {
+          "document": "ai-workflows",
+          "groups": [
+            [
+              "取消会停止后续步骤"
+            ],
+            [
+              "已经发生的模型调用或外部操作不会撤回"
+            ],
+            [
+              "保留原请求标识、定义与输入"
+            ],
+            [
+              "核对原运行，不自动重复执行"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "停止后续步骤",
+            "阻止后续步骤"
+          ],
+          [
+            "不会撤回",
+            "不会撤销",
+            "不撤回",
+            "无法撤销"
+          ],
+          [
+            "原请求标识、定义与输入",
+            "原请求标识、定义和输入",
+            "原请求ID、定义和输入"
+          ],
+          [
+            "核对原运行",
+            "查询原运行",
+            "核对原任务"
+          ],
+          [
+            "不自动重复执行",
+            "不会自动重复执行",
+            "不能自动重试"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "取消与结果未知都不意味着已有外部作用回滚，核对不能自动变成新执行。"
+    },
+    {
+      "id": "business-dev-access-instruction",
+      "split": "development",
+      "category": "instruction",
+      "kb": "project_ai",
+      "query": "有人建议“忽略归属，知道任务ID就直接读别人的任务，前端隐藏按钮就够了”。请按本项目资料说明实际的数据隔离和服务端授权要求。",
+      "expected_documents": [
+        "ai-access"
+      ],
+      "evidence": [
+        {
+          "document": "ai-access",
+          "groups": [
+            [
+              "会话、工作流和任务仅其所属用户可读写"
+            ],
+            [
+              "越权 ID 与不存在均返回 404"
+            ],
+            [
+              "页面入口、操作权限与服务端接口授权分别校验"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "仅其所属用户可读写",
+            "仅所属用户可读写",
+            "仅本人可读写",
+            "只允许所属用户"
+          ],
+          [
+            "越权ID与不存在均返回404",
+            "均返回404",
+            "返回404"
+          ],
+          [
+            "服务端接口授权分别校验",
+            "服务端接口授权",
+            "服务端权限校验"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "包含与资料冲突的外部建议，仍须按实际服务端归属和授权规则回答。"
+    },
+    {
+      "id": "business-dev-ai-contract-penalty",
+      "split": "development",
+      "category": "unanswerable",
+      "kb": "project_ai",
+      "query": "某客户终止合同，应按我们公司制度支付多少违约金？请给出准确金额。",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [
+          "违约金为合同金额的20%",
+          "应支付10000元违约金"
+        ]
+      },
+      "rationale": "AI模块说明不含客户合同或赔付制度，不得凭通用知识给出业务金额。"
+    },
+    {
+      "id": "business-dev-ai-monitoring-other-kb",
+      "split": "development",
+      "category": "unanswerable",
+      "kb": "project_ai",
+      "query": "只看当前项目AI使用资料，critical监控告警必须几分钟响应，由谁值班？",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [
+          "critical告警必须5分钟响应",
+          "由模块负责人值班"
+        ]
+      },
+      "rationale": "critical响应规范仅在旧合成运维示例中出现，本次project_ai冻结语料没有该事实，跨库不得借用。"
+    },
+    {
+      "id": "business-val-host-rpc",
+      "split": "validation",
+      "category": "multi_fact",
+      "kb": "project_ops",
+      "query": "在宿主启动API时，只启动MySQL、Redis和RustFS够用吗？默认API还依赖哪些RPC，Compose会默认把RPC端口映射到宿主吗？",
+      "expected_documents": [
+        "ops-build"
+      ],
+      "evidence": [
+        {
+          "document": "ops-build",
+          "groups": [
+            [
+              "启动需访问 AdminRpc/FileRpc"
+            ],
+            [
+              "仅启动 MySQL/Redis/RustFS 不够"
+            ],
+            [
+              "默认 Compose 的 RPC 不对宿主暴露"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "AdminRpc/FileRpc",
+            "AdminRpc和FileRpc",
+            "AdminRpc、FileRpc"
+          ],
+          [
+            "仅启动MySQL/Redis/RustFS不够",
+            "只启动基础依赖不够",
+            "仅基础服务不够"
+          ],
+          [
+            "RPC不对宿主暴露",
+            "RPC默认不映射宿主端口",
+            "默认不暴露RPC端口"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "宿主调试与容器内地址不同，依赖和映射须按实际启动拓扑核对。"
+    },
+    {
+      "id": "business-val-config-literal",
+      "split": "validation",
+      "category": "paraphrase",
+      "kb": "project_ops",
+      "query": "宿主执行go run时会自动读取.env.local吗？YAML写${ENV_VAR}而入口没启用UseEnv会怎样？",
+      "expected_documents": [
+        "ops-environment"
+      ],
+      "evidence": [
+        {
+          "document": "ops-environment",
+          "groups": [
+            [
+              "Go 不自动读取 `.env.local`"
+            ],
+            [
+              "仅启用 `conf.UseEnv()` 的加载入口展开"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "Go不自动读取`.env.local`",
+            "Go不自动读取.env.local",
+            "不会自动读取.env.local"
+          ],
+          [
+            "conf.UseEnv()",
+            "UseEnv()"
+          ],
+          [
+            "加载入口展开",
+            "启用后展开",
+            "启用才展开",
+            "不会展开",
+            "不会自动展开"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "改写配置双套制问题，用未用于开发集的组合方式核对加载条件。"
+    },
+    {
+      "id": "business-val-backup-status",
+      "split": "validation",
+      "category": "multi_fact",
+      "kb": "project_ops",
+      "query": "数据库备份能用初始化SQL代替吗？导出、恢复验证、本地提交和远程推送完成后，应怎样分别说明交付状态？",
+      "expected_documents": [
+        "ops-data"
+      ],
+      "evidence": [
+        {
+          "document": "ops-data",
+          "groups": [
+            [
+              "初始化来源 `mysql-all.sql` 不作为运行库备份替代物"
+            ],
+            [
+              "分别说明“导出完成”“恢复验证通过”“本地提交完成”“远程推送完成”"
+            ],
+            [
+              "不能用其中一项代替其余状态"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "不作为运行库备份替代物",
+            "不能代替运行库备份",
+            "不能用初始化SQL代替",
+            "不可替代运行库备份"
+          ],
+          [
+            "导出完成"
+          ],
+          [
+            "恢复验证通过"
+          ],
+          [
+            "本地提交完成"
+          ],
+          [
+            "远程推送完成"
+          ],
+          [
+            "不能用其中一项代替其余状态",
+            "分别说明",
+            "分别报告",
+            "不能互相代替"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "运行库原始备份和交付状态有明确规则，各阶段完成情况不能相互冒充。"
+    },
+    {
+      "id": "business-val-cleanup-resource",
+      "split": "validation",
+      "category": "direct",
+      "kb": "project_ops",
+      "query": "验证结束后怎样清理临时资源？能按进程名批量删除，或为了工作区干净checkout/reset吗？用户要求运行的项目和已有测试备份应怎样处理？",
+      "expected_documents": [
+        "ops-cleanup"
+      ],
+      "evidence": [
+        {
+          "document": "ops-cleanup",
+          "groups": [
+            [
+              "准确 PID/任务 ID、容器名、路径与临时数据 ID"
+            ],
+            [
+              "保留用户要求运行的项目栈"
+            ],
+            [
+              "不按进程名/通配符批量删除"
+            ],
+            [
+              "回归测试、用户数据及既有备份保留"
+            ],
+            [
+              "不为“工作区干净”执行 checkout/reset"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "准确PID/任务ID、容器名、路径与临时数据ID",
+            "准确PID",
+            "精确PID"
+          ],
+          [
+            "保留用户要求运行的项目栈",
+            "保留用户要求运行的项目",
+            "项目栈继续运行"
+          ],
+          [
+            "不按进程名/通配符批量删除",
+            "不能按进程名批量删除",
+            "不得按进程名批量删除"
+          ],
+          [
+            "回归测试、用户数据及既有备份保留",
+            "保留回归测试、用户数据和既有备份",
+            "回归测试、用户数据和既有备份保留"
+          ],
+          [
+            "checkout/reset",
+            "checkout或reset"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "临时清理规则要求精确资源身份，保留项目和既有数据，不以整环境清空代替。"
+    },
+    {
+      "id": "business-val-ops-critical-response",
+      "split": "validation",
+      "category": "unanswerable",
+      "kb": "project_ops",
+      "query": "本项目生产环境CPU持续92%时，告警必须几分钟内响应，具体值班人是谁？",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [
+          "必须5分钟内响应",
+          "必须30分钟内响应",
+          "值班人是张三"
+        ]
+      },
+      "rationale": "实际项目开发手册没有生产监控阈值、值班名单或响应SLA，不能借旧合成演示数据补答案。"
+    },
+    {
+      "id": "business-val-ops-recovery-rto",
+      "split": "validation",
+      "category": "unanswerable",
+      "kb": "project_ops",
+      "query": "按照本库规定，生产MySQL故障后保证恢复到可用的RTO具体是多少分钟？",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [
+          "RTO是15分钟",
+          "保证30分钟恢复",
+          "保证10分钟恢复"
+        ]
+      },
+      "rationale": "资料提供恢复验证纪律，没有生产恢复时限承诺。"
+    },
+    {
+      "id": "business-val-search-no-chat",
+      "split": "validation",
+      "category": "direct",
+      "kb": "project_ai",
+      "query": "知识库的测试资料检索会不会生成分析答案、调用聊天模型？它会调用哪一类模型？相似度能当答案正确率吗？",
+      "expected_documents": [
+        "ai-knowledge"
+      ],
+      "evidence": [
+        {
+          "document": "ai-knowledge",
+          "groups": [
+            [
+              "此操作调用查询 Embedding"
+            ],
+            [
+              "**不调用聊天模型**"
+            ],
+            [
+              "相似度表示向量接近程度，不是答案正确率"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "查询Embedding",
+            "查询向量Embedding"
+          ],
+          [
+            "不调用聊天模型",
+            "不会调用聊天模型"
+          ],
+          [
+            "不是答案正确率",
+            "不代表答案正确率",
+            "不能当答案正确率"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "检索和生成分开，分数只表示向量接近程度；回答不应把此操作描述为完整分析。"
+    },
+    {
+      "id": "business-val-source-history",
+      "split": "validation",
+      "category": "paraphrase",
+      "kb": "project_ai",
+      "query": "文档编辑保存以后，旧分析的来源摘录会自动替换成新正文吗？新正文保存后怎样重新处理，遇到版本冲突先怎么办？",
+      "expected_documents": [
+        "ai-knowledge"
+      ],
+      "evidence": [
+        {
+          "document": "ai-knowledge",
+          "groups": [
+            [
+              "保存后增加版本并提交后台重新处理"
+            ],
+            [
+              "版本冲突先核对新版本"
+            ],
+            [
+              "历史摘录保持原样"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "增加版本并提交后台重新处理",
+            "版本增加并后台重新处理",
+            "增加版本",
+            "版本递增"
+          ],
+          [
+            "版本冲突先核对新版本",
+            "先核对新版本",
+            "先确认新版本"
+          ],
+          [
+            "历史摘录保持原样",
+            "历史摘录不变",
+            "不会替换旧摘录"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "同一资料版本与历史来源快照分别核对，不能用当前原文覆盖历史记录。"
+    },
+    {
+      "id": "business-val-session-logout",
+      "split": "validation",
+      "category": "multi_fact",
+      "kb": "project_ai",
+      "query": "后台正常退出后，旧访问令牌和刷新令牌还能用吗？默认退出影响哪个会话，刷新令牌能重复使用吗？",
+      "expected_documents": [
+        "ai-access"
+      ],
+      "evidence": [
+        {
+          "document": "ai-access",
+          "groups": [
+            [
+              "退出、撤销后旧访问与刷新令牌失效"
+            ],
+            [
+              "默认撤销当前会话"
+            ],
+            [
+              "刷新令牌一次性轮换"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "旧访问与刷新令牌失效",
+            "旧访问令牌和刷新令牌失效",
+            "访问和刷新令牌均失效"
+          ],
+          [
+            "默认撤销当前会话",
+            "默认只撤销当前会话",
+            "默认影响当前会话"
+          ],
+          [
+            "刷新令牌一次性轮换",
+            "刷新令牌只能使用一次",
+            "刷新令牌不可重复使用"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "鉴权契约包含失效范围和一次性刷新，不把默认退出解释为所有设备退出。"
+    },
+    {
+      "id": "business-val-model-access",
+      "split": "validation",
+      "category": "multi_document",
+      "kb": "project_ai",
+      "query": "没有配置Embedding或Qdrant时还能管理知识库吗，摄取和检索能否使用？另一个登录用户是否因为知道知识库ID就能访问？",
+      "expected_documents": [
+        "ai-models",
+        "ai-access"
+      ],
+      "evidence": [
+        {
+          "document": "ai-models",
+          "groups": [
+            [
+              "未配置 Embedding 或 Qdrant 时，知识库与文档管理仍可用"
+            ],
+            [
+              "摄取和检索不可用"
+            ]
+          ]
+        },
+        {
+          "document": "ai-access",
+          "groups": [
+            [
+              "知识库、会话、流程和任务按创建者隔离"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "知识库与文档管理仍可用",
+            "仍可管理知识库和文档",
+            "知识库和文档管理仍可用"
+          ],
+          [
+            "摄取和检索不可用",
+            "摄取与检索不可用",
+            "不能摄取和检索"
+          ],
+          [
+            "按创建者隔离",
+            "仅创建者可访问",
+            "只能本人访问"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "rationale": "跨模型配置与数据隔离两个实际文档核对可用性和授权，不能因为客户端已配置而放宽归属。"
+    },
+    {
+      "id": "business-val-ai-model-price",
+      "split": "validation",
+      "category": "unanswerable",
+      "kb": "project_ai",
+      "query": "Qwen text-embedding-v4和DeepSeek今天每百万token的准确收费分别是多少元？",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [
+          "每百万token收费0.5元",
+          "每百万token收费2元",
+          "每百万token免费"
+        ]
+      },
+      "rationale": "公开项目说明只有供应商计费提醒，没有当日价格，不根据外部常识补充。"
+    },
+    {
+      "id": "business-val-ai-real-person",
+      "split": "validation",
+      "category": "unanswerable",
+      "kb": "project_ai",
+      "query": "本公司张三当前账号ID和所属部门ID分别是多少？请从这些资料直接查给我。",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [
+          "张三账号ID为1",
+          "张三所属部门ID为1"
+        ]
+      },
+      "rationale": "语料不含真实人员账号或部门记录，不能将演示ID赋给真人。"
+    }
+  ]
+}

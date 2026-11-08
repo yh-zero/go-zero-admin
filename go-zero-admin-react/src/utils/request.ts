@@ -18,7 +18,8 @@ const reportedErrors = new WeakSet<ApiError>();
 const usesDepartment = (url = '') => !publicUrls.has(url) && !url.startsWith('/sys/auth/') && url !== '/sys/dept/my';
 export function setRequestErrorReporter(reporter?: (text: string) => void) { reportError = reporter; }
 function assertCurrentSession(config?: AuthRequestConfig) {
-  syncAuthFromStorage();
+  // 响应和身份校验不能被普通读取节流，否则迟到401可能清除其他标签页的新会话。
+  syncAuthFromStorage(true);
   const auth = useAuthStore.getState();
   if (config?.authVersion !== undefined && config.authVersion !== auth.sessionVersion) {
     throw new axios.CanceledError('会话已切换');
@@ -52,10 +53,9 @@ request.interceptors.request.use(async (input) => {
   const config = input as AuthRequestConfig;
   const isPublic = publicUrls.has(config.url ?? '');
   const departmentScoped = usesDepartment(config.url);
-  syncAuthFromStorage();
+  assertCurrentSession(config);
   let auth = useAuthStore.getState();
   if (auth.isLoggingOut && !isPublic && config.url !== logoutUrl) throw new axios.CanceledError('正在退出登录');
-  assertCurrentSession(config);
   if (!isPublic && auth.token) {
     config.authVersion ??= auth.sessionVersion;
     if (departmentScoped) config.departmentVersion ??= auth.departmentVersion;
@@ -87,10 +87,10 @@ request.interceptors.response.use(async (response) => {
     throw error;
   }
 }, async (error: unknown) => {
+  if (axios.isAxiosError(error)) releaseRequest(error.config?.signal);
   if (error instanceof ApiError) return rejectRequest(error);
   if (axios.isCancel(error)) return Promise.reject(error);
   if (!axios.isAxiosError(error)) return rejectRequest(new ApiError(500, '请求未完成，请重试'));
-  releaseRequest(error.config?.signal);
   const config = error.config as AuthRequestConfig | undefined;
   assertCurrentSession(config);
   const status = error.response?.status;
@@ -106,7 +106,7 @@ request.interceptors.response.use(async (response) => {
 });
 
 async function refreshAccessToken(): Promise<void> {
-  syncAuthFromStorage();
+  syncAuthFromStorage(true);
   const auth = useAuthStore.getState();
   if (refreshFlight?.version === auth.sessionVersion) return refreshFlight.promise;
   if (!auth.refreshToken || auth.refreshExpiresAt * 1000 <= Date.now()) throw new ApiError(401, '登录已过期，请重新登录');
@@ -122,13 +122,13 @@ async function refreshAccessToken(): Promise<void> {
 
 async function rotateSession(expected: ReturnType<typeof useAuthStore.getState>): Promise<void> {
   if (!navigator.locks) throw new ApiError(503, '当前浏览器无法安全刷新会话，请使用 HTTPS 或本机地址');
-  syncAuthFromStorage();
+  syncAuthFromStorage(true);
   const auth = useAuthStore.getState();
   if (auth.sessionVersion !== expected.sessionVersion || auth.sessionId !== expected.sessionId) throw new axios.CanceledError('会话已切换');
   if (auth.refreshToken !== expected.refreshToken && auth.expiresAt * 1000 > Date.now() + 5000) return;
   if (!auth.refreshToken || auth.refreshExpiresAt * 1000 <= Date.now()) throw new ApiError(401, '登录已过期，请重新登录');
   const { data } = await request.post<LoginResp>(refreshUrl, { refresh_token: auth.refreshToken });
-  syncAuthFromStorage();
+  syncAuthFromStorage(true);
   if (useAuthStore.getState().sessionVersion !== auth.sessionVersion) throw new axios.CanceledError('会话已切换');
   if (!data.access_token || !data.refresh_token || data.session_id !== auth.sessionId) throw new ApiError(401, '登录会话已失效，请重新登录');
   useAuthStore.getState().refreshSession(data, auth.sessionVersion);
@@ -154,7 +154,7 @@ async function handleFailure(error: ApiError, config?: AuthRequestConfig): Promi
 }
 
 export async function logoutSession(allDevices = false): Promise<void> {
-  syncAuthFromStorage();
+  syncAuthFromStorage(true);
   const auth = useAuthStore.getState();
   if (auth.isLoggingOut) return;
   auth.beginLogout();
@@ -163,14 +163,14 @@ export async function logoutSession(allDevices = false): Promise<void> {
     // 等待已发出的轮换完成，再撤销同一会话，避免退出与刷新互相覆盖。
     if (refreshFlight?.version === version) await refreshFlight.promise;
     await withSessionLock(async () => {
-      syncAuthFromStorage();
+      syncAuthFromStorage(true);
       const current = useAuthStore.getState();
       if (current.sessionVersion !== version) return;
       try {
         if (current.token && current.expiresAt * 1000 <= Date.now() + 5000) await rotateSession(current);
         if (current.token) await request.post(logoutUrl, { all_devices: allDevices });
       } finally {
-        syncAuthFromStorage();
+        syncAuthFromStorage(true);
         clearSessionLocked({ sessionVersion: version, sessionId: auth.sessionId });
       }
     });
@@ -178,7 +178,7 @@ export async function logoutSession(allDevices = false): Promise<void> {
     if (error instanceof ApiError) reportApiError(error);
     throw error;
   } finally {
-    syncAuthFromStorage();
+    syncAuthFromStorage(true);
     await clearSession({ sessionVersion: version, sessionId: auth.sessionId });
   }
 }
@@ -220,7 +220,7 @@ export async function apiDelete<T = void>(url: string, data?: unknown): Promise<
 // 流式请求（fetch/SSE 不经 axios）复用同套会话语义：过期先刷新，返回鉴权与部门头。
 // 流中途 401 不重试，直接失败；调用方负责权限码预检。
 export async function prepareStreamHeaders(url: string): Promise<Record<string, string>> {
-  syncAuthFromStorage();
+  syncAuthFromStorage(true);
   let auth = useAuthStore.getState();
   if (!auth.token) throw new ApiError(401, '登录已过期，请重新登录');
   if (auth.isLoggingOut) throw new ApiError(401, '正在退出登录');

@@ -1,0 +1,43 @@
+- generic [ref=f7e4]:
+  - complementary [ref=f7e5]:
+    - generic [ref=f7e6]:
+      - generic [ref=f7e7]:
+        - generic [ref=f7e13]:
+          - strong [ref=f7e14]: go-zero-admin
+          - generic [ref=f7e15]: 管理控制台
+        - generic [ref=f7e16]: 工作空间
+        - menu [ref=f7e17]:
+          - menuitem "dashboard 工作台" [ref=f7e18] [cursor=pointer]:
+            - img "dashboard" [ref=f7e19]
+            - generic [ref=f7e22]: 工作台
+      - button "折叠侧栏" [ref=f7e23] [cursor=pointer]:
+        - img "left" [ref=f7e25]
+        - generic [ref=f7e28]: 收起侧栏
+      - separator "调整侧栏宽度" [ref=f7e29]
+  - generic [ref=f7e30]:
+    - banner [ref=f7e31]:
+      - generic [ref=f7e32]:
+        - button "收起导航" [expanded] [ref=f7e33] [cursor=pointer]:
+          - img "menu-fold" [ref=f7e35]
+        - navigation [ref=f7e39]:
+          - list [ref=f7e40]:
+            - listitem [ref=f7e41]:
+              - generic [ref=f7e42]:
+                - img "home" [ref=f7e43]
+                - text: 控制台
+            - listitem [aria-hidden] [ref=f7e46]: /
+            - listitem [ref=f7e47]: 知识库工作区
+      - generic [ref=f7e48]:
+        - generic [ref=f7e51]:
+          - img "apartment" [ref=f7e53]
+          - generic "默认部门" [ref=f7e56]:
+            - text: 默认部门
+            - combobox "切换部门" [disabled] [ref=f7e57]
+          - img "loading" [ref=f7e59]
+        - button "当前用户，账号菜单" [ref=f7e62] [cursor=pointer]:
+          - img "user" [ref=f7e64]
+          - generic [ref=f7e67]: 当前用户
+          - img "down" [ref=f7e68]
+        - button "退出登录" [ref=f7e71] [cursor=pointer]:
+          - img "logout" [ref=f7e73]
+    - main [ref=f7e77]

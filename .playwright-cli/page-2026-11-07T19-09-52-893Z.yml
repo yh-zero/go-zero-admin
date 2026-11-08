@@ -1,0 +1,40 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: GO-ZERO-ADMIN · 本地开发演示
+      - heading "把项目真正跑起来" [level=1] [ref=e6]
+      - generic [ref=e7]: 白名单命令 · 真实进程输出 · 执行目录清晰可见
+    - generic [ref=e8]: 等待下一步
+  - generic [ref=e9]:
+    - navigation "启动步骤" [ref=e10]:
+      - button "01 核对开发工具 前端目录 · go-zero-admin-react" [ref=e11] [cursor=pointer]:
+        - text: 01 核对开发工具
+        - generic [ref=e12]: 前端目录 · go-zero-admin-react
+      - button "02 编译后端二进制 后端目录 · go-zero-admin" [ref=e13] [cursor=pointer]:
+        - text: 02 编译后端二进制
+        - generic [ref=e14]: 后端目录 · go-zero-admin
+      - button "03 构建镜像并启动 后端目录 · go-zero-admin" [ref=e15] [cursor=pointer]:
+        - text: 03 构建镜像并启动
+        - generic [ref=e16]: 后端目录 · go-zero-admin
+      - button "04 检查服务就绪 后端目录 · go-zero-admin" [ref=e17] [cursor=pointer]:
+        - text: 04 检查服务就绪
+        - generic [ref=e18]: 后端目录 · go-zero-admin
+      - button "05 安装前端依赖 前端目录 · go-zero-admin-react" [ref=e19] [cursor=pointer]:
+        - text: 05 安装前端依赖
+        - generic [ref=e20]: 前端目录 · go-zero-admin-react
+      - button "06 查看仓库使用说明 仓库根目录" [ref=e21] [cursor=pointer]:
+        - text: 06 查看仓库使用说明
+        - generic [ref=e22]: 仓库根目录
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]: 核对开发工具
+          - generic [ref=e27]: 执行目录：前端目录 · go-zero-admin-react
+        - button "执行此步骤" [ref=e28] [cursor=pointer]
+      - generic [ref=e29]: Corepack 按 package.json 选择 pnpm；版本不一致会停止，不改锁文件。
+      - generic [ref=e30]: go version node --version corepack pnpm --version docker compose version
+      - generic [ref=e31]:
+        - generic [ref=e32]: 真实标准输出 / 错误输出
+        - generic [ref=e33]: 未执行
+      - generic [ref=e34]: 此步骤尚未执行。点击“执行此步骤”后显示真实输出。
+  - generic [ref=e37]: 命令仅在点击后执行。长时间下载、编译和启动会在成片中剪辑并标注。本页面不读取或展示密钥文件；输出经过凭据、邮箱和本机绝对路径过滤。验证码覆盖仅用于本地开发。

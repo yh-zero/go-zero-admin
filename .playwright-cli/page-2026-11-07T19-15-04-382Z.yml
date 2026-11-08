@@ -1,0 +1,150 @@
+- generic [ref=f1e4]:
+  - complementary [ref=f1e5]:
+    - generic [ref=f1e6]:
+      - generic [ref=f1e7]:
+        - generic [ref=f1e13]:
+          - strong [ref=f1e14]: go-zero-admin
+          - generic [ref=f1e15]: 管理控制台
+        - generic [ref=f1e16]: 工作空间
+        - menu [ref=f1e86]:
+          - menuitem "dashboard 工作台" [ref=f1e87] [cursor=pointer]:
+            - img "dashboard" [ref=f1e88]
+            - generic [ref=f1e91]: 工作台
+          - menuitem "系统管理" [ref=f1e92] [cursor=pointer]
+          - menuitem "APP管理" [expanded] [ref=f1e98] [cursor=pointer]
+          - menu [ref=f1e104]:
+            - menuitem "APP用户" [ref=f1e105] [cursor=pointer]
+            - menuitem "会员管理" [ref=f1e111] [cursor=pointer]
+            - menuitem "意见反馈" [ref=f1e117] [cursor=pointer]
+          - menuitem "租户管理" [ref=f1e123] [cursor=pointer]
+          - menuitem "AI 功能" [ref=f1e131] [cursor=pointer]
+      - button "折叠侧栏" [ref=f1e23] [cursor=pointer]:
+        - img "left" [ref=f1e25]
+        - generic [ref=f1e28]: 收起侧栏
+      - separator "调整侧栏宽度" [ref=f1e29]
+  - generic [ref=f1e30]:
+    - banner [ref=f1e31]:
+      - generic [ref=f1e32]:
+        - button "收起导航" [expanded] [ref=f1e33] [cursor=pointer]:
+          - img "menu-fold" [ref=f1e35]
+        - navigation [ref=f1e39]:
+          - list [ref=f1e40]:
+            - listitem [ref=f1e41]:
+              - generic [ref=f1e42]:
+                - img "home" [ref=f1e43]
+                - text: 控制台
+            - listitem [aria-hidden] [ref=f1e46]: /
+            - listitem [ref=f1e47]: APP用户
+      - generic [ref=f1e48]:
+        - generic [ref=f1e51]:
+          - img "apartment" [ref=f1e53]
+          - generic "默认部门" [ref=f1e56]:
+            - text: 默认部门
+            - combobox "切换部门" [ref=f1e57]
+          - img "down" [ref=f1e137]
+        - button "超级管理员，账号菜单" [ref=f1e140] [cursor=pointer]:
+          - img "user" [ref=f1e64]
+          - generic [ref=f1e67]: 超级管理员
+          - img "down" [ref=f1e68]
+        - button "退出登录" [ref=f1e71] [cursor=pointer]:
+          - img "logout" [ref=f1e73]
+    - main [ref=f1e77]:
+      - generic [ref=f1e141]:
+        - generic [ref=f1e142]:
+          - img "team" [ref=f1e144]
+          - generic [ref=f1e148]:
+            - heading "APP用户" [level=3] [ref=f1e149]
+            - text: 管理用户资料与账号状态，让每一次访问清晰可控
+        - generic [ref=f1e152]:
+          - generic [ref=f1e154]:
+            - generic "账号" [ref=f1e156]
+            - generic [ref=f1e160]:
+              - img "search" [ref=f1e162]
+              - textbox "账号" [ref=f1e165]:
+                - /placeholder: 搜索邮箱或手机号
+                - text: bili_demo_20261108@example.test
+              - button [ref=f1e655] [cursor=pointer]:
+                - img "close-circle" [ref=f1e656]
+          - generic [ref=f1e168]:
+            - generic "状态" [ref=f1e170]
+            - generic [ref=f1e174] [cursor=pointer]:
+              - generic [ref=f1e175]:
+                - generic: 全部状态
+                - combobox "状态" [ref=f1e176]
+              - img "down" [ref=f1e178]
+          - generic [ref=f1e186]:
+            - button "search 查询" [active] [ref=f1e188] [cursor=pointer]:
+              - img "search" [ref=f1e190]
+              - generic [ref=f1e193]: 查询
+            - button "undo 重置" [ref=f1e195] [cursor=pointer]:
+              - img "undo" [ref=f1e197]
+              - generic [ref=f1e200]: 重置
+            - button "刷新APP用户" [ref=f1e202] [cursor=pointer]:
+              - img "reload" [ref=f1e660]
+        - generic [ref=f1e207]:
+          - generic [ref=f1e209]:
+            - generic [ref=f1e211]:
+              - img "team" [ref=f1e213]
+              - text: 用户列表
+              - generic [ref=f1e663]: "1"
+            - generic [ref=f1e217]: 用户资料与访问管理
+          - generic [ref=f1e221]:
+            - table [ref=f1e225]:
+              - rowgroup [ref=f1e235]:
+                - row [ref=f1e236]:
+                  - columnheader "用户账号" [ref=f1e237]
+                  - columnheader "昵称" [ref=f1e238]
+                  - columnheader "内部备注" [ref=f1e239]
+                  - columnheader "账号验证" [ref=f1e240]
+                  - columnheader "状态" [ref=f1e241]
+                  - columnheader "最近登录" [ref=f1e242]
+                  - columnheader "注册时间" [ref=f1e243]
+                  - columnheader "操作" [ref=f1e244]
+              - rowgroup [ref=f1e245]:
+                - row [ref=f1e664]:
+                  - cell "user bili_demo_20261108@example.test 用户 ID · 6" [ref=f1e665]:
+                    - generic [ref=f1e666]:
+                      - img "user" [ref=f1e668]
+                      - generic [ref=f1e671]:
+                        - button "bili_demo_20261108@example.test" [ref=f1e672] [cursor=pointer]
+                        - generic [ref=f1e673]: 用户 ID · 6
+                  - cell "B站教程演示成员" [ref=f1e674]
+                  - cell "bili_demo_20261108：纯虚构录屏种子；未完成邮件注册" [ref=f1e675]
+                  - cell "未验证" [ref=f1e676]
+                  - cell "待审核" [ref=f1e678]
+                  - cell "—" [ref=f1e680]
+                  - cell "2026-11-08 02:47:23" [ref=f1e681]
+                  - cell [ref=f1e682]:
+                    - generic [ref=f1e683]:
+                      - button "eye 详情" [ref=f1e685] [cursor=pointer]:
+                        - img "eye" [ref=f1e687]
+                        - generic [ref=f1e690]: 详情
+                      - button "edit 编辑" [ref=f1e692] [cursor=pointer]:
+                        - img "edit" [ref=f1e694]
+                        - generic [ref=f1e697]: 编辑
+                      - button "audit 审核" [ref=f1e699] [cursor=pointer]:
+                        - img "audit" [ref=f1e701]
+                        - generic [ref=f1e704]: 审核
+                      - button "picture 头像" [ref=f1e706] [cursor=pointer]:
+                        - img "picture" [ref=f1e708]
+                        - generic [ref=f1e711]: 头像
+                      - button "laptop 登录设备" [ref=f1e713] [cursor=pointer]:
+                        - img "laptop" [ref=f1e715]
+                        - generic [ref=f1e718]: 登录设备
+                      - button "crown 会员" [ref=f1e720] [cursor=pointer]:
+                        - img "crown" [ref=f1e722]
+                        - generic [ref=f1e725]: 会员
+            - list [ref=f1e726]:
+              - listitem "上一页" [ref=f1e727]:
+                - button [disabled] [ref=f1e728]:
+                  - img "left" [ref=f1e729]
+              - listitem "1" [ref=f1e732] [cursor=pointer]
+              - listitem "下一页" [ref=f1e734]:
+                - button [disabled] [ref=f1e735]:
+                  - img "right" [ref=f1e736]
+              - listitem [ref=f1e739]:
+                - generic [ref=f1e740]:
+                  - generic "20 条/页" [ref=f1e741]:
+                    - text: 20 条/页
+                    - combobox "页码" [ref=f1e742]
+                  - img "down" [ref=f1e744]

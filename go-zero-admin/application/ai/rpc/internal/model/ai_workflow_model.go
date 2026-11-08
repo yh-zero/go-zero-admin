@@ -21,7 +21,10 @@ type (
 		FindOwned(ctx context.Context, id, ownerId int64) (*WorkflowRow, error)
 		ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*WorkflowRow, int64, error)
 		ListSearchOwned(ctx context.Context, ownerId, page, pageSize int64, query string) ([]*WorkflowRow, int64, error)
-		UpdateOwned(ctx context.Context, id, ownerId int64, patch WorkflowPatch) error
+		UpdateOwned(ctx context.Context, id, ownerId, expectedRevision int64, patch WorkflowPatch) (*WorkflowRow, error)
+		ListRevisionsOwned(ctx context.Context, id, ownerId, page, pageSize int64) ([]*WorkflowRevisionRow, int64, error)
+		FindRevisionOwned(ctx context.Context, id, ownerId, revision int64) (*WorkflowRevisionRow, error)
+		RestoreRevisionOwned(ctx context.Context, id, ownerId, revision, expectedRevision int64) (*WorkflowRow, error)
 		DeleteOwned(ctx context.Context, id, ownerId int64) error
 		CreateTaskOwned(ctx context.Context, id, ownerId int64, input string) (*TaskRow, error)
 		CreateTaskIdempotent(ctx context.Context, id, ownerId int64, input, requestId string) (*TaskRow, bool, error)
@@ -113,6 +116,7 @@ func (m *customAiWorkflowModel) CreateTaskIdempotent(ctx context.Context, id, ow
 
 type WorkflowRow struct {
 	Id              int64  `db:"id"`
+	RevisionSeq     int64  `db:"revision_seq"`
 	Name            string `db:"name"`
 	Definition      string `db:"definition"`
 	IntervalSeconds int64  `db:"interval_seconds"`
@@ -129,8 +133,8 @@ type WorkflowPatch struct {
 	IntervalSeconds, Enabled *int64
 }
 
-const workflowSelect = "SELECT id,name,CAST(definition AS CHAR) AS definition,interval_seconds,enabled,COALESCE(UNIX_TIMESTAMP(next_run_at),0) AS next_run_at,created_by,UNIX_TIMESTAMP(created_at) AS created_at,UNIX_TIMESTAMP(updated_at) AS updated_at,COALESCE(JSON_LENGTH(definition,'$.steps'),0) AS step_count FROM ai_workflow "
-const workflowSummarySelect = "SELECT id,name,'' AS definition,interval_seconds,enabled,COALESCE(UNIX_TIMESTAMP(next_run_at),0) AS next_run_at,created_by,UNIX_TIMESTAMP(created_at) AS created_at,UNIX_TIMESTAMP(updated_at) AS updated_at,COALESCE(JSON_LENGTH(definition,'$.steps'),0) AS step_count FROM ai_workflow "
+const workflowSelect = "SELECT id,revision_seq,name,CAST(definition AS CHAR) AS definition,interval_seconds,enabled,COALESCE(UNIX_TIMESTAMP(next_run_at),0) AS next_run_at,created_by,UNIX_TIMESTAMP(created_at) AS created_at,UNIX_TIMESTAMP(updated_at) AS updated_at,COALESCE(JSON_LENGTH(definition,'$.steps'),0) AS step_count FROM ai_workflow "
+const workflowSummarySelect = "SELECT id,revision_seq,name,'' AS definition,interval_seconds,enabled,COALESCE(UNIX_TIMESTAMP(next_run_at),0) AS next_run_at,created_by,UNIX_TIMESTAMP(created_at) AS created_at,UNIX_TIMESTAMP(updated_at) AS updated_at,COALESCE(JSON_LENGTH(definition,'$.steps'),0) AS step_count FROM ai_workflow "
 
 func (m *customAiWorkflowModel) FindOwned(ctx context.Context, id, ownerId int64) (*WorkflowRow, error) {
 	var row WorkflowRow
@@ -158,44 +162,6 @@ func (m *customAiWorkflowModel) ListSearchOwned(ctx context.Context, ownerId, pa
 	rows := make([]*WorkflowRow, 0)
 	err := m.QueryRowsNoCacheCtx(ctx, &rows, workflowSummarySelect+"WHERE "+where+" ORDER BY id DESC LIMIT ? OFFSET ?", append(args, pageSize, (page-1)*pageSize)...)
 	return rows, count.Total, err
-}
-
-func (m *customAiWorkflowModel) UpdateOwned(ctx context.Context, id, ownerId int64, patch WorkflowPatch) error {
-	sets := make([]string, 0, 4)
-	args := make([]any, 0, 6)
-	if patch.Name != nil {
-		sets = append(sets, "name=?")
-		args = append(args, *patch.Name)
-	}
-	if patch.Definition != nil {
-		sets = append(sets, "definition=?")
-		args = append(args, *patch.Definition)
-	}
-	if patch.IntervalSeconds != nil {
-		sets = append(sets, "interval_seconds=?", "next_run_at=NULL")
-		args = append(args, *patch.IntervalSeconds)
-	}
-	if patch.Enabled != nil {
-		sets = append(sets, "enabled=?")
-		args = append(args, *patch.Enabled)
-	}
-	err := m.conn.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
-		var owner struct {
-			Id int64 `db:"id"`
-		}
-		if err := session.QueryRowCtx(ctx, &owner, "SELECT id FROM ai_workflow WHERE id=? AND created_by=? AND deleted_at IS NULL FOR UPDATE", id, ownerId); err != nil {
-			return err
-		}
-		if len(sets) == 0 {
-			return nil
-		}
-		_, err := session.ExecCtx(ctx, "UPDATE ai_workflow SET "+strings.Join(sets, ",")+" WHERE id=? AND created_by=?", append(args, id, ownerId)...)
-		return err
-	})
-	if err != nil {
-		return err
-	}
-	return m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminAiWorkflowIdPrefix, id))
 }
 
 func (m *customAiWorkflowModel) DeleteOwned(ctx context.Context, id, ownerId int64) error {

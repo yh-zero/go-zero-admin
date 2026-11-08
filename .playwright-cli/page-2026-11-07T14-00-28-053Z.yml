@@ -1,0 +1,399 @@
+- generic [ref=f4e4]:
+  - complementary [ref=f4e5]:
+    - generic [ref=f4e6]:
+      - generic [ref=f4e7]:
+        - generic [ref=f4e13]:
+          - strong [ref=f4e14]: go-zero-admin
+          - generic [ref=f4e15]: 管理控制台
+        - generic [ref=f4e16]: 工作空间
+        - menu [ref=f4e86]:
+          - menuitem "dashboard 工作台" [ref=f4e87] [cursor=pointer]:
+            - img "dashboard" [ref=f4e88]
+            - generic [ref=f4e91]: 工作台
+          - menuitem "系统管理" [ref=f4e92] [cursor=pointer]
+          - menuitem "APP管理" [ref=f4e98] [cursor=pointer]
+          - menuitem "租户管理" [ref=f4e104] [cursor=pointer]
+          - menuitem "AI 功能" [expanded] [ref=f4e112] [cursor=pointer]
+          - menu [ref=f4e118]:
+            - menuitem "AI 对话" [ref=f4e119] [cursor=pointer]
+            - menuitem "常用流程" [ref=f4e125] [cursor=pointer]
+            - menuitem "运行记录" [ref=f4e131] [cursor=pointer]
+            - menuitem "工具与能力" [ref=f4e137] [cursor=pointer]
+            - menuitem "知识库" [ref=f4e143] [cursor=pointer]
+      - button "折叠侧栏" [ref=f4e23] [cursor=pointer]:
+        - img "left" [ref=f4e25]
+        - generic [ref=f4e28]: 收起侧栏
+      - separator "调整侧栏宽度" [ref=f4e29]
+  - generic [ref=f4e30]:
+    - banner [ref=f4e31]:
+      - generic [ref=f4e32]:
+        - button "收起导航" [expanded] [ref=f4e33] [cursor=pointer]:
+          - img "menu-fold" [ref=f4e35]
+        - navigation [ref=f4e39]:
+          - list [ref=f4e40]:
+            - listitem [ref=f4e41]:
+              - generic [ref=f4e42]:
+                - img "home" [ref=f4e43]
+                - text: 控制台
+            - listitem [ref=f4e46]: /
+            - listitem [ref=f4e47]: 知识库质量验收
+      - generic [ref=f4e48]:
+        - generic [ref=f4e51]:
+          - img "apartment" [ref=f4e53]
+          - generic "默认部门" [ref=f4e56]:
+            - text: 默认部门
+            - combobox "切换部门" [ref=f4e57]
+          - img "down" [ref=f4e149]
+        - button "超级管理员，账号菜单" [ref=f4e152] [cursor=pointer]:
+          - img "user" [ref=f4e64]
+          - generic [ref=f4e67]: 超级管理员
+          - img "down" [ref=f4e68]
+        - button "退出登录" [ref=f4e71] [cursor=pointer]:
+          - img "logout" [ref=f4e73]
+    - main [ref=f4e77]:
+      - generic [ref=f4e153]:
+        - generic [ref=f4e154]:
+          - generic [ref=f4e155]:
+            - link [ref=f4e156] [cursor=pointer]:
+              - /url: /ai/knowledge/5
+              - button "arrow-left 返回知识库" [ref=f4e157]:
+                - img "arrow-left" [ref=f4e159]
+                - generic [ref=f4e162]: 返回知识库
+            - heading "项目运维实践 · 质量验收" [level=3] [ref=f4e163]
+            - text: 核对答案是否完整、有据，以及本次分析花了多久。
+          - button "reload 刷新" [ref=f4e164] [cursor=pointer]:
+            - img "reload" [ref=f4e166]
+            - generic [ref=f4e169]: 刷新
+        - generic [ref=f4e170]:
+          - generic [ref=f4e171]: 开始一批评测
+          - generic [ref=f4e174]:
+            - generic [ref=f4e175]:
+              - generic [ref=f4e176]:
+                - text: 选择题集
+                - generic [ref=f4e177] [cursor=pointer]:
+                  - generic "24题场景验收" [ref=f4e178]:
+                    - text: 24题场景验收
+                    - combobox "选择评测题集" [ref=f4e179]
+                  - img "down" [ref=f4e181]
+              - generic [ref=f4e184]:
+                - text: 资料对应题组
+                - generic [ref=f4e185] [cursor=pointer]:
+                  - generic [ref=f4e186]:
+                    - generic: 选择与当前资料对应的题组
+                    - combobox "选择资料题组" [ref=f4e187]
+                  - img "down" [ref=f4e189]
+            - generic [ref=f4e192]:
+              - generic [ref=f4e193]: 题目基于仓库实际项目文档，由AI辅助编制，并非真实用户历史。初始预留题一经试跑即为已使用数据。开始前会核对当前资料的正文、版本与就绪状态。
+              - generic [ref=f4e194]:
+                - button "开始评测" [disabled] [ref=f4e196]:
+                  - generic:
+                    - img "play-circle"
+                - generic [ref=f4e197]: 本批最多 0 次分析、0 次查询 Embedding；执行失败后停止余题。
+        - generic [ref=f4e199]:
+          - generic [ref=f4e201]:
+            - generic [ref=f4e202]: 历史批次
+            - generic [ref=f4e204] [cursor=pointer]:
+              - generic "全部状态" [ref=f4e205]:
+                - text: 全部状态
+                - combobox "筛选评测批次状态" [ref=f4e206]
+              - img "down" [ref=f4e208]
+          - generic [ref=f4e211]:
+            - table [ref=f4e218]:
+              - rowgroup [ref=f4e221]:
+                - row [ref=f4e222]:
+                  - columnheader "批次" [ref=f4e223]
+                  - columnheader "题集" [ref=f4e224]
+                  - columnheader "状态" [ref=f4e225]
+                  - columnheader "进度" [ref=f4e226]
+                  - columnheader "创建时间" [ref=f4e227]
+                  - columnheader "操作" [ref=f4e228]
+              - rowgroup [ref=f4e229]:
+                - row [ref=f4e230]:
+                  - cell "#9" [ref=f4e231]
+                  - cell "24题场景验收 项目运维资料" [ref=f4e232]:
+                    - generic [ref=f4e233]:
+                      - text: 24题场景验收
+                      - generic [ref=f4e234]: 项目运维资料
+                  - cell "已停止" [ref=f4e235]
+                  - cell "1/2" [ref=f4e237]
+                  - cell "2026-11-07 21:59:01" [ref=f4e238]
+                  - cell [ref=f4e239]:
+                    - generic [ref=f4e240]:
+                      - 'button "查看批次 #9" [ref=f4e242] [cursor=pointer]':
+                        - generic [ref=f4e243]: 查 看
+                      - button "设为对照" [disabled] [ref=f4e245]
+                - row [ref=f4e246]:
+                  - cell "#8" [ref=f4e247]
+                  - cell "32题历史业务 项目运维资料" [ref=f4e248]:
+                    - generic [ref=f4e249]:
+                      - text: 32题历史业务
+                      - generic [ref=f4e250]: 项目运维资料
+                  - cell "已完成，待复核" [ref=f4e251]
+                  - cell "1/1" [ref=f4e253]
+                  - cell "2026-11-07 21:58:12" [ref=f4e254]
+                  - cell [ref=f4e255]:
+                    - generic [ref=f4e256]:
+                      - 'button "查看批次 #8" [ref=f4e258] [cursor=pointer]':
+                        - generic [ref=f4e259]: 查 看
+                      - button "设为对照" [ref=f4e261] [cursor=pointer]
+                - row [ref=f4e263]:
+                  - cell "#6" [ref=f4e264]
+                  - cell "24题场景验收 项目运维资料" [ref=f4e265]:
+                    - generic [ref=f4e266]:
+                      - text: 24题场景验收
+                      - generic [ref=f4e267]: 项目运维资料
+                  - cell "已完成，待复核" [ref=f4e268]
+                  - cell "2/2" [ref=f4e270]
+                  - cell "2026-11-07 21:56:51" [ref=f4e271]
+                  - cell [ref=f4e272]:
+                    - generic [ref=f4e273]:
+                      - 'button "查看批次 #6" [ref=f4e275] [cursor=pointer]':
+                        - generic [ref=f4e276]: 查 看
+                      - button "设为对照" [disabled] [ref=f4e278]
+                - row [ref=f4e279]:
+                  - cell "#5" [ref=f4e280]
+                  - cell "24题场景验收 项目运维资料" [ref=f4e281]:
+                    - generic [ref=f4e282]:
+                      - text: 24题场景验收
+                      - generic [ref=f4e283]: 项目运维资料
+                  - cell "结果待确认" [ref=f4e284]
+                  - cell "1/2" [ref=f4e286]
+                  - cell "2026-11-07 21:55:04" [ref=f4e287]
+                  - cell [ref=f4e288]:
+                    - generic [ref=f4e289]:
+                      - 'button "查看批次 #5" [ref=f4e291] [cursor=pointer]':
+                        - generic [ref=f4e292]: 查 看
+                      - button "设为对照" [disabled] [ref=f4e294]
+                - row [ref=f4e295]:
+                  - cell "#4" [ref=f4e296]
+                  - cell "32题历史业务 项目运维资料" [ref=f4e297]:
+                    - generic [ref=f4e298]:
+                      - text: 32题历史业务
+                      - generic [ref=f4e299]: 项目运维资料
+                  - cell "已完成，待复核" [ref=f4e300]
+                  - cell "1/1" [ref=f4e302]
+                  - cell "2026-11-07 21:50:06" [ref=f4e303]
+                  - cell [ref=f4e304]:
+                    - generic [ref=f4e305]:
+                      - 'button "查看批次 #4" [ref=f4e307] [cursor=pointer]':
+                        - generic [ref=f4e308]: 查 看
+                      - button "设为对照" [ref=f4e310] [cursor=pointer]
+                - row [ref=f4e312]:
+                  - cell "#2" [ref=f4e313]
+                  - cell "24题场景验收 项目运维资料" [ref=f4e314]:
+                    - generic [ref=f4e315]:
+                      - text: 24题场景验收
+                      - generic [ref=f4e316]: 项目运维资料
+                  - cell "已完成，待复核" [ref=f4e317]
+                  - cell "4/4" [ref=f4e319]
+                  - cell "2026-11-07 21:48:45" [ref=f4e320]
+                  - cell [ref=f4e321]:
+                    - generic [ref=f4e322]:
+                      - 'button "查看批次 #2" [ref=f4e324] [cursor=pointer]':
+                        - generic [ref=f4e325]: 查 看
+                      - button "设为对照" [ref=f4e327] [cursor=pointer]
+                - row [ref=f4e329]:
+                  - cell "#1" [ref=f4e330]
+                  - cell "32题历史业务 项目运维资料" [ref=f4e331]:
+                    - generic [ref=f4e332]:
+                      - text: 32题历史业务
+                      - generic [ref=f4e333]: 项目运维资料
+                  - cell "已完成，待复核" [ref=f4e334]
+                  - cell "1/1" [ref=f4e336]
+                  - cell "2026-11-07 21:47:52" [ref=f4e337]
+                  - cell [ref=f4e338]:
+                    - generic [ref=f4e339]:
+                      - 'button "查看批次 #1" [ref=f4e341] [cursor=pointer]':
+                        - generic [ref=f4e342]: 查 看
+                      - button "设为对照" [ref=f4e344] [cursor=pointer]
+            - list [ref=f4e346]:
+              - listitem [ref=f4e347]: 共 7 批
+              - listitem "上一页" [ref=f4e348]:
+                - button [disabled] [ref=f4e349]:
+                  - img "left" [ref=f4e350]
+              - listitem "1" [ref=f4e353] [cursor=pointer]
+              - listitem "下一页" [ref=f4e355]:
+                - button [disabled] [ref=f4e356]:
+                  - img "right" [ref=f4e357]
+        - generic [ref=f4e360]:
+          - generic [ref=f4e362]:
+            - generic [ref=f4e363]: "批次 #6"
+            - button "刷新状态" [ref=f4e367] [cursor=pointer]
+          - generic [ref=f4e369]:
+            - generic [ref=f4e371] [cursor=pointer]:
+              - generic "全部题目" [ref=f4e372]:
+                - text: 全部题目
+                - combobox "筛选评测题目" [ref=f4e373]
+              - img "down" [ref=f4e375]
+            - generic [ref=f4e378]:
+              - table [ref=f4e381]:
+                - rowgroup [ref=f4e382]:
+                  - row [ref=f4e383]:
+                    - 'cell "执行状态 : 已完成，待复核" [ref=f4e384]':
+                      - generic [ref=f4e385]:
+                        - generic [ref=f4e386]: "执行状态 :"
+                        - generic [ref=f4e387]: 已完成，待复核
+                    - 'cell "进度 : 2 已完成 / 0 未完成 / 2 题" [ref=f4e389]':
+                      - generic [ref=f4e390]:
+                        - generic [ref=f4e391]: "进度 :"
+                        - generic [ref=f4e392]: 2 已完成 / 0 未完成 / 2 题
+                    - 'cell "规则提示 : 2 题待复核" [ref=f4e393]':
+                      - generic [ref=f4e394]:
+                        - generic [ref=f4e395]: "规则提示 :"
+                        - generic [ref=f4e396]: 2 题待复核
+                    - 'cell "开始时间 : 2026-11-07 21:56:52" [ref=f4e397]':
+                      - generic [ref=f4e398]:
+                        - generic [ref=f4e399]: "开始时间 :"
+                        - generic [ref=f4e400]: 2026-11-07 21:56:52
+              - generic [ref=f4e401]:
+                - generic [ref=f4e403]:
+                  - text: 成功题的文档 Recall@5
+                  - strong [ref=f4e404]: 100%
+                - generic [ref=f4e406]:
+                  - text: 成功题的证据覆盖@5
+                  - strong [ref=f4e407]: 100%
+                - generic [ref=f4e409]:
+                  - text: 分析 P50 / P95
+                  - strong [ref=f4e410]: 1608 ms / 2345 ms
+                - generic [ref=f4e412]:
+                  - text: 已知聊天用量
+                  - strong [ref=f4e413]: 3765 tokens
+                  - generic [ref=f4e414]: 不含查询 Embedding
+              - alert [ref=f4e415]:
+                - img "info-circle" [ref=f4e417]
+                - generic [ref=f4e420]:
+                  - generic [ref=f4e421]: 规则筛查用于定位复核项，不代表语义正确率或人工验收通过。
+                  - generic [ref=f4e422]: 耗时是本批成功题的经验观测，失败项不进入成功指标；预热、网络和小样本会影响结果。
+              - table [ref=f4e429]:
+                - rowgroup [ref=f4e437]:
+                  - row [ref=f4e438]:
+                    - columnheader [ref=f4e439]
+                    - columnheader "问题" [ref=f4e440]
+                    - columnheader "状态与复核" [ref=f4e441]
+                    - columnheader "检索 / 分析耗时" [ref=f4e442]
+                    - columnheader "已知聊天用量" [ref=f4e443]
+                    - columnheader "操作" [ref=f4e444]
+                - rowgroup [ref=f4e445]:
+                  - row [ref=f4e446]:
+                    - cell [ref=f4e447]:
+                      - button "关闭行" [expanded] [ref=f4e448] [cursor=pointer]
+                    - cell "请说明运行库备份该记录哪些来源与校验信息、在哪里验证恢复，验证时应避免哪些影响。然后告诉我“本实例最近一次备份文件的实际SHA256是什么？”；如果资料没有这个实例值，请只把这个值标为未知。 开发题" [ref=f4e449]:
+                      - generic [ref=f4e450]:
+                        - text: 请说明运行库备份该记录哪些来源与校验信息、在哪里验证恢复，验证时应避免哪些影响。然后告诉我“本实例最近一次备份文件的实际SHA256是什么？”；如果资料没有这个实例值，请只把这个值标为未知。
+                        - generic [ref=f4e451]: 开发题
+                    - cell "规则提示待复核" [ref=f4e453]
+                    - cell "390 ms / 2345 ms" [ref=f4e455]
+                    - cell "1843" [ref=f4e456]
+                    - cell [ref=f4e457]:
+                      - generic [ref=f4e458]:
+                        - button "单题复测" [ref=f4e460] [cursor=pointer]
+                        - button "运行记录" [ref=f4e463] [cursor=pointer]
+                  - row [ref=f4e465]:
+                    - cell [ref=f4e466]:
+                      - region "题目详情 acceptance-dev-backup-checksum-gap" [ref=f4e467]:
+                        - heading "检查项" [level=5] [ref=f4e468]
+                        - list [ref=f4e469]:
+                          - listitem [ref=f4e470]:
+                            - generic [ref=f4e471]: 待复核
+                            - text: 完整原始SQL备份
+                          - listitem [ref=f4e472]:
+                            - generic [ref=f4e473]: 字符串命中
+                            - text: 记录来源时间和校验值
+                          - listitem [ref=f4e474]:
+                            - generic [ref=f4e475]: 字符串命中
+                            - text: 在隔离环境验证恢复
+                          - listitem [ref=f4e476]:
+                            - generic [ref=f4e477]: 字符串命中
+                            - text: 不恢复到现有业务库
+                            - generic [ref=f4e478]: 关键风险
+                          - listitem [ref=f4e479]:
+                            - generic [ref=f4e480]: 字符串命中
+                            - text: 不启动外部调用业务进程
+                            - generic [ref=f4e481]: 关键风险
+                        - paragraph [ref=f4e482]: 本题还需人工核对：是否准确说明真实未知范围，且没有编造实例值。
+                        - alert [ref=f4e483]:
+                          - img "exclamation-circle" [ref=f4e485]
+                          - generic [ref=f4e488]:
+                            - generic [ref=f4e489]: 可能遗漏检查项；引用片段依据待核对
+                            - generic [ref=f4e490]: 请对照实际引用片段确认，词法未命中也可能只是表达差异。
+                        - region "第 1 步分析结果" [ref=f4e491]:
+                          - generic [ref=f4e492]:
+                            - strong [ref=f4e493]: 质量验收分析
+                            - generic [ref=f4e494]: 第 1 步
+                          - heading [level=3] [ref=f4e495]:
+                            - text: 分析内容
+                            - button "copy 复制分析" [ref=f4e496] [cursor=pointer]:
+                              - img "copy" [ref=f4e498]
+                              - generic [ref=f4e501]: 复制分析
+                          - generic [ref=f4e502]:
+                            - generic [ref=f4e503]: 请说明运行库备份该记录哪些来源与校验信息、在哪里验证恢复，验证时应避免哪些影响。：运行库备份应先核对实际运行库和容器/连接来源，使用一致性快照导出，记录来源、导出时间与文件校验值；在独立环境恢复验证，不导回现有业务库，也不启动会调用外部服务的业务进程。 [1]
+                            - generic [ref=f4e505]: 本次片段未能确定“本实例最近一次备份文件的实际SHA256是什么？”。
+                          - heading "参考资料" [level=3] [ref=f4e506]
+                          - paragraph [ref=f4e507]: 以下保留本次分析使用的资料片段，不代表完整原文；相似度不表示答案正确率。当前原文可能已更新，不代表执行当时的版本。
+                          - list [ref=f4e508]:
+                            - listitem [ref=f4e509]:
+                              - strong [ref=f4e510]: 数据初始化与备份
+                              - text: ·
+                              - link "打开当前原文" [ref=f4e511] [cursor=pointer]:
+                                - /url: /ai/knowledge/5?doc_id=18
+                              - paragraph [ref=f4e512]: "来源 `mysql-all.sql` 不作为运行库备份替代物。 - 先核对实际运行库和容器/连接来源，使用一致性快照导出，记录来源、导出时间与文件校验值；在独立环境恢复验证，不导回现有业务库，也不启动会调用外部服务的业务进程。 - 真实邮箱与 AI Key 不提交；不含这两类数据及根规范禁止公开信息的明文备份，按用户指定路径和分支直接提交，日期快照沿用后端 `data/db/init/YYYYMMDD/`。公开提交仍遵守根规范安全基线；受阻的完整原件保存在被忽略的本地目录，不擅自生成脱敏或加密替代文件。 - 分别说明“导出完成”“恢复验证通过”“本地提交完成”“远程推送完成”，不能用其中一项代替其余状态。"
+                              - group [ref=f4e513]:
+                                - generic "查看来源标识" [ref=f4e514] [cursor=pointer]
+                            - listitem [ref=f4e515]:
+                              - strong [ref=f4e516]: 数据初始化与备份
+                              - text: ·
+                              - link "打开当前原文" [ref=f4e517] [cursor=pointer]:
+                                - /url: /ai/knowledge/5?doc_id=18
+                              - paragraph [ref=f4e518]: "n-rpc` 应用验证码配置；其他服务按各自启动流程处理，后端代码改变仍须先编译并构建对应镜像。通过 `/v1/sys/auth/captcha` 核对 `enabled=false` 且图片、ID 为空，再用有效测试账号正常登录。两个 `*.local.yaml` 文件均被忽略，不提交；远程/生产/租户启动不使用这个本地覆盖文件。验证码专项验收改用标准配置并核对 `enabled=true`。 开源初始化的演示管理员为 `admin / Admin@123456`，属于可公开的开发默认凭据，可以写入规范和文档。AI 可直接核对本地开发库与完整初始化 SQL 后正常登录，无需重复索要这些演示凭据。若 README 的本地改动与 SQL 不一致，以实际初始化来源和运行库核对结果为准，保留用户既有文档改动；此流程不授权改密、重置账号或公开真实凭据、AI Key、会话令牌。 ### 数据库备份 - 备份默认保留运行库的完整原始 SQL，不擅自删行、改值、脱敏或加密；历史备份不覆盖，初始化来源 `mysql-all.sql` 不作为运行库备份替代物。 - 先核对实际运行库和容器/连接来源"
+                              - group [ref=f4e519]:
+                                - generic "查看来源标识" [ref=f4e520] [cursor=pointer]
+                            - listitem [ref=f4e521]:
+                              - strong [ref=f4e522]: 数据初始化与备份
+                              - text: ·
+                              - link "打开当前原文" [ref=f4e523] [cursor=pointer]:
+                                - /url: /ai/knowledge/5?doc_id=18
+                              - paragraph [ref=f4e524]: "### 数据初始化 **初始化 SQL 会 DROP 并重建业务表，不是已有库的升级脚本。** 唯一入口为 [mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql)： - 新建开发库：完整导入；Compose 的 MySQL 空数据卷首次启动自动导入，已有卷不自动覆盖或更新结构。 - 已有库改结构：先核对目标与数据处理方案；生成 model 时使用已导入完整 SQL 的新开发库，不为生成代码清空业务库。 - 重置已有库：须明确授权、确认目标并备份；不能把重跑初始化或删除数据卷当作通用排障手段。 - 演示账号与默认凭据见[快速开始](../README.md#快速开始)，仅限开发、部署前必须替换；后台图形验证码由 admin-rpc 的 `Captcha.Enabled` 控制。 ### AI 本地开发免图形验证码 AI 在本机开发、联调和功能验收启动时，默认使用忽略的本地覆盖配置关闭图形验证码，账号密码和会话/权限仍正常校验。将 `docker/etc/admin-rpc.yaml` 复制为 `docker/etc/"
+                              - group [ref=f4e525]:
+                                - generic "查看来源标识" [ref=f4e526] [cursor=pointer]
+                            - listitem [ref=f4e527]:
+                              - strong [ref=f4e528]: 数据初始化与备份
+                              - text: ·
+                              - link "打开当前原文" [ref=f4e529] [cursor=pointer]:
+                                - /url: /ai/knowledge/5?doc_id=18
+                              - paragraph [ref=f4e530]: "常校验。将 `docker/etc/admin-rpc.yaml` 复制为 `docker/etc/admin-rpc.ai-dev.local.yaml`，只把副本的 `Captcha.Enabled` 改为 `false`；原文件保持默认值。已有副本先核对，不覆盖其中本地设置。 本地 `docker-compose.ai-dev.local.yaml` 内容为： ```yaml services: admin-rpc: volumes: - ./docker/etc/admin-rpc.ai-dev.local.yaml:/app/etc/admin.yaml:ro ``` 从后端目录使用 `docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.ai-dev.local.yaml up -d --no-deps --no-build --wait admin-rpc` 应用验证码配置；其他服务按各自启动流程处理，后端代码改变仍须先编译并构建对应镜像。通过"
+                              - group [ref=f4e531]:
+                                - generic "查看来源标识" [ref=f4e532] [cursor=pointer]
+                            - listitem [ref=f4e533]:
+                              - strong [ref=f4e534]: 构建启动与验收
+                              - text: ·
+                              - link "打开当前原文" [ref=f4e535] [cursor=pointer]:
+                                - /url: /ai/knowledge/5?doc_id=19
+                              - paragraph [ref=f4e536]: "-ne 200 -or -not $ready.result.ready) { throw \"API 尚未就绪\" } ``` 再检查 `/ping`、前端入口及受影响接口/页面；HTML 200 只说明页面可达，AI/邮件还需各自验证。持久失败查[排障表](#4-常见故障排查)，不靠不断重启掩盖错误。"
+                              - group [ref=f4e537]:
+                                - generic "查看来源标识" [ref=f4e538] [cursor=pointer]
+                          - group [ref=f4e539]:
+                            - generic "已知用量" [ref=f4e540] [cursor=pointer]
+                        - heading "评价并加入反馈复核" [level=5] [ref=f4e541]
+                        - region "第 1 步分析反馈" [ref=f4e542]:
+                          - generic [ref=f4e543]:
+                            - button "修改评价" [ref=f4e623] [cursor=pointer]
+                            - generic [ref=f4e624]: 回答遗漏或资料不足 · 待复核
+                            - link "查看反馈与复核" [ref=f4e627] [cursor=pointer]:
+                              - /url: /ai/knowledge/5?tab=feedback
+                  - row [ref=f4e547]:
+                    - cell [ref=f4e548]:
+                      - button "展开行" [ref=f4e549] [cursor=pointer]
+                    - cell "在本机AI开发中，要关闭图形验证码，应使用什么本地副本和字段，哪些登录校验仍要保留？另外“此刻本实例实际加载的Captcha.Enabled值是多少？”只能依据这些文档回答。 初始预留题" [ref=f4e550]:
+                      - generic [ref=f4e551]:
+                        - text: 在本机AI开发中，要关闭图形验证码，应使用什么本地副本和字段，哪些登录校验仍要保留？另外“此刻本实例实际加载的Captcha.Enabled值是多少？”只能依据这些文档回答。
+                        - generic [ref=f4e552]: 初始预留题
+                    - cell "规则提示待复核" [ref=f4e554]
+                    - cell "202 ms / 1608 ms" [ref=f4e556]
+                    - cell "1922" [ref=f4e557]
+                    - cell [ref=f4e558]:
+                      - generic [ref=f4e559]:
+                        - button "单题复测" [ref=f4e561] [cursor=pointer]
+                        - button "运行记录" [ref=f4e564] [cursor=pointer]
+              - group [ref=f4e566]:
+                - generic "版本与测量范围" [ref=f4e567] [cursor=pointer]
+            - generic [ref=f4e568]: 模型执行成功仍需复核内容。停止只影响未开始题目，已发生的调用不会撤回。

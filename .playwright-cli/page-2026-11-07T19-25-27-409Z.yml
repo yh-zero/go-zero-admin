@@ -1,0 +1,33 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]: GO-ZERO-ADMIN · 首次启动说明
+    - generic [ref=e5]: 命令说明卡 · 未执行克隆或覆盖配置
+  - generic [ref=e33]:
+    - heading "本次采用本地开发验证码覆盖" [level=1] [ref=e34]
+    - paragraph [ref=e35]: 只关闭图形验证码，账号密码、会话和服务端权限校验仍然保留。
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e38]: 执行目录：后端目录 · go-zero-admin
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - generic [ref=e41]: 配置副本中的字段
+            - generic [ref=e42]: docker/etc/admin-rpc.ai-dev.local.yaml
+            - generic [ref=e43]: "Captcha: Enabled: false"
+          - generic [ref=e44]:
+            - generic [ref=e45]: 本地 Compose 覆盖文件
+            - generic [ref=e46]: docker-compose.ai-dev.local.yaml
+            - generic [ref=e47]: "services: admin-rpc: volumes: - ./docker/etc/admin-rpc.ai-dev.local.yaml:/app/etc/admin.yaml:ro"
+        - generic [ref=e48]: 副本源于 docker/etc/admin-rpc.yaml，只修改上面的字段；不要用这个片段覆盖完整配置。
+        - generic [ref=e49]: docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.ai-dev.local.yaml up -d --build --wait
+      - complementary [ref=e50]:
+        - paragraph [ref=e51]:
+          - strong [ref=e52]: 仅本地开发
+          - text: 两个 local.yaml 文件均被 Git 忽略。
+        - paragraph [ref=e53]: 默认配置、生产环境不照搬本地覆盖。
+        - paragraph [ref=e54]: 先运行后端构建脚本，再执行这里的启动命令。
+  - generic [ref=e27]:
+    - generic [ref=e28]: 录制版本：2026-11-08 本地工作区，基于 yh-dev / fc226fb，含未提交功能；远程内容以发布时仓库为准。
+    - navigation "说明卡" [ref=e29]:
+      - button "1 获取代码" [ref=e30] [cursor=pointer]
+      - button "2 本地配置" [ref=e31] [cursor=pointer]
+      - button "3 验证码" [active] [ref=e32] [cursor=pointer]

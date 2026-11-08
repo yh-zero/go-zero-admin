@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "description": "跨端共享合成夹具；不是用户历史或真人签署。",
+  "documents": [
+    {"key":"guide","kb":"project","source":"inline:guide","title":"项目说明","sha256":"a15a5528a361db4f00303703c274b5fc20cc625ecf977d7185109ebef5d697af","source_doc_id":10,"source_doc_version":2,"content":"预算五万元。保存30天。"}
+  ],
+  "cases": [
+    {"id":"custom-facts","split":"development","category":"feedback_regression","kb":"project","query":"预算和保存期是什么？","rationale":"核对合成资料中的两个明示事实。","expected_documents":["guide"],"evidence":[{"document":"guide","groups":[["预算五万元"],["保存30天"]]}],"answer":{"kind":"answerable","required_groups":[["五万元"],["30天"]],"forbidden_phrases":[],"absence_policy":"forbidden"},"checks":[{"label":"预算","kind":"fact","required_group":0},{"label":"保存期","kind":"condition","required_group":1}],"expected_answer_example":"预算五万元，保存30天。"}
+  ],
+  "metadata": {"feedback_regressions":[],"human_identity_verified":false}
+}

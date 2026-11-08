@@ -14,9 +14,11 @@ export const pages = {
   ai_workflow: lazy(() => import('../pages/ai/AIWorkflows')),
   ai_workflow_editor: lazy(() => import('../pages/ai/WorkflowEditorPage')),
   ai_task: lazy(() => import('../pages/ai/AITasks')),
+  ai_usage: lazy(() => import('../pages/ai/UsagePage')),
   ai_tool: lazy(() => import('../pages/ai/AITools')),
   ai_kb: lazy(() => import('../pages/ai/AIKnowledge')),
   ai_knowledge_workspace: lazy(() => import('../pages/ai/KnowledgeWorkspacePage')),
+  ai_knowledge_quality: lazy(() => import('../pages/ai/KnowledgeQualityPage')),
 };
 export const pageLinks = [
   { name: 'dashboard', path: '/dashboard', title: '工作台', icon: 'dashboard' },
@@ -33,6 +35,7 @@ export const pageLinks = [
   { name: 'ai_chat', path: '/ai/chat', title: 'AI 对话', icon: 'robot' },
   { name: 'ai_workflow', path: '/ai/workflows', title: '常用流程', icon: 'apartment' },
   { name: 'ai_task', path: '/ai/tasks', title: '运行记录', icon: 'audit' },
+  { name: 'ai_usage', path: '/ai/usage', title: '用量与额度', icon: 'audit' },
   { name: 'ai_tool', path: '/ai/tools', title: '工具与能力', icon: 'api' },
   { name: 'ai_kb', path: '/ai/knowledge', title: '知识库', icon: 'database' },
   { name: 'app_user', path: '/app/users', title: 'APP用户', icon: 'appuser' },

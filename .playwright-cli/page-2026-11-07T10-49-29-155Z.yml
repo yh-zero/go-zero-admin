@@ -1,0 +1,53 @@
+- generic [ref=f1e4]:
+  - complementary [ref=f1e5]:
+    - generic [ref=f1e6]:
+      - generic [ref=f1e7]:
+        - generic [ref=f1e13]:
+          - strong [ref=f1e14]: go-zero-admin
+          - generic [ref=f1e15]: 管理控制台
+        - generic [ref=f1e16]: 工作空间
+        - menu [ref=f1e17]:
+          - menuitem "dashboard 工作台" [ref=f1e18] [cursor=pointer]:
+            - img "dashboard" [ref=f1e19]
+            - generic [ref=f1e22]: 工作台
+          - menuitem "系统管理" [ref=f1e23] [cursor=pointer]
+          - menuitem "APP管理" [ref=f1e29] [cursor=pointer]
+          - menuitem "租户管理" [ref=f1e35] [cursor=pointer]
+          - menuitem "AI 功能" [expanded] [ref=f1e43] [cursor=pointer]
+          - menu [ref=f1e49]:
+            - menuitem "AI 对话" [ref=f1e50] [cursor=pointer]
+            - menuitem "常用流程" [ref=f1e56] [cursor=pointer]
+            - menuitem "运行记录" [ref=f1e62] [cursor=pointer]
+            - menuitem "工具与能力" [ref=f1e68] [cursor=pointer]
+            - menuitem "知识库" [ref=f1e74] [cursor=pointer]
+      - button "折叠侧栏" [ref=f1e80] [cursor=pointer]:
+        - img "left" [ref=f1e82]
+        - generic [ref=f1e85]: 收起侧栏
+      - separator "调整侧栏宽度" [ref=f1e86]
+  - generic [ref=f1e87]:
+    - banner [ref=f1e88]:
+      - generic [ref=f1e89]:
+        - button "收起导航" [expanded] [ref=f1e90] [cursor=pointer]:
+          - img "menu-fold" [ref=f1e92]
+        - navigation [ref=f1e96]:
+          - list [ref=f1e97]:
+            - listitem [ref=f1e98]:
+              - generic [ref=f1e99]:
+                - img "home" [ref=f1e100]
+                - text: 控制台
+            - listitem [ref=f1e103]: /
+            - listitem [ref=f1e104]: 运行记录
+      - generic [ref=f1e105]:
+        - generic [ref=f1e108]:
+          - img "apartment" [ref=f1e110]
+          - generic "默认部门" [ref=f1e113]:
+            - text: 默认部门
+            - combobox "切换部门" [ref=f1e114]
+          - img "down" [ref=f1e116]
+        - button "超级管理员，账号菜单" [ref=f1e119] [cursor=pointer]:
+          - img "user" [ref=f1e121]
+          - generic [ref=f1e124]: 超级管理员
+          - img "down" [ref=f1e125]
+        - button "退出登录" [ref=f1e128] [cursor=pointer]:
+          - img "logout" [ref=f1e130]
+    - main [ref=f1e134]

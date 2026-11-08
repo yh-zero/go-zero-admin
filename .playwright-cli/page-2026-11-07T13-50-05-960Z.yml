@@ -1,0 +1,286 @@
+- generic [ref=f2e4]:
+  - complementary [ref=f2e5]:
+    - generic [ref=f2e6]:
+      - generic [ref=f2e7]:
+        - generic [ref=f2e13]:
+          - strong [ref=f2e14]: go-zero-admin
+          - generic [ref=f2e15]: 管理控制台
+        - generic [ref=f2e16]: 工作空间
+        - menu [ref=f2e17]:
+          - menuitem "dashboard 工作台" [ref=f2e18] [cursor=pointer]:
+            - img "dashboard" [ref=f2e19]
+            - generic [ref=f2e22]: 工作台
+          - menuitem "系统管理" [ref=f2e23] [cursor=pointer]
+          - menuitem "APP管理" [ref=f2e29] [cursor=pointer]
+          - menuitem "租户管理" [ref=f2e35] [cursor=pointer]
+          - menuitem "AI 功能" [expanded] [ref=f2e43] [cursor=pointer]
+          - menu [ref=f2e49]:
+            - menuitem "AI 对话" [ref=f2e50] [cursor=pointer]
+            - menuitem "常用流程" [ref=f2e56] [cursor=pointer]
+            - menuitem "运行记录" [ref=f2e62] [cursor=pointer]
+            - menuitem "工具与能力" [ref=f2e68] [cursor=pointer]
+            - menuitem "知识库" [ref=f2e74] [cursor=pointer]
+      - button "折叠侧栏" [ref=f2e80] [cursor=pointer]:
+        - img "left" [ref=f2e82]
+        - generic [ref=f2e85]: 收起侧栏
+      - separator "调整侧栏宽度" [ref=f2e86]
+  - generic [ref=f2e87]:
+    - banner [ref=f2e88]:
+      - generic [ref=f2e89]:
+        - button "收起导航" [expanded] [ref=f2e90] [cursor=pointer]:
+          - img "menu-fold" [ref=f2e92]
+        - navigation [ref=f2e96]:
+          - list [ref=f2e97]:
+            - listitem [ref=f2e98]:
+              - generic [ref=f2e99]:
+                - img "home" [ref=f2e100]
+                - text: 控制台
+            - listitem [ref=f2e103]: /
+            - listitem [ref=f2e104]: 知识库质量验收
+      - generic [ref=f2e105]:
+        - generic [ref=f2e108]:
+          - img "apartment" [ref=f2e110]
+          - generic "默认部门" [ref=f2e113]:
+            - text: 默认部门
+            - combobox "切换部门" [ref=f2e114]
+          - img "down" [ref=f2e116]
+        - button "超级管理员，账号菜单" [ref=f2e119] [cursor=pointer]:
+          - img "user" [ref=f2e121]
+          - generic [ref=f2e124]: 超级管理员
+          - img "down" [ref=f2e125]
+        - button "退出登录" [ref=f2e128] [cursor=pointer]:
+          - img "logout" [ref=f2e130]
+    - main [ref=f2e134]:
+      - generic [ref=f2e136]:
+        - generic [ref=f2e137]:
+          - generic [ref=f2e138]:
+            - link [ref=f2e139] [cursor=pointer]:
+              - /url: /ai/knowledge/5
+              - button "arrow-left 返回知识库" [ref=f2e140]:
+                - img "arrow-left" [ref=f2e142]
+                - generic [ref=f2e145]: 返回知识库
+            - heading "项目运维实践 · 质量验收" [level=3] [ref=f2e146]
+            - text: 核对答案是否完整、有据，以及本次分析花了多久。
+          - button "reload 刷新" [ref=f2e147] [cursor=pointer]:
+            - img "reload" [ref=f2e149]
+            - generic [ref=f2e152]: 刷新
+        - alert [ref=f2e153]:
+          - img "info-circle" [ref=f2e155]
+          - generic [ref=f2e158]: 已找到原批次。
+        - generic [ref=f2e160]:
+          - generic [ref=f2e161]: 开始一批评测
+          - generic [ref=f2e164]:
+            - generic [ref=f2e165]:
+              - generic [ref=f2e166]:
+                - text: 选择题集
+                - generic [ref=f2e167] [cursor=pointer]:
+                  - generic "24题场景验收" [ref=f2e168]:
+                    - text: 24题场景验收
+                    - combobox "选择评测题集" [ref=f2e169]
+                  - img "down" [ref=f2e171]
+              - generic [ref=f2e174]:
+                - text: 资料对应题组
+                - generic [ref=f2e175] [cursor=pointer]:
+                  - generic [ref=f2e176]:
+                    - generic: 选择与当前资料对应的题组
+                    - combobox "选择资料题组" [ref=f2e177]
+                  - img "down" [ref=f2e179]
+            - generic [ref=f2e182]:
+              - generic [ref=f2e183]: 题目基于仓库实际项目文档，由AI辅助编制，并非真实用户历史。初始预留题一经试跑即为已使用数据。开始前会核对当前资料的正文、版本与就绪状态。
+              - generic [ref=f2e184]:
+                - button "开始评测" [disabled] [ref=f2e186]:
+                  - generic:
+                    - img "play-circle"
+                - generic [ref=f2e187]: 本批最多 0 次分析、0 次查询 Embedding；执行失败后停止余题。
+        - generic [ref=f2e189]:
+          - generic [ref=f2e191]:
+            - generic [ref=f2e192]: 历史批次
+            - generic [ref=f2e194] [cursor=pointer]:
+              - generic "全部状态" [ref=f2e195]:
+                - text: 全部状态
+                - combobox "筛选评测批次状态" [ref=f2e196]
+              - img "down" [ref=f2e198]
+          - generic [ref=f2e201]:
+            - table [ref=f2e208]:
+              - rowgroup [ref=f2e211]:
+                - row [ref=f2e212]:
+                  - columnheader "批次" [ref=f2e213]
+                  - columnheader "题集" [ref=f2e214]
+                  - columnheader "状态" [ref=f2e215]
+                  - columnheader "进度" [ref=f2e216]
+                  - columnheader "创建时间" [ref=f2e217]
+                  - columnheader "操作" [ref=f2e218]
+              - rowgroup [ref=f2e219]:
+                - row [ref=f2e360]:
+                  - cell "#1" [ref=f2e221]
+                  - cell "32题历史业务 项目运维资料" [ref=f2e222]:
+                    - generic [ref=f2e223]:
+                      - text: 32题历史业务
+                      - generic [ref=f2e224]: 项目运维资料
+                  - cell "已完成，待复核" [ref=f2e361]
+                  - cell "1/1" [ref=f2e362]
+                  - cell "2026-11-07 21:47:52" [ref=f2e228]
+                  - cell [ref=f2e229]:
+                    - generic [ref=f2e230]:
+                      - 'button "查看批次 #1" [ref=f2e232] [cursor=pointer]':
+                        - generic [ref=f2e233]: 查 看
+                      - button "设为对照" [disabled] [ref=f2e235]
+            - list [ref=f2e236]:
+              - listitem [ref=f2e237]: 共 1 批
+              - listitem "上一页" [ref=f2e238]:
+                - button [disabled] [ref=f2e239]:
+                  - img "left" [ref=f2e240]
+              - listitem "1" [ref=f2e243] [cursor=pointer]
+              - listitem "下一页" [ref=f2e245]:
+                - button [disabled] [ref=f2e246]:
+                  - img "right" [ref=f2e247]
+        - generic [ref=f2e250]:
+          - generic [ref=f2e252]:
+            - generic [ref=f2e253]: "批次 #1"
+            - button "刷新状态" [ref=f2e257] [cursor=pointer]
+          - generic [ref=f2e262]:
+            - generic [ref=f2e264] [cursor=pointer]:
+              - generic "全部题目" [ref=f2e265]:
+                - text: 全部题目
+                - combobox "筛选评测题目" [ref=f2e266]
+              - img "down" [ref=f2e268]
+            - generic [ref=f2e271]:
+              - table [ref=f2e274]:
+                - rowgroup [ref=f2e275]:
+                  - row [ref=f2e363]:
+                    - 'cell "执行状态 : 已完成，待复核" [ref=f2e364]':
+                      - generic [ref=f2e278]:
+                        - generic [ref=f2e279]: "执行状态 :"
+                        - generic [ref=f2e280]: 已完成，待复核
+                    - 'cell "进度 : 1 已完成 / 0 未完成 / 1 题" [ref=f2e365]':
+                      - generic [ref=f2e283]:
+                        - generic [ref=f2e284]: "进度 :"
+                        - generic [ref=f2e285]: 1 已完成 / 0 未完成 / 1 题
+                    - 'cell "规则提示 : 0 题待复核" [ref=f2e286]':
+                      - generic [ref=f2e287]:
+                        - generic [ref=f2e288]: "规则提示 :"
+                        - generic [ref=f2e289]: 0 题待复核
+                    - 'cell "开始时间 : 2026-11-07 21:47:52" [ref=f2e290]':
+                      - generic [ref=f2e291]:
+                        - generic [ref=f2e292]: "开始时间 :"
+                        - generic [ref=f2e293]: 2026-11-07 21:47:52
+              - generic [ref=f2e294]:
+                - generic [ref=f2e296]:
+                  - text: 成功题的文档 Recall@5
+                  - strong [ref=f2e297]: 100%
+                - generic [ref=f2e299]:
+                  - text: 成功题的证据覆盖@5
+                  - strong [ref=f2e300]: 100%
+                - generic [ref=f2e302]:
+                  - text: 分析 P50 / P95
+                  - strong [ref=f2e303]: 3137 ms / 3137 ms
+                - generic [ref=f2e305]:
+                  - text: 已知聊天用量
+                  - strong [ref=f2e306]: 2007 tokens
+                  - generic [ref=f2e307]: 不含查询 Embedding
+              - alert [ref=f2e308]:
+                - img "info-circle" [ref=f2e310]
+                - generic [ref=f2e313]:
+                  - generic [ref=f2e314]: 规则筛查用于定位复核项，不代表语义正确率或人工验收通过。
+                  - generic [ref=f2e315]: 耗时是本批成功题的经验观测，失败项不进入成功指标；预热、网络和小样本会影响结果。
+              - table [ref=f2e322]:
+                - rowgroup [ref=f2e330]:
+                  - row [ref=f2e331]:
+                    - columnheader [ref=f2e332]
+                    - columnheader "问题" [ref=f2e333]
+                    - columnheader "状态与复核" [ref=f2e334]
+                    - columnheader "检索 / 分析耗时" [ref=f2e335]
+                    - columnheader "已知聊天用量" [ref=f2e336]
+                    - columnheader "操作" [ref=f2e337]
+                - rowgroup [ref=f2e338]:
+                  - row [ref=f2e371]:
+                    - cell [ref=f2e372]:
+                      - button "关闭行" [expanded] [active] [ref=f2e373] [cursor=pointer]
+                    - cell "已有数据卷启动后会自动更新数据库表吗？生成model时能重新导入mysql-all.sql清空现有业务库吗？ 开发题" [ref=f2e342]:
+                      - generic [ref=f2e343]:
+                        - text: 已有数据卷启动后会自动更新数据库表吗？生成model时能重新导入mysql-all.sql清空现有业务库吗？
+                        - generic [ref=f2e344]: 开发题
+                    - cell "待人工确认" [ref=f2e367]
+                    - cell "295 ms / 3137 ms" [ref=f2e368]
+                    - cell "2007" [ref=f2e369]
+                    - cell [ref=f2e350]:
+                      - generic [ref=f2e351]:
+                        - button "单题复测" [ref=f2e353] [cursor=pointer]
+                        - button "运行记录" [ref=f2e355] [cursor=pointer]
+                  - row [ref=f2e374]:
+                    - cell [ref=f2e375]:
+                      - region "题目详情 business-dev-existing-database" [ref=f2e376]:
+                        - heading "检查项" [level=5] [ref=f2e377]
+                        - list [ref=f2e378]:
+                          - listitem [ref=f2e379]:
+                            - generic [ref=f2e380]: 字符串命中
+                            - text: 已有卷不自动覆盖或更新结构 / 已有卷不自动更新 / 已有数据卷不会自动更新 / 不会自动更新结构
+                          - listitem [ref=f2e381]:
+                            - generic [ref=f2e382]: 字符串命中
+                            - text: 不为生成代码清空业务库 / 不能清空现有业务库 / 不能重导 / 不得清空业务库
+                          - listitem [ref=f2e383]:
+                            - generic [ref=f2e384]: 字符串命中
+                            - text: DROP并重建业务表 / 删除并重建业务表 / 删除重建业务表
+                        - region "第 1 步分析结果" [ref=f2e385]:
+                          - generic [ref=f2e386]:
+                            - strong [ref=f2e387]: 质量验收分析
+                            - generic [ref=f2e388]: 第 1 步
+                          - heading [level=3] [ref=f2e389]:
+                            - text: 分析内容
+                            - button "copy 复制分析" [ref=f2e390] [cursor=pointer]:
+                              - img "copy" [ref=f2e392]
+                              - generic [ref=f2e395]: 复制分析
+                          - generic [ref=f2e396]:
+                            - generic [ref=f2e397]: 已有数据卷启动后会自动更新数据库表吗？：不会。Compose 的 MySQL 空数据卷首次启动自动导入，已有卷不自动覆盖或更新结构。 [1]
+                            - generic [ref=f2e399]: 生成model时能重新导入mysql-all.sql清空现有业务库吗？：不能。生成 model 时使用已导入完整 SQL 的新开发库，不为生成代码清空业务库；初始化 SQL 会 DROP 并重建业务表，不是已有库的升级脚本。 [1]
+                          - heading "参考资料" [level=3] [ref=f2e400]
+                          - paragraph [ref=f2e401]: 以下保留本次分析使用的资料片段，不代表完整原文；相似度不表示答案正确率。当前原文可能已更新，不代表执行当时的版本。
+                          - list [ref=f2e402]:
+                            - listitem [ref=f2e403]:
+                              - strong [ref=f2e404]: 数据初始化与备份
+                              - text: ·
+                              - link "打开当前原文" [ref=f2e405] [cursor=pointer]:
+                                - /url: /ai/knowledge/5?doc_id=18
+                              - paragraph [ref=f2e406]: "### 数据初始化 **初始化 SQL 会 DROP 并重建业务表，不是已有库的升级脚本。** 唯一入口为 [mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql)： - 新建开发库：完整导入；Compose 的 MySQL 空数据卷首次启动自动导入，已有卷不自动覆盖或更新结构。 - 已有库改结构：先核对目标与数据处理方案；生成 model 时使用已导入完整 SQL 的新开发库，不为生成代码清空业务库。 - 重置已有库：须明确授权、确认目标并备份；不能把重跑初始化或删除数据卷当作通用排障手段。 - 演示账号与默认凭据见[快速开始](../README.md#快速开始)，仅限开发、部署前必须替换；后台图形验证码由 admin-rpc 的 `Captcha.Enabled` 控制。 ### AI 本地开发免图形验证码 AI 在本机开发、联调和功能验收启动时，默认使用忽略的本地覆盖配置关闭图形验证码，账号密码和会话/权限仍正常校验。将 `docker/etc/admin-rpc.yaml` 复制为 `docker/etc/"
+                              - group [ref=f2e407]:
+                                - generic "查看来源标识" [ref=f2e408] [cursor=pointer]
+                            - listitem [ref=f2e409]:
+                              - strong [ref=f2e410]: 数据初始化与备份
+                              - text: ·
+                              - link "打开当前原文" [ref=f2e411] [cursor=pointer]:
+                                - /url: /ai/knowledge/5?doc_id=18
+                              - paragraph [ref=f2e412]: "来源 `mysql-all.sql` 不作为运行库备份替代物。 - 先核对实际运行库和容器/连接来源，使用一致性快照导出，记录来源、导出时间与文件校验值；在独立环境恢复验证，不导回现有业务库，也不启动会调用外部服务的业务进程。 - 真实邮箱与 AI Key 不提交；不含这两类数据及根规范禁止公开信息的明文备份，按用户指定路径和分支直接提交，日期快照沿用后端 `data/db/init/YYYYMMDD/`。公开提交仍遵守根规范安全基线；受阻的完整原件保存在被忽略的本地目录，不擅自生成脱敏或加密替代文件。 - 分别说明“导出完成”“恢复验证通过”“本地提交完成”“远程推送完成”，不能用其中一项代替其余状态。"
+                              - group [ref=f2e413]:
+                                - generic "查看来源标识" [ref=f2e414] [cursor=pointer]
+                            - listitem [ref=f2e415]:
+                              - strong [ref=f2e416]: 构建启动与验收
+                              - text: ·
+                              - link "打开当前原文" [ref=f2e417] [cursor=pointer]:
+                                - /url: /ai/knowledge/5?doc_id=19
+                              - paragraph [ref=f2e418]: "## 2. 构建、启动与就绪检查 新建或重置数据库先看[数据初始化](#数据初始化)；常规代码部署不重复导入 SQL 或删除数据卷。 ### Compose（日常默认） [Dockerfile](../go-zero-admin/docker/Dockerfile)只复制宿主预编译的 Linux 二进制，`docker compose --build` **不会编译 Go 源码**。首次运行或后端代码变更后，先执行[构建入口](../go-zero-admin/data/scripts/build-images.ps1)；构建失败立即停止，不部署旧产物。 ```powershell # 终端 A：从仓库根目录执行 cd go-zero-admin powershell -NoProfile -ExecutionPolicy Bypass -File ./data/scripts/build-images.ps1 if ($LASTEXITCODE -ne 0) { throw \"后端编译失败，停止部署\" } docker compose up -d --build --wait"
+                              - group [ref=f2e419]:
+                                - generic "查看来源标识" [ref=f2e420] [cursor=pointer]
+                            - listitem [ref=f2e421]:
+                              - strong [ref=f2e422]: 数据初始化与备份
+                              - text: ·
+                              - link "打开当前原文" [ref=f2e423] [cursor=pointer]:
+                                - /url: /ai/knowledge/5?doc_id=18
+                              - paragraph [ref=f2e424]: "n-rpc` 应用验证码配置；其他服务按各自启动流程处理，后端代码改变仍须先编译并构建对应镜像。通过 `/v1/sys/auth/captcha` 核对 `enabled=false` 且图片、ID 为空，再用有效测试账号正常登录。两个 `*.local.yaml` 文件均被忽略，不提交；远程/生产/租户启动不使用这个本地覆盖文件。验证码专项验收改用标准配置并核对 `enabled=true`。 开源初始化的演示管理员为 `admin / Admin@123456`，属于可公开的开发默认凭据，可以写入规范和文档。AI 可直接核对本地开发库与完整初始化 SQL 后正常登录，无需重复索要这些演示凭据。若 README 的本地改动与 SQL 不一致，以实际初始化来源和运行库核对结果为准，保留用户既有文档改动；此流程不授权改密、重置账号或公开真实凭据、AI Key、会话令牌。 ### 数据库备份 - 备份默认保留运行库的完整原始 SQL，不擅自删行、改值、脱敏或加密；历史备份不覆盖，初始化来源 `mysql-all.sql` 不作为运行库备份替代物。 - 先核对实际运行库和容器/连接来源"
+                              - group [ref=f2e425]:
+                                - generic "查看来源标识" [ref=f2e426] [cursor=pointer]
+                            - listitem [ref=f2e427]:
+                              - strong [ref=f2e428]: 开发环境与配置
+                              - text: ·
+                              - link "打开当前原文" [ref=f2e429] [cursor=pointer]:
+                                - /url: /ai/knowledge/5?doc_id=17
+                              - paragraph [ref=f2e430]: "## 1. 开发环境与配置 首次准备与工具版本见[快速开始](../README.md#快速开始)，以依赖声明、锁文件和实际工具版本为准；Docker 使用 Linux 容器模式，基础镜像须可拉取或已缓存。标准拓扑以 [Compose](../go-zero-admin/docker-compose.yml) 为准： | 服务 | 宿主访问地址 | 容器网络 / 用途 | |---|---|---| | MySQL | `127.0.0.1:3307` | `mysql:3306`，业务库 `gozero_admin` | | Redis | `127.0.0.1:16379` | `redis:6379`，缓存、会话与策略通知 | | RustFS | `127.0.0.1:19000`，控制台 `:19001` | `rustfs:9000`，S3 兼容存储 | | admin-api | `127.0.0.1:7001` | `platform-api:7001`，前端代理目标 | | admin/app/file/ai/tenant RPC | 默认不映射宿主端口 | 各服"
+                              - group [ref=f2e431]:
+                                - generic "查看来源标识" [ref=f2e432] [cursor=pointer]
+                          - group [ref=f2e433]:
+                            - generic "已知用量" [ref=f2e434] [cursor=pointer]
+                        - heading "评价并加入反馈复核" [level=5] [ref=f2e435]
+                        - region "第 1 步分析反馈" [ref=f2e436]:
+                          - button "评价分析" [ref=f2e439] [cursor=pointer]
+              - group [ref=f2e357]:
+                - generic "版本与测量范围" [ref=f2e358] [cursor=pointer]
+            - generic [ref=f2e359]: 模型执行成功仍需复核内容。停止只影响未开始题目，已发生的调用不会撤回。

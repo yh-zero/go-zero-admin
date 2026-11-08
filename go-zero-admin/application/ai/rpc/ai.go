@@ -41,8 +41,13 @@ func main() {
 		}
 	}
 	ctx := svc.NewServiceContext(c)
+	if ctx.VectorStore != nil {
+		defer ctx.VectorStore.Close()
+	}
 	stopKbWorkers := ctx.StartKbIngestWorkers(context.Background())
 	defer stopKbWorkers()
+	stopKbReconciler := ctx.StartKbIndexReconciler(context.Background())
+	defer stopKbReconciler()
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		aipb.RegisterAiServiceServer(grpcServer, aiserviceServer.NewAiServiceServer(ctx))

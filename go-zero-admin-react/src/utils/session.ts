@@ -17,7 +17,7 @@ export async function withSessionLock<T>(action: () => Promise<T>, requireLock =
 }
 
 export async function saveSession(session: LoginResp): Promise<void> {
-  await withSessionLock(async () => { syncAuthFromStorage(); useAuthStore.getState().setSession(session); });
+  await withSessionLock(async () => { syncAuthFromStorage(true); useAuthStore.getState().setSession(session); });
 }
 
 export async function clearSession(expected: SessionSnapshot = useAuthStore.getState()): Promise<boolean> {
@@ -26,7 +26,7 @@ export async function clearSession(expected: SessionSnapshot = useAuthStore.getS
 
 // 仅供已持有同源会话锁的退出流程调用，避免重复获取不可重入的锁。
 export function clearSessionLocked(expected: SessionSnapshot): boolean {
-  syncAuthFromStorage();
+  syncAuthFromStorage(true);
   const current = useAuthStore.getState();
   if (current.sessionVersion !== expected.sessionVersion
     || (expected.token !== undefined && current.token !== expected.token)

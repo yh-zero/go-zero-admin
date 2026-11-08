@@ -229,6 +229,1287 @@ func (x *Actor) GetUserAgent() string {
 	return ""
 }
 
+// ========== 供应商请求账本与容量治理 ==========
+type UsagePeriod struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FromDay       string                 `protobuf:"bytes,1,opt,name=from_day,json=fromDay,proto3" json:"from_day,omitempty"`
+	ToDay         string                 `protobuf:"bytes,2,opt,name=to_day,json=toDay,proto3" json:"to_day,omitempty"`
+	Timezone      string                 `protobuf:"bytes,3,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UsagePeriod) Reset() {
+	*x = UsagePeriod{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UsagePeriod) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UsagePeriod) ProtoMessage() {}
+
+func (x *UsagePeriod) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UsagePeriod.ProtoReflect.Descriptor instead.
+func (*UsagePeriod) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *UsagePeriod) GetFromDay() string {
+	if x != nil {
+		return x.FromDay
+	}
+	return ""
+}
+
+func (x *UsagePeriod) GetToDay() string {
+	if x != nil {
+		return x.ToDay
+	}
+	return ""
+}
+
+func (x *UsagePeriod) GetTimezone() string {
+	if x != nil {
+		return x.Timezone
+	}
+	return ""
+}
+
+type UsageGroup struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Source                string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	Operation             string                 `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
+	Provider              string                 `protobuf:"bytes,3,opt,name=provider,proto3" json:"provider,omitempty"`
+	Model                 string                 `protobuf:"bytes,4,opt,name=model,proto3" json:"model,omitempty"`
+	ConfirmedRequests     int64                  `protobuf:"varint,5,opt,name=confirmed_requests,json=confirmedRequests,proto3" json:"confirmed_requests,omitempty"`
+	ReservedRequests      int64                  `protobuf:"varint,6,opt,name=reserved_requests,json=reservedRequests,proto3" json:"reserved_requests,omitempty"`
+	NotSentRequests       int64                  `protobuf:"varint,7,opt,name=not_sent_requests,json=notSentRequests,proto3" json:"not_sent_requests,omitempty"`
+	UncertainRequests     int64                  `protobuf:"varint,8,opt,name=uncertain_requests,json=uncertainRequests,proto3" json:"uncertain_requests,omitempty"`
+	SucceededRequests     int64                  `protobuf:"varint,9,opt,name=succeeded_requests,json=succeededRequests,proto3" json:"succeeded_requests,omitempty"`
+	FailedRequests        int64                  `protobuf:"varint,10,opt,name=failed_requests,json=failedRequests,proto3" json:"failed_requests,omitempty"`
+	CancelledRequests     int64                  `protobuf:"varint,11,opt,name=cancelled_requests,json=cancelledRequests,proto3" json:"cancelled_requests,omitempty"`
+	CompleteRequests      int64                  `protobuf:"varint,12,opt,name=complete_requests,json=completeRequests,proto3" json:"complete_requests,omitempty"`
+	PartialRequests       int64                  `protobuf:"varint,13,opt,name=partial_requests,json=partialRequests,proto3" json:"partial_requests,omitempty"`
+	UnknownRequests       int64                  `protobuf:"varint,14,opt,name=unknown_requests,json=unknownRequests,proto3" json:"unknown_requests,omitempty"`
+	InvalidRequests       int64                  `protobuf:"varint,15,opt,name=invalid_requests,json=invalidRequests,proto3" json:"invalid_requests,omitempty"`
+	KnownPromptTokens     int64                  `protobuf:"varint,16,opt,name=known_prompt_tokens,json=knownPromptTokens,proto3" json:"known_prompt_tokens,omitempty"`
+	KnownCompletionTokens int64                  `protobuf:"varint,17,opt,name=known_completion_tokens,json=knownCompletionTokens,proto3" json:"known_completion_tokens,omitempty"`
+	KnownEmbeddingTokens  int64                  `protobuf:"varint,18,opt,name=known_embedding_tokens,json=knownEmbeddingTokens,proto3" json:"known_embedding_tokens,omitempty"`
+	KnownTotalTokens      int64                  `protobuf:"varint,19,opt,name=known_total_tokens,json=knownTotalTokens,proto3" json:"known_total_tokens,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *UsageGroup) Reset() {
+	*x = UsageGroup{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UsageGroup) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UsageGroup) ProtoMessage() {}
+
+func (x *UsageGroup) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UsageGroup.ProtoReflect.Descriptor instead.
+func (*UsageGroup) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *UsageGroup) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *UsageGroup) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *UsageGroup) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *UsageGroup) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *UsageGroup) GetConfirmedRequests() int64 {
+	if x != nil {
+		return x.ConfirmedRequests
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetReservedRequests() int64 {
+	if x != nil {
+		return x.ReservedRequests
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetNotSentRequests() int64 {
+	if x != nil {
+		return x.NotSentRequests
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetUncertainRequests() int64 {
+	if x != nil {
+		return x.UncertainRequests
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetSucceededRequests() int64 {
+	if x != nil {
+		return x.SucceededRequests
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetFailedRequests() int64 {
+	if x != nil {
+		return x.FailedRequests
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetCancelledRequests() int64 {
+	if x != nil {
+		return x.CancelledRequests
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetCompleteRequests() int64 {
+	if x != nil {
+		return x.CompleteRequests
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetPartialRequests() int64 {
+	if x != nil {
+		return x.PartialRequests
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetUnknownRequests() int64 {
+	if x != nil {
+		return x.UnknownRequests
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetInvalidRequests() int64 {
+	if x != nil {
+		return x.InvalidRequests
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetKnownPromptTokens() int64 {
+	if x != nil {
+		return x.KnownPromptTokens
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetKnownCompletionTokens() int64 {
+	if x != nil {
+		return x.KnownCompletionTokens
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetKnownEmbeddingTokens() int64 {
+	if x != nil {
+		return x.KnownEmbeddingTokens
+	}
+	return 0
+}
+
+func (x *UsageGroup) GetKnownTotalTokens() int64 {
+	if x != nil {
+		return x.KnownTotalTokens
+	}
+	return 0
+}
+
+type UsageSummaryInfo struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Period                *UsagePeriod           `protobuf:"bytes,1,opt,name=period,proto3" json:"period,omitempty"`
+	RecordingStartedAt    int64                  `protobuf:"varint,2,opt,name=recording_started_at,json=recordingStartedAt,proto3" json:"recording_started_at,omitempty"`
+	ConfirmedRequests     int64                  `protobuf:"varint,3,opt,name=confirmed_requests,json=confirmedRequests,proto3" json:"confirmed_requests,omitempty"`
+	ReservedRequests      int64                  `protobuf:"varint,4,opt,name=reserved_requests,json=reservedRequests,proto3" json:"reserved_requests,omitempty"`
+	NotSentRequests       int64                  `protobuf:"varint,5,opt,name=not_sent_requests,json=notSentRequests,proto3" json:"not_sent_requests,omitempty"`
+	UncertainRequests     int64                  `protobuf:"varint,6,opt,name=uncertain_requests,json=uncertainRequests,proto3" json:"uncertain_requests,omitempty"`
+	SucceededRequests     int64                  `protobuf:"varint,7,opt,name=succeeded_requests,json=succeededRequests,proto3" json:"succeeded_requests,omitempty"`
+	FailedRequests        int64                  `protobuf:"varint,8,opt,name=failed_requests,json=failedRequests,proto3" json:"failed_requests,omitempty"`
+	CancelledRequests     int64                  `protobuf:"varint,9,opt,name=cancelled_requests,json=cancelledRequests,proto3" json:"cancelled_requests,omitempty"`
+	CompleteRequests      int64                  `protobuf:"varint,10,opt,name=complete_requests,json=completeRequests,proto3" json:"complete_requests,omitempty"`
+	PartialRequests       int64                  `protobuf:"varint,11,opt,name=partial_requests,json=partialRequests,proto3" json:"partial_requests,omitempty"`
+	UnknownRequests       int64                  `protobuf:"varint,12,opt,name=unknown_requests,json=unknownRequests,proto3" json:"unknown_requests,omitempty"`
+	InvalidRequests       int64                  `protobuf:"varint,13,opt,name=invalid_requests,json=invalidRequests,proto3" json:"invalid_requests,omitempty"`
+	KnownPromptTokens     int64                  `protobuf:"varint,14,opt,name=known_prompt_tokens,json=knownPromptTokens,proto3" json:"known_prompt_tokens,omitempty"`
+	KnownCompletionTokens int64                  `protobuf:"varint,15,opt,name=known_completion_tokens,json=knownCompletionTokens,proto3" json:"known_completion_tokens,omitempty"`
+	KnownEmbeddingTokens  int64                  `protobuf:"varint,16,opt,name=known_embedding_tokens,json=knownEmbeddingTokens,proto3" json:"known_embedding_tokens,omitempty"`
+	KnownTotalTokens      int64                  `protobuf:"varint,17,opt,name=known_total_tokens,json=knownTotalTokens,proto3" json:"known_total_tokens,omitempty"`
+	Groups                []*UsageGroup          `protobuf:"bytes,18,rep,name=groups,proto3" json:"groups,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *UsageSummaryInfo) Reset() {
+	*x = UsageSummaryInfo{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UsageSummaryInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UsageSummaryInfo) ProtoMessage() {}
+
+func (x *UsageSummaryInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UsageSummaryInfo.ProtoReflect.Descriptor instead.
+func (*UsageSummaryInfo) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *UsageSummaryInfo) GetPeriod() *UsagePeriod {
+	if x != nil {
+		return x.Period
+	}
+	return nil
+}
+
+func (x *UsageSummaryInfo) GetRecordingStartedAt() int64 {
+	if x != nil {
+		return x.RecordingStartedAt
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetConfirmedRequests() int64 {
+	if x != nil {
+		return x.ConfirmedRequests
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetReservedRequests() int64 {
+	if x != nil {
+		return x.ReservedRequests
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetNotSentRequests() int64 {
+	if x != nil {
+		return x.NotSentRequests
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetUncertainRequests() int64 {
+	if x != nil {
+		return x.UncertainRequests
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetSucceededRequests() int64 {
+	if x != nil {
+		return x.SucceededRequests
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetFailedRequests() int64 {
+	if x != nil {
+		return x.FailedRequests
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetCancelledRequests() int64 {
+	if x != nil {
+		return x.CancelledRequests
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetCompleteRequests() int64 {
+	if x != nil {
+		return x.CompleteRequests
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetPartialRequests() int64 {
+	if x != nil {
+		return x.PartialRequests
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetUnknownRequests() int64 {
+	if x != nil {
+		return x.UnknownRequests
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetInvalidRequests() int64 {
+	if x != nil {
+		return x.InvalidRequests
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetKnownPromptTokens() int64 {
+	if x != nil {
+		return x.KnownPromptTokens
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetKnownCompletionTokens() int64 {
+	if x != nil {
+		return x.KnownCompletionTokens
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetKnownEmbeddingTokens() int64 {
+	if x != nil {
+		return x.KnownEmbeddingTokens
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetKnownTotalTokens() int64 {
+	if x != nil {
+		return x.KnownTotalTokens
+	}
+	return 0
+}
+
+func (x *UsageSummaryInfo) GetGroups() []*UsageGroup {
+	if x != nil {
+		return x.Groups
+	}
+	return nil
+}
+
+type UsageQueryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	FromDay       string                 `protobuf:"bytes,3,opt,name=from_day,json=fromDay,proto3" json:"from_day,omitempty"`
+	ToDay         string                 `protobuf:"bytes,4,opt,name=to_day,json=toDay,proto3" json:"to_day,omitempty"`
+	Source        string                 `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"`
+	Operation     string                 `protobuf:"bytes,6,opt,name=operation,proto3" json:"operation,omitempty"`
+	Provider      string                 `protobuf:"bytes,7,opt,name=provider,proto3" json:"provider,omitempty"`
+	Model         string                 `protobuf:"bytes,8,opt,name=model,proto3" json:"model,omitempty"`
+	Status        string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
+	UsageState    string                 `protobuf:"bytes,10,opt,name=usage_state,json=usageState,proto3" json:"usage_state,omitempty"`
+	Page          *PageRequest           `protobuf:"bytes,11,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UsageQueryRequest) Reset() {
+	*x = UsageQueryRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UsageQueryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UsageQueryRequest) ProtoMessage() {}
+
+func (x *UsageQueryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UsageQueryRequest.ProtoReflect.Descriptor instead.
+func (*UsageQueryRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UsageQueryRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *UsageQueryRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *UsageQueryRequest) GetFromDay() string {
+	if x != nil {
+		return x.FromDay
+	}
+	return ""
+}
+
+func (x *UsageQueryRequest) GetToDay() string {
+	if x != nil {
+		return x.ToDay
+	}
+	return ""
+}
+
+func (x *UsageQueryRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *UsageQueryRequest) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *UsageQueryRequest) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *UsageQueryRequest) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *UsageQueryRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *UsageQueryRequest) GetUsageState() string {
+	if x != nil {
+		return x.UsageState
+	}
+	return ""
+}
+
+func (x *UsageQueryRequest) GetPage() *PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type UsageSummaryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Summary       *UsageSummaryInfo      `protobuf:"bytes,1,opt,name=summary,proto3" json:"summary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UsageSummaryResponse) Reset() {
+	*x = UsageSummaryResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UsageSummaryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UsageSummaryResponse) ProtoMessage() {}
+
+func (x *UsageSummaryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UsageSummaryResponse.ProtoReflect.Descriptor instead.
+func (*UsageSummaryResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *UsageSummaryResponse) GetSummary() *UsageSummaryInfo {
+	if x != nil {
+		return x.Summary
+	}
+	return nil
+}
+
+type UsageCallInfo struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Id                int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	AttemptId         string                 `protobuf:"bytes,2,opt,name=attempt_id,json=attemptId,proto3" json:"attempt_id,omitempty"`
+	OwnerId           int64                  `protobuf:"varint,3,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	Source            string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
+	Operation         string                 `protobuf:"bytes,5,opt,name=operation,proto3" json:"operation,omitempty"`
+	RequestId         string                 `protobuf:"bytes,6,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	SourceId          int64                  `protobuf:"varint,7,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	StepIndex         int64                  `protobuf:"varint,8,opt,name=step_index,json=stepIndex,proto3" json:"step_index,omitempty"`
+	BatchIndex        int64                  `protobuf:"varint,9,opt,name=batch_index,json=batchIndex,proto3" json:"batch_index,omitempty"`
+	Provider          string                 `protobuf:"bytes,10,opt,name=provider,proto3" json:"provider,omitempty"`
+	Model             string                 `protobuf:"bytes,11,opt,name=model,proto3" json:"model,omitempty"`
+	QuotaDay          string                 `protobuf:"bytes,12,opt,name=quota_day,json=quotaDay,proto3" json:"quota_day,omitempty"`
+	QuotaCharged      bool                   `protobuf:"varint,13,opt,name=quota_charged,json=quotaCharged,proto3" json:"quota_charged,omitempty"`
+	DispatchConfirmed bool                   `protobuf:"varint,14,opt,name=dispatch_confirmed,json=dispatchConfirmed,proto3" json:"dispatch_confirmed,omitempty"`
+	Status            string                 `protobuf:"bytes,15,opt,name=status,proto3" json:"status,omitempty"`
+	UsageState        string                 `protobuf:"bytes,16,opt,name=usage_state,json=usageState,proto3" json:"usage_state,omitempty"`
+	PromptTokens      *int64                 `protobuf:"varint,17,opt,name=prompt_tokens,json=promptTokens,proto3,oneof" json:"prompt_tokens,omitempty"`
+	CompletionTokens  *int64                 `protobuf:"varint,18,opt,name=completion_tokens,json=completionTokens,proto3,oneof" json:"completion_tokens,omitempty"`
+	TotalTokens       *int64                 `protobuf:"varint,19,opt,name=total_tokens,json=totalTokens,proto3,oneof" json:"total_tokens,omitempty"`
+	HttpStatus        int64                  `protobuf:"varint,20,opt,name=http_status,json=httpStatus,proto3" json:"http_status,omitempty"`
+	ProviderRequestId string                 `protobuf:"bytes,21,opt,name=provider_request_id,json=providerRequestId,proto3" json:"provider_request_id,omitempty"`
+	ErrorCode         string                 `protobuf:"bytes,22,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`
+	StartedAt         int64                  `protobuf:"varint,23,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	DispatchedAt      int64                  `protobuf:"varint,24,opt,name=dispatched_at,json=dispatchedAt,proto3" json:"dispatched_at,omitempty"`
+	CompletedAt       int64                  `protobuf:"varint,25,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *UsageCallInfo) Reset() {
+	*x = UsageCallInfo{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UsageCallInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UsageCallInfo) ProtoMessage() {}
+
+func (x *UsageCallInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UsageCallInfo.ProtoReflect.Descriptor instead.
+func (*UsageCallInfo) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *UsageCallInfo) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *UsageCallInfo) GetAttemptId() string {
+	if x != nil {
+		return x.AttemptId
+	}
+	return ""
+}
+
+func (x *UsageCallInfo) GetOwnerId() int64 {
+	if x != nil {
+		return x.OwnerId
+	}
+	return 0
+}
+
+func (x *UsageCallInfo) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *UsageCallInfo) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *UsageCallInfo) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *UsageCallInfo) GetSourceId() int64 {
+	if x != nil {
+		return x.SourceId
+	}
+	return 0
+}
+
+func (x *UsageCallInfo) GetStepIndex() int64 {
+	if x != nil {
+		return x.StepIndex
+	}
+	return 0
+}
+
+func (x *UsageCallInfo) GetBatchIndex() int64 {
+	if x != nil {
+		return x.BatchIndex
+	}
+	return 0
+}
+
+func (x *UsageCallInfo) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *UsageCallInfo) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *UsageCallInfo) GetQuotaDay() string {
+	if x != nil {
+		return x.QuotaDay
+	}
+	return ""
+}
+
+func (x *UsageCallInfo) GetQuotaCharged() bool {
+	if x != nil {
+		return x.QuotaCharged
+	}
+	return false
+}
+
+func (x *UsageCallInfo) GetDispatchConfirmed() bool {
+	if x != nil {
+		return x.DispatchConfirmed
+	}
+	return false
+}
+
+func (x *UsageCallInfo) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *UsageCallInfo) GetUsageState() string {
+	if x != nil {
+		return x.UsageState
+	}
+	return ""
+}
+
+func (x *UsageCallInfo) GetPromptTokens() int64 {
+	if x != nil && x.PromptTokens != nil {
+		return *x.PromptTokens
+	}
+	return 0
+}
+
+func (x *UsageCallInfo) GetCompletionTokens() int64 {
+	if x != nil && x.CompletionTokens != nil {
+		return *x.CompletionTokens
+	}
+	return 0
+}
+
+func (x *UsageCallInfo) GetTotalTokens() int64 {
+	if x != nil && x.TotalTokens != nil {
+		return *x.TotalTokens
+	}
+	return 0
+}
+
+func (x *UsageCallInfo) GetHttpStatus() int64 {
+	if x != nil {
+		return x.HttpStatus
+	}
+	return 0
+}
+
+func (x *UsageCallInfo) GetProviderRequestId() string {
+	if x != nil {
+		return x.ProviderRequestId
+	}
+	return ""
+}
+
+func (x *UsageCallInfo) GetErrorCode() string {
+	if x != nil {
+		return x.ErrorCode
+	}
+	return ""
+}
+
+func (x *UsageCallInfo) GetStartedAt() int64 {
+	if x != nil {
+		return x.StartedAt
+	}
+	return 0
+}
+
+func (x *UsageCallInfo) GetDispatchedAt() int64 {
+	if x != nil {
+		return x.DispatchedAt
+	}
+	return 0
+}
+
+func (x *UsageCallInfo) GetCompletedAt() int64 {
+	if x != nil {
+		return x.CompletedAt
+	}
+	return 0
+}
+
+type ListUsageCallsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*UsageCallInfo       `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	Page          *PageResponse          `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUsageCallsResponse) Reset() {
+	*x = ListUsageCallsResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUsageCallsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUsageCallsResponse) ProtoMessage() {}
+
+func (x *ListUsageCallsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUsageCallsResponse.ProtoReflect.Descriptor instead.
+func (*ListUsageCallsResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ListUsageCallsResponse) GetList() []*UsageCallInfo {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+func (x *ListUsageCallsResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type UsagePolicyInfo struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	OwnerId               int64                  `protobuf:"varint,1,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	QuotaDay              string                 `protobuf:"bytes,2,opt,name=quota_day,json=quotaDay,proto3" json:"quota_day,omitempty"`
+	DailyRequestLimit     int64                  `protobuf:"varint,3,opt,name=daily_request_limit,json=dailyRequestLimit,proto3" json:"daily_request_limit,omitempty"`
+	UsedRequests          int64                  `protobuf:"varint,4,opt,name=used_requests,json=usedRequests,proto3" json:"used_requests,omitempty"`
+	RemainingRequests     int64                  `protobuf:"varint,5,opt,name=remaining_requests,json=remainingRequests,proto3" json:"remaining_requests,omitempty"`
+	Unlimited             bool                   `protobuf:"varint,6,opt,name=unlimited,proto3" json:"unlimited,omitempty"`
+	Inherited             bool                   `protobuf:"varint,7,opt,name=inherited,proto3" json:"inherited,omitempty"`
+	DailyTokenWarning     int64                  `protobuf:"varint,8,opt,name=daily_token_warning,json=dailyTokenWarning,proto3" json:"daily_token_warning,omitempty"`
+	KnownTokens           int64                  `protobuf:"varint,9,opt,name=known_tokens,json=knownTokens,proto3" json:"known_tokens,omitempty"`
+	WarningReached        bool                   `protobuf:"varint,10,opt,name=warning_reached,json=warningReached,proto3" json:"warning_reached,omitempty"`
+	IncompleteRequests    int64                  `protobuf:"varint,11,opt,name=incomplete_requests,json=incompleteRequests,proto3" json:"incomplete_requests,omitempty"`
+	Version               int64                  `protobuf:"varint,12,opt,name=version,proto3" json:"version,omitempty"`
+	GlobalConcurrentLimit int64                  `protobuf:"varint,13,opt,name=global_concurrent_limit,json=globalConcurrentLimit,proto3" json:"global_concurrent_limit,omitempty"`
+	ActiveCalls           int64                  `protobuf:"varint,14,opt,name=active_calls,json=activeCalls,proto3" json:"active_calls,omitempty"`
+	ActiveKnown           bool                   `protobuf:"varint,15,opt,name=active_known,json=activeKnown,proto3" json:"active_known,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *UsagePolicyInfo) Reset() {
+	*x = UsagePolicyInfo{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UsagePolicyInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UsagePolicyInfo) ProtoMessage() {}
+
+func (x *UsagePolicyInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UsagePolicyInfo.ProtoReflect.Descriptor instead.
+func (*UsagePolicyInfo) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UsagePolicyInfo) GetOwnerId() int64 {
+	if x != nil {
+		return x.OwnerId
+	}
+	return 0
+}
+
+func (x *UsagePolicyInfo) GetQuotaDay() string {
+	if x != nil {
+		return x.QuotaDay
+	}
+	return ""
+}
+
+func (x *UsagePolicyInfo) GetDailyRequestLimit() int64 {
+	if x != nil {
+		return x.DailyRequestLimit
+	}
+	return 0
+}
+
+func (x *UsagePolicyInfo) GetUsedRequests() int64 {
+	if x != nil {
+		return x.UsedRequests
+	}
+	return 0
+}
+
+func (x *UsagePolicyInfo) GetRemainingRequests() int64 {
+	if x != nil {
+		return x.RemainingRequests
+	}
+	return 0
+}
+
+func (x *UsagePolicyInfo) GetUnlimited() bool {
+	if x != nil {
+		return x.Unlimited
+	}
+	return false
+}
+
+func (x *UsagePolicyInfo) GetInherited() bool {
+	if x != nil {
+		return x.Inherited
+	}
+	return false
+}
+
+func (x *UsagePolicyInfo) GetDailyTokenWarning() int64 {
+	if x != nil {
+		return x.DailyTokenWarning
+	}
+	return 0
+}
+
+func (x *UsagePolicyInfo) GetKnownTokens() int64 {
+	if x != nil {
+		return x.KnownTokens
+	}
+	return 0
+}
+
+func (x *UsagePolicyInfo) GetWarningReached() bool {
+	if x != nil {
+		return x.WarningReached
+	}
+	return false
+}
+
+func (x *UsagePolicyInfo) GetIncompleteRequests() int64 {
+	if x != nil {
+		return x.IncompleteRequests
+	}
+	return 0
+}
+
+func (x *UsagePolicyInfo) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *UsagePolicyInfo) GetGlobalConcurrentLimit() int64 {
+	if x != nil {
+		return x.GlobalConcurrentLimit
+	}
+	return 0
+}
+
+func (x *UsagePolicyInfo) GetActiveCalls() int64 {
+	if x != nil {
+		return x.ActiveCalls
+	}
+	return 0
+}
+
+func (x *UsagePolicyInfo) GetActiveKnown() bool {
+	if x != nil {
+		return x.ActiveKnown
+	}
+	return false
+}
+
+type UsagePolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UsagePolicyRequest) Reset() {
+	*x = UsagePolicyRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UsagePolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UsagePolicyRequest) ProtoMessage() {}
+
+func (x *UsagePolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UsagePolicyRequest.ProtoReflect.Descriptor instead.
+func (*UsagePolicyRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *UsagePolicyRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *UsagePolicyRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type UsagePolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Policy        *UsagePolicyInfo       `protobuf:"bytes,1,opt,name=policy,proto3" json:"policy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UsagePolicyResponse) Reset() {
+	*x = UsagePolicyResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UsagePolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UsagePolicyResponse) ProtoMessage() {}
+
+func (x *UsagePolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UsagePolicyResponse.ProtoReflect.Descriptor instead.
+func (*UsagePolicyResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *UsagePolicyResponse) GetPolicy() *UsagePolicyInfo {
+	if x != nil {
+		return x.Policy
+	}
+	return nil
+}
+
+type ListUsagePoliciesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*UsagePolicyInfo     `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	Page          *PageResponse          `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUsagePoliciesResponse) Reset() {
+	*x = ListUsagePoliciesResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUsagePoliciesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUsagePoliciesResponse) ProtoMessage() {}
+
+func (x *ListUsagePoliciesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUsagePoliciesResponse.ProtoReflect.Descriptor instead.
+func (*ListUsagePoliciesResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListUsagePoliciesResponse) GetList() []*UsagePolicyInfo {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+func (x *ListUsagePoliciesResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type SetUsagePolicyRequest struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Actor                 *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	UserId                int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	ExpectedVersion       *int64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3,oneof" json:"expected_version,omitempty"`
+	DailyRequestLimit     *int64                 `protobuf:"varint,4,opt,name=daily_request_limit,json=dailyRequestLimit,proto3,oneof" json:"daily_request_limit,omitempty"`
+	DailyTokenWarning     *int64                 `protobuf:"varint,5,opt,name=daily_token_warning,json=dailyTokenWarning,proto3,oneof" json:"daily_token_warning,omitempty"`
+	GlobalConcurrentLimit *int64                 `protobuf:"varint,6,opt,name=global_concurrent_limit,json=globalConcurrentLimit,proto3,oneof" json:"global_concurrent_limit,omitempty"`
+	InheritDefault        bool                   `protobuf:"varint,7,opt,name=inherit_default,json=inheritDefault,proto3" json:"inherit_default,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *SetUsagePolicyRequest) Reset() {
+	*x = SetUsagePolicyRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetUsagePolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetUsagePolicyRequest) ProtoMessage() {}
+
+func (x *SetUsagePolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetUsagePolicyRequest.ProtoReflect.Descriptor instead.
+func (*SetUsagePolicyRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *SetUsagePolicyRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *SetUsagePolicyRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *SetUsagePolicyRequest) GetExpectedVersion() int64 {
+	if x != nil && x.ExpectedVersion != nil {
+		return *x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *SetUsagePolicyRequest) GetDailyRequestLimit() int64 {
+	if x != nil && x.DailyRequestLimit != nil {
+		return *x.DailyRequestLimit
+	}
+	return 0
+}
+
+func (x *SetUsagePolicyRequest) GetDailyTokenWarning() int64 {
+	if x != nil && x.DailyTokenWarning != nil {
+		return *x.DailyTokenWarning
+	}
+	return 0
+}
+
+func (x *SetUsagePolicyRequest) GetGlobalConcurrentLimit() int64 {
+	if x != nil && x.GlobalConcurrentLimit != nil {
+		return *x.GlobalConcurrentLimit
+	}
+	return 0
+}
+
+func (x *SetUsagePolicyRequest) GetInheritDefault() bool {
+	if x != nil {
+		return x.InheritDefault
+	}
+	return false
+}
+
 // ========== 会话与消息（阶段 1） ==========
 type ChatMessage struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -249,7 +1530,7 @@ type ChatMessage struct {
 
 func (x *ChatMessage) Reset() {
 	*x = ChatMessage{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[4]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -261,7 +1542,7 @@ func (x *ChatMessage) String() string {
 func (*ChatMessage) ProtoMessage() {}
 
 func (x *ChatMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[4]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -274,7 +1555,7 @@ func (x *ChatMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
 func (*ChatMessage) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{4}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ChatMessage) GetId() int64 {
@@ -369,7 +1650,7 @@ type ConversationInfo struct {
 
 func (x *ConversationInfo) Reset() {
 	*x = ConversationInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[5]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -381,7 +1662,7 @@ func (x *ConversationInfo) String() string {
 func (*ConversationInfo) ProtoMessage() {}
 
 func (x *ConversationInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[5]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -394,7 +1675,7 @@ func (x *ConversationInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConversationInfo.ProtoReflect.Descriptor instead.
 func (*ConversationInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{5}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ConversationInfo) GetId() int64 {
@@ -456,7 +1737,7 @@ type CreateConversationRequest struct {
 
 func (x *CreateConversationRequest) Reset() {
 	*x = CreateConversationRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[6]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -468,7 +1749,7 @@ func (x *CreateConversationRequest) String() string {
 func (*CreateConversationRequest) ProtoMessage() {}
 
 func (x *CreateConversationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[6]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -481,7 +1762,7 @@ func (x *CreateConversationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateConversationRequest.ProtoReflect.Descriptor instead.
 func (*CreateConversationRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{6}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CreateConversationRequest) GetActor() *Actor {
@@ -507,7 +1788,7 @@ type CreateConversationResponse struct {
 
 func (x *CreateConversationResponse) Reset() {
 	*x = CreateConversationResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[7]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -519,7 +1800,7 @@ func (x *CreateConversationResponse) String() string {
 func (*CreateConversationResponse) ProtoMessage() {}
 
 func (x *CreateConversationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[7]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -532,7 +1813,7 @@ func (x *CreateConversationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateConversationResponse.ProtoReflect.Descriptor instead.
 func (*CreateConversationResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{7}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *CreateConversationResponse) GetConversation() *ConversationInfo {
@@ -553,7 +1834,7 @@ type ListConversationsRequest struct {
 
 func (x *ListConversationsRequest) Reset() {
 	*x = ListConversationsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[8]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -565,7 +1846,7 @@ func (x *ListConversationsRequest) String() string {
 func (*ListConversationsRequest) ProtoMessage() {}
 
 func (x *ListConversationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[8]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -578,7 +1859,7 @@ func (x *ListConversationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConversationsRequest.ProtoReflect.Descriptor instead.
 func (*ListConversationsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{8}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ListConversationsRequest) GetActor() *Actor {
@@ -614,7 +1895,7 @@ type UpdateConversationRequest struct {
 
 func (x *UpdateConversationRequest) Reset() {
 	*x = UpdateConversationRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[9]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -626,7 +1907,7 @@ func (x *UpdateConversationRequest) String() string {
 func (*UpdateConversationRequest) ProtoMessage() {}
 
 func (x *UpdateConversationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[9]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -639,7 +1920,7 @@ func (x *UpdateConversationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateConversationRequest.ProtoReflect.Descriptor instead.
 func (*UpdateConversationRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{9}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *UpdateConversationRequest) GetActor() *Actor {
@@ -683,7 +1964,7 @@ type SetMessageFeedbackRequest struct {
 
 func (x *SetMessageFeedbackRequest) Reset() {
 	*x = SetMessageFeedbackRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[10]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -695,7 +1976,7 @@ func (x *SetMessageFeedbackRequest) String() string {
 func (*SetMessageFeedbackRequest) ProtoMessage() {}
 
 func (x *SetMessageFeedbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[10]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -708,7 +1989,7 @@ func (x *SetMessageFeedbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMessageFeedbackRequest.ProtoReflect.Descriptor instead.
 func (*SetMessageFeedbackRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{10}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *SetMessageFeedbackRequest) GetActor() *Actor {
@@ -756,7 +2037,7 @@ type ListConversationsResponse struct {
 
 func (x *ListConversationsResponse) Reset() {
 	*x = ListConversationsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[11]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -768,7 +2049,7 @@ func (x *ListConversationsResponse) String() string {
 func (*ListConversationsResponse) ProtoMessage() {}
 
 func (x *ListConversationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[11]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -781,7 +2062,7 @@ func (x *ListConversationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConversationsResponse.ProtoReflect.Descriptor instead.
 func (*ListConversationsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{11}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListConversationsResponse) GetList() []*ConversationInfo {
@@ -810,7 +2091,7 @@ type GetConversationRequest struct {
 
 func (x *GetConversationRequest) Reset() {
 	*x = GetConversationRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[12]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -822,7 +2103,7 @@ func (x *GetConversationRequest) String() string {
 func (*GetConversationRequest) ProtoMessage() {}
 
 func (x *GetConversationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[12]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -835,7 +2116,7 @@ func (x *GetConversationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConversationRequest.ProtoReflect.Descriptor instead.
 func (*GetConversationRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{12}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetConversationRequest) GetActor() *Actor {
@@ -878,7 +2159,7 @@ type GetConversationResponse struct {
 
 func (x *GetConversationResponse) Reset() {
 	*x = GetConversationResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[13]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -890,7 +2171,7 @@ func (x *GetConversationResponse) String() string {
 func (*GetConversationResponse) ProtoMessage() {}
 
 func (x *GetConversationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[13]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -903,7 +2184,7 @@ func (x *GetConversationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConversationResponse.ProtoReflect.Descriptor instead.
 func (*GetConversationResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{13}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetConversationResponse) GetConversation() *ConversationInfo {
@@ -944,7 +2225,7 @@ type DeleteConversationRequest struct {
 
 func (x *DeleteConversationRequest) Reset() {
 	*x = DeleteConversationRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[14]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -956,7 +2237,7 @@ func (x *DeleteConversationRequest) String() string {
 func (*DeleteConversationRequest) ProtoMessage() {}
 
 func (x *DeleteConversationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[14]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -969,7 +2250,7 @@ func (x *DeleteConversationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteConversationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteConversationRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{14}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *DeleteConversationRequest) GetActor() *Actor {
@@ -1001,7 +2282,7 @@ type SendMessageRequest struct {
 
 func (x *SendMessageRequest) Reset() {
 	*x = SendMessageRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[15]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1013,7 +2294,7 @@ func (x *SendMessageRequest) String() string {
 func (*SendMessageRequest) ProtoMessage() {}
 
 func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[15]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1026,7 +2307,7 @@ func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMessageRequest.ProtoReflect.Descriptor instead.
 func (*SendMessageRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{15}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *SendMessageRequest) GetActor() *Actor {
@@ -1083,7 +2364,7 @@ type SendMessageResponse struct {
 
 func (x *SendMessageResponse) Reset() {
 	*x = SendMessageResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[16]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1095,7 +2376,7 @@ func (x *SendMessageResponse) String() string {
 func (*SendMessageResponse) ProtoMessage() {}
 
 func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[16]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1108,7 +2389,7 @@ func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMessageResponse.ProtoReflect.Descriptor instead.
 func (*SendMessageResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{16}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *SendMessageResponse) GetUserMessage() *ChatMessage {
@@ -1158,7 +2439,7 @@ type StreamChunk struct {
 
 func (x *StreamChunk) Reset() {
 	*x = StreamChunk{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[17]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1170,7 +2451,7 @@ func (x *StreamChunk) String() string {
 func (*StreamChunk) ProtoMessage() {}
 
 func (x *StreamChunk) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[17]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1183,7 +2464,7 @@ func (x *StreamChunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamChunk.ProtoReflect.Descriptor instead.
 func (*StreamChunk) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{17}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *StreamChunk) GetType() string {
@@ -1268,7 +2549,7 @@ type ToolInfo struct {
 
 func (x *ToolInfo) Reset() {
 	*x = ToolInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[18]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1280,7 +2561,7 @@ func (x *ToolInfo) String() string {
 func (*ToolInfo) ProtoMessage() {}
 
 func (x *ToolInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[18]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1293,7 +2574,7 @@ func (x *ToolInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ToolInfo.ProtoReflect.Descriptor instead.
 func (*ToolInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{18}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ToolInfo) GetName() string {
@@ -1326,7 +2607,7 @@ type ListToolsRequest struct {
 
 func (x *ListToolsRequest) Reset() {
 	*x = ListToolsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[19]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1338,7 +2619,7 @@ func (x *ListToolsRequest) String() string {
 func (*ListToolsRequest) ProtoMessage() {}
 
 func (x *ListToolsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[19]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1351,7 +2632,7 @@ func (x *ListToolsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListToolsRequest.ProtoReflect.Descriptor instead.
 func (*ListToolsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{19}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListToolsRequest) GetActor() *Actor {
@@ -1372,7 +2653,7 @@ type Capabilities struct {
 
 func (x *Capabilities) Reset() {
 	*x = Capabilities{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[20]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1384,7 +2665,7 @@ func (x *Capabilities) String() string {
 func (*Capabilities) ProtoMessage() {}
 
 func (x *Capabilities) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[20]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1397,7 +2678,7 @@ func (x *Capabilities) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Capabilities.ProtoReflect.Descriptor instead.
 func (*Capabilities) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{20}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *Capabilities) GetRetrievalConfigured() bool {
@@ -1431,7 +2712,7 @@ type ListToolsResponse struct {
 
 func (x *ListToolsResponse) Reset() {
 	*x = ListToolsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[21]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1443,7 +2724,7 @@ func (x *ListToolsResponse) String() string {
 func (*ListToolsResponse) ProtoMessage() {}
 
 func (x *ListToolsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[21]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1456,7 +2737,7 @@ func (x *ListToolsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListToolsResponse.ProtoReflect.Descriptor instead.
 func (*ListToolsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{21}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListToolsResponse) GetList() []*ToolInfo {
@@ -1486,13 +2767,14 @@ type WorkflowInfo struct {
 	CreatedAt       int64                  `protobuf:"varint,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt       int64                  `protobuf:"varint,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	StepCount       int64                  `protobuf:"varint,10,opt,name=step_count,json=stepCount,proto3" json:"step_count,omitempty"`
+	Revision        int64                  `protobuf:"varint,11,opt,name=revision,proto3" json:"revision,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
 
 func (x *WorkflowInfo) Reset() {
 	*x = WorkflowInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[22]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1504,7 +2786,7 @@ func (x *WorkflowInfo) String() string {
 func (*WorkflowInfo) ProtoMessage() {}
 
 func (x *WorkflowInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[22]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1517,7 +2799,7 @@ func (x *WorkflowInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowInfo.ProtoReflect.Descriptor instead.
 func (*WorkflowInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{22}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *WorkflowInfo) GetId() int64 {
@@ -1590,6 +2872,13 @@ func (x *WorkflowInfo) GetStepCount() int64 {
 	return 0
 }
 
+func (x *WorkflowInfo) GetRevision() int64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
 // definition JSON DSL：{"steps":[{"name":"","tool":"","input":{},"approval":true}]}
 type CreateWorkflowRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
@@ -1603,7 +2892,7 @@ type CreateWorkflowRequest struct {
 
 func (x *CreateWorkflowRequest) Reset() {
 	*x = CreateWorkflowRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[23]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1615,7 +2904,7 @@ func (x *CreateWorkflowRequest) String() string {
 func (*CreateWorkflowRequest) ProtoMessage() {}
 
 func (x *CreateWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[23]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1628,7 +2917,7 @@ func (x *CreateWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*CreateWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{23}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *CreateWorkflowRequest) GetActor() *Actor {
@@ -1668,7 +2957,7 @@ type CreateWorkflowResponse struct {
 
 func (x *CreateWorkflowResponse) Reset() {
 	*x = CreateWorkflowResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[24]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1680,7 +2969,7 @@ func (x *CreateWorkflowResponse) String() string {
 func (*CreateWorkflowResponse) ProtoMessage() {}
 
 func (x *CreateWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[24]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1693,7 +2982,7 @@ func (x *CreateWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*CreateWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{24}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *CreateWorkflowResponse) GetWorkflow() *WorkflowInfo {
@@ -1714,7 +3003,7 @@ type ListWorkflowsRequest struct {
 
 func (x *ListWorkflowsRequest) Reset() {
 	*x = ListWorkflowsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[25]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1726,7 +3015,7 @@ func (x *ListWorkflowsRequest) String() string {
 func (*ListWorkflowsRequest) ProtoMessage() {}
 
 func (x *ListWorkflowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[25]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1739,7 +3028,7 @@ func (x *ListWorkflowsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowsRequest.ProtoReflect.Descriptor instead.
 func (*ListWorkflowsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{25}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ListWorkflowsRequest) GetActor() *Actor {
@@ -1773,7 +3062,7 @@ type ListWorkflowsResponse struct {
 
 func (x *ListWorkflowsResponse) Reset() {
 	*x = ListWorkflowsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[26]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1785,7 +3074,7 @@ func (x *ListWorkflowsResponse) String() string {
 func (*ListWorkflowsResponse) ProtoMessage() {}
 
 func (x *ListWorkflowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[26]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1798,7 +3087,7 @@ func (x *ListWorkflowsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowsResponse.ProtoReflect.Descriptor instead.
 func (*ListWorkflowsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{26}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListWorkflowsResponse) GetList() []*WorkflowInfo {
@@ -1825,7 +3114,7 @@ type GetWorkflowRequest struct {
 
 func (x *GetWorkflowRequest) Reset() {
 	*x = GetWorkflowRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[27]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1837,7 +3126,7 @@ func (x *GetWorkflowRequest) String() string {
 func (*GetWorkflowRequest) ProtoMessage() {}
 
 func (x *GetWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[27]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1850,7 +3139,7 @@ func (x *GetWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*GetWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{27}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *GetWorkflowRequest) GetActor() *Actor {
@@ -1876,7 +3165,7 @@ type GetWorkflowResponse struct {
 
 func (x *GetWorkflowResponse) Reset() {
 	*x = GetWorkflowResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[28]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1888,7 +3177,7 @@ func (x *GetWorkflowResponse) String() string {
 func (*GetWorkflowResponse) ProtoMessage() {}
 
 func (x *GetWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[28]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1901,7 +3190,7 @@ func (x *GetWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*GetWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{28}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *GetWorkflowResponse) GetWorkflow() *WorkflowInfo {
@@ -1912,20 +3201,21 @@ func (x *GetWorkflowResponse) GetWorkflow() *WorkflowInfo {
 }
 
 type UpdateWorkflowRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Actor           *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
-	WorkflowId      int64                  `protobuf:"varint,2,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
-	Name            *string                `protobuf:"bytes,3,opt,name=name,proto3,oneof" json:"name,omitempty"`
-	Definition      *string                `protobuf:"bytes,4,opt,name=definition,proto3,oneof" json:"definition,omitempty"`
-	IntervalSeconds *int64                 `protobuf:"varint,5,opt,name=interval_seconds,json=intervalSeconds,proto3,oneof" json:"interval_seconds,omitempty"`
-	Enabled         *int64                 `protobuf:"varint,6,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Actor            *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	WorkflowId       int64                  `protobuf:"varint,2,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	Name             *string                `protobuf:"bytes,3,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Definition       *string                `protobuf:"bytes,4,opt,name=definition,proto3,oneof" json:"definition,omitempty"`
+	IntervalSeconds  *int64                 `protobuf:"varint,5,opt,name=interval_seconds,json=intervalSeconds,proto3,oneof" json:"interval_seconds,omitempty"`
+	Enabled          *int64                 `protobuf:"varint,6,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	ExpectedRevision int64                  `protobuf:"varint,7,opt,name=expected_revision,json=expectedRevision,proto3" json:"expected_revision,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *UpdateWorkflowRequest) Reset() {
 	*x = UpdateWorkflowRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[29]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1937,7 +3227,7 @@ func (x *UpdateWorkflowRequest) String() string {
 func (*UpdateWorkflowRequest) ProtoMessage() {}
 
 func (x *UpdateWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[29]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1950,7 +3240,7 @@ func (x *UpdateWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*UpdateWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{29}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *UpdateWorkflowRequest) GetActor() *Actor {
@@ -1995,6 +3285,405 @@ func (x *UpdateWorkflowRequest) GetEnabled() int64 {
 	return 0
 }
 
+func (x *UpdateWorkflowRequest) GetExpectedRevision() int64 {
+	if x != nil {
+		return x.ExpectedRevision
+	}
+	return 0
+}
+
+type WorkflowRevisionInfo struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	WorkflowId      int64                  `protobuf:"varint,2,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	Revision        int64                  `protobuf:"varint,3,opt,name=revision,proto3" json:"revision,omitempty"`
+	Name            string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Definition      string                 `protobuf:"bytes,5,opt,name=definition,proto3" json:"definition,omitempty"`
+	IntervalSeconds int64                  `protobuf:"varint,6,opt,name=interval_seconds,json=intervalSeconds,proto3" json:"interval_seconds,omitempty"`
+	Enabled         int64                  `protobuf:"varint,7,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	StepCount       int64                  `protobuf:"varint,8,opt,name=step_count,json=stepCount,proto3" json:"step_count,omitempty"`
+	CreatedAt       int64                  `protobuf:"varint,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *WorkflowRevisionInfo) Reset() {
+	*x = WorkflowRevisionInfo{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowRevisionInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowRevisionInfo) ProtoMessage() {}
+
+func (x *WorkflowRevisionInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowRevisionInfo.ProtoReflect.Descriptor instead.
+func (*WorkflowRevisionInfo) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *WorkflowRevisionInfo) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *WorkflowRevisionInfo) GetWorkflowId() int64 {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return 0
+}
+
+func (x *WorkflowRevisionInfo) GetRevision() int64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+func (x *WorkflowRevisionInfo) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *WorkflowRevisionInfo) GetDefinition() string {
+	if x != nil {
+		return x.Definition
+	}
+	return ""
+}
+
+func (x *WorkflowRevisionInfo) GetIntervalSeconds() int64 {
+	if x != nil {
+		return x.IntervalSeconds
+	}
+	return 0
+}
+
+func (x *WorkflowRevisionInfo) GetEnabled() int64 {
+	if x != nil {
+		return x.Enabled
+	}
+	return 0
+}
+
+func (x *WorkflowRevisionInfo) GetStepCount() int64 {
+	if x != nil {
+		return x.StepCount
+	}
+	return 0
+}
+
+func (x *WorkflowRevisionInfo) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+type ListWorkflowRevisionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	WorkflowId    int64                  `protobuf:"varint,2,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	Page          *PageRequest           `protobuf:"bytes,3,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListWorkflowRevisionsRequest) Reset() {
+	*x = ListWorkflowRevisionsRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListWorkflowRevisionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListWorkflowRevisionsRequest) ProtoMessage() {}
+
+func (x *ListWorkflowRevisionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListWorkflowRevisionsRequest.ProtoReflect.Descriptor instead.
+func (*ListWorkflowRevisionsRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *ListWorkflowRevisionsRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *ListWorkflowRevisionsRequest) GetWorkflowId() int64 {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return 0
+}
+
+func (x *ListWorkflowRevisionsRequest) GetPage() *PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type ListWorkflowRevisionsResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	List          []*WorkflowRevisionInfo `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	Page          *PageResponse           `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListWorkflowRevisionsResponse) Reset() {
+	*x = ListWorkflowRevisionsResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListWorkflowRevisionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListWorkflowRevisionsResponse) ProtoMessage() {}
+
+func (x *ListWorkflowRevisionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListWorkflowRevisionsResponse.ProtoReflect.Descriptor instead.
+func (*ListWorkflowRevisionsResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *ListWorkflowRevisionsResponse) GetList() []*WorkflowRevisionInfo {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+func (x *ListWorkflowRevisionsResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type GetWorkflowRevisionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	WorkflowId    int64                  `protobuf:"varint,2,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	Revision      int64                  `protobuf:"varint,3,opt,name=revision,proto3" json:"revision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetWorkflowRevisionRequest) Reset() {
+	*x = GetWorkflowRevisionRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetWorkflowRevisionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetWorkflowRevisionRequest) ProtoMessage() {}
+
+func (x *GetWorkflowRevisionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetWorkflowRevisionRequest.ProtoReflect.Descriptor instead.
+func (*GetWorkflowRevisionRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *GetWorkflowRevisionRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *GetWorkflowRevisionRequest) GetWorkflowId() int64 {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return 0
+}
+
+func (x *GetWorkflowRevisionRequest) GetRevision() int64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+type GetWorkflowRevisionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Revision      *WorkflowRevisionInfo  `protobuf:"bytes,1,opt,name=revision,proto3" json:"revision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetWorkflowRevisionResponse) Reset() {
+	*x = GetWorkflowRevisionResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetWorkflowRevisionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetWorkflowRevisionResponse) ProtoMessage() {}
+
+func (x *GetWorkflowRevisionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetWorkflowRevisionResponse.ProtoReflect.Descriptor instead.
+func (*GetWorkflowRevisionResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *GetWorkflowRevisionResponse) GetRevision() *WorkflowRevisionInfo {
+	if x != nil {
+		return x.Revision
+	}
+	return nil
+}
+
+type RestoreWorkflowRevisionRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Actor            *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	WorkflowId       int64                  `protobuf:"varint,2,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	Revision         int64                  `protobuf:"varint,3,opt,name=revision,proto3" json:"revision,omitempty"`
+	ExpectedRevision int64                  `protobuf:"varint,4,opt,name=expected_revision,json=expectedRevision,proto3" json:"expected_revision,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *RestoreWorkflowRevisionRequest) Reset() {
+	*x = RestoreWorkflowRevisionRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreWorkflowRevisionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreWorkflowRevisionRequest) ProtoMessage() {}
+
+func (x *RestoreWorkflowRevisionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreWorkflowRevisionRequest.ProtoReflect.Descriptor instead.
+func (*RestoreWorkflowRevisionRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *RestoreWorkflowRevisionRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *RestoreWorkflowRevisionRequest) GetWorkflowId() int64 {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return 0
+}
+
+func (x *RestoreWorkflowRevisionRequest) GetRevision() int64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+func (x *RestoreWorkflowRevisionRequest) GetExpectedRevision() int64 {
+	if x != nil {
+		return x.ExpectedRevision
+	}
+	return 0
+}
+
 type DeleteWorkflowRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
@@ -2005,7 +3694,7 @@ type DeleteWorkflowRequest struct {
 
 func (x *DeleteWorkflowRequest) Reset() {
 	*x = DeleteWorkflowRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[30]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2017,7 +3706,7 @@ func (x *DeleteWorkflowRequest) String() string {
 func (*DeleteWorkflowRequest) ProtoMessage() {}
 
 func (x *DeleteWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[30]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2030,7 +3719,7 @@ func (x *DeleteWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*DeleteWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{30}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *DeleteWorkflowRequest) GetActor() *Actor {
@@ -2059,7 +3748,7 @@ type RunWorkflowRequest struct {
 
 func (x *RunWorkflowRequest) Reset() {
 	*x = RunWorkflowRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[31]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2071,7 +3760,7 @@ func (x *RunWorkflowRequest) String() string {
 func (*RunWorkflowRequest) ProtoMessage() {}
 
 func (x *RunWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[31]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2084,7 +3773,7 @@ func (x *RunWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*RunWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{31}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *RunWorkflowRequest) GetActor() *Actor {
@@ -2125,7 +3814,7 @@ type RunWorkflowResponse struct {
 
 func (x *RunWorkflowResponse) Reset() {
 	*x = RunWorkflowResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[32]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2137,7 +3826,7 @@ func (x *RunWorkflowResponse) String() string {
 func (*RunWorkflowResponse) ProtoMessage() {}
 
 func (x *RunWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[32]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2150,7 +3839,7 @@ func (x *RunWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*RunWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{32}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *RunWorkflowResponse) GetTaskId() int64 {
@@ -2180,7 +3869,7 @@ type RunDraftRequest struct {
 
 func (x *RunDraftRequest) Reset() {
 	*x = RunDraftRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[33]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2192,7 +3881,7 @@ func (x *RunDraftRequest) String() string {
 func (*RunDraftRequest) ProtoMessage() {}
 
 func (x *RunDraftRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[33]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2205,7 +3894,7 @@ func (x *RunDraftRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunDraftRequest.ProtoReflect.Descriptor instead.
 func (*RunDraftRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{33}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *RunDraftRequest) GetActor() *Actor {
@@ -2270,7 +3959,7 @@ type AgentTaskInfo struct {
 
 func (x *AgentTaskInfo) Reset() {
 	*x = AgentTaskInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[34]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2282,7 +3971,7 @@ func (x *AgentTaskInfo) String() string {
 func (*AgentTaskInfo) ProtoMessage() {}
 
 func (x *AgentTaskInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[34]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2295,7 +3984,7 @@ func (x *AgentTaskInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentTaskInfo.ProtoReflect.Descriptor instead.
 func (*AgentTaskInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{34}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *AgentTaskInfo) GetId() int64 {
@@ -2436,13 +4125,14 @@ type WorkflowStepInfo struct {
 	Error         string                 `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
 	StartedAt     int64                  `protobuf:"varint,9,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
 	CompletedAt   int64                  `protobuf:"varint,10,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
+	Usage         *WorkflowStepUsage     `protobuf:"bytes,11,opt,name=usage,proto3" json:"usage,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WorkflowStepInfo) Reset() {
 	*x = WorkflowStepInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[35]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2454,7 +4144,7 @@ func (x *WorkflowStepInfo) String() string {
 func (*WorkflowStepInfo) ProtoMessage() {}
 
 func (x *WorkflowStepInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[35]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2467,7 +4157,7 @@ func (x *WorkflowStepInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowStepInfo.ProtoReflect.Descriptor instead.
 func (*WorkflowStepInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{35}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *WorkflowStepInfo) GetIndex() int64 {
@@ -2540,6 +4230,89 @@ func (x *WorkflowStepInfo) GetCompletedAt() int64 {
 	return 0
 }
 
+func (x *WorkflowStepInfo) GetUsage() *WorkflowStepUsage {
+	if x != nil {
+		return x.Usage
+	}
+	return nil
+}
+
+type WorkflowStepUsage struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Scope            string                 `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
+	PromptTokens     int64                  `protobuf:"varint,2,opt,name=prompt_tokens,json=promptTokens,proto3" json:"prompt_tokens,omitempty"`
+	CompletionTokens int64                  `protobuf:"varint,3,opt,name=completion_tokens,json=completionTokens,proto3" json:"completion_tokens,omitempty"`
+	TotalTokens      int64                  `protobuf:"varint,4,opt,name=total_tokens,json=totalTokens,proto3" json:"total_tokens,omitempty"`
+	Complete         bool                   `protobuf:"varint,5,opt,name=complete,proto3" json:"complete,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *WorkflowStepUsage) Reset() {
+	*x = WorkflowStepUsage{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowStepUsage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowStepUsage) ProtoMessage() {}
+
+func (x *WorkflowStepUsage) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowStepUsage.ProtoReflect.Descriptor instead.
+func (*WorkflowStepUsage) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *WorkflowStepUsage) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *WorkflowStepUsage) GetPromptTokens() int64 {
+	if x != nil {
+		return x.PromptTokens
+	}
+	return 0
+}
+
+func (x *WorkflowStepUsage) GetCompletionTokens() int64 {
+	if x != nil {
+		return x.CompletionTokens
+	}
+	return 0
+}
+
+func (x *WorkflowStepUsage) GetTotalTokens() int64 {
+	if x != nil {
+		return x.TotalTokens
+	}
+	return 0
+}
+
+func (x *WorkflowStepUsage) GetComplete() bool {
+	if x != nil {
+		return x.Complete
+	}
+	return false
+}
+
 type ListAgentTasksRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
@@ -2553,7 +4326,7 @@ type ListAgentTasksRequest struct {
 
 func (x *ListAgentTasksRequest) Reset() {
 	*x = ListAgentTasksRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[36]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2565,7 +4338,7 @@ func (x *ListAgentTasksRequest) String() string {
 func (*ListAgentTasksRequest) ProtoMessage() {}
 
 func (x *ListAgentTasksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[36]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2578,7 +4351,7 @@ func (x *ListAgentTasksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentTasksRequest.ProtoReflect.Descriptor instead.
 func (*ListAgentTasksRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{36}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ListAgentTasksRequest) GetActor() *Actor {
@@ -2626,7 +4399,7 @@ type ListAgentTasksResponse struct {
 
 func (x *ListAgentTasksResponse) Reset() {
 	*x = ListAgentTasksResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[37]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2638,7 +4411,7 @@ func (x *ListAgentTasksResponse) String() string {
 func (*ListAgentTasksResponse) ProtoMessage() {}
 
 func (x *ListAgentTasksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[37]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2651,7 +4424,7 @@ func (x *ListAgentTasksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentTasksResponse.ProtoReflect.Descriptor instead.
 func (*ListAgentTasksResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{37}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *ListAgentTasksResponse) GetList() []*AgentTaskInfo {
@@ -2679,7 +4452,7 @@ type GetAgentTaskRequest struct {
 
 func (x *GetAgentTaskRequest) Reset() {
 	*x = GetAgentTaskRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[38]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2691,7 +4464,7 @@ func (x *GetAgentTaskRequest) String() string {
 func (*GetAgentTaskRequest) ProtoMessage() {}
 
 func (x *GetAgentTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[38]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2704,7 +4477,7 @@ func (x *GetAgentTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentTaskRequest.ProtoReflect.Descriptor instead.
 func (*GetAgentTaskRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{38}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *GetAgentTaskRequest) GetActor() *Actor {
@@ -2737,7 +4510,7 @@ type GetAgentTaskResponse struct {
 
 func (x *GetAgentTaskResponse) Reset() {
 	*x = GetAgentTaskResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[39]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2749,7 +4522,7 @@ func (x *GetAgentTaskResponse) String() string {
 func (*GetAgentTaskResponse) ProtoMessage() {}
 
 func (x *GetAgentTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[39]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2762,7 +4535,7 @@ func (x *GetAgentTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentTaskResponse.ProtoReflect.Descriptor instead.
 func (*GetAgentTaskResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{39}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *GetAgentTaskResponse) GetTask() *AgentTaskInfo {
@@ -2783,7 +4556,7 @@ type ApproveTaskRequest struct {
 
 func (x *ApproveTaskRequest) Reset() {
 	*x = ApproveTaskRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[40]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2795,7 +4568,7 @@ func (x *ApproveTaskRequest) String() string {
 func (*ApproveTaskRequest) ProtoMessage() {}
 
 func (x *ApproveTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[40]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2808,7 +4581,7 @@ func (x *ApproveTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApproveTaskRequest.ProtoReflect.Descriptor instead.
 func (*ApproveTaskRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{40}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *ApproveTaskRequest) GetActor() *Actor {
@@ -2844,7 +4617,7 @@ type RejectTaskRequest struct {
 
 func (x *RejectTaskRequest) Reset() {
 	*x = RejectTaskRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[41]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2856,7 +4629,7 @@ func (x *RejectTaskRequest) String() string {
 func (*RejectTaskRequest) ProtoMessage() {}
 
 func (x *RejectTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[41]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2869,7 +4642,7 @@ func (x *RejectTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RejectTaskRequest.ProtoReflect.Descriptor instead.
 func (*RejectTaskRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{41}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *RejectTaskRequest) GetActor() *Actor {
@@ -2910,7 +4683,7 @@ type CancelTaskRequest struct {
 
 func (x *CancelTaskRequest) Reset() {
 	*x = CancelTaskRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[42]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2922,7 +4695,7 @@ func (x *CancelTaskRequest) String() string {
 func (*CancelTaskRequest) ProtoMessage() {}
 
 func (x *CancelTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[42]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2935,7 +4708,7 @@ func (x *CancelTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelTaskRequest.ProtoReflect.Descriptor instead.
 func (*CancelTaskRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{42}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *CancelTaskRequest) GetActor() *Actor {
@@ -2972,7 +4745,7 @@ type KbInfo struct {
 
 func (x *KbInfo) Reset() {
 	*x = KbInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[43]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2984,7 +4757,7 @@ func (x *KbInfo) String() string {
 func (*KbInfo) ProtoMessage() {}
 
 func (x *KbInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[43]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2997,7 +4770,7 @@ func (x *KbInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbInfo.ProtoReflect.Descriptor instead.
 func (*KbInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{43}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *KbInfo) GetId() int64 {
@@ -3096,7 +4869,7 @@ type KbDocInfo struct {
 
 func (x *KbDocInfo) Reset() {
 	*x = KbDocInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[44]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3108,7 +4881,7 @@ func (x *KbDocInfo) String() string {
 func (*KbDocInfo) ProtoMessage() {}
 
 func (x *KbDocInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[44]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3121,7 +4894,7 @@ func (x *KbDocInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbDocInfo.ProtoReflect.Descriptor instead.
 func (*KbDocInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{44}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *KbDocInfo) GetId() int64 {
@@ -3212,7 +4985,7 @@ type CreateKbRequest struct {
 
 func (x *CreateKbRequest) Reset() {
 	*x = CreateKbRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[45]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3224,7 +4997,7 @@ func (x *CreateKbRequest) String() string {
 func (*CreateKbRequest) ProtoMessage() {}
 
 func (x *CreateKbRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[45]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3237,7 +5010,7 @@ func (x *CreateKbRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateKbRequest.ProtoReflect.Descriptor instead.
 func (*CreateKbRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{45}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *CreateKbRequest) GetActor() *Actor {
@@ -3271,7 +5044,7 @@ type CreateKbResponse struct {
 
 func (x *CreateKbResponse) Reset() {
 	*x = CreateKbResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[46]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3283,7 +5056,7 @@ func (x *CreateKbResponse) String() string {
 func (*CreateKbResponse) ProtoMessage() {}
 
 func (x *CreateKbResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[46]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3296,7 +5069,7 @@ func (x *CreateKbResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateKbResponse.ProtoReflect.Descriptor instead.
 func (*CreateKbResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{46}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *CreateKbResponse) GetKb() *KbInfo {
@@ -3324,7 +5097,7 @@ type ListKbsRequest struct {
 
 func (x *ListKbsRequest) Reset() {
 	*x = ListKbsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[47]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3336,7 +5109,7 @@ func (x *ListKbsRequest) String() string {
 func (*ListKbsRequest) ProtoMessage() {}
 
 func (x *ListKbsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[47]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3349,7 +5122,7 @@ func (x *ListKbsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbsRequest.ProtoReflect.Descriptor instead.
 func (*ListKbsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{47}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *ListKbsRequest) GetActor() *Actor {
@@ -3384,7 +5157,7 @@ type ListKbsResponse struct {
 
 func (x *ListKbsResponse) Reset() {
 	*x = ListKbsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[48]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3396,7 +5169,7 @@ func (x *ListKbsResponse) String() string {
 func (*ListKbsResponse) ProtoMessage() {}
 
 func (x *ListKbsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[48]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3409,7 +5182,7 @@ func (x *ListKbsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbsResponse.ProtoReflect.Descriptor instead.
 func (*ListKbsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{48}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ListKbsResponse) GetList() []*KbInfo {
@@ -3443,7 +5216,7 @@ type GetKbRequest struct {
 
 func (x *GetKbRequest) Reset() {
 	*x = GetKbRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[49]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3455,7 +5228,7 @@ func (x *GetKbRequest) String() string {
 func (*GetKbRequest) ProtoMessage() {}
 
 func (x *GetKbRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[49]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3468,7 +5241,7 @@ func (x *GetKbRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbRequest.ProtoReflect.Descriptor instead.
 func (*GetKbRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{49}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *GetKbRequest) GetActor() *Actor {
@@ -3495,7 +5268,7 @@ type GetKbResponse struct {
 
 func (x *GetKbResponse) Reset() {
 	*x = GetKbResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[50]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3507,7 +5280,7 @@ func (x *GetKbResponse) String() string {
 func (*GetKbResponse) ProtoMessage() {}
 
 func (x *GetKbResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[50]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3520,7 +5293,7 @@ func (x *GetKbResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbResponse.ProtoReflect.Descriptor instead.
 func (*GetKbResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{50}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *GetKbResponse) GetKb() *KbInfo {
@@ -3548,7 +5321,7 @@ type SearchKbRequest struct {
 
 func (x *SearchKbRequest) Reset() {
 	*x = SearchKbRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[51]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3560,7 +5333,7 @@ func (x *SearchKbRequest) String() string {
 func (*SearchKbRequest) ProtoMessage() {}
 
 func (x *SearchKbRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[51]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3573,7 +5346,7 @@ func (x *SearchKbRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchKbRequest.ProtoReflect.Descriptor instead.
 func (*SearchKbRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{51}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *SearchKbRequest) GetActor() *Actor {
@@ -3611,7 +5384,7 @@ type KbSearchHit struct {
 
 func (x *KbSearchHit) Reset() {
 	*x = KbSearchHit{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[52]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3623,7 +5396,7 @@ func (x *KbSearchHit) String() string {
 func (*KbSearchHit) ProtoMessage() {}
 
 func (x *KbSearchHit) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[52]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3636,7 +5409,7 @@ func (x *KbSearchHit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbSearchHit.ProtoReflect.Descriptor instead.
 func (*KbSearchHit) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{52}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *KbSearchHit) GetChunkId() int64 {
@@ -3691,7 +5464,7 @@ type SearchKbResponse struct {
 
 func (x *SearchKbResponse) Reset() {
 	*x = SearchKbResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[53]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3703,7 +5476,7 @@ func (x *SearchKbResponse) String() string {
 func (*SearchKbResponse) ProtoMessage() {}
 
 func (x *SearchKbResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[53]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3716,7 +5489,7 @@ func (x *SearchKbResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchKbResponse.ProtoReflect.Descriptor instead.
 func (*SearchKbResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{53}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *SearchKbResponse) GetList() []*KbSearchHit {
@@ -3745,7 +5518,7 @@ type UpdateKbRequest struct {
 
 func (x *UpdateKbRequest) Reset() {
 	*x = UpdateKbRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[54]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3757,7 +5530,7 @@ func (x *UpdateKbRequest) String() string {
 func (*UpdateKbRequest) ProtoMessage() {}
 
 func (x *UpdateKbRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[54]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3770,7 +5543,7 @@ func (x *UpdateKbRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateKbRequest.ProtoReflect.Descriptor instead.
 func (*UpdateKbRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{54}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *UpdateKbRequest) GetActor() *Actor {
@@ -3811,7 +5584,7 @@ type DeleteKbRequest struct {
 
 func (x *DeleteKbRequest) Reset() {
 	*x = DeleteKbRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[55]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3823,7 +5596,7 @@ func (x *DeleteKbRequest) String() string {
 func (*DeleteKbRequest) ProtoMessage() {}
 
 func (x *DeleteKbRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[55]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3836,7 +5609,7 @@ func (x *DeleteKbRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteKbRequest.ProtoReflect.Descriptor instead.
 func (*DeleteKbRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{55}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *DeleteKbRequest) GetActor() *Actor {
@@ -3868,7 +5641,7 @@ type CreateKbDocRequest struct {
 
 func (x *CreateKbDocRequest) Reset() {
 	*x = CreateKbDocRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[56]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3880,7 +5653,7 @@ func (x *CreateKbDocRequest) String() string {
 func (*CreateKbDocRequest) ProtoMessage() {}
 
 func (x *CreateKbDocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[56]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3893,7 +5666,7 @@ func (x *CreateKbDocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateKbDocRequest.ProtoReflect.Descriptor instead.
 func (*CreateKbDocRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{56}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *CreateKbDocRequest) GetActor() *Actor {
@@ -3949,7 +5722,7 @@ type CreateKbDocResponse struct {
 
 func (x *CreateKbDocResponse) Reset() {
 	*x = CreateKbDocResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[57]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3961,7 +5734,7 @@ func (x *CreateKbDocResponse) String() string {
 func (*CreateKbDocResponse) ProtoMessage() {}
 
 func (x *CreateKbDocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[57]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3974,7 +5747,7 @@ func (x *CreateKbDocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateKbDocResponse.ProtoReflect.Descriptor instead.
 func (*CreateKbDocResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{57}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *CreateKbDocResponse) GetDoc() *KbDocInfo {
@@ -4011,7 +5784,7 @@ type ListKbDocsRequest struct {
 
 func (x *ListKbDocsRequest) Reset() {
 	*x = ListKbDocsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[58]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4023,7 +5796,7 @@ func (x *ListKbDocsRequest) String() string {
 func (*ListKbDocsRequest) ProtoMessage() {}
 
 func (x *ListKbDocsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[58]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4036,7 +5809,7 @@ func (x *ListKbDocsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbDocsRequest.ProtoReflect.Descriptor instead.
 func (*ListKbDocsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{58}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *ListKbDocsRequest) GetActor() *Actor {
@@ -4087,7 +5860,7 @@ type ListKbDocsResponse struct {
 
 func (x *ListKbDocsResponse) Reset() {
 	*x = ListKbDocsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[59]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4099,7 +5872,7 @@ func (x *ListKbDocsResponse) String() string {
 func (*ListKbDocsResponse) ProtoMessage() {}
 
 func (x *ListKbDocsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[59]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4112,7 +5885,7 @@ func (x *ListKbDocsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbDocsResponse.ProtoReflect.Descriptor instead.
 func (*ListKbDocsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{59}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *ListKbDocsResponse) GetList() []*KbDocInfo {
@@ -4162,7 +5935,7 @@ type GetKbDocRequest struct {
 
 func (x *GetKbDocRequest) Reset() {
 	*x = GetKbDocRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[60]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4174,7 +5947,7 @@ func (x *GetKbDocRequest) String() string {
 func (*GetKbDocRequest) ProtoMessage() {}
 
 func (x *GetKbDocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[60]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4187,7 +5960,7 @@ func (x *GetKbDocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbDocRequest.ProtoReflect.Descriptor instead.
 func (*GetKbDocRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{60}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *GetKbDocRequest) GetActor() *Actor {
@@ -4228,7 +6001,7 @@ type GetKbDocResponse struct {
 
 func (x *GetKbDocResponse) Reset() {
 	*x = GetKbDocResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[61]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4240,7 +6013,7 @@ func (x *GetKbDocResponse) String() string {
 func (*GetKbDocResponse) ProtoMessage() {}
 
 func (x *GetKbDocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[61]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4253,7 +6026,7 @@ func (x *GetKbDocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbDocResponse.ProtoReflect.Descriptor instead.
 func (*GetKbDocResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{61}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *GetKbDocResponse) GetDoc() *KbDocInfo {
@@ -4286,7 +6059,7 @@ type UpdateKbDocRequest struct {
 
 func (x *UpdateKbDocRequest) Reset() {
 	*x = UpdateKbDocRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[62]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4298,7 +6071,7 @@ func (x *UpdateKbDocRequest) String() string {
 func (*UpdateKbDocRequest) ProtoMessage() {}
 
 func (x *UpdateKbDocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[62]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4311,7 +6084,7 @@ func (x *UpdateKbDocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateKbDocRequest.ProtoReflect.Descriptor instead.
 func (*UpdateKbDocRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{62}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *UpdateKbDocRequest) GetActor() *Actor {
@@ -4381,7 +6154,7 @@ type UpdateKbDocResponse struct {
 
 func (x *UpdateKbDocResponse) Reset() {
 	*x = UpdateKbDocResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[63]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4393,7 +6166,7 @@ func (x *UpdateKbDocResponse) String() string {
 func (*UpdateKbDocResponse) ProtoMessage() {}
 
 func (x *UpdateKbDocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[63]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4406,7 +6179,7 @@ func (x *UpdateKbDocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateKbDocResponse.ProtoReflect.Descriptor instead.
 func (*UpdateKbDocResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{63}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *UpdateKbDocResponse) GetDoc() *KbDocInfo {
@@ -4441,7 +6214,7 @@ type DeleteKbDocRequest struct {
 
 func (x *DeleteKbDocRequest) Reset() {
 	*x = DeleteKbDocRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[64]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4453,7 +6226,7 @@ func (x *DeleteKbDocRequest) String() string {
 func (*DeleteKbDocRequest) ProtoMessage() {}
 
 func (x *DeleteKbDocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[64]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4466,7 +6239,7 @@ func (x *DeleteKbDocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteKbDocRequest.ProtoReflect.Descriptor instead.
 func (*DeleteKbDocRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{64}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *DeleteKbDocRequest) GetActor() *Actor {
@@ -4503,7 +6276,7 @@ type RetryKbDocRequest struct {
 
 func (x *RetryKbDocRequest) Reset() {
 	*x = RetryKbDocRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[65]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4515,7 +6288,7 @@ func (x *RetryKbDocRequest) String() string {
 func (*RetryKbDocRequest) ProtoMessage() {}
 
 func (x *RetryKbDocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[65]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4528,7 +6301,7 @@ func (x *RetryKbDocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetryKbDocRequest.ProtoReflect.Descriptor instead.
 func (*RetryKbDocRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{65}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *RetryKbDocRequest) GetActor() *Actor {
@@ -4577,7 +6350,7 @@ type RetryKbDocResponse struct {
 
 func (x *RetryKbDocResponse) Reset() {
 	*x = RetryKbDocResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[66]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4589,7 +6362,7 @@ func (x *RetryKbDocResponse) String() string {
 func (*RetryKbDocResponse) ProtoMessage() {}
 
 func (x *RetryKbDocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[66]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4602,7 +6375,7 @@ func (x *RetryKbDocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetryKbDocResponse.ProtoReflect.Descriptor instead.
 func (*RetryKbDocResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{66}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *RetryKbDocResponse) GetDoc() *KbDocInfo {
@@ -4646,7 +6419,7 @@ type KbIngestBatchInfo struct {
 
 func (x *KbIngestBatchInfo) Reset() {
 	*x = KbIngestBatchInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[67]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4658,7 +6431,7 @@ func (x *KbIngestBatchInfo) String() string {
 func (*KbIngestBatchInfo) ProtoMessage() {}
 
 func (x *KbIngestBatchInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[67]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4671,7 +6444,7 @@ func (x *KbIngestBatchInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbIngestBatchInfo.ProtoReflect.Descriptor instead.
 func (*KbIngestBatchInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{67}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *KbIngestBatchInfo) GetId() string {
@@ -4775,7 +6548,7 @@ type KbIngestJobInfo struct {
 
 func (x *KbIngestJobInfo) Reset() {
 	*x = KbIngestJobInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[68]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4787,7 +6560,7 @@ func (x *KbIngestJobInfo) String() string {
 func (*KbIngestJobInfo) ProtoMessage() {}
 
 func (x *KbIngestJobInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[68]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4800,7 +6573,7 @@ func (x *KbIngestJobInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbIngestJobInfo.ProtoReflect.Descriptor instead.
 func (*KbIngestJobInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{68}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *KbIngestJobInfo) GetId() int64 {
@@ -4877,7 +6650,7 @@ type ListKbImportsRequest struct {
 
 func (x *ListKbImportsRequest) Reset() {
 	*x = ListKbImportsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[69]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4889,7 +6662,7 @@ func (x *ListKbImportsRequest) String() string {
 func (*ListKbImportsRequest) ProtoMessage() {}
 
 func (x *ListKbImportsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[69]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4902,7 +6675,7 @@ func (x *ListKbImportsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbImportsRequest.ProtoReflect.Descriptor instead.
 func (*ListKbImportsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{69}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *ListKbImportsRequest) GetActor() *Actor {
@@ -4936,7 +6709,7 @@ type ListKbImportsResponse struct {
 
 func (x *ListKbImportsResponse) Reset() {
 	*x = ListKbImportsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[70]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4948,7 +6721,7 @@ func (x *ListKbImportsResponse) String() string {
 func (*ListKbImportsResponse) ProtoMessage() {}
 
 func (x *ListKbImportsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[70]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4961,7 +6734,7 @@ func (x *ListKbImportsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbImportsResponse.ProtoReflect.Descriptor instead.
 func (*ListKbImportsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{70}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *ListKbImportsResponse) GetList() []*KbIngestBatchInfo {
@@ -4989,7 +6762,7 @@ type GetKbImportRequest struct {
 
 func (x *GetKbImportRequest) Reset() {
 	*x = GetKbImportRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[71]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5001,7 +6774,7 @@ func (x *GetKbImportRequest) String() string {
 func (*GetKbImportRequest) ProtoMessage() {}
 
 func (x *GetKbImportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[71]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5014,7 +6787,7 @@ func (x *GetKbImportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbImportRequest.ProtoReflect.Descriptor instead.
 func (*GetKbImportRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{71}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *GetKbImportRequest) GetActor() *Actor {
@@ -5048,7 +6821,7 @@ type GetKbImportResponse struct {
 
 func (x *GetKbImportResponse) Reset() {
 	*x = GetKbImportResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[72]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5060,7 +6833,7 @@ func (x *GetKbImportResponse) String() string {
 func (*GetKbImportResponse) ProtoMessage() {}
 
 func (x *GetKbImportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[72]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5073,7 +6846,7 @@ func (x *GetKbImportResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbImportResponse.ProtoReflect.Descriptor instead.
 func (*GetKbImportResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{72}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *GetKbImportResponse) GetBatch() *KbIngestBatchInfo {
@@ -5101,7 +6874,7 @@ type StopKbImportRequest struct {
 
 func (x *StopKbImportRequest) Reset() {
 	*x = StopKbImportRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[73]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5113,7 +6886,7 @@ func (x *StopKbImportRequest) String() string {
 func (*StopKbImportRequest) ProtoMessage() {}
 
 func (x *StopKbImportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[73]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5126,7 +6899,7 @@ func (x *StopKbImportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopKbImportRequest.ProtoReflect.Descriptor instead.
 func (*StopKbImportRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{73}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *StopKbImportRequest) GetActor() *Actor {
@@ -5150,6 +6923,1539 @@ func (x *StopKbImportRequest) GetBatchId() string {
 	return ""
 }
 
+// 分析反馈的目标是实际步骤，step_index 从0开始；快照只由服务端产生。
+type KbFeedbackEvidence struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SourceIndex   int64                  `protobuf:"varint,1,opt,name=source_index,json=sourceIndex,proto3" json:"source_index,omitempty"`
+	Quote         string                 `protobuf:"bytes,2,opt,name=quote,proto3" json:"quote,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KbFeedbackEvidence) Reset() {
+	*x = KbFeedbackEvidence{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[93]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KbFeedbackEvidence) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KbFeedbackEvidence) ProtoMessage() {}
+
+func (x *KbFeedbackEvidence) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[93]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KbFeedbackEvidence.ProtoReflect.Descriptor instead.
+func (*KbFeedbackEvidence) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{93}
+}
+
+func (x *KbFeedbackEvidence) GetSourceIndex() int64 {
+	if x != nil {
+		return x.SourceIndex
+	}
+	return 0
+}
+
+func (x *KbFeedbackEvidence) GetQuote() string {
+	if x != nil {
+		return x.Quote
+	}
+	return ""
+}
+
+type KbFeedbackReview struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Answerable     bool                   `protobuf:"varint,1,opt,name=answerable,proto3" json:"answerable,omitempty"`
+	ExpectedAnswer string                 `protobuf:"bytes,2,opt,name=expected_answer,json=expectedAnswer,proto3" json:"expected_answer,omitempty"`
+	RequiredFacts  []string               `protobuf:"bytes,3,rep,name=required_facts,json=requiredFacts,proto3" json:"required_facts,omitempty"`
+	Evidence       []*KbFeedbackEvidence  `protobuf:"bytes,4,rep,name=evidence,proto3" json:"evidence,omitempty"`
+	Reason         string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *KbFeedbackReview) Reset() {
+	*x = KbFeedbackReview{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[94]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KbFeedbackReview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KbFeedbackReview) ProtoMessage() {}
+
+func (x *KbFeedbackReview) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[94]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KbFeedbackReview.ProtoReflect.Descriptor instead.
+func (*KbFeedbackReview) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{94}
+}
+
+func (x *KbFeedbackReview) GetAnswerable() bool {
+	if x != nil {
+		return x.Answerable
+	}
+	return false
+}
+
+func (x *KbFeedbackReview) GetExpectedAnswer() string {
+	if x != nil {
+		return x.ExpectedAnswer
+	}
+	return ""
+}
+
+func (x *KbFeedbackReview) GetRequiredFacts() []string {
+	if x != nil {
+		return x.RequiredFacts
+	}
+	return nil
+}
+
+func (x *KbFeedbackReview) GetEvidence() []*KbFeedbackEvidence {
+	if x != nil {
+		return x.Evidence
+	}
+	return nil
+}
+
+func (x *KbFeedbackReview) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type KbFeedbackInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	KbId          int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	TaskId        int64                  `protobuf:"varint,3,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	StepIndex     int64                  `protobuf:"varint,4,opt,name=step_index,json=stepIndex,proto3" json:"step_index,omitempty"`
+	Feedback      string                 `protobuf:"bytes,5,opt,name=feedback,proto3" json:"feedback,omitempty"`
+	Note          string                 `protobuf:"bytes,6,opt,name=note,proto3" json:"note,omitempty"`
+	Status        string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	Revision      int64                  `protobuf:"varint,8,opt,name=revision,proto3" json:"revision,omitempty"`
+	Question      string                 `protobuf:"bytes,9,opt,name=question,proto3" json:"question,omitempty"`
+	Answer        string                 `protobuf:"bytes,10,opt,name=answer,proto3" json:"answer,omitempty"`
+	Snapshot      string                 `protobuf:"bytes,11,opt,name=snapshot,proto3" json:"snapshot,omitempty"`
+	Review        *KbFeedbackReview      `protobuf:"bytes,12,opt,name=review,proto3" json:"review,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	ReviewedAt    int64                  `protobuf:"varint,15,opt,name=reviewed_at,json=reviewedAt,proto3" json:"reviewed_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KbFeedbackInfo) Reset() {
+	*x = KbFeedbackInfo{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[95]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KbFeedbackInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KbFeedbackInfo) ProtoMessage() {}
+
+func (x *KbFeedbackInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[95]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KbFeedbackInfo.ProtoReflect.Descriptor instead.
+func (*KbFeedbackInfo) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{95}
+}
+
+func (x *KbFeedbackInfo) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *KbFeedbackInfo) GetKbId() int64 {
+	if x != nil {
+		return x.KbId
+	}
+	return 0
+}
+
+func (x *KbFeedbackInfo) GetTaskId() int64 {
+	if x != nil {
+		return x.TaskId
+	}
+	return 0
+}
+
+func (x *KbFeedbackInfo) GetStepIndex() int64 {
+	if x != nil {
+		return x.StepIndex
+	}
+	return 0
+}
+
+func (x *KbFeedbackInfo) GetFeedback() string {
+	if x != nil {
+		return x.Feedback
+	}
+	return ""
+}
+
+func (x *KbFeedbackInfo) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *KbFeedbackInfo) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *KbFeedbackInfo) GetRevision() int64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+func (x *KbFeedbackInfo) GetQuestion() string {
+	if x != nil {
+		return x.Question
+	}
+	return ""
+}
+
+func (x *KbFeedbackInfo) GetAnswer() string {
+	if x != nil {
+		return x.Answer
+	}
+	return ""
+}
+
+func (x *KbFeedbackInfo) GetSnapshot() string {
+	if x != nil {
+		return x.Snapshot
+	}
+	return ""
+}
+
+func (x *KbFeedbackInfo) GetReview() *KbFeedbackReview {
+	if x != nil {
+		return x.Review
+	}
+	return nil
+}
+
+func (x *KbFeedbackInfo) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *KbFeedbackInfo) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+func (x *KbFeedbackInfo) GetReviewedAt() int64 {
+	if x != nil {
+		return x.ReviewedAt
+	}
+	return 0
+}
+
+type SetTaskFeedbackRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Actor            *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	TaskId           int64                  `protobuf:"varint,2,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	StepIndex        int64                  `protobuf:"varint,3,opt,name=step_index,json=stepIndex,proto3" json:"step_index,omitempty"`
+	ExpectedRevision int64                  `protobuf:"varint,4,opt,name=expected_revision,json=expectedRevision,proto3" json:"expected_revision,omitempty"`
+	Feedback         string                 `protobuf:"bytes,5,opt,name=feedback,proto3" json:"feedback,omitempty"`
+	Note             string                 `protobuf:"bytes,6,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SetTaskFeedbackRequest) Reset() {
+	*x = SetTaskFeedbackRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[96]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetTaskFeedbackRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetTaskFeedbackRequest) ProtoMessage() {}
+
+func (x *SetTaskFeedbackRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[96]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetTaskFeedbackRequest.ProtoReflect.Descriptor instead.
+func (*SetTaskFeedbackRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{96}
+}
+
+func (x *SetTaskFeedbackRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *SetTaskFeedbackRequest) GetTaskId() int64 {
+	if x != nil {
+		return x.TaskId
+	}
+	return 0
+}
+
+func (x *SetTaskFeedbackRequest) GetStepIndex() int64 {
+	if x != nil {
+		return x.StepIndex
+	}
+	return 0
+}
+
+func (x *SetTaskFeedbackRequest) GetExpectedRevision() int64 {
+	if x != nil {
+		return x.ExpectedRevision
+	}
+	return 0
+}
+
+func (x *SetTaskFeedbackRequest) GetFeedback() string {
+	if x != nil {
+		return x.Feedback
+	}
+	return ""
+}
+
+func (x *SetTaskFeedbackRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+type KbFeedbackResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Feedback      *KbFeedbackInfo        `protobuf:"bytes,1,opt,name=feedback,proto3" json:"feedback,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KbFeedbackResponse) Reset() {
+	*x = KbFeedbackResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[97]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KbFeedbackResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KbFeedbackResponse) ProtoMessage() {}
+
+func (x *KbFeedbackResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[97]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KbFeedbackResponse.ProtoReflect.Descriptor instead.
+func (*KbFeedbackResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{97}
+}
+
+func (x *KbFeedbackResponse) GetFeedback() *KbFeedbackInfo {
+	if x != nil {
+		return x.Feedback
+	}
+	return nil
+}
+
+type ListTaskFeedbackRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	TaskId        int64                  `protobuf:"varint,2,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTaskFeedbackRequest) Reset() {
+	*x = ListTaskFeedbackRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[98]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTaskFeedbackRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTaskFeedbackRequest) ProtoMessage() {}
+
+func (x *ListTaskFeedbackRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[98]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTaskFeedbackRequest.ProtoReflect.Descriptor instead.
+func (*ListTaskFeedbackRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{98}
+}
+
+func (x *ListTaskFeedbackRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *ListTaskFeedbackRequest) GetTaskId() int64 {
+	if x != nil {
+		return x.TaskId
+	}
+	return 0
+}
+
+type ListTaskFeedbackResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*KbFeedbackInfo      `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTaskFeedbackResponse) Reset() {
+	*x = ListTaskFeedbackResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[99]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTaskFeedbackResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTaskFeedbackResponse) ProtoMessage() {}
+
+func (x *ListTaskFeedbackResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[99]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTaskFeedbackResponse.ProtoReflect.Descriptor instead.
+func (*ListTaskFeedbackResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{99}
+}
+
+func (x *ListTaskFeedbackResponse) GetList() []*KbFeedbackInfo {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+type ListKbFeedbackRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	KbId          int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	Page          *PageRequest           `protobuf:"bytes,3,opt,name=page,proto3" json:"page,omitempty"`
+	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListKbFeedbackRequest) Reset() {
+	*x = ListKbFeedbackRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[100]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListKbFeedbackRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListKbFeedbackRequest) ProtoMessage() {}
+
+func (x *ListKbFeedbackRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[100]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListKbFeedbackRequest.ProtoReflect.Descriptor instead.
+func (*ListKbFeedbackRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{100}
+}
+
+func (x *ListKbFeedbackRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *ListKbFeedbackRequest) GetKbId() int64 {
+	if x != nil {
+		return x.KbId
+	}
+	return 0
+}
+
+func (x *ListKbFeedbackRequest) GetPage() *PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+func (x *ListKbFeedbackRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type ListKbFeedbackResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*KbFeedbackInfo      `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	Page          *PageResponse          `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListKbFeedbackResponse) Reset() {
+	*x = ListKbFeedbackResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[101]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListKbFeedbackResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListKbFeedbackResponse) ProtoMessage() {}
+
+func (x *ListKbFeedbackResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[101]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListKbFeedbackResponse.ProtoReflect.Descriptor instead.
+func (*ListKbFeedbackResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{101}
+}
+
+func (x *ListKbFeedbackResponse) GetList() []*KbFeedbackInfo {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+func (x *ListKbFeedbackResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type GetKbFeedbackRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	KbId          int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	FeedbackId    int64                  `protobuf:"varint,3,opt,name=feedback_id,json=feedbackId,proto3" json:"feedback_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetKbFeedbackRequest) Reset() {
+	*x = GetKbFeedbackRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[102]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetKbFeedbackRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetKbFeedbackRequest) ProtoMessage() {}
+
+func (x *GetKbFeedbackRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[102]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetKbFeedbackRequest.ProtoReflect.Descriptor instead.
+func (*GetKbFeedbackRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{102}
+}
+
+func (x *GetKbFeedbackRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *GetKbFeedbackRequest) GetKbId() int64 {
+	if x != nil {
+		return x.KbId
+	}
+	return 0
+}
+
+func (x *GetKbFeedbackRequest) GetFeedbackId() int64 {
+	if x != nil {
+		return x.FeedbackId
+	}
+	return 0
+}
+
+type ReviewKbFeedbackRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Actor            *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	KbId             int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	FeedbackId       int64                  `protobuf:"varint,3,opt,name=feedback_id,json=feedbackId,proto3" json:"feedback_id,omitempty"`
+	ExpectedRevision int64                  `protobuf:"varint,4,opt,name=expected_revision,json=expectedRevision,proto3" json:"expected_revision,omitempty"`
+	Status           string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	Review           *KbFeedbackReview      `protobuf:"bytes,6,opt,name=review,proto3" json:"review,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ReviewKbFeedbackRequest) Reset() {
+	*x = ReviewKbFeedbackRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[103]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReviewKbFeedbackRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReviewKbFeedbackRequest) ProtoMessage() {}
+
+func (x *ReviewKbFeedbackRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[103]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReviewKbFeedbackRequest.ProtoReflect.Descriptor instead.
+func (*ReviewKbFeedbackRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{103}
+}
+
+func (x *ReviewKbFeedbackRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *ReviewKbFeedbackRequest) GetKbId() int64 {
+	if x != nil {
+		return x.KbId
+	}
+	return 0
+}
+
+func (x *ReviewKbFeedbackRequest) GetFeedbackId() int64 {
+	if x != nil {
+		return x.FeedbackId
+	}
+	return 0
+}
+
+func (x *ReviewKbFeedbackRequest) GetExpectedRevision() int64 {
+	if x != nil {
+		return x.ExpectedRevision
+	}
+	return 0
+}
+
+func (x *ReviewKbFeedbackRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ReviewKbFeedbackRequest) GetReview() *KbFeedbackReview {
+	if x != nil {
+		return x.Review
+	}
+	return nil
+}
+
+type KbEvaluationDatasetInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Sha256        string                 `protobuf:"bytes,3,opt,name=sha256,proto3" json:"sha256,omitempty"`
+	Dataset       string                 `protobuf:"bytes,4,opt,name=dataset,proto3" json:"dataset,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KbEvaluationDatasetInfo) Reset() {
+	*x = KbEvaluationDatasetInfo{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[104]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KbEvaluationDatasetInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KbEvaluationDatasetInfo) ProtoMessage() {}
+
+func (x *KbEvaluationDatasetInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[104]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KbEvaluationDatasetInfo.ProtoReflect.Descriptor instead.
+func (*KbEvaluationDatasetInfo) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{104}
+}
+
+func (x *KbEvaluationDatasetInfo) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *KbEvaluationDatasetInfo) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *KbEvaluationDatasetInfo) GetSha256() string {
+	if x != nil {
+		return x.Sha256
+	}
+	return ""
+}
+
+func (x *KbEvaluationDatasetInfo) GetDataset() string {
+	if x != nil {
+		return x.Dataset
+	}
+	return ""
+}
+
+type ListKbEvaluationDatasetsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	KbId          int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListKbEvaluationDatasetsRequest) Reset() {
+	*x = ListKbEvaluationDatasetsRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[105]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListKbEvaluationDatasetsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListKbEvaluationDatasetsRequest) ProtoMessage() {}
+
+func (x *ListKbEvaluationDatasetsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[105]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListKbEvaluationDatasetsRequest.ProtoReflect.Descriptor instead.
+func (*ListKbEvaluationDatasetsRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{105}
+}
+
+func (x *ListKbEvaluationDatasetsRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *ListKbEvaluationDatasetsRequest) GetKbId() int64 {
+	if x != nil {
+		return x.KbId
+	}
+	return 0
+}
+
+type ListKbEvaluationDatasetsResponse struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	List          []*KbEvaluationDatasetInfo `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListKbEvaluationDatasetsResponse) Reset() {
+	*x = ListKbEvaluationDatasetsResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[106]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListKbEvaluationDatasetsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListKbEvaluationDatasetsResponse) ProtoMessage() {}
+
+func (x *ListKbEvaluationDatasetsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[106]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListKbEvaluationDatasetsResponse.ProtoReflect.Descriptor instead.
+func (*ListKbEvaluationDatasetsResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{106}
+}
+
+func (x *ListKbEvaluationDatasetsResponse) GetList() []*KbEvaluationDatasetInfo {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+type KbEvaluationInfo struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	KbId           int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	RequestId      string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	DatasetKey     string                 `protobuf:"bytes,4,opt,name=dataset_key,json=datasetKey,proto3" json:"dataset_key,omitempty"`
+	DatasetSha256  string                 `protobuf:"bytes,5,opt,name=dataset_sha256,json=datasetSha256,proto3" json:"dataset_sha256,omitempty"`
+	GroupKey       string                 `protobuf:"bytes,6,opt,name=group_key,json=groupKey,proto3" json:"group_key,omitempty"`
+	Status         string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	CaseCount      int64                  `protobuf:"varint,8,opt,name=case_count,json=caseCount,proto3" json:"case_count,omitempty"`
+	CompletedCount int64                  `protobuf:"varint,9,opt,name=completed_count,json=completedCount,proto3" json:"completed_count,omitempty"`
+	FailedCount    int64                  `protobuf:"varint,10,opt,name=failed_count,json=failedCount,proto3" json:"failed_count,omitempty"`
+	StopRequested  bool                   `protobuf:"varint,11,opt,name=stop_requested,json=stopRequested,proto3" json:"stop_requested,omitempty"`
+	CorpusVerified bool                   `protobuf:"varint,12,opt,name=corpus_verified,json=corpusVerified,proto3" json:"corpus_verified,omitempty"`
+	Error          string                 `protobuf:"bytes,13,opt,name=error,proto3" json:"error,omitempty"`
+	Snapshot       string                 `protobuf:"bytes,14,opt,name=snapshot,proto3" json:"snapshot,omitempty"`
+	Bindings       string                 `protobuf:"bytes,15,opt,name=bindings,proto3" json:"bindings,omitempty"`
+	Context        string                 `protobuf:"bytes,16,opt,name=context,proto3" json:"context,omitempty"`
+	Observations   string                 `protobuf:"bytes,17,opt,name=observations,proto3" json:"observations,omitempty"`
+	CreatedAt      int64                  `protobuf:"varint,18,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      int64                  `protobuf:"varint,19,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	StartedAt      int64                  `protobuf:"varint,20,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	CompletedAt    int64                  `protobuf:"varint,21,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *KbEvaluationInfo) Reset() {
+	*x = KbEvaluationInfo{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[107]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KbEvaluationInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KbEvaluationInfo) ProtoMessage() {}
+
+func (x *KbEvaluationInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[107]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KbEvaluationInfo.ProtoReflect.Descriptor instead.
+func (*KbEvaluationInfo) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{107}
+}
+
+func (x *KbEvaluationInfo) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *KbEvaluationInfo) GetKbId() int64 {
+	if x != nil {
+		return x.KbId
+	}
+	return 0
+}
+
+func (x *KbEvaluationInfo) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *KbEvaluationInfo) GetDatasetKey() string {
+	if x != nil {
+		return x.DatasetKey
+	}
+	return ""
+}
+
+func (x *KbEvaluationInfo) GetDatasetSha256() string {
+	if x != nil {
+		return x.DatasetSha256
+	}
+	return ""
+}
+
+func (x *KbEvaluationInfo) GetGroupKey() string {
+	if x != nil {
+		return x.GroupKey
+	}
+	return ""
+}
+
+func (x *KbEvaluationInfo) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *KbEvaluationInfo) GetCaseCount() int64 {
+	if x != nil {
+		return x.CaseCount
+	}
+	return 0
+}
+
+func (x *KbEvaluationInfo) GetCompletedCount() int64 {
+	if x != nil {
+		return x.CompletedCount
+	}
+	return 0
+}
+
+func (x *KbEvaluationInfo) GetFailedCount() int64 {
+	if x != nil {
+		return x.FailedCount
+	}
+	return 0
+}
+
+func (x *KbEvaluationInfo) GetStopRequested() bool {
+	if x != nil {
+		return x.StopRequested
+	}
+	return false
+}
+
+func (x *KbEvaluationInfo) GetCorpusVerified() bool {
+	if x != nil {
+		return x.CorpusVerified
+	}
+	return false
+}
+
+func (x *KbEvaluationInfo) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *KbEvaluationInfo) GetSnapshot() string {
+	if x != nil {
+		return x.Snapshot
+	}
+	return ""
+}
+
+func (x *KbEvaluationInfo) GetBindings() string {
+	if x != nil {
+		return x.Bindings
+	}
+	return ""
+}
+
+func (x *KbEvaluationInfo) GetContext() string {
+	if x != nil {
+		return x.Context
+	}
+	return ""
+}
+
+func (x *KbEvaluationInfo) GetObservations() string {
+	if x != nil {
+		return x.Observations
+	}
+	return ""
+}
+
+func (x *KbEvaluationInfo) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *KbEvaluationInfo) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+func (x *KbEvaluationInfo) GetStartedAt() int64 {
+	if x != nil {
+		return x.StartedAt
+	}
+	return 0
+}
+
+func (x *KbEvaluationInfo) GetCompletedAt() int64 {
+	if x != nil {
+		return x.CompletedAt
+	}
+	return 0
+}
+
+type KbEvaluationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Evaluation    *KbEvaluationInfo      `protobuf:"bytes,1,opt,name=evaluation,proto3" json:"evaluation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KbEvaluationResponse) Reset() {
+	*x = KbEvaluationResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[108]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KbEvaluationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KbEvaluationResponse) ProtoMessage() {}
+
+func (x *KbEvaluationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[108]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KbEvaluationResponse.ProtoReflect.Descriptor instead.
+func (*KbEvaluationResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{108}
+}
+
+func (x *KbEvaluationResponse) GetEvaluation() *KbEvaluationInfo {
+	if x != nil {
+		return x.Evaluation
+	}
+	return nil
+}
+
+type StartKbEvaluationRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Actor           *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	KbId            int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	RequestId       string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	DatasetKey      string                 `protobuf:"bytes,4,opt,name=dataset_key,json=datasetKey,proto3" json:"dataset_key,omitempty"`
+	DatasetSha256   string                 `protobuf:"bytes,5,opt,name=dataset_sha256,json=datasetSha256,proto3" json:"dataset_sha256,omitempty"`
+	GroupKey        string                 `protobuf:"bytes,6,opt,name=group_key,json=groupKey,proto3" json:"group_key,omitempty"`
+	CaseIds         []string               `protobuf:"bytes,7,rep,name=case_ids,json=caseIds,proto3" json:"case_ids,omitempty"`
+	DatasetSnapshot string                 `protobuf:"bytes,8,opt,name=dataset_snapshot,json=datasetSnapshot,proto3" json:"dataset_snapshot,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *StartKbEvaluationRequest) Reset() {
+	*x = StartKbEvaluationRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[109]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartKbEvaluationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartKbEvaluationRequest) ProtoMessage() {}
+
+func (x *StartKbEvaluationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[109]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartKbEvaluationRequest.ProtoReflect.Descriptor instead.
+func (*StartKbEvaluationRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{109}
+}
+
+func (x *StartKbEvaluationRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *StartKbEvaluationRequest) GetKbId() int64 {
+	if x != nil {
+		return x.KbId
+	}
+	return 0
+}
+
+func (x *StartKbEvaluationRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *StartKbEvaluationRequest) GetDatasetKey() string {
+	if x != nil {
+		return x.DatasetKey
+	}
+	return ""
+}
+
+func (x *StartKbEvaluationRequest) GetDatasetSha256() string {
+	if x != nil {
+		return x.DatasetSha256
+	}
+	return ""
+}
+
+func (x *StartKbEvaluationRequest) GetGroupKey() string {
+	if x != nil {
+		return x.GroupKey
+	}
+	return ""
+}
+
+func (x *StartKbEvaluationRequest) GetCaseIds() []string {
+	if x != nil {
+		return x.CaseIds
+	}
+	return nil
+}
+
+func (x *StartKbEvaluationRequest) GetDatasetSnapshot() string {
+	if x != nil {
+		return x.DatasetSnapshot
+	}
+	return ""
+}
+
+type ListKbEvaluationsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	KbId          int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	Page          *PageRequest           `protobuf:"bytes,3,opt,name=page,proto3" json:"page,omitempty"`
+	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	RequestId     string                 `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListKbEvaluationsRequest) Reset() {
+	*x = ListKbEvaluationsRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[110]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListKbEvaluationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListKbEvaluationsRequest) ProtoMessage() {}
+
+func (x *ListKbEvaluationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[110]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListKbEvaluationsRequest.ProtoReflect.Descriptor instead.
+func (*ListKbEvaluationsRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{110}
+}
+
+func (x *ListKbEvaluationsRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *ListKbEvaluationsRequest) GetKbId() int64 {
+	if x != nil {
+		return x.KbId
+	}
+	return 0
+}
+
+func (x *ListKbEvaluationsRequest) GetPage() *PageRequest {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+func (x *ListKbEvaluationsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListKbEvaluationsRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type ListKbEvaluationsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	List          []*KbEvaluationInfo    `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	Page          *PageResponse          `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListKbEvaluationsResponse) Reset() {
+	*x = ListKbEvaluationsResponse{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[111]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListKbEvaluationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListKbEvaluationsResponse) ProtoMessage() {}
+
+func (x *ListKbEvaluationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[111]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListKbEvaluationsResponse.ProtoReflect.Descriptor instead.
+func (*ListKbEvaluationsResponse) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{111}
+}
+
+func (x *ListKbEvaluationsResponse) GetList() []*KbEvaluationInfo {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+func (x *ListKbEvaluationsResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+type GetKbEvaluationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	KbId          int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	EvaluationId  int64                  `protobuf:"varint,3,opt,name=evaluation_id,json=evaluationId,proto3" json:"evaluation_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetKbEvaluationRequest) Reset() {
+	*x = GetKbEvaluationRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[112]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetKbEvaluationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetKbEvaluationRequest) ProtoMessage() {}
+
+func (x *GetKbEvaluationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[112]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetKbEvaluationRequest.ProtoReflect.Descriptor instead.
+func (*GetKbEvaluationRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{112}
+}
+
+func (x *GetKbEvaluationRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *GetKbEvaluationRequest) GetKbId() int64 {
+	if x != nil {
+		return x.KbId
+	}
+	return 0
+}
+
+func (x *GetKbEvaluationRequest) GetEvaluationId() int64 {
+	if x != nil {
+		return x.EvaluationId
+	}
+	return 0
+}
+
+type StopKbEvaluationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	KbId          int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	EvaluationId  int64                  `protobuf:"varint,3,opt,name=evaluation_id,json=evaluationId,proto3" json:"evaluation_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StopKbEvaluationRequest) Reset() {
+	*x = StopKbEvaluationRequest{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[113]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StopKbEvaluationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StopKbEvaluationRequest) ProtoMessage() {}
+
+func (x *StopKbEvaluationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[113]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StopKbEvaluationRequest.ProtoReflect.Descriptor instead.
+func (*StopKbEvaluationRequest) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{113}
+}
+
+func (x *StopKbEvaluationRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *StopKbEvaluationRequest) GetKbId() int64 {
+	if x != nil {
+		return x.KbId
+	}
+	return 0
+}
+
+func (x *StopKbEvaluationRequest) GetEvaluationId() int64 {
+	if x != nil {
+		return x.EvaluationId
+	}
+	return 0
+}
+
 var File_application_ai_rpc_desc_ai_proto protoreflect.FileDescriptor
 
 const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
@@ -5167,7 +8473,147 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\adept_id\x18\x03 \x01(\x03R\x06deptId\x12\x0e\n" +
 	"\x02ip\x18\x04 \x01(\tR\x02ip\x12\x1d\n" +
 	"\n" +
-	"user_agent\x18\x05 \x01(\tR\tuserAgent\"\xbd\x02\n" +
+	"user_agent\x18\x05 \x01(\tR\tuserAgent\"[\n" +
+	"\vUsagePeriod\x12\x19\n" +
+	"\bfrom_day\x18\x01 \x01(\tR\afromDay\x12\x15\n" +
+	"\x06to_day\x18\x02 \x01(\tR\x05toDay\x12\x1a\n" +
+	"\btimezone\x18\x03 \x01(\tR\btimezone\"\xac\x06\n" +
+	"\n" +
+	"UsageGroup\x12\x16\n" +
+	"\x06source\x18\x01 \x01(\tR\x06source\x12\x1c\n" +
+	"\toperation\x18\x02 \x01(\tR\toperation\x12\x1a\n" +
+	"\bprovider\x18\x03 \x01(\tR\bprovider\x12\x14\n" +
+	"\x05model\x18\x04 \x01(\tR\x05model\x12-\n" +
+	"\x12confirmed_requests\x18\x05 \x01(\x03R\x11confirmedRequests\x12+\n" +
+	"\x11reserved_requests\x18\x06 \x01(\x03R\x10reservedRequests\x12*\n" +
+	"\x11not_sent_requests\x18\a \x01(\x03R\x0fnotSentRequests\x12-\n" +
+	"\x12uncertain_requests\x18\b \x01(\x03R\x11uncertainRequests\x12-\n" +
+	"\x12succeeded_requests\x18\t \x01(\x03R\x11succeededRequests\x12'\n" +
+	"\x0ffailed_requests\x18\n" +
+	" \x01(\x03R\x0efailedRequests\x12-\n" +
+	"\x12cancelled_requests\x18\v \x01(\x03R\x11cancelledRequests\x12+\n" +
+	"\x11complete_requests\x18\f \x01(\x03R\x10completeRequests\x12)\n" +
+	"\x10partial_requests\x18\r \x01(\x03R\x0fpartialRequests\x12)\n" +
+	"\x10unknown_requests\x18\x0e \x01(\x03R\x0funknownRequests\x12)\n" +
+	"\x10invalid_requests\x18\x0f \x01(\x03R\x0finvalidRequests\x12.\n" +
+	"\x13known_prompt_tokens\x18\x10 \x01(\x03R\x11knownPromptTokens\x126\n" +
+	"\x17known_completion_tokens\x18\x11 \x01(\x03R\x15knownCompletionTokens\x124\n" +
+	"\x16known_embedding_tokens\x18\x12 \x01(\x03R\x14knownEmbeddingTokens\x12,\n" +
+	"\x12known_total_tokens\x18\x13 \x01(\x03R\x10knownTotalTokens\"\xd1\x06\n" +
+	"\x10UsageSummaryInfo\x12)\n" +
+	"\x06period\x18\x01 \x01(\v2\x11.aipb.UsagePeriodR\x06period\x120\n" +
+	"\x14recording_started_at\x18\x02 \x01(\x03R\x12recordingStartedAt\x12-\n" +
+	"\x12confirmed_requests\x18\x03 \x01(\x03R\x11confirmedRequests\x12+\n" +
+	"\x11reserved_requests\x18\x04 \x01(\x03R\x10reservedRequests\x12*\n" +
+	"\x11not_sent_requests\x18\x05 \x01(\x03R\x0fnotSentRequests\x12-\n" +
+	"\x12uncertain_requests\x18\x06 \x01(\x03R\x11uncertainRequests\x12-\n" +
+	"\x12succeeded_requests\x18\a \x01(\x03R\x11succeededRequests\x12'\n" +
+	"\x0ffailed_requests\x18\b \x01(\x03R\x0efailedRequests\x12-\n" +
+	"\x12cancelled_requests\x18\t \x01(\x03R\x11cancelledRequests\x12+\n" +
+	"\x11complete_requests\x18\n" +
+	" \x01(\x03R\x10completeRequests\x12)\n" +
+	"\x10partial_requests\x18\v \x01(\x03R\x0fpartialRequests\x12)\n" +
+	"\x10unknown_requests\x18\f \x01(\x03R\x0funknownRequests\x12)\n" +
+	"\x10invalid_requests\x18\r \x01(\x03R\x0finvalidRequests\x12.\n" +
+	"\x13known_prompt_tokens\x18\x0e \x01(\x03R\x11knownPromptTokens\x126\n" +
+	"\x17known_completion_tokens\x18\x0f \x01(\x03R\x15knownCompletionTokens\x124\n" +
+	"\x16known_embedding_tokens\x18\x10 \x01(\x03R\x14knownEmbeddingTokens\x12,\n" +
+	"\x12known_total_tokens\x18\x11 \x01(\x03R\x10knownTotalTokens\x12(\n" +
+	"\x06groups\x18\x12 \x03(\v2\x10.aipb.UsageGroupR\x06groups\"\xc9\x02\n" +
+	"\x11UsageQueryRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x19\n" +
+	"\bfrom_day\x18\x03 \x01(\tR\afromDay\x12\x15\n" +
+	"\x06to_day\x18\x04 \x01(\tR\x05toDay\x12\x16\n" +
+	"\x06source\x18\x05 \x01(\tR\x06source\x12\x1c\n" +
+	"\toperation\x18\x06 \x01(\tR\toperation\x12\x1a\n" +
+	"\bprovider\x18\a \x01(\tR\bprovider\x12\x14\n" +
+	"\x05model\x18\b \x01(\tR\x05model\x12\x16\n" +
+	"\x06status\x18\t \x01(\tR\x06status\x12\x1f\n" +
+	"\vusage_state\x18\n" +
+	" \x01(\tR\n" +
+	"usageState\x12%\n" +
+	"\x04page\x18\v \x01(\v2\x11.aipb.PageRequestR\x04page\"H\n" +
+	"\x14UsageSummaryResponse\x120\n" +
+	"\asummary\x18\x01 \x01(\v2\x16.aipb.UsageSummaryInfoR\asummary\"\xfb\x06\n" +
+	"\rUsageCallInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
+	"\n" +
+	"attempt_id\x18\x02 \x01(\tR\tattemptId\x12\x19\n" +
+	"\bowner_id\x18\x03 \x01(\x03R\aownerId\x12\x16\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\x12\x1c\n" +
+	"\toperation\x18\x05 \x01(\tR\toperation\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x06 \x01(\tR\trequestId\x12\x1b\n" +
+	"\tsource_id\x18\a \x01(\x03R\bsourceId\x12\x1d\n" +
+	"\n" +
+	"step_index\x18\b \x01(\x03R\tstepIndex\x12\x1f\n" +
+	"\vbatch_index\x18\t \x01(\x03R\n" +
+	"batchIndex\x12\x1a\n" +
+	"\bprovider\x18\n" +
+	" \x01(\tR\bprovider\x12\x14\n" +
+	"\x05model\x18\v \x01(\tR\x05model\x12\x1b\n" +
+	"\tquota_day\x18\f \x01(\tR\bquotaDay\x12#\n" +
+	"\rquota_charged\x18\r \x01(\bR\fquotaCharged\x12-\n" +
+	"\x12dispatch_confirmed\x18\x0e \x01(\bR\x11dispatchConfirmed\x12\x16\n" +
+	"\x06status\x18\x0f \x01(\tR\x06status\x12\x1f\n" +
+	"\vusage_state\x18\x10 \x01(\tR\n" +
+	"usageState\x12(\n" +
+	"\rprompt_tokens\x18\x11 \x01(\x03H\x00R\fpromptTokens\x88\x01\x01\x120\n" +
+	"\x11completion_tokens\x18\x12 \x01(\x03H\x01R\x10completionTokens\x88\x01\x01\x12&\n" +
+	"\ftotal_tokens\x18\x13 \x01(\x03H\x02R\vtotalTokens\x88\x01\x01\x12\x1f\n" +
+	"\vhttp_status\x18\x14 \x01(\x03R\n" +
+	"httpStatus\x12.\n" +
+	"\x13provider_request_id\x18\x15 \x01(\tR\x11providerRequestId\x12\x1d\n" +
+	"\n" +
+	"error_code\x18\x16 \x01(\tR\terrorCode\x12\x1d\n" +
+	"\n" +
+	"started_at\x18\x17 \x01(\x03R\tstartedAt\x12#\n" +
+	"\rdispatched_at\x18\x18 \x01(\x03R\fdispatchedAt\x12!\n" +
+	"\fcompleted_at\x18\x19 \x01(\x03R\vcompletedAtB\x10\n" +
+	"\x0e_prompt_tokensB\x14\n" +
+	"\x12_completion_tokensB\x0f\n" +
+	"\r_total_tokens\"i\n" +
+	"\x16ListUsageCallsResponse\x12'\n" +
+	"\x04list\x18\x01 \x03(\v2\x13.aipb.UsageCallInfoR\x04list\x12&\n" +
+	"\x04page\x18\x02 \x01(\v2\x12.aipb.PageResponseR\x04page\"\xce\x04\n" +
+	"\x0fUsagePolicyInfo\x12\x19\n" +
+	"\bowner_id\x18\x01 \x01(\x03R\aownerId\x12\x1b\n" +
+	"\tquota_day\x18\x02 \x01(\tR\bquotaDay\x12.\n" +
+	"\x13daily_request_limit\x18\x03 \x01(\x03R\x11dailyRequestLimit\x12#\n" +
+	"\rused_requests\x18\x04 \x01(\x03R\fusedRequests\x12-\n" +
+	"\x12remaining_requests\x18\x05 \x01(\x03R\x11remainingRequests\x12\x1c\n" +
+	"\tunlimited\x18\x06 \x01(\bR\tunlimited\x12\x1c\n" +
+	"\tinherited\x18\a \x01(\bR\tinherited\x12.\n" +
+	"\x13daily_token_warning\x18\b \x01(\x03R\x11dailyTokenWarning\x12!\n" +
+	"\fknown_tokens\x18\t \x01(\x03R\vknownTokens\x12'\n" +
+	"\x0fwarning_reached\x18\n" +
+	" \x01(\bR\x0ewarningReached\x12/\n" +
+	"\x13incomplete_requests\x18\v \x01(\x03R\x12incompleteRequests\x12\x18\n" +
+	"\aversion\x18\f \x01(\x03R\aversion\x126\n" +
+	"\x17global_concurrent_limit\x18\r \x01(\x03R\x15globalConcurrentLimit\x12!\n" +
+	"\factive_calls\x18\x0e \x01(\x03R\vactiveCalls\x12!\n" +
+	"\factive_known\x18\x0f \x01(\bR\vactiveKnown\"P\n" +
+	"\x12UsagePolicyRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"D\n" +
+	"\x13UsagePolicyResponse\x12-\n" +
+	"\x06policy\x18\x01 \x01(\v2\x15.aipb.UsagePolicyInfoR\x06policy\"n\n" +
+	"\x19ListUsagePoliciesResponse\x12)\n" +
+	"\x04list\x18\x01 \x03(\v2\x15.aipb.UsagePolicyInfoR\x04list\x12&\n" +
+	"\x04page\x18\x02 \x01(\v2\x12.aipb.PageResponseR\x04page\"\xb4\x03\n" +
+	"\x15SetUsagePolicyRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12.\n" +
+	"\x10expected_version\x18\x03 \x01(\x03H\x00R\x0fexpectedVersion\x88\x01\x01\x123\n" +
+	"\x13daily_request_limit\x18\x04 \x01(\x03H\x01R\x11dailyRequestLimit\x88\x01\x01\x123\n" +
+	"\x13daily_token_warning\x18\x05 \x01(\x03H\x02R\x11dailyTokenWarning\x88\x01\x01\x12;\n" +
+	"\x17global_concurrent_limit\x18\x06 \x01(\x03H\x03R\x15globalConcurrentLimit\x88\x01\x01\x12'\n" +
+	"\x0finherit_default\x18\a \x01(\bR\x0einheritDefaultB\x13\n" +
+	"\x11_expected_versionB\x16\n" +
+	"\x14_daily_request_limitB\x16\n" +
+	"\x14_daily_token_warningB\x1a\n" +
+	"\x18_global_concurrent_limit\"\xbd\x02\n" +
 	"\vChatMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04role\x18\x02 \x01(\tR\x04role\x12\x18\n" +
@@ -5272,7 +8718,7 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\x0eingestion_mode\x18\x03 \x01(\tR\ringestionMode\"o\n" +
 	"\x11ListToolsResponse\x12\"\n" +
 	"\x04list\x18\x01 \x03(\v2\x0e.aipb.ToolInfoR\x04list\x126\n" +
-	"\fcapabilities\x18\x02 \x01(\v2\x12.aipb.CapabilitiesR\fcapabilities\"\xb3\x02\n" +
+	"\fcapabilities\x18\x02 \x01(\v2\x12.aipb.CapabilitiesR\fcapabilities\"\xcf\x02\n" +
 	"\fWorkflowInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1e\n" +
@@ -5290,7 +8736,8 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"updated_at\x18\t \x01(\x03R\tupdatedAt\x12\x1d\n" +
 	"\n" +
 	"step_count\x18\n" +
-	" \x01(\x03R\tstepCount\"\x99\x01\n" +
+	" \x01(\x03R\tstepCount\x12\x1a\n" +
+	"\brevision\x18\v \x01(\x03R\brevision\"\x99\x01\n" +
 	"\x15CreateWorkflowRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1e\n" +
@@ -5312,7 +8759,7 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\vworkflow_id\x18\x02 \x01(\x03R\n" +
 	"workflowId\"E\n" +
 	"\x13GetWorkflowResponse\x12.\n" +
-	"\bworkflow\x18\x01 \x01(\v2\x12.aipb.WorkflowInfoR\bworkflow\"\xa1\x02\n" +
+	"\bworkflow\x18\x01 \x01(\v2\x12.aipb.WorkflowInfoR\bworkflow\"\xce\x02\n" +
 	"\x15UpdateWorkflowRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x1f\n" +
 	"\vworkflow_id\x18\x02 \x01(\x03R\n" +
@@ -5322,12 +8769,49 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"definition\x18\x04 \x01(\tH\x01R\n" +
 	"definition\x88\x01\x01\x12.\n" +
 	"\x10interval_seconds\x18\x05 \x01(\x03H\x02R\x0fintervalSeconds\x88\x01\x01\x12\x1d\n" +
-	"\aenabled\x18\x06 \x01(\x03H\x03R\aenabled\x88\x01\x01B\a\n" +
+	"\aenabled\x18\x06 \x01(\x03H\x03R\aenabled\x88\x01\x01\x12+\n" +
+	"\x11expected_revision\x18\a \x01(\x03R\x10expectedRevisionB\a\n" +
 	"\x05_nameB\r\n" +
 	"\v_definitionB\x13\n" +
 	"\x11_interval_secondsB\n" +
 	"\n" +
-	"\b_enabled\"[\n" +
+	"\b_enabled\"\x9a\x02\n" +
+	"\x14WorkflowRevisionInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1f\n" +
+	"\vworkflow_id\x18\x02 \x01(\x03R\n" +
+	"workflowId\x12\x1a\n" +
+	"\brevision\x18\x03 \x01(\x03R\brevision\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1e\n" +
+	"\n" +
+	"definition\x18\x05 \x01(\tR\n" +
+	"definition\x12)\n" +
+	"\x10interval_seconds\x18\x06 \x01(\x03R\x0fintervalSeconds\x12\x18\n" +
+	"\aenabled\x18\a \x01(\x03R\aenabled\x12\x1d\n" +
+	"\n" +
+	"step_count\x18\b \x01(\x03R\tstepCount\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\t \x01(\x03R\tcreatedAt\"\x89\x01\n" +
+	"\x1cListWorkflowRevisionsRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x1f\n" +
+	"\vworkflow_id\x18\x02 \x01(\x03R\n" +
+	"workflowId\x12%\n" +
+	"\x04page\x18\x03 \x01(\v2\x11.aipb.PageRequestR\x04page\"w\n" +
+	"\x1dListWorkflowRevisionsResponse\x12.\n" +
+	"\x04list\x18\x01 \x03(\v2\x1a.aipb.WorkflowRevisionInfoR\x04list\x12&\n" +
+	"\x04page\x18\x02 \x01(\v2\x12.aipb.PageResponseR\x04page\"|\n" +
+	"\x1aGetWorkflowRevisionRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x1f\n" +
+	"\vworkflow_id\x18\x02 \x01(\x03R\n" +
+	"workflowId\x12\x1a\n" +
+	"\brevision\x18\x03 \x01(\x03R\brevision\"U\n" +
+	"\x1bGetWorkflowRevisionResponse\x126\n" +
+	"\brevision\x18\x01 \x01(\v2\x1a.aipb.WorkflowRevisionInfoR\brevision\"\xad\x01\n" +
+	"\x1eRestoreWorkflowRevisionRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x1f\n" +
+	"\vworkflow_id\x18\x02 \x01(\x03R\n" +
+	"workflowId\x12\x1a\n" +
+	"\brevision\x18\x03 \x01(\x03R\brevision\x12+\n" +
+	"\x11expected_revision\x18\x04 \x01(\x03R\x10expectedRevision\"[\n" +
 	"\x15DeleteWorkflowRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x1f\n" +
 	"\vworkflow_id\x18\x02 \x01(\x03R\n" +
@@ -5377,7 +8861,7 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\rinput_summary\x18\x11 \x01(\tR\finputSummary\x12\x1e\n" +
 	"\n" +
 	"definition\x18\x12 \x01(\tR\n" +
-	"definition\"\xfe\x01\n" +
+	"definition\"\xad\x02\n" +
 	"\x10WorkflowStepInfo\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x03R\x05index\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x12\n" +
@@ -5390,7 +8874,14 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\n" +
 	"started_at\x18\t \x01(\x03R\tstartedAt\x12!\n" +
 	"\fcompleted_at\x18\n" +
-	" \x01(\x03R\vcompletedAt\"\xb0\x01\n" +
+	" \x01(\x03R\vcompletedAt\x12-\n" +
+	"\x05usage\x18\v \x01(\v2\x17.aipb.WorkflowStepUsageR\x05usage\"\xba\x01\n" +
+	"\x11WorkflowStepUsage\x12\x14\n" +
+	"\x05scope\x18\x01 \x01(\tR\x05scope\x12#\n" +
+	"\rprompt_tokens\x18\x02 \x01(\x03R\fpromptTokens\x12+\n" +
+	"\x11completion_tokens\x18\x03 \x01(\x03R\x10completionTokens\x12!\n" +
+	"\ftotal_tokens\x18\x04 \x01(\x03R\vtotalTokens\x12\x1a\n" +
+	"\bcomplete\x18\x05 \x01(\bR\bcomplete\"\xb0\x01\n" +
 	"\x15ListAgentTasksRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12%\n" +
 	"\x04page\x18\x02 \x01(\v2\x11.aipb.PageRequestR\x04page\x12\x16\n" +
@@ -5608,8 +9099,165 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\x13StopKbImportRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
 	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12\x19\n" +
-	"\bbatch_id\x18\x03 \x01(\tR\abatchId2\xdd\x12\n" +
-	"\tAiService\x12W\n" +
+	"\bbatch_id\x18\x03 \x01(\tR\abatchId\"M\n" +
+	"\x12KbFeedbackEvidence\x12!\n" +
+	"\fsource_index\x18\x01 \x01(\x03R\vsourceIndex\x12\x14\n" +
+	"\x05quote\x18\x02 \x01(\tR\x05quote\"\xd0\x01\n" +
+	"\x10KbFeedbackReview\x12\x1e\n" +
+	"\n" +
+	"answerable\x18\x01 \x01(\bR\n" +
+	"answerable\x12'\n" +
+	"\x0fexpected_answer\x18\x02 \x01(\tR\x0eexpectedAnswer\x12%\n" +
+	"\x0erequired_facts\x18\x03 \x03(\tR\rrequiredFacts\x124\n" +
+	"\bevidence\x18\x04 \x03(\v2\x18.aipb.KbFeedbackEvidenceR\bevidence\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\"\xb0\x03\n" +
+	"\x0eKbFeedbackInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x13\n" +
+	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12\x17\n" +
+	"\atask_id\x18\x03 \x01(\x03R\x06taskId\x12\x1d\n" +
+	"\n" +
+	"step_index\x18\x04 \x01(\x03R\tstepIndex\x12\x1a\n" +
+	"\bfeedback\x18\x05 \x01(\tR\bfeedback\x12\x12\n" +
+	"\x04note\x18\x06 \x01(\tR\x04note\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\x12\x1a\n" +
+	"\brevision\x18\b \x01(\x03R\brevision\x12\x1a\n" +
+	"\bquestion\x18\t \x01(\tR\bquestion\x12\x16\n" +
+	"\x06answer\x18\n" +
+	" \x01(\tR\x06answer\x12\x1a\n" +
+	"\bsnapshot\x18\v \x01(\tR\bsnapshot\x12.\n" +
+	"\x06review\x18\f \x01(\v2\x16.aipb.KbFeedbackReviewR\x06review\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\r \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x0e \x01(\x03R\tupdatedAt\x12\x1f\n" +
+	"\vreviewed_at\x18\x0f \x01(\x03R\n" +
+	"reviewedAt\"\xd0\x01\n" +
+	"\x16SetTaskFeedbackRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x17\n" +
+	"\atask_id\x18\x02 \x01(\x03R\x06taskId\x12\x1d\n" +
+	"\n" +
+	"step_index\x18\x03 \x01(\x03R\tstepIndex\x12+\n" +
+	"\x11expected_revision\x18\x04 \x01(\x03R\x10expectedRevision\x12\x1a\n" +
+	"\bfeedback\x18\x05 \x01(\tR\bfeedback\x12\x12\n" +
+	"\x04note\x18\x06 \x01(\tR\x04note\"F\n" +
+	"\x12KbFeedbackResponse\x120\n" +
+	"\bfeedback\x18\x01 \x01(\v2\x14.aipb.KbFeedbackInfoR\bfeedback\"U\n" +
+	"\x17ListTaskFeedbackRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x17\n" +
+	"\atask_id\x18\x02 \x01(\x03R\x06taskId\"D\n" +
+	"\x18ListTaskFeedbackResponse\x12(\n" +
+	"\x04list\x18\x01 \x03(\v2\x14.aipb.KbFeedbackInfoR\x04list\"\x8e\x01\n" +
+	"\x15ListKbFeedbackRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
+	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12%\n" +
+	"\x04page\x18\x03 \x01(\v2\x11.aipb.PageRequestR\x04page\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\"j\n" +
+	"\x16ListKbFeedbackResponse\x12(\n" +
+	"\x04list\x18\x01 \x03(\v2\x14.aipb.KbFeedbackInfoR\x04list\x12&\n" +
+	"\x04page\x18\x02 \x01(\v2\x12.aipb.PageResponseR\x04page\"o\n" +
+	"\x14GetKbFeedbackRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
+	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12\x1f\n" +
+	"\vfeedback_id\x18\x03 \x01(\x03R\n" +
+	"feedbackId\"\xe7\x01\n" +
+	"\x17ReviewKbFeedbackRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
+	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12\x1f\n" +
+	"\vfeedback_id\x18\x03 \x01(\x03R\n" +
+	"feedbackId\x12+\n" +
+	"\x11expected_revision\x18\x04 \x01(\x03R\x10expectedRevision\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12.\n" +
+	"\x06review\x18\x06 \x01(\v2\x16.aipb.KbFeedbackReviewR\x06review\"q\n" +
+	"\x17KbEvaluationDatasetInfo\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
+	"\x06sha256\x18\x03 \x01(\tR\x06sha256\x12\x18\n" +
+	"\adataset\x18\x04 \x01(\tR\adataset\"Y\n" +
+	"\x1fListKbEvaluationDatasetsRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
+	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\"U\n" +
+	" ListKbEvaluationDatasetsResponse\x121\n" +
+	"\x04list\x18\x01 \x03(\v2\x1d.aipb.KbEvaluationDatasetInfoR\x04list\"\x9a\x05\n" +
+	"\x10KbEvaluationInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x13\n" +
+	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\x12\x1f\n" +
+	"\vdataset_key\x18\x04 \x01(\tR\n" +
+	"datasetKey\x12%\n" +
+	"\x0edataset_sha256\x18\x05 \x01(\tR\rdatasetSha256\x12\x1b\n" +
+	"\tgroup_key\x18\x06 \x01(\tR\bgroupKey\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"case_count\x18\b \x01(\x03R\tcaseCount\x12'\n" +
+	"\x0fcompleted_count\x18\t \x01(\x03R\x0ecompletedCount\x12!\n" +
+	"\ffailed_count\x18\n" +
+	" \x01(\x03R\vfailedCount\x12%\n" +
+	"\x0estop_requested\x18\v \x01(\bR\rstopRequested\x12'\n" +
+	"\x0fcorpus_verified\x18\f \x01(\bR\x0ecorpusVerified\x12\x14\n" +
+	"\x05error\x18\r \x01(\tR\x05error\x12\x1a\n" +
+	"\bsnapshot\x18\x0e \x01(\tR\bsnapshot\x12\x1a\n" +
+	"\bbindings\x18\x0f \x01(\tR\bbindings\x12\x18\n" +
+	"\acontext\x18\x10 \x01(\tR\acontext\x12\"\n" +
+	"\fobservations\x18\x11 \x01(\tR\fobservations\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x12 \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x13 \x01(\x03R\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"started_at\x18\x14 \x01(\x03R\tstartedAt\x12!\n" +
+	"\fcompleted_at\x18\x15 \x01(\x03R\vcompletedAt\"N\n" +
+	"\x14KbEvaluationResponse\x126\n" +
+	"\n" +
+	"evaluation\x18\x01 \x01(\v2\x16.aipb.KbEvaluationInfoR\n" +
+	"evaluation\"\x9c\x02\n" +
+	"\x18StartKbEvaluationRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
+	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\x12\x1f\n" +
+	"\vdataset_key\x18\x04 \x01(\tR\n" +
+	"datasetKey\x12%\n" +
+	"\x0edataset_sha256\x18\x05 \x01(\tR\rdatasetSha256\x12\x1b\n" +
+	"\tgroup_key\x18\x06 \x01(\tR\bgroupKey\x12\x19\n" +
+	"\bcase_ids\x18\a \x03(\tR\acaseIds\x12)\n" +
+	"\x10dataset_snapshot\x18\b \x01(\tR\x0fdatasetSnapshot\"\xb0\x01\n" +
+	"\x18ListKbEvaluationsRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
+	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12%\n" +
+	"\x04page\x18\x03 \x01(\v2\x11.aipb.PageRequestR\x04page\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x05 \x01(\tR\trequestId\"o\n" +
+	"\x19ListKbEvaluationsResponse\x12*\n" +
+	"\x04list\x18\x01 \x03(\v2\x16.aipb.KbEvaluationInfoR\x04list\x12&\n" +
+	"\x04page\x18\x02 \x01(\v2\x12.aipb.PageResponseR\x04page\"u\n" +
+	"\x16GetKbEvaluationRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
+	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12#\n" +
+	"\revaluation_id\x18\x03 \x01(\x03R\fevaluationId\"v\n" +
+	"\x17StopKbEvaluationRequest\x12!\n" +
+	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
+	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12#\n" +
+	"\revaluation_id\x18\x03 \x01(\x03R\fevaluationId2\xbf\x1f\n" +
+	"\tAiService\x12F\n" +
+	"\x0fGetUsageSummary\x12\x17.aipb.UsageQueryRequest\x1a\x1a.aipb.UsageSummaryResponse\x12G\n" +
+	"\x0eListUsageCalls\x12\x17.aipb.UsageQueryRequest\x1a\x1c.aipb.ListUsageCallsResponse\x12E\n" +
+	"\x0eGetUsagePolicy\x12\x18.aipb.UsagePolicyRequest\x1a\x19.aipb.UsagePolicyResponse\x12K\n" +
+	"\x14AdminGetUsageSummary\x12\x17.aipb.UsageQueryRequest\x1a\x1a.aipb.UsageSummaryResponse\x12L\n" +
+	"\x13AdminListUsageCalls\x12\x17.aipb.UsageQueryRequest\x1a\x1c.aipb.ListUsageCallsResponse\x12R\n" +
+	"\x16AdminListUsagePolicies\x12\x17.aipb.UsageQueryRequest\x1a\x1f.aipb.ListUsagePoliciesResponse\x12M\n" +
+	"\x13AdminSetUsagePolicy\x12\x1b.aipb.SetUsagePolicyRequest\x1a\x19.aipb.UsagePolicyResponse\x12i\n" +
+	"\x18ListKbEvaluationDatasets\x12%.aipb.ListKbEvaluationDatasetsRequest\x1a&.aipb.ListKbEvaluationDatasetsResponse\x12O\n" +
+	"\x11StartKbEvaluation\x12\x1e.aipb.StartKbEvaluationRequest\x1a\x1a.aipb.KbEvaluationResponse\x12T\n" +
+	"\x11ListKbEvaluations\x12\x1e.aipb.ListKbEvaluationsRequest\x1a\x1f.aipb.ListKbEvaluationsResponse\x12K\n" +
+	"\x0fGetKbEvaluation\x12\x1c.aipb.GetKbEvaluationRequest\x1a\x1a.aipb.KbEvaluationResponse\x12M\n" +
+	"\x10StopKbEvaluation\x12\x1d.aipb.StopKbEvaluationRequest\x1a\x1a.aipb.KbEvaluationResponse\x12I\n" +
+	"\x0fSetTaskFeedback\x12\x1c.aipb.SetTaskFeedbackRequest\x1a\x18.aipb.KbFeedbackResponse\x12Q\n" +
+	"\x10ListTaskFeedback\x12\x1d.aipb.ListTaskFeedbackRequest\x1a\x1e.aipb.ListTaskFeedbackResponse\x12K\n" +
+	"\x0eListKbFeedback\x12\x1b.aipb.ListKbFeedbackRequest\x1a\x1c.aipb.ListKbFeedbackResponse\x12E\n" +
+	"\rGetKbFeedback\x12\x1a.aipb.GetKbFeedbackRequest\x1a\x18.aipb.KbFeedbackResponse\x12K\n" +
+	"\x10ReviewKbFeedback\x12\x1d.aipb.ReviewKbFeedbackRequest\x1a\x18.aipb.KbFeedbackResponse\x12W\n" +
 	"\x12CreateConversation\x12\x1f.aipb.CreateConversationRequest\x1a .aipb.CreateConversationResponse\x12T\n" +
 	"\x11ListConversations\x12\x1e.aipb.ListConversationsRequest\x1a\x1f.aipb.ListConversationsResponse\x12N\n" +
 	"\x0fGetConversation\x12\x1c.aipb.GetConversationRequest\x1a\x1d.aipb.GetConversationResponse\x12K\n" +
@@ -5620,8 +9268,11 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\tListTools\x12\x16.aipb.ListToolsRequest\x1a\x17.aipb.ListToolsResponse\x12K\n" +
 	"\x0eCreateWorkflow\x12\x1b.aipb.CreateWorkflowRequest\x1a\x1c.aipb.CreateWorkflowResponse\x12H\n" +
 	"\rListWorkflows\x12\x1a.aipb.ListWorkflowsRequest\x1a\x1b.aipb.ListWorkflowsResponse\x12B\n" +
-	"\vGetWorkflow\x12\x18.aipb.GetWorkflowRequest\x1a\x19.aipb.GetWorkflowResponse\x12C\n" +
-	"\x0eUpdateWorkflow\x12\x1b.aipb.UpdateWorkflowRequest\x1a\x14.aipb.NoDataResponse\x12C\n" +
+	"\vGetWorkflow\x12\x18.aipb.GetWorkflowRequest\x1a\x19.aipb.GetWorkflowResponse\x12H\n" +
+	"\x0eUpdateWorkflow\x12\x1b.aipb.UpdateWorkflowRequest\x1a\x19.aipb.GetWorkflowResponse\x12`\n" +
+	"\x15ListWorkflowRevisions\x12\".aipb.ListWorkflowRevisionsRequest\x1a#.aipb.ListWorkflowRevisionsResponse\x12Z\n" +
+	"\x13GetWorkflowRevision\x12 .aipb.GetWorkflowRevisionRequest\x1a!.aipb.GetWorkflowRevisionResponse\x12Z\n" +
+	"\x17RestoreWorkflowRevision\x12$.aipb.RestoreWorkflowRevisionRequest\x1a\x19.aipb.GetWorkflowResponse\x12C\n" +
 	"\x0eDeleteWorkflow\x12\x1b.aipb.DeleteWorkflowRequest\x1a\x14.aipb.NoDataResponse\x12B\n" +
 	"\vRunWorkflow\x12\x18.aipb.RunWorkflowRequest\x1a\x19.aipb.RunWorkflowResponse\x12<\n" +
 	"\bRunDraft\x12\x15.aipb.RunDraftRequest\x1a\x19.aipb.RunWorkflowResponse\x129\n" +
@@ -5662,239 +9313,362 @@ func file_application_ai_rpc_desc_ai_proto_rawDescGZIP() []byte {
 	return file_application_ai_rpc_desc_ai_proto_rawDescData
 }
 
-var file_application_ai_rpc_desc_ai_proto_msgTypes = make([]protoimpl.MessageInfo, 74)
+var file_application_ai_rpc_desc_ai_proto_msgTypes = make([]protoimpl.MessageInfo, 114)
 var file_application_ai_rpc_desc_ai_proto_goTypes = []any{
-	(*PageRequest)(nil),                // 0: aipb.PageRequest
-	(*PageResponse)(nil),               // 1: aipb.PageResponse
-	(*NoDataResponse)(nil),             // 2: aipb.NoDataResponse
-	(*Actor)(nil),                      // 3: aipb.Actor
-	(*ChatMessage)(nil),                // 4: aipb.ChatMessage
-	(*ConversationInfo)(nil),           // 5: aipb.ConversationInfo
-	(*CreateConversationRequest)(nil),  // 6: aipb.CreateConversationRequest
-	(*CreateConversationResponse)(nil), // 7: aipb.CreateConversationResponse
-	(*ListConversationsRequest)(nil),   // 8: aipb.ListConversationsRequest
-	(*UpdateConversationRequest)(nil),  // 9: aipb.UpdateConversationRequest
-	(*SetMessageFeedbackRequest)(nil),  // 10: aipb.SetMessageFeedbackRequest
-	(*ListConversationsResponse)(nil),  // 11: aipb.ListConversationsResponse
-	(*GetConversationRequest)(nil),     // 12: aipb.GetConversationRequest
-	(*GetConversationResponse)(nil),    // 13: aipb.GetConversationResponse
-	(*DeleteConversationRequest)(nil),  // 14: aipb.DeleteConversationRequest
-	(*SendMessageRequest)(nil),         // 15: aipb.SendMessageRequest
-	(*SendMessageResponse)(nil),        // 16: aipb.SendMessageResponse
-	(*StreamChunk)(nil),                // 17: aipb.StreamChunk
-	(*ToolInfo)(nil),                   // 18: aipb.ToolInfo
-	(*ListToolsRequest)(nil),           // 19: aipb.ListToolsRequest
-	(*Capabilities)(nil),               // 20: aipb.Capabilities
-	(*ListToolsResponse)(nil),          // 21: aipb.ListToolsResponse
-	(*WorkflowInfo)(nil),               // 22: aipb.WorkflowInfo
-	(*CreateWorkflowRequest)(nil),      // 23: aipb.CreateWorkflowRequest
-	(*CreateWorkflowResponse)(nil),     // 24: aipb.CreateWorkflowResponse
-	(*ListWorkflowsRequest)(nil),       // 25: aipb.ListWorkflowsRequest
-	(*ListWorkflowsResponse)(nil),      // 26: aipb.ListWorkflowsResponse
-	(*GetWorkflowRequest)(nil),         // 27: aipb.GetWorkflowRequest
-	(*GetWorkflowResponse)(nil),        // 28: aipb.GetWorkflowResponse
-	(*UpdateWorkflowRequest)(nil),      // 29: aipb.UpdateWorkflowRequest
-	(*DeleteWorkflowRequest)(nil),      // 30: aipb.DeleteWorkflowRequest
-	(*RunWorkflowRequest)(nil),         // 31: aipb.RunWorkflowRequest
-	(*RunWorkflowResponse)(nil),        // 32: aipb.RunWorkflowResponse
-	(*RunDraftRequest)(nil),            // 33: aipb.RunDraftRequest
-	(*AgentTaskInfo)(nil),              // 34: aipb.AgentTaskInfo
-	(*WorkflowStepInfo)(nil),           // 35: aipb.WorkflowStepInfo
-	(*ListAgentTasksRequest)(nil),      // 36: aipb.ListAgentTasksRequest
-	(*ListAgentTasksResponse)(nil),     // 37: aipb.ListAgentTasksResponse
-	(*GetAgentTaskRequest)(nil),        // 38: aipb.GetAgentTaskRequest
-	(*GetAgentTaskResponse)(nil),       // 39: aipb.GetAgentTaskResponse
-	(*ApproveTaskRequest)(nil),         // 40: aipb.ApproveTaskRequest
-	(*RejectTaskRequest)(nil),          // 41: aipb.RejectTaskRequest
-	(*CancelTaskRequest)(nil),          // 42: aipb.CancelTaskRequest
-	(*KbInfo)(nil),                     // 43: aipb.KbInfo
-	(*KbDocInfo)(nil),                  // 44: aipb.KbDocInfo
-	(*CreateKbRequest)(nil),            // 45: aipb.CreateKbRequest
-	(*CreateKbResponse)(nil),           // 46: aipb.CreateKbResponse
-	(*ListKbsRequest)(nil),             // 47: aipb.ListKbsRequest
-	(*ListKbsResponse)(nil),            // 48: aipb.ListKbsResponse
-	(*GetKbRequest)(nil),               // 49: aipb.GetKbRequest
-	(*GetKbResponse)(nil),              // 50: aipb.GetKbResponse
-	(*SearchKbRequest)(nil),            // 51: aipb.SearchKbRequest
-	(*KbSearchHit)(nil),                // 52: aipb.KbSearchHit
-	(*SearchKbResponse)(nil),           // 53: aipb.SearchKbResponse
-	(*UpdateKbRequest)(nil),            // 54: aipb.UpdateKbRequest
-	(*DeleteKbRequest)(nil),            // 55: aipb.DeleteKbRequest
-	(*CreateKbDocRequest)(nil),         // 56: aipb.CreateKbDocRequest
-	(*CreateKbDocResponse)(nil),        // 57: aipb.CreateKbDocResponse
-	(*ListKbDocsRequest)(nil),          // 58: aipb.ListKbDocsRequest
-	(*ListKbDocsResponse)(nil),         // 59: aipb.ListKbDocsResponse
-	(*GetKbDocRequest)(nil),            // 60: aipb.GetKbDocRequest
-	(*GetKbDocResponse)(nil),           // 61: aipb.GetKbDocResponse
-	(*UpdateKbDocRequest)(nil),         // 62: aipb.UpdateKbDocRequest
-	(*UpdateKbDocResponse)(nil),        // 63: aipb.UpdateKbDocResponse
-	(*DeleteKbDocRequest)(nil),         // 64: aipb.DeleteKbDocRequest
-	(*RetryKbDocRequest)(nil),          // 65: aipb.RetryKbDocRequest
-	(*RetryKbDocResponse)(nil),         // 66: aipb.RetryKbDocResponse
-	(*KbIngestBatchInfo)(nil),          // 67: aipb.KbIngestBatchInfo
-	(*KbIngestJobInfo)(nil),            // 68: aipb.KbIngestJobInfo
-	(*ListKbImportsRequest)(nil),       // 69: aipb.ListKbImportsRequest
-	(*ListKbImportsResponse)(nil),      // 70: aipb.ListKbImportsResponse
-	(*GetKbImportRequest)(nil),         // 71: aipb.GetKbImportRequest
-	(*GetKbImportResponse)(nil),        // 72: aipb.GetKbImportResponse
-	(*StopKbImportRequest)(nil),        // 73: aipb.StopKbImportRequest
+	(*PageRequest)(nil),                      // 0: aipb.PageRequest
+	(*PageResponse)(nil),                     // 1: aipb.PageResponse
+	(*NoDataResponse)(nil),                   // 2: aipb.NoDataResponse
+	(*Actor)(nil),                            // 3: aipb.Actor
+	(*UsagePeriod)(nil),                      // 4: aipb.UsagePeriod
+	(*UsageGroup)(nil),                       // 5: aipb.UsageGroup
+	(*UsageSummaryInfo)(nil),                 // 6: aipb.UsageSummaryInfo
+	(*UsageQueryRequest)(nil),                // 7: aipb.UsageQueryRequest
+	(*UsageSummaryResponse)(nil),             // 8: aipb.UsageSummaryResponse
+	(*UsageCallInfo)(nil),                    // 9: aipb.UsageCallInfo
+	(*ListUsageCallsResponse)(nil),           // 10: aipb.ListUsageCallsResponse
+	(*UsagePolicyInfo)(nil),                  // 11: aipb.UsagePolicyInfo
+	(*UsagePolicyRequest)(nil),               // 12: aipb.UsagePolicyRequest
+	(*UsagePolicyResponse)(nil),              // 13: aipb.UsagePolicyResponse
+	(*ListUsagePoliciesResponse)(nil),        // 14: aipb.ListUsagePoliciesResponse
+	(*SetUsagePolicyRequest)(nil),            // 15: aipb.SetUsagePolicyRequest
+	(*ChatMessage)(nil),                      // 16: aipb.ChatMessage
+	(*ConversationInfo)(nil),                 // 17: aipb.ConversationInfo
+	(*CreateConversationRequest)(nil),        // 18: aipb.CreateConversationRequest
+	(*CreateConversationResponse)(nil),       // 19: aipb.CreateConversationResponse
+	(*ListConversationsRequest)(nil),         // 20: aipb.ListConversationsRequest
+	(*UpdateConversationRequest)(nil),        // 21: aipb.UpdateConversationRequest
+	(*SetMessageFeedbackRequest)(nil),        // 22: aipb.SetMessageFeedbackRequest
+	(*ListConversationsResponse)(nil),        // 23: aipb.ListConversationsResponse
+	(*GetConversationRequest)(nil),           // 24: aipb.GetConversationRequest
+	(*GetConversationResponse)(nil),          // 25: aipb.GetConversationResponse
+	(*DeleteConversationRequest)(nil),        // 26: aipb.DeleteConversationRequest
+	(*SendMessageRequest)(nil),               // 27: aipb.SendMessageRequest
+	(*SendMessageResponse)(nil),              // 28: aipb.SendMessageResponse
+	(*StreamChunk)(nil),                      // 29: aipb.StreamChunk
+	(*ToolInfo)(nil),                         // 30: aipb.ToolInfo
+	(*ListToolsRequest)(nil),                 // 31: aipb.ListToolsRequest
+	(*Capabilities)(nil),                     // 32: aipb.Capabilities
+	(*ListToolsResponse)(nil),                // 33: aipb.ListToolsResponse
+	(*WorkflowInfo)(nil),                     // 34: aipb.WorkflowInfo
+	(*CreateWorkflowRequest)(nil),            // 35: aipb.CreateWorkflowRequest
+	(*CreateWorkflowResponse)(nil),           // 36: aipb.CreateWorkflowResponse
+	(*ListWorkflowsRequest)(nil),             // 37: aipb.ListWorkflowsRequest
+	(*ListWorkflowsResponse)(nil),            // 38: aipb.ListWorkflowsResponse
+	(*GetWorkflowRequest)(nil),               // 39: aipb.GetWorkflowRequest
+	(*GetWorkflowResponse)(nil),              // 40: aipb.GetWorkflowResponse
+	(*UpdateWorkflowRequest)(nil),            // 41: aipb.UpdateWorkflowRequest
+	(*WorkflowRevisionInfo)(nil),             // 42: aipb.WorkflowRevisionInfo
+	(*ListWorkflowRevisionsRequest)(nil),     // 43: aipb.ListWorkflowRevisionsRequest
+	(*ListWorkflowRevisionsResponse)(nil),    // 44: aipb.ListWorkflowRevisionsResponse
+	(*GetWorkflowRevisionRequest)(nil),       // 45: aipb.GetWorkflowRevisionRequest
+	(*GetWorkflowRevisionResponse)(nil),      // 46: aipb.GetWorkflowRevisionResponse
+	(*RestoreWorkflowRevisionRequest)(nil),   // 47: aipb.RestoreWorkflowRevisionRequest
+	(*DeleteWorkflowRequest)(nil),            // 48: aipb.DeleteWorkflowRequest
+	(*RunWorkflowRequest)(nil),               // 49: aipb.RunWorkflowRequest
+	(*RunWorkflowResponse)(nil),              // 50: aipb.RunWorkflowResponse
+	(*RunDraftRequest)(nil),                  // 51: aipb.RunDraftRequest
+	(*AgentTaskInfo)(nil),                    // 52: aipb.AgentTaskInfo
+	(*WorkflowStepInfo)(nil),                 // 53: aipb.WorkflowStepInfo
+	(*WorkflowStepUsage)(nil),                // 54: aipb.WorkflowStepUsage
+	(*ListAgentTasksRequest)(nil),            // 55: aipb.ListAgentTasksRequest
+	(*ListAgentTasksResponse)(nil),           // 56: aipb.ListAgentTasksResponse
+	(*GetAgentTaskRequest)(nil),              // 57: aipb.GetAgentTaskRequest
+	(*GetAgentTaskResponse)(nil),             // 58: aipb.GetAgentTaskResponse
+	(*ApproveTaskRequest)(nil),               // 59: aipb.ApproveTaskRequest
+	(*RejectTaskRequest)(nil),                // 60: aipb.RejectTaskRequest
+	(*CancelTaskRequest)(nil),                // 61: aipb.CancelTaskRequest
+	(*KbInfo)(nil),                           // 62: aipb.KbInfo
+	(*KbDocInfo)(nil),                        // 63: aipb.KbDocInfo
+	(*CreateKbRequest)(nil),                  // 64: aipb.CreateKbRequest
+	(*CreateKbResponse)(nil),                 // 65: aipb.CreateKbResponse
+	(*ListKbsRequest)(nil),                   // 66: aipb.ListKbsRequest
+	(*ListKbsResponse)(nil),                  // 67: aipb.ListKbsResponse
+	(*GetKbRequest)(nil),                     // 68: aipb.GetKbRequest
+	(*GetKbResponse)(nil),                    // 69: aipb.GetKbResponse
+	(*SearchKbRequest)(nil),                  // 70: aipb.SearchKbRequest
+	(*KbSearchHit)(nil),                      // 71: aipb.KbSearchHit
+	(*SearchKbResponse)(nil),                 // 72: aipb.SearchKbResponse
+	(*UpdateKbRequest)(nil),                  // 73: aipb.UpdateKbRequest
+	(*DeleteKbRequest)(nil),                  // 74: aipb.DeleteKbRequest
+	(*CreateKbDocRequest)(nil),               // 75: aipb.CreateKbDocRequest
+	(*CreateKbDocResponse)(nil),              // 76: aipb.CreateKbDocResponse
+	(*ListKbDocsRequest)(nil),                // 77: aipb.ListKbDocsRequest
+	(*ListKbDocsResponse)(nil),               // 78: aipb.ListKbDocsResponse
+	(*GetKbDocRequest)(nil),                  // 79: aipb.GetKbDocRequest
+	(*GetKbDocResponse)(nil),                 // 80: aipb.GetKbDocResponse
+	(*UpdateKbDocRequest)(nil),               // 81: aipb.UpdateKbDocRequest
+	(*UpdateKbDocResponse)(nil),              // 82: aipb.UpdateKbDocResponse
+	(*DeleteKbDocRequest)(nil),               // 83: aipb.DeleteKbDocRequest
+	(*RetryKbDocRequest)(nil),                // 84: aipb.RetryKbDocRequest
+	(*RetryKbDocResponse)(nil),               // 85: aipb.RetryKbDocResponse
+	(*KbIngestBatchInfo)(nil),                // 86: aipb.KbIngestBatchInfo
+	(*KbIngestJobInfo)(nil),                  // 87: aipb.KbIngestJobInfo
+	(*ListKbImportsRequest)(nil),             // 88: aipb.ListKbImportsRequest
+	(*ListKbImportsResponse)(nil),            // 89: aipb.ListKbImportsResponse
+	(*GetKbImportRequest)(nil),               // 90: aipb.GetKbImportRequest
+	(*GetKbImportResponse)(nil),              // 91: aipb.GetKbImportResponse
+	(*StopKbImportRequest)(nil),              // 92: aipb.StopKbImportRequest
+	(*KbFeedbackEvidence)(nil),               // 93: aipb.KbFeedbackEvidence
+	(*KbFeedbackReview)(nil),                 // 94: aipb.KbFeedbackReview
+	(*KbFeedbackInfo)(nil),                   // 95: aipb.KbFeedbackInfo
+	(*SetTaskFeedbackRequest)(nil),           // 96: aipb.SetTaskFeedbackRequest
+	(*KbFeedbackResponse)(nil),               // 97: aipb.KbFeedbackResponse
+	(*ListTaskFeedbackRequest)(nil),          // 98: aipb.ListTaskFeedbackRequest
+	(*ListTaskFeedbackResponse)(nil),         // 99: aipb.ListTaskFeedbackResponse
+	(*ListKbFeedbackRequest)(nil),            // 100: aipb.ListKbFeedbackRequest
+	(*ListKbFeedbackResponse)(nil),           // 101: aipb.ListKbFeedbackResponse
+	(*GetKbFeedbackRequest)(nil),             // 102: aipb.GetKbFeedbackRequest
+	(*ReviewKbFeedbackRequest)(nil),          // 103: aipb.ReviewKbFeedbackRequest
+	(*KbEvaluationDatasetInfo)(nil),          // 104: aipb.KbEvaluationDatasetInfo
+	(*ListKbEvaluationDatasetsRequest)(nil),  // 105: aipb.ListKbEvaluationDatasetsRequest
+	(*ListKbEvaluationDatasetsResponse)(nil), // 106: aipb.ListKbEvaluationDatasetsResponse
+	(*KbEvaluationInfo)(nil),                 // 107: aipb.KbEvaluationInfo
+	(*KbEvaluationResponse)(nil),             // 108: aipb.KbEvaluationResponse
+	(*StartKbEvaluationRequest)(nil),         // 109: aipb.StartKbEvaluationRequest
+	(*ListKbEvaluationsRequest)(nil),         // 110: aipb.ListKbEvaluationsRequest
+	(*ListKbEvaluationsResponse)(nil),        // 111: aipb.ListKbEvaluationsResponse
+	(*GetKbEvaluationRequest)(nil),           // 112: aipb.GetKbEvaluationRequest
+	(*StopKbEvaluationRequest)(nil),          // 113: aipb.StopKbEvaluationRequest
 }
 var file_application_ai_rpc_desc_ai_proto_depIdxs = []int32{
-	52,  // 0: aipb.ChatMessage.sources:type_name -> aipb.KbSearchHit
-	3,   // 1: aipb.CreateConversationRequest.actor:type_name -> aipb.Actor
-	5,   // 2: aipb.CreateConversationResponse.conversation:type_name -> aipb.ConversationInfo
-	3,   // 3: aipb.ListConversationsRequest.actor:type_name -> aipb.Actor
-	0,   // 4: aipb.ListConversationsRequest.page:type_name -> aipb.PageRequest
-	3,   // 5: aipb.UpdateConversationRequest.actor:type_name -> aipb.Actor
-	3,   // 6: aipb.SetMessageFeedbackRequest.actor:type_name -> aipb.Actor
-	5,   // 7: aipb.ListConversationsResponse.list:type_name -> aipb.ConversationInfo
-	1,   // 8: aipb.ListConversationsResponse.page:type_name -> aipb.PageResponse
-	3,   // 9: aipb.GetConversationRequest.actor:type_name -> aipb.Actor
-	5,   // 10: aipb.GetConversationResponse.conversation:type_name -> aipb.ConversationInfo
-	4,   // 11: aipb.GetConversationResponse.messages:type_name -> aipb.ChatMessage
-	3,   // 12: aipb.DeleteConversationRequest.actor:type_name -> aipb.Actor
-	3,   // 13: aipb.SendMessageRequest.actor:type_name -> aipb.Actor
-	4,   // 14: aipb.SendMessageResponse.user_message:type_name -> aipb.ChatMessage
-	4,   // 15: aipb.SendMessageResponse.ai_message:type_name -> aipb.ChatMessage
-	5,   // 16: aipb.SendMessageResponse.conversation:type_name -> aipb.ConversationInfo
-	16,  // 17: aipb.StreamChunk.result:type_name -> aipb.SendMessageResponse
-	3,   // 18: aipb.ListToolsRequest.actor:type_name -> aipb.Actor
-	18,  // 19: aipb.ListToolsResponse.list:type_name -> aipb.ToolInfo
-	20,  // 20: aipb.ListToolsResponse.capabilities:type_name -> aipb.Capabilities
-	3,   // 21: aipb.CreateWorkflowRequest.actor:type_name -> aipb.Actor
-	22,  // 22: aipb.CreateWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
-	3,   // 23: aipb.ListWorkflowsRequest.actor:type_name -> aipb.Actor
-	0,   // 24: aipb.ListWorkflowsRequest.page:type_name -> aipb.PageRequest
-	22,  // 25: aipb.ListWorkflowsResponse.list:type_name -> aipb.WorkflowInfo
-	1,   // 26: aipb.ListWorkflowsResponse.page:type_name -> aipb.PageResponse
-	3,   // 27: aipb.GetWorkflowRequest.actor:type_name -> aipb.Actor
-	22,  // 28: aipb.GetWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
-	3,   // 29: aipb.UpdateWorkflowRequest.actor:type_name -> aipb.Actor
-	3,   // 30: aipb.DeleteWorkflowRequest.actor:type_name -> aipb.Actor
-	3,   // 31: aipb.RunWorkflowRequest.actor:type_name -> aipb.Actor
-	3,   // 32: aipb.RunDraftRequest.actor:type_name -> aipb.Actor
-	35,  // 33: aipb.AgentTaskInfo.steps:type_name -> aipb.WorkflowStepInfo
-	3,   // 34: aipb.ListAgentTasksRequest.actor:type_name -> aipb.Actor
-	0,   // 35: aipb.ListAgentTasksRequest.page:type_name -> aipb.PageRequest
-	34,  // 36: aipb.ListAgentTasksResponse.list:type_name -> aipb.AgentTaskInfo
-	1,   // 37: aipb.ListAgentTasksResponse.page:type_name -> aipb.PageResponse
-	3,   // 38: aipb.GetAgentTaskRequest.actor:type_name -> aipb.Actor
-	34,  // 39: aipb.GetAgentTaskResponse.task:type_name -> aipb.AgentTaskInfo
-	3,   // 40: aipb.ApproveTaskRequest.actor:type_name -> aipb.Actor
-	3,   // 41: aipb.RejectTaskRequest.actor:type_name -> aipb.Actor
-	3,   // 42: aipb.CancelTaskRequest.actor:type_name -> aipb.Actor
-	3,   // 43: aipb.CreateKbRequest.actor:type_name -> aipb.Actor
-	43,  // 44: aipb.CreateKbResponse.kb:type_name -> aipb.KbInfo
-	20,  // 45: aipb.CreateKbResponse.capabilities:type_name -> aipb.Capabilities
-	3,   // 46: aipb.ListKbsRequest.actor:type_name -> aipb.Actor
-	0,   // 47: aipb.ListKbsRequest.page:type_name -> aipb.PageRequest
-	43,  // 48: aipb.ListKbsResponse.list:type_name -> aipb.KbInfo
-	1,   // 49: aipb.ListKbsResponse.page:type_name -> aipb.PageResponse
-	20,  // 50: aipb.ListKbsResponse.capabilities:type_name -> aipb.Capabilities
-	3,   // 51: aipb.GetKbRequest.actor:type_name -> aipb.Actor
-	43,  // 52: aipb.GetKbResponse.kb:type_name -> aipb.KbInfo
-	20,  // 53: aipb.GetKbResponse.capabilities:type_name -> aipb.Capabilities
-	3,   // 54: aipb.SearchKbRequest.actor:type_name -> aipb.Actor
-	52,  // 55: aipb.SearchKbResponse.list:type_name -> aipb.KbSearchHit
-	3,   // 56: aipb.UpdateKbRequest.actor:type_name -> aipb.Actor
-	3,   // 57: aipb.DeleteKbRequest.actor:type_name -> aipb.Actor
-	3,   // 58: aipb.CreateKbDocRequest.actor:type_name -> aipb.Actor
-	44,  // 59: aipb.CreateKbDocResponse.doc:type_name -> aipb.KbDocInfo
-	3,   // 60: aipb.ListKbDocsRequest.actor:type_name -> aipb.Actor
-	0,   // 61: aipb.ListKbDocsRequest.page:type_name -> aipb.PageRequest
-	44,  // 62: aipb.ListKbDocsResponse.list:type_name -> aipb.KbDocInfo
-	1,   // 63: aipb.ListKbDocsResponse.page:type_name -> aipb.PageResponse
-	3,   // 64: aipb.GetKbDocRequest.actor:type_name -> aipb.Actor
-	44,  // 65: aipb.GetKbDocResponse.doc:type_name -> aipb.KbDocInfo
-	3,   // 66: aipb.UpdateKbDocRequest.actor:type_name -> aipb.Actor
-	44,  // 67: aipb.UpdateKbDocResponse.doc:type_name -> aipb.KbDocInfo
-	3,   // 68: aipb.DeleteKbDocRequest.actor:type_name -> aipb.Actor
-	3,   // 69: aipb.RetryKbDocRequest.actor:type_name -> aipb.Actor
-	44,  // 70: aipb.RetryKbDocResponse.doc:type_name -> aipb.KbDocInfo
-	44,  // 71: aipb.KbIngestJobInfo.doc:type_name -> aipb.KbDocInfo
-	3,   // 72: aipb.ListKbImportsRequest.actor:type_name -> aipb.Actor
-	0,   // 73: aipb.ListKbImportsRequest.page:type_name -> aipb.PageRequest
-	67,  // 74: aipb.ListKbImportsResponse.list:type_name -> aipb.KbIngestBatchInfo
-	1,   // 75: aipb.ListKbImportsResponse.page:type_name -> aipb.PageResponse
-	3,   // 76: aipb.GetKbImportRequest.actor:type_name -> aipb.Actor
-	67,  // 77: aipb.GetKbImportResponse.batch:type_name -> aipb.KbIngestBatchInfo
-	68,  // 78: aipb.GetKbImportResponse.list:type_name -> aipb.KbIngestJobInfo
-	3,   // 79: aipb.StopKbImportRequest.actor:type_name -> aipb.Actor
-	6,   // 80: aipb.AiService.CreateConversation:input_type -> aipb.CreateConversationRequest
-	8,   // 81: aipb.AiService.ListConversations:input_type -> aipb.ListConversationsRequest
-	12,  // 82: aipb.AiService.GetConversation:input_type -> aipb.GetConversationRequest
-	14,  // 83: aipb.AiService.DeleteConversation:input_type -> aipb.DeleteConversationRequest
-	9,   // 84: aipb.AiService.UpdateConversation:input_type -> aipb.UpdateConversationRequest
-	10,  // 85: aipb.AiService.SetMessageFeedback:input_type -> aipb.SetMessageFeedbackRequest
-	15,  // 86: aipb.AiService.SendMessageStream:input_type -> aipb.SendMessageRequest
-	19,  // 87: aipb.AiService.ListTools:input_type -> aipb.ListToolsRequest
-	23,  // 88: aipb.AiService.CreateWorkflow:input_type -> aipb.CreateWorkflowRequest
-	25,  // 89: aipb.AiService.ListWorkflows:input_type -> aipb.ListWorkflowsRequest
-	27,  // 90: aipb.AiService.GetWorkflow:input_type -> aipb.GetWorkflowRequest
-	29,  // 91: aipb.AiService.UpdateWorkflow:input_type -> aipb.UpdateWorkflowRequest
-	30,  // 92: aipb.AiService.DeleteWorkflow:input_type -> aipb.DeleteWorkflowRequest
-	31,  // 93: aipb.AiService.RunWorkflow:input_type -> aipb.RunWorkflowRequest
-	33,  // 94: aipb.AiService.RunDraft:input_type -> aipb.RunDraftRequest
-	45,  // 95: aipb.AiService.CreateKb:input_type -> aipb.CreateKbRequest
-	47,  // 96: aipb.AiService.ListKbs:input_type -> aipb.ListKbsRequest
-	49,  // 97: aipb.AiService.GetKb:input_type -> aipb.GetKbRequest
-	51,  // 98: aipb.AiService.SearchKb:input_type -> aipb.SearchKbRequest
-	54,  // 99: aipb.AiService.UpdateKb:input_type -> aipb.UpdateKbRequest
-	55,  // 100: aipb.AiService.DeleteKb:input_type -> aipb.DeleteKbRequest
-	56,  // 101: aipb.AiService.CreateKbDoc:input_type -> aipb.CreateKbDocRequest
-	58,  // 102: aipb.AiService.ListKbDocs:input_type -> aipb.ListKbDocsRequest
-	60,  // 103: aipb.AiService.GetKbDoc:input_type -> aipb.GetKbDocRequest
-	62,  // 104: aipb.AiService.UpdateKbDoc:input_type -> aipb.UpdateKbDocRequest
-	64,  // 105: aipb.AiService.DeleteKbDoc:input_type -> aipb.DeleteKbDocRequest
-	65,  // 106: aipb.AiService.RetryKbDoc:input_type -> aipb.RetryKbDocRequest
-	69,  // 107: aipb.AiService.ListKbImports:input_type -> aipb.ListKbImportsRequest
-	71,  // 108: aipb.AiService.GetKbImport:input_type -> aipb.GetKbImportRequest
-	73,  // 109: aipb.AiService.StopKbImport:input_type -> aipb.StopKbImportRequest
-	36,  // 110: aipb.AiService.ListAgentTasks:input_type -> aipb.ListAgentTasksRequest
-	38,  // 111: aipb.AiService.GetAgentTask:input_type -> aipb.GetAgentTaskRequest
-	40,  // 112: aipb.AiService.ApproveTask:input_type -> aipb.ApproveTaskRequest
-	41,  // 113: aipb.AiService.RejectTask:input_type -> aipb.RejectTaskRequest
-	42,  // 114: aipb.AiService.CancelTask:input_type -> aipb.CancelTaskRequest
-	7,   // 115: aipb.AiService.CreateConversation:output_type -> aipb.CreateConversationResponse
-	11,  // 116: aipb.AiService.ListConversations:output_type -> aipb.ListConversationsResponse
-	13,  // 117: aipb.AiService.GetConversation:output_type -> aipb.GetConversationResponse
-	2,   // 118: aipb.AiService.DeleteConversation:output_type -> aipb.NoDataResponse
-	7,   // 119: aipb.AiService.UpdateConversation:output_type -> aipb.CreateConversationResponse
-	2,   // 120: aipb.AiService.SetMessageFeedback:output_type -> aipb.NoDataResponse
-	17,  // 121: aipb.AiService.SendMessageStream:output_type -> aipb.StreamChunk
-	21,  // 122: aipb.AiService.ListTools:output_type -> aipb.ListToolsResponse
-	24,  // 123: aipb.AiService.CreateWorkflow:output_type -> aipb.CreateWorkflowResponse
-	26,  // 124: aipb.AiService.ListWorkflows:output_type -> aipb.ListWorkflowsResponse
-	28,  // 125: aipb.AiService.GetWorkflow:output_type -> aipb.GetWorkflowResponse
-	2,   // 126: aipb.AiService.UpdateWorkflow:output_type -> aipb.NoDataResponse
-	2,   // 127: aipb.AiService.DeleteWorkflow:output_type -> aipb.NoDataResponse
-	32,  // 128: aipb.AiService.RunWorkflow:output_type -> aipb.RunWorkflowResponse
-	32,  // 129: aipb.AiService.RunDraft:output_type -> aipb.RunWorkflowResponse
-	46,  // 130: aipb.AiService.CreateKb:output_type -> aipb.CreateKbResponse
-	48,  // 131: aipb.AiService.ListKbs:output_type -> aipb.ListKbsResponse
-	50,  // 132: aipb.AiService.GetKb:output_type -> aipb.GetKbResponse
-	53,  // 133: aipb.AiService.SearchKb:output_type -> aipb.SearchKbResponse
-	2,   // 134: aipb.AiService.UpdateKb:output_type -> aipb.NoDataResponse
-	2,   // 135: aipb.AiService.DeleteKb:output_type -> aipb.NoDataResponse
-	57,  // 136: aipb.AiService.CreateKbDoc:output_type -> aipb.CreateKbDocResponse
-	59,  // 137: aipb.AiService.ListKbDocs:output_type -> aipb.ListKbDocsResponse
-	61,  // 138: aipb.AiService.GetKbDoc:output_type -> aipb.GetKbDocResponse
-	63,  // 139: aipb.AiService.UpdateKbDoc:output_type -> aipb.UpdateKbDocResponse
-	2,   // 140: aipb.AiService.DeleteKbDoc:output_type -> aipb.NoDataResponse
-	66,  // 141: aipb.AiService.RetryKbDoc:output_type -> aipb.RetryKbDocResponse
-	70,  // 142: aipb.AiService.ListKbImports:output_type -> aipb.ListKbImportsResponse
-	72,  // 143: aipb.AiService.GetKbImport:output_type -> aipb.GetKbImportResponse
-	72,  // 144: aipb.AiService.StopKbImport:output_type -> aipb.GetKbImportResponse
-	37,  // 145: aipb.AiService.ListAgentTasks:output_type -> aipb.ListAgentTasksResponse
-	39,  // 146: aipb.AiService.GetAgentTask:output_type -> aipb.GetAgentTaskResponse
-	2,   // 147: aipb.AiService.ApproveTask:output_type -> aipb.NoDataResponse
-	2,   // 148: aipb.AiService.RejectTask:output_type -> aipb.NoDataResponse
-	2,   // 149: aipb.AiService.CancelTask:output_type -> aipb.NoDataResponse
-	115, // [115:150] is the sub-list for method output_type
-	80,  // [80:115] is the sub-list for method input_type
-	80,  // [80:80] is the sub-list for extension type_name
-	80,  // [80:80] is the sub-list for extension extendee
-	0,   // [0:80] is the sub-list for field type_name
+	4,   // 0: aipb.UsageSummaryInfo.period:type_name -> aipb.UsagePeriod
+	5,   // 1: aipb.UsageSummaryInfo.groups:type_name -> aipb.UsageGroup
+	3,   // 2: aipb.UsageQueryRequest.actor:type_name -> aipb.Actor
+	0,   // 3: aipb.UsageQueryRequest.page:type_name -> aipb.PageRequest
+	6,   // 4: aipb.UsageSummaryResponse.summary:type_name -> aipb.UsageSummaryInfo
+	9,   // 5: aipb.ListUsageCallsResponse.list:type_name -> aipb.UsageCallInfo
+	1,   // 6: aipb.ListUsageCallsResponse.page:type_name -> aipb.PageResponse
+	3,   // 7: aipb.UsagePolicyRequest.actor:type_name -> aipb.Actor
+	11,  // 8: aipb.UsagePolicyResponse.policy:type_name -> aipb.UsagePolicyInfo
+	11,  // 9: aipb.ListUsagePoliciesResponse.list:type_name -> aipb.UsagePolicyInfo
+	1,   // 10: aipb.ListUsagePoliciesResponse.page:type_name -> aipb.PageResponse
+	3,   // 11: aipb.SetUsagePolicyRequest.actor:type_name -> aipb.Actor
+	71,  // 12: aipb.ChatMessage.sources:type_name -> aipb.KbSearchHit
+	3,   // 13: aipb.CreateConversationRequest.actor:type_name -> aipb.Actor
+	17,  // 14: aipb.CreateConversationResponse.conversation:type_name -> aipb.ConversationInfo
+	3,   // 15: aipb.ListConversationsRequest.actor:type_name -> aipb.Actor
+	0,   // 16: aipb.ListConversationsRequest.page:type_name -> aipb.PageRequest
+	3,   // 17: aipb.UpdateConversationRequest.actor:type_name -> aipb.Actor
+	3,   // 18: aipb.SetMessageFeedbackRequest.actor:type_name -> aipb.Actor
+	17,  // 19: aipb.ListConversationsResponse.list:type_name -> aipb.ConversationInfo
+	1,   // 20: aipb.ListConversationsResponse.page:type_name -> aipb.PageResponse
+	3,   // 21: aipb.GetConversationRequest.actor:type_name -> aipb.Actor
+	17,  // 22: aipb.GetConversationResponse.conversation:type_name -> aipb.ConversationInfo
+	16,  // 23: aipb.GetConversationResponse.messages:type_name -> aipb.ChatMessage
+	3,   // 24: aipb.DeleteConversationRequest.actor:type_name -> aipb.Actor
+	3,   // 25: aipb.SendMessageRequest.actor:type_name -> aipb.Actor
+	16,  // 26: aipb.SendMessageResponse.user_message:type_name -> aipb.ChatMessage
+	16,  // 27: aipb.SendMessageResponse.ai_message:type_name -> aipb.ChatMessage
+	17,  // 28: aipb.SendMessageResponse.conversation:type_name -> aipb.ConversationInfo
+	28,  // 29: aipb.StreamChunk.result:type_name -> aipb.SendMessageResponse
+	3,   // 30: aipb.ListToolsRequest.actor:type_name -> aipb.Actor
+	30,  // 31: aipb.ListToolsResponse.list:type_name -> aipb.ToolInfo
+	32,  // 32: aipb.ListToolsResponse.capabilities:type_name -> aipb.Capabilities
+	3,   // 33: aipb.CreateWorkflowRequest.actor:type_name -> aipb.Actor
+	34,  // 34: aipb.CreateWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
+	3,   // 35: aipb.ListWorkflowsRequest.actor:type_name -> aipb.Actor
+	0,   // 36: aipb.ListWorkflowsRequest.page:type_name -> aipb.PageRequest
+	34,  // 37: aipb.ListWorkflowsResponse.list:type_name -> aipb.WorkflowInfo
+	1,   // 38: aipb.ListWorkflowsResponse.page:type_name -> aipb.PageResponse
+	3,   // 39: aipb.GetWorkflowRequest.actor:type_name -> aipb.Actor
+	34,  // 40: aipb.GetWorkflowResponse.workflow:type_name -> aipb.WorkflowInfo
+	3,   // 41: aipb.UpdateWorkflowRequest.actor:type_name -> aipb.Actor
+	3,   // 42: aipb.ListWorkflowRevisionsRequest.actor:type_name -> aipb.Actor
+	0,   // 43: aipb.ListWorkflowRevisionsRequest.page:type_name -> aipb.PageRequest
+	42,  // 44: aipb.ListWorkflowRevisionsResponse.list:type_name -> aipb.WorkflowRevisionInfo
+	1,   // 45: aipb.ListWorkflowRevisionsResponse.page:type_name -> aipb.PageResponse
+	3,   // 46: aipb.GetWorkflowRevisionRequest.actor:type_name -> aipb.Actor
+	42,  // 47: aipb.GetWorkflowRevisionResponse.revision:type_name -> aipb.WorkflowRevisionInfo
+	3,   // 48: aipb.RestoreWorkflowRevisionRequest.actor:type_name -> aipb.Actor
+	3,   // 49: aipb.DeleteWorkflowRequest.actor:type_name -> aipb.Actor
+	3,   // 50: aipb.RunWorkflowRequest.actor:type_name -> aipb.Actor
+	3,   // 51: aipb.RunDraftRequest.actor:type_name -> aipb.Actor
+	53,  // 52: aipb.AgentTaskInfo.steps:type_name -> aipb.WorkflowStepInfo
+	54,  // 53: aipb.WorkflowStepInfo.usage:type_name -> aipb.WorkflowStepUsage
+	3,   // 54: aipb.ListAgentTasksRequest.actor:type_name -> aipb.Actor
+	0,   // 55: aipb.ListAgentTasksRequest.page:type_name -> aipb.PageRequest
+	52,  // 56: aipb.ListAgentTasksResponse.list:type_name -> aipb.AgentTaskInfo
+	1,   // 57: aipb.ListAgentTasksResponse.page:type_name -> aipb.PageResponse
+	3,   // 58: aipb.GetAgentTaskRequest.actor:type_name -> aipb.Actor
+	52,  // 59: aipb.GetAgentTaskResponse.task:type_name -> aipb.AgentTaskInfo
+	3,   // 60: aipb.ApproveTaskRequest.actor:type_name -> aipb.Actor
+	3,   // 61: aipb.RejectTaskRequest.actor:type_name -> aipb.Actor
+	3,   // 62: aipb.CancelTaskRequest.actor:type_name -> aipb.Actor
+	3,   // 63: aipb.CreateKbRequest.actor:type_name -> aipb.Actor
+	62,  // 64: aipb.CreateKbResponse.kb:type_name -> aipb.KbInfo
+	32,  // 65: aipb.CreateKbResponse.capabilities:type_name -> aipb.Capabilities
+	3,   // 66: aipb.ListKbsRequest.actor:type_name -> aipb.Actor
+	0,   // 67: aipb.ListKbsRequest.page:type_name -> aipb.PageRequest
+	62,  // 68: aipb.ListKbsResponse.list:type_name -> aipb.KbInfo
+	1,   // 69: aipb.ListKbsResponse.page:type_name -> aipb.PageResponse
+	32,  // 70: aipb.ListKbsResponse.capabilities:type_name -> aipb.Capabilities
+	3,   // 71: aipb.GetKbRequest.actor:type_name -> aipb.Actor
+	62,  // 72: aipb.GetKbResponse.kb:type_name -> aipb.KbInfo
+	32,  // 73: aipb.GetKbResponse.capabilities:type_name -> aipb.Capabilities
+	3,   // 74: aipb.SearchKbRequest.actor:type_name -> aipb.Actor
+	71,  // 75: aipb.SearchKbResponse.list:type_name -> aipb.KbSearchHit
+	3,   // 76: aipb.UpdateKbRequest.actor:type_name -> aipb.Actor
+	3,   // 77: aipb.DeleteKbRequest.actor:type_name -> aipb.Actor
+	3,   // 78: aipb.CreateKbDocRequest.actor:type_name -> aipb.Actor
+	63,  // 79: aipb.CreateKbDocResponse.doc:type_name -> aipb.KbDocInfo
+	3,   // 80: aipb.ListKbDocsRequest.actor:type_name -> aipb.Actor
+	0,   // 81: aipb.ListKbDocsRequest.page:type_name -> aipb.PageRequest
+	63,  // 82: aipb.ListKbDocsResponse.list:type_name -> aipb.KbDocInfo
+	1,   // 83: aipb.ListKbDocsResponse.page:type_name -> aipb.PageResponse
+	3,   // 84: aipb.GetKbDocRequest.actor:type_name -> aipb.Actor
+	63,  // 85: aipb.GetKbDocResponse.doc:type_name -> aipb.KbDocInfo
+	3,   // 86: aipb.UpdateKbDocRequest.actor:type_name -> aipb.Actor
+	63,  // 87: aipb.UpdateKbDocResponse.doc:type_name -> aipb.KbDocInfo
+	3,   // 88: aipb.DeleteKbDocRequest.actor:type_name -> aipb.Actor
+	3,   // 89: aipb.RetryKbDocRequest.actor:type_name -> aipb.Actor
+	63,  // 90: aipb.RetryKbDocResponse.doc:type_name -> aipb.KbDocInfo
+	63,  // 91: aipb.KbIngestJobInfo.doc:type_name -> aipb.KbDocInfo
+	3,   // 92: aipb.ListKbImportsRequest.actor:type_name -> aipb.Actor
+	0,   // 93: aipb.ListKbImportsRequest.page:type_name -> aipb.PageRequest
+	86,  // 94: aipb.ListKbImportsResponse.list:type_name -> aipb.KbIngestBatchInfo
+	1,   // 95: aipb.ListKbImportsResponse.page:type_name -> aipb.PageResponse
+	3,   // 96: aipb.GetKbImportRequest.actor:type_name -> aipb.Actor
+	86,  // 97: aipb.GetKbImportResponse.batch:type_name -> aipb.KbIngestBatchInfo
+	87,  // 98: aipb.GetKbImportResponse.list:type_name -> aipb.KbIngestJobInfo
+	3,   // 99: aipb.StopKbImportRequest.actor:type_name -> aipb.Actor
+	93,  // 100: aipb.KbFeedbackReview.evidence:type_name -> aipb.KbFeedbackEvidence
+	94,  // 101: aipb.KbFeedbackInfo.review:type_name -> aipb.KbFeedbackReview
+	3,   // 102: aipb.SetTaskFeedbackRequest.actor:type_name -> aipb.Actor
+	95,  // 103: aipb.KbFeedbackResponse.feedback:type_name -> aipb.KbFeedbackInfo
+	3,   // 104: aipb.ListTaskFeedbackRequest.actor:type_name -> aipb.Actor
+	95,  // 105: aipb.ListTaskFeedbackResponse.list:type_name -> aipb.KbFeedbackInfo
+	3,   // 106: aipb.ListKbFeedbackRequest.actor:type_name -> aipb.Actor
+	0,   // 107: aipb.ListKbFeedbackRequest.page:type_name -> aipb.PageRequest
+	95,  // 108: aipb.ListKbFeedbackResponse.list:type_name -> aipb.KbFeedbackInfo
+	1,   // 109: aipb.ListKbFeedbackResponse.page:type_name -> aipb.PageResponse
+	3,   // 110: aipb.GetKbFeedbackRequest.actor:type_name -> aipb.Actor
+	3,   // 111: aipb.ReviewKbFeedbackRequest.actor:type_name -> aipb.Actor
+	94,  // 112: aipb.ReviewKbFeedbackRequest.review:type_name -> aipb.KbFeedbackReview
+	3,   // 113: aipb.ListKbEvaluationDatasetsRequest.actor:type_name -> aipb.Actor
+	104, // 114: aipb.ListKbEvaluationDatasetsResponse.list:type_name -> aipb.KbEvaluationDatasetInfo
+	107, // 115: aipb.KbEvaluationResponse.evaluation:type_name -> aipb.KbEvaluationInfo
+	3,   // 116: aipb.StartKbEvaluationRequest.actor:type_name -> aipb.Actor
+	3,   // 117: aipb.ListKbEvaluationsRequest.actor:type_name -> aipb.Actor
+	0,   // 118: aipb.ListKbEvaluationsRequest.page:type_name -> aipb.PageRequest
+	107, // 119: aipb.ListKbEvaluationsResponse.list:type_name -> aipb.KbEvaluationInfo
+	1,   // 120: aipb.ListKbEvaluationsResponse.page:type_name -> aipb.PageResponse
+	3,   // 121: aipb.GetKbEvaluationRequest.actor:type_name -> aipb.Actor
+	3,   // 122: aipb.StopKbEvaluationRequest.actor:type_name -> aipb.Actor
+	7,   // 123: aipb.AiService.GetUsageSummary:input_type -> aipb.UsageQueryRequest
+	7,   // 124: aipb.AiService.ListUsageCalls:input_type -> aipb.UsageQueryRequest
+	12,  // 125: aipb.AiService.GetUsagePolicy:input_type -> aipb.UsagePolicyRequest
+	7,   // 126: aipb.AiService.AdminGetUsageSummary:input_type -> aipb.UsageQueryRequest
+	7,   // 127: aipb.AiService.AdminListUsageCalls:input_type -> aipb.UsageQueryRequest
+	7,   // 128: aipb.AiService.AdminListUsagePolicies:input_type -> aipb.UsageQueryRequest
+	15,  // 129: aipb.AiService.AdminSetUsagePolicy:input_type -> aipb.SetUsagePolicyRequest
+	105, // 130: aipb.AiService.ListKbEvaluationDatasets:input_type -> aipb.ListKbEvaluationDatasetsRequest
+	109, // 131: aipb.AiService.StartKbEvaluation:input_type -> aipb.StartKbEvaluationRequest
+	110, // 132: aipb.AiService.ListKbEvaluations:input_type -> aipb.ListKbEvaluationsRequest
+	112, // 133: aipb.AiService.GetKbEvaluation:input_type -> aipb.GetKbEvaluationRequest
+	113, // 134: aipb.AiService.StopKbEvaluation:input_type -> aipb.StopKbEvaluationRequest
+	96,  // 135: aipb.AiService.SetTaskFeedback:input_type -> aipb.SetTaskFeedbackRequest
+	98,  // 136: aipb.AiService.ListTaskFeedback:input_type -> aipb.ListTaskFeedbackRequest
+	100, // 137: aipb.AiService.ListKbFeedback:input_type -> aipb.ListKbFeedbackRequest
+	102, // 138: aipb.AiService.GetKbFeedback:input_type -> aipb.GetKbFeedbackRequest
+	103, // 139: aipb.AiService.ReviewKbFeedback:input_type -> aipb.ReviewKbFeedbackRequest
+	18,  // 140: aipb.AiService.CreateConversation:input_type -> aipb.CreateConversationRequest
+	20,  // 141: aipb.AiService.ListConversations:input_type -> aipb.ListConversationsRequest
+	24,  // 142: aipb.AiService.GetConversation:input_type -> aipb.GetConversationRequest
+	26,  // 143: aipb.AiService.DeleteConversation:input_type -> aipb.DeleteConversationRequest
+	21,  // 144: aipb.AiService.UpdateConversation:input_type -> aipb.UpdateConversationRequest
+	22,  // 145: aipb.AiService.SetMessageFeedback:input_type -> aipb.SetMessageFeedbackRequest
+	27,  // 146: aipb.AiService.SendMessageStream:input_type -> aipb.SendMessageRequest
+	31,  // 147: aipb.AiService.ListTools:input_type -> aipb.ListToolsRequest
+	35,  // 148: aipb.AiService.CreateWorkflow:input_type -> aipb.CreateWorkflowRequest
+	37,  // 149: aipb.AiService.ListWorkflows:input_type -> aipb.ListWorkflowsRequest
+	39,  // 150: aipb.AiService.GetWorkflow:input_type -> aipb.GetWorkflowRequest
+	41,  // 151: aipb.AiService.UpdateWorkflow:input_type -> aipb.UpdateWorkflowRequest
+	43,  // 152: aipb.AiService.ListWorkflowRevisions:input_type -> aipb.ListWorkflowRevisionsRequest
+	45,  // 153: aipb.AiService.GetWorkflowRevision:input_type -> aipb.GetWorkflowRevisionRequest
+	47,  // 154: aipb.AiService.RestoreWorkflowRevision:input_type -> aipb.RestoreWorkflowRevisionRequest
+	48,  // 155: aipb.AiService.DeleteWorkflow:input_type -> aipb.DeleteWorkflowRequest
+	49,  // 156: aipb.AiService.RunWorkflow:input_type -> aipb.RunWorkflowRequest
+	51,  // 157: aipb.AiService.RunDraft:input_type -> aipb.RunDraftRequest
+	64,  // 158: aipb.AiService.CreateKb:input_type -> aipb.CreateKbRequest
+	66,  // 159: aipb.AiService.ListKbs:input_type -> aipb.ListKbsRequest
+	68,  // 160: aipb.AiService.GetKb:input_type -> aipb.GetKbRequest
+	70,  // 161: aipb.AiService.SearchKb:input_type -> aipb.SearchKbRequest
+	73,  // 162: aipb.AiService.UpdateKb:input_type -> aipb.UpdateKbRequest
+	74,  // 163: aipb.AiService.DeleteKb:input_type -> aipb.DeleteKbRequest
+	75,  // 164: aipb.AiService.CreateKbDoc:input_type -> aipb.CreateKbDocRequest
+	77,  // 165: aipb.AiService.ListKbDocs:input_type -> aipb.ListKbDocsRequest
+	79,  // 166: aipb.AiService.GetKbDoc:input_type -> aipb.GetKbDocRequest
+	81,  // 167: aipb.AiService.UpdateKbDoc:input_type -> aipb.UpdateKbDocRequest
+	83,  // 168: aipb.AiService.DeleteKbDoc:input_type -> aipb.DeleteKbDocRequest
+	84,  // 169: aipb.AiService.RetryKbDoc:input_type -> aipb.RetryKbDocRequest
+	88,  // 170: aipb.AiService.ListKbImports:input_type -> aipb.ListKbImportsRequest
+	90,  // 171: aipb.AiService.GetKbImport:input_type -> aipb.GetKbImportRequest
+	92,  // 172: aipb.AiService.StopKbImport:input_type -> aipb.StopKbImportRequest
+	55,  // 173: aipb.AiService.ListAgentTasks:input_type -> aipb.ListAgentTasksRequest
+	57,  // 174: aipb.AiService.GetAgentTask:input_type -> aipb.GetAgentTaskRequest
+	59,  // 175: aipb.AiService.ApproveTask:input_type -> aipb.ApproveTaskRequest
+	60,  // 176: aipb.AiService.RejectTask:input_type -> aipb.RejectTaskRequest
+	61,  // 177: aipb.AiService.CancelTask:input_type -> aipb.CancelTaskRequest
+	8,   // 178: aipb.AiService.GetUsageSummary:output_type -> aipb.UsageSummaryResponse
+	10,  // 179: aipb.AiService.ListUsageCalls:output_type -> aipb.ListUsageCallsResponse
+	13,  // 180: aipb.AiService.GetUsagePolicy:output_type -> aipb.UsagePolicyResponse
+	8,   // 181: aipb.AiService.AdminGetUsageSummary:output_type -> aipb.UsageSummaryResponse
+	10,  // 182: aipb.AiService.AdminListUsageCalls:output_type -> aipb.ListUsageCallsResponse
+	14,  // 183: aipb.AiService.AdminListUsagePolicies:output_type -> aipb.ListUsagePoliciesResponse
+	13,  // 184: aipb.AiService.AdminSetUsagePolicy:output_type -> aipb.UsagePolicyResponse
+	106, // 185: aipb.AiService.ListKbEvaluationDatasets:output_type -> aipb.ListKbEvaluationDatasetsResponse
+	108, // 186: aipb.AiService.StartKbEvaluation:output_type -> aipb.KbEvaluationResponse
+	111, // 187: aipb.AiService.ListKbEvaluations:output_type -> aipb.ListKbEvaluationsResponse
+	108, // 188: aipb.AiService.GetKbEvaluation:output_type -> aipb.KbEvaluationResponse
+	108, // 189: aipb.AiService.StopKbEvaluation:output_type -> aipb.KbEvaluationResponse
+	97,  // 190: aipb.AiService.SetTaskFeedback:output_type -> aipb.KbFeedbackResponse
+	99,  // 191: aipb.AiService.ListTaskFeedback:output_type -> aipb.ListTaskFeedbackResponse
+	101, // 192: aipb.AiService.ListKbFeedback:output_type -> aipb.ListKbFeedbackResponse
+	97,  // 193: aipb.AiService.GetKbFeedback:output_type -> aipb.KbFeedbackResponse
+	97,  // 194: aipb.AiService.ReviewKbFeedback:output_type -> aipb.KbFeedbackResponse
+	19,  // 195: aipb.AiService.CreateConversation:output_type -> aipb.CreateConversationResponse
+	23,  // 196: aipb.AiService.ListConversations:output_type -> aipb.ListConversationsResponse
+	25,  // 197: aipb.AiService.GetConversation:output_type -> aipb.GetConversationResponse
+	2,   // 198: aipb.AiService.DeleteConversation:output_type -> aipb.NoDataResponse
+	19,  // 199: aipb.AiService.UpdateConversation:output_type -> aipb.CreateConversationResponse
+	2,   // 200: aipb.AiService.SetMessageFeedback:output_type -> aipb.NoDataResponse
+	29,  // 201: aipb.AiService.SendMessageStream:output_type -> aipb.StreamChunk
+	33,  // 202: aipb.AiService.ListTools:output_type -> aipb.ListToolsResponse
+	36,  // 203: aipb.AiService.CreateWorkflow:output_type -> aipb.CreateWorkflowResponse
+	38,  // 204: aipb.AiService.ListWorkflows:output_type -> aipb.ListWorkflowsResponse
+	40,  // 205: aipb.AiService.GetWorkflow:output_type -> aipb.GetWorkflowResponse
+	40,  // 206: aipb.AiService.UpdateWorkflow:output_type -> aipb.GetWorkflowResponse
+	44,  // 207: aipb.AiService.ListWorkflowRevisions:output_type -> aipb.ListWorkflowRevisionsResponse
+	46,  // 208: aipb.AiService.GetWorkflowRevision:output_type -> aipb.GetWorkflowRevisionResponse
+	40,  // 209: aipb.AiService.RestoreWorkflowRevision:output_type -> aipb.GetWorkflowResponse
+	2,   // 210: aipb.AiService.DeleteWorkflow:output_type -> aipb.NoDataResponse
+	50,  // 211: aipb.AiService.RunWorkflow:output_type -> aipb.RunWorkflowResponse
+	50,  // 212: aipb.AiService.RunDraft:output_type -> aipb.RunWorkflowResponse
+	65,  // 213: aipb.AiService.CreateKb:output_type -> aipb.CreateKbResponse
+	67,  // 214: aipb.AiService.ListKbs:output_type -> aipb.ListKbsResponse
+	69,  // 215: aipb.AiService.GetKb:output_type -> aipb.GetKbResponse
+	72,  // 216: aipb.AiService.SearchKb:output_type -> aipb.SearchKbResponse
+	2,   // 217: aipb.AiService.UpdateKb:output_type -> aipb.NoDataResponse
+	2,   // 218: aipb.AiService.DeleteKb:output_type -> aipb.NoDataResponse
+	76,  // 219: aipb.AiService.CreateKbDoc:output_type -> aipb.CreateKbDocResponse
+	78,  // 220: aipb.AiService.ListKbDocs:output_type -> aipb.ListKbDocsResponse
+	80,  // 221: aipb.AiService.GetKbDoc:output_type -> aipb.GetKbDocResponse
+	82,  // 222: aipb.AiService.UpdateKbDoc:output_type -> aipb.UpdateKbDocResponse
+	2,   // 223: aipb.AiService.DeleteKbDoc:output_type -> aipb.NoDataResponse
+	85,  // 224: aipb.AiService.RetryKbDoc:output_type -> aipb.RetryKbDocResponse
+	89,  // 225: aipb.AiService.ListKbImports:output_type -> aipb.ListKbImportsResponse
+	91,  // 226: aipb.AiService.GetKbImport:output_type -> aipb.GetKbImportResponse
+	91,  // 227: aipb.AiService.StopKbImport:output_type -> aipb.GetKbImportResponse
+	56,  // 228: aipb.AiService.ListAgentTasks:output_type -> aipb.ListAgentTasksResponse
+	58,  // 229: aipb.AiService.GetAgentTask:output_type -> aipb.GetAgentTaskResponse
+	2,   // 230: aipb.AiService.ApproveTask:output_type -> aipb.NoDataResponse
+	2,   // 231: aipb.AiService.RejectTask:output_type -> aipb.NoDataResponse
+	2,   // 232: aipb.AiService.CancelTask:output_type -> aipb.NoDataResponse
+	178, // [178:233] is the sub-list for method output_type
+	123, // [123:178] is the sub-list for method input_type
+	123, // [123:123] is the sub-list for extension type_name
+	123, // [123:123] is the sub-list for extension extendee
+	0,   // [0:123] is the sub-list for field type_name
 }
 
 func init() { file_application_ai_rpc_desc_ai_proto_init() }
@@ -5903,17 +9677,19 @@ func file_application_ai_rpc_desc_ai_proto_init() {
 		return
 	}
 	file_application_ai_rpc_desc_ai_proto_msgTypes[9].OneofWrappers = []any{}
-	file_application_ai_rpc_desc_ai_proto_msgTypes[29].OneofWrappers = []any{}
-	file_application_ai_rpc_desc_ai_proto_msgTypes[40].OneofWrappers = []any{}
+	file_application_ai_rpc_desc_ai_proto_msgTypes[15].OneofWrappers = []any{}
+	file_application_ai_rpc_desc_ai_proto_msgTypes[21].OneofWrappers = []any{}
 	file_application_ai_rpc_desc_ai_proto_msgTypes[41].OneofWrappers = []any{}
-	file_application_ai_rpc_desc_ai_proto_msgTypes[54].OneofWrappers = []any{}
+	file_application_ai_rpc_desc_ai_proto_msgTypes[59].OneofWrappers = []any{}
+	file_application_ai_rpc_desc_ai_proto_msgTypes[60].OneofWrappers = []any{}
+	file_application_ai_rpc_desc_ai_proto_msgTypes[73].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_application_ai_rpc_desc_ai_proto_rawDesc), len(file_application_ai_rpc_desc_ai_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   74,
+			NumMessages:   114,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

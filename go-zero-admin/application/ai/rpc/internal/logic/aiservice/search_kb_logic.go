@@ -2,6 +2,7 @@ package aiservicelogic
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -44,8 +45,12 @@ func (l *SearchKbLogic) SearchKb(in *aipb.SearchKbRequest) (*aipb.SearchKbRespon
 		return nil, xerr.NewErrCodeMsg(xerr.SERVICE_UNAVAILABLE, "知识库检索未配置，请联系管理员")
 	}
 	started := time.Now()
+	ctx = svc.WithUsageSource(ctx, in.Actor.UserId, "kb_search", uuid.NewString(), in.KbId, -1)
 	hits, err := l.svcCtx.KbSearcher.Search(ctx, in.Actor.UserId, in.KbId, in.Query)
 	if err != nil || ctx.Err() != nil {
+		if code, ok := xerr.AsCodeError(err); ok && (code.GetErrCode() == 429 || code.GetErrCode() == 503) {
+			return nil, code
+		}
 		l.Error("知识库召回失败或超时")
 		return nil, xerr.NewErrCodeMsg(xerr.SERVICE_UNAVAILABLE, "知识库检索暂不可用，请稍后重试")
 	}

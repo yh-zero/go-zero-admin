@@ -92,6 +92,64 @@ CREATE TABLE `ai_task` (
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 任务';
 
+-- ai_kb_feedback：本人分析结果评价及人工复核，来源快照不可变。
+DROP TABLE IF EXISTS `ai_kb_feedback`;
+CREATE TABLE `ai_kb_feedback` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `owner_id` bigint unsigned NOT NULL COMMENT '所属用户',
+  `kb_id` bigint unsigned NOT NULL COMMENT '知识库ID',
+  `task_id` bigint unsigned NOT NULL COMMENT '任务ID',
+  `step_index` int unsigned NOT NULL COMMENT '从0开始的步骤',
+  `feedback` varchar(32) NOT NULL COMMENT 'helpful/incorrect_answer/missing_knowledge/irrelevant_source',
+  `note` varchar(1000) NOT NULL DEFAULT '' COMMENT '评价说明，最多1000字节',
+  `status` varchar(16) NOT NULL DEFAULT 'pending' COMMENT 'pending/accepted/dismissed',
+  `revision` bigint unsigned NOT NULL DEFAULT '1' COMMENT '评价与复核的并发版本',
+  `question` text NOT NULL COMMENT '实际分析问题快照',
+  `answer` text NOT NULL COMMENT '实际分析答案快照',
+  `snapshot` json NOT NULL COMMENT '实际步骤输入输出和反馈采集时的来源指纹',
+  `review` json DEFAULT NULL COMMENT '人工预期答案、事实检查项、原文摘录及说明',
+  `reviewed_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_owner_task_step` (`owner_id`,`task_id`,`step_index`),
+  KEY `idx_owner_kb_status` (`owner_id`,`kb_id`,`status`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='知识库分析反馈与复核';
+
+-- ai_kb_evaluation：质量验收批次，逐题观测有界持久化，未知结果不重放。
+DROP TABLE IF EXISTS `ai_kb_evaluation`;
+CREATE TABLE `ai_kb_evaluation` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `owner_id` bigint unsigned NOT NULL COMMENT '所属用户',
+  `kb_id` bigint unsigned NOT NULL COMMENT '知识库ID',
+  `request_id` char(36) NOT NULL COMMENT '批次幂等UUID',
+  `request_signature` char(64) NOT NULL COMMENT '原请求内容SHA256',
+  `dataset_key` varchar(64) NOT NULL COMMENT '内置题集标识',
+  `dataset_sha256` char(64) NOT NULL COMMENT '题集原字节SHA256',
+  `group_key` varchar(64) NOT NULL COMMENT '题集知识库分组',
+  `status` varchar(16) NOT NULL DEFAULT 'pending' COMMENT 'pending/running/succeeded/failed/cancelled/unknown',
+  `case_count` int unsigned NOT NULL COMMENT '题目总数，最多30',
+  `completed_count` int unsigned NOT NULL DEFAULT '0' COMMENT '成功分析数',
+  `failed_count` int unsigned NOT NULL DEFAULT '0' COMMENT '执行失败或未知数',
+  `stop_requested` tinyint NOT NULL DEFAULT '0' COMMENT '只停止未开始题目',
+  `corpus_verified` tinyint NOT NULL DEFAULT '0' COMMENT '结束语料复核通过',
+  `error` varchar(500) NOT NULL DEFAULT '' COMMENT '安全原因',
+  `dataset_snapshot` longtext NOT NULL COMMENT '保留题集原始UTF8字节',
+  `bindings` json NOT NULL COMMENT '实际文档指纹和库存',
+  `run_context` json NOT NULL COMMENT '脱敏的实际构建和模型预算',
+  `observations` json NOT NULL COMMENT '按题集顺序的逐题原始观测',
+  `lease_token` char(36) NOT NULL DEFAULT '' COMMENT '独占执行标识',
+  `lease_expires_at` datetime DEFAULT NULL COMMENT '过期后未知，不自动重放',
+  `started_at` datetime DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_owner_request` (`owner_id`,`request_id`),
+  KEY `idx_owner_kb_status` (`owner_id`,`kb_id`,`status`,`id`),
+  CONSTRAINT `chk_evaluation_snapshot_json` CHECK (JSON_VALID(`dataset_snapshot`))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='知识库质量验收批次';
+
 -- ai_workflow
 DROP TABLE IF EXISTS `ai_workflow`;
 CREATE TABLE `ai_workflow` (
@@ -102,12 +160,30 @@ CREATE TABLE `ai_workflow` (
   `enabled` tinyint NOT NULL DEFAULT '1' COMMENT '是否启用',
   `next_run_at` datetime DEFAULT NULL COMMENT '下次执行时间',
   `created_by` bigint unsigned NOT NULL COMMENT '创建者用户ID',
+  `revision_seq` bigint unsigned NOT NULL DEFAULT '1' COMMENT '单调版本号，更新及恢复时递增',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL COMMENT '软删除',
   PRIMARY KEY (`id`),
   KEY `idx_next_run` (`enabled`,`next_run_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 工作流';
+
+-- ai_workflow_revision：仅归档工作流每次提交前的完整版本，不替代任务执行快照。
+DROP TABLE IF EXISTS `ai_workflow_revision`;
+CREATE TABLE `ai_workflow_revision` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '归档主键',
+  `workflow_id` bigint unsigned NOT NULL COMMENT '所属工作流ID',
+  `owner_id` bigint unsigned NOT NULL COMMENT '所属用户ID',
+  `revision_seq` bigint unsigned NOT NULL COMMENT '归档的工作流版本号',
+  `name` varchar(128) NOT NULL COMMENT '归档名称',
+  `definition` json NOT NULL COMMENT '归档完整工作流DSL',
+  `interval_seconds` int unsigned NOT NULL DEFAULT '0' COMMENT '归档调度间隔',
+  `enabled` tinyint NOT NULL COMMENT '归档启用状态',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '归档时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_workflow_revision` (`workflow_id`,`revision_seq`),
+  KEY `idx_owner_workflow` (`owner_id`,`workflow_id`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI 工作流历史版本';
 
 
 -- ai_kb：知识库。事实源在 MySQL；Qdrant 仅存向量索引（可由本表重建）。
@@ -590,13 +666,16 @@ INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component
 (9001422,9001420,'批准任务','ai_task_approve',3,'','','sys:ai:task:approve','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001423,9001420,'拒绝任务','ai_task_reject',3,'','','sys:ai:task:reject','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001424,9001420,'取消任务','ai_task_cancel',3,'','','sys:ai:task:cancel','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001425,9001420,'评价分析','ai_task_feedback',3,'','','sys:ai:task:feedback','',4,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001430,9001400,'工具与能力','ai_tool',2,'/ai/tools','ai_tool','','api',3,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001431,9001430,'查看工具','ai_tool_list',3,'','','sys:ai:tool:list','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001440,9001400,'知识库','ai_kb',2,'/ai/knowledge','ai_kb','','database',4,1,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001441,9001440,'查看知识库','ai_kb_list',3,'','','sys:ai:kb:list','',0,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001442,9001440,'新建知识库','ai_kb_create',3,'','','sys:ai:kb:create','',1,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (9001443,9001440,'编辑知识库','ai_kb_edit',3,'','','sys:ai:kb:edit','',2,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
-(9001444,9001440,'删除知识库','ai_kb_delete',3,'','','sys:ai:kb:delete','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00');
+(9001444,9001440,'删除知识库','ai_kb_delete',3,'','','sys:ai:kb:delete','',3,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001445,9001440,'复核分析反馈','ai_kb_review',3,'','','sys:ai:kb:review','',4,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(9001446,9001440,'运行质量验收','ai_kb_evaluate',3,'','','sys:ai:kb:evaluate','',5,0,1,'2026-01-01 00:00:00','2026-01-01 00:00:00');
 
 -- 超级管理员获得全部菜单与操作权限；服务端仍独立鉴权。
 INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES
@@ -667,13 +746,16 @@ INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES
 (1,9001422,'2026-01-01 00:00:00'),
 (1,9001423,'2026-01-01 00:00:00'),
 (1,9001424,'2026-01-01 00:00:00'),
+(1,9001425,'2026-01-01 00:00:00'),
 (1,9001430,'2026-01-01 00:00:00'),
 (1,9001431,'2026-01-01 00:00:00'),
 (1,9001440,'2026-01-01 00:00:00'),
 (1,9001441,'2026-01-01 00:00:00'),
 (1,9001442,'2026-01-01 00:00:00'),
 (1,9001443,'2026-01-01 00:00:00'),
-(1,9001444,'2026-01-01 00:00:00');
+(1,9001444,'2026-01-01 00:00:00'),
+(1,9001445,'2026-01-01 00:00:00'),
+(1,9001446,'2026-01-01 00:00:00');
 
 -- 普通演示角色仅显示工作台、用户、部门和个人中心。
 INSERT INTO `sys_role_menu` (`role_id`,`menu_id`,`created_at`) VALUES
@@ -875,7 +957,22 @@ INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`,`created_at`,`u
 (111,'sys/ai','POST','/v1/sys/ai/tasks/run','POST /v1/sys/ai/tasks/run','2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (112,'sys/ai','GET','/v1/sys/ai/kbs/:id/imports','GET /v1/sys/ai/kbs/:id/imports','2026-01-01 00:00:00','2026-01-01 00:00:00'),
 (113,'sys/ai','GET','/v1/sys/ai/kbs/:id/imports/:batch_id','GET /v1/sys/ai/kbs/:id/imports/:batch_id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
-(114,'sys/ai','POST','/v1/sys/ai/kbs/:id/imports/:batch_id/stop','POST /v1/sys/ai/kbs/:id/imports/:batch_id/stop','2026-01-01 00:00:00','2026-01-01 00:00:00');
+(114,'sys/ai','POST','/v1/sys/ai/kbs/:id/imports/:batch_id/stop','POST /v1/sys/ai/kbs/:id/imports/:batch_id/stop','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(115,'sys/ai','GET','/v1/sys/ai/tasks/:id/feedback','GET /v1/sys/ai/tasks/:id/feedback','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(116,'sys/ai','PUT','/v1/sys/ai/tasks/:id/feedback','PUT /v1/sys/ai/tasks/:id/feedback','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(117,'sys/ai','GET','/v1/sys/ai/kbs/:id/feedback','GET /v1/sys/ai/kbs/:id/feedback','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(118,'sys/ai','GET','/v1/sys/ai/kbs/:id/feedback/:feedback_id','GET /v1/sys/ai/kbs/:id/feedback/:feedback_id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(119,'sys/ai','PUT','/v1/sys/ai/kbs/:id/feedback/:feedback_id/review','PUT /v1/sys/ai/kbs/:id/feedback/:feedback_id/review','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(120,'sys/ai','GET','/v1/sys/ai/kbs/:id/evaluation-datasets','GET /v1/sys/ai/kbs/:id/evaluation-datasets','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(121,'sys/ai','POST','/v1/sys/ai/kbs/:id/evaluations','POST /v1/sys/ai/kbs/:id/evaluations','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(122,'sys/ai','GET','/v1/sys/ai/kbs/:id/evaluations','GET /v1/sys/ai/kbs/:id/evaluations','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(123,'sys/ai','GET','/v1/sys/ai/kbs/:id/evaluations/:evaluation_id','GET /v1/sys/ai/kbs/:id/evaluations/:evaluation_id','2026-01-01 00:00:00','2026-01-01 00:00:00'),
+(124,'sys/ai','POST','/v1/sys/ai/kbs/:id/evaluations/:evaluation_id/stop','POST /v1/sys/ai/kbs/:id/evaluations/:evaluation_id/stop','2026-01-01 00:00:00','2026-01-01 00:00:00');
+
+INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
+(125,'sys/ai','GET','/v1/sys/ai/workflows/:id/revisions','查看工作流版本历史'),
+(126,'sys/ai','GET','/v1/sys/ai/workflows/:id/revisions/:revision','查看工作流历史版本'),
+(127,'sys/ai','POST','/v1/sys/ai/workflows/:id/revisions/:revision/restore','恢复工作流历史版本');
 
 -- APP 账号属于独立认证域，不用于后台登录；邮箱为保留演示域。
 INSERT INTO `app_user` (`id`,`account`,`identity_kind`,`password_hash`,`nickname`,`remark`,`status`,`review_reason`,`email_verified_at`,`created_at`,`updated_at`) VALUES
@@ -909,5 +1006,75 @@ SET TIME_ZONE=@OLD_TIME_ZONE;
 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT;
 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS;
 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION;
+
+-- AI 供应商调用账本与额度；历史消息/步骤不回填为实际供应商请求。
+DROP TABLE IF EXISTS `ai_usage_call`;
+CREATE TABLE `ai_usage_call` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `attempt_id` char(36) NOT NULL,
+  `owner_id` bigint unsigned NOT NULL,
+  `source` varchar(24) NOT NULL,
+  `operation` varchar(16) NOT NULL,
+  `request_id` varchar(64) NOT NULL DEFAULT '',
+  `source_id` bigint unsigned NOT NULL DEFAULT '0',
+  `step_index` bigint NOT NULL DEFAULT '-1',
+  `batch_index` bigint unsigned NOT NULL DEFAULT '0',
+  `input_items` bigint unsigned NOT NULL DEFAULT '0',
+  `provider` varchar(32) NOT NULL,
+  `model` varchar(128) NOT NULL,
+  `quota_day` date NOT NULL,
+  `quota_charged` tinyint unsigned NOT NULL DEFAULT '1',
+  `dispatch_confirmed` tinyint unsigned NOT NULL DEFAULT '0',
+  `status` varchar(16) NOT NULL DEFAULT 'reserved',
+  `usage_state` varchar(16) NOT NULL DEFAULT 'unknown',
+  `prompt_tokens` bigint DEFAULT NULL,
+  `completion_tokens` bigint DEFAULT NULL,
+  `total_tokens` bigint DEFAULT NULL,
+  `http_status` bigint NOT NULL DEFAULT '0',
+  `provider_request_id` varchar(128) NOT NULL DEFAULT '',
+  `error_code` varchar(64) NOT NULL DEFAULT '',
+  `started_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `dispatched_at` datetime(3) DEFAULT NULL,
+  `completed_at` datetime(3) DEFAULT NULL,
+  `lease_until` datetime(3) NOT NULL,
+  `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_attempt` (`attempt_id`),
+  KEY `idx_owner_quota` (`owner_id`,`quota_day`,`quota_charged`),
+  KEY `idx_status_lease` (`status`,`lease_until`,`id`),
+  KEY `idx_owner_time` (`owner_id`,`created_at`,`id`),
+  KEY `idx_time` (`created_at`,`id`),
+  KEY `idx_source` (`source`,`source_id`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='供应商调用与已知用量，不含正文或凭据';
+
+DROP TABLE IF EXISTS `ai_usage_policy`;
+CREATE TABLE `ai_usage_policy` (
+  `owner_id` bigint unsigned NOT NULL COMMENT '0为全局默认，其他为后台用户ID',
+  `daily_request_limit` bigint unsigned DEFAULT NULL COMMENT '用户NULL继承全局，0无限',
+  `daily_token_warning` bigint unsigned NOT NULL DEFAULT '0' COMMENT '0关闭，仅已知token提醒',
+  `global_concurrent_limit` bigint unsigned NOT NULL DEFAULT '8' COMMENT '仅全局行生效',
+  `version` bigint unsigned NOT NULL DEFAULT '1',
+  `updated_by` bigint unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`owner_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户请求额度与全局容量策略';
+INSERT INTO `ai_usage_policy` (`owner_id`,`daily_request_limit`,`daily_token_warning`,`global_concurrent_limit`) VALUES (0,1000,0,8);
+
+INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component`,`perm_code`,`icon`,`sort`,`visible`,`status`) VALUES
+(9001450,9001400,'用量与额度','ai_usage',2,'/ai/usage','ai_usage','','audit',5,1,1),
+(9001451,9001450,'查看本人用量','ai_usage_read',3,'','','sys:ai:usage:read','',0,0,1),
+(9001452,9001450,'查看全局用量','ai_usage_admin',3,'','','sys:ai:usage:admin','',1,0,1),
+(9001453,9001450,'管理额度策略','ai_usage_manage',3,'','','sys:ai:usage:manage','',2,0,1);
+INSERT INTO `sys_role_menu` (`role_id`,`menu_id`) VALUES (1,9001450),(1,9001451),(1,9001452),(1,9001453);
+INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
+(128,'sys/ai','GET','/v1/sys/ai/usage/summary','本人用量汇总'),
+(129,'sys/ai','GET','/v1/sys/ai/usage/calls','本人供应商请求'),
+(130,'sys/ai','GET','/v1/sys/ai/usage/policy','本人有效额度'),
+(131,'sys/ai','GET','/v1/sys/ai/usage/admin/summary','全局用量汇总'),
+(132,'sys/ai','GET','/v1/sys/ai/usage/admin/calls','全局供应商请求'),
+(133,'sys/ai','GET','/v1/sys/ai/usage/admin/policies','额度策略列表'),
+(134,'sys/ai','PUT','/v1/sys/ai/usage/admin/policies/:user_id','管理额度策略');
 
 -- 初始化完成。

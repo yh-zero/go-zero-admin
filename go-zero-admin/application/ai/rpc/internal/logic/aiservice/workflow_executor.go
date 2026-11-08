@@ -128,16 +128,24 @@ func executeWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *mode
 		if ctx.Err() != nil {
 			return failWorkflow(ctx, svcCtx, task, "执行已取消或超时，当前工具结果可能未知")
 		}
-		output, err := tool.Execute(agenttools.WithActor(ctx, task.CreatedBy), input)
+		meteredCtx := svc.WithUsageSource(ctx, task.CreatedBy, "analysis", task.RequestId, task.Id, task.NextStep)
+		output, err := tool.Execute(agenttools.WithActor(meteredCtx, task.CreatedBy), input)
 		if err != nil {
 			var safe *agenttools.ExecutionError
 			if errors.As(err, &safe) {
-				return failWorkflow(ctx, svcCtx, task, safe.Message)
+				return failWorkflow(ctx, svcCtx, task, safe.Message, workflowStepUsage(safe.ModelUsage()))
 			}
 			return failWorkflow(ctx, svcCtx, task, "步骤工具执行失败")
 		}
+		var usage *model.WorkflowStepUsage
+		if agenttools.IsWorkflowOnly(tool) {
+			var analysis agenttools.KbAnalysisResult
+			if json.Unmarshal([]byte(output), &analysis) == nil && analysis.Version == 1 && analysis.Type == "kb_analysis" && (analysis.Status == "completed" || analysis.Status == "truncated") {
+				usage = workflowStepUsage(&analysis.Usage)
+			}
+		}
 		if ctx.Err() != nil {
-			return failWorkflow(ctx, svcCtx, task, "执行已取消或超时，当前工具结果可能未知")
+			return failWorkflow(ctx, svcCtx, task, "执行已取消或超时，当前工具结果可能未知", usage)
 		}
 		result := task.Result
 		if result != "" {
@@ -145,7 +153,7 @@ func executeWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *mode
 		}
 		result += "[" + strconv.Itoa(int(task.NextStep)+1) + "/" + strconv.Itoa(len(definition.Steps)) + "] " + step.Name + ": " + output
 		if len(result) > 60000 {
-			return failWorkflow(ctx, svcCtx, task, "工作流结果超过大小限制")
+			return failWorkflow(ctx, svcCtx, task, "工作流结果超过大小限制", usage)
 		}
 		status := "running"
 		if task.NextStep+1 == int64(len(definition.Steps)) {
@@ -153,6 +161,7 @@ func executeWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *mode
 		}
 		records[task.NextStep].Status = "succeeded"
 		records[task.NextStep].Output = output
+		records[task.NextStep].Usage = usage
 		records[task.NextStep].CompletedAt = time.Now().UnixMilli()
 		if err := persistWorkflowStep(ctx, svcCtx, task, task.NextStep+1, status, result, "", records); err != nil {
 			return "", aiModelError(err)
@@ -166,7 +175,7 @@ func executeWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *mode
 	return "", xerr.NewErrCodeMsg(500, "工作流执行状态异常")
 }
 
-func failWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *model.TaskRow, message string) (string, error) {
+func failWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *model.TaskRow, message string, usage ...*model.WorkflowStepUsage) (string, error) {
 	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
 	defer cancel()
 	records, _ := model.ReadWorkflowStepRecords(task.StepRecords)
@@ -175,11 +184,32 @@ func failWorkflow(ctx context.Context, svcCtx *svc.ServiceContext, task *model.T
 		r.Status = "failed"
 		r.Error = message
 		r.CompletedAt = time.Now().UnixMilli()
+		if len(usage) > 0 {
+			r.Usage = usage[0]
+		}
 	}
 	if err := persistWorkflowStep(cleanupCtx, svcCtx, task, task.NextStep, "failed", task.Result, message, records); err != nil {
+		if errors.Is(err, model.ErrTaskState) && task.NextStep < int64(len(records)) && records[task.NextStep].Usage != nil {
+			late := *records[task.NextStep].Usage
+			late.Complete = false
+			status, lateErr := svcCtx.AiTaskModel.StoreTerminalStepUsage(cleanupCtx, task.Id, task.CreatedBy, records[task.NextStep], late)
+			if lateErr == nil || errors.Is(lateErr, model.ErrTaskCommitted) {
+				if lateErr != nil {
+					logx.WithContext(cleanupCtx).Errorf("workflow task %d late usage committed; cache invalidation failed", task.Id)
+				}
+				return status, nil
+			}
+		}
 		return "", aiModelError(err)
 	}
 	return "failed", nil
+}
+
+func workflowStepUsage(usage *agenttools.KbAnalysisUsage) *model.WorkflowStepUsage {
+	if usage == nil {
+		return nil
+	}
+	return &model.WorkflowStepUsage{Scope: usage.Scope, PromptTokens: int64(usage.PromptTokens), CompletionTokens: int64(usage.CompletionTokens), TotalTokens: int64(usage.TotalTokens), Complete: usage.Complete}
 }
 
 func persistWorkflowStep(ctx context.Context, svcCtx *svc.ServiceContext, task *model.TaskRow, next int64, status, result, message string, records []model.WorkflowStepRecord) error {
@@ -270,13 +300,17 @@ func messageProto(row *model.MessageRow) *aipb.ChatMessage {
 	return &aipb.ChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: calls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: status, Error: message, Sources: sources, Feedback: feedback, FeedbackNote: feedbackNote}
 }
 func workflowProto(row *model.WorkflowRow) *aipb.WorkflowInfo {
-	return &aipb.WorkflowInfo{Id: row.Id, Name: row.Name, Definition: row.Definition, IntervalSeconds: row.IntervalSeconds, Enabled: row.Enabled, NextRunAt: row.NextRunAt, CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, StepCount: row.StepCount}
+	return &aipb.WorkflowInfo{Id: row.Id, Name: row.Name, Definition: row.Definition, IntervalSeconds: row.IntervalSeconds, Enabled: row.Enabled, NextRunAt: row.NextRunAt, CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, StepCount: row.StepCount, Revision: row.RevisionSeq}
 }
 func taskProto(row *model.TaskRow) *aipb.AgentTaskInfo {
 	records, _ := model.ReadWorkflowStepRecords(row.StepRecords)
 	steps := make([]*aipb.WorkflowStepInfo, 0, len(records))
 	for _, r := range records {
-		steps = append(steps, &aipb.WorkflowStepInfo{Index: r.Index, Id: r.Id, Name: r.Name, Tool: r.Tool, Input: r.Input, Output: r.Output, Status: r.Status, Error: r.Error, StartedAt: r.StartedAt, CompletedAt: r.CompletedAt})
+		step := &aipb.WorkflowStepInfo{Index: r.Index, Id: r.Id, Name: r.Name, Tool: r.Tool, Input: r.Input, Output: r.Output, Status: r.Status, Error: r.Error, StartedAt: r.StartedAt, CompletedAt: r.CompletedAt}
+		if r.Usage != nil {
+			step.Usage = &aipb.WorkflowStepUsage{Scope: r.Usage.Scope, PromptTokens: r.Usage.PromptTokens, CompletionTokens: r.Usage.CompletionTokens, TotalTokens: r.Usage.TotalTokens, Complete: r.Usage.Complete}
+		}
+		steps = append(steps, step)
 	}
 	title, workflowName := row.Title, row.WorkflowName
 	if title == "" {

@@ -266,6 +266,26 @@
 | POST `/tasks/:id/reject` | id、expected_step（必填，0有效）、reason（非空，最多 512 字符） | `{}` |
 | POST `/tasks/:id/cancel` | id | `{}`，本人非终态任务取消；操作码sys:ai:task:cancel |
 
+### 知识库分析反馈与回归（2026-11-07）
+
+✅ 两端已实现并联调通过。复核首版仅针对本人知识库分析；现有聊天评价接口继续兼容，历史聊天评价不冒充本轮知识库待复核记录。真人未签署与小样本边界见[首轮基线](ai-rag/business-baseline.md)。
+
+| 方法与路径 | 请求字段 | result 字段 |
+|---|---|---|
+| GET `/tasks/:id/feedback` | 本人任务 id | list（最多32条，本任务已有评价；含快照） |
+| PUT `/tasks/:id/feedback` | step_index（0起）、expected_revision（新建0）、feedback、note | feedback（已提交记录） |
+| GET `/kbs/:id/feedback` | page/page_size、status（pending/accepted/dismissed，省略默认pending，all取全部） | list/total；列表不返回answer/snapshot/review大字段 |
+| GET `/kbs/:id/feedback/:feedback_id` | 本人知识库及反馈 id | feedback（含快照与复核结论） |
+| PUT `/kbs/:id/feedback/:feedback_id/review` | expected_revision、status（accepted/dismissed）、review | feedback（已提交复核结果） |
+
+- 评价类型 `helpful/incorrect_answer/missing_knowledge/irrelevant_source`，note最多1000 UTF-8字节。对象固定为实际 `kb_analyze` 已成功步骤，后续步骤失败不影响该步评价；未执行/失败/非分析步骤拒绝。任务输入、答案及来源取服务端步骤记录，不信任客户端上传的原答案或来源。知识库仍需存在且属于本人，软删后读取、更新及导出均404。
+- 新增操作码 `sys:ai:task:feedback`（评价）与 `sys:ai:kb:review`（复核），初始化仅授予超级管理员；读操作分别沿用任务/知识库查看权限，接口独立走Casbin与RPC归属校验，不新增跨用户审核授权。
+- `AiKbFeedbackInfo`：id/kb_id/task_id/step_index/feedback/note/status/revision/question/answer/snapshot/review/created_at/updated_at/reviewed_at。snapshot是JSON字符串，含version=1、步骤实际input/output、实际sources、资料在反馈采集时可核对的版本/正文SHA256及状态；不是模型调用时全库版本证明。快照创建后保持，评价修改清空旧复核并回到pending，revision递增；完全相同载荷重查不重复改版本。旧revision更新不同内容返回409，不能覆盖新复核。
+- review为 `{answerable,expected_answer,required_facts,evidence,reason}`：expected_answer≤4000 UTF-8字节，required_facts最多10项、每项≤200字节，evidence最多5项 `{source_index,quote}`、source_index为1..8且必须存在于该历史快照，quote≤500字节且必须逐字属于对应历史片段，reason≤1000字节。accepted须有非空预期答案和复核说明；有据题还须有事实检查项及原文摘录，资料不足题须无事实项和摘录。dismissed须有说明。复核在同一事务中按revision比较更新，冲突409，失败不改变记录。
+- 已采纳记录可在页面下载 `{version:1,type:"kb_feedback_regression",feedback:AiKbFeedbackInfo}`。页面采纳前及离线转换均要求每项事实检查词在预期答案和至少一条依据摘录中同时出现（NFKC及空白归一，不将同义词自动视作相同），事实项及相同来源/原文摘录不可重复。离线转换工具将其并入指定质量题集：显式核对KB映射、素材标题/正文SHA、真实摘录及采集状态，生成新副本与来源指纹，不覆盖旧题、不自动修改提示词或触发模型。不匹配的历史资料必须先复核，不能静默换成当前资料。人工录入只是复核记录，不把本轮AI辅助验收标为真人签署；词法事实检查不等于语义准确率。
+
+### 工作流执行定义与运行记录
+
 `definition` 为 `{"steps":[{"name":"步骤名","tool":"text_stats","input":{"text":"示例"},"approval":true}]}`；1..32 步，工具仅使用服务端已有注册表，步骤 input 为对象。name 最多 128 字符，enabled 为 0/1；当前只提供手动执行，新增或显式更新 interval_seconds 非 0 返回 400，历史非 0 值保留但不调度。
 
 - ✅ 工作流编辑体验（2026-11-07）：`/ai/workflows` 保留管理列表，新建页 `/ai/workflows/new`、编辑页 `/ai/workflows/:id/edit` 为独立前端路由，按明确登记的父菜单 `/ai/workflows` 及对应创建/编辑/工具查看权限校验，不新增可见菜单。提供知识库分析、文本处理及空白起步，基础参数由表单填写，复杂 Schema 保留高级 JSON 且不得丢失旧参数。步骤变量、后台执行等增量验收状态见下文。
@@ -273,6 +293,9 @@
 - ✅ 工作流专用工具 `kb_analyze`：参数仅 `{kb_id: 正整数, query: 非空白字符串且≤2000 UTF-8字节}`，以任务创建者身份先核对知识库归属，再共用实际知识库检索器；无匹配时不调用聊天模型。正常路径一次检索、一次无工具的有界模型分析，依据实际返回资料回答，资料作为不可信文本处理；分析不能使用其他知识库或将模型常识冒充资料依据。仅在知识库检索和聊天模型均配置时注册，目录和工作流可用，模型自动工具列表及聊天工具执行均排除，避免嵌套调用漏计用量。
 - ✅ 分析输出为单行 JSON，保存于任务 result 和步骤记录中：`version:1,type:"kb_analysis",status:"completed"|"no_matches"|"truncated",analysis:string,sources:[{index,chunk_id,kb_id,doc_id,doc_title,snippet,score}],usage:{scope:"chat",prompt_tokens,completion_tokens,total_tokens,complete}`。来源由实际送入模型的片段产生，不由模型生成；usage 仅记录供应商返回的已知聊天用量，不含 Embedding，无 usage 时 complete=false。输入按序列化字节预算并预留回答空间，模型输出上限不超过 2048 tokens，工具 JSON 最多 24000 UTF-8 字节；达到模型输出上限明确标记 truncated，其他非法/超长输出失败。任务累计结果仍受现有 60000 字节上限限制。检索或模型失败显示安全原因，不伪装成功；已有审批/快照/重复执行规则保持。前端任务详情展示分析、来源及已知用量，同时保留原始记录；旧任务继续显示原文。运行与批准仅等待任务提交（普通请求30秒），后续状态从任务详情读取，不自动重试未知结果。
 - ✅ 回答组织约束：`kb_analyze` 的内部模型回复采用逐问项结构，服务端校验并渲染为上述原有 `analysis` 正文，外部字段及旧任务读取方式不变。每个问项对应原 query 的非空连续文字，状态为有据或不足；有据项保留转义后的问项标签及合法引用，资料缺失判断使用不足项，原文本身载明的缺失处理规则可逐字摘录并引用。不接受独立自由尾注、重复/互含目标、未知字段、重复 JSON 键或非法编号。不足项由服务端生成范围提示；全部不足时不复述 query 中的指令标记。模型输出不合法则安全失败，不清洗坏答案、不自动追加模型调用。模型截断时，完整且合法的结构可渲染并标记 truncated，语法不完整则只显示固定的截断提示并保留实际来源与已知用量，不展示破损模型正文；完整但违反约束的 JSON 仍失败。该约束只能校验结构及显式状态，不证明所有问项已覆盖或事实必然正确，跨问项语义矛盾仍需评测与原文复核。
+- 🚧 问项完整性（质量验收页配套）：先核对全部实际提供的来源中与原问项直接相关的对象或产物、形式及完整性范围，再组织步骤、前置条件、适用范围、禁止项、关键原因和破坏性/不可逆后果；不能先选一段来源后遗漏另一段的直接要求，也不能只给“能/不能”而省略影响使用决策的限制。每项仍须正确引用实际支持它的来源；这些有据要求属于所问目标，不借此追加无关背景、常识警告或新的不足目标。不硬编码具体业务词，不新增模型复核或自动重试，外部结构及原有引用/预算/背景角色约束保持。效果必须以真实原失败题及场景回归确认，提示文字测试不能代替。
+
+- ✅ 引文与问项范围修复（2026-11-07）：背景、示例、被引用的建议或指令不自行构成待答问项；明确请求回答的引文可作为target。仅当平衡引文是已结束的背景陈述、后有独立实际请求且没有明确请求回答该引文时，在内部提示中以background_quotes标明其角色，并拒绝仅落在该背景引文内的target（有据与不足均适用），避免错误建议被渲染成肯定式标题。主请求分离还要求引文前仅为未分句的转述引导、没有请求/问句标记及句末/分句边界，且引文结束后跳过句末标点/空白即为明确请求；符合时内部模型query只取该实际请求，original_query保留完整原问，背景只作语境，新载荷整体计入预算。检索及任务保存仍使用完整原问；引文前已有任何独立句/分句或范围不确定时不收窄，不靠请求关键词未命中来排除前文任务。引文本身是问题、由显式请求支配、后文明确询问引文、同target也在引文外出现、整句仅引文、引号不平衡或归属不确定时保守放行，沿用其他结构校验。不合法时整条安全失败，不删除坏句或自动重试；真实部分未知与引用原文中的不足规则继续保留。失败日志仅写静态原因，不记录模型正文或动态解码错误。该守卫是有限的句法检查，不证明语义完备。外部JSON字段、模型及输出预算不变；本轮真实回归与页面展示已核对，效果边界见业务基线。
 - ✅ 分析问项及普通AI正文共用安全Markdown展示：后端问项中转义的标点按字面显示，不重新激活代码、强调、链接或图片语法；表格仅按未转义竖线分列。代码内容保留原始反斜杠，原有HTML/图片和非HTTP链接仍仅作文字处理。
 
 任务保存 created_by、workflow_snapshot 和 next_step。审批在对应步骤执行前暂停（包括最后一步），批准用原子状态变更领取执行权后从该步骤继续；重复或并发审批不能重复执行。工作流修改不改变已创建任务快照；工具失败标 failed，不伪装成功。旧任务缺少快照不能续跑；未知归属的历史任务不对普通请求开放。进程中断后 running 任务不自动重放有副作用步骤，当前不提供自动恢复或定时调度。
@@ -292,6 +315,10 @@
 - 🚧 归属与权限：知识库仅创建者可读写，越权 ID 与不存在均返回 404；Qdrant 查询强制携带 owner/kb 过滤（引擎层）叠加 MySQL 复核（事实源层）。操作码：查看 `sys:ai:kb:list`、新建 `sys:ai:kb:create`、编辑（含文档新增/删除/重试）`sys:ai:kb:edit`、删除 `sys:ai:kb:delete`；页面 `/ai/knowledge`（标识 `ai_kb`）挂在"AI 功能"下，初始化仅关联超级管理员。
 - 🚧 工具 `kb_search`：参数 `{query: string, kb_id?: number}`，query 非空白且不超过 2000 UTF-8 字节；以当前对话用户身份检索其本人知识库 ready 文档的 ready chunk。返回命中项 `chunk_id/kb_id/doc_id/doc_title/snippet/score`，标注"不代表完整原文"。Qdrant 返回的 ID 还须在 MySQL 复核 owner、指定 kb_id、文档/分块状态、文档与分块的知识库一致及软删。Description/Params 按工具纪律写清使用时机。
 - ✅ 直接召回测试（2026-11-07）：`POST /kbs/:id/search` 使用当前身份及知识库查看权限，先核对知识库归属，不存在/越权均返回 code 404；query 必填、非空白且≤2000 UTF-8 字节，非法参数 code 400。共用 `kb_search` 的实际检索器、20 候选召回、最多 5 个片段及片段预算，分数相同按 chunk_id 升序确定顺序；不调用聊天模型、不生成答案、不新增业务记录。返回 `list`（元素字段同上述命中项，空结果为 `[]`）与 `elapsed_ms`（服务端检索阶段毫秒，不含聊天耗时）。未配置或运行时检索失败返回安全的 code 503，不伪装为空命中；该测试请求最多运行 10 秒。分数是向量相似度，不是正确率或答案置信度，当前不设最低分阈值，非空命中不保证有答案。前端在知识库内显示查询、排序、分数、文档/分块与纯文本片段，重复点击只执行一次，失败和空结果分别提示，身份或知识库改变后旧结果失效。
+- ✅ 跨文档候选覆盖修复（2026-11-07）：在相同owner/kb及MySQL ready/软删复核后的最多20候选中，原前5块若同一文档占严格多数则保持原序列，保护集中上下文；否则先取每个文档的最佳片段至最多5个，再用剩余高分片段补满，最终保持原分数降序、同分chunk_id升序。不足预算仍缩减或停止，不承诺预算下必定保留全部文档。每次正常检索仍只执行1次查询Embedding、1次向量查询和1次原文复核SQL，不加拆问/重排模型调用、不改变实际分数及来源。直接检索、聊天工具及工作流中的`kb_search`共用该选择规则；`kb_analyze`按下条处理候选。覆盖只是候选选择，不能保证高度集中或20候选外的相关文档被返回，也不保证每个问项有据。
+- ✅ 分析关键证据覆盖（已实现并完成本地验收）：普通`kb_search`及直接检索仍使用上述最多5片段规则；`kb_analyze`可通过受信任的内部检索接口取得同次向量召回、同次归属/ready/软删复核后的最多20个真实候选。候选来源JSON输入最多24000 UTF-8字节且不超过上下文四分之一的本地估算额度，完整模型请求仍保留原问题、背景角色约束及回答空间；低预算须减少候选，不截断问题。只进行一次模型分析，不增加Embedding、向量、SQL或模型调用，不拼接相邻正文到错误的chunk_id，不伪造分数或补充候选外事实。
+- ✅ 分析候选与最终引用：模型在同一次回复中按实际候选编号引用，完整结构及全部引用通过校验后，最终`sources`仅保留实际引用的最多8个真实输入片段，并按原候选顺序连续重编号，正文编号与来源同步渲染；不得用正则改写原文中的编号。唯一引用超过8个安全失败，不静默丢引用；候选在送模前即满足任意最终8来源JSON不超过10000字节，禁止回答后截去引用依据。全部不足或语法截断的固定提示保留最多8个实际输入片段作为参考，仍保留已知用量，不伪造成未调用模型的`no_matches`。外部`kb_analysis`字段结构、24000字节结果上限、2048输出token上限和旧历史读取兼容；来源条数上限是本次联动变更，两端校验同步。直接检索的证据覆盖与分析实际引用分别评测，不能混称同一组来源。反馈复核仍最多填写5条摘录，但source_index允许1..8；历史快照及旧5来源结果继续读取。
+- ✅ 题集校准与完整基线：新增24题派生校准版，保留原问题、split及8篇文档指纹；逐项记录旧标注、新标注和原问依据，旧题集及历史警报不改。完整基线按同SHA/题目集合/模型预算/实际语料前后执行；已知终态失败单列后可继续尚未开始题，结果未知或日志失效立即停止，不自动重试。只有全题有已知终态且全轮语料复核一致才称完整；成功题质量分母、全题执行分母及共同成功子集分开，失败用量未知不按零解释。
 - 🚧 一期不做：文件上传接入（file 模块联动）、PDF/Office 解析、定时调度、跨用户共享知识库、租户栈接入（多租户 Qdrant 策略未定，代码不得写死平台单栈假设之外的隔离语义）。
 
 | 方法与路径 | 请求字段 | result 字段 |
@@ -316,6 +343,10 @@ AI 使用体验增量（2026-11-07；按条目标记两端验收状态）：
 - ✅ 工作流数据流：保留旧静态DSL；version:2中步骤带稳定id，参数字段可为单键对象{"$ref":"input.question"}、{"$ref":"input.text"}、{"$ref":"steps.<id>"}或其JSON字段路径。仅可引用前序已提交步骤，禁止表达式/脚本/原型属性；解析后按工具Schema校验类型、深度和大小，不能由前端直接提供已解析参数。审批展示本次任务快照和真实解析输入，工作流后续修改不能影响。
 - ✅ 工作流后台任务：request_id在用户内唯一，同ID相同工作流/input返回原任务，不同载荷400；创建/批准返回后由后台执行，每次最多90秒、每实例8并发。任务状态增加cancelled，取消通过原子状态转换阻止后续步骤与迟到结果提交，不承诺撤销已发生的外部操作。进程中断或结果未知不自动重放工具；详情读取时超过100秒的running标记未知失败，不提供持久队列恢复、定时调度或未经保证的整任务安全重试。新增取消操作默认仅授予超级管理员，服务端独立Casbin及本人归属校验。
 - ✅ 任务步骤记录：task新增steps/updated_at/request_id；steps包含index（0基）、id/name/tool、input/output（字符串）、status（pending_approval/running/succeeded/failed/cancelled）、error、started_at/completed_at（Unix毫秒）。步骤记录与断点/状态原子提交，累计记录≤128KiB，累计旧式result仍≤60000字节；任务时间字段仍Unix秒，列表和详情不以最新工作流推断历史步骤。
+- ✅ 步骤调用用量：steps可选`usage`对象为`{scope:"chat",prompt_tokens,completion_tokens,total_tokens,complete}`，仅尝试模型调用后存在；缺字段或`null`表示未记录。失败、截断或安全校验拒绝答案时仍保留已知非负用量，未知部分以`complete=false`明确表示；零值不代表零费用。完整性只描述供应商计量，不代表任务成功或答案正确；供应商正常完整返回且分项/总量有效一致才可标完整，SDK拒绝/断流/取消未确认终点时标不完整。答案和output仍遵守原校验，不以计量元数据代替答案。流式多轮失败不能把前一轮已知用量标为全调用完整。步骤计量与失败状态原子保存；终态取消/失败后仅允许同一步的迟到计量受控补写，不改终态、正文或断点，详情读取保持本人隔离。
+- ✅ 工作流版本与恢复：工作流信息新增正整数`revision`（初始1，单调递增）。PUT `/v1/sys/ai/workflows/:id` 必填`expected_revision>=1`，其他patch字段保持省略语义，成功返回`{workflow}`；持锁核对版本，过期返回409并保留用户草稿，同值/空patch核对后不增版本。变更在同一事务归档旧完整快照并递增版本，恢复亦递增，防止A→B→A的旧请求重放。
+- ✅ 工作流历史：GET `/v1/sys/ai/workflows/:id/revisions` 以page/page_size分页返回`list/total`；摘要含`id,workflow_id,revision,name,definition:"",interval_seconds,enabled,step_count,created_at`（归档Unix秒）。GET `/v1/sys/ai/workflows/:id/revisions/:revision` 返回`{revision:完整历史项}`；POST 同路径加`/restore`，请求`{expected_revision}`，成功返回`{workflow}`。归属、当前工作流有效性及历史版本均由服务端核对，不存在/越权/删除均404；历史读取沿用`sys:ai:workflow:list`，恢复沿用`sys:ai:workflow:edit`且独立路由鉴权。恢复不执行任何任务、审批或工具。旧草稿缺基线版本时需先核对，不自动替用户提升版本；服务端历史不替代任务原快照。
+- ✅ 两次运行对照：在运行记录中选择两条本人终态任务，复用原列表及详情读取，比较实际输入、状态、步骤输入/输出、已知耗时及引用来源。只读比较不提交任务、不触发模型；同一流程按稳定步骤ID配对，旧记录或不同流程按执行顺序对照并说明。使用历史保存的定义/步骤/结果，不用最新流程补造；缺失计时/用量标为未记录。文字差异不等同于质量提升或性能因果，原质量批次同条件比较保持独立。
 - ✅ 任务分页使用摘要投影：GET /tasks的每项保留原字段但input/result为空、steps=[]，不从SQL读取正文、步骤或定义快照；完整输入、输出、步骤在GET /tasks/:id返回。避免100条大任务突破RPC接收预算，保持原筛选/排序/归属语义。
 - ✅ 文档维护：doc增加version（正文修订号，初始1；替换+1，重试不变）及stage（embedding/indexing/ready/failed）。列表不读取正文；meta_only详情用于固定docID状态轮询，原文预览另读正文。更新以expected_version及摄取状态/本次分块代次原子比较，旧索引不得匹配新正文，迟到结果不能覆盖新版本或恢复删除。批量导入每批≤20个TXT/Markdown，UTF-8严格解码，每文件≤64KiB，最多2并发，逐项反馈成功/失败/结果未知，未知结果禁止自动新建重发。
 - ✅ 结果阅读与引导：对话及分析使用受限Markdown/表格/代码块和复制；不渲染原始HTML，不新增依赖。工具目录增加中文用途和示例；工作流增加复制工作流/步骤和完整示例，仍使用现有工具注册表与权限。
@@ -345,9 +376,55 @@ AI 使用体验增量（2026-11-07；按条目标记两端验收状态）：
 
 会话消息只读取本会话及本人数据。AI 按 YAML 中的 Provider 选择 `AI_<PROVIDER>_KEY`（如 `AI_DEEPSEEK_KEY` 对应 `AI.DeepSeekKey`），该 Key 去除首尾空白后非空即启用，未配置或为空白则关闭；YAML 的 Enabled 字段保留兼容，运行时启用状态以 Key 为准。模型、地址和超时继续使用 YAML。关闭时发送消息返回 503，不产生伪造回答；会话管理、工具列表和本地工作流仍可用。密钥不回显、不记录；长调用等外部验证见[问题清单](README.md#后端剩余事项)。
 
+### 知识库质量验收（✅ 两端已实现并完成本地联调）
+
+页面 `/ai/knowledge/:id/quality` 使用本人知识库的内置项目文档题集，入口位于知识库工作区。首版内置24道新场景、32道历史业务及14道失败回归；题集是AI辅助编制，不是真实用户历史，初始预留题一经运行即为已使用数据。`checks` 为可选中文检查项（`label,kind,required_group`，索引对应 `answer.required_groups`），不改变原评分规则。黄金答案/检查项只用于复核，不能进入被测模型请求。
+
+| 方法及路径 | 参数 | result |
+|---|---|---|
+| GET `/kbs/:id/evaluation-datasets` | 本人知识库id | list：`key/name/sha256/dataset`，dataset为冻结v1题集原始UTF-8 JSON字符串 |
+| POST `/kbs/:id/evaluations` | request_id、dataset_key、dataset_sha256、group_key、case_ids | evaluation：批次详情，接受后后台串行执行 |
+| GET `/kbs/:id/evaluations` | page/page_size、可选status/request_id | list/total，列表省略大JSON字段 |
+| GET `/kbs/:id/evaluations/:evaluation_id` | 本人知识库及批次id | evaluation：批次详情 |
+| POST `/kbs/:id/evaluations/:evaluation_id/stop` | 本人知识库及批次id | evaluation：停止请求的已提交状态 |
+
+读取沿用 `sys:ai:kb:list`；创建/停止使用新增 `sys:ai:kb:evaluate`（仅授权内置知识库分析评测，初始化授予超级管理员）。所有接口保持后台认证、服务端Casbin及Actor归属检查，错知识库/跨用户/不存在均404。request_id为规范UUID；每批选择1..30个同group的有效题目，重复/未知ID或非法参数400，题集SHA变化、原UUID内容变化或语料不匹配409，配置缺失或执行槽占满503。同UUID同内容返回原批次，不新启动；已接受批次重查不依赖新模型调用。每实例最多2批并行、每批串行。
+
+`evaluation` 字段：`id,kb_id,request_id,dataset_key,dataset_sha256,group_key,status,case_count,completed_count,failed_count,stop_requested,corpus_verified,error,snapshot,bindings,context,observations,created_at,updated_at,started_at,completed_at`。status为`pending/running/succeeded/failed/cancelled/unknown`，表示执行状态，不代表答案质量。completed_count仅计成功分析，failed_count计失败/未知；列表中`snapshot/bindings/context/observations`为空字符串。时间为Unix秒，耗时为毫秒。
+
+`snapshot` 原样保留完整冻结题集字符串，SHA针对原字节；`context`沿用现有评测的脱敏模型/Embedding/预算/TopK结构，binary_sha来自实际运行二进制。`bindings`沿用CLI的`{documents,inventory}`（只当前group/知识库），包含文档真实ID、正文SHA、版本、ready及Embedding型号；不把全文塞入绑定。`observations`为按题集顺序的有界JSON数组，元素含`case_id,request_id,task_id,status(waiting/running/succeeded/failed/unknown),stage,query,list,search_client_ms,search_server_ms,analysis_elapsed_ms,analysis?,error`；没有有效分析时不填造usage或来源。每个成功项的analysis仍使用原kb_analysis结构，单次模型调用和原预算保持。
+
+批次清单和逐题UUID先持久化，再领取题目执行；每题复用SearchKb与独立RunDraft任务，正常包含两次逻辑检索。停止只阻止未领取项，当前项结束后停止；不取消或重放已发生的模型调用。执行失败停止后续题；未知结果保留原UUID/task_id供核对，不自动换标识重试。领取/写进度受独占lease_token和120秒租约约束，10秒心跳；进程中断或租约过期标unknown，迟到结果不能恢复终态，不自动重领付费步骤。
+
+- ✅ 采纳反馈与自定义冻结题集：质量验收开始请求可选`dataset_snapshot`（完整原字节JSON，最多256KiB），仅`dataset_key=custom-<SHA256前32位>`时使用，`dataset_sha256`须与原字节一致；内置目录及旧请求保持原语义。自定义v1题集保留原评分字段，最多100篇资料/100题、单批仍最多30题；严格拒绝重复字段、非约定小写字段名、过深结构、无效分组/证据/检查项。自定义资料必须携带正整数`source_doc_id/source_doc_version`、`source="inline:<key>"`、`content`及匹配的全文SHA；绑定时按本人当前库内精确ID及标题/ready/正文SHA/版本核对，不因自定义内容扩大读取范围。旧内置受限文件资料保持原语义。全文只存在题集快照，不复制进bindings，不将`expected_answer_example`或检查项送给模型。预览及溯源沿用可选`expected_answer_example`与`metadata.feedback_regressions`，不增加模型评分暗示。请求幂等指纹包含自定义原字节指纹，运行后仍冻结快照并复核语料。
+- ✅ 页面在已采纳反馈上生成题集，重新读取反馈版本与相关原文核对历史SHA/版本，再预览问题、复核结论、检查项和冻结资料；来源变化不自动套用旧结论。无原文绑定的资料不足反馈需明确核对当前资料后冻结，不声称原反馈证明全库无答案。生成/导入/下载不调用模型，只有用户明确开始验收才执行；新题均标development，采纳/字符串命中不等于人工签署或语义通过。CLI可读取SHA匹配的内联资料，不访问其source标记对应的文件路径；旧受限文件资料保持路径边界。
+
+自定义题集三端按相同严格格式校验：UTF-8文件不接受BOM或无效字节，不重新排版后计算SHA。根字段为`version,description,annotation,metadata,documents,cases`，`annotation/metadata`可选且须为对象；所有层字段名使用`^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$`，拒绝`constructor/prototype`、重复解码键及未知业务字段。`version`写作字面量`1`，文档ID/版本和检查项索引使用十进制整数字面量；文档ID唯一，key≤128、kb≤64、标题≤512、正文≤65536 UTF-8字节。题目id≤128、kb≤64、query≤2000字节且必须归属实际资料组；正例所需事实和证据每组至少一项经NFKC/空白归一后出现在对应冻结原文中。预期答案示例只受快照总量约束，仍须非空白；不因为示例长度另行拒绝合法服务端快照。前端与CLI共用纯校验器，内置旧文件题集保留原入口规则。
+
+运行前后复核实际语料正文SHA、版本、ready、Embedding与库存；变化保留已有观测但corpus_verified=false，不允许比较提升。前端与CLI复用纯评分函数，警报是字符串筛查且需人工复核。仅同题集SHA、group/题目集合、知识库/语料及模型预算的完整运行可比较，构建变化单列；未知/执行失败不计为空召回或错误答案。页面显示答案/实际引用、检查项、执行失败、耗时和已知用量，单题复测显式新建独立批次；成功分析的质量反馈复用现有评价/待复核，执行失败另列。批次观测使用内部调用口径，不能伪造成CLI的HTTP事件或生产准确率。
+
+问项完整性准则已接入并补充原失败回归；自然语言仍可能省略次要细节，现有片段选择也可能遗漏同文档的关键内容，当前限制和真实失败保留在[业务基线](ai-rag/business-baseline.md)。不能将页面上线或规则通过解释为全部回答已经完整。
+
+### 用量与额度（✅ 两端已实现并完成本地联调）
+
+页面`/ai/usage`展示新账本起算后的安全计量，不从历史消息/任务数补造供应商请求或Embedding用量。权限：`sys:ai:usage:read`读取本人；`sys:ai:usage:admin`读取全栈；`sys:ai:usage:manage`修改额度。初始仅超级管理员获得新增权限，普通用户的菜单或既有操作权限不自动扩大。
+
+路由前缀`/v1/sys/ai/usage`：本人GET `/summary`、`/calls`、`/policy`；管理员GET `/admin/summary`、`/admin/calls`、`/admin/policies`；PUT `/admin/policies/:user_id`修改策略。本人接口归属只取会话身份、不提供user_id筛选；管理员可按user_id筛选，0表示全部/全局默认策略。日期from_day/to_day为Asia/Shanghai的YYYY-MM-DD，默认最近7日、最多31日；分页page/page_size默认1/20、最大100。明细可按source/operation/provider/model/status/usage_state筛选。汇总/策略分别返回`{summary}`/`{policy}`，列表统一`{list,total}`。
+
+每次真实provider HTTP尝试独立attempt_id（Embedding按实际批次计），账本不存prompt、正文、Key或headers。来源source为chat/analysis/kb_search/kb_ingest/evaluation，operation为chat/embedding；保存原request_id、source_id、step_index、batch_index与provider/model。预留、已确认dispatch及不确定调用分开：status为reserved/running/succeeded/failed/cancelled/unknown/not_sent，usage_state为unknown/partial/complete/invalid；未知tokens字段省略，零不代表免费。已取得用量在SDK、向量或答案安全校验失败时仍保留；流断/取消/HTTP失败不推定免费，计量完整性须有供应商有效字段支持，Embedding不伪造输出token。
+
+摘要含period、recording_started_at、confirmed_requests/reserved_requests/not_sent_requests/uncertain_requests、成功/失败/取消数量、完整/部分/未知/无效计量数量、known_prompt_tokens/known_completion_tokens/known_embedding_tokens/known_total_tokens，及source/operation/provider/model分组。明细只返回上述安全字段、时间、http_status、provider_request_id及安全error_code；不回显供应商原错误正文。原消息与步骤usage仅作原结果读取，不与账本重复相加。
+
+策略PUT必填expected_version（0仅新建），含daily_request_limit（0无限）、daily_token_warning（0关闭）、inherit_default（用户恢复默认）、global_concurrent_limit（仅user_id=0且1..64）。初始每用户默认每日1000次、全栈并发8、token提醒关闭；额度值与继承状态明确展示。MySQL统一按全局策略→用户策略顺序锁行，同时核对当天已扣额度及全栈未过期的reserved/running调用再预留，Redis维护快速活跃租约；not_sent释放预留，崩溃unknown保守保留额度但不冒充已确认调用。Redis状态丢失不能绕过日额度或最终全局准入，活跃显示以可核对的MySQL状态/租约为准；并发仅覆盖本独立栈及共享同一MySQL/Redis的实例，不声称跨独立租户栈。
+
+策略读返回quota_day、有效daily_request_limit、used_requests（包含预留/未知）、remaining_requests、unlimited/inherited、daily_token_warning、known_tokens、warning_reached、incomplete_requests、version；管理员另含global active_calls/limit/active_known。token仅按已知值提醒，不宣称金额或未知消耗硬封顶，不发邮件。准入拒绝返回业务code429（普通HTTP信封语义保持），账本/DB/Redis不可用返回503并不发起新provider请求；策略版本冲突409。SSE开流后按error_code表达，不能将拒绝转为自动重试。
+
 ### 链路限制
 
 - 上传链路 Nginx 接受最大 14 MiB JSON 请求体，原文件限制仍为 10 MiB。代理读取超时 125 秒；AI RPC 上限 120 秒，业务模型调用上限仍为 90 秒。App 邮件 HTTP/RPC 客户端/RPC 服务端上限分别为 20/15/12 秒，SMTP 内部上限 10 秒。
+- ✅ 上传时间预算：对象存储30秒、file-rpc服务端35秒、API的FileRpc客户端40秒、仅文件上传HTTP45秒、前端上传请求50秒；宿主/Compose及新建租户模板同步，已有租户环境快照需另行迁移。其他文件路由沿用原超时；取消或超时不保证存储操作回滚，仍由既有引用/补偿机制核对。本轮真实联调覆盖平台，新建租户配置有渲染回归，未据此宣称租户生命周期已验收。
+- ✅ 客户端地址与可信代理：API的`TrustedProxies`为显式IP/CIDR列表，默认空，不信任任意客户端传入的来源头。仅TCP对端命中时解析X-Forwarded-For，自右向左跳过可信代理，取首个不可信地址；无此头时可使用合法单IP的X-Real-IP，坏链回退TCP对端。Compose为Nginx配置明确地址与对应最小信任范围，宿主开发默认不信任代理；更换网络时需同步覆盖地址和信任配置。实际来源用于审计及IP配额，不能直接信任最左值。
+- ✅ 向量依赖恢复与清理：已配置Qdrant启动暂不可达时保留客户端，通过有界退避重新探测集合；不把暂态故障变成永久未配置。检索Embedding与后台作业领取前核对恢复状态，未就绪时排队作业保持queued且不调用Embedding。运行期周期对账只扫描当前集合的真实ID，以MySQL未软删库/文档及pending或ready分块核对；保留正在摄取的ID，清除无效派生索引。全量扫描或SQL核对失败时不根据不完整集合删除，删除失败由后续周期继续核对，不自动重放Embedding/模型调用。当前集合必须由本平台MySQL独占，不用于跨独立库或租户栈共享；只清孤立索引，不补向量或自动重建。启动5秒后及每轮结束5分钟后运行，单轮120秒、最多1M numeric IDs、每批500；上界不代表容量承诺，超限明确记录人工处理。
 
 ## 8. 契约维护
 

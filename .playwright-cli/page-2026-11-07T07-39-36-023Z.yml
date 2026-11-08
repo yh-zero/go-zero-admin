@@ -1,0 +1,41 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "escaped" [level=2] [ref=e5]
+      - generic [ref=e6]: 版本1.0的a-b：五万元 [1]
+    - generic [ref=e8]:
+      - heading "syntax" [level=2] [ref=e9]
+      - generic [ref=e10]:
+        - generic [ref=e11]: "代码`a`：值 [1]"
+        - generic [ref=e12]: "**重点** [资料](https://example.test) ![图片](https://example.test/a.png)"
+        - generic [ref=e13]: <img src=x onerror=evil()>
+    - generic [ref=e14]:
+      - heading "table" [level=2] [ref=e15]
+      - table [ref=e18]:
+        - rowgroup [ref=e19]:
+          - row [ref=e20]:
+            - columnheader "A" [ref=e21]
+            - columnheader "B" [ref=e22]
+        - rowgroup [ref=e23]:
+          - row [ref=e24]:
+            - cell "x|y" [ref=e25]
+            - cell "z" [ref=e26]
+    - generic [ref=e27]:
+      - heading "ordinary" [level=2] [ref=e28]
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - strong [ref=e31]: 重点
+          - code [ref=e32]: 代码
+          - link "官网" [ref=e33] [cursor=pointer]:
+            - /url: https://example.test
+        - generic [ref=e35]: 路径 C:\work\notes.txt
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: js
+            - button "copy 复制代码" [ref=e40] [cursor=pointer]:
+              - img "copy" [ref=e42]
+              - generic [ref=e45]: 复制代码
+          - code [ref=e47]: const x = 1;
+    - generic [ref=e48]:
+      - heading "unsafe" [level=2] [ref=e49]
+      - generic [ref=e50]: <img src=x onerror=evil()> ![图片](https://example.test/x.png) [脚本](javascript:evil())

@@ -8,9 +8,12 @@ import { QueryState } from '../../components/QueryState';
 import { formatTime } from '../../utils/format';
 import { AIWorkspaceAccess } from './AIWorkspaceAccess';
 import { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
-import { aiWorkspaceKeys, taskListOptions, workflowListOptions } from './workspaceQueries';
+import { aiWorkspaceKeys, taskDetailOptions, taskListOptions, workflowListOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
 import { TaskDetail } from './TaskDetail';
+import { TaskComparison } from './TaskComparison';
+import { isTerminalTask } from './taskComparisonData';
+import comparisonStyles from './taskComparison.module.css';
 import { correctTaskPageParams, parseTaskId, taskPollInterval, taskStatuses, taskStepLabel } from './taskState';
 import styles from './tasks.module.css';
 
@@ -26,6 +29,9 @@ export function AITaskSession({ scope }: { scope: AiWorkspaceScope }) {
   const incomingTask = searchParams.get('task_id');
   const [lastTaskLink, setLastTaskLink] = useState(incomingTask);
   const [selectedId, setSelectedId] = useState<number | null>(() => parseTaskId(incomingTask));
+  const [comparisonId, setComparisonId] = useState<number | null>(null);
+  // 详情组件负责读取；此观察器仅订阅同一缓存，入口不额外发送请求。
+  const selectedDetail = useQuery({ ...taskDetailOptions(scope, selectedId ?? 0), enabled: false });
   const [filterForm] = Form.useForm<{ workflow_id?: number; query?: string }>();
   const [workflowSearch, setWorkflowSearch] = useState('');
   const [workflowPage, setWorkflowPage] = useState(1);
@@ -44,7 +50,7 @@ export function AITaskSession({ scope }: { scope: AiWorkspaceScope }) {
   // 路由可在页面保持挂载时带入新任务，立即调整选择以防旧详情闪回。
   if (incomingTask !== lastTaskLink) {
     setLastTaskLink(incomingTask);
-    if (incomingTask !== null) setSelectedId(parseTaskId(incomingTask));
+    if (incomingTask !== null) { setSelectedId(parseTaskId(incomingTask)); setComparisonId(null); }
   }
 
   useEffect(() => { pollStartedAt.current = Date.now(); }, [params]);
@@ -66,6 +72,7 @@ export function AITaskSession({ scope }: { scope: AiWorkspaceScope }) {
 
   function selectTask(id: number | null) {
     if (guard.writing || !guard.isCurrent()) return;
+    setComparisonId(null);
     if (selectedId !== null && selectedId !== id) {
       void client.cancelQueries({ queryKey: aiWorkspaceKeys.task(scope, selectedId) });
     }
@@ -101,10 +108,12 @@ export function AITaskSession({ scope }: { scope: AiWorkspaceScope }) {
         <Tag color={taskStatuses[task.status]?.color}>{taskStatuses[task.status]?.label ?? task.status}</Tag><strong>{task.title || `运行记录 #${task.id}`}</strong>
         {task.input_summary && <span className={styles.taskSummary}>{task.input_summary}</span>}<span className={styles.note}>{task.workflow_name || (task.workflow_id ? `流程 #${task.workflow_id}` : '一次性分析')} · {formatTime(task.created_at)}</span><span className={styles.note}>{taskStepLabel(task)}</span>
       </button>)}
-    </div><div className={styles.resultWorkspace}>{selectedId !== null ? <TaskDetail key={selectedId} inline scope={scope} taskId={selectedId} guard={guard} metadata={tasks.error ? undefined : tasks.data?.list.find(task => task.id === selectedId)} metadataUpdatedAt={tasks.dataUpdatedAt} onClose={() => selectTask(null)} /> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="选择一条运行记录，查看结果与参考来源" />}</div></div>
+    </div><div className={styles.resultWorkspace}>{selectedId !== null ? <><div className={comparisonStyles.entry}><Button disabled={guard.writing || !guard.can('sys:ai:task:list') || !selectedDetail.data || selectedDetail.isError || selectedDetail.isFetching || !isTerminalTask(selectedDetail.data.task.status)}
+      onClick={() => { if (guard.isCurrent()) setComparisonId(selectedId); }}>对比运行</Button></div><TaskDetail key={selectedId} inline scope={scope} taskId={selectedId} guard={guard} metadata={tasks.error ? undefined : tasks.data?.list.find(task => task.id === selectedId)} metadataUpdatedAt={tasks.dataUpdatedAt} onClose={() => selectTask(null)} /></> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="选择一条运行记录，查看结果与参考来源" />}</div></div>
     <div className={styles.footer}><span>仅显示本人任务 · 自动刷新最多持续 2 分钟</span>
       <Pagination current={params.page} pageSize={params.page_size} total={tasks.data?.total ?? 0} showSizeChanger pageSizeOptions={[10, 20, 50, 100]} size="small"
         disabled={guard.writing} showTotal={total => `共 ${total} 条`} onChange={(page, pageSize) => setParams(current => ({ ...current, page, page_size: pageSize }))} />
     </div>
+    {comparisonId !== null && <TaskComparison key={comparisonId} scope={scope} baseId={comparisonId} guard={guard} onClose={() => setComparisonId(null)} />}
   </Card>;
 }

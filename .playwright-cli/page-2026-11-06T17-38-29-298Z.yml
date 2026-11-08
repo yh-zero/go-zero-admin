@@ -1,0 +1,150 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - complementary [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - generic [ref=e13]:
+            - strong [ref=e14]: go-zero-admin
+            - generic [ref=e15]: 管理控制台
+          - generic [ref=e16]: 工作空间
+          - menu [ref=e17]:
+            - menuitem "dashboard 工作台" [ref=e18] [cursor=pointer]:
+              - img "dashboard" [ref=e19]
+              - generic [ref=e22]: 工作台
+            - menuitem "知识库" [ref=e23] [cursor=pointer]
+        - button "折叠侧栏" [ref=e29] [cursor=pointer]:
+          - img "left" [ref=e31]
+          - generic [ref=e34]: 收起侧栏
+        - separator "调整侧栏宽度" [ref=e35]
+    - generic [ref=e36]:
+      - banner [ref=e37]:
+        - generic [ref=e38]:
+          - button "收起导航" [expanded] [ref=e39] [cursor=pointer]:
+            - img "menu-fold" [ref=e41]
+          - navigation [ref=e45]:
+            - list [ref=e46]:
+              - listitem [ref=e47]:
+                - generic [ref=e48]:
+                  - img "home" [ref=e49]
+                  - text: 控制台
+              - listitem [ref=e52]: /
+              - listitem [ref=e53]: 知识库
+        - generic [ref=e54]:
+          - generic [ref=e57]:
+            - img "apartment" [ref=e59]
+            - generic "默认部门" [ref=e62]:
+              - text: 默认部门
+              - combobox "切换部门" [ref=e63]
+            - img "down" [ref=e65]
+          - button "页面验收，账号菜单" [ref=e68] [cursor=pointer]:
+            - img "user" [ref=e70]
+            - generic [ref=e73]: 页面验收
+            - img "down" [ref=e74]
+          - button "退出登录" [ref=e77] [cursor=pointer]:
+            - img "logout" [ref=e79]
+      - main [ref=e83]:
+        - generic [ref=e85]:
+          - generic [ref=e87]:
+            - generic [ref=e89]:
+              - img "database" [ref=e91]
+              - generic [ref=e94]: 知识库
+              - generic [ref=e95]: 向量检索
+            - generic [ref=e98]:
+              - button "reload 刷新" [ref=e100] [cursor=pointer]:
+                - img "reload" [ref=e102]
+                - generic [ref=e105]: 刷新
+              - button "plus 新建知识库" [ref=e107] [cursor=pointer]:
+                - img "plus" [ref=e109]
+                - generic [ref=e113]: 新建知识库
+          - generic [ref=e117]:
+            - table [ref=e121]:
+              - rowgroup [ref=e128]:
+                - row [ref=e129]:
+                  - columnheader "名称" [ref=e130]
+                  - columnheader "描述" [ref=e131]
+                  - columnheader "文档数" [ref=e132]
+                  - columnheader "更新时间" [ref=e133]
+                  - columnheader "操作" [ref=e134]
+              - rowgroup [ref=e135]:
+                - row [ref=e136]:
+                  - cell "知识库浏览器响应桩" [ref=e137]
+                  - cell "仅页面验收，不请求真实业务" [ref=e138]
+                  - cell "1" [ref=e139]
+                  - cell "2026/11/7 01:38:01" [ref=e140]
+                  - cell [ref=e141]:
+                    - generic [ref=e142]:
+                      - button "文档" [ref=e144] [cursor=pointer]
+                      - button "召回测试" [ref=e147] [cursor=pointer]
+                      - button "edit 编辑" [ref=e150] [cursor=pointer]:
+                        - img "edit" [ref=e152]
+                        - generic [ref=e155]: 编辑
+                      - button "delete 删除" [ref=e157] [cursor=pointer]:
+                        - img "delete" [ref=e159]
+                        - generic [ref=e162]: 删除
+            - list [ref=e163]:
+              - listitem "上一页" [ref=e164]:
+                - button [disabled] [ref=e165]:
+                  - img "left" [ref=e166]
+              - listitem "1" [ref=e169] [cursor=pointer]
+              - listitem "下一页" [ref=e171]:
+                - button [disabled] [ref=e172]:
+                  - img "right" [ref=e173]
+              - listitem [ref=e176]:
+                - generic [ref=e177]:
+                  - generic "20 条/页" [ref=e178]:
+                    - text: 20 条/页
+                    - combobox "页码" [ref=e179]
+                  - img "down" [ref=e181]
+  - dialog "文档管理：知识库浏览器响应桩" [ref=e185]:
+    - generic [ref=e186]:
+      - generic [ref=e187]:
+        - button "关闭" [ref=e188] [cursor=pointer]:
+          - img "close" [ref=e189]
+        - generic [ref=e192]: 文档管理：知识库浏览器响应桩
+      - generic [ref=e194]:
+        - button "reload 刷新状态" [ref=e196] [cursor=pointer]:
+          - img "reload" [ref=e198]
+          - generic [ref=e201]: 刷新状态
+        - button "upload 批量导入" [ref=e203] [cursor=pointer]:
+          - img "upload" [ref=e205]
+          - generic [ref=e208]: 批量导入
+        - button "plus 添加文档" [ref=e210] [cursor=pointer]:
+          - img "plus" [ref=e212]
+          - generic [ref=e216]: 添加文档
+    - generic [ref=e217]:
+      - generic [ref=e218]: 支持粘贴原文或批量导入 UTF-8 的 TXT / Markdown 文件，每篇最多64 KiB。处理状态每3秒刷新，失败时重试已有文档。
+      - generic [ref=e221]:
+        - table [ref=e225]:
+          - rowgroup [ref=e232]:
+            - row [ref=e233]:
+              - columnheader "标题" [ref=e234]
+              - columnheader "处理阶段" [ref=e235]
+              - columnheader "版本" [ref=e236]
+              - columnheader "分块" [ref=e237]
+              - columnheader "操作" [ref=e238]
+          - rowgroup [ref=e239]:
+            - row [ref=e240]:
+              - cell "原文响应桩" [ref=e241]
+              - cell "已就绪" [ref=e242]
+              - cell "v1" [ref=e246]
+              - cell "1" [ref=e247]
+              - cell [ref=e248]:
+                - generic [ref=e249]:
+                  - button "file-text 原文" [ref=e251] [cursor=pointer]:
+                    - img "file-text" [ref=e253]
+                    - generic [ref=e256]: 原文
+                  - button "删除" [ref=e258] [cursor=pointer]
+        - list [ref=e260]:
+          - listitem "上一页" [ref=e261]:
+            - button [disabled] [ref=e262]:
+              - img "left" [ref=e263]
+          - listitem "1" [ref=e266] [cursor=pointer]
+          - listitem "下一页" [ref=e268]:
+            - button [disabled] [ref=e269]:
+              - img "right" [ref=e270]
+          - listitem [ref=e273]:
+            - generic [ref=e274]:
+              - generic "20 条/页" [ref=e275]:
+                - text: 20 条/页
+                - combobox "页码" [ref=e276]
+              - img "down" [ref=e278]

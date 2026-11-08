@@ -1,0 +1,118 @@
+- generic [ref=f3e480]:
+  - complementary [ref=f3e481]:
+    - generic [ref=f3e482]:
+      - generic [ref=f3e483]:
+        - generic [ref=f3e489]:
+          - strong [ref=f3e490]: go-zero-admin
+          - generic [ref=f3e491]: 管理控制台
+        - generic [ref=f3e492]: 工作空间
+        - menu [ref=f3e493]:
+          - menuitem "dashboard 工作台" [ref=f3e494] [cursor=pointer]:
+            - img "dashboard" [ref=f3e495]
+            - generic [ref=f3e498]: 工作台
+          - menuitem "系统管理" [expanded] [ref=f3e499] [cursor=pointer]
+          - menu [ref=f3e505]:
+            - menuitem "用户管理" [ref=f3e506] [cursor=pointer]
+            - menuitem "部门管理" [ref=f3e512] [cursor=pointer]
+            - menuitem "个人中心" [ref=f3e518] [cursor=pointer]
+      - button "折叠侧栏" [ref=f3e524] [cursor=pointer]:
+        - img "left" [ref=f3e526]
+        - generic [ref=f3e529]: 收起侧栏
+      - separator "调整侧栏宽度" [ref=f3e530]
+  - generic [ref=f3e531]:
+    - banner [ref=f3e532]:
+      - generic [ref=f3e533]:
+        - button "收起导航" [expanded] [ref=f3e534] [cursor=pointer]:
+          - img "menu-fold" [ref=f3e536]
+        - navigation [ref=f3e540]:
+          - list [ref=f3e541]:
+            - listitem [ref=f3e542]:
+              - generic [ref=f3e543]:
+                - img "home" [ref=f3e544]
+                - text: 控制台
+            - listitem [aria-hidden] [ref=f3e547]: /
+            - listitem [ref=f3e548]: 用户管理
+      - generic [ref=f3e549]:
+        - generic [ref=f3e552]:
+          - img "apartment" [ref=f3e554]
+          - generic "帅浩团队" [ref=f3e557]:
+            - text: 帅浩团队
+            - combobox "切换部门" [ref=f3e558]
+          - img "down" [ref=f3e560]
+        - button "帅浩团队小伙伴，账号菜单" [ref=f3e563] [cursor=pointer]:
+          - img "user" [ref=f3e565]
+          - generic [ref=f3e568]: 帅浩团队小伙伴
+          - img "down" [ref=f3e569]
+        - button "退出登录" [ref=f3e572] [cursor=pointer]:
+          - img "logout" [ref=f3e574]
+    - main [ref=f3e578]:
+      - generic [ref=f3e580]:
+        - generic [ref=f3e582]:
+          - heading "用户管理" [level=3] [ref=f3e583]
+          - text: 管理用户资料、部门和账号状态
+        - generic [ref=f3e586]:
+          - generic [ref=f3e588]:
+            - generic "用户名" [ref=f3e590]
+            - textbox "用户名" [ref=f3e595]:
+              - /placeholder: 搜索用户名
+          - generic [ref=f3e598]:
+            - generic "昵称" [ref=f3e600]
+            - textbox "昵称" [ref=f3e605]:
+              - /placeholder: 搜索昵称
+          - generic [ref=f3e608]:
+            - generic "部门" [ref=f3e610]
+            - generic [ref=f3e614]:
+              - generic [ref=f3e615]:
+                - generic: 全部部门
+                - combobox "部门" [ref=f3e616]
+              - img "down" [ref=f3e618]
+          - generic [ref=f3e622]:
+            - generic "状态" [ref=f3e624]
+            - generic [ref=f3e628] [cursor=pointer]:
+              - generic [ref=f3e629]:
+                - generic: 全部
+                - combobox "状态" [ref=f3e630]
+              - img "down" [ref=f3e632]
+          - generic [ref=f3e640]:
+            - button "查 询" [ref=f3e642] [cursor=pointer]
+            - button "重 置" [ref=f3e645] [cursor=pointer]
+            - button "刷新用户列表" [active] [ref=f3e648] [cursor=pointer]:
+              - img "reload" [ref=f3e650]
+        - generic [ref=f3e653]:
+          - generic [ref=f3e654]: 用户列表
+          - generic [ref=f3e660]:
+            - table [ref=f3e664]:
+              - rowgroup [ref=f3e673]:
+                - row [ref=f3e674]:
+                  - columnheader "用户名" [ref=f3e675]
+                  - columnheader "昵称" [ref=f3e676]
+                  - columnheader "真实姓名" [ref=f3e677]
+                  - columnheader "邮箱" [ref=f3e678]
+                  - columnheader "手机号" [ref=f3e679]
+                  - columnheader "状态" [ref=f3e680]
+                  - columnheader "操作" [ref=f3e681]
+              - rowgroup [ref=f3e682]:
+                - row [ref=f3e683]:
+                  - cell [ref=f3e684]:
+                    - button "bili_demo_20261108" [ref=f3e685] [cursor=pointer]
+                  - cell "帅浩团队小伙伴" [ref=f3e687]
+                  - cell "—" [ref=f3e688]
+                  - cell "member-shuaihao@example.test" [ref=f3e689]
+                  - cell "—" [ref=f3e690]
+                  - cell "启用" [ref=f3e691]
+                  - cell [ref=f3e694]:
+                    - button "详情" [ref=f3e697] [cursor=pointer]
+            - list [ref=f3e699]:
+              - listitem "上一页" [ref=f3e700]:
+                - button [disabled] [ref=f3e701]:
+                  - img "left" [ref=f3e702]
+              - listitem "1" [ref=f3e705] [cursor=pointer]
+              - listitem "下一页" [ref=f3e707]:
+                - button [disabled] [ref=f3e708]:
+                  - img "right" [ref=f3e709]
+              - listitem [ref=f3e712]:
+                - generic [ref=f3e713]:
+                  - generic "20 条/页" [ref=f3e714]:
+                    - text: 20 条/页
+                    - combobox "页码" [ref=f3e715]
+                  - img "down" [ref=f3e717]

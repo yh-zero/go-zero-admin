@@ -244,17 +244,19 @@ func renderTenantEnv(s *svc.ServiceContext, t *model.TenantRegistry, storage obj
 	app["JwtAuth"] = map[string]any{"AccessSecret": t.AppJwtAccessSecret, "AccessExpire": 900}
 	app["FileRpc"] = map[string]any{"Endpoints": []string{"file-rpc:6003"}, "NonBlock": true, "Timeout": 1500}
 	file := rpc("file-rpc", 6003)
+	file["Timeout"] = 35000
 	file["Storage"] = storage
 	ai := rpc("ai-rpc", 6004)
 	ai["Timeout"] = 120000
 	ai["AI"] = map[string]any{"Enabled": false}
 	api := map[string]any{"Name": "admin-api", "Host": "0.0.0.0", "Port": 7001,
-		"AdminRpc": map[string]any{"Endpoints": []string{t.Slug + "-admin-rpc:6001"}},
-		"FileRpc":  map[string]any{"Endpoints": []string{t.Slug + "-file-rpc:6003"}},
-		"AppRpc":   map[string]any{"Endpoints": []string{"app-rpc:6002"}, "NonBlock": true, "Timeout": 15000},
-		"AiRpc":    map[string]any{"Endpoints": []string{"ai-rpc:6004"}, "NonBlock": true, "Timeout": 120000},
-		"Redis":    map[string]any{"Host": "redis:6379", "Type": "node"},
-		"Auth":     map[string]any{"AccessSecret": t.JwtAccessSecret, "AccessExpire": 7200}}
+		"AdminRpc":       map[string]any{"Endpoints": []string{t.Slug + "-admin-rpc:6001"}},
+		"FileRpc":        map[string]any{"Endpoints": []string{t.Slug + "-file-rpc:6003"}, "Timeout": 40000},
+		"AppRpc":         map[string]any{"Endpoints": []string{"app-rpc:6002"}, "NonBlock": true, "Timeout": 15000},
+		"AiRpc":          map[string]any{"Endpoints": []string{"ai-rpc:6004"}, "NonBlock": true, "Timeout": 120000},
+		"Redis":          map[string]any{"Host": "redis:6379", "Type": "node"},
+		"TrustedProxies": cfg.TrustedProxies,
+		"Auth":           map[string]any{"AccessSecret": t.JwtAccessSecret, "AccessExpire": 7200}}
 	configs := []struct {
 		name  string
 		value any

@@ -28,6 +28,11 @@ type KbSearcher interface {
 	Search(ctx context.Context, ownerID, kbID int64, query string) ([]KbSearchHit, error)
 }
 
+// KbAnalysisSearcher 可选提供同次召回中更多已复核候选，最终引用由分析工具限制为8条。
+type KbAnalysisSearcher interface {
+	SearchAnalysis(ctx context.Context, ownerID, kbID int64, query string) ([]KbSearchHit, error)
+}
+
 type kbBudgetKey struct{}
 type kbScopeKey struct{}
 type kbSourcesKey struct{}

@@ -1,0 +1,19 @@
+.page { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.heading h3 { margin: 8px 0; }
+.setup { display: grid; grid-template-columns: minmax(230px, 1fr) minmax(230px, 1fr); gap: 16px; }
+.selection { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.field { display: flex; flex-direction: column; gap: 8px; }
+.results { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.metrics strong { display: block; font-size: 18px; margin-top: 8px; overflow-wrap: anywhere; }
+.metrics small { display: block; color: var(--ant-color-text-secondary); margin-top: 4px; }
+.answer { display: flex; flex-direction: column; gap: 12px; padding: 8px 4px; min-width: 0; }
+.answer ul { padding-left: 22px; margin: 0; }
+.answer li { margin-bottom: 8px; }
+.advanced { overflow-wrap: anywhere; color: var(--ant-color-text-secondary); }
+.advanced summary { cursor: pointer; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.unknown { display: flex; flex-direction: column; gap: 8px; overflow-wrap: anywhere; }
+@media (max-width: 1000px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .heading { flex-direction: column; } .setup { grid-template-columns: 1fr; } .metrics { grid-template-columns: 1fr; } }

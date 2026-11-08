@@ -15,6 +15,7 @@ import { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
 import { aiWorkspaceKeys, workflowDetailOptions, workflowListOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
 import { WorkflowDefinitionView, WorkflowRunResultNotice } from './WorkflowEditor';
+import { WorkflowHistory } from './WorkflowHistory';
 import { prepareWorkflowRunInput, validateRunInput, workflowRunFields } from './workflowDefinition';
 import { KnowledgeChoice } from './WorkflowParameters';
 import { TaskDetail } from './TaskDetail';
@@ -42,6 +43,7 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
   const [search, setSearch] = useState('');
   const [selectedTask, setSelectedTask] = useState<number | null>(null);
   const [panel, setPanel] = useState<Panel | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AiWorkflowInfo | null>(null);
   const [uncertain, setUncertain] = useState<'run' | null>(null);
   const [lastRunWithoutAccess, setLastRunWithoutAccess] = useState<AiRunWorkflowResp | null>(null);
@@ -99,12 +101,14 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
 
   function closePanel() {
     if (writing) return;
+    setHistoryOpen(false);
     if (detailId > 0) void client.cancelQueries({ queryKey: aiWorkspaceKeys.workflow(scope, detailId) });
     setPanel(null);
     setUncertain(null);
   }
   function openExisting(id: number, mode: 'view' | 'run') {
     if (writing || !isCurrent()) return;
+    setHistoryOpen(false);
     setUncertain(null);
     if (mode === 'run') {
       restoreRunAttempt(id);
@@ -190,8 +194,9 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
     {selectedTask && <Card title="本次运行结果"><TaskDetail key={selectedTask} inline scope={scope} taskId={selectedTask} guard={guard} onClose={() => setSelectedTask(null)} /></Card>}
     <Drawer open={panel?.mode === 'view'} title="工作流详情" size={880} onClose={closePanel} destroyOnHidden>
       <QueryState isPending={detail.isPending || detail.isFetching} error={detail.error} onRetry={detail.refetch} />
-      {workflow && !detail.isFetching && !detail.error && <WorkflowDefinitionView name={workflow.name} definition={workflow.definition} />}
+      {workflow && !detail.isFetching && !detail.error && <><Button disabled={writing} onClick={() => setHistoryOpen(true)}>版本历史</Button><WorkflowDefinitionView name={workflow.name} definition={workflow.definition} /></>}
     </Drawer>
+    {historyOpen && workflow && <WorkflowHistory scope={scope} workflow={workflow} currentVerified={detail.isSuccess && !detail.isFetching && !detail.error} guard={guard} onRefresh={() => detail.refetch()} onClose={() => setHistoryOpen(false)} />}
     <Modal open={panel?.mode === 'run'} title="确认运行工作流" onCancel={closePanel} closable={!writing} mask={{ closable: !writing }} keyboard={!writing} confirmLoading={writing} okText={uncertain ? '核对原任务' : '开始后台运行'} okButtonProps={{ disabled: !workflow || workflow.enabled !== 1 || detail.isFetching || !!detail.error || (!!uncertain && !runAttempt) || !can(permission('run')) }} onOk={() => uncertain ? void runWorkflow({}) : runForm.submit()} destroyOnHidden>
       <QueryState isPending={detail.isPending || detail.isFetching} error={detail.error} onRetry={detail.refetch} />
       {workflow && !detail.isFetching && !detail.error && <>

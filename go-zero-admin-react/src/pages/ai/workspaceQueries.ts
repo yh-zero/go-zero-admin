@@ -1,4 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
+import { fetchAiWorkflowRevision, fetchAiWorkflowRevisions } from '../../api/ai';
 import { fetchAiKb, fetchAiKbDocs, fetchAiKbImport, fetchAiKbImports, fetchAiKbs, fetchAiTask, fetchAiTasks, fetchAiTools, fetchAiWorkflow, fetchAiWorkflows } from '../../api/ai';
 import type { AiListKbDocsReq, AiListKbDocsResp, AiListKbsReq, AiListTasksReq, AiListWorkflowsReq, AiTaskInfo, AiTaskResp, PageParams } from '../../api/types';
 
@@ -8,11 +9,19 @@ export const aiWorkspaceKeys = {
   tools: (scope: AiWorkspaceScope) => ['ai-workspace', ...scope, 'tools'] as const,
   workflows: (scope: AiWorkspaceScope) => ['ai-workspace', ...scope, 'workflows'] as const,
   workflow: (scope: AiWorkspaceScope, id: number) => ['ai-workspace', ...scope, 'workflow', id] as const,
+  workflowRevisions: (scope: AiWorkspaceScope, id: number) => ['ai-workspace', ...scope, 'workflow-revisions', id] as const,
+  workflowRevision: (scope: AiWorkspaceScope, id: number, revision: number) => ['ai-workspace', ...scope, 'workflow-revision', id, revision] as const,
   tasks: (scope: AiWorkspaceScope) => ['ai-workspace', ...scope, 'tasks'] as const,
   task: (scope: AiWorkspaceScope, id: number) => ['ai-workspace', ...scope, 'task', id] as const,
+  taskFeedback: (scope: AiWorkspaceScope, id: number) => ['ai-workspace', ...scope, 'task-feedback', id] as const,
+  kbFeedbackList: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb-feedback-list', kbId] as const,
+  kbFeedback: (scope: AiWorkspaceScope, kbId: number, id: number) => ['ai-workspace', ...scope, 'kb-feedback', kbId, id] as const,
   kbs: (scope: AiWorkspaceScope) => ['ai-workspace', ...scope, 'kbs'] as const,
   kbDocs: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb-docs', kbId] as const,
   kb: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb', kbId] as const,
+  qualityDatasets: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb-quality-datasets', kbId] as const,
+  qualityRuns: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb-quality-runs', kbId] as const,
+  qualityRun: (scope: AiWorkspaceScope, kbId: number, id: number) => ['ai-workspace', ...scope, 'kb-quality-run', kbId, id] as const,
   imports: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb-imports', kbId] as const,
   import: (scope: AiWorkspaceScope, kbId: number, batchId: string) => ['ai-workspace', ...scope, 'kb-import', kbId, batchId] as const,
 };
@@ -38,6 +47,15 @@ export function workflowListOptions(scope: AiWorkspaceScope, params: AiListWorkf
 export function workflowDetailOptions(scope: AiWorkspaceScope, id: number) {
   return queryOptions({ queryKey: aiWorkspaceKeys.workflow(scope, id), staleTime: 0, retry: false, refetchOnWindowFocus: false,
     queryFn: ({ signal }) => readActive(signal, () => fetchAiWorkflow(id, signal)) });
+}
+
+export function workflowRevisionListOptions(scope: AiWorkspaceScope, id: number, params: PageParams) {
+  return queryOptions({ queryKey: [...aiWorkspaceKeys.workflowRevisions(scope, id), params], staleTime: 0, retry: false,
+    queryFn: ({ signal }) => readActive(signal, () => fetchAiWorkflowRevisions(id, params, signal)) });
+}
+export function workflowRevisionDetailOptions(scope: AiWorkspaceScope, id: number, revision: number) {
+  return queryOptions({ queryKey: aiWorkspaceKeys.workflowRevision(scope, id, revision), staleTime: 0, retry: false,
+    queryFn: ({ signal }) => readActive(signal, () => fetchAiWorkflowRevision(id, revision, signal)) });
 }
 
 export function taskListOptions(scope: AiWorkspaceScope, params: AiListTasksReq) {

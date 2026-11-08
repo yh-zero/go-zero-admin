@@ -16,12 +16,18 @@ services:
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
-    networks: [default, gozero-edge]
+    networks:
+      default:
+        ipv4_address: "${GOZERO_PLATFORM_PROXY_IP:-172.20.0.3}"
+      gozero-edge:
+        ipv4_address: "${GOZERO_EDGE_PROXY_IP:-172.21.0.2}"
     depends_on: [api]
 
   api:
     build: { context: ., dockerfile: docker/Dockerfile, target: api }
     ports: ["127.0.0.1:7001:7001"]
+    environment:
+      GOZERO_PLATFORM_PROXY_IP: "${GOZERO_PLATFORM_PROXY_IP:-172.20.0.3}"
     networks:
       default:
         aliases: ["platform-api"]
@@ -87,6 +93,8 @@ services:
 
   tenant-rpc:
     build: { context: ., dockerfile: docker/Dockerfile, target: tenant-rpc }
+    environment:
+      GOZERO_EDGE_PROXY_IP: "${GOZERO_EDGE_PROXY_IP:-172.21.0.2}"
     volumes:
       - ./docker/etc/tenant-rpc.yaml:/app/etc/tenant.yaml:ro
       - /var/run/docker.sock:/var/run/docker.sock   # 仅平台栈；等价宿主 root，注意隔离
@@ -154,5 +162,15 @@ volumes:
     name: gozero-platform-qdrant-data
 
 networks:
+  # 保留当前本地网络范围；换环境时一并覆盖子网与 Nginx 地址。
+  default:
+    ipam:
+      config:
+        - subnet: "${GOZERO_PLATFORM_SUBNET:-172.20.0.0/16}"
+          ip_range: "${GOZERO_PLATFORM_IP_RANGE:-172.20.128.0/17}"
   gozero-edge:
     name: gozero-edge
+    ipam:
+      config:
+        - subnet: "${GOZERO_EDGE_SUBNET:-172.21.0.0/16}"
+          ip_range: "${GOZERO_EDGE_IP_RANGE:-172.21.128.0/17}"

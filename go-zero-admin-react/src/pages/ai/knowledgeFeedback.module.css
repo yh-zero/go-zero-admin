@@ -1,0 +1,16 @@
+.panel { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.statusSelect { min-width: 130px; }
+.records { display: flex; flex-direction: column; gap: 12px; }
+.record { padding: 14px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; min-width: 0; }
+.record p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0; }
+.recordHeader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.note { color: var(--ant-color-text-secondary); font-size: 13px; }
+.detail { display: flex; flex-direction: column; gap: 18px; }
+.detail h3, .detail h4 { margin: 0 0 10px; }
+.text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.sources { padding-left: 24px; }
+.sources li { margin-bottom: 16px; }
+.code { white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; padding: 12px; border-radius: 8px; background: var(--ant-color-fill-quaternary); }
+.evidence { padding: 12px; margin-bottom: 12px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; }
+.reviewForm { padding-top: 18px; border-top: 1px solid var(--ant-color-border-secondary); }

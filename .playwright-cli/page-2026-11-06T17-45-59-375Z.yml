@@ -1,0 +1,114 @@
+- generic [ref=f2e4]:
+  - complementary [ref=f2e5]:
+    - generic [ref=f2e6]:
+      - generic [ref=f2e7]:
+        - generic [ref=f2e13]:
+          - strong [ref=f2e14]: go-zero-admin
+          - generic [ref=f2e15]: 管理控制台
+        - generic [ref=f2e16]: 工作空间
+        - menu [ref=f2e17]:
+          - menuitem "dashboard 工作台" [ref=f2e18] [cursor=pointer]:
+            - img "dashboard" [ref=f2e19]
+            - generic [ref=f2e22]: 工作台
+          - menuitem "AI 对话" [ref=f2e23] [cursor=pointer]
+      - button "折叠侧栏" [ref=f2e29] [cursor=pointer]:
+        - img "left" [ref=f2e31]
+        - generic [ref=f2e34]: 收起侧栏
+      - separator "调整侧栏宽度" [ref=f2e35]
+  - generic [ref=f2e36]:
+    - banner [ref=f2e37]:
+      - generic [ref=f2e38]:
+        - button "收起导航" [expanded] [ref=f2e39] [cursor=pointer]:
+          - img "menu-fold" [ref=f2e41]
+        - navigation [ref=f2e45]:
+          - list [ref=f2e46]:
+            - listitem [ref=f2e47]:
+              - generic [ref=f2e48]:
+                - img "home" [ref=f2e49]
+                - text: 控制台
+            - listitem [ref=f2e52]: /
+            - listitem [ref=f2e53]: AI 对话
+      - generic [ref=f2e54]:
+        - generic [ref=f2e57]:
+          - img "apartment" [ref=f2e59]
+          - generic "默认部门" [ref=f2e62]:
+            - text: 默认部门
+            - combobox "切换部门" [ref=f2e63]
+          - img "down" [ref=f2e65]
+        - button "响应桩，账号菜单" [ref=f2e68] [cursor=pointer]:
+          - img "user" [ref=f2e70]
+          - generic [ref=f2e73]: 响应桩
+          - img "down" [ref=f2e74]
+        - button "退出登录" [ref=f2e77] [cursor=pointer]:
+          - img "logout" [ref=f2e79]
+    - main [ref=f2e83]:
+      - generic [ref=f2e85]:
+        - generic [ref=f2e86]:
+          - generic [ref=f2e88]:
+            - generic [ref=f2e89]: 我的会话
+            - generic [ref=f2e91]:
+              - button "刷新会话" [ref=f2e93] [cursor=pointer]:
+                - img "reload" [ref=f2e95]
+              - button "plus 新建会话" [ref=f2e99] [cursor=pointer]:
+                - img "plus" [ref=f2e101]
+                - generic [ref=f2e105]: 新建会话
+          - generic [ref=f2e106]:
+            - generic [ref=f2e107]:
+              - searchbox "搜索会话" [ref=f2e109]
+              - button [ref=f2e111] [cursor=pointer]:
+                - img "search" [ref=f2e113]
+            - generic [ref=f2e117]:
+              - button "反馈独立浏览器响应桩 2 条消息 · 2026-11-07 01:45:36" [active] [pressed] [ref=f2e118] [cursor=pointer]:
+                - generic "反馈独立浏览器响应桩" [ref=f2e119]
+                - generic [ref=f2e120]: 2 条消息 · 2026-11-07 01:45:36
+              - button "整理会话 反馈独立浏览器响应桩" [ref=f2e121] [cursor=pointer]:
+                - img "more" [ref=f2e123]
+            - list [ref=f2e126]:
+              - listitem "上一页" [ref=f2e127]:
+                - button [disabled] [ref=f2e128]:
+                  - img "left" [ref=f2e129]
+              - listitem "1/1" [ref=f2e132]:
+                - textbox "跳至" [ref=f2e133]: "1"
+                - generic [ref=f2e134]: /
+                - text: "1"
+              - listitem "下一页" [ref=f2e135]:
+                - button [disabled] [ref=f2e136]:
+                  - img "right" [ref=f2e137]
+        - generic [ref=f2e157]:
+          - generic [ref=f2e159]:
+            - generic [ref=f2e160]: 反馈独立浏览器响应桩
+            - button "download 导出" [ref=f2e162] [cursor=pointer]:
+              - img "download" [ref=f2e164]
+              - generic [ref=f2e167]: 导出
+          - generic [ref=f2e168]:
+            - log "聊天消息" [ref=f2e170]:
+              - generic [ref=f2e171]:
+                - article [ref=f2e172]:
+                  - generic [ref=f2e173]:
+                    - strong [ref=f2e174]: 我
+                    - generic [ref=f2e175]: 已完成
+                    - generic [ref=f2e176]: 2026-11-07 01:45:36
+                  - generic [ref=f2e177]: 桩问题
+                  - button "copy 复制内容" [ref=f2e178] [cursor=pointer]:
+                    - img "copy" [ref=f2e180]
+                    - generic [ref=f2e183]: 复制内容
+                - article [ref=f2e184]:
+                  - generic [ref=f2e185]:
+                    - strong [ref=f2e186]: AI 助手
+                    - generic [ref=f2e187]: 已完成
+                    - generic [ref=f2e188]: 2026-11-07 01:45:36
+                  - generic [ref=f2e189]: 桩回答
+                  - button "copy 复制回答" [ref=f2e191] [cursor=pointer]:
+                    - img "copy" [ref=f2e193]
+                    - generic [ref=f2e196]: 复制回答
+                  - button "评价回答" [ref=f2e199] [cursor=pointer]
+                  - generic [ref=f2e201]: 已知 token：5。用量可能不完整，不代表最终计费。
+            - generic [ref=f2e202]:
+              - textbox "消息内容" [ref=f2e208]:
+                - /placeholder: 输入消息，Enter 发送，Shift + Enter 换行
+              - generic [ref=f2e209]:
+                - generic [ref=f2e210]: 0 / 16000 UTF-8 字节
+                - button "send 发送" [disabled] [ref=f2e211]:
+                  - generic:
+                    - img "send"
+                  - generic: 发送

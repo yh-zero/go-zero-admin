@@ -7,9 +7,12 @@ const absenceClaimPattern = /(未提供|未提及|未说明|未记载|未给出|
 export function validateAnalysis(result) {
   const nonnegative = value => Number.isSafeInteger(value) && value >= 0, positiveID = value => Number.isSafeInteger(value) && value > 0;
   if (!result || result.version !== 1 || result.type !== 'kb_analysis' || !['completed', 'no_matches', 'truncated'].includes(result.status) || typeof result.analysis !== 'string' || !result.analysis.trim()
-    || !Array.isArray(result.sources) || result.sources.length > 5 || !result.usage || result.usage.scope !== 'chat' || typeof result.usage.complete !== 'boolean'
+    || !Array.isArray(result.sources) || result.sources.length > 8 || !result.usage || result.usage.scope !== 'chat' || typeof result.usage.complete !== 'boolean'
     || ['prompt_tokens', 'completion_tokens', 'total_tokens'].some(key => !nonnegative(result.usage[key]))) throw new Error('分析输出或已知用量字段无效');
-  for (const source of result.sources) if (!positiveID(source.index) || !positiveID(source.chunk_id) || !positiveID(source.doc_id) || !positiveID(source.kb_id)
+  const encoder = new TextEncoder();
+  if (encoder.encode(result.analysis).length > 12000 || encoder.encode(JSON.stringify(result.analysis)).length > 13000) throw new Error('分析正文超过原始或编码字节上限');
+  if (encoder.encode(JSON.stringify(result.sources)).length > 10000 || encoder.encode(JSON.stringify(result)).length > 24000) throw new Error('分析或来源JSON超过字节上限');
+  for (const source of result.sources) if (!positiveID(source.index) || source.index > 8 || !positiveID(source.chunk_id) || !positiveID(source.doc_id) || !positiveID(source.kb_id)
     || typeof source.doc_title !== 'string' || typeof source.snippet !== 'string' || !source.snippet.trim() || typeof source.score !== 'number' || !Number.isFinite(source.score)) throw new Error('分析来源字段无效');
   if ((result.status === 'no_matches' && result.sources.length) || (result.status !== 'no_matches' && !result.sources.length)
     || (result.status === 'no_matches' && (result.usage.complete || ['prompt_tokens', 'completion_tokens', 'total_tokens'].some(key => result.usage[key] !== 0)))

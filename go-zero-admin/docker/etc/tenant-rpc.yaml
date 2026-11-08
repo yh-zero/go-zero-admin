@@ -20,3 +20,5 @@ Tenant:
   NginxConfDir: /nginx-conf.d           # Nginx server 块输出目录（compose 挂载）
   EdgeNetwork: gozero-edge              # 共享 docker 网络
   DomainSuffix: localhost               # 子域名后缀（本地 *.localhost，生产 *.example.com）
+  TrustedProxies:
+    - "${GOZERO_EDGE_PROXY_IP}/32"

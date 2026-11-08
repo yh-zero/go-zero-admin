@@ -2337,6 +2337,1116 @@
         }
       }
     },
+    "/v1/sys/ai/kbs/{id}/evaluation-datasets": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "listKbEvaluationDatasets",
+        "operationId": "aiListKbEvaluationDatasets",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "key",
+                      "name",
+                      "sha256",
+                      "dataset"
+                    ],
+                    "properties": {
+                      "dataset": {
+                        "type": "string"
+                      },
+                      "key": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "sha256": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/evaluations": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "listKbEvaluations",
+        "operationId": "aiListKbEvaluations",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "status",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "request_id",
+            "in": "query",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "kb_id",
+                      "request_id",
+                      "dataset_key",
+                      "dataset_sha256",
+                      "group_key",
+                      "status",
+                      "case_count",
+                      "completed_count",
+                      "failed_count",
+                      "stop_requested",
+                      "corpus_verified",
+                      "error",
+                      "snapshot",
+                      "bindings",
+                      "context",
+                      "observations",
+                      "created_at",
+                      "updated_at",
+                      "started_at",
+                      "completed_at"
+                    ],
+                    "properties": {
+                      "bindings": {
+                        "type": "string"
+                      },
+                      "case_count": {
+                        "type": "integer"
+                      },
+                      "completed_at": {
+                        "type": "integer"
+                      },
+                      "completed_count": {
+                        "type": "integer"
+                      },
+                      "context": {
+                        "type": "string"
+                      },
+                      "corpus_verified": {
+                        "type": "boolean"
+                      },
+                      "created_at": {
+                        "type": "integer"
+                      },
+                      "dataset_key": {
+                        "type": "string"
+                      },
+                      "dataset_sha256": {
+                        "type": "string"
+                      },
+                      "error": {
+                        "type": "string"
+                      },
+                      "failed_count": {
+                        "type": "integer"
+                      },
+                      "group_key": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "kb_id": {
+                        "type": "integer"
+                      },
+                      "observations": {
+                        "type": "string"
+                      },
+                      "request_id": {
+                        "type": "string"
+                      },
+                      "snapshot": {
+                        "type": "string"
+                      },
+                      "started_at": {
+                        "type": "integer"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "stop_requested": {
+                        "type": "boolean"
+                      },
+                      "updated_at": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "startKbEvaluation",
+        "operationId": "aiStartKbEvaluation",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "request_id",
+                "dataset_key",
+                "dataset_sha256",
+                "group_key",
+                "case_ids"
+              ],
+              "properties": {
+                "case_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "dataset_key": {
+                  "type": "string"
+                },
+                "dataset_sha256": {
+                  "type": "string"
+                },
+                "dataset_snapshot": {
+                  "type": "string"
+                },
+                "group_key": {
+                  "type": "string"
+                },
+                "request_id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "evaluation": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "request_id",
+                    "dataset_key",
+                    "dataset_sha256",
+                    "group_key",
+                    "status",
+                    "case_count",
+                    "completed_count",
+                    "failed_count",
+                    "stop_requested",
+                    "corpus_verified",
+                    "error",
+                    "snapshot",
+                    "bindings",
+                    "context",
+                    "observations",
+                    "created_at",
+                    "updated_at",
+                    "started_at",
+                    "completed_at"
+                  ],
+                  "properties": {
+                    "bindings": {
+                      "type": "string"
+                    },
+                    "case_count": {
+                      "type": "integer"
+                    },
+                    "completed_at": {
+                      "type": "integer"
+                    },
+                    "completed_count": {
+                      "type": "integer"
+                    },
+                    "context": {
+                      "type": "string"
+                    },
+                    "corpus_verified": {
+                      "type": "boolean"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "dataset_key": {
+                      "type": "string"
+                    },
+                    "dataset_sha256": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "failed_count": {
+                      "type": "integer"
+                    },
+                    "group_key": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "observations": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    },
+                    "snapshot": {
+                      "type": "string"
+                    },
+                    "started_at": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "stop_requested": {
+                      "type": "boolean"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/evaluations/{evaluation_id}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "getKbEvaluation",
+        "operationId": "aiGetKbEvaluation",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "evaluation_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "evaluation": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "request_id",
+                    "dataset_key",
+                    "dataset_sha256",
+                    "group_key",
+                    "status",
+                    "case_count",
+                    "completed_count",
+                    "failed_count",
+                    "stop_requested",
+                    "corpus_verified",
+                    "error",
+                    "snapshot",
+                    "bindings",
+                    "context",
+                    "observations",
+                    "created_at",
+                    "updated_at",
+                    "started_at",
+                    "completed_at"
+                  ],
+                  "properties": {
+                    "bindings": {
+                      "type": "string"
+                    },
+                    "case_count": {
+                      "type": "integer"
+                    },
+                    "completed_at": {
+                      "type": "integer"
+                    },
+                    "completed_count": {
+                      "type": "integer"
+                    },
+                    "context": {
+                      "type": "string"
+                    },
+                    "corpus_verified": {
+                      "type": "boolean"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "dataset_key": {
+                      "type": "string"
+                    },
+                    "dataset_sha256": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "failed_count": {
+                      "type": "integer"
+                    },
+                    "group_key": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "observations": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    },
+                    "snapshot": {
+                      "type": "string"
+                    },
+                    "started_at": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "stop_requested": {
+                      "type": "boolean"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/evaluations/{evaluation_id}/stop": {
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "stopKbEvaluation",
+        "operationId": "aiStopKbEvaluation",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "evaluation_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "evaluation": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "request_id",
+                    "dataset_key",
+                    "dataset_sha256",
+                    "group_key",
+                    "status",
+                    "case_count",
+                    "completed_count",
+                    "failed_count",
+                    "stop_requested",
+                    "corpus_verified",
+                    "error",
+                    "snapshot",
+                    "bindings",
+                    "context",
+                    "observations",
+                    "created_at",
+                    "updated_at",
+                    "started_at",
+                    "completed_at"
+                  ],
+                  "properties": {
+                    "bindings": {
+                      "type": "string"
+                    },
+                    "case_count": {
+                      "type": "integer"
+                    },
+                    "completed_at": {
+                      "type": "integer"
+                    },
+                    "completed_count": {
+                      "type": "integer"
+                    },
+                    "context": {
+                      "type": "string"
+                    },
+                    "corpus_verified": {
+                      "type": "boolean"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "dataset_key": {
+                      "type": "string"
+                    },
+                    "dataset_sha256": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "failed_count": {
+                      "type": "integer"
+                    },
+                    "group_key": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "observations": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    },
+                    "snapshot": {
+                      "type": "string"
+                    },
+                    "started_at": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "stop_requested": {
+                      "type": "boolean"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/feedback": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "listKbFeedback",
+        "operationId": "aiListKbFeedback",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "status",
+            "in": "query",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "kb_id",
+                      "task_id",
+                      "step_index",
+                      "feedback",
+                      "note",
+                      "status",
+                      "revision",
+                      "question",
+                      "answer",
+                      "snapshot",
+                      "review",
+                      "created_at",
+                      "updated_at",
+                      "reviewed_at"
+                    ],
+                    "properties": {
+                      "answer": {
+                        "type": "string"
+                      },
+                      "created_at": {
+                        "type": "integer"
+                      },
+                      "feedback": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "kb_id": {
+                        "type": "integer"
+                      },
+                      "note": {
+                        "type": "string"
+                      },
+                      "question": {
+                        "type": "string"
+                      },
+                      "review": {
+                        "type": "object",
+                        "required": [
+                          "answerable",
+                          "expected_answer",
+                          "required_facts",
+                          "evidence",
+                          "reason"
+                        ],
+                        "properties": {
+                          "answerable": {
+                            "type": "boolean"
+                          },
+                          "evidence": {
+                            "type": "array",
+                            "items": {
+                              "type": "object"
+                            }
+                          },
+                          "expected_answer": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": "string"
+                          },
+                          "required_facts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      },
+                      "reviewed_at": {
+                        "type": "integer"
+                      },
+                      "revision": {
+                        "type": "integer"
+                      },
+                      "snapshot": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "step_index": {
+                        "type": "integer"
+                      },
+                      "task_id": {
+                        "type": "integer"
+                      },
+                      "updated_at": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/feedback/{feedback_id}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "getKbFeedback",
+        "operationId": "aiGetKbFeedback",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "feedback_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "feedback": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "task_id",
+                    "step_index",
+                    "feedback",
+                    "note",
+                    "status",
+                    "revision",
+                    "question",
+                    "answer",
+                    "snapshot",
+                    "review",
+                    "created_at",
+                    "updated_at",
+                    "reviewed_at"
+                  ],
+                  "properties": {
+                    "answer": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "feedback": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "note": {
+                      "type": "string"
+                    },
+                    "question": {
+                      "type": "string"
+                    },
+                    "review": {
+                      "type": "object",
+                      "required": [
+                        "answerable",
+                        "expected_answer",
+                        "required_facts",
+                        "evidence",
+                        "reason"
+                      ],
+                      "properties": {
+                        "answerable": {
+                          "type": "boolean"
+                        },
+                        "evidence": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "expected_answer": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "type": "string"
+                        },
+                        "required_facts": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "reviewed_at": {
+                      "type": "integer"
+                    },
+                    "revision": {
+                      "type": "integer"
+                    },
+                    "snapshot": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "step_index": {
+                      "type": "integer"
+                    },
+                    "task_id": {
+                      "type": "integer"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/kbs/{id}/feedback/{feedback_id}/review": {
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "reviewKbFeedback",
+        "operationId": "aiReviewKbFeedback",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "feedback_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "expected_revision",
+                "status",
+                "review"
+              ],
+              "properties": {
+                "expected_revision": {
+                  "type": "integer"
+                },
+                "review": {
+                  "type": "object",
+                  "required": [
+                    "answerable",
+                    "expected_answer",
+                    "required_facts",
+                    "evidence",
+                    "reason"
+                  ],
+                  "properties": {
+                    "answerable": {
+                      "type": "boolean"
+                    },
+                    "evidence": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "source_index",
+                          "quote"
+                        ],
+                        "properties": {
+                          "quote": {
+                            "type": "string"
+                          },
+                          "source_index": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "expected_answer": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "required_facts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "status": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "feedback": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "task_id",
+                    "step_index",
+                    "feedback",
+                    "note",
+                    "status",
+                    "revision",
+                    "question",
+                    "answer",
+                    "snapshot",
+                    "review",
+                    "created_at",
+                    "updated_at",
+                    "reviewed_at"
+                  ],
+                  "properties": {
+                    "answer": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "feedback": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "note": {
+                      "type": "string"
+                    },
+                    "question": {
+                      "type": "string"
+                    },
+                    "review": {
+                      "type": "object",
+                      "required": [
+                        "answerable",
+                        "expected_answer",
+                        "required_facts",
+                        "evidence",
+                        "reason"
+                      ],
+                      "properties": {
+                        "answerable": {
+                          "type": "boolean"
+                        },
+                        "evidence": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "expected_answer": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "type": "string"
+                        },
+                        "required_facts": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "reviewed_at": {
+                      "type": "integer"
+                    },
+                    "revision": {
+                      "type": "integer"
+                    },
+                    "snapshot": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "step_index": {
+                      "type": "integer"
+                    },
+                    "task_id": {
+                      "type": "integer"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/sys/ai/kbs/{id}/imports": {
       "get": {
         "produces": [
@@ -3316,6 +4426,9 @@
                             },
                             "tool": {
                               "type": "string"
+                            },
+                            "usage": {
+                              "type": "object"
                             }
                           }
                         }
@@ -3542,6 +4655,9 @@
                           },
                           "tool": {
                             "type": "string"
+                          },
+                          "usage": {
+                            "type": "object"
                           }
                         }
                       }
@@ -3639,6 +4755,291 @@
             "description": "",
             "schema": {
               "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/tasks/{id}/feedback": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "listTaskFeedback",
+        "operationId": "aiListTaskFeedback",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "kb_id",
+                      "task_id",
+                      "step_index",
+                      "feedback",
+                      "note",
+                      "status",
+                      "revision",
+                      "question",
+                      "answer",
+                      "snapshot",
+                      "review",
+                      "created_at",
+                      "updated_at",
+                      "reviewed_at"
+                    ],
+                    "properties": {
+                      "answer": {
+                        "type": "string"
+                      },
+                      "created_at": {
+                        "type": "integer"
+                      },
+                      "feedback": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "kb_id": {
+                        "type": "integer"
+                      },
+                      "note": {
+                        "type": "string"
+                      },
+                      "question": {
+                        "type": "string"
+                      },
+                      "review": {
+                        "type": "object",
+                        "required": [
+                          "answerable",
+                          "expected_answer",
+                          "required_facts",
+                          "evidence",
+                          "reason"
+                        ],
+                        "properties": {
+                          "answerable": {
+                            "type": "boolean"
+                          },
+                          "evidence": {
+                            "type": "array",
+                            "items": {
+                              "type": "object"
+                            }
+                          },
+                          "expected_answer": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": "string"
+                          },
+                          "required_facts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      },
+                      "reviewed_at": {
+                        "type": "integer"
+                      },
+                      "revision": {
+                        "type": "integer"
+                      },
+                      "snapshot": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "step_index": {
+                        "type": "integer"
+                      },
+                      "task_id": {
+                        "type": "integer"
+                      },
+                      "updated_at": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "setTaskFeedback",
+        "operationId": "aiSetTaskFeedback",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "step_index",
+                "expected_revision",
+                "feedback"
+              ],
+              "properties": {
+                "expected_revision": {
+                  "type": "integer"
+                },
+                "feedback": {
+                  "type": "string"
+                },
+                "note": {
+                  "type": "string"
+                },
+                "step_index": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "feedback": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "kb_id",
+                    "task_id",
+                    "step_index",
+                    "feedback",
+                    "note",
+                    "status",
+                    "revision",
+                    "question",
+                    "answer",
+                    "snapshot",
+                    "review",
+                    "created_at",
+                    "updated_at",
+                    "reviewed_at"
+                  ],
+                  "properties": {
+                    "answer": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "feedback": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
+                      "type": "integer"
+                    },
+                    "note": {
+                      "type": "string"
+                    },
+                    "question": {
+                      "type": "string"
+                    },
+                    "review": {
+                      "type": "object",
+                      "required": [
+                        "answerable",
+                        "expected_answer",
+                        "required_facts",
+                        "evidence",
+                        "reason"
+                      ],
+                      "properties": {
+                        "answerable": {
+                          "type": "boolean"
+                        },
+                        "evidence": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "expected_answer": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "type": "string"
+                        },
+                        "required_facts": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "reviewed_at": {
+                      "type": "integer"
+                    },
+                    "revision": {
+                      "type": "integer"
+                    },
+                    "snapshot": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "step_index": {
+                      "type": "integer"
+                    },
+                    "task_id": {
+                      "type": "integer"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -3758,6 +5159,1330 @@
         }
       }
     },
+    "/v1/sys/ai/usage/admin/calls": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "adminListUsageCalls",
+        "operationId": "aiusageAdminListUsageCalls",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "from_day",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "to_day",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "source",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "operation",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "provider",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "model",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "status",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "usage_state",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "default": 1,
+            "example": 1,
+            "name": "page",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "default": 20,
+            "example": 20,
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "user_id",
+            "in": "query",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "attempt_id",
+                      "owner_id",
+                      "source",
+                      "operation",
+                      "request_id",
+                      "source_id",
+                      "step_index",
+                      "batch_index",
+                      "provider",
+                      "model",
+                      "quota_day",
+                      "quota_charged",
+                      "dispatch_confirmed",
+                      "status",
+                      "usage_state",
+                      "http_status",
+                      "provider_request_id",
+                      "error_code",
+                      "started_at",
+                      "dispatched_at",
+                      "completed_at"
+                    ],
+                    "properties": {
+                      "attempt_id": {
+                        "type": "string"
+                      },
+                      "batch_index": {
+                        "type": "integer"
+                      },
+                      "completed_at": {
+                        "type": "integer"
+                      },
+                      "completion_tokens": {
+                        "type": "integer"
+                      },
+                      "dispatch_confirmed": {
+                        "type": "boolean"
+                      },
+                      "dispatched_at": {
+                        "type": "integer"
+                      },
+                      "error_code": {
+                        "type": "string"
+                      },
+                      "http_status": {
+                        "type": "integer"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "model": {
+                        "type": "string"
+                      },
+                      "operation": {
+                        "type": "string"
+                      },
+                      "owner_id": {
+                        "type": "integer"
+                      },
+                      "prompt_tokens": {
+                        "type": "integer"
+                      },
+                      "provider": {
+                        "type": "string"
+                      },
+                      "provider_request_id": {
+                        "type": "string"
+                      },
+                      "quota_charged": {
+                        "type": "boolean"
+                      },
+                      "quota_day": {
+                        "type": "string"
+                      },
+                      "request_id": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "source_id": {
+                        "type": "integer"
+                      },
+                      "started_at": {
+                        "type": "integer"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "step_index": {
+                        "type": "integer"
+                      },
+                      "total_tokens": {
+                        "type": "integer"
+                      },
+                      "usage_state": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/usage/admin/policies": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "adminListUsagePolicies",
+        "operationId": "aiusageAdminListUsagePolicies",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "from_day",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "to_day",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "source",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "operation",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "provider",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "model",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "status",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "usage_state",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "default": 1,
+            "example": 1,
+            "name": "page",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "default": 20,
+            "example": 20,
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "user_id",
+            "in": "query",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "owner_id",
+                      "quota_day",
+                      "daily_request_limit",
+                      "used_requests",
+                      "remaining_requests",
+                      "unlimited",
+                      "inherited",
+                      "daily_token_warning",
+                      "known_tokens",
+                      "warning_reached",
+                      "incomplete_requests",
+                      "version",
+                      "global_concurrent_limit",
+                      "active_calls",
+                      "active_known"
+                    ],
+                    "properties": {
+                      "active_calls": {
+                        "type": "integer"
+                      },
+                      "active_known": {
+                        "type": "boolean"
+                      },
+                      "daily_request_limit": {
+                        "type": "integer"
+                      },
+                      "daily_token_warning": {
+                        "type": "integer"
+                      },
+                      "global_concurrent_limit": {
+                        "type": "integer"
+                      },
+                      "incomplete_requests": {
+                        "type": "integer"
+                      },
+                      "inherited": {
+                        "type": "boolean"
+                      },
+                      "known_tokens": {
+                        "type": "integer"
+                      },
+                      "owner_id": {
+                        "type": "integer"
+                      },
+                      "quota_day": {
+                        "type": "string"
+                      },
+                      "remaining_requests": {
+                        "type": "integer"
+                      },
+                      "unlimited": {
+                        "type": "boolean"
+                      },
+                      "used_requests": {
+                        "type": "integer"
+                      },
+                      "version": {
+                        "type": "integer"
+                      },
+                      "warning_reached": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/usage/admin/policies/{user_id}": {
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "adminSetUsagePolicy",
+        "operationId": "aiusageAdminSetUsagePolicy",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "expected_version"
+              ],
+              "properties": {
+                "daily_request_limit": {
+                  "type": "integer"
+                },
+                "daily_token_warning": {
+                  "type": "integer"
+                },
+                "expected_version": {
+                  "type": "integer"
+                },
+                "global_concurrent_limit": {
+                  "type": "integer"
+                },
+                "inherit_default": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "policy": {
+                  "type": "object",
+                  "required": [
+                    "owner_id",
+                    "quota_day",
+                    "daily_request_limit",
+                    "used_requests",
+                    "remaining_requests",
+                    "unlimited",
+                    "inherited",
+                    "daily_token_warning",
+                    "known_tokens",
+                    "warning_reached",
+                    "incomplete_requests",
+                    "version",
+                    "global_concurrent_limit",
+                    "active_calls",
+                    "active_known"
+                  ],
+                  "properties": {
+                    "active_calls": {
+                      "type": "integer"
+                    },
+                    "active_known": {
+                      "type": "boolean"
+                    },
+                    "daily_request_limit": {
+                      "type": "integer"
+                    },
+                    "daily_token_warning": {
+                      "type": "integer"
+                    },
+                    "global_concurrent_limit": {
+                      "type": "integer"
+                    },
+                    "incomplete_requests": {
+                      "type": "integer"
+                    },
+                    "inherited": {
+                      "type": "boolean"
+                    },
+                    "known_tokens": {
+                      "type": "integer"
+                    },
+                    "owner_id": {
+                      "type": "integer"
+                    },
+                    "quota_day": {
+                      "type": "string"
+                    },
+                    "remaining_requests": {
+                      "type": "integer"
+                    },
+                    "unlimited": {
+                      "type": "boolean"
+                    },
+                    "used_requests": {
+                      "type": "integer"
+                    },
+                    "version": {
+                      "type": "integer"
+                    },
+                    "warning_reached": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/usage/admin/summary": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "adminGetUsageSummary",
+        "operationId": "aiusageAdminGetUsageSummary",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "from_day",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "to_day",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "source",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "operation",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "provider",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "model",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "status",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "usage_state",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "default": 1,
+            "example": 1,
+            "name": "page",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "default": 20,
+            "example": 20,
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "user_id",
+            "in": "query",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "summary": {
+                  "type": "object",
+                  "required": [
+                    "period",
+                    "recording_started_at",
+                    "confirmed_requests",
+                    "reserved_requests",
+                    "not_sent_requests",
+                    "uncertain_requests",
+                    "succeeded_requests",
+                    "failed_requests",
+                    "cancelled_requests",
+                    "complete_requests",
+                    "partial_requests",
+                    "unknown_requests",
+                    "invalid_requests",
+                    "known_prompt_tokens",
+                    "known_completion_tokens",
+                    "known_embedding_tokens",
+                    "known_total_tokens",
+                    "groups"
+                  ],
+                  "properties": {
+                    "cancelled_requests": {
+                      "type": "integer"
+                    },
+                    "complete_requests": {
+                      "type": "integer"
+                    },
+                    "confirmed_requests": {
+                      "type": "integer"
+                    },
+                    "failed_requests": {
+                      "type": "integer"
+                    },
+                    "groups": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "source",
+                          "operation",
+                          "provider",
+                          "model",
+                          "confirmed_requests",
+                          "reserved_requests",
+                          "not_sent_requests",
+                          "uncertain_requests",
+                          "succeeded_requests",
+                          "failed_requests",
+                          "cancelled_requests",
+                          "complete_requests",
+                          "partial_requests",
+                          "unknown_requests",
+                          "invalid_requests",
+                          "known_prompt_tokens",
+                          "known_completion_tokens",
+                          "known_embedding_tokens",
+                          "known_total_tokens"
+                        ],
+                        "properties": {
+                          "cancelled_requests": {
+                            "type": "integer"
+                          },
+                          "complete_requests": {
+                            "type": "integer"
+                          },
+                          "confirmed_requests": {
+                            "type": "integer"
+                          },
+                          "failed_requests": {
+                            "type": "integer"
+                          },
+                          "invalid_requests": {
+                            "type": "integer"
+                          },
+                          "known_completion_tokens": {
+                            "type": "integer"
+                          },
+                          "known_embedding_tokens": {
+                            "type": "integer"
+                          },
+                          "known_prompt_tokens": {
+                            "type": "integer"
+                          },
+                          "known_total_tokens": {
+                            "type": "integer"
+                          },
+                          "model": {
+                            "type": "string"
+                          },
+                          "not_sent_requests": {
+                            "type": "integer"
+                          },
+                          "operation": {
+                            "type": "string"
+                          },
+                          "partial_requests": {
+                            "type": "integer"
+                          },
+                          "provider": {
+                            "type": "string"
+                          },
+                          "reserved_requests": {
+                            "type": "integer"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "succeeded_requests": {
+                            "type": "integer"
+                          },
+                          "uncertain_requests": {
+                            "type": "integer"
+                          },
+                          "unknown_requests": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "invalid_requests": {
+                      "type": "integer"
+                    },
+                    "known_completion_tokens": {
+                      "type": "integer"
+                    },
+                    "known_embedding_tokens": {
+                      "type": "integer"
+                    },
+                    "known_prompt_tokens": {
+                      "type": "integer"
+                    },
+                    "known_total_tokens": {
+                      "type": "integer"
+                    },
+                    "not_sent_requests": {
+                      "type": "integer"
+                    },
+                    "partial_requests": {
+                      "type": "integer"
+                    },
+                    "period": {
+                      "type": "object",
+                      "required": [
+                        "from_day",
+                        "to_day",
+                        "timezone"
+                      ],
+                      "properties": {
+                        "from_day": {
+                          "type": "string"
+                        },
+                        "timezone": {
+                          "type": "string"
+                        },
+                        "to_day": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "recording_started_at": {
+                      "type": "integer"
+                    },
+                    "reserved_requests": {
+                      "type": "integer"
+                    },
+                    "succeeded_requests": {
+                      "type": "integer"
+                    },
+                    "uncertain_requests": {
+                      "type": "integer"
+                    },
+                    "unknown_requests": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/usage/calls": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "listUsageCalls",
+        "operationId": "aiusageListUsageCalls",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "from_day",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "to_day",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "source",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "operation",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "provider",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "model",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "status",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "usage_state",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "default": 1,
+            "example": 1,
+            "name": "page",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "default": 20,
+            "example": 20,
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "attempt_id",
+                      "owner_id",
+                      "source",
+                      "operation",
+                      "request_id",
+                      "source_id",
+                      "step_index",
+                      "batch_index",
+                      "provider",
+                      "model",
+                      "quota_day",
+                      "quota_charged",
+                      "dispatch_confirmed",
+                      "status",
+                      "usage_state",
+                      "http_status",
+                      "provider_request_id",
+                      "error_code",
+                      "started_at",
+                      "dispatched_at",
+                      "completed_at"
+                    ],
+                    "properties": {
+                      "attempt_id": {
+                        "type": "string"
+                      },
+                      "batch_index": {
+                        "type": "integer"
+                      },
+                      "completed_at": {
+                        "type": "integer"
+                      },
+                      "completion_tokens": {
+                        "type": "integer"
+                      },
+                      "dispatch_confirmed": {
+                        "type": "boolean"
+                      },
+                      "dispatched_at": {
+                        "type": "integer"
+                      },
+                      "error_code": {
+                        "type": "string"
+                      },
+                      "http_status": {
+                        "type": "integer"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "model": {
+                        "type": "string"
+                      },
+                      "operation": {
+                        "type": "string"
+                      },
+                      "owner_id": {
+                        "type": "integer"
+                      },
+                      "prompt_tokens": {
+                        "type": "integer"
+                      },
+                      "provider": {
+                        "type": "string"
+                      },
+                      "provider_request_id": {
+                        "type": "string"
+                      },
+                      "quota_charged": {
+                        "type": "boolean"
+                      },
+                      "quota_day": {
+                        "type": "string"
+                      },
+                      "request_id": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "source_id": {
+                        "type": "integer"
+                      },
+                      "started_at": {
+                        "type": "integer"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "step_index": {
+                        "type": "integer"
+                      },
+                      "total_tokens": {
+                        "type": "integer"
+                      },
+                      "usage_state": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/usage/policy": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "getUsagePolicy",
+        "operationId": "aiusageGetUsagePolicy",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "policy": {
+                  "type": "object",
+                  "required": [
+                    "owner_id",
+                    "quota_day",
+                    "daily_request_limit",
+                    "used_requests",
+                    "remaining_requests",
+                    "unlimited",
+                    "inherited",
+                    "daily_token_warning",
+                    "known_tokens",
+                    "warning_reached",
+                    "incomplete_requests",
+                    "version",
+                    "global_concurrent_limit",
+                    "active_calls",
+                    "active_known"
+                  ],
+                  "properties": {
+                    "active_calls": {
+                      "type": "integer"
+                    },
+                    "active_known": {
+                      "type": "boolean"
+                    },
+                    "daily_request_limit": {
+                      "type": "integer"
+                    },
+                    "daily_token_warning": {
+                      "type": "integer"
+                    },
+                    "global_concurrent_limit": {
+                      "type": "integer"
+                    },
+                    "incomplete_requests": {
+                      "type": "integer"
+                    },
+                    "inherited": {
+                      "type": "boolean"
+                    },
+                    "known_tokens": {
+                      "type": "integer"
+                    },
+                    "owner_id": {
+                      "type": "integer"
+                    },
+                    "quota_day": {
+                      "type": "string"
+                    },
+                    "remaining_requests": {
+                      "type": "integer"
+                    },
+                    "unlimited": {
+                      "type": "boolean"
+                    },
+                    "used_requests": {
+                      "type": "integer"
+                    },
+                    "version": {
+                      "type": "integer"
+                    },
+                    "warning_reached": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/usage/summary": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "getUsageSummary",
+        "operationId": "aiusageGetUsageSummary",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "from_day",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "to_day",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "source",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "operation",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "provider",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "model",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "status",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "usage_state",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "default": 1,
+            "example": 1,
+            "name": "page",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "default": 20,
+            "example": 20,
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "summary": {
+                  "type": "object",
+                  "required": [
+                    "period",
+                    "recording_started_at",
+                    "confirmed_requests",
+                    "reserved_requests",
+                    "not_sent_requests",
+                    "uncertain_requests",
+                    "succeeded_requests",
+                    "failed_requests",
+                    "cancelled_requests",
+                    "complete_requests",
+                    "partial_requests",
+                    "unknown_requests",
+                    "invalid_requests",
+                    "known_prompt_tokens",
+                    "known_completion_tokens",
+                    "known_embedding_tokens",
+                    "known_total_tokens",
+                    "groups"
+                  ],
+                  "properties": {
+                    "cancelled_requests": {
+                      "type": "integer"
+                    },
+                    "complete_requests": {
+                      "type": "integer"
+                    },
+                    "confirmed_requests": {
+                      "type": "integer"
+                    },
+                    "failed_requests": {
+                      "type": "integer"
+                    },
+                    "groups": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "source",
+                          "operation",
+                          "provider",
+                          "model",
+                          "confirmed_requests",
+                          "reserved_requests",
+                          "not_sent_requests",
+                          "uncertain_requests",
+                          "succeeded_requests",
+                          "failed_requests",
+                          "cancelled_requests",
+                          "complete_requests",
+                          "partial_requests",
+                          "unknown_requests",
+                          "invalid_requests",
+                          "known_prompt_tokens",
+                          "known_completion_tokens",
+                          "known_embedding_tokens",
+                          "known_total_tokens"
+                        ],
+                        "properties": {
+                          "cancelled_requests": {
+                            "type": "integer"
+                          },
+                          "complete_requests": {
+                            "type": "integer"
+                          },
+                          "confirmed_requests": {
+                            "type": "integer"
+                          },
+                          "failed_requests": {
+                            "type": "integer"
+                          },
+                          "invalid_requests": {
+                            "type": "integer"
+                          },
+                          "known_completion_tokens": {
+                            "type": "integer"
+                          },
+                          "known_embedding_tokens": {
+                            "type": "integer"
+                          },
+                          "known_prompt_tokens": {
+                            "type": "integer"
+                          },
+                          "known_total_tokens": {
+                            "type": "integer"
+                          },
+                          "model": {
+                            "type": "string"
+                          },
+                          "not_sent_requests": {
+                            "type": "integer"
+                          },
+                          "operation": {
+                            "type": "string"
+                          },
+                          "partial_requests": {
+                            "type": "integer"
+                          },
+                          "provider": {
+                            "type": "string"
+                          },
+                          "reserved_requests": {
+                            "type": "integer"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "succeeded_requests": {
+                            "type": "integer"
+                          },
+                          "uncertain_requests": {
+                            "type": "integer"
+                          },
+                          "unknown_requests": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "invalid_requests": {
+                      "type": "integer"
+                    },
+                    "known_completion_tokens": {
+                      "type": "integer"
+                    },
+                    "known_embedding_tokens": {
+                      "type": "integer"
+                    },
+                    "known_prompt_tokens": {
+                      "type": "integer"
+                    },
+                    "known_total_tokens": {
+                      "type": "integer"
+                    },
+                    "not_sent_requests": {
+                      "type": "integer"
+                    },
+                    "partial_requests": {
+                      "type": "integer"
+                    },
+                    "period": {
+                      "type": "object",
+                      "required": [
+                        "from_day",
+                        "to_day",
+                        "timezone"
+                      ],
+                      "properties": {
+                        "from_day": {
+                          "type": "string"
+                        },
+                        "timezone": {
+                          "type": "string"
+                        },
+                        "to_day": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "recording_started_at": {
+                      "type": "integer"
+                    },
+                    "reserved_requests": {
+                      "type": "integer"
+                    },
+                    "succeeded_requests": {
+                      "type": "integer"
+                    },
+                    "uncertain_requests": {
+                      "type": "integer"
+                    },
+                    "unknown_requests": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/sys/ai/workflows": {
       "get": {
         "produces": [
@@ -3808,7 +6533,8 @@
                       "created_by",
                       "created_at",
                       "updated_at",
-                      "step_count"
+                      "step_count",
+                      "revision"
                     ],
                     "properties": {
                       "created_at": {
@@ -3833,6 +6559,9 @@
                         "type": "string"
                       },
                       "next_run_at": {
+                        "type": "integer"
+                      },
+                      "revision": {
                         "type": "integer"
                       },
                       "step_count": {
@@ -3907,7 +6636,8 @@
                     "created_by",
                     "created_at",
                     "updated_at",
-                    "step_count"
+                    "step_count",
+                    "revision"
                   ],
                   "properties": {
                     "created_at": {
@@ -3932,6 +6662,9 @@
                       "type": "string"
                     },
                     "next_run_at": {
+                      "type": "integer"
+                    },
+                    "revision": {
                       "type": "integer"
                     },
                     "step_count": {
@@ -3984,7 +6717,8 @@
                     "created_by",
                     "created_at",
                     "updated_at",
-                    "step_count"
+                    "step_count",
+                    "revision"
                   ],
                   "properties": {
                     "created_at": {
@@ -4009,6 +6743,9 @@
                       "type": "string"
                     },
                     "next_run_at": {
+                      "type": "integer"
+                    },
+                    "revision": {
                       "type": "integer"
                     },
                     "step_count": {
@@ -4049,11 +6786,17 @@
             "required": true,
             "schema": {
               "type": "object",
+              "required": [
+                "expected_revision"
+              ],
               "properties": {
                 "definition": {
                   "type": "string"
                 },
                 "enabled": {
+                  "type": "integer"
+                },
+                "expected_revision": {
                   "type": "integer"
                 },
                 "interval_seconds": {
@@ -4070,7 +6813,60 @@
           "200": {
             "description": "",
             "schema": {
-              "type": "object"
+              "type": "object",
+              "properties": {
+                "workflow": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "definition",
+                    "interval_seconds",
+                    "enabled",
+                    "next_run_at",
+                    "created_by",
+                    "created_at",
+                    "updated_at",
+                    "step_count",
+                    "revision"
+                  ],
+                  "properties": {
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "created_by": {
+                      "type": "integer"
+                    },
+                    "definition": {
+                      "type": "string"
+                    },
+                    "enabled": {
+                      "type": "integer"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "interval_seconds": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "next_run_at": {
+                      "type": "integer"
+                    },
+                    "revision": {
+                      "type": "integer"
+                    },
+                    "step_count": {
+                      "type": "integer"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -4100,6 +6896,282 @@
             "description": "",
             "schema": {
               "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/workflows/{id}/revisions": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "listWorkflowRevisions",
+        "operationId": "aiListWorkflowRevisions",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "workflow_id",
+                      "revision",
+                      "name",
+                      "definition",
+                      "interval_seconds",
+                      "enabled",
+                      "step_count",
+                      "created_at"
+                    ],
+                    "properties": {
+                      "created_at": {
+                        "type": "integer"
+                      },
+                      "definition": {
+                        "type": "string"
+                      },
+                      "enabled": {
+                        "type": "integer"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "interval_seconds": {
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "revision": {
+                        "type": "integer"
+                      },
+                      "step_count": {
+                        "type": "integer"
+                      },
+                      "workflow_id": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/workflows/{id}/revisions/{revision}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "getWorkflowRevision",
+        "operationId": "aiGetWorkflowRevision",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "revision",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "revision": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "workflow_id",
+                    "revision",
+                    "name",
+                    "definition",
+                    "interval_seconds",
+                    "enabled",
+                    "step_count",
+                    "created_at"
+                  ],
+                  "properties": {
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "definition": {
+                      "type": "string"
+                    },
+                    "enabled": {
+                      "type": "integer"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "interval_seconds": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "revision": {
+                      "type": "integer"
+                    },
+                    "step_count": {
+                      "type": "integer"
+                    },
+                    "workflow_id": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/ai/workflows/{id}/revisions/{revision}/restore": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "restoreWorkflowRevision",
+        "operationId": "aiRestoreWorkflowRevision",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "revision",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "expected_revision"
+              ],
+              "properties": {
+                "expected_revision": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "workflow": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "definition",
+                    "interval_seconds",
+                    "enabled",
+                    "next_run_at",
+                    "created_by",
+                    "created_at",
+                    "updated_at",
+                    "step_count",
+                    "revision"
+                  ],
+                  "properties": {
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "created_by": {
+                      "type": "integer"
+                    },
+                    "definition": {
+                      "type": "string"
+                    },
+                    "enabled": {
+                      "type": "integer"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "interval_seconds": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "next_run_at": {
+                      "type": "integer"
+                    },
+                    "revision": {
+                      "type": "integer"
+                    },
+                    "step_count": {
+                      "type": "integer"
+                    },
+                    "updated_at": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -8855,7 +11927,7 @@
       }
     }
   },
-  "x-date": "2026-11-07 12:21:11",
+  "x-date": "2026-11-08 01:44:01",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

@@ -1,0 +1,39 @@
+- main [ref=f7e429]:
+  - generic [ref=f7e430]:
+    - region "go-zero-admin 管理工作台" [ref=f7e431]:
+      - generic [ref=f7e432]: go-zero-admin
+      - generic [ref=f7e438]:
+        - text: 管理工作台
+        - heading "统一管理， 专注每一天的工作。" [level=1] [ref=f7e439]: 统一管理，专注每一天的工作。
+        - paragraph [ref=f7e440]: 连接用户、权限与业务，让日常管理井然有序。
+      - figure [ref=f7e441]:
+        - generic [ref=f7e442]: 嗨，欢迎回来
+      - generic [ref=f7e446]: 简洁 · 有序 · 高效
+    - region [ref=f7e448]:
+      - generic [ref=f7e449]:
+        - generic [ref=f7e450]:
+          - text: 账号登录
+          - heading "欢迎回来" [level=2] [ref=f7e451]
+          - generic [ref=f7e452]: 登录账号，开始今天的工作。
+        - generic [ref=f7e453]:
+          - generic [ref=f7e455]:
+            - generic "用户名" [ref=f7e457]: "* 用户名"
+            - generic [ref=f7e461]:
+              - img "user" [ref=f7e463]
+              - textbox "* 用户名" [ref=f7e466]:
+                - /placeholder: 请输入用户名
+          - generic [ref=f7e468]:
+            - generic "密码" [ref=f7e470]: "* 密码"
+            - generic [ref=f7e474]:
+              - img "lock" [ref=f7e476]
+              - textbox "* 密码" [ref=f7e479]:
+                - /placeholder: 请输入密码
+              - button "显示" [ref=f7e481] [cursor=pointer]:
+                - img "eye-invisible" [ref=f7e482]
+          - button "登录工作台 arrow-right" [ref=f7e486] [cursor=pointer]:
+            - generic [ref=f7e487]: 登录工作台
+            - img "arrow-right" [ref=f7e488]
+        - generic [ref=f7e491]:
+          - img "lock" [ref=f7e492]
+          - generic [ref=f7e495]: 使用您的管理账号登录
+      - generic [ref=f7e496]: go-zero-admin · 管理工作台

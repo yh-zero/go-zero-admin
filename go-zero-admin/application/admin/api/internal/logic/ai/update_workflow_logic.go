@@ -19,7 +19,7 @@ type UpdateWorkflowLogic struct {
 func NewUpdateWorkflowLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateWorkflowLogic {
 	return &UpdateWorkflowLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
-func (l *UpdateWorkflowLogic) UpdateWorkflow(req *types.AiUpdateWorkflowReq) (*types.EmptyResp, error) {
+func (l *UpdateWorkflowLogic) UpdateWorkflow(req *types.AiUpdateWorkflowReq) (*types.AiWorkflowResp, error) {
 	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
@@ -27,9 +27,9 @@ func (l *UpdateWorkflowLogic) UpdateWorkflow(req *types.AiUpdateWorkflowReq) (*t
 	if err != nil {
 		return nil, err
 	}
-	_, err = l.svcCtx.AiRpc.UpdateWorkflow(l.ctx, &aipb.UpdateWorkflowRequest{Actor: actor, WorkflowId: req.Id, Name: req.Name, Definition: req.Definition, IntervalSeconds: req.IntervalSeconds, Enabled: req.Enabled})
+	out, err := l.svcCtx.AiRpc.UpdateWorkflow(l.ctx, &aipb.UpdateWorkflowRequest{Actor: actor, WorkflowId: req.Id, ExpectedRevision: req.ExpectedRevision, Name: req.Name, Definition: req.Definition, IntervalSeconds: req.IntervalSeconds, Enabled: req.Enabled})
 	if err != nil {
 		return nil, err
 	}
-	return &types.EmptyResp{}, nil
+	return &types.AiWorkflowResp{Workflow: mapAiWorkflow(out.Workflow)}, nil
 }

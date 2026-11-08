@@ -14,82 +14,139 @@ import (
 )
 
 type (
-	Actor                      = aipb.Actor
-	AgentTaskInfo              = aipb.AgentTaskInfo
-	ApproveTaskRequest         = aipb.ApproveTaskRequest
-	CancelTaskRequest          = aipb.CancelTaskRequest
-	Capabilities               = aipb.Capabilities
-	ChatMessage                = aipb.ChatMessage
-	ConversationInfo           = aipb.ConversationInfo
-	CreateConversationRequest  = aipb.CreateConversationRequest
-	CreateConversationResponse = aipb.CreateConversationResponse
-	CreateKbDocRequest         = aipb.CreateKbDocRequest
-	CreateKbDocResponse        = aipb.CreateKbDocResponse
-	CreateKbRequest            = aipb.CreateKbRequest
-	CreateKbResponse           = aipb.CreateKbResponse
-	CreateWorkflowRequest      = aipb.CreateWorkflowRequest
-	CreateWorkflowResponse     = aipb.CreateWorkflowResponse
-	DeleteConversationRequest  = aipb.DeleteConversationRequest
-	DeleteKbDocRequest         = aipb.DeleteKbDocRequest
-	DeleteKbRequest            = aipb.DeleteKbRequest
-	DeleteWorkflowRequest      = aipb.DeleteWorkflowRequest
-	GetAgentTaskRequest        = aipb.GetAgentTaskRequest
-	GetAgentTaskResponse       = aipb.GetAgentTaskResponse
-	GetConversationRequest     = aipb.GetConversationRequest
-	GetConversationResponse    = aipb.GetConversationResponse
-	GetKbDocRequest            = aipb.GetKbDocRequest
-	GetKbDocResponse           = aipb.GetKbDocResponse
-	GetKbImportRequest         = aipb.GetKbImportRequest
-	GetKbImportResponse        = aipb.GetKbImportResponse
-	GetKbRequest               = aipb.GetKbRequest
-	GetKbResponse              = aipb.GetKbResponse
-	GetWorkflowRequest         = aipb.GetWorkflowRequest
-	GetWorkflowResponse        = aipb.GetWorkflowResponse
-	KbDocInfo                  = aipb.KbDocInfo
-	KbInfo                     = aipb.KbInfo
-	KbIngestBatchInfo          = aipb.KbIngestBatchInfo
-	KbIngestJobInfo            = aipb.KbIngestJobInfo
-	KbSearchHit                = aipb.KbSearchHit
-	ListAgentTasksRequest      = aipb.ListAgentTasksRequest
-	ListAgentTasksResponse     = aipb.ListAgentTasksResponse
-	ListConversationsRequest   = aipb.ListConversationsRequest
-	ListConversationsResponse  = aipb.ListConversationsResponse
-	ListKbDocsRequest          = aipb.ListKbDocsRequest
-	ListKbDocsResponse         = aipb.ListKbDocsResponse
-	ListKbImportsRequest       = aipb.ListKbImportsRequest
-	ListKbImportsResponse      = aipb.ListKbImportsResponse
-	ListKbsRequest             = aipb.ListKbsRequest
-	ListKbsResponse            = aipb.ListKbsResponse
-	ListToolsRequest           = aipb.ListToolsRequest
-	ListToolsResponse          = aipb.ListToolsResponse
-	ListWorkflowsRequest       = aipb.ListWorkflowsRequest
-	ListWorkflowsResponse      = aipb.ListWorkflowsResponse
-	NoDataResponse             = aipb.NoDataResponse
-	PageRequest                = aipb.PageRequest
-	PageResponse               = aipb.PageResponse
-	RejectTaskRequest          = aipb.RejectTaskRequest
-	RetryKbDocRequest          = aipb.RetryKbDocRequest
-	RetryKbDocResponse         = aipb.RetryKbDocResponse
-	RunDraftRequest            = aipb.RunDraftRequest
-	RunWorkflowRequest         = aipb.RunWorkflowRequest
-	RunWorkflowResponse        = aipb.RunWorkflowResponse
-	SearchKbRequest            = aipb.SearchKbRequest
-	SearchKbResponse           = aipb.SearchKbResponse
-	SendMessageRequest         = aipb.SendMessageRequest
-	SendMessageResponse        = aipb.SendMessageResponse
-	SetMessageFeedbackRequest  = aipb.SetMessageFeedbackRequest
-	StopKbImportRequest        = aipb.StopKbImportRequest
-	StreamChunk                = aipb.StreamChunk
-	ToolInfo                   = aipb.ToolInfo
-	UpdateConversationRequest  = aipb.UpdateConversationRequest
-	UpdateKbDocRequest         = aipb.UpdateKbDocRequest
-	UpdateKbDocResponse        = aipb.UpdateKbDocResponse
-	UpdateKbRequest            = aipb.UpdateKbRequest
-	UpdateWorkflowRequest      = aipb.UpdateWorkflowRequest
-	WorkflowInfo               = aipb.WorkflowInfo
-	WorkflowStepInfo           = aipb.WorkflowStepInfo
+	Actor                            = aipb.Actor
+	AgentTaskInfo                    = aipb.AgentTaskInfo
+	ApproveTaskRequest               = aipb.ApproveTaskRequest
+	CancelTaskRequest                = aipb.CancelTaskRequest
+	Capabilities                     = aipb.Capabilities
+	ChatMessage                      = aipb.ChatMessage
+	ConversationInfo                 = aipb.ConversationInfo
+	CreateConversationRequest        = aipb.CreateConversationRequest
+	CreateConversationResponse       = aipb.CreateConversationResponse
+	CreateKbDocRequest               = aipb.CreateKbDocRequest
+	CreateKbDocResponse              = aipb.CreateKbDocResponse
+	CreateKbRequest                  = aipb.CreateKbRequest
+	CreateKbResponse                 = aipb.CreateKbResponse
+	CreateWorkflowRequest            = aipb.CreateWorkflowRequest
+	CreateWorkflowResponse           = aipb.CreateWorkflowResponse
+	DeleteConversationRequest        = aipb.DeleteConversationRequest
+	DeleteKbDocRequest               = aipb.DeleteKbDocRequest
+	DeleteKbRequest                  = aipb.DeleteKbRequest
+	DeleteWorkflowRequest            = aipb.DeleteWorkflowRequest
+	GetAgentTaskRequest              = aipb.GetAgentTaskRequest
+	GetAgentTaskResponse             = aipb.GetAgentTaskResponse
+	GetConversationRequest           = aipb.GetConversationRequest
+	GetConversationResponse          = aipb.GetConversationResponse
+	GetKbDocRequest                  = aipb.GetKbDocRequest
+	GetKbDocResponse                 = aipb.GetKbDocResponse
+	GetKbEvaluationRequest           = aipb.GetKbEvaluationRequest
+	GetKbFeedbackRequest             = aipb.GetKbFeedbackRequest
+	GetKbImportRequest               = aipb.GetKbImportRequest
+	GetKbImportResponse              = aipb.GetKbImportResponse
+	GetKbRequest                     = aipb.GetKbRequest
+	GetKbResponse                    = aipb.GetKbResponse
+	GetWorkflowRequest               = aipb.GetWorkflowRequest
+	GetWorkflowResponse              = aipb.GetWorkflowResponse
+	GetWorkflowRevisionRequest       = aipb.GetWorkflowRevisionRequest
+	GetWorkflowRevisionResponse      = aipb.GetWorkflowRevisionResponse
+	KbDocInfo                        = aipb.KbDocInfo
+	KbEvaluationDatasetInfo          = aipb.KbEvaluationDatasetInfo
+	KbEvaluationInfo                 = aipb.KbEvaluationInfo
+	KbEvaluationResponse             = aipb.KbEvaluationResponse
+	KbFeedbackEvidence               = aipb.KbFeedbackEvidence
+	KbFeedbackInfo                   = aipb.KbFeedbackInfo
+	KbFeedbackResponse               = aipb.KbFeedbackResponse
+	KbFeedbackReview                 = aipb.KbFeedbackReview
+	KbInfo                           = aipb.KbInfo
+	KbIngestBatchInfo                = aipb.KbIngestBatchInfo
+	KbIngestJobInfo                  = aipb.KbIngestJobInfo
+	KbSearchHit                      = aipb.KbSearchHit
+	ListAgentTasksRequest            = aipb.ListAgentTasksRequest
+	ListAgentTasksResponse           = aipb.ListAgentTasksResponse
+	ListConversationsRequest         = aipb.ListConversationsRequest
+	ListConversationsResponse        = aipb.ListConversationsResponse
+	ListKbDocsRequest                = aipb.ListKbDocsRequest
+	ListKbDocsResponse               = aipb.ListKbDocsResponse
+	ListKbEvaluationDatasetsRequest  = aipb.ListKbEvaluationDatasetsRequest
+	ListKbEvaluationDatasetsResponse = aipb.ListKbEvaluationDatasetsResponse
+	ListKbEvaluationsRequest         = aipb.ListKbEvaluationsRequest
+	ListKbEvaluationsResponse        = aipb.ListKbEvaluationsResponse
+	ListKbFeedbackRequest            = aipb.ListKbFeedbackRequest
+	ListKbFeedbackResponse           = aipb.ListKbFeedbackResponse
+	ListKbImportsRequest             = aipb.ListKbImportsRequest
+	ListKbImportsResponse            = aipb.ListKbImportsResponse
+	ListKbsRequest                   = aipb.ListKbsRequest
+	ListKbsResponse                  = aipb.ListKbsResponse
+	ListTaskFeedbackRequest          = aipb.ListTaskFeedbackRequest
+	ListTaskFeedbackResponse         = aipb.ListTaskFeedbackResponse
+	ListToolsRequest                 = aipb.ListToolsRequest
+	ListToolsResponse                = aipb.ListToolsResponse
+	ListUsageCallsResponse           = aipb.ListUsageCallsResponse
+	ListUsagePoliciesResponse        = aipb.ListUsagePoliciesResponse
+	ListWorkflowRevisionsRequest     = aipb.ListWorkflowRevisionsRequest
+	ListWorkflowRevisionsResponse    = aipb.ListWorkflowRevisionsResponse
+	ListWorkflowsRequest             = aipb.ListWorkflowsRequest
+	ListWorkflowsResponse            = aipb.ListWorkflowsResponse
+	NoDataResponse                   = aipb.NoDataResponse
+	PageRequest                      = aipb.PageRequest
+	PageResponse                     = aipb.PageResponse
+	RejectTaskRequest                = aipb.RejectTaskRequest
+	RestoreWorkflowRevisionRequest   = aipb.RestoreWorkflowRevisionRequest
+	RetryKbDocRequest                = aipb.RetryKbDocRequest
+	RetryKbDocResponse               = aipb.RetryKbDocResponse
+	ReviewKbFeedbackRequest          = aipb.ReviewKbFeedbackRequest
+	RunDraftRequest                  = aipb.RunDraftRequest
+	RunWorkflowRequest               = aipb.RunWorkflowRequest
+	RunWorkflowResponse              = aipb.RunWorkflowResponse
+	SearchKbRequest                  = aipb.SearchKbRequest
+	SearchKbResponse                 = aipb.SearchKbResponse
+	SendMessageRequest               = aipb.SendMessageRequest
+	SendMessageResponse              = aipb.SendMessageResponse
+	SetMessageFeedbackRequest        = aipb.SetMessageFeedbackRequest
+	SetTaskFeedbackRequest           = aipb.SetTaskFeedbackRequest
+	SetUsagePolicyRequest            = aipb.SetUsagePolicyRequest
+	StartKbEvaluationRequest         = aipb.StartKbEvaluationRequest
+	StopKbEvaluationRequest          = aipb.StopKbEvaluationRequest
+	StopKbImportRequest              = aipb.StopKbImportRequest
+	StreamChunk                      = aipb.StreamChunk
+	ToolInfo                         = aipb.ToolInfo
+	UpdateConversationRequest        = aipb.UpdateConversationRequest
+	UpdateKbDocRequest               = aipb.UpdateKbDocRequest
+	UpdateKbDocResponse              = aipb.UpdateKbDocResponse
+	UpdateKbRequest                  = aipb.UpdateKbRequest
+	UpdateWorkflowRequest            = aipb.UpdateWorkflowRequest
+	UsageCallInfo                    = aipb.UsageCallInfo
+	UsageGroup                       = aipb.UsageGroup
+	UsagePeriod                      = aipb.UsagePeriod
+	UsagePolicyInfo                  = aipb.UsagePolicyInfo
+	UsagePolicyRequest               = aipb.UsagePolicyRequest
+	UsagePolicyResponse              = aipb.UsagePolicyResponse
+	UsageQueryRequest                = aipb.UsageQueryRequest
+	UsageSummaryInfo                 = aipb.UsageSummaryInfo
+	UsageSummaryResponse             = aipb.UsageSummaryResponse
+	WorkflowInfo                     = aipb.WorkflowInfo
+	WorkflowRevisionInfo             = aipb.WorkflowRevisionInfo
+	WorkflowStepInfo                 = aipb.WorkflowStepInfo
+	WorkflowStepUsage                = aipb.WorkflowStepUsage
 
 	AiService interface {
+		GetUsageSummary(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*UsageSummaryResponse, error)
+		ListUsageCalls(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsageCallsResponse, error)
+		GetUsagePolicy(ctx context.Context, in *UsagePolicyRequest, opts ...grpc.CallOption) (*UsagePolicyResponse, error)
+		AdminGetUsageSummary(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*UsageSummaryResponse, error)
+		AdminListUsageCalls(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsageCallsResponse, error)
+		AdminListUsagePolicies(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsagePoliciesResponse, error)
+		AdminSetUsagePolicy(ctx context.Context, in *SetUsagePolicyRequest, opts ...grpc.CallOption) (*UsagePolicyResponse, error)
+		ListKbEvaluationDatasets(ctx context.Context, in *ListKbEvaluationDatasetsRequest, opts ...grpc.CallOption) (*ListKbEvaluationDatasetsResponse, error)
+		StartKbEvaluation(ctx context.Context, in *StartKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error)
+		ListKbEvaluations(ctx context.Context, in *ListKbEvaluationsRequest, opts ...grpc.CallOption) (*ListKbEvaluationsResponse, error)
+		GetKbEvaluation(ctx context.Context, in *GetKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error)
+		StopKbEvaluation(ctx context.Context, in *StopKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error)
+		SetTaskFeedback(ctx context.Context, in *SetTaskFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error)
+		ListTaskFeedback(ctx context.Context, in *ListTaskFeedbackRequest, opts ...grpc.CallOption) (*ListTaskFeedbackResponse, error)
+		ListKbFeedback(ctx context.Context, in *ListKbFeedbackRequest, opts ...grpc.CallOption) (*ListKbFeedbackResponse, error)
+		GetKbFeedback(ctx context.Context, in *GetKbFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error)
+		ReviewKbFeedback(ctx context.Context, in *ReviewKbFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error)
 		CreateConversation(ctx context.Context, in *CreateConversationRequest, opts ...grpc.CallOption) (*CreateConversationResponse, error)
 		ListConversations(ctx context.Context, in *ListConversationsRequest, opts ...grpc.CallOption) (*ListConversationsResponse, error)
 		GetConversation(ctx context.Context, in *GetConversationRequest, opts ...grpc.CallOption) (*GetConversationResponse, error)
@@ -101,7 +158,10 @@ type (
 		CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*CreateWorkflowResponse, error)
 		ListWorkflows(ctx context.Context, in *ListWorkflowsRequest, opts ...grpc.CallOption) (*ListWorkflowsResponse, error)
 		GetWorkflow(ctx context.Context, in *GetWorkflowRequest, opts ...grpc.CallOption) (*GetWorkflowResponse, error)
-		UpdateWorkflow(ctx context.Context, in *UpdateWorkflowRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		UpdateWorkflow(ctx context.Context, in *UpdateWorkflowRequest, opts ...grpc.CallOption) (*GetWorkflowResponse, error)
+		ListWorkflowRevisions(ctx context.Context, in *ListWorkflowRevisionsRequest, opts ...grpc.CallOption) (*ListWorkflowRevisionsResponse, error)
+		GetWorkflowRevision(ctx context.Context, in *GetWorkflowRevisionRequest, opts ...grpc.CallOption) (*GetWorkflowRevisionResponse, error)
+		RestoreWorkflowRevision(ctx context.Context, in *RestoreWorkflowRevisionRequest, opts ...grpc.CallOption) (*GetWorkflowResponse, error)
 		DeleteWorkflow(ctx context.Context, in *DeleteWorkflowRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		RunWorkflow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunWorkflowResponse, error)
 		RunDraft(ctx context.Context, in *RunDraftRequest, opts ...grpc.CallOption) (*RunWorkflowResponse, error)
@@ -136,6 +196,91 @@ func NewAiService(cli zrpc.Client) AiService {
 	return &defaultAiService{
 		cli: cli,
 	}
+}
+
+func (m *defaultAiService) GetUsageSummary(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*UsageSummaryResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.GetUsageSummary(ctx, in, opts...)
+}
+
+func (m *defaultAiService) ListUsageCalls(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsageCallsResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.ListUsageCalls(ctx, in, opts...)
+}
+
+func (m *defaultAiService) GetUsagePolicy(ctx context.Context, in *UsagePolicyRequest, opts ...grpc.CallOption) (*UsagePolicyResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.GetUsagePolicy(ctx, in, opts...)
+}
+
+func (m *defaultAiService) AdminGetUsageSummary(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*UsageSummaryResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.AdminGetUsageSummary(ctx, in, opts...)
+}
+
+func (m *defaultAiService) AdminListUsageCalls(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsageCallsResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.AdminListUsageCalls(ctx, in, opts...)
+}
+
+func (m *defaultAiService) AdminListUsagePolicies(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsagePoliciesResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.AdminListUsagePolicies(ctx, in, opts...)
+}
+
+func (m *defaultAiService) AdminSetUsagePolicy(ctx context.Context, in *SetUsagePolicyRequest, opts ...grpc.CallOption) (*UsagePolicyResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.AdminSetUsagePolicy(ctx, in, opts...)
+}
+
+func (m *defaultAiService) ListKbEvaluationDatasets(ctx context.Context, in *ListKbEvaluationDatasetsRequest, opts ...grpc.CallOption) (*ListKbEvaluationDatasetsResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.ListKbEvaluationDatasets(ctx, in, opts...)
+}
+
+func (m *defaultAiService) StartKbEvaluation(ctx context.Context, in *StartKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.StartKbEvaluation(ctx, in, opts...)
+}
+
+func (m *defaultAiService) ListKbEvaluations(ctx context.Context, in *ListKbEvaluationsRequest, opts ...grpc.CallOption) (*ListKbEvaluationsResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.ListKbEvaluations(ctx, in, opts...)
+}
+
+func (m *defaultAiService) GetKbEvaluation(ctx context.Context, in *GetKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.GetKbEvaluation(ctx, in, opts...)
+}
+
+func (m *defaultAiService) StopKbEvaluation(ctx context.Context, in *StopKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.StopKbEvaluation(ctx, in, opts...)
+}
+
+func (m *defaultAiService) SetTaskFeedback(ctx context.Context, in *SetTaskFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.SetTaskFeedback(ctx, in, opts...)
+}
+
+func (m *defaultAiService) ListTaskFeedback(ctx context.Context, in *ListTaskFeedbackRequest, opts ...grpc.CallOption) (*ListTaskFeedbackResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.ListTaskFeedback(ctx, in, opts...)
+}
+
+func (m *defaultAiService) ListKbFeedback(ctx context.Context, in *ListKbFeedbackRequest, opts ...grpc.CallOption) (*ListKbFeedbackResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.ListKbFeedback(ctx, in, opts...)
+}
+
+func (m *defaultAiService) GetKbFeedback(ctx context.Context, in *GetKbFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.GetKbFeedback(ctx, in, opts...)
+}
+
+func (m *defaultAiService) ReviewKbFeedback(ctx context.Context, in *ReviewKbFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.ReviewKbFeedback(ctx, in, opts...)
 }
 
 func (m *defaultAiService) CreateConversation(ctx context.Context, in *CreateConversationRequest, opts ...grpc.CallOption) (*CreateConversationResponse, error) {
@@ -193,9 +338,24 @@ func (m *defaultAiService) GetWorkflow(ctx context.Context, in *GetWorkflowReque
 	return client.GetWorkflow(ctx, in, opts...)
 }
 
-func (m *defaultAiService) UpdateWorkflow(ctx context.Context, in *UpdateWorkflowRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+func (m *defaultAiService) UpdateWorkflow(ctx context.Context, in *UpdateWorkflowRequest, opts ...grpc.CallOption) (*GetWorkflowResponse, error) {
 	client := aipb.NewAiServiceClient(m.cli.Conn())
 	return client.UpdateWorkflow(ctx, in, opts...)
+}
+
+func (m *defaultAiService) ListWorkflowRevisions(ctx context.Context, in *ListWorkflowRevisionsRequest, opts ...grpc.CallOption) (*ListWorkflowRevisionsResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.ListWorkflowRevisions(ctx, in, opts...)
+}
+
+func (m *defaultAiService) GetWorkflowRevision(ctx context.Context, in *GetWorkflowRevisionRequest, opts ...grpc.CallOption) (*GetWorkflowRevisionResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.GetWorkflowRevision(ctx, in, opts...)
+}
+
+func (m *defaultAiService) RestoreWorkflowRevision(ctx context.Context, in *RestoreWorkflowRevisionRequest, opts ...grpc.CallOption) (*GetWorkflowResponse, error) {
+	client := aipb.NewAiServiceClient(m.cli.Conn())
+	return client.RestoreWorkflowRevision(ctx, in, opts...)
 }
 
 func (m *defaultAiService) DeleteWorkflow(ctx context.Context, in *DeleteWorkflowRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {

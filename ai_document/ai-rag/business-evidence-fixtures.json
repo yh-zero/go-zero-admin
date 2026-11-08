@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "description": "公开项目真实候选录制：一次查询Embedding、向量召回和MySQL复核。不是模型原始回复；测试用响应为显式重构。宿主/Compose场景复用该候选桩，只证明实际候选传递和引用身份，不冒充另一查询的实测向量排名。",
+  "observation": {
+    "source_path": "tmp/ai-product-20261107/acceptance-candidates-before.json",
+    "sha256": "a8bb00d74a2c3f515e2029299e75809728395c56a85a541ef212b68d8bda257d",
+    "at": "2026-11-07T13:13:07.6268144Z",
+    "query": "这次同时改了ai-rpc的Go源码和.env.local。只对容器执行restart是否够用？请按资料列出源码产物和环境变量各自需要的处理，并说明更新后怎样确认实际运行的是新版本。",
+    "owner_id": 1,
+    "kb_id": 5,
+    "calls": {
+      "query_embedding": 1,
+      "sql_ready_lookup": 1,
+      "vector_search": 1
+    }
+  },
+  "dataset": {
+    "path": "ai_document/ai-rag/business-acceptance-cases.json",
+    "sha256": "176e20b4563d8c892b375fe45af89a4a27b78ee1d62c9686e9b49b3956696760"
+  },
+  "scenarios": [
+    {
+      "id": "acceptance-dev-code-and-env",
+      "query": "这次同时改了ai-rpc的Go源码和.env.local。只对容器执行restart是否够用？请按资料列出源码产物和环境变量各自需要的处理，并说明更新后怎样确认实际运行的是新版本。"
+    },
+    {
+      "id": "acceptance-val-config-selection",
+      "query": "排查配置没有生效时，宿主go run与Compose各应检查哪套YAML？如果YAML直填值与终端环境变量不同，哪一个生效？修改.env.local后只做restart、看到/ready通过就能结束验收吗？"
+    }
+  ],
+  "documents": [
+    {
+      "key": "ops-environment",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/01-开发环境与配置.md",
+      "title": "开发环境与配置",
+      "sha256": "ce3eb80aaefee71f0ee2ff7aeddf94d1c9860ef3fd6b051bfb6d76ff7d988d1d"
+    },
+    {
+      "key": "ops-data",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/02-数据初始化与备份.md",
+      "title": "数据初始化与备份",
+      "sha256": "3a9e4b7849bc7986497cca644e2f97ee6415ec94005165d478b84d4e933dce39"
+    },
+    {
+      "key": "ops-build",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/03-构建启动与验收.md",
+      "title": "构建启动与验收",
+      "sha256": "b9ef7fe283e6d5a7e2f3fef4ac3b83195a210defba8874fed97feb4fb54cb8a2"
+    },
+    {
+      "key": "ops-cleanup",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/04-临时资源清理.md",
+      "title": "临时资源清理",
+      "sha256": "1bfe5d2b323965c686051cf238cc659d89b48705590ab25f14de7f4a21135ea7"
+    }
+  ],
+  "candidates": [
+    {
+      "rank": 1,
+      "chunk_id": 32,
+      "score": 0.7295935,
+      "doc_id": 19,
+      "title": "构建启动与验收",
+      "snippet": "后端编译失败，停止部署\" }\ndocker compose up -d --build --wait\nif ($LASTEXITCODE -ne 0) { throw \"Compose 启动失败，先排查日志\" }\ndocker compose ps\nif ($LASTEXITCODE -ne 0) { throw \"无法读取容器状态\" }\n```\n\n前端另开终端；首次或依赖声明/锁文件变化后安装依赖：\n\n```powershell\n# 终端 B：从仓库根目录执行\ncd go-zero-admin-react\npnpm install --frozen-lockfile\nif ($LASTEXITCODE -ne 0) { throw \"依赖安装失败，停止启动\" }\npnpm dev\n```\n\n只改 YAML：重启读取它的服务；修改 `.env.local`：在后端目录 `docker compose up -d --force-recreate ai-rpc app-rpc`，检查退出码并复验对应功能。代码变更则先重新编译、构建镜像再创建容器，不用 restart 代替部署。\n\n###",
+      "ready": true,
+      "content_sha256": "ca6ba6a25bdd0bb3396f6b6146b0e9d62d74609fde9820ac889927ed4a0891e2"
+    },
+    {
+      "rank": 2,
+      "chunk_id": 33,
+      "score": 0.6954123,
+      "doc_id": 19,
+      "title": "构建启动与验收",
+      "snippet": "并复验对应功能。代码变更则先重新编译、构建镜像再创建容器，不用 restart 代替部署。\n\n### 宿主单服务调试（手动重启，不是自动热更新）\n\n先核对目标配置与 `svc` 依赖，不对所有服务套同一启动命令。例：从后端目录只启动依赖，再调试 admin-rpc：\n\n```powershell\n# 工作目录：go-zero-admin/；先确认不会干扰现有实例和数据\ndocker compose up -d mysql redis rustfs\nif ($LASTEXITCODE -ne 0) { throw \"基础依赖启动失败\" }\ngo run ./application/admin/rpc -f application/admin/rpc/etc/admin.yaml\n```\n\n- 上例业务如需调用 FileRpc，还须保证对应端点可达；其他服务按实际依赖准备，不以进程能启动推定功能可用。\n- 宿主 API 默认连 `127.0.0.1:6001/6003`，启动需访问 AdminRpc/FileRpc，并经 admin-rpc 加载 Casbin 策略；仅启动 MySQL/R",
+      "ready": true,
+      "content_sha256": "54b29f584dd3b2e248e623c45de763df762954ca81e3d6dfb21413c27bf5aad0"
+    },
+    {
+      "rank": 3,
+      "chunk_id": 28,
+      "score": 0.69326115,
+      "doc_id": 18,
+      "title": "数据初始化与备份",
+      "snippet": "常校验。将 `docker/etc/admin-rpc.yaml` 复制为 `docker/etc/admin-rpc.ai-dev.local.yaml`，只把副本的 `Captcha.Enabled` 改为 `false`；原文件保持默认值。已有副本先核对，不覆盖其中本地设置。\n\n本地 `docker-compose.ai-dev.local.yaml` 内容为：\n\n```yaml\nservices:\n  admin-rpc:\n    volumes:\n      - ./docker/etc/admin-rpc.ai-dev.local.yaml:/app/etc/admin.yaml:ro\n```\n\n从后端目录使用 `docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.ai-dev.local.yaml up -d --no-deps --no-build --wait admin-rpc` 应用验证码配置；其他服务按各自启动流程处理，后端代码改变仍须先编译并构建对应镜像。通过",
+      "ready": true,
+      "content_sha256": "6e3638e8fe9baf96236b2c7aafd588e7a1a32a2cbf6bcc2881ce9c9e6355a1a9"
+    },
+    {
+      "rank": 4,
+      "chunk_id": 25,
+      "score": 0.664142,
+      "doc_id": 17,
+      "title": "开发环境与配置",
+      "snippet": "o run` | 后端 `application/*/etc/*.yaml` | 使用宿主映射端口；Go 不自动读取 `.env.local` |\n| YAML 直填 | 所用配置字段的字面值 | 不因同名环境变量存在而自动覆盖 |\n| YAML `${ENV_VAR}` | 进程环境变量 | 仅启用 `conf.UseEnv()` 的加载入口展开；字段留空仍为空 |\n\n六个服务主入口和租户存储二次加载均启用 `UseEnv()`；变更配置时仍须核对宿主/容器两套，以及目标进程实际获得的环境变量。Compose 目前只为 AI/App 注入 `.env.local`，其他服务需要占位符时须显式配置注入。\n\n### AI 与邮件\n\n在后端目录复制模板（不覆盖已有本地配置），再自行填写所需凭据；模板是变量说明，不是运行凭据文件：\n\n```powershell\n# 工作目录：go-zero-admin/\nif (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .env.local }\n```",
+      "ready": true,
+      "content_sha256": "bd2b80df8331a873521b524f66dfc899f82e48a46a9ef6c67aaf817b0c882939"
+    },
+    {
+      "rank": 5,
+      "chunk_id": 26,
+      "score": 0.64852214,
+      "doc_id": 17,
+      "title": "开发环境与配置",
+      "snippet": ")) { Copy-Item .env.local.example .env.local }\n```- 变量名见 [.env.local.example](../go-zero-admin/.env.local.example)，AI 启停按[契约](api-contract.md#ai-http-与执行约定)。默认占位符未取得密钥时模型降级；YAML 已直填有效密钥时，不要求存在 `.env.local`。公开主线禁止真实凭据。\n- SMTP 两套配置默认使用 `smtp.163.com:465` 和隐式 TLS；更换服务商时同时核对 Host/Port/ImplicitTLS。From 留空回退 Username，账号和授权码经模板所列变量注入。配置一致和本地假 SMTP 回归不能代替真实发信验收。\n- 宿主运行可直填 YAML，或在启动终端用 `$env:变量名=...` 设置进程环境；`setx` 不更新当前终端。env 变更须重新创建相关容器，单独 restart 不更新环境；租户不自动继承平台凭据。",
+      "ready": true,
+      "content_sha256": "5089a9203801b446977113bdaa4187ba028f6f18db81edd0c6f58e6138e8d5f9"
+    },
+    {
+      "rank": 6,
+      "chunk_id": 34,
+      "score": 0.6473211,
+      "doc_id": 19,
+      "title": "构建启动与验收",
+      "snippet": "nRpc/FileRpc，并经 admin-rpc 加载 Casbin 策略；仅启动 MySQL/Redis/RustFS 不够。默认 Compose 的 RPC 不对宿主暴露，须运行所需宿主 RPC，或使用已明确授权的端口映射/混合环境。\n- 端口冲突看宿主实际监听/映射：API 的 7001 会冲突，RPC 容器内部同号端口不必然冲突。不要顺手停掉现有服务，也不要把双实例当成同一运行版本；测试优先独立端口与隔离数据。\n\n### 就绪不等于验收\n\n确认启动命令、配置挂载及运行产物对应本轮改动；不确定时比较容器二进制与本地产物摘要。容器 Up / Compose wait 通过不等于全部业务可用：\n\n```powershell\n# 任意终端：仅探针示例，不代替业务验证\n$ready = Invoke-RestMethod -Uri \"http://127.0.0.1:7001/ready\" -TimeoutSec 15 -ErrorAction Stop\nif ($ready.code -ne 200 -or -not $ready.result.ready) { throw \"API",
+      "ready": true,
+      "content_sha256": "c7417e22250e48faa246747a496c574127248fbdcf584408a16dd9a6cb64be85"
+    },
+    {
+      "rank": 7,
+      "chunk_id": 24,
+      "score": 0.6429526,
+      "doc_id": 17,
+      "title": "开发环境与配置",
+      "snippet": "|\n| admin/app/file/ai/tenant RPC | 默认不映射宿主端口 | 各服务内部 `6001..6005`；tenant 仅平台栈 |\n| Qdrant | `127.0.0.1:16333`（REST/面板）、`:16334`（gRPC） | `qdrant:6334`，知识库向量索引；宿主映射仅供宿主调试 ai-rpc |\n| Nginx | `:80` | 按域名路由；平台为 `localhost` / `platform.localhost` |\n| 前端 dev | `http://127.0.0.1:5999` | 宿主运行，业务请求代理到 API |\n\n### 配置双套制\n\n| 运行方式 | 配置来源 | 地址与环境变量 |\n|---|---|---|\n| Compose | 后端 `docker/etc/*.yaml`，卷挂载到容器 | 使用容器服务名；AI/App 的 `env_file` 注入后端 `.env.local` |\n| 宿主 `go run` | 后端 `application/*/etc/*.yaml` | 使用宿主映射端口；",
+      "ready": true,
+      "content_sha256": "416c381b0df95b7abb66c0b748cb4193a04d4fec24ea9ef7c3321d5700a57868"
+    },
+    {
+      "rank": 8,
+      "chunk_id": 35,
+      "score": 0.6378398,
+      "doc_id": 19,
+      "title": "构建启动与验收",
+      "snippet": "-ne 200 -or -not $ready.result.ready) { throw \"API 尚未就绪\" }\n```\n\n再检查 `/ping`、前端入口及受影响接口/页面；HTML 200 只说明页面可达，AI/邮件还需各自验证。持久失败查[排障表](#4-常见故障排查)，不靠不断重启掩盖错误。",
+      "ready": true,
+      "content_sha256": "6ba3a794823e92d7a2306fb1d2eb5b3c22955065a911a0f69f7f61066e62993c"
+    },
+    {
+      "rank": 9,
+      "chunk_id": 23,
+      "score": 0.59021354,
+      "doc_id": 17,
+      "title": "开发环境与配置",
+      "snippet": "## 1. 开发环境与配置\n\n首次准备与工具版本见[快速开始](../README.md#快速开始)，以依赖声明、锁文件和实际工具版本为准；Docker 使用 Linux 容器模式，基础镜像须可拉取或已缓存。标准拓扑以 [Compose](../go-zero-admin/docker-compose.yml) 为准：\n\n| 服务 | 宿主访问地址 | 容器网络 / 用途 |\n|---|---|---|\n| MySQL | `127.0.0.1:3307` | `mysql:3306`，业务库 `gozero_admin` |\n| Redis | `127.0.0.1:16379` | `redis:6379`，缓存、会话与策略通知 |\n| RustFS | `127.0.0.1:19000`，控制台 `:19001` | `rustfs:9000`，S3 兼容存储 |\n| admin-api | `127.0.0.1:7001` | `platform-api:7001`，前端代理目标 |\n| admin/app/file/ai/tenant RPC | 默认不映射宿主端口 | 各服",
+      "ready": true,
+      "content_sha256": "b5c0f8d7c33d9731de80a4b5d08b7e9bfbf8f76a54ed499806d4fd0edd9d50d6"
+    },
+    {
+      "rank": 10,
+      "chunk_id": 29,
+      "score": 0.58928967,
+      "doc_id": 18,
+      "title": "数据初始化与备份",
+      "snippet": "n-rpc` 应用验证码配置；其他服务按各自启动流程处理，后端代码改变仍须先编译并构建对应镜像。通过 `/v1/sys/auth/captcha` 核对 `enabled=false` 且图片、ID 为空，再用有效测试账号正常登录。两个 `*.local.yaml` 文件均被忽略，不提交；远程/生产/租户启动不使用这个本地覆盖文件。验证码专项验收改用标准配置并核对 `enabled=true`。\n\n开源初始化的演示管理员为 `admin / Admin@123456`，属于可公开的开发默认凭据，可以写入规范和文档。AI 可直接核对本地开发库与完整初始化 SQL 后正常登录，无需重复索要这些演示凭据。若 README 的本地改动与 SQL 不一致，以实际初始化来源和运行库核对结果为准，保留用户既有文档改动；此流程不授权改密、重置账号或公开真实凭据、AI Key、会话令牌。\n\n### 数据库备份\n\n- 备份默认保留运行库的完整原始 SQL，不擅自删行、改值、脱敏或加密；历史备份不覆盖，初始化来源 `mysql-all.sql` 不作为运行库备份替代物。\n- 先核对实际运行库和容器/连接来源",
+      "ready": true,
+      "content_sha256": "8a0f572d571a05eee2b71850f400d0c633aa1aaafe469ff78291659be09c90c5"
+    },
+    {
+      "rank": 11,
+      "chunk_id": 27,
+      "score": 0.58179605,
+      "doc_id": 18,
+      "title": "数据初始化与备份",
+      "snippet": "### 数据初始化\n\n**初始化 SQL 会 DROP 并重建业务表，不是已有库的升级脚本。** 唯一入口为 [mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql)：\n- 新建开发库：完整导入；Compose 的 MySQL 空数据卷首次启动自动导入，已有卷不自动覆盖或更新结构。\n- 已有库改结构：先核对目标与数据处理方案；生成 model 时使用已导入完整 SQL 的新开发库，不为生成代码清空业务库。\n- 重置已有库：须明确授权、确认目标并备份；不能把重跑初始化或删除数据卷当作通用排障手段。\n- 演示账号与默认凭据见[快速开始](../README.md#快速开始)，仅限开发、部署前必须替换；后台图形验证码由 admin-rpc 的 `Captcha.Enabled` 控制。\n\n### AI 本地开发免图形验证码\n\nAI 在本机开发、联调和功能验收启动时，默认使用忽略的本地覆盖配置关闭图形验证码，账号密码和会话/权限仍正常校验。将 `docker/etc/admin-rpc.yaml` 复制为 `docker/etc/",
+      "ready": true,
+      "content_sha256": "449e7ec9f65231bdda068ab41aa05cfe6905dc1eb48991e3da91a425fa8e4482"
+    },
+    {
+      "rank": 12,
+      "chunk_id": 31,
+      "score": 0.5597898,
+      "doc_id": 19,
+      "title": "构建启动与验收",
+      "snippet": "## 2. 构建、启动与就绪检查\n\n新建或重置数据库先看[数据初始化](#数据初始化)；常规代码部署不重复导入 SQL 或删除数据卷。\n\n### Compose（日常默认）\n\n[Dockerfile](../go-zero-admin/docker/Dockerfile)只复制宿主预编译的 Linux 二进制，`docker compose --build` **不会编译 Go 源码**。首次运行或后端代码变更后，先执行[构建入口](../go-zero-admin/data/scripts/build-images.ps1)；构建失败立即停止，不部署旧产物。\n\n```powershell\n# 终端 A：从仓库根目录执行\ncd go-zero-admin\npowershell -NoProfile -ExecutionPolicy Bypass -File ./data/scripts/build-images.ps1\nif ($LASTEXITCODE -ne 0) { throw \"后端编译失败，停止部署\" }\ndocker compose up -d --build --wait",
+      "ready": true,
+      "content_sha256": "f6f53b5180179bf9af5a6dff8b84c56c7349f6d534acb1dd7bfb77a439e8a3a7"
+    },
+    {
+      "rank": 13,
+      "chunk_id": 36,
+      "score": 0.54100186,
+      "doc_id": 20,
+      "title": "临时资源清理",
+      "snippet": "## 5. 清理与恢复\n\n按[根完成定义](../AGENTS.md#9-任务完成定义)处理，原则是只恢复本轮临时改动，而不是清空整个环境：\n1. 记录并按准确 PID/任务 ID、容器名、路径与临时数据 ID 清理；保留用户要求运行的项目栈，不按进程名/通配符批量删除。\n2. 恢复本轮临时配置与经授权调整的服务，确认测试端口释放；回归测试、用户数据及既有备份保留。\n3. 用 `git status`/差异确认已有改动未被覆盖；可以保留本任务未提交内容，不为“工作区干净”执行 checkout/reset。测试 Git/hook 使用独立临时仓库，不在真实仓库造提交再撤销。",
+      "ready": true,
+      "content_sha256": "15542e80643658555cf0870064478901c86ec75a37270a59be53f705346498d3"
+    },
+    {
+      "rank": 14,
+      "chunk_id": 30,
+      "score": 0.44942948,
+      "doc_id": 18,
+      "title": "数据初始化与备份",
+      "snippet": "来源 `mysql-all.sql` 不作为运行库备份替代物。\n- 先核对实际运行库和容器/连接来源，使用一致性快照导出，记录来源、导出时间与文件校验值；在独立环境恢复验证，不导回现有业务库，也不启动会调用外部服务的业务进程。\n- 真实邮箱与 AI Key 不提交；不含这两类数据及根规范禁止公开信息的明文备份，按用户指定路径和分支直接提交，日期快照沿用后端 `data/db/init/YYYYMMDD/`。公开提交仍遵守根规范安全基线；受阻的完整原件保存在被忽略的本地目录，不擅自生成脱敏或加密替代文件。\n- 分别说明“导出完成”“恢复验证通过”“本地提交完成”“远程推送完成”，不能用其中一项代替其余状态。",
+      "ready": true,
+      "content_sha256": "5e250cf28d1cec330658785c3fbf9d3ad58f4df51f59a43795cf4ac8830e2669"
+    }
+  ]
+}

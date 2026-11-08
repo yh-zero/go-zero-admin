@@ -8,13 +8,14 @@ import (
 
 type Config struct {
 	rest.RestConf
-	AdminRpc  zrpc.RpcClientConf
-	FileRpc   zrpc.RpcClientConf
-	TenantRpc *zrpc.RpcClientConf `json:",optional"`
-	AppRpc    *zrpc.RpcClientConf `json:",optional"`
-	AiRpc     *zrpc.RpcClientConf `json:",optional"`
-	Redis     redis.RedisConf
-	Auth      struct {
+	AdminRpc       zrpc.RpcClientConf
+	FileRpc        zrpc.RpcClientConf
+	TenantRpc      *zrpc.RpcClientConf `json:",optional"`
+	AppRpc         *zrpc.RpcClientConf `json:",optional"`
+	AiRpc          *zrpc.RpcClientConf `json:",optional"`
+	Redis          redis.RedisConf
+	TrustedProxies []string `json:",optional"`
+	Auth           struct {
 		AccessSecret string
 		AccessExpire int64
 	}

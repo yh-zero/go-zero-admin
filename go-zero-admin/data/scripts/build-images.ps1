@@ -3,6 +3,7 @@
 # 产出后执行：docker compose up -d --build
 $ErrorActionPreference = 'Stop'
 $backend = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+& (Join-Path $PSScriptRoot 'verify-network.ps1')
 $out = Join-Path $backend 'docker/.build'
 New-Item -ItemType Directory -Force $out | Out-Null
 

@@ -26,10 +26,16 @@ func IsWorkflowOnly(t Tool) bool {
 	return ok && marker.WorkflowOnly()
 }
 
-// ExecutionError 仅携带可向任务用户展示的固定安全原因，不包装供应商或基础设施原始错误。
-type ExecutionError struct{ Message string }
+// ExecutionError 仅携带固定安全原因和已尝试模型的计量，不包装原始回复或供应商错误。
+type ExecutionError struct {
+	Message string
+	usage   *KbAnalysisUsage
+}
 
 func (e *ExecutionError) Error() string { return e.Message }
+
+// ModelUsage 仅返回已尝试模型调用的安全计量；不包含被拒绝的模型正文或供应商错误。
+func (e *ExecutionError) ModelUsage() *KbAnalysisUsage { return e.usage }
 
 var registry = map[string]Tool{}
 

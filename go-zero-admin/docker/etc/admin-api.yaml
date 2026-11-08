@@ -9,6 +9,11 @@ AdminRpc:
 FileRpc:
   Endpoints:
     - file-rpc:6003
+  Timeout: 40000
+
+# 与 Compose 中固定的 Nginx default 网络地址保持一致，只信任该代理。
+TrustedProxies:
+  - "${GOZERO_PLATFORM_PROXY_IP}/32"
 
 Redis:
   Host: redis:6379

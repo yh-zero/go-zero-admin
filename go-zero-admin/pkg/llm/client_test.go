@@ -97,3 +97,41 @@ func TestChatBoundedReturnsUnsupportedTemperatureWithoutRetry(t *testing.T) {
 		t.Fatalf("供应商拒绝须原样返回且只请求一次：err=%v requests=%d", err, requests)
 	}
 }
+
+func TestChatBoundedRetainsUsageWhenSDKRejectsEmptyChoicesWithoutHook(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"choices":[],"usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}`)
+	}))
+	defer server.Close()
+	client, err := New(Config{BaseURL: server.URL, APIKey: "local-test-only", Model: "local-test", Timeout: 2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	response, usage, err := client.ChatBounded(context.Background(), []*schema.Message{schema.UserMessage("本地失败计量")}, 20)
+	if err == nil || response != nil || usage == nil || usage.PromptTokens != 10 || usage.CompletionTokens != 5 || usage.TotalTokens != 15 {
+		t.Fatalf("SDK拒绝答案不能丢弃已收到的15 tokens: response=%v usage=%v err=%v", response, usage, err)
+	}
+}
+
+func TestChatBoundedSDKFailureKeepsUsageAcrossRedirectAttempts(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path != "/final" {
+			w.Header().Set("Location", "/final")
+			w.WriteHeader(http.StatusTemporaryRedirect)
+			_, _ = io.WriteString(w, `{"usage":{"prompt_tokens":2,"completion_tokens":1,"total_tokens":3}}`)
+			return
+		}
+		_, _ = io.WriteString(w, `{"choices":[],"usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}`)
+	}))
+	defer server.Close()
+	client, err := New(Config{BaseURL: server.URL, APIKey: "local-test-only", Model: "local-test", Timeout: 2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	response, usage, err := client.ChatBounded(context.Background(), []*schema.Message{schema.UserMessage("本地重定向计量")}, 20)
+	if err == nil || response != nil || usage == nil || usage.PromptTokens != 12 || usage.CompletionTokens != 6 || usage.TotalTokens != 18 {
+		t.Fatalf("每次实际HTTP尝试已知值须聚合，不能重复或漏算: usage=%v err=%v", usage, err)
+	}
+}

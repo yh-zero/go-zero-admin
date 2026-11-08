@@ -204,7 +204,7 @@ func (s *QdrantStore) AllIDs(ctx context.Context) (map[uint64]struct{}, error) {
 			}
 		}
 		if len(out) > maxPoints {
-			return nil, fmt.Errorf("qdrant point 数超过对账上限 %d", maxPoints)
+			return nil, fmt.Errorf("%w: qdrant point 数超过对账上限 %d", ErrReconcileLimit, maxPoints)
 		}
 		if len(points) < pageSize {
 			return out, nil

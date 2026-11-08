@@ -160,7 +160,7 @@ export interface AiChatMessage {
 export interface AiWorkflowInfo {
   id: number; name: string; definition: string; interval_seconds: number; enabled: number;
   next_run_at: number; created_by: number; created_at: number; updated_at: number;
-  step_count: number;
+  step_count: number; revision: number;
 }
 export interface AiTaskInfo {
   id: number; workflow_id: number; conversation_id: number; status: AiTaskStatus; input: string;
@@ -168,9 +168,12 @@ export interface AiTaskInfo {
   steps: AiWorkflowStepInfo[]; updated_at: number; request_id: string;
   title: string; workflow_name: string; input_summary: string; definition: string;
 }
+export interface AiWorkflowStepUsage {
+  scope: 'chat'; prompt_tokens: number; completion_tokens: number; total_tokens: number; complete: boolean;
+}
 export interface AiWorkflowStepInfo {
   index: number; id: string; name: string; tool: string; input: string; status: 'pending_approval' | 'running' | 'succeeded' | 'failed' | 'cancelled';
-  output: string; error: string; started_at: number; completed_at: number;
+  output: string; error: string; started_at: number; completed_at: number; usage?: AiWorkflowStepUsage | null;
 }
 export interface AiToolInfo { name: string; description: string; parameters_schema: string }
 export interface AiCapabilities { retrieval_configured: boolean; analysis_configured: boolean; ingestion_mode: string }
@@ -193,8 +196,14 @@ export interface AiSendMessageResult {
 export interface AiStreamMeta { conversation_id: number; user_message_id: number; ai_message_id: number }
 export interface AiStreamDone { tokens: number; usage_complete: boolean; result: AiSendMessageResult }
 export interface AiCreateWorkflowReq { name: string; definition: string; interval_seconds?: number }
-export interface AiUpdateWorkflowReq { name?: string; definition?: string; interval_seconds?: number; enabled?: 0 | 1 }
+export interface AiUpdateWorkflowReq { expected_revision: number; name?: string; definition?: string; interval_seconds?: number; enabled?: 0 | 1 }
 export interface AiWorkflowResp { workflow: AiWorkflowInfo }
+export interface AiWorkflowRevisionInfo {
+  id: number; workflow_id: number; revision: number; name: string; definition: string;
+  interval_seconds: number; enabled: number; step_count: number; created_at: number;
+}
+export interface AiWorkflowRevisionResp { revision: AiWorkflowRevisionInfo }
+export interface AiRestoreWorkflowRevisionReq { expected_revision: number }
 export interface AiRunWorkflowReq { request_id: string; input?: string }
 export interface AiRunDraftReq extends AiRunWorkflowReq { name: string; definition: string }
 export interface AiListWorkflowsReq extends PageParams { query?: string }
@@ -204,6 +213,26 @@ export interface AiGetTaskReq { meta_only?: boolean }
 export interface AiTaskResp { task: AiTaskInfo }
 export interface AiApproveTaskReq { expected_step: number }
 export interface AiRejectTaskReq extends AiApproveTaskReq { reason: string }
+export type AiKbFeedbackKind = 'helpful' | 'incorrect_answer' | 'missing_knowledge' | 'irrelevant_source';
+export type AiKbFeedbackStatus = 'pending' | 'accepted' | 'dismissed';
+export interface AiKbFeedbackReview {
+  answerable: boolean; expected_answer: string; required_facts: string[];
+  evidence: { source_index: number; quote: string }[]; reason: string;
+}
+export interface AiKbFeedbackInfo {
+  id: number; kb_id: number; task_id: number; step_index: number; feedback: AiKbFeedbackKind;
+  note: string; status: AiKbFeedbackStatus; revision: number; question: string; answer: string;
+  snapshot: string; review: AiKbFeedbackReview | null; created_at: number; updated_at: number; reviewed_at: number;
+}
+export interface AiKbFeedbackResp { feedback: AiKbFeedbackInfo }
+export interface AiTaskFeedbackResp { list: AiKbFeedbackInfo[] }
+export interface AiSetTaskFeedbackReq {
+  step_index: number; expected_revision: number; feedback: AiKbFeedbackKind; note: string;
+}
+export interface AiListKbFeedbackReq extends PageParams { status?: AiKbFeedbackStatus | 'all' }
+export interface AiReviewKbFeedbackReq {
+  expected_revision: number; status: 'accepted' | 'dismissed'; review: AiKbFeedbackReview;
+}
 // 知识库（Qdrant 向量检索；归属与状态语义见契约"AI 知识库与向量检索"）
 export interface AiKbInfo {
   id: number; name: string; description: string; owner_id: number;
@@ -242,3 +271,30 @@ export interface AiKbIngestJobInfo {
   error: string; doc: AiKbDocInfo | null; created_at: number; updated_at: number;
 }
 export interface AiKbImportResp { batch: AiKbIngestBatchInfo; list: AiKbIngestJobInfo[] }
+export interface AiKbEvaluationDatasetInfo { key: string; name: string; sha256: string; dataset: string }
+export interface AiKbEvaluationDatasetsResp { list: AiKbEvaluationDatasetInfo[] }
+export type AiKbEvaluationStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'unknown';
+export interface AiStartKbEvaluationReq { request_id: string; dataset_key: string; dataset_sha256: string; group_key: string; case_ids: string[]; dataset_snapshot?: string }
+export interface AiListKbEvaluationsReq extends PageParams { status?: AiKbEvaluationStatus | 'all'; request_id?: string }
+export interface AiKbEvaluationInfo {
+  id: number; kb_id: number; request_id: string; dataset_key: string; dataset_sha256: string; group_key: string;
+  status: AiKbEvaluationStatus; case_count: number; completed_count: number; failed_count: number;
+  stop_requested: boolean; corpus_verified: boolean; error: string; snapshot: string; bindings: string; context: string;
+  observations: string; created_at: number; updated_at: number; started_at: number; completed_at: number;
+}
+export interface AiKbEvaluationResp { evaluation: AiKbEvaluationInfo }
+
+// 供应商请求账本：仅新账本起算，原消息与步骤用量不重复累加。
+export type AiUsageSource = 'chat' | 'analysis' | 'kb_search' | 'kb_ingest' | 'evaluation';
+export type AiUsageStatus = 'reserved' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'unknown' | 'not_sent';
+export type AiUsageState = 'unknown' | 'partial' | 'complete' | 'invalid';
+export interface AiUsageQuery extends PageParams { from_day?: string; to_day?: string; source?: AiUsageSource; operation?: 'chat' | 'embedding'; provider?: string; model?: string; status?: AiUsageStatus; usage_state?: AiUsageState; }
+export interface AiUsageAdminQuery extends AiUsageQuery { user_id?: number; }
+export interface AiUsageCounters { confirmed_requests: number; reserved_requests: number; not_sent_requests: number; uncertain_requests: number; succeeded_requests: number; failed_requests: number; cancelled_requests: number; complete_requests: number; partial_requests: number; unknown_requests: number; invalid_requests: number; known_prompt_tokens: number; known_completion_tokens: number; known_embedding_tokens: number; known_total_tokens: number; }
+export interface AiUsageGroup extends AiUsageCounters { source: string; operation: string; provider: string; model: string; }
+export interface AiUsageSummaryInfo extends AiUsageCounters { period: { from_day: string; to_day: string; timezone: string }; recording_started_at: number; groups: AiUsageGroup[]; }
+export interface AiUsageSummaryResp { summary: AiUsageSummaryInfo; }
+export interface AiUsageCallInfo { id: number; attempt_id: string; owner_id: number; source: string; operation: string; request_id: string; source_id: number; step_index: number; batch_index: number; provider: string; model: string; quota_day: string; quota_charged: boolean; dispatch_confirmed: boolean; status: AiUsageStatus; usage_state: AiUsageState; prompt_tokens?: number; completion_tokens?: number; total_tokens?: number; http_status: number; provider_request_id: string; error_code: string; started_at: number; dispatched_at: number; completed_at: number; }
+export interface AiUsagePolicyInfo { owner_id: number; quota_day: string; daily_request_limit: number; used_requests: number; remaining_requests: number; unlimited: boolean; inherited: boolean; daily_token_warning: number; known_tokens: number; warning_reached: boolean; incomplete_requests: number; version: number; global_concurrent_limit: number; active_calls: number; active_known: boolean; }
+export interface AiUsagePolicyResp { policy: AiUsagePolicyInfo; }
+export interface AiSetUsagePolicyReq { expected_version: number; daily_request_limit?: number; daily_token_warning?: number; global_concurrent_limit?: number; inherit_default?: boolean; }

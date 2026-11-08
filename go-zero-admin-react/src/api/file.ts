@@ -3,4 +3,4 @@ import type { FileInfo, FileURLResp, GetFileListReq, PageResult, UploadFileReq, 
 export const fetchFiles = (params: GetFileListReq) => apiGet<PageResult<FileInfo>>('/sys/file/list', params);
 export const fetchFileURL = (id: number) => apiGet<FileURLResp>('/sys/file/' + id + '/url');
 export const deleteFile = (id: number) => apiDelete('/sys/file/' + id);
-export const uploadFile = (values: UploadFileReq) => apiPost<UploadFileResp>('/sys/file/upload', values).then(result => result.file);
+export const uploadFile = (values: UploadFileReq) => apiPost<UploadFileResp>('/sys/file/upload', values, { timeout: 50_000 }).then(result => result.file);

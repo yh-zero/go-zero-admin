@@ -2,3 +2,8 @@
 /ai_document/ai-rag/*.json text eol=lf
 /ai_document/ai-rag/kb1-a股投资知识/* text eol=crlf
 /ai_document/ai-rag/kb2-运维发布SOP/* text eol=crlf
+# 实际项目文档摘录按冻结的LF字节检出；JSON沿用上面的元数据规则。
+/ai_document/ai-rag/business-docs/*.md text eol=lf
+/ai_document/ai-rag/business-cases.md text eol=lf
+# 自定义题集互通夹具的SHA针对原始字节，Windows检出不得改写换行。
+/go-zero-admin/application/ai/rpc/internal/logic/aiservice/testdata/custom-*.json text eol=lf

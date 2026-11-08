@@ -18,10 +18,12 @@ import (
 )
 
 type ServiceContext struct {
-	Config config.Config
-	DB     sqlx.SqlConn
-	Redis  *redis.Redis
-	LLM    *llm.Client // 当前服务商未配置 Key 时为 nil
+	Config        config.Config
+	DB            sqlx.SqlConn
+	Redis         *redis.Redis
+	LLM           *llm.Client // 当前服务商未配置 Key 时为 nil
+	UsageStore    *model.UsageStore
+	UsageGovernor *UsageGovernor
 
 	// 知识库检索：Qdrant.Address 或 Embedding 未配置时为 nil，对应功能按契约降级
 	VectorStore   vectordb.Store
@@ -36,6 +38,9 @@ type ServiceContext struct {
 	AiKbModel           model.AiKbModel
 	AiKbDocModel        model.AiKbDocModel
 	AiKbChunkModel      model.AiKbChunkModel
+	AiKbFeedbackModel   model.AiKbFeedbackModel
+	AiKbEvaluationModel model.AiKbEvaluationModel
+	EvaluationContext   string
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -45,13 +50,17 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	ai := c.AI
 	ai.Enabled = newLLMEnabled(ai)
 	c.AI = ai
-	llmClient := newLLMClient(ai)
+	usageStore := model.NewUsageStore(conn, c.CacheRedis)
+	usageGovernor := NewUsageGovernor(usageStore, rdb)
+	llmClient := newLLMClient(ai, usageGovernor)
 
 	svcCtx := &ServiceContext{
 		Config:              c,
 		DB:                  conn,
 		Redis:               rdb,
 		LLM:                 llmClient,
+		UsageStore:          usageStore,
+		UsageGovernor:       usageGovernor,
 		AiConversationModel: model.NewAiConversationModel(conn, c.CacheRedis),
 		AiMessageModel:      model.NewAiMessageModel(conn, c.CacheRedis),
 		AiWorkflowModel:     model.NewAiWorkflowModel(conn, c.CacheRedis),
@@ -59,9 +68,16 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		AiKbModel:           model.NewAiKbModel(conn, c.CacheRedis),
 		AiKbDocModel:        model.NewAiKbDocModel(conn, c.CacheRedis),
 		AiKbChunkModel:      model.NewAiKbChunkModel(conn, c.CacheRedis),
+		AiKbFeedbackModel:   model.NewAiKbFeedbackModel(conn, c.CacheRedis),
+		AiKbEvaluationModel: model.NewAiKbEvaluationModel(conn, c.CacheRedis),
+	}
+	if contextJSON, err := newEvaluationContext(ai); err == nil {
+		svcCtx.EvaluationContext = contextJSON
+	} else {
+		logx.Info("质量评测运行配置不可用，其他AI能力保持原配置")
 	}
 	svcCtx.KbIngestQueue = model.NewKbIngestQueue(conn, svcCtx.AiKbDocModel)
-	svcCtx.Embedder = newEmbedder(ai)
+	svcCtx.Embedder = newEmbedder(ai, usageGovernor)
 	svcCtx.VectorStore = newVectorStore(c)
 	if svcCtx.VectorStore != nil && svcCtx.Embedder != nil {
 		svcCtx.KbSearcher = &kbSearcher{
@@ -79,7 +95,11 @@ func NewServiceContext(c config.Config) *ServiceContext {
 }
 
 // newEmbedder 组装知识库 Embedding 客户端；固定走 EmbeddingProvider（当前仅 qwen，密钥取 QwenKey），未配置返回 nil。
-func newEmbedder(ai config.ConfigAI) *llm.Embedder {
+func newEmbedder(ai config.ConfigAI, hooks ...llm.UsageHook) *llm.Embedder {
+	var hook llm.UsageHook
+	if len(hooks) > 0 {
+		hook = hooks[0]
+	}
 	if !strings.EqualFold(strings.TrimSpace(ai.EmbeddingProvider), "qwen") {
 		return nil
 	}
@@ -88,11 +108,13 @@ func newEmbedder(ai config.ConfigAI) *llm.Embedder {
 		return nil
 	}
 	embedder, err := llm.NewEmbedder(llm.EmbedConfig{
-		BaseURL: ai.EmbeddingBaseURL,
-		APIKey:  key,
-		Model:   ai.EmbeddingModel,
-		Dims:    int(ai.EmbeddingDimensions),
-		Timeout: ai.TimeoutSeconds,
+		BaseURL:   ai.EmbeddingBaseURL,
+		APIKey:    key,
+		Model:     ai.EmbeddingModel,
+		Dims:      int(ai.EmbeddingDimensions),
+		Timeout:   ai.TimeoutSeconds,
+		Provider:  ai.EmbeddingProvider,
+		UsageHook: hook,
 	})
 	if err != nil {
 		logx.Errorf("Embedding 配置无效，知识库检索降级: %v", err)
@@ -101,7 +123,7 @@ func newEmbedder(ai config.ConfigAI) *llm.Embedder {
 	return embedder
 }
 
-// newVectorStore 组装 Qdrant 向量索引；Address 去空白后非空即启用，连接/建集合失败降级为 nil（不 panic）。
+// newVectorStore 保留配置有效的客户端，启动暂态故障由后续请求退避探测恢复。
 func newVectorStore(c config.Config) vectordb.Store {
 	address := strings.TrimSpace(c.Qdrant.Address)
 	if address == "" {
@@ -115,12 +137,11 @@ func newVectorStore(c config.Config) vectordb.Store {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := store.EnsureCollection(ctx); err != nil {
-		logx.Errorf("Qdrant 集合初始化失败，知识库检索降级: %v", err)
-		_ = store.Close()
-		return nil
+	recovering := vectordb.NewRecoveringStore(store)
+	if err := recovering.EnsureCollection(ctx); err != nil {
+		logx.Error("Qdrant 暂不可用，知识库请求将有界重探测")
 	}
-	return store
+	return recovering
 }
 
 // newLLMEnabled 按 Provider 取到密钥即视为启用；密钥支持 yaml 直填或环境变量占位符（conf.UseEnv 加载时已展开）。
@@ -136,7 +157,11 @@ func newLLMEnabled(ai config.ConfigAI) bool {
 }
 
 // newLLMClient 校验配置并组装 LLM client；未启用或配置无效时返回 nil，由 AI 接口返回降级提示。
-func newLLMClient(ai config.ConfigAI) *llm.Client {
+func newLLMClient(ai config.ConfigAI, hooks ...llm.UsageHook) *llm.Client {
+	var hook llm.UsageHook
+	if len(hooks) > 0 {
+		hook = hooks[0]
+	}
 	if !ai.Enabled {
 		return nil
 	}
@@ -152,10 +177,12 @@ func newLLMClient(ai config.ConfigAI) *llm.Client {
 		apiKey = strings.TrimSpace(ai.QwenKey)
 	}
 	client, err := llm.New(llm.Config{
-		BaseURL: ai.BaseURL,
-		APIKey:  apiKey,
-		Model:   ai.Model,
-		Timeout: ai.TimeoutSeconds,
+		BaseURL:   ai.BaseURL,
+		APIKey:    apiKey,
+		Model:     ai.Model,
+		Timeout:   ai.TimeoutSeconds,
+		Provider:  ai.Provider,
+		UsageHook: hook,
 	})
 	if err != nil {
 		panic("AI 客户端初始化失败，请检查配置")

@@ -1,0 +1,10 @@
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 16px; }
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 12px 0 16px; }
+.filters { gap: 8px 0; margin-bottom: 12px; }
+.select { min-width: 130px; }
+.secondary { display: block; color: var(--ant-color-text-secondary); }
+.pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
+.references { overflow-wrap: anywhere; margin: 0; }
+.notice { margin: 12px 0; }
+@media (max-width: 900px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .metrics { grid-template-columns: 1fr; } }

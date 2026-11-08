@@ -10,6 +10,77 @@ message PageResponse { int64 total = 1; }
 message NoDataResponse {}
 message Actor { int64 user_id = 1; string username = 2; int64 dept_id = 3; string ip = 4; string user_agent = 5; }
 
+
+// ========== 供应商请求账本与容量治理 ==========
+message UsagePeriod { string from_day = 1; string to_day = 2; string timezone = 3; }
+message UsageGroup {
+  string source = 1; string operation = 2; string provider = 3; string model = 4;
+  int64 confirmed_requests = 5;
+  int64 reserved_requests = 6;
+  int64 not_sent_requests = 7;
+  int64 uncertain_requests = 8;
+  int64 succeeded_requests = 9;
+  int64 failed_requests = 10;
+  int64 cancelled_requests = 11;
+  int64 complete_requests = 12;
+  int64 partial_requests = 13;
+  int64 unknown_requests = 14;
+  int64 invalid_requests = 15;
+  int64 known_prompt_tokens = 16;
+  int64 known_completion_tokens = 17;
+  int64 known_embedding_tokens = 18;
+  int64 known_total_tokens = 19;
+}
+message UsageSummaryInfo {
+  UsagePeriod period = 1; int64 recording_started_at = 2;
+  int64 confirmed_requests = 3;
+  int64 reserved_requests = 4;
+  int64 not_sent_requests = 5;
+  int64 uncertain_requests = 6;
+  int64 succeeded_requests = 7;
+  int64 failed_requests = 8;
+  int64 cancelled_requests = 9;
+  int64 complete_requests = 10;
+  int64 partial_requests = 11;
+  int64 unknown_requests = 12;
+  int64 invalid_requests = 13;
+  int64 known_prompt_tokens = 14;
+  int64 known_completion_tokens = 15;
+  int64 known_embedding_tokens = 16;
+  int64 known_total_tokens = 17;
+  repeated UsageGroup groups = 18;
+}
+message UsageQueryRequest {
+  Actor actor = 1; int64 user_id = 2; string from_day = 3; string to_day = 4;
+  string source = 5; string operation = 6; string provider = 7; string model = 8;
+  string status = 9; string usage_state = 10; PageRequest page = 11;
+}
+message UsageSummaryResponse { UsageSummaryInfo summary = 1; }
+message UsageCallInfo {
+  int64 id = 1; string attempt_id = 2; int64 owner_id = 3; string source = 4; string operation = 5;
+  string request_id = 6; int64 source_id = 7; int64 step_index = 8; int64 batch_index = 9;
+  string provider = 10; string model = 11; string quota_day = 12; bool quota_charged = 13;
+  bool dispatch_confirmed = 14; string status = 15; string usage_state = 16;
+  optional int64 prompt_tokens = 17; optional int64 completion_tokens = 18; optional int64 total_tokens = 19;
+  int64 http_status = 20; string provider_request_id = 21; string error_code = 22;
+  int64 started_at = 23; int64 dispatched_at = 24; int64 completed_at = 25;
+}
+message ListUsageCallsResponse { repeated UsageCallInfo list = 1; PageResponse page = 2; }
+message UsagePolicyInfo {
+  int64 owner_id = 1; string quota_day = 2; int64 daily_request_limit = 3; int64 used_requests = 4;
+  int64 remaining_requests = 5; bool unlimited = 6; bool inherited = 7; int64 daily_token_warning = 8;
+  int64 known_tokens = 9; bool warning_reached = 10; int64 incomplete_requests = 11; int64 version = 12;
+  int64 global_concurrent_limit = 13; int64 active_calls = 14; bool active_known = 15;
+}
+message UsagePolicyRequest { Actor actor = 1; int64 user_id = 2; }
+message UsagePolicyResponse { UsagePolicyInfo policy = 1; }
+message ListUsagePoliciesResponse { repeated UsagePolicyInfo list = 1; PageResponse page = 2; }
+message SetUsagePolicyRequest {
+  Actor actor = 1; int64 user_id = 2; optional int64 expected_version = 3;
+  optional int64 daily_request_limit = 4; optional int64 daily_token_warning = 5;
+  optional int64 global_concurrent_limit = 6; bool inherit_default = 7;
+}
+
 // ========== 会话与消息（阶段 1） ==========
 message ChatMessage {
   int64 id = 1; string role = 2; string content = 3; string tool_calls = 4; int64 tokens = 5; int64 created_at = 6;
@@ -67,6 +138,7 @@ message WorkflowInfo {
   int64 id = 1; string name = 2; string definition = 3; int64 interval_seconds = 4;
   int64 enabled = 5; int64 next_run_at = 6; int64 created_by = 7; int64 created_at = 8; int64 updated_at = 9;
   int64 step_count = 10;
+  int64 revision = 11;
 }
 
 // definition JSON DSL：{"steps":[{"name":"","tool":"","input":{},"approval":true}]}
@@ -76,7 +148,16 @@ message ListWorkflowsRequest { Actor actor = 1; PageRequest page = 2; string que
 message ListWorkflowsResponse { repeated WorkflowInfo list = 1; PageResponse page = 2; }
 message GetWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; }
 message GetWorkflowResponse { WorkflowInfo workflow = 1; }
-message UpdateWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; optional string name = 3; optional string definition = 4; optional int64 interval_seconds = 5; optional int64 enabled = 6; }
+message UpdateWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; optional string name = 3; optional string definition = 4; optional int64 interval_seconds = 5; optional int64 enabled = 6; int64 expected_revision = 7; }
+message WorkflowRevisionInfo {
+  int64 id = 1; int64 workflow_id = 2; int64 revision = 3; string name = 4; string definition = 5;
+  int64 interval_seconds = 6; int64 enabled = 7; int64 step_count = 8; int64 created_at = 9;
+}
+message ListWorkflowRevisionsRequest { Actor actor = 1; int64 workflow_id = 2; PageRequest page = 3; }
+message ListWorkflowRevisionsResponse { repeated WorkflowRevisionInfo list = 1; PageResponse page = 2; }
+message GetWorkflowRevisionRequest { Actor actor = 1; int64 workflow_id = 2; int64 revision = 3; }
+message GetWorkflowRevisionResponse { WorkflowRevisionInfo revision = 1; }
+message RestoreWorkflowRevisionRequest { Actor actor = 1; int64 workflow_id = 2; int64 revision = 3; int64 expected_revision = 4; }
 message DeleteWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; }
 message RunWorkflowRequest { Actor actor = 1; int64 workflow_id = 2; string input = 3; string request_id = 4; }
 message RunWorkflowResponse { int64 task_id = 1; string status = 2; }
@@ -96,6 +177,14 @@ message WorkflowStepInfo {
   int64 index = 1; string id = 2; string name = 3; string tool = 4;
   string input = 5; string status = 6; string output = 7; string error = 8;
   int64 started_at = 9; int64 completed_at = 10;
+  WorkflowStepUsage usage = 11;
+}
+message WorkflowStepUsage {
+  string scope = 1;
+  int64 prompt_tokens = 2;
+  int64 completion_tokens = 3;
+  int64 total_tokens = 4;
+  bool complete = 5;
 }
 message ListAgentTasksRequest { Actor actor = 1; PageRequest page = 2; string status = 3; int64 workflow_id = 4; string query = 5; }
 message ListAgentTasksResponse { repeated AgentTaskInfo list = 1; PageResponse page = 2; }
@@ -158,7 +247,74 @@ message GetKbImportRequest { Actor actor = 1; int64 kb_id = 2; string batch_id =
 message GetKbImportResponse { KbIngestBatchInfo batch = 1; repeated KbIngestJobInfo list = 2; }
 message StopKbImportRequest { Actor actor = 1; int64 kb_id = 2; string batch_id = 3; }
 
+// 分析反馈的目标是实际步骤，step_index 从0开始；快照只由服务端产生。
+message KbFeedbackEvidence { int64 source_index = 1; string quote = 2; }
+message KbFeedbackReview {
+  bool answerable = 1; string expected_answer = 2; repeated string required_facts = 3;
+  repeated KbFeedbackEvidence evidence = 4; string reason = 5;
+}
+message KbFeedbackInfo {
+  int64 id = 1; int64 kb_id = 2; int64 task_id = 3; int64 step_index = 4;
+  string feedback = 5; string note = 6; string status = 7; int64 revision = 8;
+  string question = 9; string answer = 10; string snapshot = 11; KbFeedbackReview review = 12;
+  int64 created_at = 13; int64 updated_at = 14; int64 reviewed_at = 15;
+}
+message SetTaskFeedbackRequest {
+  Actor actor = 1; int64 task_id = 2; int64 step_index = 3; int64 expected_revision = 4;
+  string feedback = 5; string note = 6;
+}
+message KbFeedbackResponse { KbFeedbackInfo feedback = 1; }
+message ListTaskFeedbackRequest { Actor actor = 1; int64 task_id = 2; }
+message ListTaskFeedbackResponse { repeated KbFeedbackInfo list = 1; }
+message ListKbFeedbackRequest { Actor actor = 1; int64 kb_id = 2; PageRequest page = 3; string status = 4; }
+message ListKbFeedbackResponse { repeated KbFeedbackInfo list = 1; PageResponse page = 2; }
+message GetKbFeedbackRequest { Actor actor = 1; int64 kb_id = 2; int64 feedback_id = 3; }
+message ReviewKbFeedbackRequest {
+  Actor actor = 1; int64 kb_id = 2; int64 feedback_id = 3; int64 expected_revision = 4;
+  string status = 5; KbFeedbackReview review = 6;
+}
+
+message KbEvaluationDatasetInfo {
+  string key = 1; string name = 2; string sha256 = 3; string dataset = 4;
+}
+message ListKbEvaluationDatasetsRequest { Actor actor = 1; int64 kb_id = 2; }
+message ListKbEvaluationDatasetsResponse { repeated KbEvaluationDatasetInfo list = 1; }
+message KbEvaluationInfo {
+  int64 id = 1; int64 kb_id = 2; string request_id = 3; string dataset_key = 4; string dataset_sha256 = 5;
+  string group_key = 6; string status = 7; int64 case_count = 8; int64 completed_count = 9; int64 failed_count = 10;
+  bool stop_requested = 11; bool corpus_verified = 12; string error = 13; string snapshot = 14;
+  string bindings = 15; string context = 16; string observations = 17;
+  int64 created_at = 18; int64 updated_at = 19; int64 started_at = 20; int64 completed_at = 21;
+}
+message KbEvaluationResponse { KbEvaluationInfo evaluation = 1; }
+message StartKbEvaluationRequest {
+  Actor actor = 1; int64 kb_id = 2; string request_id = 3; string dataset_key = 4;
+  string dataset_sha256 = 5; string group_key = 6; repeated string case_ids = 7;
+  string dataset_snapshot = 8;
+}
+message ListKbEvaluationsRequest { Actor actor = 1; int64 kb_id = 2; PageRequest page = 3; string status = 4; string request_id = 5; }
+message ListKbEvaluationsResponse { repeated KbEvaluationInfo list = 1; PageResponse page = 2; }
+message GetKbEvaluationRequest { Actor actor = 1; int64 kb_id = 2; int64 evaluation_id = 3; }
+message StopKbEvaluationRequest { Actor actor = 1; int64 kb_id = 2; int64 evaluation_id = 3; }
+
 service AiService {
+  rpc GetUsageSummary(UsageQueryRequest) returns (UsageSummaryResponse);
+  rpc ListUsageCalls(UsageQueryRequest) returns (ListUsageCallsResponse);
+  rpc GetUsagePolicy(UsagePolicyRequest) returns (UsagePolicyResponse);
+  rpc AdminGetUsageSummary(UsageQueryRequest) returns (UsageSummaryResponse);
+  rpc AdminListUsageCalls(UsageQueryRequest) returns (ListUsageCallsResponse);
+  rpc AdminListUsagePolicies(UsageQueryRequest) returns (ListUsagePoliciesResponse);
+  rpc AdminSetUsagePolicy(SetUsagePolicyRequest) returns (UsagePolicyResponse);
+  rpc ListKbEvaluationDatasets(ListKbEvaluationDatasetsRequest) returns (ListKbEvaluationDatasetsResponse);
+  rpc StartKbEvaluation(StartKbEvaluationRequest) returns (KbEvaluationResponse);
+  rpc ListKbEvaluations(ListKbEvaluationsRequest) returns (ListKbEvaluationsResponse);
+  rpc GetKbEvaluation(GetKbEvaluationRequest) returns (KbEvaluationResponse);
+  rpc StopKbEvaluation(StopKbEvaluationRequest) returns (KbEvaluationResponse);
+  rpc SetTaskFeedback(SetTaskFeedbackRequest) returns (KbFeedbackResponse);
+  rpc ListTaskFeedback(ListTaskFeedbackRequest) returns (ListTaskFeedbackResponse);
+  rpc ListKbFeedback(ListKbFeedbackRequest) returns (ListKbFeedbackResponse);
+  rpc GetKbFeedback(GetKbFeedbackRequest) returns (KbFeedbackResponse);
+  rpc ReviewKbFeedback(ReviewKbFeedbackRequest) returns (KbFeedbackResponse);
   rpc CreateConversation(CreateConversationRequest) returns (CreateConversationResponse);
   rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse);
   rpc GetConversation(GetConversationRequest) returns (GetConversationResponse);
@@ -171,7 +327,10 @@ service AiService {
   rpc CreateWorkflow(CreateWorkflowRequest) returns (CreateWorkflowResponse);
   rpc ListWorkflows(ListWorkflowsRequest) returns (ListWorkflowsResponse);
   rpc GetWorkflow(GetWorkflowRequest) returns (GetWorkflowResponse);
-  rpc UpdateWorkflow(UpdateWorkflowRequest) returns (NoDataResponse);
+  rpc UpdateWorkflow(UpdateWorkflowRequest) returns (GetWorkflowResponse);
+  rpc ListWorkflowRevisions(ListWorkflowRevisionsRequest) returns (ListWorkflowRevisionsResponse);
+  rpc GetWorkflowRevision(GetWorkflowRevisionRequest) returns (GetWorkflowRevisionResponse);
+  rpc RestoreWorkflowRevision(RestoreWorkflowRevisionRequest) returns (GetWorkflowResponse);
   rpc DeleteWorkflow(DeleteWorkflowRequest) returns (NoDataResponse);
   rpc RunWorkflow(RunWorkflowRequest) returns (RunWorkflowResponse);
   rpc RunDraft(RunDraftRequest) returns (RunWorkflowResponse);

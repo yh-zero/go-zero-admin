@@ -7,8 +7,10 @@ import { validateHits, openReport } from './eval-kb-recall.mjs';
 import { normalized, evaluateRetrieval, screenAnswer, summarize, validateAnalysis } from './eval-kb-quality-metrics.mjs';
 import { readRecords, parseRecords, renderReport, compareRuns, renderComparison, rescoreRecords } from './eval-kb-quality-report.mjs';
 import { validateContext } from './eval-kb-quality-context.mjs';
+import { decodeCustomDataset, parseCustomDataset } from './kb-custom-dataset.mjs';
 
 export { openReport, evaluateRetrieval, screenAnswer, summarize, readRecords, renderReport, compareRuns, rescoreRecords, validateContext };
+export { listDocuments, inventoryOf, readBoundDocument };
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const defaultCases = resolve(repositoryRoot, 'ai_document/ai-rag/quality-cases.json');
 const positiveID = value => Number.isSafeInteger(value) && value > 0;
@@ -24,15 +26,28 @@ async function readJSON(filename, label) {
 }
 
 export async function loadDataset(filename = defaultCases) {
-  const dataset = await readJSON(filename, '题集');
+  let rawBytes, dataset;
+  try { rawBytes = await readFile(filename); dataset = JSON.parse(rawBytes.toString('utf8')); }
+  catch { throw new Error('题集不可读或不是有效JSON'); }
+  // 仅新的内联冻结格式走严格自定义规则，已有文件素材加载保持原语义。
+  if (Array.isArray(dataset?.documents) && dataset.documents.some(doc => doc && (Object.hasOwn(doc, 'content') || typeof doc.source === 'string' && doc.source.startsWith('inline:')))) return parseCustomDataset(decodeCustomDataset(rawBytes));
   if (dataset.version !== 1 || !Array.isArray(dataset.documents) || !dataset.documents.length || !Array.isArray(dataset.cases) || !dataset.cases.length || dataset.cases.length > 100) throw new Error('题集结构或数量无效');
   const sourceRoot = await realpath(resolve(repositoryRoot, 'ai_document/ai-rag')), documents = new Map();
   for (const doc of dataset.documents) {
     if (!doc || typeof doc.key !== 'string' || !doc.key || documents.has(doc.key) || typeof doc.kb !== 'string' || !doc.kb || typeof doc.title !== 'string' || !doc.title.trim()
       || typeof doc.source !== 'string' || isAbsolute(doc.source) || !/^[a-f0-9]{64}$/.test(doc.sha256)) throw new Error('素材字段无效或重复');
     let bytes;
-    try { const path = await realpath(resolve(repositoryRoot, doc.source)); if (!within(sourceRoot, path)) throw new Error('outside'); bytes = await readFile(path); }
-    catch { throw new Error(`素材不可读或越界：${doc.key}`); }
+    const inline = doc.source === `inline:${doc.key}`;
+    if (doc.content !== undefined || inline) {
+      if (!inline || typeof doc.content !== 'string' || !doc.content.isWellFormed() || !doc.content.trim()
+        || !positiveID(doc.source_doc_id) || !positiveID(doc.source_doc_version)) throw new Error(`内联素材字段无效：${doc.key}`);
+      bytes = Buffer.from(doc.content, 'utf8');
+    } else {
+      if ((doc.source_doc_id !== undefined || doc.source_doc_version !== undefined)
+        && (!positiveID(doc.source_doc_id) || !positiveID(doc.source_doc_version))) throw new Error(`素材绑定ID或版本无效：${doc.key}`);
+      try { const path = await realpath(resolve(repositoryRoot, doc.source)); if (!within(sourceRoot, path)) throw new Error('outside'); bytes = await readFile(path); }
+      catch { throw new Error(`素材不可读或越界：${doc.key}`); }
+    }
     if (hash(bytes) !== doc.sha256) throw new Error(`素材SHA256不一致：${doc.key}`);
     let content; try { content = new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch { throw new Error(`素材不是UTF-8：${doc.key}`); }
     documents.set(doc.key, { ...doc, content });
@@ -143,10 +158,19 @@ function inventoryOf(byKb) {
     .sort((a, b) => a.kb.localeCompare(b.kb) || a.id - b.id);
 }
 async function readBoundDocument(source, listed, client) {
+  if (source.source_doc_id !== undefined && (source.source_doc_id !== listed.id || source.source_doc_version !== listed.version)) throw new Error(`冻结文档ID或版本不一致：${source.key}`);
   const response = await client(`/kbs/${listed.kb_id}/docs/${listed.id}`), doc = response.doc;
   if (!doc || doc.id !== listed.id || doc.kb_id !== listed.kb_id || doc.title !== source.title || doc.status !== 'ready' || doc.version !== listed.version || !positiveID(doc.version)
     || !doc.embedding_model || doc.embedding_model !== listed.embedding_model || typeof response.content !== 'string' || hash(response.content) !== source.sha256) throw new Error(`语料正文SHA256、ready、版本或模型不一致/变化：${source.key}`);
-  return { ...source, doc_id: doc.id, kb_id: doc.kb_id, version: doc.version, status: doc.status, embedding_model: doc.embedding_model, content_sha256: hash(response.content) };
+  const binding = { ...source, doc_id: doc.id, kb_id: doc.kb_id, version: doc.version, status: doc.status, embedding_model: doc.embedding_model, content_sha256: hash(response.content) };
+  delete binding.content;
+  return binding;
+}
+
+export function matchSourceDocuments(source, rows) {
+  return rows.filter(doc => doc.title === source.title
+    && (source.source_doc_id === undefined || doc.id === source.source_doc_id)
+    && (source.source_doc_version === undefined || doc.version === source.source_doc_version));
 }
 
 export function parseAnalysis(task) {
@@ -162,7 +186,7 @@ export async function runEvaluation({ dataset, kbMap, client, onProgress = async
   if (kbKeys.some(key => !positiveID(kbMap[key])) || new Set(kbKeys.map(key => kbMap[key])).size !== kbKeys.length) throw new Error('知识库映射缺失、无效或重复');
   const knownByKb = await listDocuments(kbMap, kbKeys, client), inventory = inventoryOf(knownByKb), bindings = new Map();
   for (const source of dataset.documents.filter(doc => kbKeys.includes(doc.kb))) {
-    const matches = [...knownByKb.get(source.kb).values()].filter(doc => doc.title === source.title);
+    const matches = matchSourceDocuments(source, [...knownByKb.get(source.kb).values()]);
     if (matches.length !== 1) throw new Error(`文档标题不唯一或缺失：${source.key}`);
     bindings.set(source.key, await readBoundDocument(source, matches[0], client));
   }

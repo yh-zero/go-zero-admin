@@ -20,3 +20,5 @@ Tenant:
   NginxConfDir: docker/nginx/conf.d         # Nginx server 块输出目录
   EdgeNetwork: gozero-edge                  # 共享 docker 网络
   DomainSuffix: localhost                   # 子域名后缀（本地 *.localhost，生产 *.example.com）
+  # 宿主运行 tenant-rpc 时，填写实际 Nginx edge 网络地址；平台 API 的信任范围独立。
+  TrustedProxies: ["172.21.0.2/32"]

@@ -1,0 +1,637 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - link "Skip to content" [ref=e4] [cursor=pointer]:
+      - /url: "#start-of-content"
+    - banner [ref=e9]:
+      - heading "Navigation Menu" [level=2] [ref=e10]
+      - generic [ref=e11]:
+        - link "Homepage" [ref=e14] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e17]:
+          - navigation "Global" [ref=e18]:
+            - list [ref=e19]:
+              - listitem [ref=e20]:
+                - button "Products" [ref=e22] [cursor=pointer]
+              - listitem [ref=e25]:
+                - button "Developers" [ref=e27] [cursor=pointer]
+              - listitem [ref=e30]:
+                - button "Businesses" [ref=e32] [cursor=pointer]
+              - listitem [ref=e35]:
+                - button "Resources" [ref=e37] [cursor=pointer]
+              - listitem [ref=e40]:
+                - link "Pricing" [ref=e41] [cursor=pointer]:
+                  - /url: https://github.com/pricing
+          - generic [ref=e42]:
+            - button "Search or jump to, type / to search" [ref=e44] [cursor=pointer]
+            - generic [ref=e50]:
+              - link "Sign in" [ref=e52] [cursor=pointer]:
+                - /url: /login?return_to=https%3A%2F%2Fgithub.com%2Fyh-zero%2Fgo-zero-admin
+              - link "Sign up" [ref=e55] [cursor=pointer]:
+                - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E&source=header-repo&source_repo=yh-zero%2Fgo-zero-admin
+              - button "Appearance settings" [ref=e58] [cursor=pointer]
+  - main [ref=e65]:
+    - generic "Global navigation menu" [ref=e68]:
+      - navigation "Breadcrumbs" [ref=e71]:
+        - list [ref=e72]:
+          - listitem [ref=e73]:
+            - link "yh-zero" [ref=e74] [cursor=pointer]:
+              - /url: /yh-zero
+          - listitem [ref=e76]:
+            - link "go-zero-admin" [ref=e77] [cursor=pointer]:
+              - /url: /yh-zero/go-zero-admin
+      - heading "Repository navigation" [level=2] [ref=e80]
+      - navigation "Repository" [ref=e81]:
+        - list [ref=e82]:
+          - listitem [ref=e83]:
+            - link "Code" [ref=e84] [cursor=pointer]:
+              - /url: /yh-zero/go-zero-admin
+          - listitem [ref=e89]:
+            - link "Issues" [ref=e90] [cursor=pointer]:
+              - /url: /yh-zero/go-zero-admin/issues
+          - listitem [ref=e96]:
+            - link "Pull requests" [ref=e97] [cursor=pointer]:
+              - /url: /yh-zero/go-zero-admin/pulls
+          - listitem [ref=e102]:
+            - link "Actions" [ref=e103] [cursor=pointer]:
+              - /url: /yh-zero/go-zero-admin/actions
+          - listitem [ref=e108]:
+            - link "Projects" [ref=e109] [cursor=pointer]:
+              - /url: /yh-zero/go-zero-admin/projects
+          - listitem [ref=e114]:
+            - link "Security and quality" [ref=e115] [cursor=pointer]:
+              - /url: /yh-zero/go-zero-admin/security
+          - listitem [ref=e120]:
+            - link "Insights" [ref=e121] [cursor=pointer]:
+              - /url: /yh-zero/go-zero-admin/pulse
+    - generic [ref=e138]:
+      - generic [ref=e142]:
+        - generic [ref=e145]:
+          - img "yh-zero" [ref=e146]
+          - generic "go-zero-admin" [ref=e147]:
+            - strong [ref=e148]:
+              - link "go-zero-admin" [ref=e149] [cursor=pointer]:
+                - /url: /yh-zero/go-zero-admin
+          - generic [ref=e150]: Public
+        - list [ref=e152]:
+          - listitem [ref=e153]:
+            - link "You must be signed in to change notification settings" [ref=e154] [cursor=pointer]:
+              - /url: /login?return_to=%2Fyh-zero%2Fgo-zero-admin
+              - generic [ref=e155]: Notifications
+          - listitem [ref=e157]:
+            - link "You must be signed in to fork a repository" [ref=e158] [cursor=pointer]:
+              - /url: /login?return_to=%2Fyh-zero%2Fgo-zero-admin
+              - generic [ref=e160]:
+                - text: Fork
+                - generic [aria-hidden] [ref=e161]: "19"
+                - generic [ref=e162]: (19)
+          - listitem [ref=e163]:
+            - link "Star (104)" [ref=e164] [cursor=pointer]:
+              - /url: /login?return_to=%2Fyh-zero%2Fgo-zero-admin
+              - generic [ref=e166]:
+                - text: Star
+                - generic [aria-hidden] [ref=e167]: "104"
+                - generic [ref=e168]: (104)
+      - generic [ref=e169]:
+        - generic [ref=e172]:
+          - generic [ref=e173]:
+            - generic [ref=e174]:
+              - button "main branch" [ref=e176] [cursor=pointer]:
+                - generic [ref=e177]: main
+              - generic [ref=e181]:
+                - link "Go to Branches page" [ref=e182] [cursor=pointer]:
+                  - /url: /yh-zero/go-zero-admin/branches
+                - link "Go to Tags page" [ref=e185] [cursor=pointer]:
+                  - /url: /yh-zero/go-zero-admin/tags
+            - generic [ref=e188]:
+              - combobox "Go to file" [ref=e196]
+              - button "Code" [ref=e197] [cursor=pointer]
+          - generic [ref=e200]:
+            - generic [ref=e201]:
+              - generic [ref=e203]:
+                - heading "Latest commit" [level=2] [ref=e204]
+                - generic [ref=e205]:
+                  - generic [ref=e207]:
+                    - link [ref=e208] [cursor=pointer]:
+                      - /url: /yh-zero
+                      - img "yh-zero" [ref=e209]
+                    - link "commits by yh-zero" [ref=e210] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/commits?author=yh-zero
+                      - text: yh-zero
+                  - generic [ref=e211]:
+                    - link "Update README.md" [ref=e214] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/commit/b3f6dbae75aa420fa2f85945b114d6ba7e64bf38
+                    - button "success" [ref=e215] [cursor=pointer]
+                - generic [ref=e218]:
+                  - generic [ref=e220]:
+                    - link "Commit b3f6dba" [ref=e221] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/commit/b3f6dbae75aa420fa2f85945b114d6ba7e64bf38
+                      - text: b3f6dba
+                    - text: ·
+                    - generic "Nov 4, 2026, 17:19 GMT+8" [ref=e222]: Nov 4, 20263 days ago
+                  - generic [ref=e223]:
+                    - heading "History" [level=2] [ref=e224]
+                    - link "116 Commits" [ref=e225] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/commits/main/
+              - heading "Folders and files" [level=2] [ref=e228]
+              - table "Folders and files" [ref=e230]:
+                - rowgroup:
+                  - row "Name Last commit message Last commit date":
+                    - columnheader "Name"
+                    - columnheader "Last commit message"
+                    - columnheader "Last commit date"
+                - rowgroup [ref=e231]:
+                  - row [ref=e232]:
+                    - cell [ref=e233]:
+                      - link ".github/workflows, (Directory)" [ref=e240] [cursor=pointer]:
+                        - /url: /yh-zero/go-zero-admin/tree/main/.github/workflows
+                        - text: .github/workflows
+                    - cell [ref=e241]:
+                      - 'link "chore: 添加前后端自动检查工作流" [ref=e244] [cursor=pointer]':
+                        - /url: /yh-zero/go-zero-admin/commit/9c77e0ebe1e1bac33c95062888311e5e7b4d319f
+                    - cell "Nov 2, 20265 days ago" [ref=e245]
+                  - row [ref=e247]:
+                    - cell [ref=e248]:
+                      - link "ai_document, (Directory)" [ref=e255] [cursor=pointer]:
+                        - /url: /yh-zero/go-zero-admin/tree/main/ai_document
+                        - text: ai_document
+                    - cell [ref=e256]:
+                      - 'link "chore: 全面备份：接入go-zero ai前" [ref=e259] [cursor=pointer]':
+                        - /url: /yh-zero/go-zero-admin/commit/592d18884d87280ebe8941b51608aa504c7a7d6a
+                    - cell "Nov 3, 20264 days ago" [ref=e260]
+                  - row [ref=e262]:
+                    - cell [ref=e263]:
+                      - link "go-zero-admin-react, (Directory)" [ref=e270] [cursor=pointer]:
+                        - /url: /yh-zero/go-zero-admin/tree/main/go-zero-admin-react
+                        - text: go-zero-admin-react
+                    - cell [ref=e271]:
+                      - 'link "chore: 全面备份：接入go-zero ai前" [ref=e274] [cursor=pointer]':
+                        - /url: /yh-zero/go-zero-admin/commit/592d18884d87280ebe8941b51608aa504c7a7d6a
+                    - cell "Nov 3, 20264 days ago" [ref=e275]
+                  - row [ref=e277]:
+                    - cell [ref=e278]:
+                      - link "go-zero-admin, (Directory)" [ref=e285] [cursor=pointer]:
+                        - /url: /yh-zero/go-zero-admin/tree/main/go-zero-admin
+                        - text: go-zero-admin
+                    - cell [ref=e286]:
+                      - 'link "chore: 全面备份：接入go-zero ai前" [ref=e289] [cursor=pointer]':
+                        - /url: /yh-zero/go-zero-admin/commit/592d18884d87280ebe8941b51608aa504c7a7d6a
+                    - cell "Nov 3, 20264 days ago" [ref=e290]
+                  - row [ref=e292]:
+                    - cell [ref=e293]:
+                      - link ".gitignore, (File)" [ref=e300] [cursor=pointer]:
+                        - /url: /yh-zero/go-zero-admin/blob/main/.gitignore
+                        - text: .gitignore
+                    - cell [ref=e301]:
+                      - link "fix:整理规范" [ref=e304] [cursor=pointer]:
+                        - /url: /yh-zero/go-zero-admin/commit/0cc4c164de82f66262616deb21006b312194b47e
+                    - cell "Nov 3, 20265 days ago" [ref=e305]
+                  - row [ref=e307]:
+                    - cell [ref=e308]:
+                      - link "AGENTS.md, (File)" [ref=e315] [cursor=pointer]:
+                        - /url: /yh-zero/go-zero-admin/blob/main/AGENTS.md
+                        - text: AGENTS.md
+                    - cell [ref=e316]:
+                      - 'link "chore: 全面备份：接入go-zero ai前" [ref=e319] [cursor=pointer]':
+                        - /url: /yh-zero/go-zero-admin/commit/592d18884d87280ebe8941b51608aa504c7a7d6a
+                    - cell "Nov 3, 20264 days ago" [ref=e320]
+                  - row [ref=e322]:
+                    - cell [ref=e323]:
+                      - link "README.md, (File)" [ref=e330] [cursor=pointer]:
+                        - /url: /yh-zero/go-zero-admin/blob/main/README.md
+                        - text: README.md
+                    - cell [ref=e331]:
+                      - link "Update README.md" [ref=e334] [cursor=pointer]:
+                        - /url: /yh-zero/go-zero-admin/commit/b3f6dbae75aa420fa2f85945b114d6ba7e64bf38
+                    - cell "Nov 4, 20263 days ago" [ref=e335]
+            - generic [ref=e338]:
+              - generic [ref=e339]:
+                - heading "Repository files navigation" [level=2] [ref=e340]
+                - navigation "Repository files" [ref=e341]:
+                  - list [ref=e342]:
+                    - listitem [ref=e343]:
+                      - link "README" [ref=e344] [cursor=pointer]:
+                        - /url: "#"
+                - button "Outline" [ref=e346] [cursor=pointer]
+              - article [ref=e350]:
+                - generic [ref=e351]:
+                  - heading "右上角求点个star 谢谢大佬们" [level=5] [ref=e352]
+                  - 'link "Permalink: 右上角求点个star 谢谢大佬们" [ref=e353] [cursor=pointer]':
+                    - /url: "#右上角求点个star-谢谢大佬们"
+                - generic [ref=e356]:
+                  - heading "右上角求点个star 谢谢大佬们" [level=4] [ref=e357]
+                  - 'link "Permalink: 右上角求点个star 谢谢大佬们" [ref=e358] [cursor=pointer]':
+                    - /url: "#右上角求点个star-谢谢大佬们-1"
+                - generic [ref=e361]:
+                  - heading "右上角求点个star 谢谢大佬们" [level=3] [ref=e362]
+                  - 'link "Permalink: 右上角求点个star 谢谢大佬们" [ref=e363] [cursor=pointer]':
+                    - /url: "#右上角求点个star-谢谢大佬们-2"
+                - generic [ref=e366]:
+                  - heading "go-zero-admin" [level=1] [ref=e367]
+                  - 'link "Permalink: go-zero-admin" [ref=e368] [cursor=pointer]':
+                    - /url: "#go-zero-admin"
+                - paragraph [ref=e371]:
+                  - link [ref=e372] [cursor=pointer]:
+                    - /url: https://github.com/yh-zero/go-zero-admin/actions/workflows/ci.yml
+                    - img "CI" [ref=e373]
+                - paragraph [ref=e374]:
+                  - text: 基于
+                  - strong [ref=e375]: go-zero + React
+                  - text: 的管理后台，包含权限、部门、文件、审计和 APP 用户管理，适合作为业务系统的开发起点。
+                - paragraph [ref=e376]:
+                  - text: 后端采用
+                  - strong [ref=e377]: 1 个 HTTP API + 5 个 RPC 服务
+                  - text: （admin / app / file / ai / tenant），前端采用 React 19、TypeScript 和 Ant Design 6。
+                - paragraph [ref=e378]:
+                  - text: CI 在推送代码、提交 PR 或手动触发时，自动执行后端
+                  - code [ref=e379]: verify.ps1
+                  - text: 、前端类型检查与构建；结果见上方状态标识或仓库 Actions 页面。
+                - generic [ref=e380]:
+                  - heading "功能" [level=2] [ref=e381]
+                  - 'link "Permalink: 功能" [ref=e382] [cursor=pointer]':
+                    - /url: "#功能"
+                - table [ref=e386]:
+                  - rowgroup [ref=e387]:
+                    - row [ref=e388]:
+                      - columnheader "模块" [ref=e389]
+                      - columnheader "功能" [ref=e390]
+                  - rowgroup [ref=e391]:
+                    - row [ref=e392]:
+                      - cell "工作台" [ref=e393]
+                      - cell "当前部门与授权范围内的统计、最近操作和常用入口" [ref=e394]
+                    - row [ref=e395]:
+                      - cell "系统管理" [ref=e396]
+                      - cell "用户、角色、菜单、部门、字典、API 资源、文件、审计和个人中心" [ref=e397]
+                    - row [ref=e398]:
+                      - cell "权限控制" [ref=e399]
+                      - cell "JWT、Casbin、部门身份和数据范围；页面入口与操作权限分开授权" [ref=e400]
+                    - row [ref=e401]:
+                      - cell "APP管理" [ref=e402]
+                      - cell "用户资料与审核、头像、登录设备、会员开通/撤销和反馈回复" [ref=e403]
+                    - row [ref=e404]:
+                      - cell "租户管理" [ref=e405]
+                      - cell "与 APP 管理同级的导航，支持列表、状态筛选和只读详情" [ref=e406]
+                    - row [ref=e407]:
+                      - cell "AI / 租户接口" [ref=e408]
+                      - cell "AI 会话、工作流、任务审批，以及租户生命周期 HTTP/RPC 接口" [ref=e409]
+                - paragraph [ref=e410]: APP 端另有独立的认证、资料、会员和反馈接口。租户运行栈需另行创建和配置；初始化库不附带虚构的运行栈或租户凭据。
+                - generic [ref=e411]:
+                  - heading "快速开始" [level=2] [ref=e412]
+                  - 'link "Permalink: 快速开始" [ref=e413] [cursor=pointer]':
+                    - /url: "#快速开始"
+                - paragraph [ref=e416]:
+                  - text: 准备
+                  - strong [ref=e417]: Go 1.27.3、PowerShell、Docker（Linux 容器）及 Compose、Node.js 24、pnpm 11.28.5
+                  - text: 。
+                - paragraph [ref=e418]: 在仓库根目录打开 PowerShell，启动后端：
+                - generic [ref=e419]:
+                  - generic [ref=e420]:
+                    - text: "cd go-zero-admin if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .env.local }"
+                    - generic [ref=e421]: "# 按需编辑 .env.local，填写 AI Key 或 SMTP 邮箱及授权码"
+                    - text: powershell -NoProfile -ExecutionPolicy Bypass -File .\data\scripts\build-images.ps1 docker compose --env-file .env.local up -d --build --wait
+                  - button "Copy code to clipboard" [ref=e423] [cursor=pointer]
+                - paragraph [ref=e427]: Dockerfile 使用宿主机预编译的 Linux 二进制；首次运行或修改后端代码后，先执行构建脚本。基础镜像需可拉取或已缓存。
+                - paragraph [ref=e428]: 另开终端，从仓库根目录启动前端：
+                - generic [ref=e429]:
+                  - generic [ref=e430]: cd go-zero-admin-react pnpm install --frozen-lockfile pnpm dev
+                  - button "Copy code to clipboard" [ref=e432] [cursor=pointer]
+                - paragraph [ref=e436]:
+                  - text: 访问
+                  - link "http://127.0.0.1:5999" [ref=e437] [cursor=pointer]:
+                    - /url: http://127.0.0.1:5999
+                  - text: ，演示管理员：
+                  - code [ref=e438]: admin / Admin@123456
+                  - text: 。默认开启图片验证码，前端请求代理到 API 的
+                  - code [ref=e439]: "7001"
+                  - text: 端口。
+                - paragraph [ref=e440]:
+                  - text: 权限演示账号：
+                  - code [ref=e441]: demo_all
+                  - text: 、
+                  - code [ref=e442]: demo_tree
+                  - text: 、
+                  - code [ref=e443]: demo_dept
+                  - text: 、
+                  - code [ref=e444]: demo_self
+                  - text: ，分别查看全部、本部门及下级、本部门、本人数据，密码同上；
+                  - code [ref=e445]: demo_tree
+                  - text: 可切换部门比较范围。APP 示例账号为
+                  - code [ref=e446]: alice@example.test
+                  - text: ，密码同上。演示凭据仅限本地开发。
+                - list [ref=e447]:
+                  - listitem [ref=e448]:
+                    - strong [ref=e449]: 初始化数据
+                    - text: ：
+                    - link "mysql-all.sql" [ref=e450] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/blob/main/go-zero-admin/data/db/init/mysql-all.sql
+                    - text: 包含完整表结构与可公开的演示数据。MySQL 空数据卷首次启动自动导入；已有数据卷不会自动覆盖或更新。
+                  - listitem [ref=e451]:
+                    - strong [ref=e452]: 可选配置
+                    - text: ：AI 和邮件不影响基础后台启动，配置项见
+                    - link ".env.local.example" [ref=e453] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/blob/main/go-zero-admin/.env.local.example
+                    - text: 。本地配置不提交到仓库；历史完整备份见
+                    - link "20261102" [ref=e454] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/blob/main/go-zero-admin/data/db/init/20261102
+                    - text: ，首次初始化仍使用
+                    - code [ref=e455]: mysql-all.sql
+                    - text: 。
+                  - listitem [ref=e456]:
+                    - strong [ref=e457]: 配置位置
+                    - text: ：容器使用
+                    - code [ref=e458]: go-zero-admin/docker/etc/*.yaml
+                    - text: ，宿主运行使用各服务的
+                    - code [ref=e459]: etc/*.yaml
+                    - text: 。验证码开关为 admin-rpc 的
+                    - code [ref=e460]: Captcha.Enabled
+                    - text: 。
+                - paragraph [ref=e461]:
+                  - text: 详细启动、数据库初始化和排障说明见
+                  - link "开发手册" [ref=e462] [cursor=pointer]:
+                    - /url: /yh-zero/go-zero-admin/blob/main/ai_document/dev-guide.md
+                  - text: ，未覆盖的外部联调和异常场景见
+                  - link "剩余事项" [ref=e463] [cursor=pointer]:
+                    - /url: /yh-zero/go-zero-admin/blob/main/ai_document/README.md#%E5%90%8E%E7%AB%AF%E5%89%A9%E4%BD%99%E4%BA%8B%E9%A1%B9
+                  - text: 。
+                - generic [ref=e464]:
+                  - heading "界面预览" [level=2] [ref=e465]
+                  - 'link "Permalink: 界面预览" [ref=e466] [cursor=pointer]':
+                    - /url: "#界面预览"
+                - paragraph [ref=e469]: 以下为当前版本重新拍摄的界面。
+                - generic [ref=e470]:
+                  - heading "猫咪登录" [level=3] [ref=e471]
+                  - 'link "Permalink: 猫咪登录" [ref=e472] [cursor=pointer]':
+                    - /url: "#猫咪登录"
+                - paragraph [ref=e475]: Rive 猫咪默认开启互动，支持呼吸、眨眼、鼠标跟随、输入密码时捂眼及登录成功/失败反馈。小屏幕隐藏装饰角色，加载失败时使用静态备用图。
+                - paragraph [ref=e476]:
+                  - generic:
+                    - generic:
+                      - link:
+                        - /url: https://github.com/yh-zero/go-zero-admin/blob/main/ai_document/screenshots/login-cat.gif
+                      - button
+                - generic [ref=e477]:
+                  - heading "工作台" [level=3] [ref=e478]
+                  - 'link "Permalink: 工作台" [ref=e479] [cursor=pointer]':
+                    - /url: "#工作台"
+                - paragraph [ref=e482]:
+                  - link "工作台":
+                    - /url: /yh-zero/go-zero-admin/blob/main/ai_document/screenshots/dashboard.jpg
+                    - img "工作台"
+                - generic [ref=e483]:
+                  - heading "部门管理" [level=3] [ref=e484]
+                  - 'link "Permalink: 部门管理" [ref=e485] [cursor=pointer]':
+                    - /url: "#部门管理"
+                - paragraph [ref=e488]: 组织树、部门概览和直属成员分区展示。
+                - paragraph [ref=e489]:
+                  - link "部门管理":
+                    - /url: /yh-zero/go-zero-admin/blob/main/ai_document/screenshots/departments.jpg
+                    - img "部门管理"
+                - generic [ref=e490]:
+                  - heading "菜单与角色授权" [level=3] [ref=e491]
+                  - 'link "Permalink: 菜单与角色授权" [ref=e492] [cursor=pointer]':
+                    - /url: "#菜单与角色授权"
+                - paragraph [ref=e495]: 菜单树维护目录和页面，操作权限按页面单独管理。
+                - paragraph [ref=e496]:
+                  - link [ref=e497] [cursor=pointer]:
+                    - /url: /yh-zero/go-zero-admin/blob/main/ai_document/screenshots/menus.jpg
+                    - img "菜单管理" [ref=e498]
+                - paragraph [ref=e499]:
+                  - link "角色授权":
+                    - /url: /yh-zero/go-zero-admin/blob/main/ai_document/screenshots/roles.jpg
+                    - img "角色授权"
+                - generic [ref=e500]:
+                  - heading "APP管理" [level=3] [ref=e501]
+                  - 'link "Permalink: APP管理" [ref=e502] [cursor=pointer]':
+                    - /url: "#app管理"
+                - paragraph [ref=e505]: 集中维护用户资料、会员、设备和账号状态。
+                - paragraph [ref=e506]:
+                  - link "APP用户":
+                    - /url: /yh-zero/go-zero-admin/blob/main/ai_document/screenshots/app-users.jpg
+                    - img "APP用户"
+                - paragraph [ref=e507]:
+                  - link "APP用户详情":
+                    - /url: /yh-zero/go-zero-admin/blob/main/ai_document/screenshots/app-user-details.jpg
+                    - img "APP用户详情"
+                - generic [ref=e508]:
+                  - heading "租户管理" [level=3] [ref=e509]
+                  - 'link "Permalink: 租户管理" [ref=e510] [cursor=pointer]':
+                    - /url: "#租户管理"
+                - paragraph [ref=e513]: 读取租户状态和详情；全新初始化库的租户列表为空。初始化超级管理员拥有完整菜单，创建、启停等生命周期操作需配置租户运行环境后使用。
+                - paragraph [ref=e514]:
+                  - link "租户管理":
+                    - /url: /yh-zero/go-zero-admin/blob/main/ai_document/screenshots/tenants.jpg
+                    - img "租户管理"
+                - generic [ref=e515]:
+                  - heading "项目结构" [level=2] [ref=e516]
+                  - 'link "Permalink: 项目结构" [ref=e517] [cursor=pointer]':
+                    - /url: "#项目结构"
+                - generic [ref=e520]:
+                  - code [ref=e522]: ├── go-zero-admin/ 后端：application / data / docker / pkg ├── go-zero-admin-react/ React 管理前端 └── ai_document/ 项目文档与截图
+                  - button "Copy code to clipboard" [ref=e524] [cursor=pointer]
+                - paragraph [ref=e528]:
+                  - text: 后端主要使用 go-zero、gRPC、JWT、Casbin、sqlx；前端主要使用 React、Ant Design、TanStack Query、zustand 和 Rive。数据与部署使用 MySQL、Redis、RustFS、Nginx 和 Docker Compose。具体版本以
+                  - link "go.mod" [ref=e529] [cursor=pointer]:
+                    - /url: /yh-zero/go-zero-admin/blob/main/go-zero-admin/go.mod
+                  - text: 、
+                  - link "package.json" [ref=e530] [cursor=pointer]:
+                    - /url: /yh-zero/go-zero-admin/blob/main/go-zero-admin-react/package.json
+                  - text: 和锁文件为准。
+                - generic [ref=e531]:
+                  - heading "开发文档" [level=2] [ref=e532]
+                  - 'link "Permalink: 开发文档" [ref=e533] [cursor=pointer]':
+                    - /url: "#开发文档"
+                - list [ref=e536]:
+                  - listitem [ref=e537]:
+                    - link "开发手册" [ref=e538] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/blob/main/ai_document/dev-guide.md
+                    - text: ：环境、启动、初始化、排障与猫咪动画维护
+                  - listitem [ref=e539]:
+                    - link "API 契约" [ref=e540] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/blob/main/ai_document/api-contract.md
+                    - text: ：当前字段、权限、业务语义和能力边界；未完成事项见
+                    - link "问题清单" [ref=e541] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/blob/main/ai_document/README.md#%E5%90%8E%E7%AB%AF%E5%89%A9%E4%BD%99%E4%BA%8B%E9%A1%B9
+                  - listitem [ref=e542]:
+                    - link "架构规划" [ref=e543] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/blob/main/ai_document/refactor-plan.md
+                    - text: ：架构与后续方向
+                  - listitem [ref=e544]:
+                    - link "前端说明" [ref=e545] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/blob/main/go-zero-admin-react/README.md
+                    - text: ：页面、命令与对接约定
+                  - listitem [ref=e546]:
+                    - link "开发规范" [ref=e547] [cursor=pointer]:
+                      - /url: /yh-zero/go-zero-admin/blob/main/AGENTS.md
+                    - text: ：通用规则及前后端规范入口
+        - generic [ref=e550]:
+          - generic [ref=e551]:
+            - heading "About" [level=2] [ref=e552]
+            - paragraph [ref=e553]: 基于 go-zero + React 19 + Ant Design 6 的开源全栈微服务管理后台，采用单仓库、1 API + 5 RPC 架构。支持 RBAC + Casbin 接口权限与部门级数据范围、每租户独立容器栈与数据库、Nginx 子域名路由；集成 Eino AI Agent、工具调用与人工审批工作流。采用 goctl 代码生成和缓存 Model 数据层，提供完整初始化数据，适合作为企业管理后台与 SaaS 项目的开发起点。
+            - heading "Topics" [level=3] [ref=e554]
+            - generic [ref=e555]:
+              - link "admin-dashboard" [ref=e556] [cursor=pointer]:
+                - /url: /topics/admin-dashboard
+              - link "ai-agents" [ref=e557] [cursor=pointer]:
+                - /url: /topics/ai-agents
+              - link "ant-design" [ref=e558] [cursor=pointer]:
+                - /url: /topics/ant-design
+              - link "casbin" [ref=e559] [cursor=pointer]:
+                - /url: /topics/casbin
+              - link "eino" [ref=e560] [cursor=pointer]:
+                - /url: /topics/eino
+              - link "go" [ref=e561] [cursor=pointer]:
+                - /url: /topics/go
+              - link "go-zero" [ref=e562] [cursor=pointer]:
+                - /url: /topics/go-zero
+              - link "go-zero-admin" [ref=e563] [cursor=pointer]:
+                - /url: /topics/go-zero-admin
+              - link "goctl" [ref=e564] [cursor=pointer]:
+                - /url: /topics/goctl
+              - link "jwt" [ref=e565] [cursor=pointer]:
+                - /url: /topics/jwt
+              - link "microservices" [ref=e566] [cursor=pointer]:
+                - /url: /topics/microservices
+              - link "multi-tenant" [ref=e567] [cursor=pointer]:
+                - /url: /topics/multi-tenant
+              - link "mysql" [ref=e568] [cursor=pointer]:
+                - /url: /topics/mysql
+              - link "permission-management" [ref=e569] [cursor=pointer]:
+                - /url: /topics/permission-management
+              - link "rbac" [ref=e570] [cursor=pointer]:
+                - /url: /topics/rbac
+              - link "react" [ref=e571] [cursor=pointer]:
+                - /url: /topics/react
+              - link "redis" [ref=e572] [cursor=pointer]:
+                - /url: /topics/redis
+              - link "saas" [ref=e573] [cursor=pointer]:
+                - /url: /topics/saas
+              - link "typescript" [ref=e574] [cursor=pointer]:
+                - /url: /topics/typescript
+              - link "workflow" [ref=e575] [cursor=pointer]:
+                - /url: /topics/workflow
+            - heading "Resources" [level=3] [ref=e576]
+            - link "Readme" [ref=e578] [cursor=pointer]:
+              - /url: "#readme-ov-file"
+            - generic [ref=e581]:
+              - link "Activity" [ref=e584] [cursor=pointer]:
+                - /url: /yh-zero/go-zero-admin/activity
+              - generic [ref=e587]:
+                - heading "Stars" [level=3] [ref=e588]
+                - generic [ref=e590]:
+                  - strong [ref=e593]: "104"
+                  - text: stars
+                - heading "Watchers" [level=3] [ref=e594]
+                - generic [ref=e596]:
+                  - strong [ref=e599]: "1"
+                  - text: watching
+                - heading "Forks" [level=3] [ref=e600]
+                - link [ref=e602] [cursor=pointer]:
+                  - /url: /yh-zero/go-zero-admin/forks
+                  - strong [ref=e606]: "19"
+                  - text: forks
+            - link "Report repository" [ref=e608] [cursor=pointer]:
+              - /url: /contact/report-content?content_url=https%3A%2F%2Fgithub.com%2Fyh-zero%2Fgo-zero-admin&report=yh-zero+%28user%29
+          - generic [ref=e609]:
+            - heading [level=2] [ref=e610]:
+              - link "Releases" [ref=e612] [cursor=pointer]:
+                - /url: /yh-zero/go-zero-admin/releases
+            - generic [ref=e613]: No releases published
+          - generic [ref=e614]:
+            - heading "Contributors (2)" [level=2] [ref=e615]:
+              - generic [ref=e616]:
+                - link "Contributors" [ref=e617] [cursor=pointer]:
+                  - /url: /yh-zero/go-zero-admin/graphs/contributors
+                - generic [aria-hidden] [ref=e618]: "2"
+                - generic [ref=e619]: (2)
+            - list [ref=e620]:
+              - listitem [ref=e621]:
+                - link [ref=e622] [cursor=pointer]:
+                  - /url: /yh-zero
+                  - img "@yh-zero" [ref=e623]
+                - generic "yh-zero yang hao" [ref=e624]:
+                  - link [ref=e625] [cursor=pointer]:
+                    - /url: /yh-zero
+                    - strong [ref=e626]: yh-zero
+                    - text: yang hao
+              - listitem [ref=e627]:
+                - link [ref=e628] [cursor=pointer]:
+                  - /url: /wenl125539
+                  - img "@wenl125539" [ref=e629]
+                - generic "wenl125539" [ref=e630]:
+                  - link [ref=e631] [cursor=pointer]:
+                    - /url: /wenl125539
+                    - strong [ref=e632]: wenl125539
+          - generic [ref=e633]:
+            - heading "Languages" [level=2] [ref=e634]
+            - generic [ref=e636]:
+              - 'progressbar "Go: 59.5%" [ref=e637]'
+              - 'progressbar "TypeScript: 30.7%" [ref=e638]'
+              - 'progressbar "CSS: 5.2%" [ref=e639]'
+              - 'progressbar "PowerShell: 2.5%" [ref=e640]'
+              - 'progressbar "JavaScript: 1.9%" [ref=e641]'
+              - 'progressbar "Dockerfile: 0.2%" [ref=e642]'
+            - list [ref=e643]:
+              - listitem [ref=e644]:
+                - link "Go 59.5%" [ref=e645] [cursor=pointer]:
+                  - /url: /yh-zero/go-zero-admin/search?l=go
+                  - generic [ref=e647]: Go
+                  - generic [ref=e648]: 59.5%
+              - listitem [ref=e649]:
+                - link "TypeScript 30.7%" [ref=e650] [cursor=pointer]:
+                  - /url: /yh-zero/go-zero-admin/search?l=typescript
+                  - generic [ref=e652]: TypeScript
+                  - generic [ref=e653]: 30.7%
+              - listitem [ref=e654]:
+                - link "CSS 5.2%" [ref=e655] [cursor=pointer]:
+                  - /url: /yh-zero/go-zero-admin/search?l=css
+                  - generic [ref=e657]: CSS
+                  - generic [ref=e658]: 5.2%
+              - listitem [ref=e659]:
+                - link "PowerShell 2.5%" [ref=e660] [cursor=pointer]:
+                  - /url: /yh-zero/go-zero-admin/search?l=powershell
+                  - generic [ref=e662]: PowerShell
+                  - generic [ref=e663]: 2.5%
+              - listitem [ref=e664]:
+                - link "JavaScript 1.9%" [ref=e665] [cursor=pointer]:
+                  - /url: /yh-zero/go-zero-admin/search?l=javascript
+                  - generic [ref=e667]: JavaScript
+                  - generic [ref=e668]: 1.9%
+              - listitem [ref=e669]:
+                - link "Dockerfile 0.2%" [ref=e670] [cursor=pointer]:
+                  - /url: /yh-zero/go-zero-admin/search?l=dockerfile
+                  - generic [ref=e672]: Dockerfile
+                  - generic [ref=e673]: 0.2%
+  - contentinfo [ref=e675]:
+    - heading "Footer" [level=2] [ref=e676]
+    - generic [ref=e677]:
+      - generic [ref=e678]:
+        - link "GitHub Homepage" [ref=e679] [cursor=pointer]:
+          - /url: https://github.com
+        - generic [ref=e682]: © 2026 GitHub, Inc.
+      - navigation "Footer" [ref=e683]:
+        - heading "Footer navigation" [level=3] [ref=e684]
+        - list "Footer navigation" [ref=e685]:
+          - listitem [ref=e686]:
+            - link "Terms" [ref=e687] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/github-terms/github-terms-of-service
+          - listitem [ref=e688]:
+            - link "Privacy" [ref=e689] [cursor=pointer]:
+              - /url: https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
+          - listitem [ref=e690]:
+            - link "Security" [ref=e691] [cursor=pointer]:
+              - /url: https://github.com/security
+          - listitem [ref=e692]:
+            - link "Status" [ref=e693] [cursor=pointer]:
+              - /url: https://www.githubstatus.com/
+          - listitem [ref=e694]:
+            - link "Community" [ref=e695] [cursor=pointer]:
+              - /url: https://github.community/
+          - listitem [ref=e696]:
+            - link "Docs" [ref=e697] [cursor=pointer]:
+              - /url: https://docs.github.com/
+          - listitem [ref=e698]:
+            - link "Contact" [ref=e699] [cursor=pointer]:
+              - /url: https://support.github.com?tags=dotcom-footer
+          - listitem [ref=e700]:
+            - button "Manage cookies" [ref=e702] [cursor=pointer]
+          - listitem [ref=e703]:
+            - button "Do not share my personal information" [ref=e705] [cursor=pointer]

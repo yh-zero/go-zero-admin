@@ -57,6 +57,7 @@ func aiIntegrationContext(t *testing.T, handler http.HandlerFunc) (*svc.ServiceC
 	if dsn == "" || redisAddress == "" {
 		t.Skip("未设置隔离 AI 数据库和 Redis，未执行集成验证")
 	}
+	sqlx.DisableLog()
 	conn := sqlx.NewMysql(dsn)
 	rdb, err := redis.NewRedis(redis.RedisConf{Host: redisAddress, Type: "node"})
 	if err != nil {
@@ -196,6 +197,49 @@ func TestAIStreamIntegrationFailureAndDeadlinePersistFailed(t *testing.T) {
 				t.Fatal("失败后消息对必须原子失败且助手正文为空")
 			}
 		})
+	}
+}
+
+func TestAIStreamIntegrationLaterFailureKeepsKnownUsageIncomplete(t *testing.T) {
+	var requests atomic.Int32
+	service, owner := aiIntegrationContext(t, func(w http.ResponseWriter, _ *http.Request) {
+		if requests.Add(1) > 1 {
+			http.Error(w, "local failure", http.StatusServiceUnavailable)
+			return
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		writeModelFrame(t, w, map[string]any{"choices": []any{map[string]any{"index": 0, "delta": map[string]any{"role": "assistant", "tool_calls": []any{map[string]any{"index": 0, "id": "usage-call", "type": "function", "function": map[string]any{"name": "text_stats", "arguments": `{"text":"本地工具"}`}}}}, "finish_reason": "tool_calls"}}, "usage": map[string]any{"prompt_tokens": 10, "completion_tokens": 3, "total_tokens": 13}})
+		fmt.Fprint(w, "data: [DONE]\n\n")
+	})
+	request := &aipb.SendMessageRequest{Actor: &aipb.Actor{UserId: owner}, RequestId: uuid.NewString(), Content: "次轮失败用量"}
+	stream := runAITestStream(t, context.Background(), service, request, nil)
+	pair, err := service.AiMessageModel.FindCall(context.Background(), owner, fmt.Sprintf("%d:%s", owner, request.RequestId))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var record callRecord
+	if json.Unmarshal([]byte(pair.Assistant.ToolCalls), &record) != nil {
+		t.Fatal("失败调用元数据无效")
+	}
+	if stream.last().Type != "error" || requests.Load() != 2 || pair.Assistant.Status != "failed" || pair.Assistant.Content != "" || pair.Assistant.Tokens != 13 || record.UsageComplete {
+		t.Fatalf("未知次轮必须保留13个已知tokens并标不完整: status=%s tokens=%d complete=%v", pair.Assistant.Status, pair.Assistant.Tokens, record.UsageComplete)
+	}
+}
+
+func TestAIStreamIntegrationBrokenFrameKeepsReceivedUsage(t *testing.T) {
+	service, owner := aiIntegrationContext(t, func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprint(w, "data: {\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"PRIVATE_REPLY\"}}]}\n\ndata: {\"choices\":[],\"usage\":{\"prompt_tokens\":10,\"completion_tokens\":5,\"total_tokens\":15}}\n\ndata: {broken-json\n\n")
+	})
+	request := &aipb.SendMessageRequest{Actor: &aipb.Actor{UserId: owner}, RequestId: uuid.NewString(), Content: "坏帧用量"}
+	stream := runAITestStream(t, context.Background(), service, request, nil)
+	pair, err := service.AiMessageModel.FindCall(context.Background(), owner, fmt.Sprintf("%d:%s", owner, request.RequestId))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var record callRecord
+	if json.Unmarshal([]byte(pair.Assistant.ToolCalls), &record) != nil || stream.last().Type != "error" || pair.Assistant.Status != "failed" || pair.Assistant.Content != "" || pair.Assistant.Tokens != 15 || record.UsageComplete {
+		t.Fatal("收到usage后坏帧须在原失败消息保存15 tokens且不完整，不保存部分正文")
 	}
 }
 

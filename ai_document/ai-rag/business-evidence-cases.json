@@ -1,0 +1,3071 @@
+{
+  "version": 1,
+  "description": "知识库关键证据覆盖的24题校准派生版：原问题、ID、split、category与8份实际项目文档逐字保持，只按原问范围校准六处必答或词法判读。AI辅助校准，非真人签署、非真实用户历史；原题及历史结果不覆盖。所有场景此前已用，不是独立holdout；字符串筛查不是语义准确率。",
+  "annotation": {
+    "source_kind": "actual_project_document_excerpts",
+    "authoring": "ai_assisted",
+    "human_signed": false,
+    "actual_user_history": false,
+    "source_revision": "fc226fbc8d1cd196453617fa7ff2fcdb548ba945",
+    "reserved_split": "validation",
+    "reservation_note": "split保留原历史分组；24个场景均已执行并阅读，派生校准不恢复独立预留或holdout身份。",
+    "checks_version": 1,
+    "parent_dataset": "business-acceptance-cases.json",
+    "parent_dataset_sha256": "176e20b4563d8c892b375fe45af89a4a27b78ee1d62c9686e9b49b3956696760",
+    "calibration_version": 1,
+    "all_cases_previously_used": true,
+    "calibration_method": "只根据原问范围与冻结文档校准，原24题及历史原始日志保持；补充观察仍需人工复核，不将规则全绿当语义正确。",
+    "calibration_changes": [
+      {
+        "case_id": "acceptance-dev-backup-checksum-gap",
+        "classification": "scope_calibration",
+        "basis": "原问明确要求记录的来源/校验信息、恢复环境、验证影响和实例SHA未知范围，没有询问备份文件产物格式。完整原始SQL仍为真实资料要求，移至补充复核，不据未复述它判缺少所问事实。",
+        "optional_review": [
+          "完整原始SQL备份的产物要求"
+        ],
+        "fields": [
+          {
+            "path": "answer.required_groups",
+            "before": [
+              [
+                "完整原始 SQL",
+                "完整原始SQL"
+              ],
+              [
+                "记录来源、导出时间与文件校验值",
+                "记录来源、导出时间和文件校验值",
+                "记录来源、导出时间、文件校验值",
+                "来源、导出时间及文件校验值"
+              ],
+              [
+                "在独立环境恢复验证",
+                "在隔离环境恢复验证",
+                "独立环境验证恢复"
+              ],
+              [
+                "不导回现有业务库",
+                "不恢复到现有业务库"
+              ],
+              [
+                "不启动会调用外部服务的业务进程",
+                "不启动会调用外部服务的进程"
+              ]
+            ],
+            "after": [
+              [
+                "记录来源、导出时间与文件校验值",
+                "记录来源、导出时间和文件校验值",
+                "记录来源、导出时间、文件校验值",
+                "来源、导出时间及文件校验值"
+              ],
+              [
+                "在独立环境恢复验证",
+                "在隔离环境恢复验证",
+                "独立环境验证恢复"
+              ],
+              [
+                "不导回现有业务库",
+                "不恢复到现有业务库"
+              ],
+              [
+                "不启动会调用外部服务的业务进程",
+                "不启动会调用外部服务的进程"
+              ]
+            ]
+          },
+          {
+            "path": "checks",
+            "before": [
+              {
+                "label": "完整原始SQL备份",
+                "kind": "fact",
+                "required_group": 0
+              },
+              {
+                "label": "记录来源时间和校验值",
+                "kind": "fact",
+                "required_group": 1
+              },
+              {
+                "label": "在隔离环境验证恢复",
+                "kind": "condition",
+                "required_group": 2
+              },
+              {
+                "label": "不恢复到现有业务库",
+                "kind": "risk",
+                "required_group": 3
+              },
+              {
+                "label": "不启动外部调用业务进程",
+                "kind": "risk",
+                "required_group": 4
+              }
+            ],
+            "after": [
+              {
+                "label": "记录来源时间和校验值",
+                "kind": "fact",
+                "required_group": 0
+              },
+              {
+                "label": "在隔离环境验证恢复",
+                "kind": "condition",
+                "required_group": 1
+              },
+              {
+                "label": "不恢复到现有业务库",
+                "kind": "risk",
+                "required_group": 2
+              },
+              {
+                "label": "不启动外部调用业务进程",
+                "kind": "risk",
+                "required_group": 3
+              }
+            ]
+          },
+          {
+            "path": "evidence",
+            "before": [
+              {
+                "document": "ops-data",
+                "groups": [
+                  [
+                    "完整原始 SQL"
+                  ],
+                  [
+                    "记录来源、导出时间与文件校验值"
+                  ],
+                  [
+                    "在独立环境恢复验证"
+                  ],
+                  [
+                    "不导回现有业务库"
+                  ],
+                  [
+                    "不启动会调用外部服务的业务进程"
+                  ]
+                ]
+              }
+            ],
+            "after": [
+              {
+                "document": "ops-data",
+                "groups": [
+                  [
+                    "记录来源、导出时间与文件校验值"
+                  ],
+                  [
+                    "在独立环境恢复验证"
+                  ],
+                  [
+                    "不导回现有业务库"
+                  ],
+                  [
+                    "不启动会调用外部服务的业务进程"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "acceptance-dev-refresh-advice",
+        "classification": "scope_calibration",
+        "basis": "原问要求访问隔离、刷新令牌使用规则及退出状态，没有询问越权或不存在时的HTTP/信封错误码。保留按创建者隔离、独立服务端授权、一次性轮换和双令牌失效，将返回404作为补充接口行为。",
+        "optional_review": [
+          "越权ID与不存在均返回404的具体响应行为"
+        ],
+        "fields": [
+          {
+            "path": "answer.required_groups",
+            "before": [
+              [
+                "按创建者隔离",
+                "仅创建者可访问",
+                "只能本人访问",
+                "只允许所属用户访问"
+              ],
+              [
+                "页面入口、操作权限与服务端接口授权分别校验",
+                "服务端接口授权分别校验",
+                "服务端权限校验"
+              ],
+              [
+                "越权 ID 与不存在均返回 404",
+                "均返回404",
+                "返回404"
+              ],
+              [
+                "刷新令牌一次性轮换",
+                "刷新令牌只能用一次",
+                "刷新令牌不能重复使用"
+              ],
+              [
+                "退出、撤销后旧访问与刷新令牌失效",
+                "退出后旧访问和刷新令牌失效",
+                "旧访问令牌和刷新令牌失效",
+                "旧访问与刷新令牌失效"
+              ]
+            ],
+            "after": [
+              [
+                "按创建者隔离",
+                "仅创建者可访问",
+                "只能本人访问",
+                "只允许所属用户访问"
+              ],
+              [
+                "页面入口、操作权限与服务端接口授权分别校验",
+                "服务端接口授权分别校验",
+                "服务端权限校验"
+              ],
+              [
+                "刷新令牌一次性轮换",
+                "刷新令牌只能用一次",
+                "刷新令牌不能重复使用"
+              ],
+              [
+                "退出、撤销后旧访问与刷新令牌失效",
+                "退出后旧访问和刷新令牌失效",
+                "旧访问令牌和刷新令牌失效",
+                "旧访问与刷新令牌失效"
+              ]
+            ]
+          },
+          {
+            "path": "checks",
+            "before": [
+              {
+                "label": "知识库按创建者隔离",
+                "kind": "condition",
+                "required_group": 0
+              },
+              {
+                "label": "服务端授权分别校验",
+                "kind": "risk",
+                "required_group": 1
+              },
+              {
+                "label": "越权ID与不存在均404",
+                "kind": "condition",
+                "required_group": 2
+              },
+              {
+                "label": "刷新令牌一次性轮换",
+                "kind": "condition",
+                "required_group": 3
+              },
+              {
+                "label": "退出后旧双令牌失效",
+                "kind": "condition",
+                "required_group": 4
+              }
+            ],
+            "after": [
+              {
+                "label": "知识库按创建者隔离",
+                "kind": "condition",
+                "required_group": 0
+              },
+              {
+                "label": "服务端授权分别校验",
+                "kind": "risk",
+                "required_group": 1
+              },
+              {
+                "label": "刷新令牌一次性轮换",
+                "kind": "condition",
+                "required_group": 2
+              },
+              {
+                "label": "退出后旧双令牌失效",
+                "kind": "condition",
+                "required_group": 3
+              }
+            ]
+          },
+          {
+            "path": "evidence",
+            "before": [
+              {
+                "document": "ai-access",
+                "groups": [
+                  [
+                    "按创建者隔离"
+                  ],
+                  [
+                    "页面入口、操作权限与服务端接口授权分别校验"
+                  ],
+                  [
+                    "越权 ID 与不存在均返回 404"
+                  ],
+                  [
+                    "刷新令牌一次性轮换"
+                  ],
+                  [
+                    "退出、撤销后旧访问与刷新令牌失效"
+                  ]
+                ]
+              }
+            ],
+            "after": [
+              {
+                "document": "ai-access",
+                "groups": [
+                  [
+                    "按创建者隔离"
+                  ],
+                  [
+                    "页面入口、操作权限与服务端接口授权分别校验"
+                  ],
+                  [
+                    "刷新令牌一次性轮换"
+                  ],
+                  [
+                    "退出、撤销后旧访问与刷新令牌失效"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "acceptance-val-captcha-runtime-gap",
+        "classification": "scope_and_wording_calibration",
+        "basis": "原问已限定本机AI开发，要求本地副本/字段及保留的登录校验，并只依据文档回答当前实例开关。远程生产租户禁用覆盖、在线接口核验方法保留为补充观察，不能强制模型用文档编造实际开关；false设置接受有字段和值约束的自然表述。",
+        "optional_review": [
+          "远程/生产/租户不使用本地覆盖的部署边界",
+          "通过captcha接口核对实际运行开关的方法"
+        ],
+        "fields": [
+          {
+            "path": "answer.required_groups",
+            "before": [
+              [
+                "admin-rpc.ai-dev.local.yaml"
+              ],
+              [
+                "只把副本的 `Captcha.Enabled` 改为 `false`",
+                "Captcha.Enabled=false",
+                "Captcha.Enabled设为false",
+                "Captcha.Enabled设置为false"
+              ],
+              [
+                "账号密码和会话/权限仍正常校验",
+                "账号密码、会话和权限仍正常校验",
+                "仍校验账号密码、会话和权限"
+              ],
+              [
+                "远程/生产/租户启动不使用这个本地覆盖文件",
+                "不能用于远程、生产或租户",
+                "仅用于本地开发",
+                "仅用于本机开发"
+              ],
+              [
+                "/v1/sys/auth/captcha",
+                "captcha接口"
+              ]
+            ],
+            "after": [
+              [
+                "admin-rpc.ai-dev.local.yaml"
+              ],
+              [
+                "只把副本的 `Captcha.Enabled` 改为 `false`",
+                "Captcha.Enabled=false",
+                "Captcha.Enabled设为false",
+                "Captcha.Enabled设置为false",
+                "Captcha.Enabled改为false",
+                "Captcha.Enabled改为`false`"
+              ],
+              [
+                "账号密码和会话/权限仍正常校验",
+                "账号密码、会话和权限仍正常校验",
+                "仍校验账号密码、会话和权限"
+              ]
+            ]
+          },
+          {
+            "path": "checks",
+            "before": [
+              {
+                "label": "使用本地忽略的配置副本",
+                "kind": "fact",
+                "required_group": 0
+              },
+              {
+                "label": "副本设置Captcha.Enabled=false",
+                "kind": "condition",
+                "required_group": 1
+              },
+              {
+                "label": "账号会话权限校验保留",
+                "kind": "risk",
+                "required_group": 2
+              },
+              {
+                "label": "本地覆盖不用于生产租户",
+                "kind": "risk",
+                "required_group": 3
+              },
+              {
+                "label": "通过captcha接口核实际开关",
+                "kind": "condition",
+                "required_group": 4
+              }
+            ],
+            "after": [
+              {
+                "label": "使用本地忽略的配置副本",
+                "kind": "fact",
+                "required_group": 0
+              },
+              {
+                "label": "副本设置Captcha.Enabled=false",
+                "kind": "condition",
+                "required_group": 1
+              },
+              {
+                "label": "账号会话权限校验保留",
+                "kind": "risk",
+                "required_group": 2
+              }
+            ]
+          },
+          {
+            "path": "evidence",
+            "before": [
+              {
+                "document": "ops-data",
+                "groups": [
+                  [
+                    "admin-rpc.ai-dev.local.yaml"
+                  ],
+                  [
+                    "只把副本的 `Captcha.Enabled` 改为 `false`"
+                  ],
+                  [
+                    "账号密码和会话/权限仍正常校验"
+                  ],
+                  [
+                    "远程/生产/租户启动不使用这个本地覆盖文件"
+                  ],
+                  [
+                    "/v1/sys/auth/captcha"
+                  ]
+                ]
+              }
+            ],
+            "after": [
+              {
+                "document": "ops-data",
+                "groups": [
+                  [
+                    "admin-rpc.ai-dev.local.yaml"
+                  ],
+                  [
+                    "只把副本的 `Captcha.Enabled` 改为 `false`"
+                  ],
+                  [
+                    "账号密码和会话/权限仍正常校验"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "acceptance-dev-isolated-cleanup",
+        "classification": "scope_calibration",
+        "basis": "独立端口是题设已完成的前置情况，当前问项要求验证结束后的资源/数据/配置清理、项目测试备份保留及Git改动保护，不询问调试前如何隔离。保留所有清理风险边界，移除仅支持重述前置情况的ops-build文档要求；category保留原场景标签，实际预期文档数以此版本列表为准。",
+        "optional_review": [
+          "调试前优先独立端口与隔离数据的前置建议"
+        ],
+        "fields": [
+          {
+            "path": "answer.required_groups",
+            "before": [
+              [
+                "测试优先独立端口与隔离数据",
+                "独立端口与隔离数据",
+                "独立端口和隔离数据"
+              ],
+              [
+                "准确 PID/任务 ID、容器名、路径与临时数据 ID",
+                "准确PID/任务ID、容器名、路径与临时数据ID",
+                "精确PID、任务ID、容器名、路径和临时数据ID"
+              ],
+              [
+                "不按进程名/通配符批量删除",
+                "不能按进程名/通配符批量删除",
+                "禁止按进程名或通配符批量删除"
+              ],
+              [
+                "保留用户要求运行的项目栈",
+                "保留用户要求运行的项目"
+              ],
+              [
+                "恢复本轮临时配置"
+              ],
+              [
+                "确认测试端口释放",
+                "确认端口释放",
+                "检查测试端口已释放"
+              ],
+              [
+                "回归测试、用户数据及既有备份保留",
+                "保留回归测试、用户数据及既有备份",
+                "保留已有回归测试、用户数据和备份"
+              ],
+              [
+                "不为“工作区干净”执行 checkout/reset",
+                "不为工作区干净执行checkout/reset",
+                "不执行checkout/reset",
+                "不能为了工作区干净checkout/reset"
+              ]
+            ],
+            "after": [
+              [
+                "准确 PID/任务 ID、容器名、路径与临时数据 ID",
+                "准确PID/任务ID、容器名、路径与临时数据ID",
+                "精确PID、任务ID、容器名、路径和临时数据ID"
+              ],
+              [
+                "不按进程名/通配符批量删除",
+                "不能按进程名/通配符批量删除",
+                "禁止按进程名或通配符批量删除"
+              ],
+              [
+                "保留用户要求运行的项目栈",
+                "保留用户要求运行的项目"
+              ],
+              [
+                "恢复本轮临时配置"
+              ],
+              [
+                "确认测试端口释放",
+                "确认端口释放",
+                "检查测试端口已释放"
+              ],
+              [
+                "回归测试、用户数据及既有备份保留",
+                "保留回归测试、用户数据及既有备份",
+                "保留已有回归测试、用户数据和备份"
+              ],
+              [
+                "不为“工作区干净”执行 checkout/reset",
+                "不为工作区干净执行checkout/reset",
+                "不执行checkout/reset",
+                "不能为了工作区干净checkout/reset"
+              ]
+            ]
+          },
+          {
+            "path": "checks",
+            "before": [
+              {
+                "label": "独立端口和隔离数据",
+                "kind": "condition",
+                "required_group": 0
+              },
+              {
+                "label": "按精确标识清理临时资源",
+                "kind": "condition",
+                "required_group": 1
+              },
+              {
+                "label": "不按进程名或通配符批量删",
+                "kind": "risk",
+                "required_group": 2
+              },
+              {
+                "label": "保留要求运行的项目栈",
+                "kind": "risk",
+                "required_group": 3
+              },
+              {
+                "label": "恢复本轮临时配置",
+                "kind": "condition",
+                "required_group": 4
+              },
+              {
+                "label": "确认临时端口释放",
+                "kind": "condition",
+                "required_group": 5
+              },
+              {
+                "label": "保留测试用户数据和备份",
+                "kind": "risk",
+                "required_group": 6
+              },
+              {
+                "label": "不为干净执行checkout/reset",
+                "kind": "risk",
+                "required_group": 7
+              }
+            ],
+            "after": [
+              {
+                "label": "按精确标识清理临时资源",
+                "kind": "condition",
+                "required_group": 0
+              },
+              {
+                "label": "不按进程名或通配符批量删",
+                "kind": "risk",
+                "required_group": 1
+              },
+              {
+                "label": "保留要求运行的项目栈",
+                "kind": "risk",
+                "required_group": 2
+              },
+              {
+                "label": "恢复本轮临时配置",
+                "kind": "condition",
+                "required_group": 3
+              },
+              {
+                "label": "确认临时端口释放",
+                "kind": "condition",
+                "required_group": 4
+              },
+              {
+                "label": "保留测试用户数据和备份",
+                "kind": "risk",
+                "required_group": 5
+              },
+              {
+                "label": "不为干净执行checkout/reset",
+                "kind": "risk",
+                "required_group": 6
+              }
+            ]
+          },
+          {
+            "path": "expected_documents",
+            "before": [
+              "ops-build",
+              "ops-cleanup"
+            ],
+            "after": [
+              "ops-cleanup"
+            ]
+          },
+          {
+            "path": "evidence",
+            "before": [
+              {
+                "document": "ops-build",
+                "groups": [
+                  [
+                    "测试优先独立端口与隔离数据"
+                  ]
+                ]
+              },
+              {
+                "document": "ops-cleanup",
+                "groups": [
+                  [
+                    "准确 PID/任务 ID、容器名、路径与临时数据 ID"
+                  ],
+                  [
+                    "不按进程名/通配符批量删除"
+                  ],
+                  [
+                    "保留用户要求运行的项目栈"
+                  ],
+                  [
+                    "恢复本轮临时配置"
+                  ],
+                  [
+                    "确认测试端口释放"
+                  ],
+                  [
+                    "回归测试、用户数据及既有备份保留"
+                  ],
+                  [
+                    "不为“工作区干净”执行 checkout/reset"
+                  ]
+                ]
+              }
+            ],
+            "after": [
+              {
+                "document": "ops-cleanup",
+                "groups": [
+                  [
+                    "准确 PID/任务 ID、容器名、路径与临时数据 ID"
+                  ],
+                  [
+                    "不按进程名/通配符批量删除"
+                  ],
+                  [
+                    "保留用户要求运行的项目栈"
+                  ],
+                  [
+                    "恢复本轮临时配置"
+                  ],
+                  [
+                    "确认测试端口释放"
+                  ],
+                  [
+                    "回归测试、用户数据及既有备份保留"
+                  ],
+                  [
+                    "不为“工作区干净”执行 checkout/reset"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "acceptance-dev-text-limits",
+        "classification": "wording_calibration",
+        "basis": "原问明确要求判断正文UTF-8字节超65536能否提交，仍必须表达有正文或字节范围的拒绝/超限含义。补充常见否定同义，拒绝裸“不能”作为充分命中；标题、正文单位上限、每批篇数和两类并发事实保持，不改共享评分器。",
+        "optional_review": [],
+        "fields": [
+          {
+            "path": "answer.required_groups",
+            "before": [
+              [
+                "标题最多 128 字符",
+                "标题最多128个字符"
+              ],
+              [
+                "65536 UTF-8 字节",
+                "65536字节",
+                "65,536字节",
+                "65536个UTF-8字节"
+              ],
+              [
+                "每篇正文最多 **64 KiB（65536 UTF-8 字节）**",
+                "超过65536字节不能提交",
+                "超过65536字节不能导入",
+                "超过65536字节不符合限制",
+                "超出65536字节上限"
+              ],
+              [
+                "每批最多 20 篇",
+                "每批20篇",
+                "一批最多20篇"
+              ],
+              [
+                "浏览器最多并发提交 2 篇",
+                "浏览器并发2篇",
+                "浏览器最多同时2篇",
+                "浏览器同时提交2篇"
+              ],
+              [
+                "服务端有 2 个后台处理槽",
+                "后台2个处理槽",
+                "2个后台处理槽",
+                "后台有两个处理槽"
+              ]
+            ],
+            "after": [
+              [
+                "标题最多 128 字符",
+                "标题最多128个字符"
+              ],
+              [
+                "65536 UTF-8 字节",
+                "65536字节",
+                "65,536字节",
+                "65536个UTF-8字节"
+              ],
+              [
+                "每篇正文最多 **64 KiB（65536 UTF-8 字节）**",
+                "超过65536字节不能提交",
+                "超过65536字节不能导入",
+                "超过65536字节不符合限制",
+                "超出65536字节上限",
+                "正文超限不能提交",
+                "正文超过65536个UTF-8字节不可提交",
+                "UTF-8字节超限时不能提交",
+                "65536 UTF-8字节），超过即超出限制"
+              ],
+              [
+                "每批最多 20 篇",
+                "每批20篇",
+                "一批最多20篇"
+              ],
+              [
+                "浏览器最多并发提交 2 篇",
+                "浏览器并发2篇",
+                "浏览器最多同时2篇",
+                "浏览器同时提交2篇"
+              ],
+              [
+                "服务端有 2 个后台处理槽",
+                "后台2个处理槽",
+                "2个后台处理槽",
+                "后台有两个处理槽"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "acceptance-dev-capability-config",
+        "classification": "lexical_false_positive_calibration",
+        "basis": "原问本身要求解释“已配置”不保证实时健康及缺聊天密钥时的条件行为。资料中“配置状态未知”是合法配置状态标签，不是模型声称整个问项缺依据；全局absence_policy=forbidden无法区分两者，派生版移除此词法警报，原五组必答、证据、引用及人工未知范围复核仍保持。",
+        "optional_review": [
+          "人工检查是否出现真正的无依据拒答，而非配置状态标签或条件句"
+        ],
+        "fields": [
+          {
+            "path": "answer.absence_policy",
+            "before": "forbidden",
+            "after": null,
+            "operation": "remove"
+          }
+        ]
+      }
+    ]
+  },
+  "documents": [
+    {
+      "key": "ops-environment",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/01-开发环境与配置.md",
+      "title": "开发环境与配置",
+      "sha256": "ce3eb80aaefee71f0ee2ff7aeddf94d1c9860ef3fd6b051bfb6d76ff7d988d1d"
+    },
+    {
+      "key": "ops-data",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/02-数据初始化与备份.md",
+      "title": "数据初始化与备份",
+      "sha256": "3a9e4b7849bc7986497cca644e2f97ee6415ec94005165d478b84d4e933dce39"
+    },
+    {
+      "key": "ops-build",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/03-构建启动与验收.md",
+      "title": "构建启动与验收",
+      "sha256": "b9ef7fe283e6d5a7e2f3fef4ac3b83195a210defba8874fed97feb4fb54cb8a2"
+    },
+    {
+      "key": "ops-cleanup",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/04-临时资源清理.md",
+      "title": "临时资源清理",
+      "sha256": "1bfe5d2b323965c686051cf238cc659d89b48705590ab25f14de7f4a21135ea7"
+    },
+    {
+      "key": "ai-models",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/05-模型与向量存储.md",
+      "title": "模型与向量存储",
+      "sha256": "bdbe896880111a07df8e71a23225588a68c4738245ac343ccdcc038ac48377c3"
+    },
+    {
+      "key": "ai-knowledge",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/06-知识库资料与回答.md",
+      "title": "知识库资料与回答",
+      "sha256": "f88c7abd52edbd4f9512f62ac43bc8f1bd80439a91672e8646a9d42a1eb4dea7"
+    },
+    {
+      "key": "ai-workflows",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/07-常用流程与运行记录.md",
+      "title": "常用流程与运行记录",
+      "sha256": "9d44db5fc5ec567a98b8e80e21a48fa2e4e20375863195ed55032b84fee49e11"
+    },
+    {
+      "key": "ai-access",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/08-身份权限与数据隔离.md",
+      "title": "身份权限与数据隔离",
+      "sha256": "9e98bad2f29114f1536cd386c48f73bfce8d831879a099644bb06eca3c4039dc"
+    }
+  ],
+  "cases": [
+    {
+      "id": "acceptance-dev-init-destructive",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "project_ops",
+      "query": "旧开发库已经有业务数据，我只想为新增表生成model。能直接把mysql-all.sql重新导回旧库吗？请明确说明初始化SQL会做什么，以及生成model与确需重置时应分别怎样处理。",
+      "expected_documents": [
+        "ops-data"
+      ],
+      "evidence": [
+        {
+          "document": "ops-data",
+          "groups": [
+            [
+              "DROP"
+            ],
+            [
+              "重建业务表"
+            ],
+            [
+              "不是已有库的升级脚本"
+            ],
+            [
+              "已导入完整 SQL 的新开发库"
+            ],
+            [
+              "不为生成代码清空业务库"
+            ],
+            [
+              "须明确授权"
+            ],
+            [
+              "确认目标"
+            ],
+            [
+              "备份"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "DROP",
+            "drop",
+            "删除业务表",
+            "删除现有业务表",
+            "删除并重建"
+          ],
+          [
+            "重建业务表",
+            "重新创建业务表",
+            "重建表",
+            "重新建表"
+          ],
+          [
+            "不是已有库的升级脚本",
+            "不是升级脚本",
+            "不用于已有库升级"
+          ],
+          [
+            "已导入完整 SQL 的新开发库",
+            "导入完整SQL的新开发库",
+            "另建开发库并完整导入",
+            "新开发库中导入完整SQL"
+          ],
+          [
+            "不为生成代码清空业务库",
+            "不得清空现有业务库",
+            "不能清空现有业务库",
+            "不清空现有业务库",
+            "禁止清空业务库"
+          ],
+          [
+            "须明确授权",
+            "明确授权",
+            "获得明确授权"
+          ],
+          [
+            "确认目标"
+          ],
+          [
+            "备份"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "说明会删除业务表",
+          "kind": "risk",
+          "required_group": 0
+        },
+        {
+          "label": "说明会重建业务表",
+          "kind": "risk",
+          "required_group": 1
+        },
+        {
+          "label": "初始化不是升级脚本",
+          "kind": "risk",
+          "required_group": 2
+        },
+        {
+          "label": "生成model使用新开发库",
+          "kind": "condition",
+          "required_group": 3
+        },
+        {
+          "label": "生成代码不清现有业务库",
+          "kind": "risk",
+          "required_group": 4
+        },
+        {
+          "label": "重置须明确授权",
+          "kind": "condition",
+          "required_group": 5
+        },
+        {
+          "label": "重置前确认目标",
+          "kind": "condition",
+          "required_group": 6
+        },
+        {
+          "label": "重置前备份",
+          "kind": "condition",
+          "required_group": 7
+        }
+      ],
+      "rationale": "根据数据初始化与备份中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-code-and-env",
+      "split": "development",
+      "category": "multi_document",
+      "kb": "project_ops",
+      "query": "这次同时改了ai-rpc的Go源码和.env.local。只对容器执行restart是否够用？请按资料列出源码产物和环境变量各自需要的处理，并说明更新后怎样确认实际运行的是新版本。",
+      "expected_documents": [
+        "ops-environment",
+        "ops-build"
+      ],
+      "evidence": [
+        {
+          "document": "ops-environment",
+          "groups": [
+            [
+              "env 变更须重新创建相关容器"
+            ],
+            [
+              "单独 restart 不更新环境"
+            ]
+          ]
+        },
+        {
+          "document": "ops-build",
+          "groups": [
+            [
+              "只复制宿主预编译的 Linux 二进制"
+            ],
+            [
+              "build-images.ps1"
+            ],
+            [
+              "构建失败立即停止，不部署旧产物"
+            ],
+            [
+              "比较容器二进制与本地产物摘要"
+            ],
+            [
+              "受影响接口/页面"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "只复制宿主预编译的 Linux 二进制",
+            "只复制宿主预编译的Linux二进制",
+            "复制宿主预编译二进制"
+          ],
+          [
+            "build-images.ps1",
+            "先编译Go",
+            "先构建Linux二进制",
+            "先编译源码"
+          ],
+          [
+            "构建失败立即停止，不部署旧产物",
+            "构建失败不部署旧产物",
+            "构建失败立即停止",
+            "不能部署旧产物"
+          ],
+          [
+            "env 变更须重新创建相关容器",
+            "环境变量变更须重新创建容器",
+            "修改.env.local后需重新创建容器",
+            "重新创建相关容器",
+            "重新创建容器",
+            "重建容器"
+          ],
+          [
+            "单独 restart 不更新环境",
+            "restart不更新环境",
+            "restart不会更新环境",
+            "仅restart不能读取新环境",
+            "只restart不够"
+          ],
+          [
+            "比较容器二进制与本地产物摘要",
+            "比较运行二进制和本地产物摘要",
+            "核对运行产物",
+            "核对二进制摘要"
+          ],
+          [
+            "受影响接口/页面",
+            "受影响的接口和页面",
+            "受影响业务接口",
+            "受影响功能"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "镜像只复制预编译二进制",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "先编译再构建部署",
+          "kind": "condition",
+          "required_group": 1
+        },
+        {
+          "label": "构建失败不部署旧产物",
+          "kind": "risk",
+          "required_group": 2
+        },
+        {
+          "label": "环境变更重新创建容器",
+          "kind": "condition",
+          "required_group": 3
+        },
+        {
+          "label": "restart不更新环境",
+          "kind": "risk",
+          "required_group": 4
+        },
+        {
+          "label": "核对实际运行产物",
+          "kind": "condition",
+          "required_group": 5
+        },
+        {
+          "label": "验证受影响接口和页面",
+          "kind": "condition",
+          "required_group": 6
+        }
+      ],
+      "rationale": "根据开发环境与配置、构建启动与验收中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-smtp-proof",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "project_ops",
+      "query": "准备更换SMTP服务商，能只改Host并沿用所有其他字段吗？请说明需一起核对的连接配置、From留空的含义，以及本地假SMTP测试通过是否等于真实邮件已经验收。",
+      "expected_documents": [
+        "ops-environment"
+      ],
+      "evidence": [
+        {
+          "document": "ops-environment",
+          "groups": [
+            [
+              "Host"
+            ],
+            [
+              "Port"
+            ],
+            [
+              "ImplicitTLS"
+            ],
+            [
+              "From 留空回退 Username"
+            ],
+            [
+              "不能代替真实发信验收"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "Host",
+            "主机地址",
+            "服务器地址"
+          ],
+          [
+            "Port",
+            "端口"
+          ],
+          [
+            "ImplicitTLS",
+            "隐式 TLS",
+            "隐式TLS"
+          ],
+          [
+            "From 留空回退 Username",
+            "From为空回退Username",
+            "From为空时回退到Username",
+            "From留空使用Username",
+            "From留空回退到Username"
+          ],
+          [
+            "不能代替真实发信验收",
+            "不代表真实发信成功",
+            "不等于真实邮件已验收",
+            "仍需真实发信验收"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "核对邮件服务Host",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "核对邮件服务Port",
+          "kind": "fact",
+          "required_group": 1
+        },
+        {
+          "label": "核对ImplicitTLS",
+          "kind": "condition",
+          "required_group": 2
+        },
+        {
+          "label": "From空值回退Username",
+          "kind": "condition",
+          "required_group": 3
+        },
+        {
+          "label": "假SMTP不替代真实发信",
+          "kind": "risk",
+          "required_group": 4
+        }
+      ],
+      "rationale": "根据开发环境与配置中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-host-network",
+      "split": "development",
+      "category": "multi_document",
+      "kb": "project_ops",
+      "query": "数据库、Redis和对象存储都在Compose里，我准备把API单独放到宿主调试。为什么这些基础容器正常仍可能启动不了API？请说明默认RPC依赖和连接地址，并区分RPC容器内部端口与宿主映射。",
+      "expected_documents": [
+        "ops-environment",
+        "ops-build"
+      ],
+      "evidence": [
+        {
+          "document": "ops-environment",
+          "groups": [
+            [
+              "6001..6005"
+            ]
+          ]
+        },
+        {
+          "document": "ops-build",
+          "groups": [
+            [
+              "AdminRpc/FileRpc"
+            ],
+            [
+              "127.0.0.1:6001/6003"
+            ],
+            [
+              "加载 Casbin 策略"
+            ],
+            [
+              "默认 Compose 的 RPC 不对宿主暴露"
+            ],
+            [
+              "须运行所需宿主 RPC"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "AdminRpc/FileRpc",
+            "AdminRpc和FileRpc",
+            "AdminRpc、FileRpc",
+            "AdminRpc与FileRpc"
+          ],
+          [
+            "127.0.0.1:6001/6003",
+            "127.0.0.1:6001和127.0.0.1:6003",
+            "6001/6003"
+          ],
+          [
+            "加载 Casbin 策略",
+            "加载Casbin策略"
+          ],
+          [
+            "6001..6005",
+            "6001至6005",
+            "6001到6005"
+          ],
+          [
+            "默认 Compose 的 RPC 不对宿主暴露",
+            "RPC默认不映射宿主端口",
+            "默认不映射宿主端口",
+            "不会默认映射到宿主"
+          ],
+          [
+            "须运行所需宿主 RPC",
+            "运行所需宿主RPC",
+            "运行宿主RPC",
+            "已明确授权的端口映射/混合环境"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "API依赖AdminRpc和FileRpc",
+          "kind": "condition",
+          "required_group": 0
+        },
+        {
+          "label": "宿主默认连接6001和6003",
+          "kind": "fact",
+          "required_group": 1
+        },
+        {
+          "label": "通过admin-rpc加载策略",
+          "kind": "condition",
+          "required_group": 2
+        },
+        {
+          "label": "RPC内部端口范围",
+          "kind": "fact",
+          "required_group": 3
+        },
+        {
+          "label": "默认RPC不映射宿主",
+          "kind": "risk",
+          "required_group": 4
+        },
+        {
+          "label": "准备宿主RPC或授权映射",
+          "kind": "condition",
+          "required_group": 5
+        }
+      ],
+      "rationale": "根据开发环境与配置、构建启动与验收中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-reset-advice",
+      "split": "development",
+      "category": "instruction",
+      "kb": "project_ops",
+      "query": "有人建议“启动报错就删除数据卷、重导初始化SQL，生成model也可以顺便清库”。请按项目资料说明已有数据环境的排障与重置边界，明确有哪些数据风险和前置条件。",
+      "expected_documents": [
+        "ops-data"
+      ],
+      "evidence": [
+        {
+          "document": "ops-data",
+          "groups": [
+            [
+              "DROP"
+            ],
+            [
+              "重建业务表"
+            ],
+            [
+              "不能把重跑初始化或删除数据卷当作通用排障手段"
+            ],
+            [
+              "已导入完整 SQL 的新开发库"
+            ],
+            [
+              "不为生成代码清空业务库"
+            ],
+            [
+              "须明确授权、确认目标并备份"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "DROP",
+            "drop",
+            "删除业务表",
+            "删除现有业务表",
+            "删除并重建"
+          ],
+          [
+            "重建业务表",
+            "重新创建业务表",
+            "重建表",
+            "重新建表"
+          ],
+          [
+            "不能把重跑初始化或删除数据卷当作通用排障手段",
+            "不把重跑初始化或删卷作为通用排障",
+            "不能作为通用排障手段",
+            "不是通用排障手段"
+          ],
+          [
+            "已导入完整 SQL 的新开发库",
+            "导入完整SQL的新开发库",
+            "另建开发库并完整导入",
+            "新开发库中导入完整SQL"
+          ],
+          [
+            "不为生成代码清空业务库",
+            "不得清空现有业务库",
+            "不能清空现有业务库",
+            "不清空现有业务库",
+            "禁止清空业务库"
+          ],
+          [
+            "须明确授权、确认目标并备份",
+            "明确授权、确认目标并备份",
+            "授权后确认目标并备份"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "说明会删除业务表",
+          "kind": "risk",
+          "required_group": 0
+        },
+        {
+          "label": "说明会重建业务表",
+          "kind": "risk",
+          "required_group": 1
+        },
+        {
+          "label": "不把删卷作为通用排障",
+          "kind": "risk",
+          "required_group": 2
+        },
+        {
+          "label": "生成model使用新开发库",
+          "kind": "condition",
+          "required_group": 3
+        },
+        {
+          "label": "生成代码不清现有业务库",
+          "kind": "risk",
+          "required_group": 4
+        },
+        {
+          "label": "重置需授权确认并备份",
+          "kind": "condition",
+          "required_group": 5
+        }
+      ],
+      "rationale": "根据数据初始化与备份中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-isolated-cleanup",
+      "split": "development",
+      "category": "multi_document",
+      "kb": "project_ops",
+      "query": "为了避免影响现有实例，我用独立端口做了宿主RPC调试。验证结束后，应怎样核对和清理这些临时进程、数据与配置？正在运行的项目、已有回归测试和备份应怎样保留，能否为了工作区干净checkout/reset？",
+      "expected_documents": [
+        "ops-cleanup"
+      ],
+      "evidence": [
+        {
+          "document": "ops-cleanup",
+          "groups": [
+            [
+              "准确 PID/任务 ID、容器名、路径与临时数据 ID"
+            ],
+            [
+              "不按进程名/通配符批量删除"
+            ],
+            [
+              "保留用户要求运行的项目栈"
+            ],
+            [
+              "恢复本轮临时配置"
+            ],
+            [
+              "确认测试端口释放"
+            ],
+            [
+              "回归测试、用户数据及既有备份保留"
+            ],
+            [
+              "不为“工作区干净”执行 checkout/reset"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "准确 PID/任务 ID、容器名、路径与临时数据 ID",
+            "准确PID/任务ID、容器名、路径与临时数据ID",
+            "精确PID、任务ID、容器名、路径和临时数据ID"
+          ],
+          [
+            "不按进程名/通配符批量删除",
+            "不能按进程名/通配符批量删除",
+            "禁止按进程名或通配符批量删除"
+          ],
+          [
+            "保留用户要求运行的项目栈",
+            "保留用户要求运行的项目"
+          ],
+          [
+            "恢复本轮临时配置"
+          ],
+          [
+            "确认测试端口释放",
+            "确认端口释放",
+            "检查测试端口已释放"
+          ],
+          [
+            "回归测试、用户数据及既有备份保留",
+            "保留回归测试、用户数据及既有备份",
+            "保留已有回归测试、用户数据和备份"
+          ],
+          [
+            "不为“工作区干净”执行 checkout/reset",
+            "不为工作区干净执行checkout/reset",
+            "不执行checkout/reset",
+            "不能为了工作区干净checkout/reset"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "按精确标识清理临时资源",
+          "kind": "condition",
+          "required_group": 0
+        },
+        {
+          "label": "不按进程名或通配符批量删",
+          "kind": "risk",
+          "required_group": 1
+        },
+        {
+          "label": "保留要求运行的项目栈",
+          "kind": "risk",
+          "required_group": 2
+        },
+        {
+          "label": "恢复本轮临时配置",
+          "kind": "condition",
+          "required_group": 3
+        },
+        {
+          "label": "确认临时端口释放",
+          "kind": "condition",
+          "required_group": 4
+        },
+        {
+          "label": "保留测试用户数据和备份",
+          "kind": "risk",
+          "required_group": 5
+        },
+        {
+          "label": "不为干净执行checkout/reset",
+          "kind": "risk",
+          "required_group": 6
+        }
+      ],
+      "rationale": "根据构建启动与验收、临时资源清理中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-backup-checksum-gap",
+      "split": "development",
+      "category": "partial_unknown",
+      "kb": "project_ops",
+      "query": "请说明运行库备份该记录哪些来源与校验信息、在哪里验证恢复，验证时应避免哪些影响。然后告诉我“本实例最近一次备份文件的实际SHA256是什么？”；如果资料没有这个实例值，请只把这个值标为未知。",
+      "expected_documents": [
+        "ops-data"
+      ],
+      "evidence": [
+        {
+          "document": "ops-data",
+          "groups": [
+            [
+              "记录来源、导出时间与文件校验值"
+            ],
+            [
+              "在独立环境恢复验证"
+            ],
+            [
+              "不导回现有业务库"
+            ],
+            [
+              "不启动会调用外部服务的业务进程"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "记录来源、导出时间与文件校验值",
+            "记录来源、导出时间和文件校验值",
+            "记录来源、导出时间、文件校验值",
+            "来源、导出时间及文件校验值"
+          ],
+          [
+            "在独立环境恢复验证",
+            "在隔离环境恢复验证",
+            "独立环境验证恢复"
+          ],
+          [
+            "不导回现有业务库",
+            "不恢复到现有业务库"
+          ],
+          [
+            "不启动会调用外部服务的业务进程",
+            "不启动会调用外部服务的进程"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "required"
+      },
+      "checks": [
+        {
+          "label": "记录来源时间和校验值",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "在隔离环境验证恢复",
+          "kind": "condition",
+          "required_group": 1
+        },
+        {
+          "label": "不恢复到现有业务库",
+          "kind": "risk",
+          "required_group": 2
+        },
+        {
+          "label": "不启动外部调用业务进程",
+          "kind": "risk",
+          "required_group": 3
+        }
+      ],
+      "rationale": "根据数据初始化与备份中的明确规则核对实际操作场景。有据部分完整回答；仅本实例最近一次备份文件的实际SHA256属于真实未知范围。"
+    },
+    {
+      "id": "acceptance-dev-oncall-unknown",
+      "split": "development",
+      "category": "unanswerable",
+      "kb": "project_ops",
+      "query": "仅根据当前项目运维手册，给出我们生产MySQL主从延迟告警的精确秒数阈值，以及今晚值班人的联系电话。",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [],
+        "absence_policy": "required"
+      },
+      "checks": [],
+      "rationale": "当前指定知识库文档没有实际生产告警阈值及今晚值班联系方式；应明确资料不足，不能借常识、其他知识库或运行记录编造实例数据。"
+    },
+    {
+      "id": "acceptance-val-backup-sensitive",
+      "split": "validation",
+      "category": "multi_fact",
+      "kb": "project_ops",
+      "query": "运行库完整备份里发现了真实邮箱或AI Key，公开提交被阻止。按项目规范应怎样保存这份备份和历史快照？能否擅自删行、改值、脱敏或加密后再把替代文件当原始备份提交？",
+      "expected_documents": [
+        "ops-data"
+      ],
+      "evidence": [
+        {
+          "document": "ops-data",
+          "groups": [
+            [
+              "完整原始 SQL"
+            ],
+            [
+              "不擅自删行、改值、脱敏或加密"
+            ],
+            [
+              "历史备份不覆盖"
+            ],
+            [
+              "真实邮箱与 AI Key 不提交"
+            ],
+            [
+              "完整原件保存在被忽略的本地目录"
+            ],
+            [
+              "不擅自生成脱敏或加密替代文件"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "完整原始 SQL",
+            "完整原始SQL"
+          ],
+          [
+            "不擅自删行、改值、脱敏或加密",
+            "不得擅自删行、改值、脱敏或加密",
+            "不能擅自删行、改值、脱敏或加密"
+          ],
+          [
+            "历史备份不覆盖",
+            "不覆盖历史备份"
+          ],
+          [
+            "真实邮箱与 AI Key 不提交",
+            "真实邮箱和AIKey不能提交",
+            "不公开提交真实邮箱或AIKey",
+            "不能公开真实邮箱与AIKey"
+          ],
+          [
+            "完整原件保存在被忽略的本地目录",
+            "完整原件保留在被忽略的本地目录",
+            "完整原件保存在忽略目录"
+          ],
+          [
+            "不擅自生成脱敏或加密替代文件",
+            "不擅自制作脱敏或加密替代文件",
+            "不能擅自生成脱敏或加密替代文件"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "保留完整原始SQL",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "不擅自删行改值脱敏加密",
+          "kind": "risk",
+          "required_group": 1
+        },
+        {
+          "label": "不覆盖历史备份",
+          "kind": "risk",
+          "required_group": 2
+        },
+        {
+          "label": "真实邮箱和AIKey不提交",
+          "kind": "risk",
+          "required_group": 3
+        },
+        {
+          "label": "完整原件留在忽略目录",
+          "kind": "condition",
+          "required_group": 4
+        },
+        {
+          "label": "不制作替代备份",
+          "kind": "risk",
+          "required_group": 5
+        }
+      ],
+      "rationale": "根据数据初始化与备份中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-val-config-selection",
+      "split": "validation",
+      "category": "multi_document",
+      "kb": "project_ops",
+      "query": "排查配置没有生效时，宿主go run与Compose各应检查哪套YAML？如果YAML直填值与终端环境变量不同，哪一个生效？修改.env.local后只做restart、看到/ready通过就能结束验收吗？",
+      "expected_documents": [
+        "ops-environment",
+        "ops-build"
+      ],
+      "evidence": [
+        {
+          "document": "ops-environment",
+          "groups": [
+            [
+              "docker/etc/*.yaml"
+            ],
+            [
+              "application/*/etc/*.yaml"
+            ],
+            [
+              "不因同名环境变量存在而自动覆盖"
+            ],
+            [
+              "不自动读取 `.env.local`"
+            ],
+            [
+              "env 变更须重新创建相关容器"
+            ],
+            [
+              "单独 restart 不更新环境"
+            ]
+          ]
+        },
+        {
+          "document": "ops-build",
+          "groups": [
+            [
+              "不等于全部业务可用"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "docker/etc/*.yaml"
+          ],
+          [
+            "application/*/etc/*.yaml"
+          ],
+          [
+            "不因同名环境变量存在而自动覆盖",
+            "同名环境变量不会覆盖直填值",
+            "直填值不会被同名环境变量自动覆盖",
+            "YAML直填值生效",
+            "字面值生效"
+          ],
+          [
+            "不自动读取 `.env.local`",
+            "不会自动读取.env.local",
+            "不自动读取.env.local",
+            "不会自动加载.env.local"
+          ],
+          [
+            "env 变更须重新创建相关容器",
+            "环境变量变更须重新创建容器",
+            "修改.env.local后需重新创建容器",
+            "重新创建相关容器",
+            "重新创建容器",
+            "重建容器"
+          ],
+          [
+            "单独 restart 不更新环境",
+            "restart不更新环境",
+            "restart不会更新环境",
+            "仅restart不能读取新环境",
+            "只restart不够"
+          ],
+          [
+            "不等于全部业务可用",
+            "不能代替业务验收",
+            "不代表AI功能验收通过",
+            "不能结束验收"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "Compose检查docker配置",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "宿主检查application配置",
+          "kind": "fact",
+          "required_group": 1
+        },
+        {
+          "label": "直填值不被同名环境覆盖",
+          "kind": "condition",
+          "required_group": 2
+        },
+        {
+          "label": "宿主不自动读env文件",
+          "kind": "condition",
+          "required_group": 3
+        },
+        {
+          "label": "环境变更重新创建容器",
+          "kind": "condition",
+          "required_group": 4
+        },
+        {
+          "label": "restart不更新环境",
+          "kind": "risk",
+          "required_group": 5
+        },
+        {
+          "label": "ready不代替业务验收",
+          "kind": "risk",
+          "required_group": 6
+        }
+      ],
+      "rationale": "根据开发环境与配置、构建启动与验收中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-val-captcha-runtime-gap",
+      "split": "validation",
+      "category": "partial_unknown",
+      "kb": "project_ops",
+      "query": "在本机AI开发中，要关闭图形验证码，应使用什么本地副本和字段，哪些登录校验仍要保留？另外“此刻本实例实际加载的Captcha.Enabled值是多少？”只能依据这些文档回答。",
+      "expected_documents": [
+        "ops-data"
+      ],
+      "evidence": [
+        {
+          "document": "ops-data",
+          "groups": [
+            [
+              "admin-rpc.ai-dev.local.yaml"
+            ],
+            [
+              "只把副本的 `Captcha.Enabled` 改为 `false`"
+            ],
+            [
+              "账号密码和会话/权限仍正常校验"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "admin-rpc.ai-dev.local.yaml"
+          ],
+          [
+            "只把副本的 `Captcha.Enabled` 改为 `false`",
+            "Captcha.Enabled=false",
+            "Captcha.Enabled设为false",
+            "Captcha.Enabled设置为false",
+            "Captcha.Enabled改为false",
+            "Captcha.Enabled改为`false`"
+          ],
+          [
+            "账号密码和会话/权限仍正常校验",
+            "账号密码、会话和权限仍正常校验",
+            "仍校验账号密码、会话和权限"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "required"
+      },
+      "checks": [
+        {
+          "label": "使用本地忽略的配置副本",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "副本设置Captcha.Enabled=false",
+          "kind": "condition",
+          "required_group": 1
+        },
+        {
+          "label": "账号会话权限校验保留",
+          "kind": "risk",
+          "required_group": 2
+        }
+      ],
+      "rationale": "根据数据初始化与备份中的明确规则核对实际操作场景。有据部分完整回答；仅本实例此刻实际加载的Captcha.Enabled值属于真实未知范围。"
+    },
+    {
+      "id": "acceptance-val-runtime-build-unknown",
+      "split": "validation",
+      "category": "unanswerable",
+      "kb": "project_ops",
+      "query": "请只从这些手册中查出本实例当前ai-rpc容器实际运行二进制的完整SHA256，不要只说明查询方法。",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [],
+        "absence_policy": "required"
+      },
+      "checks": [],
+      "rationale": "当前指定知识库文档没有本实例当前运行二进制的实际SHA256；应明确资料不足，不能借常识、其他知识库或运行记录编造实例数据。"
+    },
+    {
+      "id": "acceptance-dev-import-pending",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "project_ai",
+      "query": "我提交了一批资料并收到接收成功提示，但其中有queued和running。现在可以关掉窗口吗，什么时候才能检索？如果停止批次并离开，哪些工作继续、哪些文件不会自动补传？提交结果待确认时应怎样处理？",
+      "expected_documents": [
+        "ai-knowledge"
+      ],
+      "evidence": [
+        {
+          "document": "ai-knowledge",
+          "groups": [
+            [
+              "可关闭导入窗口或离开页面"
+            ],
+            [
+              "`queued` 表示等待处理"
+            ],
+            [
+              "`running` 表示后台处理中"
+            ],
+            [
+              "文档变为“可使用”后再检索"
+            ],
+            [
+              "停止批次仅取消尚未开始的项"
+            ],
+            [
+              "已开始的作业继续"
+            ],
+            [
+              "离开时尚未发出的文件不会自动补传"
+            ],
+            [
+              "按原批次和请求标识核对"
+            ],
+            [
+              "不自动新建重传"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "可关闭导入窗口或离开页面",
+            "可关闭窗口或离开页面",
+            "接收成功后可关闭窗口",
+            "接收后可以关闭窗口"
+          ],
+          [
+            "`queued` 表示等待处理",
+            "queued表示等待处理",
+            "queued是等待处理",
+            "queued是排队",
+            "queued等待"
+          ],
+          [
+            "`running` 表示后台处理中",
+            "running表示后台处理中",
+            "running后台处理中",
+            "running是处理中"
+          ],
+          [
+            "文档变为“可使用”后再检索",
+            "文档可使用后再检索",
+            "可使用后再检索",
+            "文档ready后检索"
+          ],
+          [
+            "停止批次仅取消尚未开始的项",
+            "仅取消尚未开始的项",
+            "只取消未开始项",
+            "仅取消未开始的项"
+          ],
+          [
+            "已开始的作业继续",
+            "已开始作业继续",
+            "不取消已开始的作业"
+          ],
+          [
+            "离开时尚未发出的文件不会自动补传",
+            "尚未发出的文件不自动补传",
+            "未发出的文件不会自动补传"
+          ],
+          [
+            "按原批次和请求标识核对",
+            "核对原批次和请求标识"
+          ],
+          [
+            "不自动新建重传",
+            "不自动重传",
+            "不能新建重传"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "接收后可离页并返回批次",
+          "kind": "condition",
+          "required_group": 0
+        },
+        {
+          "label": "queued是等待处理",
+          "kind": "fact",
+          "required_group": 1
+        },
+        {
+          "label": "running是后台处理中",
+          "kind": "fact",
+          "required_group": 2
+        },
+        {
+          "label": "可使用后才能检索",
+          "kind": "condition",
+          "required_group": 3
+        },
+        {
+          "label": "停止只取消未开始项",
+          "kind": "condition",
+          "required_group": 4
+        },
+        {
+          "label": "已开始作业继续",
+          "kind": "risk",
+          "required_group": 5
+        },
+        {
+          "label": "未发出的文件不自动补传",
+          "kind": "risk",
+          "required_group": 6
+        },
+        {
+          "label": "按原批次和请求标识核对",
+          "kind": "condition",
+          "required_group": 7
+        },
+        {
+          "label": "待确认不新建重传",
+          "kind": "risk",
+          "required_group": 8
+        }
+      ],
+      "rationale": "根据知识库资料与回答中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-history-and-owner",
+      "split": "development",
+      "category": "multi_document",
+      "kb": "project_ai",
+      "query": "资料编辑保存后，版本和后台处理会怎样变化？我打开旧分析里的“当前原文”，看到的为什么可能和历史摘录不同，历史来源会自动更新吗？另一位用户拿到这个知识库ID是否就有权访问？",
+      "expected_documents": [
+        "ai-knowledge",
+        "ai-access"
+      ],
+      "evidence": [
+        {
+          "document": "ai-knowledge",
+          "groups": [
+            [
+              "保存后增加版本"
+            ],
+            [
+              "提交后台重新处理"
+            ],
+            [
+              "历史摘录保持原样"
+            ],
+            [
+              "“打开当前原文”可能看到后续修订"
+            ]
+          ]
+        },
+        {
+          "document": "ai-access",
+          "groups": [
+            [
+              "按创建者隔离"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "保存后增加版本",
+            "保存后版本增加",
+            "增加文档版本",
+            "文档版本加一",
+            "版本号加一"
+          ],
+          [
+            "提交后台重新处理",
+            "后台重新处理",
+            "后台重处理",
+            "重新摄取"
+          ],
+          [
+            "历史摘录保持原样",
+            "旧分析来源不会自动更新",
+            "历史来源不会自动替换",
+            "历史摘录不会自动更新",
+            "历史来源保持原样"
+          ],
+          [
+            "“打开当前原文”可能看到后续修订",
+            "当前原文可能看到后续修订",
+            "当前原文可能已更新",
+            "当前原文可能是后续修订"
+          ],
+          [
+            "按创建者隔离",
+            "仅创建者可访问",
+            "只能本人访问",
+            "只允许所属用户访问"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "保存后增加版本",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "保存后后台重新处理",
+          "kind": "condition",
+          "required_group": 1
+        },
+        {
+          "label": "历史摘录保持原样",
+          "kind": "risk",
+          "required_group": 2
+        },
+        {
+          "label": "当前原文可能为后续修订",
+          "kind": "condition",
+          "required_group": 3
+        },
+        {
+          "label": "知识库按创建者隔离",
+          "kind": "condition",
+          "required_group": 4
+        }
+      ],
+      "rationale": "根据知识库资料与回答、身份权限与数据隔离中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-text-limits",
+      "split": "development",
+      "category": "multi_fact",
+      "kb": "project_ai",
+      "query": "准备导入中文Markdown，标题和正文的限制分别按什么单位、最多多少？文件字数没超限但UTF-8字节已超65536还能提交吗？同时请说明每批篇数和浏览器/后台的并发限制。",
+      "expected_documents": [
+        "ai-knowledge"
+      ],
+      "evidence": [
+        {
+          "document": "ai-knowledge",
+          "groups": [
+            [
+              "标题最多 128 字符"
+            ],
+            [
+              "65536 UTF-8 字节"
+            ],
+            [
+              "每篇正文最多 **64 KiB（65536 UTF-8 字节）**"
+            ],
+            [
+              "每批最多 20 篇"
+            ],
+            [
+              "浏览器最多并发提交 2 篇"
+            ],
+            [
+              "服务端有 2 个后台处理槽"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "标题最多 128 字符",
+            "标题最多128个字符"
+          ],
+          [
+            "65536 UTF-8 字节",
+            "65536字节",
+            "65,536字节",
+            "65536个UTF-8字节"
+          ],
+          [
+            "每篇正文最多 **64 KiB（65536 UTF-8 字节）**",
+            "超过65536字节不能提交",
+            "超过65536字节不能导入",
+            "超过65536字节不符合限制",
+            "超出65536字节上限",
+            "正文超限不能提交",
+            "正文超过65536个UTF-8字节不可提交",
+            "UTF-8字节超限时不能提交",
+            "65536 UTF-8字节），超过即超出限制"
+          ],
+          [
+            "每批最多 20 篇",
+            "每批20篇",
+            "一批最多20篇"
+          ],
+          [
+            "浏览器最多并发提交 2 篇",
+            "浏览器并发2篇",
+            "浏览器最多同时2篇",
+            "浏览器同时提交2篇"
+          ],
+          [
+            "服务端有 2 个后台处理槽",
+            "后台2个处理槽",
+            "2个后台处理槽",
+            "后台有两个处理槽"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "标题最多128字符",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "正文最多65536UTF8字节",
+          "kind": "fact",
+          "required_group": 1
+        },
+        {
+          "label": "正文超字节上限不满足限制",
+          "kind": "risk",
+          "required_group": 2
+        },
+        {
+          "label": "每批最多20篇",
+          "kind": "fact",
+          "required_group": 3
+        },
+        {
+          "label": "浏览器并发提交2篇",
+          "kind": "fact",
+          "required_group": 4
+        },
+        {
+          "label": "后台2个处理槽",
+          "kind": "fact",
+          "required_group": 5
+        }
+      ],
+      "rationale": "根据知识库资料与回答中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-capability-config",
+      "split": "development",
+      "category": "multi_document",
+      "kb": "project_ai",
+      "query": "工具目录显示“已配置”是否保证供应商现在健康、分析一定成功？聊天密钥缺失时还可做什么？要完成kb_analyze，检索和聊天两侧应满足什么条件？",
+      "expected_documents": [
+        "ai-models",
+        "ai-workflows"
+      ],
+      "evidence": [
+        {
+          "document": "ai-models",
+          "groups": [
+            [
+              "会话管理和本地工具仍可用"
+            ],
+            [
+              "发送消息返回降级提示"
+            ]
+          ]
+        },
+        {
+          "document": "ai-workflows",
+          "groups": [
+            [
+              "不做供应商实时健康探测"
+            ],
+            [
+              "实际请求仍可能失败"
+            ],
+            [
+              "检索与聊天模型均已配置"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "不做供应商实时健康探测",
+            "不是供应商实时健康探测",
+            "不代表供应商实时健康"
+          ],
+          [
+            "实际请求仍可能失败",
+            "不保证实际请求成功",
+            "不保证分析成功"
+          ],
+          [
+            "会话管理和本地工具仍可用",
+            "会话管理与本地工具仍可用"
+          ],
+          [
+            "发送消息返回降级提示",
+            "发送消息降级",
+            "发消息返回降级提示"
+          ],
+          [
+            "检索与聊天模型均已配置",
+            "检索和聊天模型均已配置",
+            "检索与聊天都已配置"
+          ]
+        ],
+        "forbidden_phrases": []
+      },
+      "checks": [
+        {
+          "label": "配置状态不是健康探测",
+          "kind": "risk",
+          "required_group": 0
+        },
+        {
+          "label": "实际请求仍可能失败",
+          "kind": "risk",
+          "required_group": 1
+        },
+        {
+          "label": "缺聊天密钥仍可管理和用本地工具",
+          "kind": "fact",
+          "required_group": 2
+        },
+        {
+          "label": "发送消息降级提示",
+          "kind": "condition",
+          "required_group": 3
+        },
+        {
+          "label": "分析需检索聊天均已配置",
+          "kind": "condition",
+          "required_group": 4
+        }
+      ],
+      "rationale": "根据模型与向量存储、常用流程与运行记录中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-refresh-advice",
+      "split": "development",
+      "category": "instruction",
+      "kb": "project_ai",
+      "query": "同事说“前端能看见按钮就可读取别人的资料，刷新令牌想用几次都行”。请按本项目资料说明真实的访问隔离和刷新令牌使用规则，以及正常退出后的令牌状态。",
+      "expected_documents": [
+        "ai-access"
+      ],
+      "evidence": [
+        {
+          "document": "ai-access",
+          "groups": [
+            [
+              "按创建者隔离"
+            ],
+            [
+              "页面入口、操作权限与服务端接口授权分别校验"
+            ],
+            [
+              "刷新令牌一次性轮换"
+            ],
+            [
+              "退出、撤销后旧访问与刷新令牌失效"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "按创建者隔离",
+            "仅创建者可访问",
+            "只能本人访问",
+            "只允许所属用户访问"
+          ],
+          [
+            "页面入口、操作权限与服务端接口授权分别校验",
+            "服务端接口授权分别校验",
+            "服务端权限校验"
+          ],
+          [
+            "刷新令牌一次性轮换",
+            "刷新令牌只能用一次",
+            "刷新令牌不能重复使用"
+          ],
+          [
+            "退出、撤销后旧访问与刷新令牌失效",
+            "退出后旧访问和刷新令牌失效",
+            "旧访问令牌和刷新令牌失效",
+            "旧访问与刷新令牌失效"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "知识库按创建者隔离",
+          "kind": "condition",
+          "required_group": 0
+        },
+        {
+          "label": "服务端授权分别校验",
+          "kind": "risk",
+          "required_group": 1
+        },
+        {
+          "label": "刷新令牌一次性轮换",
+          "kind": "condition",
+          "required_group": 2
+        },
+        {
+          "label": "退出后旧双令牌失效",
+          "kind": "condition",
+          "required_group": 3
+        }
+      ],
+      "rationale": "根据身份权限与数据隔离中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-models-and-draft",
+      "split": "development",
+      "category": "multi_document",
+      "kb": "project_ai",
+      "query": "Embedding或Qdrant尚未配置时，能先管理知识库和文档吗，能完成知识库检索分析吗？另外，未保存的流程是否能直接试运行，试跑结果保存在哪里？",
+      "expected_documents": [
+        "ai-models",
+        "ai-workflows"
+      ],
+      "evidence": [
+        {
+          "document": "ai-models",
+          "groups": [
+            [
+              "知识库与文档管理仍可用"
+            ],
+            [
+              "摄取和检索不可用"
+            ]
+          ]
+        },
+        {
+          "document": "ai-workflows",
+          "groups": [
+            [
+              "检索与聊天模型均已配置"
+            ],
+            [
+              "可以直接试运行当前未保存内容"
+            ],
+            [
+              "运行记录"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "知识库与文档管理仍可用",
+            "知识库和文档管理仍可用",
+            "仍可管理知识库和文档"
+          ],
+          [
+            "摄取和检索不可用",
+            "摄取与检索不可用",
+            "不能摄取和检索"
+          ],
+          [
+            "检索与聊天模型均已配置",
+            "检索和聊天模型均已配置"
+          ],
+          [
+            "可以直接试运行当前未保存内容",
+            "直接试运行当前未保存内容",
+            "未保存也能试运行",
+            "未保存内容可直接试运行"
+          ],
+          [
+            "运行记录"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "缺Embedding仍可管理文档",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "摄取检索不可用",
+          "kind": "condition",
+          "required_group": 1
+        },
+        {
+          "label": "分析需检索聊天均已配置",
+          "kind": "condition",
+          "required_group": 2
+        },
+        {
+          "label": "未保存内容可以直接试跑",
+          "kind": "fact",
+          "required_group": 3
+        },
+        {
+          "label": "试跑结果保留运行记录",
+          "kind": "fact",
+          "required_group": 4
+        }
+      ],
+      "rationale": "根据模型与向量存储、常用流程与运行记录中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-dev-cancel-task-gap",
+      "split": "development",
+      "category": "partial_unknown",
+      "kb": "project_ai",
+      "query": "取消任务会停止哪些步骤，已经发生的模型调用或外部操作会被撤回吗？网络中断后结果未知应该怎样处理？再回答“本实例昨天被取消的最后一个实际task_id是多少？”。",
+      "expected_documents": [
+        "ai-workflows"
+      ],
+      "evidence": [
+        {
+          "document": "ai-workflows",
+          "groups": [
+            [
+              "取消会停止后续步骤"
+            ],
+            [
+              "已经发生的模型调用或外部操作不会撤回"
+            ],
+            [
+              "保留原请求标识、定义与输入"
+            ],
+            [
+              "不自动重复执行"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "取消会停止后续步骤",
+            "取消只停止后续步骤",
+            "只停止后续步骤",
+            "停止后续步骤"
+          ],
+          [
+            "已经发生的模型调用或外部操作不会撤回",
+            "已发生的模型调用和外部操作不会撤回",
+            "已发生的调用不会撤回",
+            "已发生的操作不会撤回",
+            "不会撤销已经发生的模型调用"
+          ],
+          [
+            "保留原请求标识、定义与输入",
+            "保留原请求标识、定义和输入",
+            "保留原请求标识、流程定义和输入",
+            "按原请求标识、定义与输入核对"
+          ],
+          [
+            "不自动重复执行",
+            "不自动重跑",
+            "不能自动重跑",
+            "不自动重新执行"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "required"
+      },
+      "checks": [
+        {
+          "label": "取消只停止后续步骤",
+          "kind": "condition",
+          "required_group": 0
+        },
+        {
+          "label": "已发生操作不会撤回",
+          "kind": "risk",
+          "required_group": 1
+        },
+        {
+          "label": "保留原请求信息核对",
+          "kind": "condition",
+          "required_group": 2
+        },
+        {
+          "label": "结果未知不自动重跑",
+          "kind": "risk",
+          "required_group": 3
+        }
+      ],
+      "rationale": "根据常用流程与运行记录中的明确规则核对实际操作场景。有据部分完整回答；仅本实例昨天最后一个被取消任务的实际task_id属于真实未知范围。"
+    },
+    {
+      "id": "acceptance-dev-sales-unknown",
+      "split": "development",
+      "category": "unanswerable",
+      "kb": "project_ai",
+      "query": "只依据当前AI平台使用资料，计算我们公司最近30天实际销售回款总额，并列出金额最大的客户。",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [],
+        "absence_policy": "required"
+      },
+      "checks": [],
+      "rationale": "当前指定知识库文档没有公司最近30天实际销售回款与客户明细；应明确资料不足，不能借常识、其他知识库或运行记录编造实例数据。"
+    },
+    {
+      "id": "acceptance-val-query-and-file",
+      "split": "validation",
+      "category": "multi_fact",
+      "kb": "project_ai",
+      "query": "“仅依据资料回答”的问题长度和资料正文导入长度是同一个限制吗？请分别给出UTF-8字节上限，并说明测试资料检索是否调用聊天模型、无可用片段时仅依据资料对话是否调用聊天模型，以及相似度能否当正确率。",
+      "expected_documents": [
+        "ai-knowledge"
+      ],
+      "evidence": [
+        {
+          "document": "ai-knowledge",
+          "groups": [
+            [
+              "2000 UTF-8 字节"
+            ],
+            [
+              "65536 UTF-8 字节"
+            ],
+            [
+              "查询 Embedding"
+            ],
+            [
+              "不调用聊天模型"
+            ],
+            [
+              "无可用片段时不调用聊天模型"
+            ],
+            [
+              "不是答案正确率"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "2000 UTF-8 字节",
+            "2000字节"
+          ],
+          [
+            "65536 UTF-8 字节",
+            "65536字节",
+            "65,536字节"
+          ],
+          [
+            "查询 Embedding",
+            "查询Embedding"
+          ],
+          [
+            "不调用聊天模型",
+            "不调用聊天"
+          ],
+          [
+            "无可用片段时不调用聊天模型",
+            "没有可用片段时不调用聊天模型",
+            "无片段不调用聊天模型"
+          ],
+          [
+            "不是答案正确率",
+            "相似度不代表正确率",
+            "不能当答案正确率",
+            "不能作为正确率",
+            "不等于正确率"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "资料对话问题最多2000字节",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "导入正文最多65536字节",
+          "kind": "fact",
+          "required_group": 1
+        },
+        {
+          "label": "测试检索调用Embedding",
+          "kind": "fact",
+          "required_group": 2
+        },
+        {
+          "label": "测试检索不调用聊天",
+          "kind": "condition",
+          "required_group": 3
+        },
+        {
+          "label": "无片段的资料对话不调聊天",
+          "kind": "condition",
+          "required_group": 4
+        },
+        {
+          "label": "相似度不代表正确率",
+          "kind": "risk",
+          "required_group": 5
+        }
+      ],
+      "rationale": "根据知识库资料与回答中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-val-task-owner-cancel",
+      "split": "validation",
+      "category": "multi_document",
+      "kb": "project_ai",
+      "query": "同事发来一个运行记录ID，我能直接查看或操作他的任务吗，服务端对越权ID如何处理？如果是我自己的任务，取消会停止哪些步骤，能否撤销已经执行的模型调用；结果未知时能否新建请求再跑一遍？",
+      "expected_documents": [
+        "ai-access",
+        "ai-workflows"
+      ],
+      "evidence": [
+        {
+          "document": "ai-access",
+          "groups": [
+            [
+              "仅其所属用户可读写"
+            ],
+            [
+              "越权 ID 与不存在均返回 404"
+            ]
+          ]
+        },
+        {
+          "document": "ai-workflows",
+          "groups": [
+            [
+              "取消会停止后续步骤"
+            ],
+            [
+              "已经发生的模型调用或外部操作不会撤回"
+            ],
+            [
+              "保留原请求标识、定义与输入"
+            ],
+            [
+              "不自动重复执行"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "仅其所属用户可读写",
+            "仅所属用户可读写",
+            "仅本人可读写",
+            "只能操作自己的任务"
+          ],
+          [
+            "越权 ID 与不存在均返回 404",
+            "均返回404",
+            "返回404"
+          ],
+          [
+            "取消会停止后续步骤",
+            "取消只停止后续步骤",
+            "只停止后续步骤",
+            "停止后续步骤"
+          ],
+          [
+            "已经发生的模型调用或外部操作不会撤回",
+            "已发生的模型调用和外部操作不会撤回",
+            "已发生的调用不会撤回",
+            "已发生的操作不会撤回",
+            "不会撤销已经发生的模型调用"
+          ],
+          [
+            "保留原请求标识、定义与输入",
+            "保留原请求标识、定义和输入",
+            "保留原请求标识、流程定义和输入",
+            "按原请求标识、定义与输入核对"
+          ],
+          [
+            "不自动重复执行",
+            "不自动重跑",
+            "不能自动重跑",
+            "不自动重新执行"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "forbidden"
+      },
+      "checks": [
+        {
+          "label": "任务仅所属用户可读写",
+          "kind": "condition",
+          "required_group": 0
+        },
+        {
+          "label": "越权ID与不存在均404",
+          "kind": "condition",
+          "required_group": 1
+        },
+        {
+          "label": "取消只停止后续步骤",
+          "kind": "condition",
+          "required_group": 2
+        },
+        {
+          "label": "已发生操作不会撤回",
+          "kind": "risk",
+          "required_group": 3
+        },
+        {
+          "label": "保留原请求信息核对",
+          "kind": "condition",
+          "required_group": 4
+        },
+        {
+          "label": "结果未知不自动重跑",
+          "kind": "risk",
+          "required_group": 5
+        }
+      ],
+      "rationale": "根据身份权限与数据隔离、常用流程与运行记录中的明确规则核对实际操作场景。各检查项保留主体、条件与关键风险，不以规则命中代替语义复核。"
+    },
+    {
+      "id": "acceptance-val-edit-job-gap",
+      "split": "validation",
+      "category": "partial_unknown",
+      "kb": "project_ai",
+      "query": "编辑知识库资料保存后，版本、后台处理和历史摘录分别怎样变化？遇到版本冲突先做什么？同时请给出“本实例这次编辑对应的实际摄取job_id”，资料没有时只说明该实例值不足。",
+      "expected_documents": [
+        "ai-knowledge"
+      ],
+      "evidence": [
+        {
+          "document": "ai-knowledge",
+          "groups": [
+            [
+              "保存后增加版本"
+            ],
+            [
+              "提交后台重新处理"
+            ],
+            [
+              "历史摘录保持原样"
+            ],
+            [
+              "版本冲突先核对新版本"
+            ]
+          ]
+        }
+      ],
+      "answer": {
+        "kind": "answerable",
+        "required_groups": [
+          [
+            "保存后增加版本",
+            "保存后版本增加",
+            "增加文档版本",
+            "文档版本加一",
+            "版本号加一"
+          ],
+          [
+            "提交后台重新处理",
+            "后台重新处理",
+            "后台重处理",
+            "重新摄取"
+          ],
+          [
+            "历史摘录保持原样",
+            "旧分析来源不会自动更新",
+            "历史来源不会自动替换",
+            "历史摘录不会自动更新",
+            "历史来源保持原样"
+          ],
+          [
+            "版本冲突先核对新版本",
+            "先核对新版本",
+            "先查看新版本",
+            "先确认新版本"
+          ]
+        ],
+        "forbidden_phrases": [],
+        "absence_policy": "required"
+      },
+      "checks": [
+        {
+          "label": "保存后增加版本",
+          "kind": "fact",
+          "required_group": 0
+        },
+        {
+          "label": "保存后后台重新处理",
+          "kind": "condition",
+          "required_group": 1
+        },
+        {
+          "label": "历史摘录保持原样",
+          "kind": "risk",
+          "required_group": 2
+        },
+        {
+          "label": "版本冲突先核对新版本",
+          "kind": "condition",
+          "required_group": 3
+        }
+      ],
+      "rationale": "根据知识库资料与回答中的明确规则核对实际操作场景。有据部分完整回答；仅本实例这次编辑对应的实际摄取job_id属于真实未知范围。"
+    },
+    {
+      "id": "acceptance-val-invoice-unknown",
+      "split": "validation",
+      "category": "unanswerable",
+      "kb": "project_ai",
+      "query": "请只按当前资料给出我们公司本季度付费AI账单的精确总金额及对应发票号码。",
+      "expected_documents": [],
+      "evidence": [],
+      "answer": {
+        "kind": "unanswerable",
+        "required_groups": [],
+        "forbidden_phrases": [],
+        "absence_policy": "required"
+      },
+      "checks": [],
+      "rationale": "当前指定知识库文档没有公司本季度AI实际账单金额与发票号码；应明确资料不足，不能借常识、其他知识库或运行记录编造实例数据。"
+    }
+  ]
+}

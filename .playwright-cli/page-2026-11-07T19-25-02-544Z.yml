@@ -1,0 +1,34 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]: GO-ZERO-ADMIN · 首次启动说明
+    - generic [ref=e5]: 命令说明卡 · 未执行克隆或覆盖配置
+  - generic [ref=e6]:
+    - heading "先获取代码，再进入仓库" [level=1] [ref=e7]
+    - paragraph [ref=e8]: 以下是首次克隆到新目录的完整命令；后续操作区分仓库根目录、后端和前端。
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e11]: 执行目录：你选择的代码父目录
+        - generic [ref=e12]: git clone --recursive --branch yh-dev https://github.com/yh-zero/go-zero-admin.git go-zero-admin-demo cd .\go-zero-admin-demo
+        - generic [ref=e13]:
+          - generic [ref=e14]:
+            - paragraph [ref=e15]: 后端目录
+            - generic [ref=e16]: .\go-zero-admin\
+          - generic [ref=e17]:
+            - paragraph [ref=e18]: 前端目录
+            - generic [ref=e19]: .\go-zero-admin-react\
+        - generic [ref=e20]: 已有克隆需要补齐子模块时，在仓库根目录执行：git submodule update --init --recursive
+      - complementary [ref=e21]:
+        - paragraph [ref=e22]:
+          - strong [ref=e23]: "--recursive"
+          - text: 同时获取仓库引用的规范子模块。
+        - paragraph [ref=e24]:
+          - text: 命令中的
+          - strong [ref=e25]: yh-dev
+          - text: 是本次使用的分支。
+        - paragraph [ref=e26]: 此卡讲解首次获取代码，不把现有工作区冒充重新克隆。
+  - generic [ref=e27]:
+    - generic [ref=e28]: 录制版本：2026-11-08 本地工作区，基于 yh-dev / fc226fb，含未提交功能；远程内容以发布时仓库为准。
+    - navigation "说明卡" [ref=e29]:
+      - button "1 获取代码" [ref=e30] [cursor=pointer]
+      - button "2 本地配置" [ref=e31] [cursor=pointer]
+      - button "3 验证码" [ref=e32] [cursor=pointer]

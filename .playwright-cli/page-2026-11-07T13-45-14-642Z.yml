@@ -1,0 +1,180 @@
+- generic [ref=e70]:
+  - complementary [ref=e71]:
+    - generic [ref=e72]:
+      - generic [ref=e73]:
+        - generic [ref=e79]:
+          - strong [ref=e80]: go-zero-admin
+          - generic [ref=e81]: 管理控制台
+        - generic [ref=e82]: 工作空间
+        - menu [ref=e83]:
+          - menuitem "dashboard 工作台" [ref=e84] [cursor=pointer]:
+            - img "dashboard" [ref=e85]
+            - generic [ref=e88]: 工作台
+          - menuitem "系统管理" [ref=e89] [cursor=pointer]
+          - menuitem "APP管理" [ref=e95] [cursor=pointer]
+          - menuitem "租户管理" [ref=e101] [cursor=pointer]
+          - menuitem "AI 功能" [ref=e109] [cursor=pointer]
+      - button "折叠侧栏" [ref=e115] [cursor=pointer]:
+        - img "left" [ref=e117]
+        - generic [ref=e120]: 收起侧栏
+      - separator "调整侧栏宽度" [ref=e121]
+  - generic [ref=e122]:
+    - banner [ref=e123]:
+      - generic [ref=e124]:
+        - button "收起导航" [expanded] [ref=e125] [cursor=pointer]:
+          - img "menu-fold" [ref=e127]
+        - navigation [ref=e131]:
+          - list [ref=e132]:
+            - listitem [ref=e133]:
+              - generic [ref=e134]:
+                - img "home" [ref=e135]
+                - text: 控制台
+            - listitem [ref=e138]: /
+            - listitem [ref=e139]: 工作台
+      - generic [ref=e140]:
+        - generic [ref=e143]:
+          - img "apartment" [ref=e145]
+          - generic "默认部门" [ref=e148]:
+            - text: 默认部门
+            - combobox "切换部门" [ref=e149]
+          - img "down" [ref=e151]
+        - button "超级管理员，账号菜单" [ref=e154] [cursor=pointer]:
+          - img "user" [ref=e156]
+          - generic [ref=e159]: 超级管理员
+          - img "down" [ref=e160]
+        - button "退出登录" [ref=e163] [cursor=pointer]:
+          - img "logout" [ref=e165]
+    - main [ref=e169]:
+      - generic [ref=e171]:
+        - generic [ref=e172]:
+          - generic [ref=e173]:
+            - heading "工作台" [level=3] [ref=e174]
+            - text: 掌握系统概况，让日常管理井然有序。
+          - generic [ref=e175]: 服务已连接
+        - generic [ref=e178]:
+          - generic [ref=e181]:
+            - generic [ref=e182]:
+              - generic [ref=e183]: 用户总数
+              - img "team" [ref=e185]
+            - generic [ref=e188]: "8"
+            - generic [ref=e191]:
+              - generic [ref=e192]: 系统账号与成员
+              - link "查看用户总数" [ref=e193] [cursor=pointer]:
+                - /url: /sys/user
+                - img "arrow-right" [ref=e194]
+          - generic [ref=e199]:
+            - generic [ref=e200]:
+              - generic [ref=e201]: 角色总数
+              - img "safety" [ref=e203]
+            - generic [ref=e207]: "6"
+            - generic [ref=e210]:
+              - generic [ref=e211]: 角色与访问权限
+              - link "查看角色总数" [ref=e212] [cursor=pointer]:
+                - /url: /sys/role
+                - img "arrow-right" [ref=e213]
+          - generic [ref=e218]:
+            - generic [ref=e219]:
+              - generic [ref=e220]: 文件总数
+              - img "file" [ref=e222]
+            - generic [ref=e225]: "0"
+            - generic [ref=e228]:
+              - generic [ref=e229]: 文件资源与访问
+              - link "查看文件总数" [ref=e230] [cursor=pointer]:
+                - /url: /sys/file
+                - img "arrow-right" [ref=e231]
+          - generic [ref=e236]:
+            - generic [ref=e237]:
+              - generic [ref=e238]: 审计记录
+              - img "file-search" [ref=e240]
+            - generic [ref=e243]: "808"
+            - generic [ref=e246]:
+              - generic [ref=e247]: 可追溯的操作记录
+              - link "查看审计记录" [ref=e248] [cursor=pointer]:
+                - /url: /sys/audit
+                - img "arrow-right" [ref=e249]
+        - generic [ref=e252]:
+          - generic [ref=e253]:
+            - generic [ref=e255]:
+              - generic [ref=e256]: 最近操作
+              - link [ref=e258] [cursor=pointer]:
+                - /url: /sys/audit
+                - text: 全部记录
+                - img "arrow-right" [ref=e259]
+            - table [ref=e269]:
+              - rowgroup [ref=e270]:
+                - row [ref=e271]:
+                  - columnheader "操作人" [ref=e272]
+                  - columnheader "模块" [ref=e273]
+                  - columnheader "动作" [ref=e274]
+                  - columnheader "时间" [ref=e275]
+              - rowgroup [ref=e276]:
+                - row [ref=e277]:
+                  - cell "admin" [ref=e278]
+                  - cell "sys/auth" [ref=e279]
+                  - cell "login" [ref=e280]
+                  - cell "2026-11-07 21:45:13" [ref=e282]
+                - row [ref=e283]:
+                  - cell "admin" [ref=e284]
+                  - cell "sys/ai" [ref=e285]
+                  - cell "post" [ref=e286]
+                  - cell "2026-11-07 21:44:39" [ref=e288]
+                - row [ref=e289]:
+                  - cell "admin" [ref=e290]
+                  - cell "sys/ai" [ref=e291]
+                  - cell "post" [ref=e292]
+                  - cell "2026-11-07 21:44:39" [ref=e294]
+                - row [ref=e295]:
+                  - cell "admin" [ref=e296]
+                  - cell "sys/ai" [ref=e297]
+                  - cell "post" [ref=e298]
+                  - cell "2026-11-07 21:44:35" [ref=e300]
+                - row [ref=e301]:
+                  - cell "admin" [ref=e302]
+                  - cell "sys/ai" [ref=e303]
+                  - cell "post" [ref=e304]
+                  - cell "2026-11-07 21:44:35" [ref=e306]
+          - generic [ref=e307]:
+            - generic [ref=e308]: 常用入口
+            - generic [ref=e312]:
+              - link "team 用户管理 账号与成员信息 arrow-right" [ref=e313] [cursor=pointer]:
+                - /url: /sys/user
+                - img "team" [ref=e315]
+                - generic [ref=e318]:
+                  - strong [ref=e319]: 用户管理
+                  - generic [ref=e320]: 账号与成员信息
+                - img "arrow-right" [ref=e321]
+              - link "safety 角色管理 角色与菜单授权 arrow-right" [ref=e324] [cursor=pointer]:
+                - /url: /sys/role
+                - img "safety" [ref=e326]
+                - generic [ref=e330]:
+                  - strong [ref=e331]: 角色管理
+                  - generic [ref=e332]: 角色与菜单授权
+                - img "arrow-right" [ref=e333]
+              - link "partition 部门管理 组织层级与联系信息 arrow-right" [ref=e336] [cursor=pointer]:
+                - /url: /sys/dept
+                - img "partition" [ref=e338]
+                - generic [ref=e341]:
+                  - strong [ref=e342]: 部门管理
+                  - generic [ref=e343]: 组织层级与联系信息
+                - img "arrow-right" [ref=e344]
+              - link "menu 菜单管理 导航与页面配置 arrow-right" [ref=e347] [cursor=pointer]:
+                - /url: /sys/menu
+                - img "menu" [ref=e349]
+                - generic [ref=e352]:
+                  - strong [ref=e353]: 菜单管理
+                  - generic [ref=e354]: 导航与页面配置
+                - img "arrow-right" [ref=e355]
+              - link "file 文件管理 文件资源与链接 arrow-right" [ref=e358] [cursor=pointer]:
+                - /url: /sys/file
+                - img "file" [ref=e360]
+                - generic [ref=e363]:
+                  - strong [ref=e364]: 文件管理
+                  - generic [ref=e365]: 文件资源与链接
+                - img "arrow-right" [ref=e366]
+              - link "user 个人中心 资料与账号设置 arrow-right" [ref=e369] [cursor=pointer]:
+                - /url: /sys/profile
+                - img "user" [ref=e371]
+                - generic [ref=e374]:
+                  - strong [ref=e375]: 个人中心
+                  - generic [ref=e376]: 资料与账号设置
+                - img "arrow-right" [ref=e377]

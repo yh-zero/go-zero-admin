@@ -55,11 +55,18 @@ type (
 	prefix:   v1/sys/file
 	group:    file
 	maxBytes: 14680064
+	timeout:  45s
 )
 service admin {
 	@handler uploadFile
 	post /upload (UploadFileReq) returns (UploadFileResp)
+}
 
+@server (
+	prefix: v1/sys/file
+	group:  file
+)
+service admin {
 	@handler getFileList
 	get /list (GetFileListReq) returns (GetFileListResp)
 

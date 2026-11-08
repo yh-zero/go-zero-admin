@@ -42,6 +42,22 @@ test('工作流知识库分析展示与等待范围', async t => {
       assert.deepEqual(helpers.parseTaskAnalyses('[1/1] 旧工具: {"chars":3,"words":1,"lines":1}', 1), []);
       assert.deepEqual(helpers.parseTaskAnalyses(JSON.stringify(analysis), 1), [], '无步骤边界的旧JSON不能冒充新分析');
     });
+    await t.test('分析接受最多8个连续编号来源，旧5个兼容而第9个回退原文', () => {
+      const withSources = count => ({ ...analysis, sources: Array.from({ length: count }, (_, i) => ({ ...analysis.sources[0], index: i + 1, chunk_id: 21 + i, doc_id: 9 + i, doc_title: `扩展资料${i + 1}` })) });
+      for (const count of [5, 8]) assert.equal(helpers.parseTaskAnalyses(record(withSources(count)), 1)[0]?.result.sources.length, count);
+      assert.deepEqual(helpers.parseTaskAnalyses(record(withSources(9)), 1), []);
+    });
+    await t.test('分析扩展来源数仍遵守10000来源JSON与24000总输出字节边界', () => {
+      const crowded = { ...analysis, sources: Array.from({ length: 5 }, (_, i) => ({ ...analysis.sources[0], index: i + 1, chunk_id: 21 + i, snippet: 'x'.repeat(2100) })) };
+      assert.deepEqual(helpers.parseTaskAnalyses(record(crowded), 1), []);
+      assert.deepEqual(helpers.parseTaskAnalyses(record({ ...analysis, analysis: 'x'.repeat(24000) }), 1), []);
+    });
+    await t.test('正文12000原字节及13000编码字节双限不随来源扩展放宽', () => {
+      const boundary = { ...analysis, analysis: 'x'.repeat(9000) + '\n'.repeat(1999) };
+      assert.equal(Buffer.byteLength(JSON.stringify(boundary.analysis)), 13000);
+      assert.equal(helpers.parseTaskAnalyses(record(boundary), 1).length, 1);
+      for (const text of ['x'.repeat(12001), '\n'.repeat(6500)]) assert.deepEqual(helpers.parseTaskAnalyses(record({ ...analysis, analysis: text }), 1), []);
+    });
     await t.test('歧义标记、多行JSON、坏字段和未知版本回退为原文', () => {
       assert.equal(typeof helpers.parseTaskAnalyses, 'function');
       const malformed = [
@@ -67,6 +83,11 @@ test('工作流知识库分析展示与等待范围', async t => {
 
     const { TaskDetailContent } = await server.ssrLoadModule('/src/pages/ai/TaskDetail.tsx');
     const render = value => renderToStaticMarkup(createElement(TaskDetailContent, { task: value }));
+    await t.test('任务详情展示第6至8来源，不把它们从有效分析隐藏', () => {
+      const value = { ...analysis, sources: Array.from({ length: 8 }, (_, i) => ({ ...analysis.sources[0], index: i + 1, chunk_id: 21 + i, doc_id: 9 + i, doc_title: `扩展资料${i + 1}`, snippet: `资料事实${i + 1}` })) };
+      const html = render(task(record(value)));
+      for (const index of [6, 7, 8]) assert.ok(html.includes(`扩展资料${index}`) && html.includes(`资料事实${index}`));
+    });
     await t.test('真实详情显示分析、资料标识和仅聊天已知用量，原始记录一直可查', () => {
       const markup = render(task(record()));
       for (const text of ['分析内容', '第一段分析', '第二段结论', '参考资料', '操作手册', '文档 ID：9', '分块 ID：21', '知识库 ID：7', '相似度：0.91',

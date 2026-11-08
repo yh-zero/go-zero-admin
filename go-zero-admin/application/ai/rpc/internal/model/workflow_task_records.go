@@ -11,16 +11,26 @@ import (
 
 // WorkflowStepRecord 保留本次任务真正使用的输入；审批不重新读取可变的工作流。
 type WorkflowStepRecord struct {
-	Index       int64  `json:"index"`
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	Tool        string `json:"tool"`
-	Input       string `json:"input"`
-	Status      string `json:"status"`
-	Output      string `json:"output"`
-	Error       string `json:"error"`
-	StartedAt   int64  `json:"started_at"`
-	CompletedAt int64  `json:"completed_at"`
+	Index       int64              `json:"index"`
+	Id          string             `json:"id"`
+	Name        string             `json:"name"`
+	Tool        string             `json:"tool"`
+	Input       string             `json:"input"`
+	Status      string             `json:"status"`
+	Output      string             `json:"output"`
+	Error       string             `json:"error"`
+	StartedAt   int64              `json:"started_at"`
+	CompletedAt int64              `json:"completed_at"`
+	Usage       *WorkflowStepUsage `json:"usage,omitempty"`
+}
+
+// WorkflowStepUsage 与步骤终态一起保存，缺失字段表示历史记录或尚未尝试模型调用。
+type WorkflowStepUsage struct {
+	Scope            string `json:"scope"`
+	PromptTokens     int64  `json:"prompt_tokens"`
+	CompletionTokens int64  `json:"completion_tokens"`
+	TotalTokens      int64  `json:"total_tokens"`
+	Complete         bool   `json:"complete"`
 }
 
 func ReadWorkflowStepRecords(raw string) ([]WorkflowStepRecord, error) {

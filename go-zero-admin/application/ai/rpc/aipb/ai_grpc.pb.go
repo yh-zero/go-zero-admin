@@ -19,47 +19,84 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AiService_CreateConversation_FullMethodName = "/aipb.AiService/CreateConversation"
-	AiService_ListConversations_FullMethodName  = "/aipb.AiService/ListConversations"
-	AiService_GetConversation_FullMethodName    = "/aipb.AiService/GetConversation"
-	AiService_DeleteConversation_FullMethodName = "/aipb.AiService/DeleteConversation"
-	AiService_UpdateConversation_FullMethodName = "/aipb.AiService/UpdateConversation"
-	AiService_SetMessageFeedback_FullMethodName = "/aipb.AiService/SetMessageFeedback"
-	AiService_SendMessageStream_FullMethodName  = "/aipb.AiService/SendMessageStream"
-	AiService_ListTools_FullMethodName          = "/aipb.AiService/ListTools"
-	AiService_CreateWorkflow_FullMethodName     = "/aipb.AiService/CreateWorkflow"
-	AiService_ListWorkflows_FullMethodName      = "/aipb.AiService/ListWorkflows"
-	AiService_GetWorkflow_FullMethodName        = "/aipb.AiService/GetWorkflow"
-	AiService_UpdateWorkflow_FullMethodName     = "/aipb.AiService/UpdateWorkflow"
-	AiService_DeleteWorkflow_FullMethodName     = "/aipb.AiService/DeleteWorkflow"
-	AiService_RunWorkflow_FullMethodName        = "/aipb.AiService/RunWorkflow"
-	AiService_RunDraft_FullMethodName           = "/aipb.AiService/RunDraft"
-	AiService_CreateKb_FullMethodName           = "/aipb.AiService/CreateKb"
-	AiService_ListKbs_FullMethodName            = "/aipb.AiService/ListKbs"
-	AiService_GetKb_FullMethodName              = "/aipb.AiService/GetKb"
-	AiService_SearchKb_FullMethodName           = "/aipb.AiService/SearchKb"
-	AiService_UpdateKb_FullMethodName           = "/aipb.AiService/UpdateKb"
-	AiService_DeleteKb_FullMethodName           = "/aipb.AiService/DeleteKb"
-	AiService_CreateKbDoc_FullMethodName        = "/aipb.AiService/CreateKbDoc"
-	AiService_ListKbDocs_FullMethodName         = "/aipb.AiService/ListKbDocs"
-	AiService_GetKbDoc_FullMethodName           = "/aipb.AiService/GetKbDoc"
-	AiService_UpdateKbDoc_FullMethodName        = "/aipb.AiService/UpdateKbDoc"
-	AiService_DeleteKbDoc_FullMethodName        = "/aipb.AiService/DeleteKbDoc"
-	AiService_RetryKbDoc_FullMethodName         = "/aipb.AiService/RetryKbDoc"
-	AiService_ListKbImports_FullMethodName      = "/aipb.AiService/ListKbImports"
-	AiService_GetKbImport_FullMethodName        = "/aipb.AiService/GetKbImport"
-	AiService_StopKbImport_FullMethodName       = "/aipb.AiService/StopKbImport"
-	AiService_ListAgentTasks_FullMethodName     = "/aipb.AiService/ListAgentTasks"
-	AiService_GetAgentTask_FullMethodName       = "/aipb.AiService/GetAgentTask"
-	AiService_ApproveTask_FullMethodName        = "/aipb.AiService/ApproveTask"
-	AiService_RejectTask_FullMethodName         = "/aipb.AiService/RejectTask"
-	AiService_CancelTask_FullMethodName         = "/aipb.AiService/CancelTask"
+	AiService_GetUsageSummary_FullMethodName          = "/aipb.AiService/GetUsageSummary"
+	AiService_ListUsageCalls_FullMethodName           = "/aipb.AiService/ListUsageCalls"
+	AiService_GetUsagePolicy_FullMethodName           = "/aipb.AiService/GetUsagePolicy"
+	AiService_AdminGetUsageSummary_FullMethodName     = "/aipb.AiService/AdminGetUsageSummary"
+	AiService_AdminListUsageCalls_FullMethodName      = "/aipb.AiService/AdminListUsageCalls"
+	AiService_AdminListUsagePolicies_FullMethodName   = "/aipb.AiService/AdminListUsagePolicies"
+	AiService_AdminSetUsagePolicy_FullMethodName      = "/aipb.AiService/AdminSetUsagePolicy"
+	AiService_ListKbEvaluationDatasets_FullMethodName = "/aipb.AiService/ListKbEvaluationDatasets"
+	AiService_StartKbEvaluation_FullMethodName        = "/aipb.AiService/StartKbEvaluation"
+	AiService_ListKbEvaluations_FullMethodName        = "/aipb.AiService/ListKbEvaluations"
+	AiService_GetKbEvaluation_FullMethodName          = "/aipb.AiService/GetKbEvaluation"
+	AiService_StopKbEvaluation_FullMethodName         = "/aipb.AiService/StopKbEvaluation"
+	AiService_SetTaskFeedback_FullMethodName          = "/aipb.AiService/SetTaskFeedback"
+	AiService_ListTaskFeedback_FullMethodName         = "/aipb.AiService/ListTaskFeedback"
+	AiService_ListKbFeedback_FullMethodName           = "/aipb.AiService/ListKbFeedback"
+	AiService_GetKbFeedback_FullMethodName            = "/aipb.AiService/GetKbFeedback"
+	AiService_ReviewKbFeedback_FullMethodName         = "/aipb.AiService/ReviewKbFeedback"
+	AiService_CreateConversation_FullMethodName       = "/aipb.AiService/CreateConversation"
+	AiService_ListConversations_FullMethodName        = "/aipb.AiService/ListConversations"
+	AiService_GetConversation_FullMethodName          = "/aipb.AiService/GetConversation"
+	AiService_DeleteConversation_FullMethodName       = "/aipb.AiService/DeleteConversation"
+	AiService_UpdateConversation_FullMethodName       = "/aipb.AiService/UpdateConversation"
+	AiService_SetMessageFeedback_FullMethodName       = "/aipb.AiService/SetMessageFeedback"
+	AiService_SendMessageStream_FullMethodName        = "/aipb.AiService/SendMessageStream"
+	AiService_ListTools_FullMethodName                = "/aipb.AiService/ListTools"
+	AiService_CreateWorkflow_FullMethodName           = "/aipb.AiService/CreateWorkflow"
+	AiService_ListWorkflows_FullMethodName            = "/aipb.AiService/ListWorkflows"
+	AiService_GetWorkflow_FullMethodName              = "/aipb.AiService/GetWorkflow"
+	AiService_UpdateWorkflow_FullMethodName           = "/aipb.AiService/UpdateWorkflow"
+	AiService_ListWorkflowRevisions_FullMethodName    = "/aipb.AiService/ListWorkflowRevisions"
+	AiService_GetWorkflowRevision_FullMethodName      = "/aipb.AiService/GetWorkflowRevision"
+	AiService_RestoreWorkflowRevision_FullMethodName  = "/aipb.AiService/RestoreWorkflowRevision"
+	AiService_DeleteWorkflow_FullMethodName           = "/aipb.AiService/DeleteWorkflow"
+	AiService_RunWorkflow_FullMethodName              = "/aipb.AiService/RunWorkflow"
+	AiService_RunDraft_FullMethodName                 = "/aipb.AiService/RunDraft"
+	AiService_CreateKb_FullMethodName                 = "/aipb.AiService/CreateKb"
+	AiService_ListKbs_FullMethodName                  = "/aipb.AiService/ListKbs"
+	AiService_GetKb_FullMethodName                    = "/aipb.AiService/GetKb"
+	AiService_SearchKb_FullMethodName                 = "/aipb.AiService/SearchKb"
+	AiService_UpdateKb_FullMethodName                 = "/aipb.AiService/UpdateKb"
+	AiService_DeleteKb_FullMethodName                 = "/aipb.AiService/DeleteKb"
+	AiService_CreateKbDoc_FullMethodName              = "/aipb.AiService/CreateKbDoc"
+	AiService_ListKbDocs_FullMethodName               = "/aipb.AiService/ListKbDocs"
+	AiService_GetKbDoc_FullMethodName                 = "/aipb.AiService/GetKbDoc"
+	AiService_UpdateKbDoc_FullMethodName              = "/aipb.AiService/UpdateKbDoc"
+	AiService_DeleteKbDoc_FullMethodName              = "/aipb.AiService/DeleteKbDoc"
+	AiService_RetryKbDoc_FullMethodName               = "/aipb.AiService/RetryKbDoc"
+	AiService_ListKbImports_FullMethodName            = "/aipb.AiService/ListKbImports"
+	AiService_GetKbImport_FullMethodName              = "/aipb.AiService/GetKbImport"
+	AiService_StopKbImport_FullMethodName             = "/aipb.AiService/StopKbImport"
+	AiService_ListAgentTasks_FullMethodName           = "/aipb.AiService/ListAgentTasks"
+	AiService_GetAgentTask_FullMethodName             = "/aipb.AiService/GetAgentTask"
+	AiService_ApproveTask_FullMethodName              = "/aipb.AiService/ApproveTask"
+	AiService_RejectTask_FullMethodName               = "/aipb.AiService/RejectTask"
+	AiService_CancelTask_FullMethodName               = "/aipb.AiService/CancelTask"
 )
 
 // AiServiceClient is the client API for AiService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AiServiceClient interface {
+	GetUsageSummary(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*UsageSummaryResponse, error)
+	ListUsageCalls(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsageCallsResponse, error)
+	GetUsagePolicy(ctx context.Context, in *UsagePolicyRequest, opts ...grpc.CallOption) (*UsagePolicyResponse, error)
+	AdminGetUsageSummary(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*UsageSummaryResponse, error)
+	AdminListUsageCalls(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsageCallsResponse, error)
+	AdminListUsagePolicies(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsagePoliciesResponse, error)
+	AdminSetUsagePolicy(ctx context.Context, in *SetUsagePolicyRequest, opts ...grpc.CallOption) (*UsagePolicyResponse, error)
+	ListKbEvaluationDatasets(ctx context.Context, in *ListKbEvaluationDatasetsRequest, opts ...grpc.CallOption) (*ListKbEvaluationDatasetsResponse, error)
+	StartKbEvaluation(ctx context.Context, in *StartKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error)
+	ListKbEvaluations(ctx context.Context, in *ListKbEvaluationsRequest, opts ...grpc.CallOption) (*ListKbEvaluationsResponse, error)
+	GetKbEvaluation(ctx context.Context, in *GetKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error)
+	StopKbEvaluation(ctx context.Context, in *StopKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error)
+	SetTaskFeedback(ctx context.Context, in *SetTaskFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error)
+	ListTaskFeedback(ctx context.Context, in *ListTaskFeedbackRequest, opts ...grpc.CallOption) (*ListTaskFeedbackResponse, error)
+	ListKbFeedback(ctx context.Context, in *ListKbFeedbackRequest, opts ...grpc.CallOption) (*ListKbFeedbackResponse, error)
+	GetKbFeedback(ctx context.Context, in *GetKbFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error)
+	ReviewKbFeedback(ctx context.Context, in *ReviewKbFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error)
 	CreateConversation(ctx context.Context, in *CreateConversationRequest, opts ...grpc.CallOption) (*CreateConversationResponse, error)
 	ListConversations(ctx context.Context, in *ListConversationsRequest, opts ...grpc.CallOption) (*ListConversationsResponse, error)
 	GetConversation(ctx context.Context, in *GetConversationRequest, opts ...grpc.CallOption) (*GetConversationResponse, error)
@@ -71,7 +108,10 @@ type AiServiceClient interface {
 	CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*CreateWorkflowResponse, error)
 	ListWorkflows(ctx context.Context, in *ListWorkflowsRequest, opts ...grpc.CallOption) (*ListWorkflowsResponse, error)
 	GetWorkflow(ctx context.Context, in *GetWorkflowRequest, opts ...grpc.CallOption) (*GetWorkflowResponse, error)
-	UpdateWorkflow(ctx context.Context, in *UpdateWorkflowRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+	UpdateWorkflow(ctx context.Context, in *UpdateWorkflowRequest, opts ...grpc.CallOption) (*GetWorkflowResponse, error)
+	ListWorkflowRevisions(ctx context.Context, in *ListWorkflowRevisionsRequest, opts ...grpc.CallOption) (*ListWorkflowRevisionsResponse, error)
+	GetWorkflowRevision(ctx context.Context, in *GetWorkflowRevisionRequest, opts ...grpc.CallOption) (*GetWorkflowRevisionResponse, error)
+	RestoreWorkflowRevision(ctx context.Context, in *RestoreWorkflowRevisionRequest, opts ...grpc.CallOption) (*GetWorkflowResponse, error)
 	DeleteWorkflow(ctx context.Context, in *DeleteWorkflowRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	RunWorkflow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunWorkflowResponse, error)
 	RunDraft(ctx context.Context, in *RunDraftRequest, opts ...grpc.CallOption) (*RunWorkflowResponse, error)
@@ -103,6 +143,176 @@ type aiServiceClient struct {
 
 func NewAiServiceClient(cc grpc.ClientConnInterface) AiServiceClient {
 	return &aiServiceClient{cc}
+}
+
+func (c *aiServiceClient) GetUsageSummary(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*UsageSummaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UsageSummaryResponse)
+	err := c.cc.Invoke(ctx, AiService_GetUsageSummary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) ListUsageCalls(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsageCallsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUsageCallsResponse)
+	err := c.cc.Invoke(ctx, AiService_ListUsageCalls_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) GetUsagePolicy(ctx context.Context, in *UsagePolicyRequest, opts ...grpc.CallOption) (*UsagePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UsagePolicyResponse)
+	err := c.cc.Invoke(ctx, AiService_GetUsagePolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) AdminGetUsageSummary(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*UsageSummaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UsageSummaryResponse)
+	err := c.cc.Invoke(ctx, AiService_AdminGetUsageSummary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) AdminListUsageCalls(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsageCallsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUsageCallsResponse)
+	err := c.cc.Invoke(ctx, AiService_AdminListUsageCalls_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) AdminListUsagePolicies(ctx context.Context, in *UsageQueryRequest, opts ...grpc.CallOption) (*ListUsagePoliciesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUsagePoliciesResponse)
+	err := c.cc.Invoke(ctx, AiService_AdminListUsagePolicies_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) AdminSetUsagePolicy(ctx context.Context, in *SetUsagePolicyRequest, opts ...grpc.CallOption) (*UsagePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UsagePolicyResponse)
+	err := c.cc.Invoke(ctx, AiService_AdminSetUsagePolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) ListKbEvaluationDatasets(ctx context.Context, in *ListKbEvaluationDatasetsRequest, opts ...grpc.CallOption) (*ListKbEvaluationDatasetsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListKbEvaluationDatasetsResponse)
+	err := c.cc.Invoke(ctx, AiService_ListKbEvaluationDatasets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) StartKbEvaluation(ctx context.Context, in *StartKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(KbEvaluationResponse)
+	err := c.cc.Invoke(ctx, AiService_StartKbEvaluation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) ListKbEvaluations(ctx context.Context, in *ListKbEvaluationsRequest, opts ...grpc.CallOption) (*ListKbEvaluationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListKbEvaluationsResponse)
+	err := c.cc.Invoke(ctx, AiService_ListKbEvaluations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) GetKbEvaluation(ctx context.Context, in *GetKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(KbEvaluationResponse)
+	err := c.cc.Invoke(ctx, AiService_GetKbEvaluation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) StopKbEvaluation(ctx context.Context, in *StopKbEvaluationRequest, opts ...grpc.CallOption) (*KbEvaluationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(KbEvaluationResponse)
+	err := c.cc.Invoke(ctx, AiService_StopKbEvaluation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) SetTaskFeedback(ctx context.Context, in *SetTaskFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(KbFeedbackResponse)
+	err := c.cc.Invoke(ctx, AiService_SetTaskFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) ListTaskFeedback(ctx context.Context, in *ListTaskFeedbackRequest, opts ...grpc.CallOption) (*ListTaskFeedbackResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTaskFeedbackResponse)
+	err := c.cc.Invoke(ctx, AiService_ListTaskFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) ListKbFeedback(ctx context.Context, in *ListKbFeedbackRequest, opts ...grpc.CallOption) (*ListKbFeedbackResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListKbFeedbackResponse)
+	err := c.cc.Invoke(ctx, AiService_ListKbFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) GetKbFeedback(ctx context.Context, in *GetKbFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(KbFeedbackResponse)
+	err := c.cc.Invoke(ctx, AiService_GetKbFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) ReviewKbFeedback(ctx context.Context, in *ReviewKbFeedbackRequest, opts ...grpc.CallOption) (*KbFeedbackResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(KbFeedbackResponse)
+	err := c.cc.Invoke(ctx, AiService_ReviewKbFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *aiServiceClient) CreateConversation(ctx context.Context, in *CreateConversationRequest, opts ...grpc.CallOption) (*CreateConversationResponse, error) {
@@ -224,10 +434,40 @@ func (c *aiServiceClient) GetWorkflow(ctx context.Context, in *GetWorkflowReques
 	return out, nil
 }
 
-func (c *aiServiceClient) UpdateWorkflow(ctx context.Context, in *UpdateWorkflowRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
+func (c *aiServiceClient) UpdateWorkflow(ctx context.Context, in *UpdateWorkflowRequest, opts ...grpc.CallOption) (*GetWorkflowResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(NoDataResponse)
+	out := new(GetWorkflowResponse)
 	err := c.cc.Invoke(ctx, AiService_UpdateWorkflow_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) ListWorkflowRevisions(ctx context.Context, in *ListWorkflowRevisionsRequest, opts ...grpc.CallOption) (*ListWorkflowRevisionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListWorkflowRevisionsResponse)
+	err := c.cc.Invoke(ctx, AiService_ListWorkflowRevisions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) GetWorkflowRevision(ctx context.Context, in *GetWorkflowRevisionRequest, opts ...grpc.CallOption) (*GetWorkflowRevisionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetWorkflowRevisionResponse)
+	err := c.cc.Invoke(ctx, AiService_GetWorkflowRevision_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *aiServiceClient) RestoreWorkflowRevision(ctx context.Context, in *RestoreWorkflowRevisionRequest, opts ...grpc.CallOption) (*GetWorkflowResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetWorkflowResponse)
+	err := c.cc.Invoke(ctx, AiService_RestoreWorkflowRevision_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -468,6 +708,23 @@ func (c *aiServiceClient) CancelTask(ctx context.Context, in *CancelTaskRequest,
 // All implementations must embed UnimplementedAiServiceServer
 // for forward compatibility.
 type AiServiceServer interface {
+	GetUsageSummary(context.Context, *UsageQueryRequest) (*UsageSummaryResponse, error)
+	ListUsageCalls(context.Context, *UsageQueryRequest) (*ListUsageCallsResponse, error)
+	GetUsagePolicy(context.Context, *UsagePolicyRequest) (*UsagePolicyResponse, error)
+	AdminGetUsageSummary(context.Context, *UsageQueryRequest) (*UsageSummaryResponse, error)
+	AdminListUsageCalls(context.Context, *UsageQueryRequest) (*ListUsageCallsResponse, error)
+	AdminListUsagePolicies(context.Context, *UsageQueryRequest) (*ListUsagePoliciesResponse, error)
+	AdminSetUsagePolicy(context.Context, *SetUsagePolicyRequest) (*UsagePolicyResponse, error)
+	ListKbEvaluationDatasets(context.Context, *ListKbEvaluationDatasetsRequest) (*ListKbEvaluationDatasetsResponse, error)
+	StartKbEvaluation(context.Context, *StartKbEvaluationRequest) (*KbEvaluationResponse, error)
+	ListKbEvaluations(context.Context, *ListKbEvaluationsRequest) (*ListKbEvaluationsResponse, error)
+	GetKbEvaluation(context.Context, *GetKbEvaluationRequest) (*KbEvaluationResponse, error)
+	StopKbEvaluation(context.Context, *StopKbEvaluationRequest) (*KbEvaluationResponse, error)
+	SetTaskFeedback(context.Context, *SetTaskFeedbackRequest) (*KbFeedbackResponse, error)
+	ListTaskFeedback(context.Context, *ListTaskFeedbackRequest) (*ListTaskFeedbackResponse, error)
+	ListKbFeedback(context.Context, *ListKbFeedbackRequest) (*ListKbFeedbackResponse, error)
+	GetKbFeedback(context.Context, *GetKbFeedbackRequest) (*KbFeedbackResponse, error)
+	ReviewKbFeedback(context.Context, *ReviewKbFeedbackRequest) (*KbFeedbackResponse, error)
 	CreateConversation(context.Context, *CreateConversationRequest) (*CreateConversationResponse, error)
 	ListConversations(context.Context, *ListConversationsRequest) (*ListConversationsResponse, error)
 	GetConversation(context.Context, *GetConversationRequest) (*GetConversationResponse, error)
@@ -479,7 +736,10 @@ type AiServiceServer interface {
 	CreateWorkflow(context.Context, *CreateWorkflowRequest) (*CreateWorkflowResponse, error)
 	ListWorkflows(context.Context, *ListWorkflowsRequest) (*ListWorkflowsResponse, error)
 	GetWorkflow(context.Context, *GetWorkflowRequest) (*GetWorkflowResponse, error)
-	UpdateWorkflow(context.Context, *UpdateWorkflowRequest) (*NoDataResponse, error)
+	UpdateWorkflow(context.Context, *UpdateWorkflowRequest) (*GetWorkflowResponse, error)
+	ListWorkflowRevisions(context.Context, *ListWorkflowRevisionsRequest) (*ListWorkflowRevisionsResponse, error)
+	GetWorkflowRevision(context.Context, *GetWorkflowRevisionRequest) (*GetWorkflowRevisionResponse, error)
+	RestoreWorkflowRevision(context.Context, *RestoreWorkflowRevisionRequest) (*GetWorkflowResponse, error)
 	DeleteWorkflow(context.Context, *DeleteWorkflowRequest) (*NoDataResponse, error)
 	RunWorkflow(context.Context, *RunWorkflowRequest) (*RunWorkflowResponse, error)
 	RunDraft(context.Context, *RunDraftRequest) (*RunWorkflowResponse, error)
@@ -513,6 +773,57 @@ type AiServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAiServiceServer struct{}
 
+func (UnimplementedAiServiceServer) GetUsageSummary(context.Context, *UsageQueryRequest) (*UsageSummaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUsageSummary not implemented")
+}
+func (UnimplementedAiServiceServer) ListUsageCalls(context.Context, *UsageQueryRequest) (*ListUsageCallsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListUsageCalls not implemented")
+}
+func (UnimplementedAiServiceServer) GetUsagePolicy(context.Context, *UsagePolicyRequest) (*UsagePolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUsagePolicy not implemented")
+}
+func (UnimplementedAiServiceServer) AdminGetUsageSummary(context.Context, *UsageQueryRequest) (*UsageSummaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AdminGetUsageSummary not implemented")
+}
+func (UnimplementedAiServiceServer) AdminListUsageCalls(context.Context, *UsageQueryRequest) (*ListUsageCallsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AdminListUsageCalls not implemented")
+}
+func (UnimplementedAiServiceServer) AdminListUsagePolicies(context.Context, *UsageQueryRequest) (*ListUsagePoliciesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AdminListUsagePolicies not implemented")
+}
+func (UnimplementedAiServiceServer) AdminSetUsagePolicy(context.Context, *SetUsagePolicyRequest) (*UsagePolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AdminSetUsagePolicy not implemented")
+}
+func (UnimplementedAiServiceServer) ListKbEvaluationDatasets(context.Context, *ListKbEvaluationDatasetsRequest) (*ListKbEvaluationDatasetsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListKbEvaluationDatasets not implemented")
+}
+func (UnimplementedAiServiceServer) StartKbEvaluation(context.Context, *StartKbEvaluationRequest) (*KbEvaluationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartKbEvaluation not implemented")
+}
+func (UnimplementedAiServiceServer) ListKbEvaluations(context.Context, *ListKbEvaluationsRequest) (*ListKbEvaluationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListKbEvaluations not implemented")
+}
+func (UnimplementedAiServiceServer) GetKbEvaluation(context.Context, *GetKbEvaluationRequest) (*KbEvaluationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetKbEvaluation not implemented")
+}
+func (UnimplementedAiServiceServer) StopKbEvaluation(context.Context, *StopKbEvaluationRequest) (*KbEvaluationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StopKbEvaluation not implemented")
+}
+func (UnimplementedAiServiceServer) SetTaskFeedback(context.Context, *SetTaskFeedbackRequest) (*KbFeedbackResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetTaskFeedback not implemented")
+}
+func (UnimplementedAiServiceServer) ListTaskFeedback(context.Context, *ListTaskFeedbackRequest) (*ListTaskFeedbackResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListTaskFeedback not implemented")
+}
+func (UnimplementedAiServiceServer) ListKbFeedback(context.Context, *ListKbFeedbackRequest) (*ListKbFeedbackResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListKbFeedback not implemented")
+}
+func (UnimplementedAiServiceServer) GetKbFeedback(context.Context, *GetKbFeedbackRequest) (*KbFeedbackResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetKbFeedback not implemented")
+}
+func (UnimplementedAiServiceServer) ReviewKbFeedback(context.Context, *ReviewKbFeedbackRequest) (*KbFeedbackResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReviewKbFeedback not implemented")
+}
 func (UnimplementedAiServiceServer) CreateConversation(context.Context, *CreateConversationRequest) (*CreateConversationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateConversation not implemented")
 }
@@ -546,8 +857,17 @@ func (UnimplementedAiServiceServer) ListWorkflows(context.Context, *ListWorkflow
 func (UnimplementedAiServiceServer) GetWorkflow(context.Context, *GetWorkflowRequest) (*GetWorkflowResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetWorkflow not implemented")
 }
-func (UnimplementedAiServiceServer) UpdateWorkflow(context.Context, *UpdateWorkflowRequest) (*NoDataResponse, error) {
+func (UnimplementedAiServiceServer) UpdateWorkflow(context.Context, *UpdateWorkflowRequest) (*GetWorkflowResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateWorkflow not implemented")
+}
+func (UnimplementedAiServiceServer) ListWorkflowRevisions(context.Context, *ListWorkflowRevisionsRequest) (*ListWorkflowRevisionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListWorkflowRevisions not implemented")
+}
+func (UnimplementedAiServiceServer) GetWorkflowRevision(context.Context, *GetWorkflowRevisionRequest) (*GetWorkflowRevisionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWorkflowRevision not implemented")
+}
+func (UnimplementedAiServiceServer) RestoreWorkflowRevision(context.Context, *RestoreWorkflowRevisionRequest) (*GetWorkflowResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RestoreWorkflowRevision not implemented")
 }
 func (UnimplementedAiServiceServer) DeleteWorkflow(context.Context, *DeleteWorkflowRequest) (*NoDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteWorkflow not implemented")
@@ -637,6 +957,312 @@ func RegisterAiServiceServer(s grpc.ServiceRegistrar, srv AiServiceServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&AiService_ServiceDesc, srv)
+}
+
+func _AiService_GetUsageSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UsageQueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GetUsageSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_GetUsageSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GetUsageSummary(ctx, req.(*UsageQueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_ListUsageCalls_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UsageQueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ListUsageCalls(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_ListUsageCalls_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ListUsageCalls(ctx, req.(*UsageQueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_GetUsagePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UsagePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GetUsagePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_GetUsagePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GetUsagePolicy(ctx, req.(*UsagePolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_AdminGetUsageSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UsageQueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).AdminGetUsageSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_AdminGetUsageSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).AdminGetUsageSummary(ctx, req.(*UsageQueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_AdminListUsageCalls_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UsageQueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).AdminListUsageCalls(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_AdminListUsageCalls_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).AdminListUsageCalls(ctx, req.(*UsageQueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_AdminListUsagePolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UsageQueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).AdminListUsagePolicies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_AdminListUsagePolicies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).AdminListUsagePolicies(ctx, req.(*UsageQueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_AdminSetUsagePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetUsagePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).AdminSetUsagePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_AdminSetUsagePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).AdminSetUsagePolicy(ctx, req.(*SetUsagePolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_ListKbEvaluationDatasets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListKbEvaluationDatasetsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ListKbEvaluationDatasets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_ListKbEvaluationDatasets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ListKbEvaluationDatasets(ctx, req.(*ListKbEvaluationDatasetsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_StartKbEvaluation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartKbEvaluationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).StartKbEvaluation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_StartKbEvaluation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).StartKbEvaluation(ctx, req.(*StartKbEvaluationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_ListKbEvaluations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListKbEvaluationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ListKbEvaluations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_ListKbEvaluations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ListKbEvaluations(ctx, req.(*ListKbEvaluationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_GetKbEvaluation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKbEvaluationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GetKbEvaluation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_GetKbEvaluation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GetKbEvaluation(ctx, req.(*GetKbEvaluationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_StopKbEvaluation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StopKbEvaluationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).StopKbEvaluation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_StopKbEvaluation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).StopKbEvaluation(ctx, req.(*StopKbEvaluationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_SetTaskFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetTaskFeedbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).SetTaskFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_SetTaskFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).SetTaskFeedback(ctx, req.(*SetTaskFeedbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_ListTaskFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTaskFeedbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ListTaskFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_ListTaskFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ListTaskFeedback(ctx, req.(*ListTaskFeedbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_ListKbFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListKbFeedbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ListKbFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_ListKbFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ListKbFeedback(ctx, req.(*ListKbFeedbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_GetKbFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKbFeedbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GetKbFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_GetKbFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GetKbFeedback(ctx, req.(*GetKbFeedbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_ReviewKbFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReviewKbFeedbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ReviewKbFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_ReviewKbFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ReviewKbFeedback(ctx, req.(*ReviewKbFeedbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _AiService_CreateConversation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -844,6 +1470,60 @@ func _AiService_UpdateWorkflow_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AiServiceServer).UpdateWorkflow(ctx, req.(*UpdateWorkflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_ListWorkflowRevisions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListWorkflowRevisionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).ListWorkflowRevisions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_ListWorkflowRevisions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).ListWorkflowRevisions(ctx, req.(*ListWorkflowRevisionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_GetWorkflowRevision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkflowRevisionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).GetWorkflowRevision(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_GetWorkflowRevision_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).GetWorkflowRevision(ctx, req.(*GetWorkflowRevisionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AiService_RestoreWorkflowRevision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreWorkflowRevisionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AiServiceServer).RestoreWorkflowRevision(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AiService_RestoreWorkflowRevision_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AiServiceServer).RestoreWorkflowRevision(ctx, req.(*RestoreWorkflowRevisionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1270,6 +1950,74 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AiServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "GetUsageSummary",
+			Handler:    _AiService_GetUsageSummary_Handler,
+		},
+		{
+			MethodName: "ListUsageCalls",
+			Handler:    _AiService_ListUsageCalls_Handler,
+		},
+		{
+			MethodName: "GetUsagePolicy",
+			Handler:    _AiService_GetUsagePolicy_Handler,
+		},
+		{
+			MethodName: "AdminGetUsageSummary",
+			Handler:    _AiService_AdminGetUsageSummary_Handler,
+		},
+		{
+			MethodName: "AdminListUsageCalls",
+			Handler:    _AiService_AdminListUsageCalls_Handler,
+		},
+		{
+			MethodName: "AdminListUsagePolicies",
+			Handler:    _AiService_AdminListUsagePolicies_Handler,
+		},
+		{
+			MethodName: "AdminSetUsagePolicy",
+			Handler:    _AiService_AdminSetUsagePolicy_Handler,
+		},
+		{
+			MethodName: "ListKbEvaluationDatasets",
+			Handler:    _AiService_ListKbEvaluationDatasets_Handler,
+		},
+		{
+			MethodName: "StartKbEvaluation",
+			Handler:    _AiService_StartKbEvaluation_Handler,
+		},
+		{
+			MethodName: "ListKbEvaluations",
+			Handler:    _AiService_ListKbEvaluations_Handler,
+		},
+		{
+			MethodName: "GetKbEvaluation",
+			Handler:    _AiService_GetKbEvaluation_Handler,
+		},
+		{
+			MethodName: "StopKbEvaluation",
+			Handler:    _AiService_StopKbEvaluation_Handler,
+		},
+		{
+			MethodName: "SetTaskFeedback",
+			Handler:    _AiService_SetTaskFeedback_Handler,
+		},
+		{
+			MethodName: "ListTaskFeedback",
+			Handler:    _AiService_ListTaskFeedback_Handler,
+		},
+		{
+			MethodName: "ListKbFeedback",
+			Handler:    _AiService_ListKbFeedback_Handler,
+		},
+		{
+			MethodName: "GetKbFeedback",
+			Handler:    _AiService_GetKbFeedback_Handler,
+		},
+		{
+			MethodName: "ReviewKbFeedback",
+			Handler:    _AiService_ReviewKbFeedback_Handler,
+		},
+		{
 			MethodName: "CreateConversation",
 			Handler:    _AiService_CreateConversation_Handler,
 		},
@@ -1312,6 +2060,18 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateWorkflow",
 			Handler:    _AiService_UpdateWorkflow_Handler,
+		},
+		{
+			MethodName: "ListWorkflowRevisions",
+			Handler:    _AiService_ListWorkflowRevisions_Handler,
+		},
+		{
+			MethodName: "GetWorkflowRevision",
+			Handler:    _AiService_GetWorkflowRevision_Handler,
+		},
+		{
+			MethodName: "RestoreWorkflowRevision",
+			Handler:    _AiService_RestoreWorkflowRevision_Handler,
 		},
 		{
 			MethodName: "DeleteWorkflow",

@@ -1,4 +1,4 @@
-import type { AiToolInfo, AiWorkflowInfo } from '../../api/types';
+import type { AiToolInfo, AiUpdateWorkflowReq, AiWorkflowInfo } from '../../api/types';
 import type { WorkflowDraft } from './workflowDefinition';
 import { parseWorkflow } from './workflowDefinition';
 
@@ -25,7 +25,18 @@ export function readWorkflowDraft(storage: Pick<DraftStorage, 'getItem'>, key: s
   return { ...value, submissionState: value.submissionState === 'submitting' ? 'unknown' : value.submissionState };
 }
 
-export const workflowSnapshot = (workflow: AiWorkflowInfo) => JSON.stringify({ name: workflow.name, enabled: workflow.enabled, definition: workflow.definition, updatedAt: workflow.updated_at });
+export const workflowSnapshot = (workflow: AiWorkflowInfo) => JSON.stringify({ name: workflow.name, enabled: workflow.enabled, definition: workflow.definition, updatedAt: workflow.updated_at, revision: workflow.revision });
+export function workflowBaseRevision(snapshot: string | null): number | null {
+  try {
+    const revision = snapshot ? (JSON.parse(snapshot) as { revision?: unknown } | null)?.revision : undefined;
+    return typeof revision === 'number' && Number.isSafeInteger(revision) && revision >= 1 ? revision : null;
+  } catch { return null; }
+}
+export function workflowUpdateRequest(draft: WorkflowDraft, definition: string, snapshot: string | null): AiUpdateWorkflowReq {
+  const revision = workflowBaseRevision(snapshot);
+  if (revision === null) throw new Error('草稿缺少有效基线版本，请先核对最新工作流。');
+  return { expected_revision: revision, name: draft.name.trim(), definition, enabled: draft.enabled ? 1 : 0 };
+}
 export const draftContent = (draft: WorkflowDraft) => JSON.stringify({ ...draft, steps: draft.steps.map(({ key: _key, ...step }) => step) });
 
 export function resolveWorkflowEditorDraft(workflow: AiWorkflowInfo | undefined, restored: StoredWorkflowDraft | null, tools: readonly AiToolInfo[], fallback: WorkflowDraft) {

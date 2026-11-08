@@ -1,0 +1,134 @@
+- generic [ref=f4e4]:
+  - complementary [ref=f4e5]:
+    - generic [ref=f4e6]:
+      - generic [ref=f4e7]:
+        - generic [ref=f4e13]:
+          - strong [ref=f4e14]: go-zero-admin
+          - generic [ref=f4e15]: 管理控制台
+        - generic [ref=f4e16]: 工作空间
+        - menu [ref=f4e17]:
+          - menuitem "dashboard 工作台" [ref=f4e18] [cursor=pointer]:
+            - img "dashboard" [ref=f4e19]
+            - generic [ref=f4e22]: 工作台
+          - menuitem "系统管理" [ref=f4e23] [cursor=pointer]
+          - menuitem "APP管理" [expanded] [ref=f4e29] [cursor=pointer]
+          - menu [ref=f4e35]:
+            - menuitem "APP用户" [ref=f4e36] [cursor=pointer]
+            - menuitem "会员管理" [ref=f4e42] [cursor=pointer]
+            - menuitem "意见反馈" [ref=f4e48] [cursor=pointer]
+          - menuitem "租户管理" [ref=f4e54] [cursor=pointer]
+          - menuitem "AI 功能" [ref=f4e62] [cursor=pointer]
+      - button "折叠侧栏" [ref=f4e68] [cursor=pointer]:
+        - img "left" [ref=f4e70]
+        - generic [ref=f4e73]: 收起侧栏
+      - separator "调整侧栏宽度" [ref=f4e74]
+  - generic [ref=f4e75]:
+    - banner [ref=f4e76]:
+      - generic [ref=f4e77]:
+        - button "收起导航" [expanded] [ref=f4e78] [cursor=pointer]:
+          - img "menu-fold" [ref=f4e80]
+        - navigation [ref=f4e84]:
+          - list [ref=f4e85]:
+            - listitem [ref=f4e86]:
+              - generic [ref=f4e87]:
+                - img "home" [ref=f4e88]
+                - text: 控制台
+            - listitem [aria-hidden] [ref=f4e91]: /
+            - listitem [ref=f4e92]: 意见反馈
+      - generic [ref=f4e93]:
+        - generic [ref=f4e96]:
+          - img "apartment" [ref=f4e98]
+          - generic "默认部门" [ref=f4e101]:
+            - text: 默认部门
+            - combobox "切换部门" [ref=f4e102]
+          - img "down" [ref=f4e104]
+        - button "超级管理员，账号菜单" [ref=f4e107] [cursor=pointer]:
+          - img "user" [ref=f4e109]
+          - generic [ref=f4e112]: 超级管理员
+          - img "down" [ref=f4e113]
+        - button "退出登录" [ref=f4e116] [cursor=pointer]:
+          - img "logout" [ref=f4e118]
+    - main [ref=f4e122]:
+      - generic [ref=f4e124]:
+        - generic [ref=f4e125]:
+          - img "message" [ref=f4e127]
+          - generic [ref=f4e131]:
+            - heading "意见反馈" [level=3] [ref=f4e132]
+            - text: 倾听用户的声音，及时回应每一条建议
+        - generic [ref=f4e135]:
+          - generic [ref=f4e137]:
+            - generic "用户 ID" [ref=f4e139]
+            - generic [ref=f4e143]:
+              - spinbutton "用户 ID" [ref=f4e144]: "6"
+              - generic:
+                - button "Increase Value" [ref=f4e145] [cursor=pointer]:
+                  - img "up" [ref=f4e146]
+                - button "Decrease Value" [ref=f4e149] [cursor=pointer]:
+                  - img "down" [ref=f4e150]
+          - generic [ref=f4e154]:
+            - generic "处理状态" [ref=f4e156]
+            - generic [ref=f4e160] [cursor=pointer]:
+              - generic [ref=f4e161]:
+                - generic: 全部状态
+                - combobox "处理状态" [ref=f4e162]
+              - img "down" [ref=f4e164]
+          - generic [ref=f4e172]:
+            - button "search 查询" [ref=f4e174] [cursor=pointer]:
+              - img "search" [ref=f4e176]
+              - generic [ref=f4e179]: 查询
+            - button "undo 重置" [ref=f4e181] [cursor=pointer]:
+              - img "undo" [ref=f4e183]
+              - generic [ref=f4e186]: 重置
+            - button "刷新APP反馈" [ref=f4e188] [cursor=pointer]:
+              - img "reload" [ref=f4e190]
+        - generic [ref=f4e193]:
+          - generic [ref=f4e195]:
+            - generic [ref=f4e197]:
+              - img "message" [ref=f4e199]
+              - text: 用户反馈
+              - generic [ref=f4e202]: "1"
+            - generic [ref=f4e203]: 每一条建议都值得回应
+          - generic [ref=f4e207]:
+            - table [ref=f4e211]:
+              - rowgroup [ref=f4e219]:
+                - row [ref=f4e220]:
+                  - columnheader "反馈用户" [ref=f4e221]
+                  - columnheader "反馈内容" [ref=f4e222]
+                  - columnheader "回复" [ref=f4e223]
+                  - columnheader "状态" [ref=f4e224]
+                  - columnheader "提交时间" [ref=f4e225]
+                  - columnheader "操作" [ref=f4e226]
+              - rowgroup [ref=f4e227]:
+                - row [ref=f4e228]:
+                  - 'cell "帅 帅浩团队演示成员 bili_demo_20261108@example.test · #6" [ref=f4e229]':
+                    - generic [ref=f4e230]:
+                      - generic [ref=f4e231]: 帅
+                      - generic [ref=f4e233]:
+                        - generic [ref=f4e234]: 帅浩团队演示成员
+                        - generic [ref=f4e235]: "bili_demo_20261108@example.test · #6"
+                  - cell "bili_demo_20261108：希望帅浩团队入职指南补充权限申请步骤，谢谢！" [ref=f4e236]
+                  - cell "已补充：写明用途，由部门负责人确认，再由管理员分配角色。" [ref=f4e237]
+                  - cell "已处理" [ref=f4e238]
+                  - cell "2026-11-08 03:18:04" [ref=f4e240]
+                  - cell [ref=f4e241]:
+                    - generic [ref=f4e242]:
+                      - button "eye 详情" [ref=f4e244] [cursor=pointer]:
+                        - img "eye" [ref=f4e246]
+                        - generic [ref=f4e249]: 详情
+                      - button "edit 处理" [ref=f4e251] [cursor=pointer]:
+                        - img "edit" [ref=f4e253]
+                        - generic [ref=f4e256]: 处理
+            - list [ref=f4e257]:
+              - listitem "上一页" [ref=f4e258]:
+                - button [disabled] [ref=f4e259]:
+                  - img "left" [ref=f4e260]
+              - listitem "1" [ref=f4e263] [cursor=pointer]
+              - listitem "下一页" [ref=f4e265]:
+                - button [disabled] [ref=f4e266]:
+                  - img "right" [ref=f4e267]
+              - listitem [ref=f4e270]:
+                - generic [ref=f4e271]:
+                  - generic "20 条/页" [ref=f4e272]:
+                    - text: 20 条/页
+                    - combobox "页码" [ref=f4e273]
+                  - img "down" [ref=f4e275]

@@ -34,7 +34,7 @@ func (l *CreateWorkflowLogic) CreateWorkflow(in *aipb.CreateWorkflowRequest) (*a
 	if _, err := parseWorkflow(in.Definition); err != nil {
 		return nil, err
 	}
-	result, err := l.svcCtx.AiWorkflowModel.Insert(l.ctx, &model.AiWorkflow{Name: name, Definition: in.Definition, Enabled: 1, CreatedBy: uint64(in.Actor.UserId)})
+	result, err := l.svcCtx.AiWorkflowModel.Insert(l.ctx, &model.AiWorkflow{Name: name, Definition: in.Definition, Enabled: 1, CreatedBy: uint64(in.Actor.UserId), RevisionSeq: 1})
 	if err != nil {
 		return nil, aiModelError(err)
 	}

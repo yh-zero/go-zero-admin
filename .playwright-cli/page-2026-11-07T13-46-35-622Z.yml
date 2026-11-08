@@ -1,0 +1,132 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e4]:
+    - complementary [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - generic [ref=f1e7]:
+          - generic [ref=f1e13]:
+            - strong [ref=f1e14]: go-zero-admin
+            - generic [ref=f1e15]: 管理控制台
+          - generic [ref=f1e16]: 工作空间
+          - menu [ref=f1e86]:
+            - menuitem "dashboard 工作台" [ref=f1e87] [cursor=pointer]:
+              - img "dashboard" [ref=f1e88]
+              - generic [ref=f1e91]: 工作台
+            - menuitem "系统管理" [ref=f1e92] [cursor=pointer]
+            - menuitem "APP管理" [ref=f1e98] [cursor=pointer]
+            - menuitem "租户管理" [ref=f1e104] [cursor=pointer]
+            - menuitem "AI 功能" [expanded] [ref=f1e112] [cursor=pointer]
+            - menu [ref=f1e118]:
+              - menuitem "AI 对话" [ref=f1e119] [cursor=pointer]
+              - menuitem "常用流程" [ref=f1e125] [cursor=pointer]
+              - menuitem "运行记录" [ref=f1e131] [cursor=pointer]
+              - menuitem "工具与能力" [ref=f1e137] [cursor=pointer]
+              - menuitem "知识库" [ref=f1e143] [cursor=pointer]
+        - button "折叠侧栏" [ref=f1e23] [cursor=pointer]:
+          - img "left" [ref=f1e25]
+          - generic [ref=f1e28]: 收起侧栏
+        - separator "调整侧栏宽度" [ref=f1e29]
+    - generic [ref=f1e30]:
+      - banner [ref=f1e31]:
+        - generic [ref=f1e32]:
+          - button "收起导航" [expanded] [ref=f1e33] [cursor=pointer]:
+            - img "menu-fold" [ref=f1e35]
+          - navigation [ref=f1e39]:
+            - list [ref=f1e40]:
+              - listitem [ref=f1e41]:
+                - generic [ref=f1e42]:
+                  - img "home" [ref=f1e43]
+                  - text: 控制台
+              - listitem [ref=f1e46]: /
+              - listitem [ref=f1e47]: 知识库质量验收
+        - generic [ref=f1e48]:
+          - generic [ref=f1e51]:
+            - img "apartment" [ref=f1e53]
+            - generic "默认部门" [ref=f1e56]:
+              - text: 默认部门
+              - combobox "切换部门" [ref=f1e57]
+            - img "down" [ref=f1e149]
+          - button "超级管理员，账号菜单" [ref=f1e152] [cursor=pointer]:
+            - img "user" [ref=f1e64]
+            - generic [ref=f1e67]: 超级管理员
+            - img "down" [ref=f1e68]
+          - button "退出登录" [ref=f1e71] [cursor=pointer]:
+            - img "logout" [ref=f1e73]
+      - main [ref=f1e77]:
+        - generic [ref=f1e153]:
+          - generic [ref=f1e154]:
+            - generic [ref=f1e155]:
+              - link [ref=f1e156] [cursor=pointer]:
+                - /url: /ai/knowledge/5
+                - button "arrow-left 返回知识库" [ref=f1e157]:
+                  - img "arrow-left" [ref=f1e159]
+                  - generic [ref=f1e162]: 返回知识库
+              - heading "项目运维实践 · 质量验收" [level=3] [ref=f1e163]
+              - text: 核对答案是否完整、有据，以及本次分析花了多久。
+            - button "reload 刷新" [ref=f1e164] [cursor=pointer]:
+              - img "reload" [ref=f1e166]
+              - generic [ref=f1e169]: 刷新
+          - generic [ref=f1e170]:
+            - generic [ref=f1e171]: 开始一批评测
+            - generic [ref=f1e174]:
+              - generic [ref=f1e175]:
+                - generic [ref=f1e176]:
+                  - text: 选择题集
+                  - generic [ref=f1e177] [cursor=pointer]:
+                    - generic "24题场景验收" [ref=f1e178]:
+                      - text: 24题场景验收
+                      - combobox "选择评测题集" [expanded] [active] [ref=f1e179]:
+                        - listbox:
+                          - option "24题场景验收" [selected]: business-acceptance-cases
+                          - option "32题历史业务": business-cases
+                    - img "down" [ref=f1e181]
+                - generic [ref=f1e184]:
+                  - text: 资料对应题组
+                  - generic [ref=f1e185] [cursor=pointer]:
+                    - generic [ref=f1e186]:
+                      - generic: 选择与当前资料对应的题组
+                      - combobox "选择资料题组" [ref=f1e187]
+                    - img "down" [ref=f1e189]
+              - generic [ref=f1e192]:
+                - generic [ref=f1e193]: 题目基于仓库实际项目文档，由AI辅助编制，并非真实用户历史。初始预留题一经试跑即为已使用数据。开始前会核对当前资料的正文、版本与就绪状态。
+                - generic [ref=f1e194]:
+                  - button "开始评测" [disabled] [ref=f1e196]:
+                    - generic:
+                      - img "play-circle"
+                  - generic [ref=f1e197]: 本批最多 0 次分析、0 次查询 Embedding；执行失败后停止余题。
+          - generic [ref=f1e199]:
+            - generic [ref=f1e201]:
+              - generic [ref=f1e202]: 历史批次
+              - generic [ref=f1e204] [cursor=pointer]:
+                - generic "全部状态" [ref=f1e205]:
+                  - text: 全部状态
+                  - combobox "筛选评测批次状态" [ref=f1e206]
+                - img "down" [ref=f1e208]
+            - generic [ref=f1e211]:
+              - table [ref=f1e218]:
+                - rowgroup [ref=f1e221]:
+                  - row [ref=f1e222]:
+                    - columnheader "批次" [ref=f1e223]
+                    - columnheader "题集" [ref=f1e224]
+                    - columnheader "状态" [ref=f1e225]
+                    - columnheader "进度" [ref=f1e226]
+                    - columnheader "创建时间" [ref=f1e227]
+                    - columnheader "操作" [ref=f1e228]
+                - rowgroup [ref=f1e229]:
+                  - row [ref=f1e230]:
+                    - cell "暂无数据 暂无数据" [ref=f1e231]:
+                      - generic [ref=f1e233]:
+                        - img "暂无数据" [ref=f1e235]
+                        - generic [ref=f1e241]: 暂无数据
+              - list [ref=f1e242]:
+                - listitem [ref=f1e243]: 共 0 批
+                - listitem "上一页" [ref=f1e244]:
+                  - button [disabled] [ref=f1e245]:
+                    - img "left" [ref=f1e246]
+                - listitem "1" [ref=f1e249] [cursor=pointer]
+                - listitem "下一页" [ref=f1e251]:
+                  - button [disabled] [ref=f1e252]:
+                    - img "right" [ref=f1e253]
+  - generic [ref=f1e261]:
+    - generic "24题场景验收" [ref=f1e262] [cursor=pointer]
+    - generic "32题历史业务" [ref=f1e264] [cursor=pointer]
+    - generic "14题失败回归" [ref=f1e266] [cursor=pointer]

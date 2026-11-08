@@ -39,6 +39,12 @@ jobs:
       - name: 安装 goctl
         run: go install github.com/zeromicro/go-zero/tools/goctl@v1.10.2
 
+      - name: 安装评测脚本使用的 Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: go-zero-admin-react/package.json
+          package-manager-cache: false
+
       - name: 运行后端七项自检
         working-directory: go-zero-admin
         run: ./data/scripts/verify.ps1
@@ -49,6 +55,17 @@ jobs:
           go test ./...
           if ($LASTEXITCODE -ne 0) { throw '后端 Go 包检查失败' }
           ./test/verify_script_test.ps1
+          ./test/verify_network_script_test.ps1
+          if ($LASTEXITCODE -ne 0) { throw '代理网络配置回归失败' }
+
+      - name: 运行知识库与评测工具回归
+        working-directory: .
+        run: |
+          New-Item -ItemType Directory -Path tmp -Force | Out-Null
+          $regressionFiles = @(Get-ChildItem -LiteralPath go-zero-admin/data/scripts -Filter '*.test.mjs' -File | Sort-Object Name | ForEach-Object FullName)
+          if ($regressionFiles.Count -eq 0) { throw '没有发现脚本回归，不得静默跳过' }
+          node --test --test-concurrency=2 @regressionFiles
+          if ($LASTEXITCODE -ne 0) { throw '知识库与评测脚本回归失败' }
 
   frontend:
     name: 前端类型检查与构建
@@ -85,9 +102,9 @@ jobs:
         working-directory: go-zero-admin-react
         run: pnpm lint
 
-      - name: 运行 AI 前端回归
+      - name: 运行前端行为回归
         working-directory: go-zero-admin-react
-        run: node --test scripts/aiClient.test.mjs scripts/aiChat.test.mjs
+        run: node --test --test-concurrency=2 scripts/*.test.mjs
 
       - name: 构建前端
         working-directory: go-zero-admin-react

@@ -6,6 +6,65 @@ info (
 )
 
 type (
+	AiKbEvaluationDatasetInfo {
+		Key string `json:"key"`
+		Name string `json:"name"`
+		Sha256 string `json:"sha256"`
+		Dataset string `json:"dataset"`
+	}
+	AiKbEvaluationDatasetsResp {
+		List []*AiKbEvaluationDatasetInfo `json:"list"`
+	}
+	AiStartKbEvaluationReq {
+		Id int64 `path:"id" validate:"min=1"`
+		RequestId string `json:"request_id" validate:"required,uuid"`
+		DatasetKey string `json:"dataset_key" validate:"required,max=64"`
+		DatasetSha256 string `json:"dataset_sha256" validate:"required,len=64,hexadecimal"`
+		GroupKey string `json:"group_key" validate:"required,max=64"`
+		CaseIds []string `json:"case_ids" validate:"required,min=1,max=30,unique,dive,required,max=128"`
+		DatasetSnapshot string `json:"dataset_snapshot,optional" validate:"omitempty,max=262144"`
+	}
+	AiListKbEvaluationsReq {
+		Id int64 `path:"id" validate:"min=1"`
+		Page int64 `form:"page,optional" validate:"omitempty,min=1"`
+		PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+		Status string `form:"status,optional" validate:"omitempty,oneof=pending running succeeded failed cancelled unknown all"`
+		RequestId string `form:"request_id,optional" validate:"omitempty,uuid"`
+	}
+	AiKbEvaluationReq {
+		Id int64 `path:"id" validate:"min=1"`
+		EvaluationId int64 `path:"evaluation_id" validate:"min=1"`
+	}
+	AiKbEvaluationInfo {
+		Id int64 `json:"id"`
+		KbId int64 `json:"kb_id"`
+		RequestId string `json:"request_id"`
+		DatasetKey string `json:"dataset_key"`
+		DatasetSha256 string `json:"dataset_sha256"`
+		GroupKey string `json:"group_key"`
+		Status string `json:"status"`
+		CaseCount int64 `json:"case_count"`
+		CompletedCount int64 `json:"completed_count"`
+		FailedCount int64 `json:"failed_count"`
+		StopRequested bool `json:"stop_requested"`
+		CorpusVerified bool `json:"corpus_verified"`
+		Error string `json:"error"`
+		Snapshot string `json:"snapshot"`
+		Bindings string `json:"bindings"`
+		Context string `json:"context"`
+		Observations string `json:"observations"`
+		CreatedAt int64 `json:"created_at"`
+		UpdatedAt int64 `json:"updated_at"`
+		StartedAt int64 `json:"started_at"`
+		CompletedAt int64 `json:"completed_at"`
+	}
+	AiKbEvaluationResp {
+		Evaluation *AiKbEvaluationInfo `json:"evaluation"`
+	}
+	AiListKbEvaluationsResp {
+		List []*AiKbEvaluationInfo `json:"list"`
+		Total int64 `json:"total"`
+	}
 	AiConversationInfo {
 		Id           int64  `json:"id"`
 		Title        string `json:"title"`
@@ -39,6 +98,7 @@ type (
 		CreatedAt       int64  `json:"created_at"`
 		UpdatedAt       int64  `json:"updated_at"`
 		StepCount       int64  `json:"step_count"`
+		Revision        int64  `json:"revision"`
 	}
 	AiTaskInfo {
 		Id             int64  `json:"id"`
@@ -71,6 +131,14 @@ type (
 		Error string `json:"error"`
 		StartedAt int64 `json:"started_at"`
 		CompletedAt int64 `json:"completed_at"`
+		Usage *AiWorkflowStepUsage `json:"usage,optional"`
+	}
+	AiWorkflowStepUsage {
+		Scope string `json:"scope"`
+		PromptTokens int64 `json:"prompt_tokens"`
+		CompletionTokens int64 `json:"completion_tokens"`
+		TotalTokens int64 `json:"total_tokens"`
+		Complete bool `json:"complete"`
 	}
 	AiToolInfo {
 		Name             string `json:"name"`
@@ -102,6 +170,68 @@ type (
 		MessageId int64 `path:"message_id" validate:"min=1"`
 		Feedback string `json:"feedback" validate:"omitempty,oneof=helpful irrelevant_source missing_knowledge"`
 		Note string `json:"note,optional" validate:"omitempty,maxbytes=1000"`
+	}
+	AiKbFeedbackEvidence {
+		SourceIndex int64 `json:"source_index" validate:"min=1,max=8"`
+		Quote string `json:"quote" validate:"required,maxbytes=500"`
+	}
+	AiKbFeedbackReview {
+		Answerable bool `json:"answerable"`
+		ExpectedAnswer string `json:"expected_answer" validate:"omitempty,maxbytes=4000"`
+		RequiredFacts []string `json:"required_facts" validate:"max=10,dive,required,maxbytes=200"`
+		Evidence []*AiKbFeedbackEvidence `json:"evidence" validate:"max=5,dive,required"`
+		Reason string `json:"reason" validate:"required,maxbytes=1000"`
+	}
+	AiKbFeedbackInfo {
+		Id int64 `json:"id"`
+		KbId int64 `json:"kb_id"`
+		TaskId int64 `json:"task_id"`
+		StepIndex int64 `json:"step_index"`
+		Feedback string `json:"feedback"`
+		Note string `json:"note"`
+		Status string `json:"status"`
+		Revision int64 `json:"revision"`
+		Question string `json:"question"`
+		Answer string `json:"answer"`
+		Snapshot string `json:"snapshot"`
+		Review *AiKbFeedbackReview `json:"review"`
+		CreatedAt int64 `json:"created_at"`
+		UpdatedAt int64 `json:"updated_at"`
+		ReviewedAt int64 `json:"reviewed_at"`
+	}
+	AiTaskFeedbackReq {
+		Id int64 `path:"id" validate:"min=1"`
+		StepIndex int64 `json:"step_index" validate:"min=0,max=31"`
+		ExpectedRevision int64 `json:"expected_revision" validate:"min=0"`
+		Feedback string `json:"feedback" validate:"required,oneof=helpful incorrect_answer missing_knowledge irrelevant_source"`
+		Note string `json:"note,optional" validate:"omitempty,maxbytes=1000"`
+	}
+	AiTaskFeedbackListResp {
+		List []*AiKbFeedbackInfo `json:"list"`
+	}
+	AiKbFeedbackListReq {
+		Id int64 `path:"id" validate:"min=1"`
+		Page int64 `form:"page,optional" validate:"omitempty,min=1"`
+		PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+		Status string `form:"status,optional" validate:"omitempty,oneof=pending accepted dismissed all"`
+	}
+	AiKbFeedbackListResp {
+		List []*AiKbFeedbackInfo `json:"list"`
+		Total int64 `json:"total"`
+	}
+	AiKbFeedbackReq {
+		Id int64 `path:"id" validate:"min=1"`
+		FeedbackId int64 `path:"feedback_id" validate:"min=1"`
+	}
+	AiReviewKbFeedbackReq {
+		Id int64 `path:"id" validate:"min=1"`
+		FeedbackId int64 `path:"feedback_id" validate:"min=1"`
+		ExpectedRevision int64 `json:"expected_revision" validate:"min=1"`
+		Status string `json:"status" validate:"required,oneof=accepted dismissed"`
+		Review *AiKbFeedbackReview `json:"review" validate:"required"`
+	}
+	AiKbFeedbackResp {
+		Feedback *AiKbFeedbackInfo `json:"feedback"`
 	}
 	AiConversationResp {
 		Conversation *AiConversationInfo `json:"conversation"`
@@ -156,6 +286,7 @@ type (
 	}
 	AiUpdateWorkflowReq {
 		Id              int64   `path:"id" validate:"min=1"`
+		ExpectedRevision int64  `json:"expected_revision" validate:"min=1"`
 		Name            *string `json:"name,optional" validate:"omitempty,max=128"`
 		Definition      *string `json:"definition,optional" validate:"omitempty,max=65536"`
 		IntervalSeconds *int64  `json:"interval_seconds,optional" validate:"omitempty,min=0"`
@@ -167,6 +298,38 @@ type (
 	AiListWorkflowsResp {
 		List  []*AiWorkflowInfo `json:"list"`
 		Total int64             `json:"total"`
+	}
+	AiWorkflowRevisionInfo {
+		Id int64 `json:"id"`
+		WorkflowId int64 `json:"workflow_id"`
+		Revision int64 `json:"revision"`
+		Name string `json:"name"`
+		Definition string `json:"definition"`
+		IntervalSeconds int64 `json:"interval_seconds"`
+		Enabled int64 `json:"enabled"`
+		StepCount int64 `json:"step_count"`
+		CreatedAt int64 `json:"created_at"`
+	}
+	AiListWorkflowRevisionsReq {
+		Id int64 `path:"id" validate:"min=1"`
+		Page int64 `form:"page,optional" validate:"omitempty,min=1"`
+		PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+	}
+	AiListWorkflowRevisionsResp {
+		List []*AiWorkflowRevisionInfo `json:"list"`
+		Total int64 `json:"total"`
+	}
+	AiWorkflowRevisionReq {
+		Id int64 `path:"id" validate:"min=1"`
+		Revision int64 `path:"revision" validate:"min=1"`
+	}
+	AiWorkflowRevisionResp {
+		Revision *AiWorkflowRevisionInfo `json:"revision"`
+	}
+	AiRestoreWorkflowRevisionReq {
+		Id int64 `path:"id" validate:"min=1"`
+		Revision int64 `path:"revision" validate:"min=1"`
+		ExpectedRevision int64 `json:"expected_revision" validate:"min=1"`
 	}
 	AiRunWorkflowReq {
 		Id    int64  `path:"id" validate:"min=1"`
@@ -410,7 +573,16 @@ service admin {
 	get /workflows/:id (AiIdReq) returns (AiWorkflowResp)
 
 	@handler updateWorkflow
-	put /workflows/:id (AiUpdateWorkflowReq) returns (EmptyResp)
+	put /workflows/:id (AiUpdateWorkflowReq) returns (AiWorkflowResp)
+
+	@handler listWorkflowRevisions
+	get /workflows/:id/revisions (AiListWorkflowRevisionsReq) returns (AiListWorkflowRevisionsResp)
+
+	@handler getWorkflowRevision
+	get /workflows/:id/revisions/:revision (AiWorkflowRevisionReq) returns (AiWorkflowRevisionResp)
+
+	@handler restoreWorkflowRevision
+	post /workflows/:id/revisions/:revision/restore (AiRestoreWorkflowRevisionReq) returns (AiWorkflowResp)
 
 	@handler deleteWorkflow
 	delete /workflows/:id (AiIdReq) returns (EmptyResp)
@@ -426,6 +598,21 @@ service admin {
 
 	@handler getAgentTask
 	get /tasks/:id (AiGetTaskReq) returns (AiTaskResp)
+
+	@handler listTaskFeedback
+	get /tasks/:id/feedback (AiIdReq) returns (AiTaskFeedbackListResp)
+
+	@handler setTaskFeedback
+	put /tasks/:id/feedback (AiTaskFeedbackReq) returns (AiKbFeedbackResp)
+
+	@handler listKbFeedback
+	get /kbs/:id/feedback (AiKbFeedbackListReq) returns (AiKbFeedbackListResp)
+
+	@handler getKbFeedback
+	get /kbs/:id/feedback/:feedback_id (AiKbFeedbackReq) returns (AiKbFeedbackResp)
+
+	@handler reviewKbFeedback
+	put /kbs/:id/feedback/:feedback_id/review (AiReviewKbFeedbackReq) returns (AiKbFeedbackResp)
 
 	@handler approveTask
 	post /tasks/:id/approve (AiApproveTaskReq) returns (EmptyResp)
@@ -444,6 +631,21 @@ service admin {
 
 	@handler searchKb
 	post /kbs/:id/search (AiSearchKbReq) returns (AiSearchKbResp)
+
+	@handler listKbEvaluationDatasets
+	get /kbs/:id/evaluation-datasets (AiIdReq) returns (AiKbEvaluationDatasetsResp)
+
+	@handler startKbEvaluation
+	post /kbs/:id/evaluations (AiStartKbEvaluationReq) returns (AiKbEvaluationResp)
+
+	@handler listKbEvaluations
+	get /kbs/:id/evaluations (AiListKbEvaluationsReq) returns (AiListKbEvaluationsResp)
+
+	@handler getKbEvaluation
+	get /kbs/:id/evaluations/:evaluation_id (AiKbEvaluationReq) returns (AiKbEvaluationResp)
+
+	@handler stopKbEvaluation
+	post /kbs/:id/evaluations/:evaluation_id/stop (AiKbEvaluationReq) returns (AiKbEvaluationResp)
 
 	@handler updateKb
 	put /kbs/:id (AiUpdateKbReq) returns (EmptyResp)

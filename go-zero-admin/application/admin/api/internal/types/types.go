@@ -131,6 +131,102 @@ type AiKbDocResp struct {
 	BatchId string       `json:"batch_id"`
 }
 
+type AiKbEvaluationDatasetInfo struct {
+	Key     string `json:"key"`
+	Name    string `json:"name"`
+	Sha256  string `json:"sha256"`
+	Dataset string `json:"dataset"`
+}
+
+type AiKbEvaluationDatasetsResp struct {
+	List []*AiKbEvaluationDatasetInfo `json:"list"`
+}
+
+type AiKbEvaluationInfo struct {
+	Id             int64  `json:"id"`
+	KbId           int64  `json:"kb_id"`
+	RequestId      string `json:"request_id"`
+	DatasetKey     string `json:"dataset_key"`
+	DatasetSha256  string `json:"dataset_sha256"`
+	GroupKey       string `json:"group_key"`
+	Status         string `json:"status"`
+	CaseCount      int64  `json:"case_count"`
+	CompletedCount int64  `json:"completed_count"`
+	FailedCount    int64  `json:"failed_count"`
+	StopRequested  bool   `json:"stop_requested"`
+	CorpusVerified bool   `json:"corpus_verified"`
+	Error          string `json:"error"`
+	Snapshot       string `json:"snapshot"`
+	Bindings       string `json:"bindings"`
+	Context        string `json:"context"`
+	Observations   string `json:"observations"`
+	CreatedAt      int64  `json:"created_at"`
+	UpdatedAt      int64  `json:"updated_at"`
+	StartedAt      int64  `json:"started_at"`
+	CompletedAt    int64  `json:"completed_at"`
+}
+
+type AiKbEvaluationReq struct {
+	Id           int64 `path:"id" validate:"min=1"`
+	EvaluationId int64 `path:"evaluation_id" validate:"min=1"`
+}
+
+type AiKbEvaluationResp struct {
+	Evaluation *AiKbEvaluationInfo `json:"evaluation"`
+}
+
+type AiKbFeedbackEvidence struct {
+	SourceIndex int64  `json:"source_index" validate:"min=1,max=8"`
+	Quote       string `json:"quote" validate:"required,maxbytes=500"`
+}
+
+type AiKbFeedbackInfo struct {
+	Id         int64               `json:"id"`
+	KbId       int64               `json:"kb_id"`
+	TaskId     int64               `json:"task_id"`
+	StepIndex  int64               `json:"step_index"`
+	Feedback   string              `json:"feedback"`
+	Note       string              `json:"note"`
+	Status     string              `json:"status"`
+	Revision   int64               `json:"revision"`
+	Question   string              `json:"question"`
+	Answer     string              `json:"answer"`
+	Snapshot   string              `json:"snapshot"`
+	Review     *AiKbFeedbackReview `json:"review"`
+	CreatedAt  int64               `json:"created_at"`
+	UpdatedAt  int64               `json:"updated_at"`
+	ReviewedAt int64               `json:"reviewed_at"`
+}
+
+type AiKbFeedbackListReq struct {
+	Id       int64  `path:"id" validate:"min=1"`
+	Page     int64  `form:"page,optional" validate:"omitempty,min=1"`
+	PageSize int64  `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+	Status   string `form:"status,optional" validate:"omitempty,oneof=pending accepted dismissed all"`
+}
+
+type AiKbFeedbackListResp struct {
+	List  []*AiKbFeedbackInfo `json:"list"`
+	Total int64               `json:"total"`
+}
+
+type AiKbFeedbackReq struct {
+	Id         int64 `path:"id" validate:"min=1"`
+	FeedbackId int64 `path:"feedback_id" validate:"min=1"`
+}
+
+type AiKbFeedbackResp struct {
+	Feedback *AiKbFeedbackInfo `json:"feedback"`
+}
+
+type AiKbFeedbackReview struct {
+	Answerable     bool                    `json:"answerable"`
+	ExpectedAnswer string                  `json:"expected_answer" validate:"omitempty,maxbytes=4000"`
+	RequiredFacts  []string                `json:"required_facts" validate:"max=10,dive,required,maxbytes=200"`
+	Evidence       []*AiKbFeedbackEvidence `json:"evidence" validate:"max=5,dive,required"`
+	Reason         string                  `json:"reason" validate:"required,maxbytes=1000"`
+}
+
 type AiKbImportListReq struct {
 	Id       int64 `path:"id" validate:"min=1"`
 	Page     int64 `form:"page,optional" validate:"omitempty,min=1"`
@@ -221,6 +317,19 @@ type AiListKbDocsResp struct {
 	FailedCount  int64          `json:"failed_count"`
 }
 
+type AiListKbEvaluationsReq struct {
+	Id        int64  `path:"id" validate:"min=1"`
+	Page      int64  `form:"page,optional" validate:"omitempty,min=1"`
+	PageSize  int64  `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+	Status    string `form:"status,optional" validate:"omitempty,oneof=pending running succeeded failed cancelled unknown all"`
+	RequestId string `form:"request_id,optional" validate:"omitempty,uuid"`
+}
+
+type AiListKbEvaluationsResp struct {
+	List  []*AiKbEvaluationInfo `json:"list"`
+	Total int64                 `json:"total"`
+}
+
 type AiListKbImportsResp struct {
 	List  []*AiKbIngestBatchInfo `json:"list"`
 	Total int64                  `json:"total"`
@@ -259,6 +368,17 @@ type AiListToolsResp struct {
 	Capabilities *AiCapabilities `json:"capabilities"`
 }
 
+type AiListWorkflowRevisionsReq struct {
+	Id       int64 `path:"id" validate:"min=1"`
+	Page     int64 `form:"page,optional" validate:"omitempty,min=1"`
+	PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+}
+
+type AiListWorkflowRevisionsResp struct {
+	List  []*AiWorkflowRevisionInfo `json:"list"`
+	Total int64                     `json:"total"`
+}
+
 type AiListWorkflowsReq struct {
 	Page     int64  `form:"page,optional" validate:"omitempty,min=1"`
 	PageSize int64  `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
@@ -288,11 +408,25 @@ type AiRejectTaskReq struct {
 	Reason       string `json:"reason" validate:"max=512"`
 }
 
+type AiRestoreWorkflowRevisionReq struct {
+	Id               int64 `path:"id" validate:"min=1"`
+	Revision         int64 `path:"revision" validate:"min=1"`
+	ExpectedRevision int64 `json:"expected_revision" validate:"min=1"`
+}
+
 type AiRetryKbDocReq struct {
 	Id        int64  `path:"id" validate:"min=1"`
 	DocId     int64  `path:"doc_id" validate:"min=1"`
 	RequestId string `json:"request_id" validate:"required,uuid"`
 	BatchId   string `json:"batch_id,optional" validate:"omitempty,uuid"`
+}
+
+type AiReviewKbFeedbackReq struct {
+	Id               int64               `path:"id" validate:"min=1"`
+	FeedbackId       int64               `path:"feedback_id" validate:"min=1"`
+	ExpectedRevision int64               `json:"expected_revision" validate:"min=1"`
+	Status           string              `json:"status" validate:"required,oneof=accepted dismissed"`
+	Review           *AiKbFeedbackReview `json:"review" validate:"required"`
 }
 
 type AiRunDraftReq struct {
@@ -336,6 +470,37 @@ type AiSendMessageResp struct {
 	Conversation   *AiConversationInfo `json:"conversation"`
 	UserMessage    *AiChatMessage      `json:"user_message"`
 	AiMessage      *AiChatMessage      `json:"ai_message"`
+}
+
+type AiSetUsagePolicyReq struct {
+	UserId                int64  `path:"user_id" validate:"min=0"`
+	ExpectedVersion       *int64 `json:"expected_version" validate:"required,min=0"`
+	DailyRequestLimit     *int64 `json:"daily_request_limit,optional" validate:"omitempty,min=0,max=1000000"`
+	DailyTokenWarning     *int64 `json:"daily_token_warning,optional" validate:"omitempty,min=0,max=9007199254740991"`
+	GlobalConcurrentLimit *int64 `json:"global_concurrent_limit,optional" validate:"omitempty,min=1,max=64"`
+	InheritDefault        bool   `json:"inherit_default,optional"`
+}
+
+type AiStartKbEvaluationReq struct {
+	Id              int64    `path:"id" validate:"min=1"`
+	RequestId       string   `json:"request_id" validate:"required,uuid"`
+	DatasetKey      string   `json:"dataset_key" validate:"required,max=64"`
+	DatasetSha256   string   `json:"dataset_sha256" validate:"required,len=64,hexadecimal"`
+	GroupKey        string   `json:"group_key" validate:"required,max=64"`
+	CaseIds         []string `json:"case_ids" validate:"required,min=1,max=30,unique,dive,required,max=128"`
+	DatasetSnapshot string   `json:"dataset_snapshot,optional" validate:"omitempty,max=262144"`
+}
+
+type AiTaskFeedbackListResp struct {
+	List []*AiKbFeedbackInfo `json:"list"`
+}
+
+type AiTaskFeedbackReq struct {
+	Id               int64  `path:"id" validate:"min=1"`
+	StepIndex        int64  `json:"step_index" validate:"min=0,max=31"`
+	ExpectedRevision int64  `json:"expected_revision" validate:"min=0"`
+	Feedback         string `json:"feedback" validate:"required,oneof=helpful incorrect_answer missing_knowledge irrelevant_source"`
+	Note             string `json:"note,optional" validate:"omitempty,maxbytes=1000"`
 }
 
 type AiTaskInfo struct {
@@ -392,11 +557,152 @@ type AiUpdateKbReq struct {
 }
 
 type AiUpdateWorkflowReq struct {
-	Id              int64   `path:"id" validate:"min=1"`
-	Name            *string `json:"name,optional" validate:"omitempty,max=128"`
-	Definition      *string `json:"definition,optional" validate:"omitempty,max=65536"`
-	IntervalSeconds *int64  `json:"interval_seconds,optional" validate:"omitempty,min=0"`
-	Enabled         *int64  `json:"enabled,optional" validate:"omitempty,oneof=0 1"`
+	Id               int64   `path:"id" validate:"min=1"`
+	ExpectedRevision int64   `json:"expected_revision" validate:"min=1"`
+	Name             *string `json:"name,optional" validate:"omitempty,max=128"`
+	Definition       *string `json:"definition,optional" validate:"omitempty,max=65536"`
+	IntervalSeconds  *int64  `json:"interval_seconds,optional" validate:"omitempty,min=0"`
+	Enabled          *int64  `json:"enabled,optional" validate:"omitempty,oneof=0 1"`
+}
+
+type AiUsageAdminQueryReq struct {
+	FromDay    string `form:"from_day,optional" validate:"omitempty,datetime=2006-01-02"`
+	ToDay      string `form:"to_day,optional" validate:"omitempty,datetime=2006-01-02"`
+	Source     string `form:"source,optional" validate:"omitempty,oneof=chat analysis kb_search kb_ingest evaluation"`
+	Operation  string `form:"operation,optional" validate:"omitempty,oneof=chat embedding"`
+	Provider   string `form:"provider,optional" validate:"omitempty,max=32"`
+	Model      string `form:"model,optional" validate:"omitempty,max=128"`
+	Status     string `form:"status,optional" validate:"omitempty,oneof=reserved running succeeded failed cancelled unknown not_sent"`
+	UsageState string `form:"usage_state,optional" validate:"omitempty,oneof=unknown partial complete invalid"`
+	Page       int64  `form:"page,default=1" validate:"min=1"`
+	PageSize   int64  `form:"page_size,default=20" validate:"min=1,max=100"`
+	UserId     int64  `form:"user_id,optional" validate:"omitempty,min=0"`
+}
+
+type AiUsageCallInfo struct {
+	Id                int64  `json:"id"`
+	AttemptId         string `json:"attempt_id"`
+	OwnerId           int64  `json:"owner_id"`
+	Source            string `json:"source"`
+	Operation         string `json:"operation"`
+	RequestId         string `json:"request_id"`
+	SourceId          int64  `json:"source_id"`
+	StepIndex         int64  `json:"step_index"`
+	BatchIndex        int64  `json:"batch_index"`
+	Provider          string `json:"provider"`
+	Model             string `json:"model"`
+	QuotaDay          string `json:"quota_day"`
+	QuotaCharged      bool   `json:"quota_charged"`
+	DispatchConfirmed bool   `json:"dispatch_confirmed"`
+	Status            string `json:"status"`
+	UsageState        string `json:"usage_state"`
+	PromptTokens      *int64 `json:"prompt_tokens,optional"`
+	CompletionTokens  *int64 `json:"completion_tokens,optional"`
+	TotalTokens       *int64 `json:"total_tokens,optional"`
+	HttpStatus        int64  `json:"http_status"`
+	ProviderRequestId string `json:"provider_request_id"`
+	ErrorCode         string `json:"error_code"`
+	StartedAt         int64  `json:"started_at"`
+	DispatchedAt      int64  `json:"dispatched_at"`
+	CompletedAt       int64  `json:"completed_at"`
+}
+
+type AiUsageCallsResp struct {
+	List  []*AiUsageCallInfo `json:"list"`
+	Total int64              `json:"total"`
+}
+
+type AiUsageGroup struct {
+	Source                string `json:"source"`
+	Operation             string `json:"operation"`
+	Provider              string `json:"provider"`
+	Model                 string `json:"model"`
+	ConfirmedRequests     int64  `json:"confirmed_requests"`
+	ReservedRequests      int64  `json:"reserved_requests"`
+	NotSentRequests       int64  `json:"not_sent_requests"`
+	UncertainRequests     int64  `json:"uncertain_requests"`
+	SucceededRequests     int64  `json:"succeeded_requests"`
+	FailedRequests        int64  `json:"failed_requests"`
+	CancelledRequests     int64  `json:"cancelled_requests"`
+	CompleteRequests      int64  `json:"complete_requests"`
+	PartialRequests       int64  `json:"partial_requests"`
+	UnknownRequests       int64  `json:"unknown_requests"`
+	InvalidRequests       int64  `json:"invalid_requests"`
+	KnownPromptTokens     int64  `json:"known_prompt_tokens"`
+	KnownCompletionTokens int64  `json:"known_completion_tokens"`
+	KnownEmbeddingTokens  int64  `json:"known_embedding_tokens"`
+	KnownTotalTokens      int64  `json:"known_total_tokens"`
+}
+
+type AiUsagePeriod struct {
+	FromDay  string `json:"from_day"`
+	ToDay    string `json:"to_day"`
+	Timezone string `json:"timezone"`
+}
+
+type AiUsagePoliciesResp struct {
+	List  []*AiUsagePolicyInfo `json:"list"`
+	Total int64                `json:"total"`
+}
+
+type AiUsagePolicyInfo struct {
+	OwnerId               int64  `json:"owner_id"`
+	QuotaDay              string `json:"quota_day"`
+	DailyRequestLimit     int64  `json:"daily_request_limit"`
+	UsedRequests          int64  `json:"used_requests"`
+	RemainingRequests     int64  `json:"remaining_requests"`
+	Unlimited             bool   `json:"unlimited"`
+	Inherited             bool   `json:"inherited"`
+	DailyTokenWarning     int64  `json:"daily_token_warning"`
+	KnownTokens           int64  `json:"known_tokens"`
+	WarningReached        bool   `json:"warning_reached"`
+	IncompleteRequests    int64  `json:"incomplete_requests"`
+	Version               int64  `json:"version"`
+	GlobalConcurrentLimit int64  `json:"global_concurrent_limit"`
+	ActiveCalls           int64  `json:"active_calls"`
+	ActiveKnown           bool   `json:"active_known"`
+}
+
+type AiUsagePolicyResp struct {
+	Policy *AiUsagePolicyInfo `json:"policy"`
+}
+
+type AiUsageQueryReq struct {
+	FromDay    string `form:"from_day,optional" validate:"omitempty,datetime=2006-01-02"`
+	ToDay      string `form:"to_day,optional" validate:"omitempty,datetime=2006-01-02"`
+	Source     string `form:"source,optional" validate:"omitempty,oneof=chat analysis kb_search kb_ingest evaluation"`
+	Operation  string `form:"operation,optional" validate:"omitempty,oneof=chat embedding"`
+	Provider   string `form:"provider,optional" validate:"omitempty,max=32"`
+	Model      string `form:"model,optional" validate:"omitempty,max=128"`
+	Status     string `form:"status,optional" validate:"omitempty,oneof=reserved running succeeded failed cancelled unknown not_sent"`
+	UsageState string `form:"usage_state,optional" validate:"omitempty,oneof=unknown partial complete invalid"`
+	Page       int64  `form:"page,default=1" validate:"min=1"`
+	PageSize   int64  `form:"page_size,default=20" validate:"min=1,max=100"`
+}
+
+type AiUsageSummaryInfo struct {
+	Period                *AiUsagePeriod  `json:"period"`
+	RecordingStartedAt    int64           `json:"recording_started_at"`
+	ConfirmedRequests     int64           `json:"confirmed_requests"`
+	ReservedRequests      int64           `json:"reserved_requests"`
+	NotSentRequests       int64           `json:"not_sent_requests"`
+	UncertainRequests     int64           `json:"uncertain_requests"`
+	SucceededRequests     int64           `json:"succeeded_requests"`
+	FailedRequests        int64           `json:"failed_requests"`
+	CancelledRequests     int64           `json:"cancelled_requests"`
+	CompleteRequests      int64           `json:"complete_requests"`
+	PartialRequests       int64           `json:"partial_requests"`
+	UnknownRequests       int64           `json:"unknown_requests"`
+	InvalidRequests       int64           `json:"invalid_requests"`
+	KnownPromptTokens     int64           `json:"known_prompt_tokens"`
+	KnownCompletionTokens int64           `json:"known_completion_tokens"`
+	KnownEmbeddingTokens  int64           `json:"known_embedding_tokens"`
+	KnownTotalTokens      int64           `json:"known_total_tokens"`
+	Groups                []*AiUsageGroup `json:"groups"`
+}
+
+type AiUsageSummaryResp struct {
+	Summary *AiUsageSummaryInfo `json:"summary"`
 }
 
 type AiWorkflowInfo struct {
@@ -410,23 +716,54 @@ type AiWorkflowInfo struct {
 	CreatedAt       int64  `json:"created_at"`
 	UpdatedAt       int64  `json:"updated_at"`
 	StepCount       int64  `json:"step_count"`
+	Revision        int64  `json:"revision"`
 }
 
 type AiWorkflowResp struct {
 	Workflow *AiWorkflowInfo `json:"workflow"`
 }
 
+type AiWorkflowRevisionInfo struct {
+	Id              int64  `json:"id"`
+	WorkflowId      int64  `json:"workflow_id"`
+	Revision        int64  `json:"revision"`
+	Name            string `json:"name"`
+	Definition      string `json:"definition"`
+	IntervalSeconds int64  `json:"interval_seconds"`
+	Enabled         int64  `json:"enabled"`
+	StepCount       int64  `json:"step_count"`
+	CreatedAt       int64  `json:"created_at"`
+}
+
+type AiWorkflowRevisionReq struct {
+	Id       int64 `path:"id" validate:"min=1"`
+	Revision int64 `path:"revision" validate:"min=1"`
+}
+
+type AiWorkflowRevisionResp struct {
+	Revision *AiWorkflowRevisionInfo `json:"revision"`
+}
+
 type AiWorkflowStepInfo struct {
-	Index       int64  `json:"index"`
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	Tool        string `json:"tool"`
-	Input       string `json:"input"`
-	Status      string `json:"status"`
-	Output      string `json:"output"`
-	Error       string `json:"error"`
-	StartedAt   int64  `json:"started_at"`
-	CompletedAt int64  `json:"completed_at"`
+	Index       int64                `json:"index"`
+	Id          string               `json:"id"`
+	Name        string               `json:"name"`
+	Tool        string               `json:"tool"`
+	Input       string               `json:"input"`
+	Status      string               `json:"status"`
+	Output      string               `json:"output"`
+	Error       string               `json:"error"`
+	StartedAt   int64                `json:"started_at"`
+	CompletedAt int64                `json:"completed_at"`
+	Usage       *AiWorkflowStepUsage `json:"usage,optional"`
+}
+
+type AiWorkflowStepUsage struct {
+	Scope            string `json:"scope"`
+	PromptTokens     int64  `json:"prompt_tokens"`
+	CompletionTokens int64  `json:"completion_tokens"`
+	TotalTokens      int64  `json:"total_tokens"`
+	Complete         bool   `json:"complete"`
 }
 
 type ApiInfo struct {

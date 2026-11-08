@@ -15,11 +15,12 @@ import type { AiWorkspaceScope } from './workspaceQueries';
 import { WorkflowEditor } from './WorkflowEditor';
 import { newWorkflowStep, parseWorkflow, workflowTemplate } from './workflowDefinition';
 import type { WorkflowDraft } from './workflowDefinition';
-import { clearWorkflowDraft, draftContent, makeWorkflowDraft, readWorkflowDraft, resolveWorkflowEditorDraft, workflowDraftKey, workflowSnapshot, writeWorkflowDraft } from './workflowDraft';
+import { clearWorkflowDraft, draftContent, makeWorkflowDraft, readWorkflowDraft, resolveWorkflowEditorDraft, workflowBaseRevision, workflowDraftKey, workflowSnapshot, workflowUpdateRequest, writeWorkflowDraft } from './workflowDraft';
 import type { StoredWorkflowDraft, WorkflowSubmissionState } from './workflowDraft';
 import styles from './workflow.module.css';
 import workspaceStyles from './workspace.module.css';
 import { WorkflowDraftRun } from './WorkflowDraftRun';
+import { WorkflowHistory } from './WorkflowHistory';
 
 const readCode = 'sys:ai:workflow:list';
 interface EditorSeed { key: string; draft: WorkflowDraft; baseSnapshot: string | null; initialContent: string }
@@ -61,6 +62,8 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
   const [submission, setSubmission] = useState<WorkflowSubmissionState>(restored.record?.submissionState ?? 'idle');
   const [restoredNotice, setRestoredNotice] = useState(!!restored.record);
   const [definitionError, setDefinitionError] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [serverConflict, setServerConflict] = useState(false);
   const [requiresKnowledge, setRequiresKnowledge] = useState(() => !!restored.record?.draft.steps.some(step => step.tool === 'kb_analyze' || step.tool === 'kb_search'));
   const liveDraft = useRef<WorkflowDraft | null>(restored.record?.draft ?? null);
   const baseSnapshot = useRef<string | null>(restored.record?.baseSnapshot ?? null);
@@ -74,7 +77,10 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
   const update = useMutation({ mutationFn: (request: AiUpdateWorkflowReq) => updateAiWorkflow(existing ? workflowId : 0, request), retry: false });
   const tools = toolsQuery.data?.list ?? [];
   const currentSnapshot = detail.data ? workflowSnapshot(detail.data.workflow) : null;
-  const conflict = !!seed && existing && !!currentSnapshot && seed.baseSnapshot !== currentSnapshot;
+  const baselineRevision = workflowBaseRevision(seed?.baseSnapshot ?? null);
+  const currentVerified = detail.isSuccess && !detail.isFetching && !detail.error && Number.isSafeInteger(detail.data.workflow.revision) && detail.data.workflow.revision >= 1;
+  const conflict = !!seed && existing && !!currentSnapshot && (seed.baseSnapshot !== currentSnapshot || baselineRevision === null || serverConflict);
+  const mayAcceptCurrent = currentVerified && !writing && (!serverConflict || detail.data.workflow.revision > (baselineRevision ?? 0));
 
   function persist(draft: WorkflowDraft, state = submissionRef.current) {
     liveDraft.current = draft;
@@ -162,11 +168,15 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
     } });
   }
   async function save(draft: WorkflowDraft, definition: string) {
-    if (submissionRef.current !== 'idle' || conflict || toolsQuery.isFetching || toolsQuery.error || existing && (detail.isFetching || detail.error) || !beginWrite(operationCode)) return;
+    if (submissionRef.current !== 'idle' || conflict || toolsQuery.isFetching || toolsQuery.error || existing && (detail.isFetching || detail.error)) return;
+    let request: AiUpdateWorkflowReq | undefined;
+    try { if (existing) request = workflowUpdateRequest(draft, definition, baseSnapshot.current); }
+    catch (error) { setStorageError(error instanceof Error ? error.message : '请先核对工作流版本'); return; }
+    if (!beginWrite(operationCode)) return;
     liveDraft.current = draft;
     setSubmissionState('submitting');
     try {
-      if (existing) await update.mutateAsync({ name: draft.name.trim(), enabled: draft.enabled ? 1 : 0, definition });
+      if (request) await update.mutateAsync(request);
       else await create.mutateAsync({ name: draft.name.trim(), definition, interval_seconds: 0 });
       if (!isCurrent()) return;
       try { clearWorkflowDraft(sessionStorage, storageKey); } catch { setStorageError('保存成功，但草稿清除失败。请勿重复创建，返回列表核对。'); setSubmissionState('unknown'); return; }
@@ -174,12 +184,17 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
       pendingChanges.current = false;
       submissionRef.current = 'idle';
       if (existing) client.removeQueries({ queryKey: aiWorkspaceKeys.workflow(scope, workflowId) });
+      if (existing) void client.invalidateQueries({ queryKey: aiWorkspaceKeys.workflowRevisions(scope, workflowId) });
       void client.invalidateQueries({ queryKey: aiWorkspaceKeys.workflows(scope) });
       void message.success(existing ? '工作流已保存，可开始运行' : '工作流已创建，可开始运行');
       navigate('/ai/workflows');
     } catch (error) {
       if (!isCurrent()) return;
       setSubmissionState(!(error instanceof ApiError) || error.code >= 500 ? 'unknown' : 'idle');
+      if (existing && error instanceof ApiError && error.code === 409) {
+        setServerConflict(true);
+        await Promise.allSettled([detail.refetch(), client.invalidateQueries({ queryKey: aiWorkspaceKeys.workflowRevisions(scope, workflowId) })]);
+      }
     } finally { finishWrite(); }
   }
   if (!canEdit || !canReadTools) return <Result status="403" title={canEdit ? '需要查看工具权限，才能配置工作流' : `没有${existing ? '编辑' : '新建'}工作流权限`} extra={<Button onClick={() => navigate('/ai/workflows')}>返回列表</Button>} />;
@@ -187,12 +202,12 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
   const kbStepWithoutAccess = requiresKnowledge && !canReadKnowledge;
   const incoming = params.get('tool');
   return <div className={`${styles.workspace} ${styles.editorPage}`}>
-    <div className={styles.pageHeading}><Space><Button type="text" icon={<ArrowLeftOutlined />} aria-label="返回工作流列表" onClick={() => navigate('/ai/workflows')} /><Typography.Title level={3}>{existing ? '编辑常用流程' : '新建常用流程'}</Typography.Title></Space><Space><Typography.Text type="secondary">{writing ? '正在提交…' : submission === 'unknown' ? '保存结果待核对 · 草稿已保留' : dirty ? storageError || restored.error ? '有未保存修改' : '未提交 · 当前标签页草稿已保存' : '先试运行，再保存'}</Typography.Text>{seed && <Button type="text" danger disabled={writing} onClick={discardDraft}>丢弃草稿</Button>}</Space></div>
+    <div className={styles.pageHeading}><Space><Button type="text" icon={<ArrowLeftOutlined />} aria-label="返回工作流列表" onClick={() => navigate('/ai/workflows')} /><Typography.Title level={3}>{existing ? '编辑常用流程' : '新建常用流程'}</Typography.Title></Space><Space>{existing && detail.data && <Button disabled={writing} onClick={() => setHistoryOpen(true)}>版本历史</Button>}<Typography.Text type="secondary">{writing ? '正在提交…' : submission === 'unknown' ? '保存结果待核对 · 草稿已保留' : dirty ? storageError || restored.error ? '有未保存修改' : '未提交 · 当前标签页草稿已保存' : '先试运行，再保存'}</Typography.Text>{seed && <Button type="text" danger disabled={writing} onClick={discardDraft}>丢弃草稿</Button>}</Space></div>
     {(storageError || restored.error) && <Alert type="warning" showIcon title={storageError || '浏览器草稿存储不可用，刷新或关闭前请自行保留当前内容。'} />}
     {restoredNotice && <Alert type="success" showIcon closable onClose={() => setRestoredNotice(false)} title="已恢复当前标签页的未保存草稿" />}
     {incoming && toolsQuery.isSuccess && !tools.some(tool => tool.name === incoming) && <Alert type="warning" title="所选工具已不可用，请重新选择起步方式。" />}
     {submission === 'unknown' && <Alert type="warning" showIcon title="上次保存结果未知，草稿已保留" description="请先在工作流列表核对是否已保存，确认后再继续。页面不会自动重复提交。" action={<Space><Button href="/ai/workflows" target="_blank">打开列表核对</Button><Button onClick={() => modal.confirm({ title: '已核对保存结果？', content: '确认需要再次保存后继续。新建操作可能产生重复工作流，请先确认列表。', okText: '已核对，继续编辑', cancelText: '返回核对', onOk: () => setSubmissionState('idle') })}>已核对</Button></Space>} />}
-    {conflict && <Alert type="warning" showIcon title="已保存的工作流在编辑期间发生变化" description="当前草稿保持不变。请与列表中的最新定义核对；继续保存会覆盖服务端当前内容。" action={<Button onClick={() => modal.confirm({ title: '保留草稿并继续保存？', content: '当前服务端没有版本锁。确认已核对最新定义后，后续保存将使用当前草稿覆盖它。', okText: '已核对，保留草稿', cancelText: '继续核对', onOk: () => { baseSnapshot.current = currentSnapshot; setSeed(current => current ? { ...current, baseSnapshot: currentSnapshot } : current); if (liveDraft.current) persist(liveDraft.current); } })}>核对后继续</Button>} />}
+    {conflict && <Alert type="warning" showIcon title={baselineRevision === null ? '当前草稿缺少已核对的版本' : '已保存的工作流在编辑期间发生变化'} description="当前草稿保持不变。请核对最新定义和版本；再次保存仍由服务端核对版本，冲突时不会覆盖新内容。" action={<Space wrap><Button disabled={writing} onClick={() => void detail.refetch()}>刷新最新版本</Button><Button disabled={!mayAcceptCurrent} onClick={() => modal.confirm({ title: '保留草稿并采用已核对的版本？', content: `后续保存以版本 ${detail.data?.workflow.revision} 为条件，使用当前草稿替换该版本。若之后版本再次变化，服务端会拒绝本次保存。`, okText: '已核对，保留草稿', cancelText: '继续核对', onOk: () => { if (!isCurrent()) return; baseSnapshot.current = currentSnapshot; setSeed(current => current ? { ...current, baseSnapshot: currentSnapshot } : current); setServerConflict(false); if (liveDraft.current) persist(liveDraft.current); } })}>核对后继续</Button></Space>} />}
     <QueryState error={toolsQuery.error} onRetry={toolsQuery.refetch} />
     {(existing || copyId > 0) && <QueryState error={detail.error} onRetry={detail.refetch} />}
     {fromTaskId > 0 && <QueryState error={sourceTask.error} onRetry={sourceTask.refetch} />}
@@ -208,5 +223,6 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
       {kbStepWithoutAccess && <Alert type="warning" title="当前步骤需要查看知识库权限，请联系管理员授权后继续保存。" />}
       <WorkflowEditor key={seed.key} initial={seed.draft} tools={tools} capabilities={toolsQuery.data?.capabilities} knowledge={{ scope, canRead: canReadKnowledge }} existing={existing} saving={writing} saveDisabled={submission !== 'idle' || conflict || toolsQuery.isFetching || !!toolsQuery.error || !tools.length || !!kbStepWithoutAccess || existing && (detail.isFetching || !!detail.error)} onChange={changeDraft} onSave={save} onCancel={() => navigate('/ai/workflows')} />
     </Card><Card><WorkflowDraftRun scope={scope} guard={guard} draft={previewDraft ?? seed.draft} tools={tools} capabilities={toolsQuery.data?.capabilities} initialInput={fromTaskId ? sourceTask.data?.task.input : undefined} attemptId={`editor:${workflowId}`} disabled={submission !== 'idle' || toolsQuery.isFetching || !!toolsQuery.error || !!kbStepWithoutAccess} /></Card></div> : !definitionError && !toolsQuery.error && (!existing || !detail.error) && <Spin className="route-spinner" />}
+    {historyOpen && existing && detail.data && <WorkflowHistory scope={scope} workflow={detail.data.workflow} currentVerified={currentVerified} guard={guard} onRefresh={() => detail.refetch()} onClose={() => setHistoryOpen(false)} />}
   </div>;
 }

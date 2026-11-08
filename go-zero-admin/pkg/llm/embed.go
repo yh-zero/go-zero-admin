@@ -15,20 +15,24 @@ import (
 
 // Embedder 文本向量化客户端
 type Embedder struct {
-	baseURL string
-	apiKey  string
-	model   string
-	dims    int
-	client  *http.Client
+	baseURL  string
+	apiKey   string
+	model    string
+	dims     int
+	client   *http.Client
+	hook     UsageHook
+	provider string
 }
 
 // EmbedConfig Embedding 配置
 type EmbedConfig struct {
-	BaseURL string // 如 https://dashscope.aliyuncs.com/compatible-mode/v1
-	APIKey  string
-	Model   string // 如 text-embedding-v4
-	Dims    int    // 向量维度，响应会校验一致
-	Timeout int64  // 秒
+	BaseURL   string // 如 https://dashscope.aliyuncs.com/compatible-mode/v1
+	APIKey    string
+	Model     string // 如 text-embedding-v4
+	Dims      int    // 向量维度，响应会校验一致
+	Timeout   int64  // 秒
+	Provider  string
+	UsageHook UsageHook
 }
 
 // embedBatchSize 通用兼容接口的默认单次批量上限
@@ -51,7 +55,8 @@ func NewEmbedder(cfg EmbedConfig) (*Embedder, error) {
 		apiKey:  cfg.APIKey,
 		model:   cfg.Model,
 		dims:    cfg.Dims,
-		client:  &http.Client{Timeout: timeout},
+		client:  &http.Client{Timeout: timeout, Transport: &usageTransport{}},
+		hook:    cfg.UsageHook, provider: cfg.Provider,
 	}, nil
 }
 
@@ -73,7 +78,7 @@ func (e *Embedder) Embed(ctx context.Context, texts []string) ([][]float32, erro
 		if end > len(texts) {
 			end = len(texts)
 		}
-		vecs, err := e.embedBatch(ctx, texts[start:end])
+		vecs, err := e.embedBatch(ctx, texts[start:end], int64(start/batchSize))
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +94,9 @@ type embedRequest struct {
 }
 
 type embedResponse struct {
-	Data []struct {
+	ID    string         `json:"id"`
+	Usage *providerUsage `json:"usage"`
+	Data  []struct {
 		Index     int       `json:"index"`
 		Embedding []float32 `json:"embedding"`
 	} `json:"data"`
@@ -98,7 +105,21 @@ type embedResponse struct {
 	} `json:"error"`
 }
 
-func (e *Embedder) embedBatch(ctx context.Context, texts []string) ([][]float32, error) {
+func (e *Embedder) embedBatch(ctx context.Context, texts []string, batchIndex ...int64) (vectors [][]float32, resultErr error) {
+	index := int64(0)
+	if len(batchIndex) > 0 {
+		index = batchIndex[0]
+	}
+	ctx, call, err := beginUsage(ctx, e.hook, e.provider, e.model, "embedding", index, int64(len(texts)), e.apiKey)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if finishErr := call.finish(resultErr, false); finishErr != nil {
+			vectors = nil
+			resultErr = finishErr
+		}
+	}()
 	body, err := json.Marshal(embedRequest{Model: e.model, Input: texts, Dimensions: e.dims})
 	if err != nil {
 		return nil, err
@@ -118,13 +139,17 @@ func (e *Embedder) embedBatch(ctx context.Context, texts []string) ([][]float32,
 	if err != nil {
 		return nil, err
 	}
+	var parsed embedResponse
+	parseErr := json.Unmarshal(raw, &parsed)
+	if parseErr == nil {
+		call.observeUsage(usageEnvelope{ID: parsed.ID, Usage: parsed.Usage})
+	}
 	if resp.StatusCode != http.StatusOK {
 		// 只保留状态码，不回显厂商响应体（可能含敏感信息）
 		return nil, fmt.Errorf("embedding 服务返回 HTTP %d", resp.StatusCode)
 	}
-	var parsed embedResponse
-	if err := json.Unmarshal(raw, &parsed); err != nil {
-		return nil, fmt.Errorf("embedding 响应解析失败: %w", err)
+	if parseErr != nil {
+		return nil, fmt.Errorf("embedding 响应解析失败: %w", parseErr)
 	}
 	if parsed.Error != nil {
 		return nil, errors.New("embedding 服务返回业务错误")

@@ -28,6 +28,7 @@ type (
 		CancelOwned(ctx context.Context, id, ownerId int64) error
 		FailStaleOwned(ctx context.Context, id, ownerId int64) error
 		CheckRunningOwned(ctx context.Context, id, ownerId int64) (bool, error)
+		StoreTerminalStepUsage(ctx context.Context, id, ownerId int64, expected WorkflowStepRecord, usage WorkflowStepUsage) (string, error)
 	}
 
 	customAiTaskModel struct {

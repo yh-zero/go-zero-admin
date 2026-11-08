@@ -3,7 +3,13 @@
 // 所有写入必须幂等可重放，任何时刻整体数据可从 MySQL 重建。
 package vectordb
 
-import "context"
+import (
+	"context"
+	"errors"
+)
+
+// ErrReconcileLimit 表示完整索引快照超过扫描上限，必须人工评估后处理。
+var ErrReconcileLimit = errors.New("vector reconciliation snapshot limit exceeded")
 
 // Point 一条向量索引记录；ID 即 ai_kb_chunk.id
 type Point struct {

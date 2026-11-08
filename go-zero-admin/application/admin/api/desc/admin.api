@@ -20,6 +20,7 @@ import "sys/tenant.api"
 import "app/app.api"
 import "sys/app.api"
 import "sys/ai.api"
+import "sys/ai_usage.api"
 
 type PingReq {}
 

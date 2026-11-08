@@ -20,12 +20,15 @@ type UpdateWorkflowLogic struct {
 func NewUpdateWorkflowLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateWorkflowLogic {
 	return &UpdateWorkflowLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
-func (l *UpdateWorkflowLogic) UpdateWorkflow(in *aipb.UpdateWorkflowRequest) (*aipb.NoDataResponse, error) {
+func (l *UpdateWorkflowLogic) UpdateWorkflow(in *aipb.UpdateWorkflowRequest) (*aipb.GetWorkflowResponse, error) {
 	if err := requireAiActor(in.Actor); err != nil {
 		return nil, err
 	}
 	if _, err := l.svcCtx.AiWorkflowModel.FindOwned(l.ctx, in.WorkflowId, in.Actor.UserId); err != nil {
 		return nil, aiModelError(err)
+	}
+	if in.ExpectedRevision < 1 {
+		return nil, xerr.NewErrCodeMsg(400, "请提供已核对的工作流版本")
 	}
 	patch := model.WorkflowPatch{Name: in.Name, Definition: in.Definition, IntervalSeconds: in.IntervalSeconds, Enabled: in.Enabled}
 	if in.Name != nil {
@@ -46,8 +49,9 @@ func (l *UpdateWorkflowLogic) UpdateWorkflow(in *aipb.UpdateWorkflowRequest) (*a
 	if in.Enabled != nil && *in.Enabled != 0 && *in.Enabled != 1 {
 		return nil, xerr.NewErrCodeMsg(400, "enabled 仅允许 0 或 1")
 	}
-	if err := l.svcCtx.AiWorkflowModel.UpdateOwned(l.ctx, in.WorkflowId, in.Actor.UserId, patch); err != nil {
-		return nil, aiModelError(err)
+	row, err := l.svcCtx.AiWorkflowModel.UpdateOwned(l.ctx, in.WorkflowId, in.Actor.UserId, in.ExpectedRevision, patch)
+	if err != nil {
+		return nil, workflowModelError(err)
 	}
-	return &aipb.NoDataResponse{}, nil
+	return &aipb.GetWorkflowResponse{Workflow: workflowProto(row)}, nil
 }

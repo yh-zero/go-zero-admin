@@ -1,0 +1,15 @@
+.entry { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+.workspace { width: 100%; min-width: 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+.search { width: min(100%, 360px); }
+.status { min-width: 140px; }
+.columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.panel { min-width: 0; padding: 16px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; overflow-wrap: anywhere; }
+.panel h3, .step h4 { margin-top: 0; }
+.record { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 280px; overflow-y: auto; padding: 12px; border-radius: 6px; background: var(--ant-color-fill-quaternary); font: 12px/1.7 Consolas, 'Microsoft YaHei', monospace; }
+.steps { display: flex; flex-direction: column; gap: 16px; margin-block: 16px; }
+.step { padding: 16px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; }
+.step details { margin-top: 12px; }
+.step summary { cursor: pointer; }
+.note { color: var(--ant-color-text-secondary); font-size: 13px; }
+@media (max-width: 800px) { .columns { grid-template-columns: minmax(0, 1fr); } .panel, .step { padding: 12px; } }

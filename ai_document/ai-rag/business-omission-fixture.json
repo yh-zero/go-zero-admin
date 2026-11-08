@@ -1,0 +1,292 @@
+{
+  "version": 1,
+  "description": "业务题261的实际外层kb_analysis与直接search观测；保留实际答案、来源、用量和筛查结果，不猜测未保存的供应商内部逐问项JSON。AI辅助复核，无真人签署。",
+  "provenance": {
+    "source_log": "tmp/ai-product-20261107/recall-business-verified.jsonl",
+    "source_log_sha256": "72cad35f270cd1dd941c04139b138f435e94e2408861759d78f8629a932088f5",
+    "base_dataset_sha256": "f3a4016eabc10a974e3acffc6d7347477976d00923c196c608de55a6db99538b",
+    "baseline_context": {
+      "binary_sha": "72ff8f9c90c401178860c53093989dc0de63b9be5e7bbca55970573ac7225125",
+      "model": {
+        "provider": "deepseek",
+        "name": "deepseek-chat"
+      },
+      "embedding": {
+        "provider": "qwen",
+        "model": "text-embedding-v4",
+        "dimension": 1024
+      },
+      "config": {
+        "max_context_tokens": 32000,
+        "analysis_answer_token_cap": 2048,
+        "recall_top_k": 20,
+        "return_top_k": 5,
+        "analysis_temperature": 0
+      }
+    },
+    "source_record_hash_method": "SHA256(JSON.stringify(parsed original result object))",
+    "observed_hash_method": "SHA256(JSON.stringify(observed selected fields))",
+    "raw_provider_structure_observed": false
+  },
+  "bound_documents": [
+    {
+      "key": "ops-environment",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/01-开发环境与配置.md",
+      "title": "开发环境与配置",
+      "sha256": "ce3eb80aaefee71f0ee2ff7aeddf94d1c9860ef3fd6b051bfb6d76ff7d988d1d",
+      "doc_id": 17,
+      "kb_id": 5,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "ce3eb80aaefee71f0ee2ff7aeddf94d1c9860ef3fd6b051bfb6d76ff7d988d1d"
+    },
+    {
+      "key": "ops-data",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/02-数据初始化与备份.md",
+      "title": "数据初始化与备份",
+      "sha256": "3a9e4b7849bc7986497cca644e2f97ee6415ec94005165d478b84d4e933dce39",
+      "doc_id": 18,
+      "kb_id": 5,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "3a9e4b7849bc7986497cca644e2f97ee6415ec94005165d478b84d4e933dce39"
+    },
+    {
+      "key": "ops-build",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/03-构建启动与验收.md",
+      "title": "构建启动与验收",
+      "sha256": "b9ef7fe283e6d5a7e2f3fef4ac3b83195a210defba8874fed97feb4fb54cb8a2",
+      "doc_id": 19,
+      "kb_id": 5,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "b9ef7fe283e6d5a7e2f3fef4ac3b83195a210defba8874fed97feb4fb54cb8a2"
+    },
+    {
+      "key": "ops-cleanup",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/04-临时资源清理.md",
+      "title": "临时资源清理",
+      "sha256": "1bfe5d2b323965c686051cf238cc659d89b48705590ab25f14de7f4a21135ea7",
+      "doc_id": 20,
+      "kb_id": 5,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "1bfe5d2b323965c686051cf238cc659d89b48705590ab25f14de7f4a21135ea7"
+    },
+    {
+      "key": "ai-models",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/05-模型与向量存储.md",
+      "title": "模型与向量存储",
+      "sha256": "bdbe896880111a07df8e71a23225588a68c4738245ac343ccdcc038ac48377c3",
+      "doc_id": 21,
+      "kb_id": 6,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "bdbe896880111a07df8e71a23225588a68c4738245ac343ccdcc038ac48377c3"
+    },
+    {
+      "key": "ai-knowledge",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/06-知识库资料与回答.md",
+      "title": "知识库资料与回答",
+      "sha256": "f88c7abd52edbd4f9512f62ac43bc8f1bd80439a91672e8646a9d42a1eb4dea7",
+      "doc_id": 22,
+      "kb_id": 6,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "f88c7abd52edbd4f9512f62ac43bc8f1bd80439a91672e8646a9d42a1eb4dea7"
+    },
+    {
+      "key": "ai-workflows",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/07-常用流程与运行记录.md",
+      "title": "常用流程与运行记录",
+      "sha256": "9d44db5fc5ec567a98b8e80e21a48fa2e4e20375863195ed55032b84fee49e11",
+      "doc_id": 23,
+      "kb_id": 6,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "9d44db5fc5ec567a98b8e80e21a48fa2e4e20375863195ed55032b84fee49e11"
+    },
+    {
+      "key": "ai-access",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/08-身份权限与数据隔离.md",
+      "title": "身份权限与数据隔离",
+      "sha256": "9e98bad2f29114f1536cd386c48f73bfce8d831879a099644bb06eca3c4039dc",
+      "doc_id": 24,
+      "kb_id": 6,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "9e98bad2f29114f1536cd386c48f73bfce8d831879a099644bb06eca3c4039dc"
+    }
+  ],
+  "examples": [
+    {
+      "id": "operation_destructive_consequence_omitted",
+      "source_case_id": "business-dev-existing-database",
+      "source_record_sha256": "963591201e985220019c8566258150090f0b9d3fbbf560be94cbc46a3911f1a3",
+      "observed_sha256": "a9340e3a58091845f69923fb4f8939f70c3e20d569f7af993047a2154ce6d9ac",
+      "observed": {
+        "case_id": "business-dev-existing-database",
+        "task_id": 261,
+        "kb_id": 5,
+        "query": "已有数据卷启动后会自动更新数据库表吗？生成model时能重新导入mysql-all.sql清空现有业务库吗？",
+        "list": [
+          {
+            "chunk_id": 27,
+            "kb_id": 5,
+            "doc_id": 18,
+            "doc_title": "数据初始化与备份",
+            "snippet": "### 数据初始化\n\n**初始化 SQL 会 DROP 并重建业务表，不是已有库的升级脚本。** 唯一入口为 [mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql)：\n- 新建开发库：完整导入；Compose 的 MySQL 空数据卷首次启动自动导入，已有卷不自动覆盖或更新结构。\n- 已有库改结构：先核对目标与数据处理方案；生成 model 时使用已导入完整 SQL 的新开发库，不为生成代码清空业务库。\n- 重置已有库：须明确授权、确认目标并备份；不能把重跑初始化或删除数据卷当作通用排障手段。\n- 演示账号与默认凭据见[快速开始](../README.md#快速开始)，仅限开发、部署前必须替换；后台图形验证码由 admin-rpc 的 `Captcha.Enabled` 控制。\n\n### AI 本地开发免图形验证码\n\nAI 在本机开发、联调和功能验收启动时，默认使用忽略的本地覆盖配置关闭图形验证码，账号密码和会话/权限仍正常校验。将 `docker/etc/admin-rpc.yaml` 复制为 `docker/etc/",
+            "score": 0.7064228
+          },
+          {
+            "chunk_id": 30,
+            "kb_id": 5,
+            "doc_id": 18,
+            "doc_title": "数据初始化与备份",
+            "snippet": "来源 `mysql-all.sql` 不作为运行库备份替代物。\n- 先核对实际运行库和容器/连接来源，使用一致性快照导出，记录来源、导出时间与文件校验值；在独立环境恢复验证，不导回现有业务库，也不启动会调用外部服务的业务进程。\n- 真实邮箱与 AI Key 不提交；不含这两类数据及根规范禁止公开信息的明文备份，按用户指定路径和分支直接提交，日期快照沿用后端 `data/db/init/YYYYMMDD/`。公开提交仍遵守根规范安全基线；受阻的完整原件保存在被忽略的本地目录，不擅自生成脱敏或加密替代文件。\n- 分别说明“导出完成”“恢复验证通过”“本地提交完成”“远程推送完成”，不能用其中一项代替其余状态。",
+            "score": 0.6275053
+          },
+          {
+            "chunk_id": 31,
+            "kb_id": 5,
+            "doc_id": 19,
+            "doc_title": "构建启动与验收",
+            "snippet": "## 2. 构建、启动与就绪检查\n\n新建或重置数据库先看[数据初始化](#数据初始化)；常规代码部署不重复导入 SQL 或删除数据卷。\n\n### Compose（日常默认）\n\n[Dockerfile](../go-zero-admin/docker/Dockerfile)只复制宿主预编译的 Linux 二进制，`docker compose --build` **不会编译 Go 源码**。首次运行或后端代码变更后，先执行[构建入口](../go-zero-admin/data/scripts/build-images.ps1)；构建失败立即停止，不部署旧产物。\n\n```powershell\n# 终端 A：从仓库根目录执行\ncd go-zero-admin\npowershell -NoProfile -ExecutionPolicy Bypass -File ./data/scripts/build-images.ps1\nif ($LASTEXITCODE -ne 0) { throw \"后端编译失败，停止部署\" }\ndocker compose up -d --build --wait",
+            "score": 0.5929965
+          },
+          {
+            "chunk_id": 29,
+            "kb_id": 5,
+            "doc_id": 18,
+            "doc_title": "数据初始化与备份",
+            "snippet": "n-rpc` 应用验证码配置；其他服务按各自启动流程处理，后端代码改变仍须先编译并构建对应镜像。通过 `/v1/sys/auth/captcha` 核对 `enabled=false` 且图片、ID 为空，再用有效测试账号正常登录。两个 `*.local.yaml` 文件均被忽略，不提交；远程/生产/租户启动不使用这个本地覆盖文件。验证码专项验收改用标准配置并核对 `enabled=true`。\n\n开源初始化的演示管理员为 `admin / Admin@123456`，属于可公开的开发默认凭据，可以写入规范和文档。AI 可直接核对本地开发库与完整初始化 SQL 后正常登录，无需重复索要这些演示凭据。若 README 的本地改动与 SQL 不一致，以实际初始化来源和运行库核对结果为准，保留用户既有文档改动；此流程不授权改密、重置账号或公开真实凭据、AI Key、会话令牌。\n\n### 数据库备份\n\n- 备份默认保留运行库的完整原始 SQL，不擅自删行、改值、脱敏或加密；历史备份不覆盖，初始化来源 `mysql-all.sql` 不作为运行库备份替代物。\n- 先核对实际运行库和容器/连接来源",
+            "score": 0.57839215
+          },
+          {
+            "chunk_id": 23,
+            "kb_id": 5,
+            "doc_id": 17,
+            "doc_title": "开发环境与配置",
+            "snippet": "## 1. 开发环境与配置\n\n首次准备与工具版本见[快速开始](../README.md#快速开始)，以依赖声明、锁文件和实际工具版本为准；Docker 使用 Linux 容器模式，基础镜像须可拉取或已缓存。标准拓扑以 [Compose](../go-zero-admin/docker-compose.yml) 为准：\n\n| 服务 | 宿主访问地址 | 容器网络 / 用途 |\n|---|---|---|\n| MySQL | `127.0.0.1:3307` | `mysql:3306`，业务库 `gozero_admin` |\n| Redis | `127.0.0.1:16379` | `redis:6379`，缓存、会话与策略通知 |\n| RustFS | `127.0.0.1:19000`，控制台 `:19001` | `rustfs:9000`，S3 兼容存储 |\n| admin-api | `127.0.0.1:7001` | `platform-api:7001`，前端代理目标 |\n| admin/app/file/ai/tenant RPC | 默认不映射宿主端口 | 各服",
+            "score": 0.5451105
+          }
+        ],
+        "analysis": {
+          "version": 1,
+          "type": "kb_analysis",
+          "status": "completed",
+          "analysis": "已有数据卷启动后会自动更新数据库表吗？：不会。Compose 的 MySQL 空数据卷首次启动自动导入，已有卷不自动覆盖或更新结构。 [1]\n\n生成model时能重新导入mysql\\-all\\.sql清空现有业务库吗？：不能。生成 model 时使用已导入完整 SQL 的新开发库，不为生成代码清空业务库。 [1]",
+          "sources": [
+            {
+              "index": 1,
+              "chunk_id": 27,
+              "kb_id": 5,
+              "doc_id": 18,
+              "doc_title": "数据初始化与备份",
+              "snippet": "### 数据初始化\n\n**初始化 SQL 会 DROP 并重建业务表，不是已有库的升级脚本。** 唯一入口为 [mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql)：\n- 新建开发库：完整导入；Compose 的 MySQL 空数据卷首次启动自动导入，已有卷不自动覆盖或更新结构。\n- 已有库改结构：先核对目标与数据处理方案；生成 model 时使用已导入完整 SQL 的新开发库，不为生成代码清空业务库。\n- 重置已有库：须明确授权、确认目标并备份；不能把重跑初始化或删除数据卷当作通用排障手段。\n- 演示账号与默认凭据见[快速开始](../README.md#快速开始)，仅限开发、部署前必须替换；后台图形验证码由 admin-rpc 的 `Captcha.Enabled` 控制。\n\n### AI 本地开发免图形验证码\n\nAI 在本机开发、联调和功能验收启动时，默认使用忽略的本地覆盖配置关闭图形验证码，账号密码和会话/权限仍正常校验。将 `docker/etc/admin-rpc.yaml` 复制为 `docker/etc/",
+              "score": 0.7064228
+            },
+            {
+              "index": 2,
+              "chunk_id": 30,
+              "kb_id": 5,
+              "doc_id": 18,
+              "doc_title": "数据初始化与备份",
+              "snippet": "来源 `mysql-all.sql` 不作为运行库备份替代物。\n- 先核对实际运行库和容器/连接来源，使用一致性快照导出，记录来源、导出时间与文件校验值；在独立环境恢复验证，不导回现有业务库，也不启动会调用外部服务的业务进程。\n- 真实邮箱与 AI Key 不提交；不含这两类数据及根规范禁止公开信息的明文备份，按用户指定路径和分支直接提交，日期快照沿用后端 `data/db/init/YYYYMMDD/`。公开提交仍遵守根规范安全基线；受阻的完整原件保存在被忽略的本地目录，不擅自生成脱敏或加密替代文件。\n- 分别说明“导出完成”“恢复验证通过”“本地提交完成”“远程推送完成”，不能用其中一项代替其余状态。",
+              "score": 0.6275053
+            },
+            {
+              "index": 3,
+              "chunk_id": 31,
+              "kb_id": 5,
+              "doc_id": 19,
+              "doc_title": "构建启动与验收",
+              "snippet": "## 2. 构建、启动与就绪检查\n\n新建或重置数据库先看[数据初始化](#数据初始化)；常规代码部署不重复导入 SQL 或删除数据卷。\n\n### Compose（日常默认）\n\n[Dockerfile](../go-zero-admin/docker/Dockerfile)只复制宿主预编译的 Linux 二进制，`docker compose --build` **不会编译 Go 源码**。首次运行或后端代码变更后，先执行[构建入口](../go-zero-admin/data/scripts/build-images.ps1)；构建失败立即停止，不部署旧产物。\n\n```powershell\n# 终端 A：从仓库根目录执行\ncd go-zero-admin\npowershell -NoProfile -ExecutionPolicy Bypass -File ./data/scripts/build-images.ps1\nif ($LASTEXITCODE -ne 0) { throw \"后端编译失败，停止部署\" }\ndocker compose up -d --build --wait",
+              "score": 0.5929965
+            },
+            {
+              "index": 4,
+              "chunk_id": 29,
+              "kb_id": 5,
+              "doc_id": 18,
+              "doc_title": "数据初始化与备份",
+              "snippet": "n-rpc` 应用验证码配置；其他服务按各自启动流程处理，后端代码改变仍须先编译并构建对应镜像。通过 `/v1/sys/auth/captcha` 核对 `enabled=false` 且图片、ID 为空，再用有效测试账号正常登录。两个 `*.local.yaml` 文件均被忽略，不提交；远程/生产/租户启动不使用这个本地覆盖文件。验证码专项验收改用标准配置并核对 `enabled=true`。\n\n开源初始化的演示管理员为 `admin / Admin@123456`，属于可公开的开发默认凭据，可以写入规范和文档。AI 可直接核对本地开发库与完整初始化 SQL 后正常登录，无需重复索要这些演示凭据。若 README 的本地改动与 SQL 不一致，以实际初始化来源和运行库核对结果为准，保留用户既有文档改动；此流程不授权改密、重置账号或公开真实凭据、AI Key、会话令牌。\n\n### 数据库备份\n\n- 备份默认保留运行库的完整原始 SQL，不擅自删行、改值、脱敏或加密；历史备份不覆盖，初始化来源 `mysql-all.sql` 不作为运行库备份替代物。\n- 先核对实际运行库和容器/连接来源",
+              "score": 0.57839215
+            },
+            {
+              "index": 5,
+              "chunk_id": 23,
+              "kb_id": 5,
+              "doc_id": 17,
+              "doc_title": "开发环境与配置",
+              "snippet": "## 1. 开发环境与配置\n\n首次准备与工具版本见[快速开始](../README.md#快速开始)，以依赖声明、锁文件和实际工具版本为准；Docker 使用 Linux 容器模式，基础镜像须可拉取或已缓存。标准拓扑以 [Compose](../go-zero-admin/docker-compose.yml) 为准：\n\n| 服务 | 宿主访问地址 | 容器网络 / 用途 |\n|---|---|---|\n| MySQL | `127.0.0.1:3307` | `mysql:3306`，业务库 `gozero_admin` |\n| Redis | `127.0.0.1:16379` | `redis:6379`，缓存、会话与策略通知 |\n| RustFS | `127.0.0.1:19000`，控制台 `:19001` | `rustfs:9000`，S3 兼容存储 |\n| admin-api | `127.0.0.1:7001` | `platform-api:7001`，前端代理目标 |\n| admin/app/file/ai/tenant RPC | 默认不映射宿主端口 | 各服",
+              "score": 0.5451105
+            }
+          ],
+          "usage": {
+            "scope": "chat",
+            "prompt_tokens": 1872,
+            "completion_tokens": 113,
+            "total_tokens": 1985,
+            "complete": true
+          }
+        },
+        "answer_screen": {
+          "label": "规则筛查，非语义准确率或人工评审",
+          "flagged": true,
+          "requires_human_review": true,
+          "reasons": [
+            "missing_required_facts"
+          ],
+          "required_groups_matched": [
+            true,
+            true,
+            false
+          ],
+          "forbidden_phrases_matched": [],
+          "citation_indices": [
+            1,
+            1
+          ],
+          "cited_evidence_groups_matched": [
+            true,
+            true,
+            true
+          ]
+        },
+        "search_client_ms": 253.01160000000073,
+        "search_server_ms": 207,
+        "analysis_elapsed_ms": 1670.0790000000006
+      },
+      "review": {
+        "reviewer_kind": "ai_assisted",
+        "human_signed": false,
+        "issue": "已正确回答已有卷不自动更新和生成model不得清现库，但遗漏同一实际引用片段中明示的初始化SQL破坏性后果。",
+        "missing_required_group_index": 2,
+        "missing_fact": "初始化 SQL 会 DROP 并重建业务表",
+        "actual_support": {
+          "source_index": 1,
+          "chunk_id": 27,
+          "doc_id": 18
+        },
+        "retrieval_failure": false
+      }
+    }
+  ]
+}

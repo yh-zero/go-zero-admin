@@ -30,7 +30,7 @@ func (s *ServiceContext) StartKbIngestWorkers(parent context.Context) func() {
 					s.reapKbIngest(ctx)
 					var attempt *model.KbIngestAttempt
 					err := model.ErrNotFound
-					if s.Embedder != nil && s.VectorStore != nil {
+					if s.Embedder != nil && s.VectorStore != nil && checkKbVectorReady(ctx, s.VectorStore) == nil {
 						attempt, err = s.KbIngestQueue.Claim(ctx, uuid.NewString())
 					}
 					if err == nil {
@@ -76,6 +76,7 @@ func (s *ServiceContext) reapKbIngest(ctx context.Context) {
 func (s *ServiceContext) runKbIngest(parent context.Context, a *model.KbIngestAttempt) {
 	ctx, cancel := context.WithTimeout(parent, KbIngestTimeout)
 	defer cancel()
+	ctx = WithUsageSource(ctx, a.Job.OwnerId, "kb_ingest", a.Job.RequestId, a.Job.Id, -1)
 	if len(a.OldChunkIds) > 0 {
 		if err := s.VectorStore.Delete(ctx, a.OldChunkIds); err != nil {
 			logx.WithContext(ctx).Errorf("知识库任务 %d 旧向量清理失败，等待对账", a.Job.Id)
@@ -109,6 +110,7 @@ func (s *ServiceContext) IngestKbChunks(ctx context.Context, docId, kbId, ownerI
 }
 
 func (s *ServiceContext) ingestKbChunks(ctx context.Context, docId, kbId, ownerId int64, chunks []model.KbChunkRow, ids []uint64, indexing, ready func(context.Context) error, failed func(context.Context, string) error) error {
+	ctx = WithUsageSource(ctx, ownerId, "kb_ingest", "", docId, -1)
 	fail := func(safeErr string) {
 		cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), kbCleanupTimeout)
 		defer cancel()

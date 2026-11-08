@@ -8,6 +8,7 @@ export function requiredWritePermission(method: string, url: string): string | u
   if (verb === 'DELETE' && /^\/sys\/ai\/conversations\/\d+$/.test(url)) return 'sys:ai:conversation:delete';
   if (verb === 'POST' && url === '/sys/ai/workflows') return 'sys:ai:workflow:create';
   if (verb === 'PUT' && /^\/sys\/ai\/workflows\/\d+$/.test(url)) return 'sys:ai:workflow:edit';
+  if (verb === 'POST' && /^\/sys\/ai\/workflows\/\d+\/revisions\/\d+\/restore$/.test(url)) return 'sys:ai:workflow:edit';
   if (verb === 'DELETE' && /^\/sys\/ai\/workflows\/\d+$/.test(url)) return 'sys:ai:workflow:delete';
   if (verb === 'POST' && /^\/sys\/ai\/workflows\/\d+\/run$/.test(url)) return 'sys:ai:workflow:run';
   if (verb === 'POST' && url === '/sys/ai/tasks/run') return 'sys:ai:workflow:run';

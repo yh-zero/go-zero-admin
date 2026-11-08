@@ -23,6 +23,91 @@ func NewAiServiceServer(svcCtx *svc.ServiceContext) *AiServiceServer {
 	}
 }
 
+func (s *AiServiceServer) GetUsageSummary(ctx context.Context, in *aipb.UsageQueryRequest) (*aipb.UsageSummaryResponse, error) {
+	l := aiservicelogic.NewGetUsageSummaryLogic(ctx, s.svcCtx)
+	return l.GetUsageSummary(in)
+}
+
+func (s *AiServiceServer) ListUsageCalls(ctx context.Context, in *aipb.UsageQueryRequest) (*aipb.ListUsageCallsResponse, error) {
+	l := aiservicelogic.NewListUsageCallsLogic(ctx, s.svcCtx)
+	return l.ListUsageCalls(in)
+}
+
+func (s *AiServiceServer) GetUsagePolicy(ctx context.Context, in *aipb.UsagePolicyRequest) (*aipb.UsagePolicyResponse, error) {
+	l := aiservicelogic.NewGetUsagePolicyLogic(ctx, s.svcCtx)
+	return l.GetUsagePolicy(in)
+}
+
+func (s *AiServiceServer) AdminGetUsageSummary(ctx context.Context, in *aipb.UsageQueryRequest) (*aipb.UsageSummaryResponse, error) {
+	l := aiservicelogic.NewAdminGetUsageSummaryLogic(ctx, s.svcCtx)
+	return l.AdminGetUsageSummary(in)
+}
+
+func (s *AiServiceServer) AdminListUsageCalls(ctx context.Context, in *aipb.UsageQueryRequest) (*aipb.ListUsageCallsResponse, error) {
+	l := aiservicelogic.NewAdminListUsageCallsLogic(ctx, s.svcCtx)
+	return l.AdminListUsageCalls(in)
+}
+
+func (s *AiServiceServer) AdminListUsagePolicies(ctx context.Context, in *aipb.UsageQueryRequest) (*aipb.ListUsagePoliciesResponse, error) {
+	l := aiservicelogic.NewAdminListUsagePoliciesLogic(ctx, s.svcCtx)
+	return l.AdminListUsagePolicies(in)
+}
+
+func (s *AiServiceServer) AdminSetUsagePolicy(ctx context.Context, in *aipb.SetUsagePolicyRequest) (*aipb.UsagePolicyResponse, error) {
+	l := aiservicelogic.NewAdminSetUsagePolicyLogic(ctx, s.svcCtx)
+	return l.AdminSetUsagePolicy(in)
+}
+
+func (s *AiServiceServer) ListKbEvaluationDatasets(ctx context.Context, in *aipb.ListKbEvaluationDatasetsRequest) (*aipb.ListKbEvaluationDatasetsResponse, error) {
+	l := aiservicelogic.NewListKbEvaluationDatasetsLogic(ctx, s.svcCtx)
+	return l.ListKbEvaluationDatasets(in)
+}
+
+func (s *AiServiceServer) StartKbEvaluation(ctx context.Context, in *aipb.StartKbEvaluationRequest) (*aipb.KbEvaluationResponse, error) {
+	l := aiservicelogic.NewStartKbEvaluationLogic(ctx, s.svcCtx)
+	return l.StartKbEvaluation(in)
+}
+
+func (s *AiServiceServer) ListKbEvaluations(ctx context.Context, in *aipb.ListKbEvaluationsRequest) (*aipb.ListKbEvaluationsResponse, error) {
+	l := aiservicelogic.NewListKbEvaluationsLogic(ctx, s.svcCtx)
+	return l.ListKbEvaluations(in)
+}
+
+func (s *AiServiceServer) GetKbEvaluation(ctx context.Context, in *aipb.GetKbEvaluationRequest) (*aipb.KbEvaluationResponse, error) {
+	l := aiservicelogic.NewGetKbEvaluationLogic(ctx, s.svcCtx)
+	return l.GetKbEvaluation(in)
+}
+
+func (s *AiServiceServer) StopKbEvaluation(ctx context.Context, in *aipb.StopKbEvaluationRequest) (*aipb.KbEvaluationResponse, error) {
+	l := aiservicelogic.NewStopKbEvaluationLogic(ctx, s.svcCtx)
+	return l.StopKbEvaluation(in)
+}
+
+func (s *AiServiceServer) SetTaskFeedback(ctx context.Context, in *aipb.SetTaskFeedbackRequest) (*aipb.KbFeedbackResponse, error) {
+	l := aiservicelogic.NewSetTaskFeedbackLogic(ctx, s.svcCtx)
+	return l.SetTaskFeedback(in)
+}
+
+func (s *AiServiceServer) ListTaskFeedback(ctx context.Context, in *aipb.ListTaskFeedbackRequest) (*aipb.ListTaskFeedbackResponse, error) {
+	l := aiservicelogic.NewListTaskFeedbackLogic(ctx, s.svcCtx)
+	return l.ListTaskFeedback(in)
+}
+
+func (s *AiServiceServer) ListKbFeedback(ctx context.Context, in *aipb.ListKbFeedbackRequest) (*aipb.ListKbFeedbackResponse, error) {
+	l := aiservicelogic.NewListKbFeedbackLogic(ctx, s.svcCtx)
+	return l.ListKbFeedback(in)
+}
+
+func (s *AiServiceServer) GetKbFeedback(ctx context.Context, in *aipb.GetKbFeedbackRequest) (*aipb.KbFeedbackResponse, error) {
+	l := aiservicelogic.NewGetKbFeedbackLogic(ctx, s.svcCtx)
+	return l.GetKbFeedback(in)
+}
+
+func (s *AiServiceServer) ReviewKbFeedback(ctx context.Context, in *aipb.ReviewKbFeedbackRequest) (*aipb.KbFeedbackResponse, error) {
+	l := aiservicelogic.NewReviewKbFeedbackLogic(ctx, s.svcCtx)
+	return l.ReviewKbFeedback(in)
+}
+
 func (s *AiServiceServer) CreateConversation(ctx context.Context, in *aipb.CreateConversationRequest) (*aipb.CreateConversationResponse, error) {
 	l := aiservicelogic.NewCreateConversationLogic(ctx, s.svcCtx)
 	return l.CreateConversation(in)
@@ -78,9 +163,24 @@ func (s *AiServiceServer) GetWorkflow(ctx context.Context, in *aipb.GetWorkflowR
 	return l.GetWorkflow(in)
 }
 
-func (s *AiServiceServer) UpdateWorkflow(ctx context.Context, in *aipb.UpdateWorkflowRequest) (*aipb.NoDataResponse, error) {
+func (s *AiServiceServer) UpdateWorkflow(ctx context.Context, in *aipb.UpdateWorkflowRequest) (*aipb.GetWorkflowResponse, error) {
 	l := aiservicelogic.NewUpdateWorkflowLogic(ctx, s.svcCtx)
 	return l.UpdateWorkflow(in)
+}
+
+func (s *AiServiceServer) ListWorkflowRevisions(ctx context.Context, in *aipb.ListWorkflowRevisionsRequest) (*aipb.ListWorkflowRevisionsResponse, error) {
+	l := aiservicelogic.NewListWorkflowRevisionsLogic(ctx, s.svcCtx)
+	return l.ListWorkflowRevisions(in)
+}
+
+func (s *AiServiceServer) GetWorkflowRevision(ctx context.Context, in *aipb.GetWorkflowRevisionRequest) (*aipb.GetWorkflowRevisionResponse, error) {
+	l := aiservicelogic.NewGetWorkflowRevisionLogic(ctx, s.svcCtx)
+	return l.GetWorkflowRevision(in)
+}
+
+func (s *AiServiceServer) RestoreWorkflowRevision(ctx context.Context, in *aipb.RestoreWorkflowRevisionRequest) (*aipb.GetWorkflowResponse, error) {
+	l := aiservicelogic.NewRestoreWorkflowRevisionLogic(ctx, s.svcCtx)
+	return l.RestoreWorkflowRevision(in)
 }
 
 func (s *AiServiceServer) DeleteWorkflow(ctx context.Context, in *aipb.DeleteWorkflowRequest) (*aipb.NoDataResponse, error) {

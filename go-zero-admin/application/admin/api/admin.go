@@ -39,6 +39,10 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c, conf.UseEnv())
+	requestMeta, err := middleware.NewRequestMeta(c.TrustedProxies)
+	if err != nil {
+		panic(err)
+	}
 	if err := logsafe.Setup(c.Log, c.Name); err != nil {
 		panic(err)
 	}
@@ -69,7 +73,7 @@ func main() {
 	}
 
 	// 请求元数据（真实 IP/UA 供登录限流与溯源）
-	server.Use(middleware.RequestMeta)
+	server.Use(requestMeta)
 	server.Use(middleware.Audit(ctx.AuditRpc))
 
 	// Casbin Authority 全局中间件：deny-by-default，仅 publicPaths 白名单放行

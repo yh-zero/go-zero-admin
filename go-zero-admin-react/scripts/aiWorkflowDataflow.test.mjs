@@ -57,5 +57,45 @@ test('工作流变量、运行表单和步骤快照', async t => {
       for (const expected of ['步骤执行过程', '本次实际输入', '本次问题', '24 毫秒', '已取消', '工具结果可能未知', '&lt;script&gt;']) assert.ok(markup.includes(expected), expected);
       assert.ok(!markup.includes('<script>恶意步骤'));
     });
+    async function renderStep(step) {
+      const { TaskDetailContent } = await server.ssrLoadModule('/src/pages/ai/TaskDetail.tsx');
+      return renderToStaticMarkup(createElement(TaskDetailContent, { task: {
+        id: 1, workflow_id: 3, conversation_id: 0, status: step.status ?? 'failed', input: '{}', result: '',
+        error: '模型答案未通过安全校验', next_step: 0, created_at: 1, updated_at: 2, completed_at: 3, approved_by: 0,
+        request_id: '11111111-1111-4111-8111-111111111111', title: '本次分析', workflow_name: '资料分析', input_summary: '本次问题', definition: '{}',
+        steps: [{ index: 0, id: 'step_analysis', name: '分析资料', tool: 'kb_analyze', input: '{"query":"本次问题"}',
+          status: 'failed', output: '', error: '模型答案未通过安全校验', started_at: 100, completed_at: 124, ...step }],
+      } }));
+    }
+    await t.test('失败步骤仍展示已知聊天用量，不把计量变成已接受的分析答案', async () => {
+      const markup = await renderStep({ usage: { scope: 'chat', prompt_tokens: 31, completion_tokens: 7, total_tokens: 38, complete: false } });
+      for (const expected of ['已知聊天用量', '输入 31', '输出 7', '合计 38 tokens', '用量不完整（实际费用可能更高）', '模型答案未通过安全校验', '执行失败']) assert.ok(markup.includes(expected), expected);
+      assert.ok(!markup.includes('分析内容'));
+    });
+    await t.test('零值且用量不完整时仍明确提示可能有更多费用', async () => {
+      const markup = await renderStep({ usage: { scope: 'chat', prompt_tokens: 0, completion_tokens: 0, total_tokens: 0, complete: false } });
+      assert.ok(markup.includes('合计 0 tokens'));
+      assert.ok(markup.includes('用量不完整（实际费用可能更高）'));
+    });
+    await t.test('分项与合计一致的完整聊天用量正常展示，旧步骤缺字段保持可读', async () => {
+      const complete = await renderStep({ status: 'succeeded', error: '', usage: { scope: 'chat', prompt_tokens: 10, completion_tokens: 5, total_tokens: 15, complete: true } });
+      for (const expected of ['已知聊天用量', '输入 10', '输出 5', '合计 15 tokens', '已完成']) assert.ok(complete.includes(expected), expected);
+      assert.ok(!complete.includes('用量不完整（实际费用可能更高）'));
+      const legacy = await renderStep({});
+      assert.ok(legacy.includes('分析资料'));
+      assert.ok(legacy.includes('本次实际输入'));
+      assert.ok(!legacy.includes('已知聊天用量'));
+      assert.ok(!legacy.includes('合计 0 tokens'));
+    });
+    await t.test('其他scope或非法数值不能冒充聊天用量，合计不一致不能标完整', async () => {
+      for (const usage of [
+        { scope: 'embedding', prompt_tokens: 10, completion_tokens: 5, total_tokens: 15, complete: true },
+        { scope: 'chat', prompt_tokens: -1, completion_tokens: 5, total_tokens: 4, complete: false },
+        { scope: 'chat', prompt_tokens: 10, completion_tokens: NaN, total_tokens: 10, complete: false },
+      ]) assert.ok(!(await renderStep({ usage })).includes('已知聊天用量'));
+      const inconsistent = await renderStep({ usage: { scope: 'chat', prompt_tokens: 10, completion_tokens: 5, total_tokens: 20, complete: true } });
+      assert.ok(inconsistent.includes('合计 20 tokens'));
+      assert.ok(inconsistent.includes('用量不完整（实际费用可能更高）'));
+    });
   } finally { await server.close(); }
 });

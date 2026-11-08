@@ -1,5 +1,6 @@
 Name: file-rpc
 ListenOn: 0.0.0.0:6003
+Timeout: 35000
 
 Mysql:
   DataSource: root:123456@tcp(mysql:3306)/gozero_admin?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai

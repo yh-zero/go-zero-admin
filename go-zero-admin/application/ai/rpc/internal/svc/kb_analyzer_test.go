@@ -42,9 +42,18 @@ func TestKbAnalyzerReusesActualSearcherAfterMySQLOwnership(t *testing.T) {
 		var request struct {
 			MaxTokens int   `json:"max_tokens"`
 			Tools     []any `json:"tools"`
+			Messages  []struct {
+				Content string `json:"content"`
+			} `json:"messages"`
 		}
 		if json.NewDecoder(r.Body).Decode(&request) != nil || request.MaxTokens != 2048 || len(request.Tools) > 0 {
 			t.Error("分析模型须有界且无工具")
+		}
+		var payload struct {
+			Sources []agenttools.KbAnalysisSource `json:"sources"`
+		}
+		if len(request.Messages) != 2 || json.Unmarshal([]byte(request.Messages[1].Content), &payload) != nil || len(payload.Sources) != 7 {
+			t.Error("分析应收到实际检索器七个候选，不能仍提前截为五个")
 		}
 		content := `{"answers":[{"target":"资料分析","state":"supported","text":"依据资料分析。","citations":[1]}]}`
 		_ = json.NewEncoder(w).Encode(map[string]any{
@@ -81,7 +90,7 @@ func TestKbAnalyzerReusesActualSearcherAfterMySQLOwnership(t *testing.T) {
 		t.Fatalf("实际检索与模型各一次: err=%v owns=%d embeds=%d chats=%d", err, owned.calls, embeds.Load(), chats.Load())
 	}
 	var result agenttools.KbAnalysisResult
-	if json.Unmarshal([]byte(out), &result) != nil || result.Analysis != "资料分析：依据资料分析。 [1]" || len(result.Sources) != 5 || result.Usage.TotalTokens != 50 || store.owner != 7 || store.kb != 2 || chunks.owner != 7 || chunks.kb != 2 {
+	if json.Unmarshal([]byte(out), &result) != nil || result.Analysis != "资料分析：依据资料分析。 [1]" || len(result.Sources) != 1 || result.Sources[0].ChunkID != 1 || result.Usage.TotalTokens != 50 || store.owner != 7 || store.kb != 2 || chunks.owner != 7 || chunks.kb != 2 {
 		t.Fatal("结果或检索身份未复用实际实现")
 	}
 	s.LLM = nil

@@ -1,0 +1,162 @@
+syntax = "v1"
+
+type (
+	AiUsageQueryReq {
+		FromDay string `form:"from_day,optional" validate:"omitempty,datetime=2006-01-02"`
+		ToDay string `form:"to_day,optional" validate:"omitempty,datetime=2006-01-02"`
+		Source string `form:"source,optional" validate:"omitempty,oneof=chat analysis kb_search kb_ingest evaluation"`
+		Operation string `form:"operation,optional" validate:"omitempty,oneof=chat embedding"`
+		Provider string `form:"provider,optional" validate:"omitempty,max=32"`
+		Model string `form:"model,optional" validate:"omitempty,max=128"`
+		Status string `form:"status,optional" validate:"omitempty,oneof=reserved running succeeded failed cancelled unknown not_sent"`
+		UsageState string `form:"usage_state,optional" validate:"omitempty,oneof=unknown partial complete invalid"`
+		Page int64 `form:"page,default=1" validate:"min=1"`
+		PageSize int64 `form:"page_size,default=20" validate:"min=1,max=100"`
+	}
+	AiUsageAdminQueryReq {
+		FromDay string `form:"from_day,optional" validate:"omitempty,datetime=2006-01-02"`
+		ToDay string `form:"to_day,optional" validate:"omitempty,datetime=2006-01-02"`
+		Source string `form:"source,optional" validate:"omitempty,oneof=chat analysis kb_search kb_ingest evaluation"`
+		Operation string `form:"operation,optional" validate:"omitempty,oneof=chat embedding"`
+		Provider string `form:"provider,optional" validate:"omitempty,max=32"`
+		Model string `form:"model,optional" validate:"omitempty,max=128"`
+		Status string `form:"status,optional" validate:"omitempty,oneof=reserved running succeeded failed cancelled unknown not_sent"`
+		UsageState string `form:"usage_state,optional" validate:"omitempty,oneof=unknown partial complete invalid"`
+		Page int64 `form:"page,default=1" validate:"min=1"`
+		PageSize int64 `form:"page_size,default=20" validate:"min=1,max=100"`
+		UserId int64 `form:"user_id,optional" validate:"omitempty,min=0"`
+	}
+	AiUsagePeriod {
+		FromDay string `json:"from_day"`
+		ToDay string `json:"to_day"`
+		Timezone string `json:"timezone"`
+	}
+	AiUsageGroup {
+		Source string `json:"source"`
+		Operation string `json:"operation"`
+		Provider string `json:"provider"`
+		Model string `json:"model"`
+		ConfirmedRequests int64 `json:"confirmed_requests"`
+		ReservedRequests int64 `json:"reserved_requests"`
+		NotSentRequests int64 `json:"not_sent_requests"`
+		UncertainRequests int64 `json:"uncertain_requests"`
+		SucceededRequests int64 `json:"succeeded_requests"`
+		FailedRequests int64 `json:"failed_requests"`
+		CancelledRequests int64 `json:"cancelled_requests"`
+		CompleteRequests int64 `json:"complete_requests"`
+		PartialRequests int64 `json:"partial_requests"`
+		UnknownRequests int64 `json:"unknown_requests"`
+		InvalidRequests int64 `json:"invalid_requests"`
+		KnownPromptTokens int64 `json:"known_prompt_tokens"`
+		KnownCompletionTokens int64 `json:"known_completion_tokens"`
+		KnownEmbeddingTokens int64 `json:"known_embedding_tokens"`
+		KnownTotalTokens int64 `json:"known_total_tokens"`
+	}
+	AiUsageSummaryInfo {
+		Period *AiUsagePeriod `json:"period"`
+		RecordingStartedAt int64 `json:"recording_started_at"`
+		ConfirmedRequests int64 `json:"confirmed_requests"`
+		ReservedRequests int64 `json:"reserved_requests"`
+		NotSentRequests int64 `json:"not_sent_requests"`
+		UncertainRequests int64 `json:"uncertain_requests"`
+		SucceededRequests int64 `json:"succeeded_requests"`
+		FailedRequests int64 `json:"failed_requests"`
+		CancelledRequests int64 `json:"cancelled_requests"`
+		CompleteRequests int64 `json:"complete_requests"`
+		PartialRequests int64 `json:"partial_requests"`
+		UnknownRequests int64 `json:"unknown_requests"`
+		InvalidRequests int64 `json:"invalid_requests"`
+		KnownPromptTokens int64 `json:"known_prompt_tokens"`
+		KnownCompletionTokens int64 `json:"known_completion_tokens"`
+		KnownEmbeddingTokens int64 `json:"known_embedding_tokens"`
+		KnownTotalTokens int64 `json:"known_total_tokens"`
+		Groups []*AiUsageGroup `json:"groups"`
+	}
+	AiUsageSummaryResp {
+		Summary *AiUsageSummaryInfo `json:"summary"`
+	}
+	AiUsageCallInfo {
+		Id int64 `json:"id"`
+		AttemptId string `json:"attempt_id"`
+		OwnerId int64 `json:"owner_id"`
+		Source string `json:"source"`
+		Operation string `json:"operation"`
+		RequestId string `json:"request_id"`
+		SourceId int64 `json:"source_id"`
+		StepIndex int64 `json:"step_index"`
+		BatchIndex int64 `json:"batch_index"`
+		Provider string `json:"provider"`
+		Model string `json:"model"`
+		QuotaDay string `json:"quota_day"`
+		QuotaCharged bool `json:"quota_charged"`
+		DispatchConfirmed bool `json:"dispatch_confirmed"`
+		Status string `json:"status"`
+		UsageState string `json:"usage_state"`
+		PromptTokens *int64 `json:"prompt_tokens,optional"`
+		CompletionTokens *int64 `json:"completion_tokens,optional"`
+		TotalTokens *int64 `json:"total_tokens,optional"`
+		HttpStatus int64 `json:"http_status"`
+		ProviderRequestId string `json:"provider_request_id"`
+		ErrorCode string `json:"error_code"`
+		StartedAt int64 `json:"started_at"`
+		DispatchedAt int64 `json:"dispatched_at"`
+		CompletedAt int64 `json:"completed_at"`
+	}
+	AiUsageCallsResp {
+		List []*AiUsageCallInfo `json:"list"`
+		Total int64 `json:"total"`
+	}
+	AiUsagePolicyInfo {
+		OwnerId int64 `json:"owner_id"`
+		QuotaDay string `json:"quota_day"`
+		DailyRequestLimit int64 `json:"daily_request_limit"`
+		UsedRequests int64 `json:"used_requests"`
+		RemainingRequests int64 `json:"remaining_requests"`
+		Unlimited bool `json:"unlimited"`
+		Inherited bool `json:"inherited"`
+		DailyTokenWarning int64 `json:"daily_token_warning"`
+		KnownTokens int64 `json:"known_tokens"`
+		WarningReached bool `json:"warning_reached"`
+		IncompleteRequests int64 `json:"incomplete_requests"`
+		Version int64 `json:"version"`
+		GlobalConcurrentLimit int64 `json:"global_concurrent_limit"`
+		ActiveCalls int64 `json:"active_calls"`
+		ActiveKnown bool `json:"active_known"`
+	}
+	AiUsagePolicyResp {
+		Policy *AiUsagePolicyInfo `json:"policy"`
+	}
+	AiUsagePoliciesResp {
+		List []*AiUsagePolicyInfo `json:"list"`
+		Total int64 `json:"total"`
+	}
+	AiSetUsagePolicyReq {
+		UserId int64 `path:"user_id" validate:"min=0"`
+		ExpectedVersion *int64 `json:"expected_version" validate:"required,min=0"`
+		DailyRequestLimit *int64 `json:"daily_request_limit,optional" validate:"omitempty,min=0,max=1000000"`
+		DailyTokenWarning *int64 `json:"daily_token_warning,optional" validate:"omitempty,min=0,max=9007199254740991"`
+		GlobalConcurrentLimit *int64 `json:"global_concurrent_limit,optional" validate:"omitempty,min=1,max=64"`
+		InheritDefault bool `json:"inherit_default,optional"`
+	}
+)
+
+@server (
+	prefix: v1/sys/ai/usage
+	group: aiusage
+)
+service admin {
+	@handler getUsageSummary
+	get /summary (AiUsageQueryReq) returns (AiUsageSummaryResp)
+	@handler listUsageCalls
+	get /calls (AiUsageQueryReq) returns (AiUsageCallsResp)
+	@handler getUsagePolicy
+	get /policy returns (AiUsagePolicyResp)
+	@handler adminGetUsageSummary
+	get /admin/summary (AiUsageAdminQueryReq) returns (AiUsageSummaryResp)
+	@handler adminListUsageCalls
+	get /admin/calls (AiUsageAdminQueryReq) returns (AiUsageCallsResp)
+	@handler adminListUsagePolicies
+	get /admin/policies (AiUsageAdminQueryReq) returns (AiUsagePoliciesResp)
+	@handler adminSetUsagePolicy
+	put /admin/policies/:user_id (AiSetUsagePolicyReq) returns (AiUsagePolicyResp)
+}

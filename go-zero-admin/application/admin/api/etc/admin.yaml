@@ -9,6 +9,10 @@ AdminRpc:
 FileRpc:
   Endpoints:
     - 127.0.0.1:6003
+  Timeout: 40000
+
+# 宿主开发默认不信任来源头；经反代访问时填写明确的代理 IP/CIDR。
+TrustedProxies: []
 
 Redis:
   Host: 127.0.0.1:16379

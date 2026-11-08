@@ -133,7 +133,8 @@ func (l *SendMessageStreamLogic) SendMessageStream(in *aipb.SendMessageRequest, 
 			return fail(xerr.NewErrCodeMsg(503, "知识库检索未配置，请联系管理员"))
 		}
 	}
-	toolCtx := agenttools.WithKbSources(agenttools.WithKbScope(agenttools.WithActor(ctx, in.Actor.UserId), in.KbId), collector)
+	meteredCtx := svc.WithUsageSource(ctx, in.Actor.UserId, "chat", requestId.String(), pair.Assistant.Id, -1)
+	toolCtx := agenttools.WithKbSources(agenttools.WithKbScope(agenttools.WithActor(meteredCtx, in.Actor.UserId), in.KbId), collector)
 	var groundedMaterial string
 	if in.Grounded {
 		toolCtx = context.WithValue(toolCtx, groundedChatKey{}, true)
@@ -197,10 +198,10 @@ func (l *SendMessageStreamLogic) SendMessageStream(in *aipb.SendMessageRequest, 
 	} else {
 		answer, complete, err = askModelStream(toolCtx, l.svcCtx.LLM, messages, send, persist, budget.maxTokens)
 	}
+	record.UsageComplete = complete
 	if err != nil {
 		return fail(err)
 	}
-	record.UsageComplete = complete
 	record.Sources = collector.Sources()
 	cleanup, done := context.WithTimeout(context.WithoutCancel(l.ctx), streamCleanupTimeout)
 	defer done()
@@ -282,52 +283,87 @@ func askModelStream(ctx context.Context, client *llm.Client, messages []*schema.
 		if budgetErr != nil {
 			return "", complete, budgetErr
 		}
-		reader, callErr := client.ChatStream(ctx, messages, tools)
+		reader, captured, callErr := client.ChatStreamWithUsage(ctx, messages, tools)
+		var usage *schema.TokenUsage
+		accounted := false
+		accountUsage := func() error {
+			if accounted {
+				return nil
+			}
+			accounted = true
+			invalidReported := usage != nil && (usage.PromptTokens < 0 || usage.CompletionTokens < 0 || usage.TotalTokens < 0)
+			if observed, knownComplete := captured.Snapshot(); observed != nil {
+				usage = observed
+				complete = complete && knownComplete
+			}
+			if usage == nil || usage.TotalTokens == 0 && usage.PromptTokens == 0 && usage.CompletionTokens == 0 {
+				complete = false
+				return nil
+			}
+			if usage.TotalTokens < 0 || usage.PromptTokens < 0 || usage.CompletionTokens < 0 || usage.TotalTokens > 10_000_000 || int64(usage.TotalTokens) > 10_000_000-tokens {
+				return xerr.NewErrCodeMsg(500, "模型用量响应无效")
+			}
+			tokens += int64(usage.TotalTokens)
+			if invalidReported {
+				return xerr.NewErrCodeMsg(500, "模型用量响应无效")
+			}
+			complete = complete && usage.PromptTokens > 0 && usage.CompletionTokens > 0 && usage.TotalTokens == usage.PromptTokens+usage.CompletionTokens
+			return nil
+		}
+		failRound := func(cause error) (string, bool, error) {
+			if reader != nil {
+				reader.Close()
+				reader = nil
+			}
+			if err := accountUsage(); err != nil {
+				cause = err
+			}
+			if err := persist(tokens, calls, false); err != nil {
+				return "", false, err
+			}
+			return "", false, cause
+		}
 		if callErr != nil {
-			return "", false, xerr.NewErrCodeMsg(503, "模型调用失败，请稍后重试")
+			if code, ok := xerr.AsCodeError(callErr); ok && (code.GetErrCode() == 429 || code.GetErrCode() == 503) {
+				return failRound(code)
+			}
+			return failRound(xerr.NewErrCodeMsg(503, "模型调用失败，请稍后重试"))
 		}
 		var roundContent strings.Builder
 		partial := map[int]*schema.ToolCall{}
-		var usage *schema.TokenUsage
 		for {
 			frame, recvErr := reader.Recv()
 			if recvErr == io.EOF {
 				break
 			}
 			if recvErr != nil {
-				reader.Close()
-				return "", false, xerr.NewErrCodeMsg(503, "模型调用失败，请稍后重试")
+				return failRound(xerr.NewErrCodeMsg(503, "模型调用失败，请稍后重试"))
+			}
+			if frame.ResponseMeta != nil && frame.ResponseMeta.Usage != nil {
+				usage = frame.ResponseMeta.Usage
 			}
 			if frame.Content != "" {
 				if roundContent.Len()+len(frame.Content) > 60000 {
-					reader.Close()
-					return "", false, xerr.NewErrCodeMsg(500, "模型回复超过大小限制")
+					return failRound(xerr.NewErrCodeMsg(500, "模型回复超过大小限制"))
 				}
 				roundContent.WriteString(frame.Content)
 				if err := emit(&aipb.StreamChunk{Type: "delta", Content: frame.Content}); err != nil {
-					reader.Close()
-					return "", false, xerr.NewErrCodeMsg(503, "AI 调用未完成，请使用新的 request_id 重试")
+					return failRound(xerr.NewErrCodeMsg(503, "AI 调用未完成，请使用新的 request_id 重试"))
 				}
 			}
 			for i := range frame.ToolCalls {
 				mergeToolCallChunk(partial, frame.ToolCalls[i])
 			}
-			if frame.ResponseMeta != nil && frame.ResponseMeta.Usage != nil {
-				usage = frame.ResponseMeta.Usage
-			}
 		}
 		reader.Close()
+		reader = nil
 
-		if usage == nil || usage.TotalTokens == 0 && usage.PromptTokens == 0 && usage.CompletionTokens == 0 {
-			complete = false
-		} else if usage.TotalTokens < 0 {
-			return "", false, xerr.NewErrCodeMsg(500, "模型用量响应无效")
-		} else {
-			tokens += int64(usage.TotalTokens)
+		if err := accountUsage(); err != nil {
+			return failRound(err)
 		}
 		roundCalls := flattenToolCalls(partial)
 		if grounded && len(roundCalls) > 0 {
-			return "", false, xerr.NewErrCodeMsg(503, "资料回答收到不支持的工具调用，请稍后重试")
+			return failRound(xerr.NewErrCodeMsg(503, "资料回答收到不支持的工具调用，请稍后重试"))
 		}
 		proposed, validationErr := mergeRoundCalls(calls, roundCalls)
 		if validationErr == nil {

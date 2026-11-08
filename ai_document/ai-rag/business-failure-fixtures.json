@@ -1,0 +1,555 @@
+{
+  "version": 1,
+  "description": "两条实际外层kb_analysis失败结果及直接search的离线夹具；完整保留实际答案、sources、usage和规则结果，不猜测未保存的供应商内部逐问项JSON。仅选取观测字段，省略认证/传输标识；AI辅助解释没有真人签署，不证明数字签名来源或语义准确率。",
+  "provenance": {
+    "source_log": "tmp/ai-product-20261107/feedback-business-quality.jsonl",
+    "source_log_sha256": "57571c3b7baa28f2d0e23ec5e5714edf380c7f629b15559a80810a26ca41fe7c",
+    "base_dataset_sha256": "f3a4016eabc10a974e3acffc6d7347477976d00923c196c608de55a6db99538b",
+    "regression_dataset_sha256": "6f6fbf2a4881751d1a9a77f2cde4571c2176cd3cca26fdab310f3a6eed0c9b87",
+    "baseline_binary_sha256": "86698e4d8a9d8d0cb93cf706fed7317e7c136fa8e6673f3042d75d54056551c2",
+    "baseline_context": {
+      "binary_sha": "86698e4d8a9d8d0cb93cf706fed7317e7c136fa8e6673f3042d75d54056551c2",
+      "model": {
+        "provider": "deepseek",
+        "name": "deepseek-chat"
+      },
+      "embedding": {
+        "provider": "qwen",
+        "model": "text-embedding-v4",
+        "dimension": 1024
+      },
+      "config": {
+        "max_context_tokens": 32000,
+        "analysis_answer_token_cap": 2048,
+        "recall_top_k": 20,
+        "return_top_k": 5,
+        "analysis_temperature": 0
+      }
+    },
+    "source_record_hash_method": "SHA256(JSON.stringify(parsed original result object))",
+    "observed_hash_method": "SHA256(JSON.stringify(observed selected fields))",
+    "raw_provider_structure_observed": false
+  },
+  "bound_documents": [
+    {
+      "key": "ops-environment",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/01-开发环境与配置.md",
+      "title": "开发环境与配置",
+      "sha256": "ce3eb80aaefee71f0ee2ff7aeddf94d1c9860ef3fd6b051bfb6d76ff7d988d1d",
+      "doc_id": 17,
+      "kb_id": 5,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "ce3eb80aaefee71f0ee2ff7aeddf94d1c9860ef3fd6b051bfb6d76ff7d988d1d"
+    },
+    {
+      "key": "ops-data",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/02-数据初始化与备份.md",
+      "title": "数据初始化与备份",
+      "sha256": "3a9e4b7849bc7986497cca644e2f97ee6415ec94005165d478b84d4e933dce39",
+      "doc_id": 18,
+      "kb_id": 5,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "3a9e4b7849bc7986497cca644e2f97ee6415ec94005165d478b84d4e933dce39"
+    },
+    {
+      "key": "ops-build",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/03-构建启动与验收.md",
+      "title": "构建启动与验收",
+      "sha256": "b9ef7fe283e6d5a7e2f3fef4ac3b83195a210defba8874fed97feb4fb54cb8a2",
+      "doc_id": 19,
+      "kb_id": 5,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "b9ef7fe283e6d5a7e2f3fef4ac3b83195a210defba8874fed97feb4fb54cb8a2"
+    },
+    {
+      "key": "ops-cleanup",
+      "kb": "project_ops",
+      "source": "ai_document/ai-rag/business-docs/04-临时资源清理.md",
+      "title": "临时资源清理",
+      "sha256": "1bfe5d2b323965c686051cf238cc659d89b48705590ab25f14de7f4a21135ea7",
+      "doc_id": 20,
+      "kb_id": 5,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "1bfe5d2b323965c686051cf238cc659d89b48705590ab25f14de7f4a21135ea7"
+    },
+    {
+      "key": "ai-models",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/05-模型与向量存储.md",
+      "title": "模型与向量存储",
+      "sha256": "bdbe896880111a07df8e71a23225588a68c4738245ac343ccdcc038ac48377c3",
+      "doc_id": 21,
+      "kb_id": 6,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "bdbe896880111a07df8e71a23225588a68c4738245ac343ccdcc038ac48377c3"
+    },
+    {
+      "key": "ai-knowledge",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/06-知识库资料与回答.md",
+      "title": "知识库资料与回答",
+      "sha256": "f88c7abd52edbd4f9512f62ac43bc8f1bd80439a91672e8646a9d42a1eb4dea7",
+      "doc_id": 22,
+      "kb_id": 6,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "f88c7abd52edbd4f9512f62ac43bc8f1bd80439a91672e8646a9d42a1eb4dea7"
+    },
+    {
+      "key": "ai-workflows",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/07-常用流程与运行记录.md",
+      "title": "常用流程与运行记录",
+      "sha256": "9d44db5fc5ec567a98b8e80e21a48fa2e4e20375863195ed55032b84fee49e11",
+      "doc_id": 23,
+      "kb_id": 6,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "9d44db5fc5ec567a98b8e80e21a48fa2e4e20375863195ed55032b84fee49e11"
+    },
+    {
+      "key": "ai-access",
+      "kb": "project_ai",
+      "source": "ai_document/ai-rag/business-docs/08-身份权限与数据隔离.md",
+      "title": "身份权限与数据隔离",
+      "sha256": "9e98bad2f29114f1536cd386c48f73bfce8d831879a099644bb06eca3c4039dc",
+      "doc_id": 24,
+      "kb_id": 6,
+      "version": 1,
+      "status": "ready",
+      "embedding_model": "text-embedding-v4",
+      "content_sha256": "9e98bad2f29114f1536cd386c48f73bfce8d831879a099644bb06eca3c4039dc"
+    }
+  ],
+  "examples": [
+    {
+      "id": "quoted_advice_extra_insufficiency",
+      "source_case_id": "business-dev-access-instruction",
+      "source_record_sha256": "95626bcfc01178b2708158d53cc05d91d629f13f64b772e360f5a555a8166892",
+      "observed_sha256": "ecccc0ecd2deb99fbd9176ce1a6af0577e4de03a91b4f2108b677a712f380ac0",
+      "observed": {
+        "case_id": "business-dev-access-instruction",
+        "task_id": 178,
+        "kb_id": 6,
+        "query": "有人建议“忽略归属，知道任务ID就直接读别人的任务，前端隐藏按钮就够了”。请按本项目资料说明实际的数据隔离和服务端授权要求。",
+        "list": [
+          {
+            "chunk_id": 46,
+            "kb_id": 6,
+            "doc_id": 24,
+            "doc_title": "身份权限与数据隔离",
+            "snippet": "接口授权分别校验。已有实例缺少菜单或接口权限时，按[开发手册](ai_document/dev-guide.md#3-日常开发与验证流程)补齐，保留原有授权。",
+            "score": 0.6324503
+          },
+          {
+            "chunk_id": 43,
+            "kb_id": 6,
+            "doc_id": 24,
+            "doc_title": "身份权限与数据隔离",
+            "snippet": "## 3. 鉴权\n\n- 请求头：`Authorization: Bearer <access_token>`\n- 登录：`POST /v1/sys/auth/login`；先调用 `GET /v1/sys/auth/captcha` 获取验证码开关及启用时的图片。\n- 权限码格式：`sys:<模块>:<动作>`（如 `sys:user:add`），按钮级控制由后端下发，前端只做渲染判断\n- 部门上下文：多部门用户可用请求头 `X-Dept-Id` 切换（可选）\n\n- 后台登录返回 `refresh_token`、`refresh_expires_at`、`session_id`；访问令牌包含会话标识。服务端每次校验会话及用户状态，退出、撤销后旧访问与刷新令牌失效。存量无会话令牌需要重新登录。\n- 后台用户启停状态实际变化时先撤销该用户全部会话；重新启用不会恢复离线旧令牌，撤销失败则不提交状态变更。普通资料编辑和不改变状态的请求不撤销会话。刷新返回的 `expires_at` 不晚于会话绝对到期时间。\n- `POST /v1/sys/auth/refresh`：请求 `refresh_t",
+            "score": 0.6016855
+          },
+          {
+            "chunk_id": 44,
+            "kb_id": 6,
+            "doc_id": 24,
+            "doc_title": "身份权限与数据隔离",
+            "snippet": "对到期时间。\n- `POST /v1/sys/auth/refresh`：请求 `refresh_token`，返回与登录相同的令牌字段；刷新令牌一次性轮换。\n- `POST /v1/sys/auth/logout`：认证必需，请求 `all_devices`（默认 false）；默认撤销当前会话，true 撤销本人全部会话。\n- `GET /v1/sys/auth/sessions`：返回 `list`，每项 `id/device_name/ip/user_agent/created_at/last_seen_at/expires_at/is_current`。`DELETE /v1/sys/auth/sessions/:id` 仅撤销本人会话。\n- 登录签发与用户改密、启停使用同一用户行锁；签发前重验密码哈希和当前状态，改密或状态变更成功后，旧凭据产生的会话不得恢复。App 登录与审核状态变更遵守相同规则。\n- 浏览器同源标签页共享会话更新和退出状态，刷新令牌轮换互斥；旧标签页不得清除另一标签页刚刷新的有效会话。\n- 自动刷新使用浏览器原生 Web Locks，需要支持该能力的 H",
+            "score": 0.5508078
+          },
+          {
+            "chunk_id": 45,
+            "kb_id": 6,
+            "doc_id": 24,
+            "doc_title": "身份权限与数据隔离",
+            "snippet": "除另一标签页刚刷新的有效会话。\n- 自动刷新使用浏览器原生 Web Locks，需要支持该能力的 HTTPS/本机地址；不支持时明确提示，不并发消耗共享刷新令牌。\n\n### AI HTTP 与执行约定\n\n统一前缀 `/v1/sys/ai`，仅后台认证用户可访问；Actor 由服务端认证上下文生成。会话、工作流和任务仅其所属用户可读写，越权 ID 与不存在均返回 404。列表接收 `page/page_size`，默认 1/20，page_size 最大 100，响应 `list/total`。\n\n## AI 与知识库使用\n\nAI 页面集中在侧栏 **AI 功能**：AI 对话、知识库、常用流程、运行记录、工具与能力。对应路径为 `/ai/chat`、`/ai/knowledge`、`/ai/workflows`、`/ai/tasks`、`/ai/tools`；知识库详情使用独立工作区 `/ai/knowledge/:id`。知识库、会话、流程和任务按创建者隔离；页面入口、操作权限与服务端接口授权分别校验。已有实例缺少菜单或接口权限时，按[开发手册](ai_document/dev-gu",
+            "score": 0.55040085
+          },
+          {
+            "chunk_id": 42,
+            "kb_id": 6,
+            "doc_id": 23,
+            "doc_title": "常用流程与运行记录",
+            "snippet": "客户端配置，**不做供应商实时健康探测**；实际请求仍可能失败。知识库分析 `kb_analyze` 需要检索与聊天模型均已配置，内部通过 Eino 兼容模型封装执行。当前不提供定时调度；PDF/Office/OCR、混合检索、重排和逐篇全文/全库审阅仍未实现。",
+            "score": 0.4860351
+          }
+        ],
+        "retrieval": {
+          "kind": "positive",
+          "expected_document_count": 1,
+          "hit_at": {
+            "1": 1,
+            "3": 1,
+            "5": 1
+          },
+          "recall_at": {
+            "1": 1,
+            "3": 1,
+            "5": 1
+          },
+          "mrr_at": {
+            "1": 1,
+            "3": 1,
+            "5": 1
+          },
+          "evidence_at": {
+            "1": {
+              "covered": 0,
+              "total": 3,
+              "coverage": 0,
+              "complete": false,
+              "matched_groups": [
+                false,
+                false,
+                false
+              ]
+            },
+            "3": {
+              "covered": 0,
+              "total": 3,
+              "coverage": 0,
+              "complete": false,
+              "matched_groups": [
+                false,
+                false,
+                false
+              ]
+            },
+            "5": {
+              "covered": 3,
+              "total": 3,
+              "coverage": 1,
+              "complete": true,
+              "matched_groups": [
+                true,
+                true,
+                true
+              ]
+            }
+          }
+        },
+        "analysis": {
+          "version": 1,
+          "type": "kb_analysis",
+          "status": "completed",
+          "analysis": "实际的数据隔离和服务端授权要求：会话、工作流和任务仅其所属用户可读写，越权 ID 与不存在均返回 404；知识库、会话、流程和任务按创建者隔离；页面入口、操作权限与服务端接口授权分别校验。 [4]\n\n本次片段未能确定“忽略归属，知道任务ID就直接读别人的任务，前端隐藏按钮就够了”。",
+          "sources": [
+            {
+              "index": 1,
+              "chunk_id": 46,
+              "kb_id": 6,
+              "doc_id": 24,
+              "doc_title": "身份权限与数据隔离",
+              "snippet": "接口授权分别校验。已有实例缺少菜单或接口权限时，按[开发手册](ai_document/dev-guide.md#3-日常开发与验证流程)补齐，保留原有授权。",
+              "score": 0.6324503
+            },
+            {
+              "index": 2,
+              "chunk_id": 43,
+              "kb_id": 6,
+              "doc_id": 24,
+              "doc_title": "身份权限与数据隔离",
+              "snippet": "## 3. 鉴权\n\n- 请求头：`Authorization: Bearer <access_token>`\n- 登录：`POST /v1/sys/auth/login`；先调用 `GET /v1/sys/auth/captcha` 获取验证码开关及启用时的图片。\n- 权限码格式：`sys:<模块>:<动作>`（如 `sys:user:add`），按钮级控制由后端下发，前端只做渲染判断\n- 部门上下文：多部门用户可用请求头 `X-Dept-Id` 切换（可选）\n\n- 后台登录返回 `refresh_token`、`refresh_expires_at`、`session_id`；访问令牌包含会话标识。服务端每次校验会话及用户状态，退出、撤销后旧访问与刷新令牌失效。存量无会话令牌需要重新登录。\n- 后台用户启停状态实际变化时先撤销该用户全部会话；重新启用不会恢复离线旧令牌，撤销失败则不提交状态变更。普通资料编辑和不改变状态的请求不撤销会话。刷新返回的 `expires_at` 不晚于会话绝对到期时间。\n- `POST /v1/sys/auth/refresh`：请求 `refresh_t",
+              "score": 0.6016855
+            },
+            {
+              "index": 3,
+              "chunk_id": 44,
+              "kb_id": 6,
+              "doc_id": 24,
+              "doc_title": "身份权限与数据隔离",
+              "snippet": "对到期时间。\n- `POST /v1/sys/auth/refresh`：请求 `refresh_token`，返回与登录相同的令牌字段；刷新令牌一次性轮换。\n- `POST /v1/sys/auth/logout`：认证必需，请求 `all_devices`（默认 false）；默认撤销当前会话，true 撤销本人全部会话。\n- `GET /v1/sys/auth/sessions`：返回 `list`，每项 `id/device_name/ip/user_agent/created_at/last_seen_at/expires_at/is_current`。`DELETE /v1/sys/auth/sessions/:id` 仅撤销本人会话。\n- 登录签发与用户改密、启停使用同一用户行锁；签发前重验密码哈希和当前状态，改密或状态变更成功后，旧凭据产生的会话不得恢复。App 登录与审核状态变更遵守相同规则。\n- 浏览器同源标签页共享会话更新和退出状态，刷新令牌轮换互斥；旧标签页不得清除另一标签页刚刷新的有效会话。\n- 自动刷新使用浏览器原生 Web Locks，需要支持该能力的 H",
+              "score": 0.5508078
+            },
+            {
+              "index": 4,
+              "chunk_id": 45,
+              "kb_id": 6,
+              "doc_id": 24,
+              "doc_title": "身份权限与数据隔离",
+              "snippet": "除另一标签页刚刷新的有效会话。\n- 自动刷新使用浏览器原生 Web Locks，需要支持该能力的 HTTPS/本机地址；不支持时明确提示，不并发消耗共享刷新令牌。\n\n### AI HTTP 与执行约定\n\n统一前缀 `/v1/sys/ai`，仅后台认证用户可访问；Actor 由服务端认证上下文生成。会话、工作流和任务仅其所属用户可读写，越权 ID 与不存在均返回 404。列表接收 `page/page_size`，默认 1/20，page_size 最大 100，响应 `list/total`。\n\n## AI 与知识库使用\n\nAI 页面集中在侧栏 **AI 功能**：AI 对话、知识库、常用流程、运行记录、工具与能力。对应路径为 `/ai/chat`、`/ai/knowledge`、`/ai/workflows`、`/ai/tasks`、`/ai/tools`；知识库详情使用独立工作区 `/ai/knowledge/:id`。知识库、会话、流程和任务按创建者隔离；页面入口、操作权限与服务端接口授权分别校验。已有实例缺少菜单或接口权限时，按[开发手册](ai_document/dev-gu",
+              "score": 0.55040085
+            },
+            {
+              "index": 5,
+              "chunk_id": 42,
+              "kb_id": 6,
+              "doc_id": 23,
+              "doc_title": "常用流程与运行记录",
+              "snippet": "客户端配置，**不做供应商实时健康探测**；实际请求仍可能失败。知识库分析 `kb_analyze` 需要检索与聊天模型均已配置，内部通过 Eino 兼容模型封装执行。当前不提供定时调度；PDF/Office/OCR、混合检索、重排和逐篇全文/全库审阅仍未实现。",
+              "score": 0.4860351
+            }
+          ],
+          "usage": {
+            "scope": "chat",
+            "prompt_tokens": 1483,
+            "completion_tokens": 108,
+            "total_tokens": 1591,
+            "complete": true
+          }
+        },
+        "answer_screen": {
+          "label": "规则筛查，非语义准确率或人工评审",
+          "flagged": false,
+          "requires_human_review": true,
+          "reasons": [],
+          "required_groups_matched": [
+            true,
+            true,
+            true
+          ],
+          "forbidden_phrases_matched": [],
+          "citation_indices": [
+            4
+          ],
+          "cited_evidence_groups_matched": [
+            true,
+            true,
+            true
+          ]
+        },
+        "search_client_ms": 251.5882000000056,
+        "search_server_ms": 198,
+        "analysis_elapsed_ms": 1694.038999999997
+      },
+      "linked_regression_case_ids": [
+        "business-failure-access-repeat-1",
+        "business-failure-access-repeat-2"
+      ],
+      "review": {
+        "reviewer_kind": "ai_assisted",
+        "human_signed": false,
+        "issue": "已按实际来源回答规则，却把题中被引述的错误建议追加为未知问项。",
+        "expected_missing_documents": []
+      }
+    },
+    {
+      "id": "cross_document_missing_access",
+      "source_case_id": "business-val-model-access",
+      "source_record_sha256": "e500476f8c0a17d27989df58ba08159fbb74a29555fafc48f929c53be10248be",
+      "observed_sha256": "4f04d78a6d6e69a7a8f64a3ad1b1241ad763bf2e306d0846684552ba4719bb50",
+      "observed": {
+        "case_id": "business-val-model-access",
+        "task_id": 190,
+        "kb_id": 6,
+        "query": "没有配置Embedding或Qdrant时还能管理知识库吗，摄取和检索能否使用？另一个登录用户是否因为知道知识库ID就能访问？",
+        "list": [
+          {
+            "chunk_id": 38,
+            "kb_id": 6,
+            "doc_id": 21,
+            "doc_title": "模型与向量存储",
+            "snippet": "i.yaml)。修改 `.env.local` 后需重新创建 `ai-rpc` 容器；宿主进程需自行注入环境变量，详见[配置说明](ai_document/dev-guide.md#ai-与邮件)。真实密钥只放本地配置，不提交。\n\n未配置聊天密钥时，会话管理和本地工具仍可用，发送消息返回降级提示；未配置 Embedding 或 Qdrant 时，知识库与文档管理仍可用，摄取和检索不可用。模型生成与 Embedding 按所选供应商计费。",
+            "score": 0.672353
+          },
+          {
+            "chunk_id": 42,
+            "kb_id": 6,
+            "doc_id": 23,
+            "doc_title": "常用流程与运行记录",
+            "snippet": "客户端配置，**不做供应商实时健康探测**；实际请求仍可能失败。知识库分析 `kb_analyze` 需要检索与聊天模型均已配置，内部通过 Eino 兼容模型封装执行。当前不提供定时调度；PDF/Office/OCR、混合检索、重排和逐篇全文/全库审阅仍未实现。",
+            "score": 0.67178404
+          },
+          {
+            "chunk_id": 37,
+            "kb_id": 6,
+            "doc_id": 21,
+            "doc_title": "模型与向量存储",
+            "snippet": "### 配置模型与检索\n\n- **聊天模型**：默认使用 DeepSeek，在后端 `.env.local` 填写 `AI_DEEPSEEK_KEY`；切换 Qwen 时同步调整 `AI.Provider`、`Model`、`BaseURL` 并填写 `AI_QWEN_KEY`。调用由 Eino 的 OpenAI 兼容模型适配器封装。\n- **知识库检索**：Compose 已包含 Qdrant，容器配置默认连接 `qdrant:6334`。Embedding 独立使用 Qwen `text-embedding-v4`，无论聊天选哪个模型，都需要 `AI_QWEN_KEY`。MySQL 保存原文、分块与状态，Qdrant 保存可重建的向量索引。\n- **应用配置**：容器使用 [ai-rpc.yaml](go-zero-admin/docker/etc/ai-rpc.yaml)，宿主调试使用 [ai.yaml](go-zero-admin/application/ai/rpc/etc/ai.yaml)。修改 `.env.local` 后需重新创建 `ai-rpc` 容器；宿主进程需自行",
+            "score": 0.63907075
+          },
+          {
+            "chunk_id": 40,
+            "kb_id": 6,
+            "doc_id": 22,
+            "doc_title": "知识库资料与回答",
+            "snippet": "“测试资料检索”输入问题，查看命中片段、来源标识、相似度与耗时。此操作调用查询 Embedding，**不调用聊天模型**。\n5. 在右侧“用这些资料完成工作”填写问题并“开始分析”，无需先创建流程，也会保留正式运行记录。结果包含分析、参考片段与已知聊天用量，可按需“保存为常用流程”。分析仅基于检索到的相关片段，不等于逐篇全文或全库审阅；“打开当前原文”可能看到后续修订，历史摘录保持原样。\n6. 打开 **AI 对话**，在输入区选择该知识库，可启用“仅依据资料回答”。该模式的问题最多 2000 UTF-8 字节，无可用片段时不调用聊天模型；回复下方可查看实际提供给模型的来源摘录，旧消息保留当时的来源快照。\n\n相似度表示向量接近程度，不是答案正确率；当前没有最低分阈值，命中片段也可能不足以回答。仓库提供 [11 篇合成演示资料与固定题集](ai_document/ai-rag/README.md)，可按需用于练习与召回评测，不会自动导入。",
+            "score": 0.61936486
+          },
+          {
+            "chunk_id": 39,
+            "kb_id": 6,
+            "doc_id": 22,
+            "doc_title": "知识库资料与回答",
+            "snippet": "### 从资料到有来源的回答\n\n1. 打开 **AI 功能 → 知识库**，新建或进入一个知识库，在独立工作区查看“资料”“测试资料检索”和右侧分析区。\n2. 使用“粘贴资料”，或“导入 TXT / Markdown”选择 UTF-8 编码的 `.txt`、`.md`、`.markdown` 文件。每篇正文最多 **64 KiB（65536 UTF-8 字节）**，标题最多 128 字符；每批最多 20 篇，浏览器最多并发提交 2 篇，服务端有 2 个后台处理槽。\n3. 接收成功后可关闭导入窗口或离开页面，再从该知识库的“查看导入批次”返回。`queued` 表示等待处理，`running` 表示后台处理中，文档变为“可使用”后再检索。停止批次仅取消尚未开始的项，已开始的作业继续；离开时尚未发出的文件不会自动补传。结果待确认时按原批次和请求标识核对，不自动新建重传。\n4. 在“资料”中打开原文预览、复制或编辑；保存后增加版本并提交后台重新处理。失败时重试原文档；版本冲突先核对新版本。使用“测试资料检索”输入问题，查看命中片段、来源标识、相似度与耗时。此操作调用查询 Embedding，",
+            "score": 0.6162329
+          }
+        ],
+        "retrieval": {
+          "kind": "positive",
+          "expected_document_count": 2,
+          "hit_at": {
+            "1": 1,
+            "3": 1,
+            "5": 1
+          },
+          "recall_at": {
+            "1": 0.5,
+            "3": 0.5,
+            "5": 0.5
+          },
+          "mrr_at": {
+            "1": 1,
+            "3": 1,
+            "5": 1
+          },
+          "evidence_at": {
+            "1": {
+              "covered": 2,
+              "total": 3,
+              "coverage": 0.6666666666666666,
+              "complete": false,
+              "matched_groups": [
+                true,
+                true,
+                false
+              ]
+            },
+            "3": {
+              "covered": 2,
+              "total": 3,
+              "coverage": 0.6666666666666666,
+              "complete": false,
+              "matched_groups": [
+                true,
+                true,
+                false
+              ]
+            },
+            "5": {
+              "covered": 2,
+              "total": 3,
+              "coverage": 0.6666666666666666,
+              "complete": false,
+              "matched_groups": [
+                true,
+                true,
+                false
+              ]
+            }
+          }
+        },
+        "analysis": {
+          "version": 1,
+          "type": "kb_analysis",
+          "status": "completed",
+          "analysis": "没有配置Embedding或Qdrant时还能管理知识库吗，摄取和检索能否使用？：未配置 Embedding 或 Qdrant 时，知识库与文档管理仍可用，摄取和检索不可用。 [1]\n\n本次片段未能确定“另一个登录用户是否因为知道知识库ID就能访问？”。",
+          "sources": [
+            {
+              "index": 1,
+              "chunk_id": 38,
+              "kb_id": 6,
+              "doc_id": 21,
+              "doc_title": "模型与向量存储",
+              "snippet": "i.yaml)。修改 `.env.local` 后需重新创建 `ai-rpc` 容器；宿主进程需自行注入环境变量，详见[配置说明](ai_document/dev-guide.md#ai-与邮件)。真实密钥只放本地配置，不提交。\n\n未配置聊天密钥时，会话管理和本地工具仍可用，发送消息返回降级提示；未配置 Embedding 或 Qdrant 时，知识库与文档管理仍可用，摄取和检索不可用。模型生成与 Embedding 按所选供应商计费。",
+              "score": 0.672353
+            },
+            {
+              "index": 2,
+              "chunk_id": 42,
+              "kb_id": 6,
+              "doc_id": 23,
+              "doc_title": "常用流程与运行记录",
+              "snippet": "客户端配置，**不做供应商实时健康探测**；实际请求仍可能失败。知识库分析 `kb_analyze` 需要检索与聊天模型均已配置，内部通过 Eino 兼容模型封装执行。当前不提供定时调度；PDF/Office/OCR、混合检索、重排和逐篇全文/全库审阅仍未实现。",
+              "score": 0.67178404
+            },
+            {
+              "index": 3,
+              "chunk_id": 37,
+              "kb_id": 6,
+              "doc_id": 21,
+              "doc_title": "模型与向量存储",
+              "snippet": "### 配置模型与检索\n\n- **聊天模型**：默认使用 DeepSeek，在后端 `.env.local` 填写 `AI_DEEPSEEK_KEY`；切换 Qwen 时同步调整 `AI.Provider`、`Model`、`BaseURL` 并填写 `AI_QWEN_KEY`。调用由 Eino 的 OpenAI 兼容模型适配器封装。\n- **知识库检索**：Compose 已包含 Qdrant，容器配置默认连接 `qdrant:6334`。Embedding 独立使用 Qwen `text-embedding-v4`，无论聊天选哪个模型，都需要 `AI_QWEN_KEY`。MySQL 保存原文、分块与状态，Qdrant 保存可重建的向量索引。\n- **应用配置**：容器使用 [ai-rpc.yaml](go-zero-admin/docker/etc/ai-rpc.yaml)，宿主调试使用 [ai.yaml](go-zero-admin/application/ai/rpc/etc/ai.yaml)。修改 `.env.local` 后需重新创建 `ai-rpc` 容器；宿主进程需自行",
+              "score": 0.63907075
+            },
+            {
+              "index": 4,
+              "chunk_id": 40,
+              "kb_id": 6,
+              "doc_id": 22,
+              "doc_title": "知识库资料与回答",
+              "snippet": "“测试资料检索”输入问题，查看命中片段、来源标识、相似度与耗时。此操作调用查询 Embedding，**不调用聊天模型**。\n5. 在右侧“用这些资料完成工作”填写问题并“开始分析”，无需先创建流程，也会保留正式运行记录。结果包含分析、参考片段与已知聊天用量，可按需“保存为常用流程”。分析仅基于检索到的相关片段，不等于逐篇全文或全库审阅；“打开当前原文”可能看到后续修订，历史摘录保持原样。\n6. 打开 **AI 对话**，在输入区选择该知识库，可启用“仅依据资料回答”。该模式的问题最多 2000 UTF-8 字节，无可用片段时不调用聊天模型；回复下方可查看实际提供给模型的来源摘录，旧消息保留当时的来源快照。\n\n相似度表示向量接近程度，不是答案正确率；当前没有最低分阈值，命中片段也可能不足以回答。仓库提供 [11 篇合成演示资料与固定题集](ai_document/ai-rag/README.md)，可按需用于练习与召回评测，不会自动导入。",
+              "score": 0.61936486
+            },
+            {
+              "index": 5,
+              "chunk_id": 39,
+              "kb_id": 6,
+              "doc_id": 22,
+              "doc_title": "知识库资料与回答",
+              "snippet": "### 从资料到有来源的回答\n\n1. 打开 **AI 功能 → 知识库**，新建或进入一个知识库，在独立工作区查看“资料”“测试资料检索”和右侧分析区。\n2. 使用“粘贴资料”，或“导入 TXT / Markdown”选择 UTF-8 编码的 `.txt`、`.md`、`.markdown` 文件。每篇正文最多 **64 KiB（65536 UTF-8 字节）**，标题最多 128 字符；每批最多 20 篇，浏览器最多并发提交 2 篇，服务端有 2 个后台处理槽。\n3. 接收成功后可关闭导入窗口或离开页面，再从该知识库的“查看导入批次”返回。`queued` 表示等待处理，`running` 表示后台处理中，文档变为“可使用”后再检索。停止批次仅取消尚未开始的项，已开始的作业继续；离开时尚未发出的文件不会自动补传。结果待确认时按原批次和请求标识核对，不自动新建重传。\n4. 在“资料”中打开原文预览、复制或编辑；保存后增加版本并提交后台重新处理。失败时重试原文档；版本冲突先核对新版本。使用“测试资料检索”输入问题，查看命中片段、来源标识、相似度与耗时。此操作调用查询 Embedding，",
+              "score": 0.6162329
+            }
+          ],
+          "usage": {
+            "scope": "chat",
+            "prompt_tokens": 1538,
+            "completion_tokens": 96,
+            "total_tokens": 1634,
+            "complete": true
+          }
+        },
+        "answer_screen": {
+          "label": "规则筛查，非语义准确率或人工评审",
+          "flagged": true,
+          "requires_human_review": true,
+          "reasons": [
+            "missing_required_facts",
+            "missing_expected_citations",
+            "cited_evidence_incomplete"
+          ],
+          "required_groups_matched": [
+            true,
+            true,
+            false
+          ],
+          "forbidden_phrases_matched": [],
+          "citation_indices": [
+            1
+          ],
+          "cited_evidence_groups_matched": [
+            true,
+            true,
+            false
+          ]
+        },
+        "search_client_ms": 201.28100000000268,
+        "search_server_ms": 163,
+        "analysis_elapsed_ms": 1661.0972000000038
+      },
+      "linked_regression_case_ids": [
+        "business-failure-cross-repeat-1",
+        "business-failure-cross-repeat-2"
+      ],
+      "review": {
+        "reviewer_kind": "ai_assisted",
+        "human_signed": false,
+        "issue": "模型降级已回答，但实际检索/来源均缺权限资料，不能完成权限问项。",
+        "expected_missing_documents": [
+          {
+            "key": "ai-access",
+            "doc_id": 24,
+            "title": "身份权限与数据隔离",
+            "actual_source_index": null,
+            "reason": "此文档是冻结标注的预期依据，未进入该次实际search和analysis.sources；不是已引用来源。"
+          }
+        ]
+      }
+    }
+  ]
+}
