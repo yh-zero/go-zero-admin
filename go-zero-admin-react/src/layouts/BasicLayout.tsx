@@ -48,7 +48,8 @@ export default function BasicLayout() {
   const menuPath = pageMenuPath(location.pathname) ?? location.pathname;
   const title = hiddenPageForPath(location.pathname)?.title ?? pageLinks.find(page => page.path === location.pathname)?.title ?? '管理工作台';
   const accessiblePaths = getAccessiblePagePaths(menus.isSuccess && departmentReady ? menus.data ?? [] : []);
-  const remoteItems = toMenuItems(menus.isSuccess && departmentReady ? menus.data ?? [] : []);
+  const remoteItems = toMenuItems(menus.isSuccess && departmentReady ? menus.data ?? [] : [],
+    !permissions.isError && !permissions.isFetching && !!permissions.data?.includes('sys:ai:workflow:list') && permissions.data.includes('sys:ai:tool:list'));
   const menuItems = [{ key: '/dashboard', label: '工作台', icon: <DashboardOutlined /> }, ...remoteItems.filter(item => item?.key !== '/dashboard')];
   const pageContent = departments.isError
     ? <QueryState error={departments.error} onRetry={() => departments.refetch()} />

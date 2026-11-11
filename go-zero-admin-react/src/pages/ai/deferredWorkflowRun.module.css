@@ -1,0 +1,5 @@
+.panel { min-width: 0; padding: 16px 0; }
+.content { margin-top: 16px; padding: 20px; border: 1px solid var(--ant-color-border-secondary); border-radius: 10px; background: var(--ant-color-bg-container); }
+.content[hidden] { display: none; }
+.notice { margin-top: 12px; }
+@media (max-width: 600px) { .content { padding: 12px; } }

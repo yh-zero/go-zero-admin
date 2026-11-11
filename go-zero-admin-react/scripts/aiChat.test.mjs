@@ -114,12 +114,13 @@ test('AI对话关键边界', async t => {
     });
 
     await t.test('LLM正文与工具参数作为安全文本，缺失用量不声称免费或完整计费', async () => {
-      const { MessageRecord } = await server.ssrLoadModule('/src/pages/ai/MessageRecord.tsx');
-      const markup = renderToStaticMarkup(createElement(MessageRecord, { message: {
+      const { MessageRecord, MessageDiagnostics } = await server.ssrLoadModule('/src/pages/ai/MessageRecord.tsx');
+      const message = {
         id: 1, role: 'assistant', content: '<img src=x onerror=alert(1)>',
         tool_calls: JSON.stringify([{ id: 'tool-1', type: 'function', function: { name: '<script>evil</script>', arguments: '<svg onload=alert(1)>' } }]),
         tokens: 0, status: 'failed', error: '模型调用失败', created_at: 1,
-      } }));
+      };
+      const markup = renderToStaticMarkup(createElement(MessageRecord, { message })) + renderToStaticMarkup(createElement(MessageDiagnostics, { message }));
       assert.ok(markup.includes('&lt;img'));
       assert.ok(markup.includes('&lt;script&gt;evil'));
       assert.ok(markup.includes('&lt;svg'));

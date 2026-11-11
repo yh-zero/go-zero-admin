@@ -1,10 +1,11 @@
-import { memo } from 'react';
-import { Tag, Typography } from 'antd';
-import type { AiChatMessage } from '../../api/types';
+import { memo, useState } from 'react';
+import { Button, Tag, Typography } from 'antd';
+import type { AiChatMessage, AiSearchKbHit } from '../../api/types';
 import { formatTime } from '../../utils/format';
 import { CopyTextButton, SafeMarkdown } from './SafeMarkdown';
 import { ChatMessageFeedback } from './ChatMessageFeedback';
 import type { ChatFeedbackContext } from './ChatMessageFeedback';
+import { ChatSourcePreview } from './ChatSourcePreview';
 import styles from './chat.module.css';
 
 interface Props { message: AiChatMessage; feedbackContext?: ChatFeedbackContext }
@@ -42,24 +43,38 @@ const statuses = {
 };
 
 export const MessageRecord = memo(function MessageRecord({ message, feedbackContext }: Props) {
+  const [preview, setPreview] = useState<AiSearchKbHit | null>(null);
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const status = statuses[message.status] ?? (message.status ? { color: 'default', title: message.status } : statuses.succeeded);
-  const calls = readToolCalls(message.tool_calls);
   return <article className={`${styles.message} ${message.role === 'user' ? styles.userMessage : ''}`}>
     <div className={styles.messageMeta}>
       <strong>{message.role === 'assistant' ? 'AI 助手' : message.role === 'user' ? '我' : message.role}</strong>
-      <Tag color={status.color}>{status.title}</Tag>
+      {message.status && message.status !== 'succeeded' && <Tag color={status.color}>{status.title}</Tag>}
       <Typography.Text type="secondary">{formatTime(message.created_at)}</Typography.Text>
     </div>
     {message.content && (message.role === 'assistant' ? <SafeMarkdown content={message.content} /> : <div className={styles.messageText}>{message.content}</div>)}
-    {message.content && <CopyTextButton text={message.content} label={message.role === 'assistant' ? '复制回答' : '复制内容'} />}
-    {message.role === 'assistant' && (message.sources ?? []).length > 0 && <div className={styles.sources}><Typography.Text strong>参考资料（实际检索片段）</Typography.Text>{message.sources.map((source, position) => <details key={`${source.kb_id}:${source.chunk_id}`}>
-      <summary>[{position + 1}] {source.doc_title || `文档 #${source.doc_id}`}</summary><Typography.Paragraph type="secondary">知识库 ID：{source.kb_id} · 文档 ID：{source.doc_id} · 分块 ID：{source.chunk_id} · 相似度：{source.score}</Typography.Paragraph><div className={styles.messageText}>{source.snippet}</div>
-    </details>)}</div>}
-    {message.role === 'assistant' && message.status === 'succeeded' && feedbackContext && <ChatMessageFeedback message={message} context={feedbackContext} />}
+    <div className={styles.messageActions}>{message.content && <CopyTextButton text={message.content} label={message.role === 'assistant' ? '复制回答' : '复制内容'} />}
+      {message.role === 'assistant' && message.status === 'succeeded' && feedbackContext && <ChatMessageFeedback message={message} context={feedbackContext} />}
+    </div>
+    {message.role === 'assistant' && (message.sources ?? []).length > 0 && <div className={styles.sources}><Typography.Text strong>参考资料</Typography.Text>{message.sources.map((source, position) => <div className={styles.sourceReference} key={`${source.kb_id}:${source.chunk_id}`}>
+      <div className={styles.sourceHeading}><Typography.Text strong>[{position + 1}] {source.doc_title || `文档 #${source.doc_id}`}</Typography.Text><Button type="link" size="small" onClick={() => setPreview(source)}>查看原文</Button></div>
+      <details><summary>本次引用片段</summary><div className={styles.messageText}>{source.snippet}</div>
+        <details><summary>来源信息</summary><Typography.Paragraph type="secondary">知识库 ID：{source.kb_id} · 文档 ID：{source.doc_id} · 分块 ID：{source.chunk_id} · 相似度：{source.score}</Typography.Paragraph></details>
+      </details>
+    </div>)}</div>}
+    {preview && <ChatSourcePreview key={`${preview.kb_id}:${preview.doc_id}`} source={preview} onClose={() => setPreview(null)} />}
     {message.error && <Typography.Paragraph type="danger" className={styles.messageText}>{message.error}</Typography.Paragraph>}
-    {message.role === 'assistant' && <Typography.Paragraph type="secondary" className={styles.usage}>
+    {message.role === 'assistant' && <details className={styles.diagnostics} onToggle={event => setDiagnosticsOpen(event.currentTarget.open)}><summary>用量与调用详情</summary>
+      {diagnosticsOpen && <MessageDiagnostics message={message} />}
+    </details>}
+  </article>;
+});
+
+export function MessageDiagnostics({ message }: { message: AiChatMessage }) {
+  const calls = readToolCalls(message.tool_calls);
+  return <><Typography.Paragraph type="secondary" className={styles.usage}>
       已知 token：{message.tokens}。用量可能不完整，不代表最终计费。
-    </Typography.Paragraph>}
+    </Typography.Paragraph>
     {calls === null ? <Typography.Paragraph type="secondary">工具调用记录格式异常</Typography.Paragraph> : calls.length > 0 && <div className={styles.tools}>
       <Typography.Text type="secondary">工具调用记录（仅名称与参数）</Typography.Text>
       {calls.map(call => <div className={styles.tool} key={call.key}>
@@ -67,5 +82,5 @@ export const MessageRecord = memo(function MessageRecord({ message, feedbackCont
         <pre>{formatToolArgs(call.function.name, call.function.arguments)}</pre>
       </div>)}
     </div>}
-  </article>;
-});
+  </>;
+}

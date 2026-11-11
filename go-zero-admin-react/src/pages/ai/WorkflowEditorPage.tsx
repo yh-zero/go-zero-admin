@@ -6,6 +6,7 @@ import { useBlocker, useNavigate, useParams, useSearchParams } from 'react-route
 import { createAiWorkflow, updateAiWorkflow } from '../../api/ai';
 import type { AiCreateWorkflowReq, AiUpdateWorkflowReq } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
+import { AsyncContent } from '../../components/AsyncContent';
 import { useAuthStore } from '../../stores/auth';
 import { ApiError } from '../../utils/response';
 import { AIWorkspaceAccess } from './AIWorkspaceAccess';
@@ -18,11 +19,10 @@ import type { WorkflowDraft } from './workflowDefinition';
 import { clearWorkflowDraft, draftContent, makeWorkflowDraft, readWorkflowDraft, resolveWorkflowEditorDraft, workflowBaseRevision, workflowDraftKey, workflowSnapshot, workflowUpdateRequest, writeWorkflowDraft } from './workflowDraft';
 import type { StoredWorkflowDraft, WorkflowSubmissionState } from './workflowDraft';
 import styles from './workflow.module.css';
-import workspaceStyles from './workspace.module.css';
-import { WorkflowDraftRun } from './WorkflowDraftRun';
-import { WorkflowHistory } from './WorkflowHistory';
+import { DeferredWorkflowRun } from './DeferredWorkflowRun';
 
 const readCode = 'sys:ai:workflow:list';
+const loadHistory = () => import('./WorkflowHistory').then(module => module.WorkflowHistory);
 interface EditorSeed { key: string; draft: WorkflowDraft; baseSnapshot: string | null; initialContent: string }
 
 export default function WorkflowEditorPage() {
@@ -218,11 +218,11 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
       {tools.some(tool => tool.name === 'json_formatter') && <Button className={styles.templateButton} disabled={writing || submission !== 'idle'} onClick={() => selectTemplate('json_formatter')}><FileTextOutlined /><span><strong>JSON 格式整理</strong><small>排版合法 JSON 文本，便于阅读结构</small></span></Button>}
       <Button className={styles.templateButton} disabled={writing || submission !== 'idle'} onClick={() => selectTemplate('')}><PlusOutlined /><span><strong>空白起步</strong><small>按需要添加和安排步骤</small></span></Button>
     </div>}
-    {seed ? <div className={workspaceStyles.columns}><Card className={styles.editorCard}>
+    {seed ? <div className={styles.editorWorkspace}><Card className={styles.editorCard}>
       {(toolsQuery.isFetching || existing && detail.isFetching) && <Alert type="info" title="正在核对工具和已保存内容，当前草稿已保留，核对完成后可保存。" />}
       {kbStepWithoutAccess && <Alert type="warning" title="当前步骤需要查看知识库权限，请联系管理员授权后继续保存。" />}
       <WorkflowEditor key={seed.key} initial={seed.draft} tools={tools} capabilities={toolsQuery.data?.capabilities} knowledge={{ scope, canRead: canReadKnowledge }} existing={existing} saving={writing} saveDisabled={submission !== 'idle' || conflict || toolsQuery.isFetching || !!toolsQuery.error || !tools.length || !!kbStepWithoutAccess || existing && (detail.isFetching || !!detail.error)} onChange={changeDraft} onSave={save} onCancel={() => navigate('/ai/workflows')} />
-    </Card><Card><WorkflowDraftRun scope={scope} guard={guard} draft={previewDraft ?? seed.draft} tools={tools} capabilities={toolsQuery.data?.capabilities} initialInput={fromTaskId ? sourceTask.data?.task.input : undefined} attemptId={`editor:${workflowId}`} disabled={submission !== 'idle' || toolsQuery.isFetching || !!toolsQuery.error || !!kbStepWithoutAccess} /></Card></div> : !definitionError && !toolsQuery.error && (!existing || !detail.error) && <Spin className="route-spinner" />}
-    {historyOpen && existing && detail.data && <WorkflowHistory scope={scope} workflow={detail.data.workflow} currentVerified={currentVerified} guard={guard} onRefresh={() => detail.refetch()} onClose={() => setHistoryOpen(false)} />}
+    </Card><DeferredWorkflowRun scope={scope} guard={guard} draft={previewDraft ?? seed.draft} tools={tools} capabilities={toolsQuery.data?.capabilities} initialInput={fromTaskId ? sourceTask.data?.task.input : undefined} attemptId={`editor:${workflowId}`} disabled={submission !== 'idle' || toolsQuery.isFetching || !!toolsQuery.error || !!kbStepWithoutAccess} /></div> : !definitionError && !toolsQuery.error && (!existing || !detail.error) && <Spin className="route-spinner" />}
+    {historyOpen && existing && detail.data && <AsyncContent load={loadHistory} componentProps={{ scope, workflow: detail.data.workflow, currentVerified, guard, onRefresh: () => detail.refetch(), onClose: () => setHistoryOpen(false) }} />}
   </div>;
 }

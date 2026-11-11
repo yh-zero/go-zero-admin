@@ -10,7 +10,7 @@ import { formatTime } from '../../utils/format';
 import { aiWorkspaceKeys, workflowRevisionDetailOptions, workflowRevisionListOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
 import type { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
-import { WorkflowDefinitionView } from './WorkflowEditor';
+import { WorkflowDefinitionView } from './WorkflowReadOnly';
 import { clearWorkflowRestoreAttempt, readWorkflowRestoreAttempt, workflowRestoreAttemptKey, writeWorkflowRestoreAttempt } from './workflowRestoreAttempt';
 import type { WorkflowRestoreAttempt } from './workflowRestoreAttempt';
 import styles from './workflow.module.css';

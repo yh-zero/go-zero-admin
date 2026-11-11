@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Empty, Form, Input, Modal, Popconfirm, Space, Table, Tag } from 'antd';
-import { DatabaseOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Button, Card, Dropdown, Empty, Form, Input, Modal, Space, Table, Tag } from 'antd';
+import { DatabaseOutlined, DeleteOutlined, EditOutlined, MoreOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import type { AiKbInfo } from '../../api/types';
@@ -26,6 +26,7 @@ export function AIKnowledgeSession({ scope }: { scope: AiWorkspaceScope }) {
   const { isCurrent } = guard;
   const client = useQueryClient();
   const navigate = useNavigate();
+  const [modal, contextHolder] = Modal.useModal();
   const [editing, setEditing] = useState<AiKbInfo | 'create' | null>(null);
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -61,12 +62,16 @@ export function AIKnowledgeSession({ scope }: { scope: AiWorkspaceScope }) {
         { title: '描述', dataIndex: 'description', ellipsis: true },
         { title: '资料', width: 180, render: (_, kb) => <Space wrap><Tag color="success">可使用 {kb.ready_count}</Tag>{kb.pending_count > 0 && <Tag color="processing">处理 {kb.pending_count}</Tag>}{kb.failed_count > 0 && <Tag color="error">失败 {kb.failed_count}</Tag>}</Space> },
         { title: '更新时间', dataIndex: 'updated_at', width: 170, render: (v: number) => new Date(v * 1000).toLocaleString() },
-        { title: '操作', width: 340, render: (_, kb) => <Space>
-          <Button type="link" disabled={guard.writing} onClick={() => navigate(`/ai/knowledge/${kb.id}`)}>进入工作区</Button>
-          {guard.can(KB_EDIT) && <Button type="link" icon={<EditOutlined />} disabled={guard.writing} onClick={() => setEditing(kb)}>编辑</Button>}
-          {guard.can(KB_DELETE) && <Popconfirm title="删除知识库及其全部文档？" disabled={guard.writing} onConfirm={() => removeKb(kb.id)}><Button type="link" danger disabled={guard.writing} loading={deletingId === kb.id} icon={<DeleteOutlined />}>删除</Button></Popconfirm>}
-        </Space> },
+        { title: '操作', width: 100, render: (_, kb) => (guard.can(KB_EDIT) || guard.can(KB_DELETE)) && <Dropdown trigger={['click']} menu={{ items: [
+          ...(guard.can(KB_EDIT) ? [{ key: 'edit', label: '编辑', icon: <EditOutlined />, disabled: guard.writing }] : []),
+          ...(guard.can(KB_DELETE) ? [{ key: 'delete', label: '删除', icon: <DeleteOutlined />, danger: true, disabled: guard.writing }] : []),
+        ], onClick: ({ key }) => {
+          if (guard.writing || !guard.isCurrent()) return;
+          if (key === 'edit' && guard.can(KB_EDIT)) setEditing(kb);
+          if (key === 'delete' && guard.can(KB_DELETE)) modal.confirm({ title: '删除知识库及其全部文档？', okText: '删除', cancelText: '取消', okButtonProps: { danger: true }, onOk: () => removeKb(kb.id) });
+        } }}><Button type="text" icon={<MoreOutlined />} aria-label={`更多：${kb.name}`} disabled={guard.writing} loading={deletingId === kb.id}>更多</Button></Dropdown> },
       ]} />}
+    {contextHolder}
     {editing && <KbEditModal kb={editing === 'create' ? null : editing} writing={guard.writing}
       onCancel={() => { if (!guard.writing) setEditing(null); }}
       onSubmit={async values => {

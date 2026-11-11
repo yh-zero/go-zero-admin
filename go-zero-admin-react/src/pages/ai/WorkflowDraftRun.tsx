@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Button, Form, Input, Space, Typography } from 'antd';
 import { PlayCircleOutlined } from '@ant-design/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -19,13 +19,15 @@ import { getToolAvailability } from './toolGuides';
 import styles from './workspace.module.css';
 
 interface RunValues { question?: string; text?: string; input?: string; kb_id?: number }
-interface Props {
+export interface DraftRunViewState { kind: 'idle' | 'running' | 'unknown' | 'result'; taskId: number | null }
+export interface WorkflowDraftRunProps {
   scope: AiWorkspaceScope; guard: ReturnType<typeof useAiWorkspaceGuard>; draft: WorkflowDraft;
   attemptId: string; tools?: readonly AiToolInfo[]; fixedKb?: AiKbInfo; capabilities?: AiCapabilities;
   disabled?: boolean; onSave?: (taskId: number) => void; initialInput?: string;
+  onStateChange?: (state: DraftRunViewState) => void;
 }
 
-export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedKb, capabilities, disabled, onSave, initialInput }: Props) {
+export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedKb, capabilities, disabled, onSave, initialInput, onStateChange }: WorkflowDraftRunProps) {
   const departmentId = useAuthStore(state => state.selectedDeptId);
   const key = draftRunAttemptKey([scope[0], departmentId], attemptId);
   const [restored] = useState(() => {
@@ -55,6 +57,7 @@ export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedK
   const configurationMissing = needsRetrieval && (!capabilities?.retrieval_configured || needsAnalysis && !capabilities.analysis_configured);
   const canRun = guard.can('sys:ai:workflow:run');
   const busy = guard.writing || mutation.isPending;
+  useEffect(() => { onStateChange?.({ kind: unknown ? 'unknown' : mutation.isPending ? 'running' : taskId ? 'result' : 'idle', taskId }); }, [unknown, mutation.isPending, taskId, onStateChange]);
 
   async function submit(values: RunValues) {
     if (!canRun || !unknown && (disabled || configurationMissing || fixedKb && fixedKb.ready_count < 1)) return;

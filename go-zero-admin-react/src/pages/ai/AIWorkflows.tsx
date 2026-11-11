@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, App, Button, Card, Drawer, Form, Input, Modal, Space, Table, Tag, Typography } from 'antd';
-import { ApartmentOutlined, CopyOutlined, DeleteOutlined, EditOutlined, PlayCircleOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { Alert, App, Button, Card, Drawer, Dropdown, Form, Input, Modal, Space, Table, Tag, Typography } from 'antd';
+import { ApartmentOutlined, CopyOutlined, DeleteOutlined, EditOutlined, MoreOutlined, PlayCircleOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { deleteAiWorkflow, runAiWorkflow } from '../../api/ai';
 import type { AiRunWorkflowReq, AiRunWorkflowResp, AiWorkflowInfo } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
+import { AsyncContent } from '../../components/AsyncContent';
 import { correctPageParams } from '../../hooks/usePagedQuery';
 import { useAuthStore } from '../../stores/auth';
 import { formatTime } from '../../utils/format';
@@ -14,17 +15,17 @@ import { AIWorkspaceAccess } from './AIWorkspaceAccess';
 import { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
 import { aiWorkspaceKeys, workflowDetailOptions, workflowListOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
-import { WorkflowDefinitionView, WorkflowRunResultNotice } from './WorkflowEditor';
-import { WorkflowHistory } from './WorkflowHistory';
+import { WorkflowDefinitionView, WorkflowRunResultNotice } from './WorkflowReadOnly';
 import { prepareWorkflowRunInput, validateRunInput, workflowRunFields } from './workflowDefinition';
-import { KnowledgeChoice } from './WorkflowParameters';
-import { TaskDetail } from './TaskDetail';
+import { KnowledgeChoice } from './KnowledgeChoice';
 import { clearWorkflowRunAttempt, readWorkflowRunAttempt, saveWorkflowRunAttempt, workflowRunAttemptKey } from './workflowRunAttempts';
 import type { WorkflowRunAttempt } from './workflowRunAttempts';
 import styles from './workflow.module.css';
 
 const readCode = 'sys:ai:workflow:list';
 const permission = (operation: string) => `sys:ai:workflow:${operation}`;
+const loadHistory = () => import('./WorkflowHistory').then(module => module.WorkflowHistory);
+const loadDetail = () => import('./TaskDetail').then(module => module.TaskDetail);
 type Panel = { mode: 'view' | 'run'; id: number; key: string };
 
 export default function AIWorkflows() {
@@ -169,6 +170,7 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
   return <div className={styles.workspace}>
     <Card>
       <div className={styles.header}><div><Space><ApartmentOutlined /><Typography.Title level={3}>常用流程</Typography.Title><Tag>{list.data?.total ?? 0} 个流程</Tag></Space><p className={styles.headerNote}>保存常用的分析方式，每次单独填写资料与问题</p></div><Space>
+        {canReadTools && <Link to="/ai/tools">能力目录</Link>}
         <Button icon={<ReloadOutlined />} aria-label="刷新工作流列表" disabled={writing} onClick={() => void refreshList()} />
         {canCreate && <Button type="primary" icon={<PlusOutlined />} disabled={writing || !canReadTools} title={!canReadTools ? '需要查看工具权限才能选择注册工具' : undefined} onClick={() => navigate('/ai/workflows/new')}>新建工作流</Button>}
       </Space></div>
@@ -179,24 +181,28 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
       <div className={styles.toolbar}><Input.Search className={styles.search} prefix={<SearchOutlined />} allowClear aria-label="搜索流程名称" placeholder="搜索流程名称" value={search} onChange={event => setSearch(event.target.value)} onSearch={query => setPageParams(current => ({ ...current, page: 1, query: query.trim() || undefined }))} /><Typography.Text type="secondary">仅显示我创建的流程</Typography.Text></div>
       <QueryState error={list.error} onRetry={list.refetch} />
       {!list.error && <Table<AiWorkflowInfo> rowKey="id" loading={list.isPending} dataSource={displayed} scroll={{ x: 790 }} pagination={{ current: page, pageSize, total: list.data?.total ?? 0, showSizeChanger: true, pageSizeOptions: [10, 20, 50, 100], showTotal: total => `共 ${total} 个工作流`, onChange: (next, size) => { if (!writing) setPageParams(current => ({ ...current, page: size !== pageSize ? 1 : next, page_size: size })); }, disabled: writing }} columns={[
-        { title: '工作流', dataIndex: 'name', render: (_: unknown, row) => <><Button type="link" className={styles.workflowName} disabled={writing} onClick={() => openExisting(row.id, 'view')}>{row.name}</Button><div className={styles.rowNote}>#{row.id} · 手动运行</div></> },
+        { title: '工作流', dataIndex: 'name', render: (_: unknown, row) => <Button type="link" className={styles.workflowName} disabled={writing} onClick={() => openExisting(row.id, 'view')}>{row.name}</Button> },
         { title: '步骤', width: 90, render: (_: unknown, row) => `${row.step_count} 步` },
         { title: '状态', width: 100, dataIndex: 'enabled', render: (enabled: number) => <Tag color={enabled === 1 ? 'success' : 'default'}>{enabled === 1 ? '已启用' : '已停用'}</Tag> },
         { title: '更新于', dataIndex: 'updated_at', render: formatTime, responsive: ['lg'] },
-        { title: '操作', width: 330, render: (_: unknown, row) => <Space size={4}>
-          {canCreate && <Button type="text" size="small" icon={<CopyOutlined />} disabled={writing || !canReadTools} onClick={() => navigate(`/ai/workflows/new?copy=${row.id}`)}>复制</Button>}
-          {canEdit && <Button type="text" size="small" icon={<EditOutlined />} disabled={writing || !canReadTools} onClick={() => navigate(`/ai/workflows/${row.id}/edit`)}>编辑</Button>}
+        { title: '操作', width: 250, render: (_: unknown, row) => <Space size={4}>
           {can(permission('run')) && <Button type="text" size="small" icon={<PlayCircleOutlined />} disabled={writing || row.enabled !== 1} onClick={() => openExisting(row.id, 'run')}>运行</Button>}
-          {can(permission('delete')) && <Button type="text" size="small" danger icon={<DeleteOutlined />} disabled={writing} onClick={() => setDeleteTarget(row)}>删除</Button>}
+          {canEdit && <Button type="text" size="small" icon={<EditOutlined />} disabled={writing || !canReadTools} onClick={() => navigate(`/ai/workflows/${row.id}/edit`)}>编辑</Button>}
+          {(canCreate || can(permission('delete'))) && <Dropdown trigger={['click']} menu={{ items: [
+            ...(canCreate ? [{ key: 'copy', label: '复制', icon: <CopyOutlined />, disabled: writing || !canReadTools }] : []),
+            ...(can(permission('delete')) ? [{ key: 'delete', label: '删除', icon: <DeleteOutlined />, danger: true, disabled: writing }] : []),
+          ], onClick: ({ key }) => { if (writing || !isCurrent()) return; if (key === 'copy') navigate(`/ai/workflows/new?copy=${row.id}`); else if (key === 'delete') setDeleteTarget(row); } }}>
+            <Button type="text" size="small" icon={<MoreOutlined />} disabled={writing} aria-label={`更多操作：${row.name}`}>更多</Button>
+          </Dropdown>}
         </Space> },
       ]} />}
     </Card>
-    {selectedTask && <Card title="本次运行结果"><TaskDetail key={selectedTask} inline scope={scope} taskId={selectedTask} guard={guard} onClose={() => setSelectedTask(null)} /></Card>}
+    {selectedTask && <Card title="本次运行结果"><AsyncContent key={selectedTask} load={loadDetail} componentProps={{ inline: true, scope, taskId: selectedTask, guard, onClose: () => setSelectedTask(null) }} /></Card>}
     <Drawer open={panel?.mode === 'view'} title="工作流详情" size={880} onClose={closePanel} destroyOnHidden>
       <QueryState isPending={detail.isPending || detail.isFetching} error={detail.error} onRetry={detail.refetch} />
       {workflow && !detail.isFetching && !detail.error && <><Button disabled={writing} onClick={() => setHistoryOpen(true)}>版本历史</Button><WorkflowDefinitionView name={workflow.name} definition={workflow.definition} /></>}
+      {historyOpen && workflow && <AsyncContent load={loadHistory} componentProps={{ scope, workflow, currentVerified: detail.isSuccess && !detail.isFetching && !detail.error, guard, onRefresh: () => detail.refetch(), onClose: () => setHistoryOpen(false) }} />}
     </Drawer>
-    {historyOpen && workflow && <WorkflowHistory scope={scope} workflow={workflow} currentVerified={detail.isSuccess && !detail.isFetching && !detail.error} guard={guard} onRefresh={() => detail.refetch()} onClose={() => setHistoryOpen(false)} />}
     <Modal open={panel?.mode === 'run'} title="确认运行工作流" onCancel={closePanel} closable={!writing} mask={{ closable: !writing }} keyboard={!writing} confirmLoading={writing} okText={uncertain ? '核对原任务' : '开始后台运行'} okButtonProps={{ disabled: !workflow || workflow.enabled !== 1 || detail.isFetching || !!detail.error || (!!uncertain && !runAttempt) || !can(permission('run')) }} onOk={() => uncertain ? void runWorkflow({}) : runForm.submit()} destroyOnHidden>
       <QueryState isPending={detail.isPending || detail.isFetching} error={detail.error} onRetry={detail.refetch} />
       {workflow && !detail.isFetching && !detail.error && <>

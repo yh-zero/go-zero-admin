@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Drawer, Empty, Input, Popconfirm, Select, Space, Table, Tag } from 'antd';
-import { FileTextOutlined, PlusOutlined, RedoOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
+import { Alert, Button, Drawer, Dropdown, Empty, Input, Modal, Select, Space, Table, Tag } from 'antd';
+import { DeleteOutlined, EditOutlined, MoreOutlined, PlusOutlined, RedoOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AiKbDocInfo, AiKbInfo, AiKbResp, AiListKbDocsReq } from '../../api/types';
 import { deleteAiKbDoc, retryAiKbDoc } from '../../api/ai';
@@ -28,6 +28,7 @@ export function KnowledgeDocumentsPanel({ scope, kb, onChanged, initialDocId }: 
   const guard = useAiWorkspaceGuard(scope, 'sys:ai:kb:list');
   const { isCurrent } = guard;
   const client = useQueryClient();
+  const [modal, contextHolder] = Modal.useModal();
   const departmentId = useAuthStore(state => state.selectedDeptId);
   const retryKey = `ai-knowledge-retry:${JSON.stringify([scope[0], departmentId, kb.id])}`;
   const [retryAttempt, setRetryAttempt] = useState(() => { try { return readKnowledgeImportAttempt(sessionStorage, retryKey); } catch { return null; } });
@@ -96,10 +97,23 @@ export function KnowledgeDocumentsPanel({ scope, kb, onChanged, initialDocId }: 
     {!!docs.data?.total && <Table<AiKbDocInfo> rowKey="id" size="small" scroll={{ x: 580 }} dataSource={docs.data.list} pagination={{ current: params.page, pageSize: params.page_size, total: docs.data.total, showSizeChanger: true, onChange: (page, page_size) => setParams(current => ({ ...current, page: page_size === current.page_size ? page : 1, page_size })) }} columns={[
       { title: '资料', dataIndex: 'title', render: (_, doc) => <><Button type="link" onClick={() => setPreviewId(doc.id)}>{doc.title}</Button><div className={styles.help}>第 {doc.version} 版</div></> },
       { title: '状态', render: (_, doc) => <Space orientation="vertical" size={0}><Tag color={colors[doc.status]}>{documentStageLabel(doc)}</Tag>{doc.error && <span className={styles.help}>{doc.error}</span>}</Space> },
-      { title: '操作', width: 180, render: (_, doc) => <Space size={0}><Button type="link" icon={<FileTextOutlined />} onClick={() => setPreviewId(doc.id)}>原文</Button>
-        {guard.can('sys:ai:kb:edit') && <><Button type="text" icon={<RedoOutlined />} aria-label={`重试${doc.title}`} disabled={guard.writing || !!retryAttempt || !canRetryDocument(doc)} onClick={() => void retryDocument(doc)} /><Popconfirm title="删除这篇资料？" onConfirm={() => deleteDocument(doc.id)}><Button type="link" danger disabled={guard.writing}>删除</Button></Popconfirm></>}</Space> },
+      { title: '操作', width: 190, render: (_, doc) => guard.can('sys:ai:kb:edit') && <Space size={0}>
+        {canRetryDocument(doc) && <Button type="link" icon={<RedoOutlined />} aria-label={`重试${doc.title}`} disabled={guard.writing || !!retryAttempt} onClick={() => void retryDocument(doc)}>重试处理</Button>}
+        <Dropdown trigger={['click']} menu={{ items: [
+          { key: 'edit', label: '查看并编辑原文', icon: <EditOutlined />, disabled: guard.writing },
+          { key: 'delete', label: '删除', icon: <DeleteOutlined />, danger: true, disabled: guard.writing },
+        ], onClick: ({ key }) => {
+          if (guard.writing || !guard.can('sys:ai:kb:edit')) return;
+          if (key === 'edit') setPreviewId(doc.id);
+          if (key === 'delete') modal.confirm({ title: '删除这篇资料？', okText: '删除', cancelText: '取消', okButtonProps: { danger: true }, onOk: () => deleteDocument(doc.id) });
+        } }}><Button type="text" icon={<MoreOutlined />} aria-label={`更多：${doc.title}`} disabled={guard.writing}>更多</Button></Dropdown>
+      </Space> },
     ]} />}
-    <div className={styles.batchLink}><Space wrap>{guard.can('sys:ai:kb:edit') && <><Button icon={<UploadOutlined />} disabled={guard.writing} onClick={() => setImporting('files')}>导入 TXT / Markdown</Button><Button icon={<PlusOutlined />} disabled={guard.writing} onClick={() => setImporting('paste')}>粘贴资料</Button></>}</Space><Button type="link" onClick={() => setImporting('files')}>查看导入批次</Button></div>
+    <div className={styles.batchLink}>{guard.can('sys:ai:kb:edit') && <Dropdown trigger={['click']} menu={{ items: [
+      { key: 'files', label: '导入 TXT / Markdown', icon: <UploadOutlined /> },
+      { key: 'paste', label: '粘贴资料', icon: <PlusOutlined /> },
+    ], onClick: ({ key }) => { if (!guard.writing && guard.can('sys:ai:kb:edit')) setImporting(key === 'files' ? 'files' : 'paste'); } }}><Button type="primary" icon={<PlusOutlined />} disabled={guard.writing}>添加资料</Button></Dropdown>}<Button type="link" disabled={guard.writing} onClick={() => setImporting('files')}>查看导入批次</Button></div>
+    {contextHolder}
     {previewId && <KnowledgeDocumentModal scope={scope} kbId={kb.id} docId={previewId} metadata={docs.error ? undefined : docs.data?.list.find(doc => doc.id === previewId)} metadataUpdatedAt={docs.dataUpdatedAt} onClose={() => { setPreviewId(null); refresh(); }} canEdit={guard.can('sys:ai:kb:edit')} beginWrite={() => guard.beginWrite('sys:ai:kb:edit')} finishWrite={guard.finishWrite} writing={guard.writing} isCurrent={guard.isCurrent} onChanged={refresh} />}
     {importing && <KnowledgeImportModal scope={scope} kbId={kb.id} canEdit={guard.can('sys:ai:kb:edit')} initialMode={importing} initialBatchId={batchId} writing={guard.writing} beginWrite={() => guard.beginWrite('sys:ai:kb:edit')} finishWrite={guard.finishWrite} isCurrent={guard.isCurrent} onClose={() => { setImporting(null); refresh(); }} onChanged={refresh} onPreview={id => { setImporting(null); setPreviewId(id); }} />}
   </div>;

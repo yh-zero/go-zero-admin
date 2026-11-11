@@ -18,6 +18,10 @@
 .message { flex-shrink: 0; min-width: 0; padding: 16px; background: var(--ant-color-fill-quaternary); border-radius: 12px; }
 .userMessage { background: var(--ant-color-primary-bg); }
 .messageMeta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+.messageActions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.messageActions:empty { display: none; }
+.diagnostics { margin-top: 12px; }
+.diagnostics > summary { cursor: pointer; color: var(--ant-color-text-secondary); font-size: 12px; }
 .messageText { white-space: pre-wrap; overflow-wrap: anywhere; }
 .usage { margin: 12px 0 0 !important; font-size: 12px; }
 .tools { margin-top: 12px; min-width: 0; }
@@ -32,8 +36,15 @@
 .knowledgePicker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
 .knowledgeSelect { min-width: 220px; max-width: 100%; }
 .sources { margin: 12px 0; }
+.sourceReference { margin-top: 8px; padding: 10px 12px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; }
+.sourceHeading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.sourceHeading > :first-child { min-width: 0; overflow-wrap: anywhere; }
+.sourceHeading button { flex-shrink: 0; }
 .sources details { border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; padding: 8px 12px; margin-top: 6px; }
 .sources summary { cursor: pointer; overflow-wrap: anywhere; }
+.sourceDrawer :global(.ant-drawer-content-wrapper) { max-width: 100vw; }
+.sourceDrawer :global(.ant-typography) { overflow-wrap: anywhere; }
+.sourceDocument { white-space: pre-wrap; overflow-wrap: anywhere; padding: 16px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; background: var(--ant-color-fill-quaternary); }
 .conversationSearch { margin-bottom: 12px; }
 @media (max-height: 640px) {
   .workspace { min-height: 400px; }

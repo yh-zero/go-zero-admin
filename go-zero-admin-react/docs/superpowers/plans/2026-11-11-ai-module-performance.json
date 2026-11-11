@@ -1,0 +1,1693 @@
+{
+  "method": "同一浏览器、同一身份和数据；CDP禁用缓存，每页面3个样本取中位数；API就绪含4次公共初始化；输入为5对填入和清空取中位数；无模型、Embedding或业务写入",
+  "before": {
+    "origin": "http://127.0.0.1:6091",
+    "kbId": 7,
+    "cache": "disabled",
+    "samples": [
+      {
+        "path": "/ai/chat",
+        "sample": 0,
+        "scriptBytes": 1529742,
+        "scriptRequests": 12,
+        "readyMs": 529.5999999996275,
+        "domNodes": 248,
+        "inputMs": 15,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs",
+          "/v1/sys/ai/conversations"
+        ]
+      },
+      {
+        "path": "/ai/chat",
+        "sample": 1,
+        "scriptBytes": 1529742,
+        "scriptRequests": 12,
+        "readyMs": 546.1000000005588,
+        "domNodes": 248,
+        "inputMs": 24,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs",
+          "/v1/sys/ai/conversations"
+        ]
+      },
+      {
+        "path": "/ai/chat",
+        "sample": 2,
+        "scriptBytes": 1529742,
+        "scriptRequests": 12,
+        "readyMs": 504.29999999981374,
+        "domNodes": 248,
+        "inputMs": 14,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs",
+          "/v1/sys/ai/conversations"
+        ]
+      },
+      {
+        "path": "/ai/knowledge",
+        "sample": 0,
+        "scriptBytes": 1491017,
+        "scriptRequests": 11,
+        "readyMs": 496.1000000005588,
+        "domNodes": 243,
+        "inputMs": 12,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/kbs"
+        ]
+      },
+      {
+        "path": "/ai/knowledge",
+        "sample": 1,
+        "scriptBytes": 1491017,
+        "scriptRequests": 11,
+        "readyMs": 533.7000000001863,
+        "domNodes": 243,
+        "inputMs": 13,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/kbs"
+        ]
+      },
+      {
+        "path": "/ai/knowledge",
+        "sample": 2,
+        "scriptBytes": 1491017,
+        "scriptRequests": 11,
+        "readyMs": 588.2000000001863,
+        "domNodes": 243,
+        "inputMs": 30,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/kbs"
+        ]
+      },
+      {
+        "path": "/ai/knowledge/7",
+        "sample": 0,
+        "scriptBytes": 1632588,
+        "scriptRequests": 21,
+        "readyMs": 668.9000000003725,
+        "domNodes": 236,
+        "inputMs": null,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs/7",
+          "/v1/sys/ai/kbs/7/docs"
+        ]
+      },
+      {
+        "path": "/ai/knowledge/7",
+        "sample": 1,
+        "scriptBytes": 1632588,
+        "scriptRequests": 21,
+        "readyMs": 605.9000000003725,
+        "domNodes": 236,
+        "inputMs": null,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs/7",
+          "/v1/sys/ai/kbs/7/docs"
+        ]
+      },
+      {
+        "path": "/ai/knowledge/7",
+        "sample": 2,
+        "scriptBytes": 1632588,
+        "scriptRequests": 21,
+        "readyMs": 574,
+        "domNodes": 236,
+        "inputMs": null,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs/7",
+          "/v1/sys/ai/kbs/7/docs"
+        ]
+      },
+      {
+        "path": "/ai/workflows",
+        "sample": 0,
+        "scriptBytes": 1573936,
+        "scriptRequests": 19,
+        "readyMs": 530.7000000001863,
+        "domNodes": 266,
+        "inputMs": 29,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/workflows"
+        ]
+      },
+      {
+        "path": "/ai/workflows",
+        "sample": 1,
+        "scriptBytes": 1573936,
+        "scriptRequests": 19,
+        "readyMs": 549.7999999998137,
+        "domNodes": 266,
+        "inputMs": 26,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/workflows"
+        ]
+      },
+      {
+        "path": "/ai/workflows",
+        "sample": 2,
+        "scriptBytes": 1573936,
+        "scriptRequests": 19,
+        "readyMs": 538.5999999996275,
+        "domNodes": 266,
+        "inputMs": 26,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/workflows"
+        ]
+      },
+      {
+        "path": "/ai/workflows/new",
+        "sample": 0,
+        "scriptBytes": 1583763,
+        "scriptRequests": 20,
+        "readyMs": 612.5999999996275,
+        "domNodes": 251,
+        "inputMs": null,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/tools",
+          "/v1/sys/ai/kbs"
+        ]
+      },
+      {
+        "path": "/ai/workflows/new",
+        "sample": 1,
+        "scriptBytes": 1583763,
+        "scriptRequests": 20,
+        "readyMs": 593.3000000007451,
+        "domNodes": 251,
+        "inputMs": null,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/tools",
+          "/v1/sys/ai/kbs"
+        ]
+      },
+      {
+        "path": "/ai/workflows/new",
+        "sample": 2,
+        "scriptBytes": 1583763,
+        "scriptRequests": 20,
+        "readyMs": 652.1999999992549,
+        "domNodes": 251,
+        "inputMs": null,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/tools",
+          "/v1/sys/ai/kbs"
+        ]
+      },
+      {
+        "path": "/ai/tasks",
+        "sample": 0,
+        "scriptBytes": 1533256,
+        "scriptRequests": 15,
+        "readyMs": 603.0999999996275,
+        "domNodes": 236,
+        "inputMs": 13,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/workflows",
+          "/v1/sys/ai/tasks"
+        ]
+      },
+      {
+        "path": "/ai/tasks",
+        "sample": 1,
+        "scriptBytes": 1533256,
+        "scriptRequests": 15,
+        "readyMs": 536.7999999998137,
+        "domNodes": 236,
+        "inputMs": 16,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/workflows",
+          "/v1/sys/ai/tasks"
+        ]
+      },
+      {
+        "path": "/ai/tasks",
+        "sample": 2,
+        "scriptBytes": 1533256,
+        "scriptRequests": 15,
+        "readyMs": 523.5999999996275,
+        "domNodes": 236,
+        "inputMs": 14,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/workflows",
+          "/v1/sys/ai/tasks"
+        ]
+      },
+      {
+        "path": "/ai/tools",
+        "sample": 0,
+        "scriptBytes": 1496567,
+        "scriptRequests": 13,
+        "readyMs": 526.2000000001863,
+        "domNodes": 155,
+        "inputMs": null,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/tools"
+        ]
+      },
+      {
+        "path": "/ai/tools",
+        "sample": 1,
+        "scriptBytes": 1496567,
+        "scriptRequests": 13,
+        "readyMs": 520.1999999992549,
+        "domNodes": 155,
+        "inputMs": null,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/tools"
+        ]
+      },
+      {
+        "path": "/ai/tools",
+        "sample": 2,
+        "scriptBytes": 1496567,
+        "scriptRequests": 13,
+        "readyMs": 534.7999999998137,
+        "domNodes": 155,
+        "inputMs": null,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/tools"
+        ]
+      },
+      {
+        "path": "/ai/knowledge/7/quality",
+        "sample": 0,
+        "scriptBytes": 1582221,
+        "scriptRequests": 16,
+        "readyMs": 814.1999999992549,
+        "domNodes": 130,
+        "inputMs": null,
+        "apiRequests": 7,
+        "aiRequests": [
+          "/v1/sys/ai/kbs/7",
+          "/v1/sys/ai/kbs/7/evaluation-datasets",
+          "/v1/sys/ai/kbs/7/evaluations"
+        ]
+      },
+      {
+        "path": "/ai/knowledge/7/quality",
+        "sample": 1,
+        "scriptBytes": 1582221,
+        "scriptRequests": 16,
+        "readyMs": 631.0999999996275,
+        "domNodes": 130,
+        "inputMs": null,
+        "apiRequests": 7,
+        "aiRequests": [
+          "/v1/sys/ai/kbs/7",
+          "/v1/sys/ai/kbs/7/evaluation-datasets",
+          "/v1/sys/ai/kbs/7/evaluations"
+        ]
+      },
+      {
+        "path": "/ai/knowledge/7/quality",
+        "sample": 2,
+        "scriptBytes": 1582221,
+        "scriptRequests": 16,
+        "readyMs": 907.9000000003725,
+        "domNodes": 130,
+        "inputMs": null,
+        "apiRequests": 7,
+        "aiRequests": [
+          "/v1/sys/ai/kbs/7",
+          "/v1/sys/ai/kbs/7/evaluation-datasets",
+          "/v1/sys/ai/kbs/7/evaluations"
+        ]
+      },
+      {
+        "path": "/ai/usage",
+        "sample": 0,
+        "scriptBytes": 1501161,
+        "scriptRequests": 10,
+        "readyMs": 542.7999999998137,
+        "domNodes": 549,
+        "inputMs": null,
+        "apiRequests": 7,
+        "aiRequests": [
+          "/v1/sys/ai/usage/summary",
+          "/v1/sys/ai/usage/calls",
+          "/v1/sys/ai/usage/policy"
+        ]
+      },
+      {
+        "path": "/ai/usage",
+        "sample": 1,
+        "scriptBytes": 1501161,
+        "scriptRequests": 10,
+        "readyMs": 598.1999999992549,
+        "domNodes": 549,
+        "inputMs": null,
+        "apiRequests": 7,
+        "aiRequests": [
+          "/v1/sys/ai/usage/summary",
+          "/v1/sys/ai/usage/calls",
+          "/v1/sys/ai/usage/policy"
+        ]
+      },
+      {
+        "path": "/ai/usage",
+        "sample": 2,
+        "scriptBytes": 1501161,
+        "scriptRequests": 10,
+        "readyMs": 546.2000000001863,
+        "domNodes": 549,
+        "inputMs": null,
+        "apiRequests": 7,
+        "aiRequests": [
+          "/v1/sys/ai/usage/summary",
+          "/v1/sys/ai/usage/calls",
+          "/v1/sys/ai/usage/policy"
+        ]
+      }
+    ]
+  },
+  "after": {
+    "origin": "http://localhost:6092",
+    "kbId": 7,
+    "cache": "disabled",
+    "samples": [
+      {
+        "path": "/ai/chat",
+        "sample": 0,
+        "scriptBytes": 1530670,
+        "scriptRequests": 12,
+        "readyMs": 570.2999999988824,
+        "domNodes": 248,
+        "inputMs": 13,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs",
+          "/v1/sys/ai/conversations"
+        ]
+      },
+      {
+        "path": "/ai/chat",
+        "sample": 1,
+        "scriptBytes": 1530670,
+        "scriptRequests": 12,
+        "readyMs": 523.0999999996275,
+        "domNodes": 248,
+        "inputMs": 13,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs",
+          "/v1/sys/ai/conversations"
+        ]
+      },
+      {
+        "path": "/ai/chat",
+        "sample": 2,
+        "scriptBytes": 1530670,
+        "scriptRequests": 12,
+        "readyMs": 548.9000000003725,
+        "domNodes": 248,
+        "inputMs": 13,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs",
+          "/v1/sys/ai/conversations"
+        ]
+      },
+      {
+        "path": "/ai/knowledge",
+        "sample": 0,
+        "scriptBytes": 1491683,
+        "scriptRequests": 11,
+        "readyMs": 517.6999999992549,
+        "domNodes": 183,
+        "inputMs": 13,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/kbs"
+        ]
+      },
+      {
+        "path": "/ai/knowledge",
+        "sample": 1,
+        "scriptBytes": 1491683,
+        "scriptRequests": 11,
+        "readyMs": 534.4000000003725,
+        "domNodes": 183,
+        "inputMs": 14,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/kbs"
+        ]
+      },
+      {
+        "path": "/ai/knowledge",
+        "sample": 2,
+        "scriptBytes": 1491683,
+        "scriptRequests": 11,
+        "readyMs": 560.6999999992549,
+        "domNodes": 183,
+        "inputMs": 14,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/kbs"
+        ]
+      },
+      {
+        "path": "/ai/knowledge/7",
+        "sample": 0,
+        "scriptBytes": 1538386,
+        "scriptRequests": 18,
+        "readyMs": 609.2999999988824,
+        "domNodes": 185,
+        "inputMs": null,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs/7",
+          "/v1/sys/ai/kbs/7/docs"
+        ]
+      },
+      {
+        "path": "/ai/knowledge/7",
+        "sample": 1,
+        "scriptBytes": 1538386,
+        "scriptRequests": 18,
+        "readyMs": 549.9000000003725,
+        "domNodes": 185,
+        "inputMs": null,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs/7",
+          "/v1/sys/ai/kbs/7/docs"
+        ]
+      },
+      {
+        "path": "/ai/knowledge/7",
+        "sample": 2,
+        "scriptBytes": 1538386,
+        "scriptRequests": 18,
+        "readyMs": 583,
+        "domNodes": 185,
+        "inputMs": null,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/kbs/7",
+          "/v1/sys/ai/kbs/7/docs"
+        ]
+      },
+      {
+        "path": "/ai/workflows",
+        "sample": 0,
+        "scriptBytes": 1517905,
+        "scriptRequests": 16,
+        "readyMs": 613.2999999988824,
+        "domNodes": 236,
+        "inputMs": 27,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/workflows"
+        ]
+      },
+      {
+        "path": "/ai/workflows",
+        "sample": 1,
+        "scriptBytes": 1517905,
+        "scriptRequests": 16,
+        "readyMs": 555.6999999992549,
+        "domNodes": 236,
+        "inputMs": 26,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/workflows"
+        ]
+      },
+      {
+        "path": "/ai/workflows",
+        "sample": 2,
+        "scriptBytes": 1517905,
+        "scriptRequests": 16,
+        "readyMs": 508.40000000037253,
+        "domNodes": 236,
+        "inputMs": 34,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/workflows"
+        ]
+      },
+      {
+        "path": "/ai/workflows/new",
+        "sample": 0,
+        "scriptBytes": 1544143,
+        "scriptRequests": 19,
+        "readyMs": 528.3000000007451,
+        "domNodes": 217,
+        "inputMs": null,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/tools"
+        ]
+      },
+      {
+        "path": "/ai/workflows/new",
+        "sample": 1,
+        "scriptBytes": 1544143,
+        "scriptRequests": 19,
+        "readyMs": 566.4000000003725,
+        "domNodes": 217,
+        "inputMs": null,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/tools"
+        ]
+      },
+      {
+        "path": "/ai/workflows/new",
+        "sample": 2,
+        "scriptBytes": 1544143,
+        "scriptRequests": 19,
+        "readyMs": 520.6999999992549,
+        "domNodes": 217,
+        "inputMs": null,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/tools"
+        ]
+      },
+      {
+        "path": "/ai/tasks",
+        "sample": 0,
+        "scriptBytes": 1499770,
+        "scriptRequests": 15,
+        "readyMs": 543.2999999988824,
+        "domNodes": 212,
+        "inputMs": 17,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/workflows",
+          "/v1/sys/ai/tasks"
+        ]
+      },
+      {
+        "path": "/ai/tasks",
+        "sample": 1,
+        "scriptBytes": 1499770,
+        "scriptRequests": 15,
+        "readyMs": 530.7000000011176,
+        "domNodes": 212,
+        "inputMs": 14,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/workflows",
+          "/v1/sys/ai/tasks"
+        ]
+      },
+      {
+        "path": "/ai/tasks",
+        "sample": 2,
+        "scriptBytes": 1499770,
+        "scriptRequests": 15,
+        "readyMs": 538.5999999996275,
+        "domNodes": 212,
+        "inputMs": 16,
+        "apiRequests": 6,
+        "aiRequests": [
+          "/v1/sys/ai/workflows",
+          "/v1/sys/ai/tasks"
+        ]
+      },
+      {
+        "path": "/ai/tools",
+        "sample": 0,
+        "scriptBytes": 1497049,
+        "scriptRequests": 13,
+        "readyMs": 574.1999999992549,
+        "domNodes": 155,
+        "inputMs": null,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/tools"
+        ]
+      },
+      {
+        "path": "/ai/tools",
+        "sample": 1,
+        "scriptBytes": 1497049,
+        "scriptRequests": 13,
+        "readyMs": 498.59999999962747,
+        "domNodes": 155,
+        "inputMs": null,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/tools"
+        ]
+      },
+      {
+        "path": "/ai/tools",
+        "sample": 2,
+        "scriptBytes": 1497049,
+        "scriptRequests": 13,
+        "readyMs": 668.2999999988824,
+        "domNodes": 155,
+        "inputMs": null,
+        "apiRequests": 5,
+        "aiRequests": [
+          "/v1/sys/ai/tools"
+        ]
+      },
+      {
+        "path": "/ai/knowledge/7/quality",
+        "sample": 0,
+        "scriptBytes": 1552160,
+        "scriptRequests": 16,
+        "readyMs": 582.3000000007451,
+        "domNodes": 96,
+        "inputMs": null,
+        "apiRequests": 7,
+        "aiRequests": [
+          "/v1/sys/ai/kbs/7",
+          "/v1/sys/ai/kbs/7/evaluation-datasets",
+          "/v1/sys/ai/kbs/7/evaluations"
+        ]
+      },
+      {
+        "path": "/ai/knowledge/7/quality",
+        "sample": 1,
+        "scriptBytes": 1479197,
+        "scriptRequests": 6,
+        "readyMs": 515.5,
+        "domNodes": 11,
+        "inputMs": null,
+        "apiRequests": 4,
+        "aiRequests": []
+      },
+      {
+        "path": "/ai/knowledge/7/quality",
+        "sample": 2,
+        "scriptBytes": 1552160,
+        "scriptRequests": 16,
+        "readyMs": 535.9000000003725,
+        "domNodes": 96,
+        "inputMs": null,
+        "apiRequests": 7,
+        "aiRequests": [
+          "/v1/sys/ai/kbs/7",
+          "/v1/sys/ai/kbs/7/evaluation-datasets",
+          "/v1/sys/ai/kbs/7/evaluations"
+        ]
+      },
+      {
+        "path": "/ai/usage",
+        "sample": 0,
+        "scriptBytes": 1501643,
+        "scriptRequests": 10,
+        "readyMs": 576.5,
+        "domNodes": 549,
+        "inputMs": null,
+        "apiRequests": 7,
+        "aiRequests": [
+          "/v1/sys/ai/usage/summary",
+          "/v1/sys/ai/usage/calls",
+          "/v1/sys/ai/usage/policy"
+        ]
+      },
+      {
+        "path": "/ai/usage",
+        "sample": 1,
+        "scriptBytes": 1501643,
+        "scriptRequests": 10,
+        "readyMs": 577.2000000011176,
+        "domNodes": 549,
+        "inputMs": null,
+        "apiRequests": 7,
+        "aiRequests": [
+          "/v1/sys/ai/usage/summary",
+          "/v1/sys/ai/usage/calls",
+          "/v1/sys/ai/usage/policy"
+        ]
+      },
+      {
+        "path": "/ai/usage",
+        "sample": 2,
+        "scriptBytes": 1501643,
+        "scriptRequests": 10,
+        "readyMs": 596.6000000014901,
+        "domNodes": 549,
+        "inputMs": null,
+        "apiRequests": 7,
+        "aiRequests": [
+          "/v1/sys/ai/usage/summary",
+          "/v1/sys/ai/usage/calls",
+          "/v1/sys/ai/usage/policy"
+        ]
+      }
+    ]
+  },
+  "comparison": [
+    {
+      "path": "/ai/chat",
+      "api": [
+        6,
+        6
+      ],
+      "scripts": [
+        12,
+        12
+      ],
+      "bytes": [
+        1529742,
+        1530670
+      ],
+      "dom": [
+        248,
+        248
+      ],
+      "readyMs": [
+        530,
+        549
+      ],
+      "inputMs": [
+        15,
+        13
+      ]
+    },
+    {
+      "path": "/ai/knowledge",
+      "api": [
+        5,
+        5
+      ],
+      "scripts": [
+        11,
+        11
+      ],
+      "bytes": [
+        1491017,
+        1491683
+      ],
+      "dom": [
+        243,
+        183
+      ],
+      "readyMs": [
+        534,
+        534
+      ],
+      "inputMs": [
+        13,
+        14
+      ]
+    },
+    {
+      "path": "/ai/knowledge/7",
+      "api": [
+        6,
+        6
+      ],
+      "scripts": [
+        21,
+        18
+      ],
+      "bytes": [
+        1632588,
+        1538386
+      ],
+      "dom": [
+        236,
+        185
+      ],
+      "readyMs": [
+        606,
+        583
+      ],
+      "inputMs": [
+        null,
+        null
+      ]
+    },
+    {
+      "path": "/ai/workflows",
+      "api": [
+        5,
+        5
+      ],
+      "scripts": [
+        19,
+        16
+      ],
+      "bytes": [
+        1573936,
+        1517905
+      ],
+      "dom": [
+        266,
+        236
+      ],
+      "readyMs": [
+        539,
+        556
+      ],
+      "inputMs": [
+        26,
+        27
+      ]
+    },
+    {
+      "path": "/ai/workflows/new",
+      "api": [
+        6,
+        5
+      ],
+      "scripts": [
+        20,
+        19
+      ],
+      "bytes": [
+        1583763,
+        1544143
+      ],
+      "dom": [
+        251,
+        217
+      ],
+      "readyMs": [
+        613,
+        528
+      ],
+      "inputMs": [
+        null,
+        null
+      ]
+    },
+    {
+      "path": "/ai/tasks",
+      "api": [
+        6,
+        6
+      ],
+      "scripts": [
+        15,
+        15
+      ],
+      "bytes": [
+        1533256,
+        1499770
+      ],
+      "dom": [
+        236,
+        212
+      ],
+      "readyMs": [
+        537,
+        539
+      ],
+      "inputMs": [
+        14,
+        16
+      ]
+    },
+    {
+      "path": "/ai/tools",
+      "api": [
+        5,
+        5
+      ],
+      "scripts": [
+        13,
+        13
+      ],
+      "bytes": [
+        1496567,
+        1497049
+      ],
+      "dom": [
+        155,
+        155
+      ],
+      "readyMs": [
+        526,
+        574
+      ],
+      "inputMs": [
+        null,
+        null
+      ]
+    },
+    {
+      "path": "/ai/knowledge/7/quality",
+      "api": [
+        7,
+        7
+      ],
+      "scripts": [
+        16,
+        16
+      ],
+      "bytes": [
+        1582221,
+        1552160
+      ],
+      "dom": [
+        130,
+        96
+      ],
+      "readyMs": [
+        814,
+        536
+      ],
+      "inputMs": [
+        null,
+        null
+      ]
+    },
+    {
+      "path": "/ai/usage",
+      "api": [
+        7,
+        7
+      ],
+      "scripts": [
+        10,
+        10
+      ],
+      "bytes": [
+        1501161,
+        1501643
+      ],
+      "dom": [
+        549,
+        549
+      ],
+      "readyMs": [
+        546,
+        577
+      ],
+      "inputMs": [
+        null,
+        null
+      ]
+    }
+  ],
+  "beforeAssets": [
+    {
+      "Name": "AIChat-5p6IG7O0.css",
+      "Length": 4589
+    },
+    {
+      "Name": "AIChat-Bsp-gKAY.js",
+      "Length": 40530
+    },
+    {
+      "Name": "AIKnowledge-CiEpUR66.js",
+      "Length": 4858
+    },
+    {
+      "Name": "AITasks-Ceev4GMN.css",
+      "Length": 1223
+    },
+    {
+      "Name": "AITasks-TufOuZ5J.js",
+      "Length": 14208
+    },
+    {
+      "Name": "AITools-Bekyf2My.js",
+      "Length": 5900
+    },
+    {
+      "Name": "AITools-BEQc29yS.css",
+      "Length": 2833
+    },
+    {
+      "Name": "AIWorkflows-BmqSakMg.js",
+      "Length": 11872
+    },
+    {
+      "Name": "AIWorkspaceAccess-DaUqB7V4.js",
+      "Length": 901
+    },
+    {
+      "Name": "antd-core-BIj2bDf-.js",
+      "Length": 1181649
+    },
+    {
+      "Name": "antd-icons-BqEj4Imv.js",
+      "Length": 50825
+    },
+    {
+      "Name": "api-BSgfqBnU.js",
+      "Length": 3670
+    },
+    {
+      "Name": "app-C8a3L1l7.js",
+      "Length": 727
+    },
+    {
+      "Name": "app-CdlRAvJL.css",
+      "Length": 8737
+    },
+    {
+      "Name": "app-vendor-DZpBvXCV.js",
+      "Length": 68429
+    },
+    {
+      "Name": "AppFeedbackList-DbSzMX5z.js",
+      "Length": 7831
+    },
+    {
+      "Name": "AppMembershipGrantDialog-BHfxiXlk.js",
+      "Length": 5309
+    },
+    {
+      "Name": "AppMembershipList-Chz_u1IR.js",
+      "Length": 6702
+    },
+    {
+      "Name": "AppUserList-DHYnZtji.js",
+      "Length": 20359
+    },
+    {
+      "Name": "audit-CUKWKrnH.js",
+      "Length": 3333
+    },
+    {
+      "Name": "audit-DW-KuicR.js",
+      "Length": 82
+    },
+    {
+      "Name": "Auth-D2rBE-fO.js",
+      "Length": 241
+    },
+    {
+      "Name": "dashboard-BOgFB2vx.js",
+      "Length": 5035
+    },
+    {
+      "Name": "dashboard-M9aqTR2t.css",
+      "Length": 2755
+    },
+    {
+      "Name": "dept-CBfZFFC5.css",
+      "Length": 8175
+    },
+    {
+      "Name": "dept-Cunwl2GP.js",
+      "Length": 13963
+    },
+    {
+      "Name": "dict-De9jLVdp.js",
+      "Length": 8118
+    },
+    {
+      "Name": "feedbackDataset-By80uSLJ.js",
+      "Length": 37583
+    },
+    {
+      "Name": "file-BT5N1Uke.js",
+      "Length": 228
+    },
+    {
+      "Name": "file-Cbb9zAB4.js",
+      "Length": 4688
+    },
+    {
+      "Name": "FileUploadButton-CGjaK8U5.js",
+      "Length": 2216
+    },
+    {
+      "Name": "format-D38ebzaq.js",
+      "Length": 386
+    },
+    {
+      "Name": "formOptions-BhxxI_6S.js",
+      "Length": 221
+    },
+    {
+      "Name": "index-BhYtgwBU.css",
+      "Length": 17062
+    },
+    {
+      "Name": "index-DVMs34yR.js",
+      "Length": 140094
+    },
+    {
+      "Name": "knowledgeDocumentQueries-BenJZhxA.js",
+      "Length": 599
+    },
+    {
+      "Name": "knowledgeDocuments-lI4ZchZh.css",
+      "Length": 852
+    },
+    {
+      "Name": "knowledgeDocuments.module-Cif6HhgF.js",
+      "Length": 234
+    },
+    {
+      "Name": "KnowledgeQualityPage-CKKr4G_f.css",
+      "Length": 1486
+    },
+    {
+      "Name": "KnowledgeQualityPage-DvIb0mK4.js",
+      "Length": 25590
+    },
+    {
+      "Name": "KnowledgeWorkspacePage-6mU_CTFx.js",
+      "Length": 46071
+    },
+    {
+      "Name": "KnowledgeWorkspacePage-DkKWb7AS.css",
+      "Length": 162
+    },
+    {
+      "Name": "menu-7l5GAdRx.css",
+      "Length": 3474
+    },
+    {
+      "Name": "menu-C17elW6w.js",
+      "Length": 17527
+    },
+    {
+      "Name": "PageHeader-Cstv_66h.js",
+      "Length": 401
+    },
+    {
+      "Name": "passwordRules-CzwJjVuO.js",
+      "Length": 442
+    },
+    {
+      "Name": "profile-BirvlnYA.js",
+      "Length": 7678
+    },
+    {
+      "Name": "profile-CUCfOUQJ.css",
+      "Length": 3763
+    },
+    {
+      "Name": "query-vendor-Bz6RSRsI.js",
+      "Length": 36992
+    },
+    {
+      "Name": "queryInvalidation-CBOSRYTA.js",
+      "Length": 1027
+    },
+    {
+      "Name": "rive-Bx4V2fOF.wasm",
+      "Length": 2183014
+    },
+    {
+      "Name": "RiveLoginCat-oUKzkekd.js",
+      "Length": 346195
+    },
+    {
+      "Name": "role-BnVrBfvM.css",
+      "Length": 1911
+    },
+    {
+      "Name": "role-DjlgkxBz.js",
+      "Length": 14701
+    },
+    {
+      "Name": "role-LPNNG7OH.js",
+      "Length": 525
+    },
+    {
+      "Name": "rolldown-runtime-XKyaHtl9.js",
+      "Length": 726
+    },
+    {
+      "Name": "SafeMarkdown-D-1UbvVV.js",
+      "Length": 3203
+    },
+    {
+      "Name": "SafeMarkdown-DwI99KBj.css",
+      "Length": 1223
+    },
+    {
+      "Name": "StatusTag-56fWhbr6.js",
+      "Length": 334
+    },
+    {
+      "Name": "TaskDetail-CCu_osSC.js",
+      "Length": 27705
+    },
+    {
+      "Name": "TaskDetail-CNUPANyT.css",
+      "Length": 7113
+    },
+    {
+      "Name": "taskState-BxMOjvu5.js",
+      "Length": 1341
+    },
+    {
+      "Name": "TenantList-DnLqErZh.js",
+      "Length": 8539
+    },
+    {
+      "Name": "toolGuides-BD_fxds2.js",
+      "Length": 2913
+    },
+    {
+      "Name": "UsagePage-C3BrXPa0.css",
+      "Length": 3011
+    },
+    {
+      "Name": "UsagePage-CKdrwW2a.js",
+      "Length": 20302
+    },
+    {
+      "Name": "useAiWorkspaceGuard-0_EUXL6T.js",
+      "Length": 857
+    },
+    {
+      "Name": "useFormDraft-CX1d3B5W.js",
+      "Length": 882
+    },
+    {
+      "Name": "usePagedQuery-BdBtV1XH.js",
+      "Length": 488
+    },
+    {
+      "Name": "user-B_ef1Eo0.js",
+      "Length": 10895
+    },
+    {
+      "Name": "user-fQGo30Al.js",
+      "Length": 340
+    },
+    {
+      "Name": "useTablePagination-kuK3I98w.js",
+      "Length": 294
+    },
+    {
+      "Name": "WorkflowDraftRun-Bv5yBlhv.js",
+      "Length": 6898
+    },
+    {
+      "Name": "WorkflowEditorPage-B2Lt40ut.js",
+      "Length": 14801
+    },
+    {
+      "Name": "WorkflowHistory-BV_e7F-H.js",
+      "Length": 14961
+    },
+    {
+      "Name": "workspace-Nx8nZK2u.css",
+      "Length": 7103
+    },
+    {
+      "Name": "workspace.module-C2GHvTG1.js",
+      "Length": 19242
+    },
+    {
+      "Name": "workspaceQueries-BuvSxuyn.js",
+      "Length": 5452
+    }
+  ],
+  "afterAssets": [
+    {
+      "Name": "AIChat-BgrC18yw.css",
+      "Length": 4868
+    },
+    {
+      "Name": "AIChat-CdV777hF.js",
+      "Length": 40976
+    },
+    {
+      "Name": "AIKnowledge-D7nOg3LQ.js",
+      "Length": 5042
+    },
+    {
+      "Name": "AITasks-Bqe27Yda.js",
+      "Length": 9401
+    },
+    {
+      "Name": "AITools-BEQc29yS.css",
+      "Length": 2833
+    },
+    {
+      "Name": "AITools-rsRYsOVU.js",
+      "Length": 5900
+    },
+    {
+      "Name": "AIWorkflows-DixrUxrk.js",
+      "Length": 13455
+    },
+    {
+      "Name": "AIWorkspaceAccess-CUy6yMjn.js",
+      "Length": 901
+    },
+    {
+      "Name": "antd-core-BIj2bDf-.js",
+      "Length": 1181649
+    },
+    {
+      "Name": "antd-icons-BqEj4Imv.js",
+      "Length": 50825
+    },
+    {
+      "Name": "api-BkxHCvEA.js",
+      "Length": 3670
+    },
+    {
+      "Name": "app-8R8Gk5cO.js",
+      "Length": 727
+    },
+    {
+      "Name": "app-CdlRAvJL.css",
+      "Length": 8737
+    },
+    {
+      "Name": "app-vendor-DZpBvXCV.js",
+      "Length": 68429
+    },
+    {
+      "Name": "AppFeedbackList-Cp4HuE8y.js",
+      "Length": 7831
+    },
+    {
+      "Name": "AppMembershipGrantDialog-Dy2AlA2L.js",
+      "Length": 5309
+    },
+    {
+      "Name": "AppMembershipList-CyZ1V6Fv.js",
+      "Length": 6702
+    },
+    {
+      "Name": "AppUserList-D2zojEMa.js",
+      "Length": 20359
+    },
+    {
+      "Name": "AsyncContent-cCxDRVUv.js",
+      "Length": 732
+    },
+    {
+      "Name": "audit-DAtC8vda.js",
+      "Length": 3333
+    },
+    {
+      "Name": "audit-jM9qAFcw.js",
+      "Length": 82
+    },
+    {
+      "Name": "Auth-d6EDFu0U.js",
+      "Length": 241
+    },
+    {
+      "Name": "dashboard-BOQAzpEy.js",
+      "Length": 5035
+    },
+    {
+      "Name": "dashboard-M9aqTR2t.css",
+      "Length": 2755
+    },
+    {
+      "Name": "DeferredWorkflowRun-1ztir5u8.js",
+      "Length": 4231
+    },
+    {
+      "Name": "DeferredWorkflowRun-_xdNkJYj.css",
+      "Length": 2085
+    },
+    {
+      "Name": "dept-CBfZFFC5.css",
+      "Length": 8175
+    },
+    {
+      "Name": "dept-DzdywVJG.js",
+      "Length": 13963
+    },
+    {
+      "Name": "dict-DB1C_cvn.js",
+      "Length": 8118
+    },
+    {
+      "Name": "FeedbackDatasetPreview-NRjW_Rls.js",
+      "Length": 37597
+    },
+    {
+      "Name": "FeedbackRevisionNotice-BZ8Yx4wP.js",
+      "Length": 1497
+    },
+    {
+      "Name": "file-DjfA2CwJ.js",
+      "Length": 228
+    },
+    {
+      "Name": "file-LEYc747n.js",
+      "Length": 4688
+    },
+    {
+      "Name": "FileUploadButton-C_uu3c8f.js",
+      "Length": 2216
+    },
+    {
+      "Name": "format-D38ebzaq.js",
+      "Length": 386
+    },
+    {
+      "Name": "formOptions-BhxxI_6S.js",
+      "Length": 221
+    },
+    {
+      "Name": "index-BhYtgwBU.css",
+      "Length": 17062
+    },
+    {
+      "Name": "index-D27morXZ.js",
+      "Length": 140576
+    },
+    {
+      "Name": "KnowledgeChoice-Dh2EFdMF.js",
+      "Length": 4103
+    },
+    {
+      "Name": "KnowledgeChoice-DR_rx9qg.css",
+      "Length": 5700
+    },
+    {
+      "Name": "knowledgeDocumentQueries-B4Vy1Wiy.js",
+      "Length": 599
+    },
+    {
+      "Name": "knowledgeDocuments-lI4ZchZh.css",
+      "Length": 852
+    },
+    {
+      "Name": "knowledgeDocuments.module-Cif6HhgF.js",
+      "Length": 234
+    },
+    {
+      "Name": "knowledgeFeedback-TzWGifLl.css",
+      "Length": 1242
+    },
+    {
+      "Name": "knowledgeFeedback.module-1AC0HmCc.js",
+      "Length": 5368
+    },
+    {
+      "Name": "KnowledgeFeedbackPanel-Ph8w4Owx.js",
+      "Length": 14681
+    },
+    {
+      "Name": "KnowledgeQualityDetails-Bw3cOyjR.js",
+      "Length": 8225
+    },
+    {
+      "Name": "KnowledgeQualityPage-CKKr4G_f.css",
+      "Length": 1486
+    },
+    {
+      "Name": "KnowledgeQualityPage-VQNu3iJj.js",
+      "Length": 19841
+    },
+    {
+      "Name": "KnowledgeWorkspacePage-a9T6pB8F.js",
+      "Length": 33172
+    },
+    {
+      "Name": "KnowledgeWorkspacePage-DkKWb7AS.css",
+      "Length": 162
+    },
+    {
+      "Name": "menu-7l5GAdRx.css",
+      "Length": 3474
+    },
+    {
+      "Name": "menu-CtRiSH-K.js",
+      "Length": 17527
+    },
+    {
+      "Name": "PageHeader-Cstv_66h.js",
+      "Length": 401
+    },
+    {
+      "Name": "passwordRules-CzwJjVuO.js",
+      "Length": 442
+    },
+    {
+      "Name": "profile-CUCfOUQJ.css",
+      "Length": 3763
+    },
+    {
+      "Name": "profile-GFWEqR_M.js",
+      "Length": 7678
+    },
+    {
+      "Name": "query-vendor-Bz6RSRsI.js",
+      "Length": 36992
+    },
+    {
+      "Name": "queryInvalidation--Mr2ts5w.js",
+      "Length": 1027
+    },
+    {
+      "Name": "rive-Bx4V2fOF.wasm",
+      "Length": 2183014
+    },
+    {
+      "Name": "RiveLoginCat-oUKzkekd.js",
+      "Length": 346195
+    },
+    {
+      "Name": "role-BnVrBfvM.css",
+      "Length": 1911
+    },
+    {
+      "Name": "role-BPr8756Q.js",
+      "Length": 525
+    },
+    {
+      "Name": "role-Cf8X8pA2.js",
+      "Length": 14701
+    },
+    {
+      "Name": "rolldown-runtime-XKyaHtl9.js",
+      "Length": 726
+    },
+    {
+      "Name": "SafeMarkdown-D-1UbvVV.js",
+      "Length": 3203
+    },
+    {
+      "Name": "SafeMarkdown-DwI99KBj.css",
+      "Length": 1223
+    },
+    {
+      "Name": "StatusTag-56fWhbr6.js",
+      "Length": 334
+    },
+    {
+      "Name": "TaskAnalysisFeedback-Bbke0OaK.css",
+      "Length": 985
+    },
+    {
+      "Name": "TaskAnalysisFeedback-CkvB5X3Z.js",
+      "Length": 6929
+    },
+    {
+      "Name": "TaskComparison-BtfxqNLU.js",
+      "Length": 7160
+    },
+    {
+      "Name": "TaskComparison-Ceev4GMN.css",
+      "Length": 1223
+    },
+    {
+      "Name": "TaskDetail-zgc8i8RO.js",
+      "Length": 14001
+    },
+    {
+      "Name": "tasks-BERPKNVB.css",
+      "Length": 4888
+    },
+    {
+      "Name": "tasks.module-DQHCDs2H.js",
+      "Length": 1015
+    },
+    {
+      "Name": "taskState-BxMOjvu5.js",
+      "Length": 1341
+    },
+    {
+      "Name": "TenantList--6s2MVk8.js",
+      "Length": 8539
+    },
+    {
+      "Name": "toolGuides-BD_fxds2.js",
+      "Length": 2913
+    },
+    {
+      "Name": "UsagePage-C3BrXPa0.css",
+      "Length": 3011
+    },
+    {
+      "Name": "UsagePage-zGyKkXie.js",
+      "Length": 20302
+    },
+    {
+      "Name": "useAiWorkspaceGuard-Cc8ws0Kt.js",
+      "Length": 857
+    },
+    {
+      "Name": "useFormDraft-CX1d3B5W.js",
+      "Length": 882
+    },
+    {
+      "Name": "usePagedQuery-BdBtV1XH.js",
+      "Length": 488
+    },
+    {
+      "Name": "user-BDzdwaLJ.js",
+      "Length": 10895
+    },
+    {
+      "Name": "user-CPZwsJVp.js",
+      "Length": 340
+    },
+    {
+      "Name": "useTablePagination-kuK3I98w.js",
+      "Length": 294
+    },
+    {
+      "Name": "workflowDefinition-CkM1rQB6.js",
+      "Length": 10796
+    },
+    {
+      "Name": "WorkflowDraftRun-C52MNJiF.js",
+      "Length": 6384
+    },
+    {
+      "Name": "WorkflowEditorPage-DGm5ZKYW.js",
+      "Length": 22728
+    },
+    {
+      "Name": "WorkflowHistory-DsvZeNEP.js",
+      "Length": 6572
+    },
+    {
+      "Name": "WorkflowParameters-ClVeCoh2.js",
+      "Length": 4504
+    },
+    {
+      "Name": "WorkflowReadOnly-Cfs3N3Gi.js",
+      "Length": 1538
+    },
+    {
+      "Name": "workspaceQueries-1ey2PdtH.js",
+      "Length": 5452
+    }
+  ]
+}

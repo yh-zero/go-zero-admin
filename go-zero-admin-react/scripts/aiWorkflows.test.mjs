@@ -77,7 +77,7 @@ test('工作流 DSL 与只读呈现边界', async t => {
       assert.throws(() => dsl.parseWorkflow(raw, tools), /注册/);
     });
     await t.test('只读工作流名称与原始定义保持文本转义', async () => {
-      const { WorkflowDefinitionView } = await server.ssrLoadModule('/src/pages/ai/WorkflowEditor.tsx');
+      const { WorkflowDefinitionView } = await server.ssrLoadModule('/src/pages/ai/WorkflowReadOnly.tsx');
       const html = renderToStaticMarkup(createElement(WorkflowDefinitionView, { definition: '<img src=x onerror=alert(1)>', name: '<script>bad()</script>' }));
       assert.ok(!html.includes('<img src=x'));
       assert.ok(!html.includes('<script>bad()'));
@@ -94,7 +94,7 @@ test('工作流 DSL 与只读呈现边界', async t => {
       assert.match(saveButton, /disabled/);
     });
     await t.test('运行成功但无任务查看权限时显示任务标识与用户状态，不产生无权链接', async () => {
-      const { WorkflowRunResultNotice } = await server.ssrLoadModule('/src/pages/ai/WorkflowEditor.tsx');
+      const { WorkflowRunResultNotice } = await server.ssrLoadModule('/src/pages/ai/WorkflowReadOnly.tsx');
       assert.equal(typeof WorkflowRunResultNotice, 'function', '尚未提供独立任务权限下的运行结果反馈');
       const html = renderToStaticMarkup(createElement(WorkflowRunResultNotice, { result: { task_id: 246, status: 'running' } }));
       assert.match(html, /246/);

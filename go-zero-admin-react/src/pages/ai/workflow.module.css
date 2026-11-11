@@ -42,6 +42,7 @@
 .templateButton strong { font-size: 15px; font-weight: 600; }
 .templateButton small { color: var(--ant-color-text-secondary, #64748b); font-size: 12px; }
 .editorCard { min-width: 0; }
+.editorWorkspace { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .editorPage .editorForm { gap: 16px; }
 .editorPage .nameRow :global(.ant-form-item) { margin-bottom: 0; }
 .stepSettingsRow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
@@ -55,6 +56,9 @@
 .choicePagination { padding: 10px; border-top: 1px solid var(--ant-color-border-secondary, #edf0f4); }
 .advancedParameters > summary { cursor: pointer; color: var(--ant-color-text-secondary, #64748b); margin-bottom: 12px; font-size: 12px; }
 .parameterFields > .ant-form-item { margin-bottom: 20px; }
+.parameterSource { margin-bottom: 12px; }
+.parameterSource > summary { cursor: pointer; color: var(--ant-color-text-secondary, #64748b); margin-bottom: 8px; font-size: 12px; }
+.parameterSource > summary > span { color: var(--ant-color-link, #1677ff); margin-left: 12px; }
 @media (max-width: 700px) {
   .templateGrid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .templateButton { padding: 14px; }

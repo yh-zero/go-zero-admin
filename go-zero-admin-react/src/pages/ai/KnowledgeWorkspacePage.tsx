@@ -4,19 +4,21 @@ import { ArrowLeftOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { QueryState } from '../../components/QueryState';
+import { AsyncContent } from '../../components/AsyncContent';
 import { AIWorkspaceAccess } from './AIWorkspaceAccess';
 import { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
 import { aiWorkspaceKeys, kbDetailOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
 import { KnowledgeDocumentsPanel } from './KnowledgeDocumentsDrawer';
-import { WorkflowDraftRun } from './WorkflowDraftRun';
+import { DeferredWorkflowRun } from './DeferredWorkflowRun';
 import { workflowTemplate } from './workflowDefinition';
 import { KbSearchResults } from './KbSearchModal';
 import { kbSearchOptions, validateKbSearchQuery } from './knowledgeSearch';
 import { KnowledgeDocumentModal } from './KnowledgeDocumentModal';
-import { KnowledgeFeedbackPanel } from './KnowledgeFeedbackPanel';
 import { parseTaskId } from './taskState';
 import styles from './workspace.module.css';
+
+const loadFeedback = () => import('./KnowledgeFeedbackPanel').then(module => module.KnowledgeFeedbackPanel);
 
 export default function KnowledgeWorkspacePage() {
   const { id } = useParams();
@@ -42,14 +44,14 @@ function KnowledgeWorkspaceSession({ scope, kbId }: { scope: AiWorkspaceScope; k
     <div className={styles.heading}><div><Button type="link" icon={<ArrowLeftOutlined />} disabled={guard.writing} onClick={() => navigate('/ai/knowledge')}>全部知识库</Button><Typography.Title level={3}>{kb.data?.kb.name ?? '知识库工作区'}</Typography.Title>
       {kb.data && <Space wrap><Tag color="success">{kb.data.kb.ready_count} 篇可使用</Tag><Tag color="processing">{kb.data.kb.pending_count} 篇处理中</Tag><Typography.Text type="secondary">{kb.data.kb.description}</Typography.Text></Space>}</div><Space wrap><Button disabled={guard.writing || !kb.data || !!kb.error} onClick={() => navigate(`/ai/knowledge/${kbId}/quality`)}>质量验收</Button><Button icon={<ReloadOutlined />} loading={kb.isFetching} onClick={refresh}>刷新</Button></Space></div>
     <QueryState isPending={kb.isPending} error={kb.error} onRetry={() => kb.refetch()} />
-    {kb.data && !kb.error && <div className={styles.columns}>
+    {kb.data && !kb.error && <>
       <Card><Tabs activeKey={tab} onChange={next => { if (!guard.writing && guard.isCurrent()) setTab(next); }} destroyOnHidden items={[
         { key: 'docs', label: '资料', disabled: guard.writing, children: <KnowledgeDocumentsPanel key={params.get('doc_id') ?? 'docs'} scope={scope} kb={kb.data.kb} onChanged={refresh} initialDocId={parseTaskId(params.get('doc_id'))} /> },
         { key: 'search', label: '测试资料检索', disabled: guard.writing, children: <KnowledgeSearchPanel scope={scope} kbId={kbId} configured={kb.data.capabilities.retrieval_configured} /> },
-        { key: 'feedback', label: '反馈与复核', disabled: guard.writing, children: <KnowledgeFeedbackPanel scope={scope} kbId={kbId} guard={guard} /> },
+        { key: 'feedback', label: '反馈与复核', disabled: guard.writing, children: <AsyncContent load={loadFeedback} componentProps={{ scope, kbId, guard }} /> },
       ]} /></Card>
-      <Card><WorkflowDraftRun scope={scope} guard={guard} draft={draft} attemptId={`knowledge:${kbId}`} fixedKb={kb.data.kb} capabilities={kb.data.capabilities} onSave={taskId => navigate(`/ai/workflows/new?from_task=${taskId}`)} /></Card>
-    </div>}
+      <DeferredWorkflowRun scope={scope} guard={guard} draft={draft} attemptId={`knowledge:${kbId}`} fixedKb={kb.data.kb} capabilities={kb.data.capabilities} onSave={taskId => navigate(`/ai/workflows/new?from_task=${taskId}`)} />
+    </>}
   </div>;
 }
 

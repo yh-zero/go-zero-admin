@@ -57,8 +57,10 @@ test('对话展示与知识范围', async t => {
     await t.test('回答实际来源可展开且标题正文均转义', async () => {
       const { MessageRecord } = await server.ssrLoadModule('/src/pages/ai/MessageRecord.tsx');
       const markup = renderToStaticMarkup(createElement(MessageRecord, { message: { id: 1, role: 'assistant', status: 'succeeded', content: '**结论** [1]', tool_calls: '[]', tokens: 5, created_at: 1, error: '', feedback: '', feedback_note: '', sources: [{ chunk_id: 9, kb_id: 2, doc_id: 4, doc_title: '<script>标题</script>', snippet: '<img src=x onerror=evil()>原文', score: 0.7 }] } }));
-      for (const text of ['参考资料（实际检索片段）', '<details>', '<strong>结论</strong>', '&lt;script&gt;标题', '&lt;img src=x', '分块 ID：9', '复制回答']) assert.ok(markup.includes(text), text);
+      for (const text of ['参考资料', '查看原文', '本次引用片段', '<details>', '<strong>结论</strong>', '&lt;script&gt;标题', '&lt;img src=x', '分块 ID：9', '复制回答']) assert.ok(markup.includes(text), text);
       assert.doesNotMatch(markup, /<script>|<img src=x/);
+      assert.doesNotMatch(markup, /已完成|已知 token/);
+      assert.match(markup, /用量与调用详情/);
     });
   } finally { await server.close(); }
 });

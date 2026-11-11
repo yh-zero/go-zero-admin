@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Alert, Button, Drawer, Form, Input, Modal, Space, Tag } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { Alert, Button, Drawer, Dropdown, Form, Input, Modal, Space, Tag } from 'antd';
+import { MoreOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { approveAiTask, cancelAiTask, rejectAiTask } from '../../api/ai';
 import type { AiTaskInfo, AiWorkflowStepInfo } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
@@ -29,10 +29,13 @@ interface TaskDetailProps {
   metadata?: AiTaskInfo;
   metadataUpdatedAt?: number;
   showSaveAction?: boolean;
+  onCompare?: () => void;
+  comparisonDisabled?: boolean;
 }
 
-export function TaskDetail({ scope, taskId, guard, onClose, inline = false, metadata, metadataUpdatedAt = 0, showSaveAction = true }: TaskDetailProps) {
+export function TaskDetail({ scope, taskId, guard, onClose, inline = false, metadata, metadataUpdatedAt = 0, showSaveAction = true, onCompare, comparisonDisabled = true }: TaskDetailProps) {
   const client = useQueryClient();
+  const navigate = useNavigate();
   const [decision, setDecision] = useState<TaskDecision | null>(null);
   const [feedback, setFeedback] = useState<string>();
   const [cancelConfirm, setCancelConfirm] = useState(false);
@@ -134,8 +137,16 @@ export function TaskDetail({ scope, taskId, guard, onClose, inline = false, meta
       guard.finishWrite();
     }
   }
+  const canSave = showSaveAction && task?.definition && guard.can('sys:ai:workflow:create') && guard.can('sys:ai:workflow:list') && guard.can('sys:ai:tool:list');
   const actions = <Space wrap className={styles.drawerActions}><Button disabled={guard.writing} onClick={onClose}>{inline ? '收起结果' : '关闭'}</Button>
-    {showSaveAction && task?.definition && guard.can('sys:ai:workflow:create') && guard.can('sys:ai:workflow:list') && guard.can('sys:ai:tool:list') && <Link to={`/ai/workflows/new?from_task=${taskId}`}><Button disabled={guard.writing}>{task.status === 'failed' ? '带入原问题' : '保存为常用流程'}</Button></Link>}
+    {(canSave || onCompare) && <Dropdown trigger={['click']} menu={{ items: [
+      ...(canSave ? [{ key: 'save', label: task?.status === 'failed' ? '带入原问题' : '保存为常用流程', disabled: guard.writing }] : []),
+      ...(onCompare ? [{ key: 'compare', label: '对比运行', disabled: comparisonDisabled || guard.writing }] : []),
+    ], onClick: ({ key }) => {
+      if (guard.writing || !current()) return;
+      if (key === 'save' && canSave) navigate(`/ai/workflows/new?from_task=${taskId}`);
+      if (key === 'compare' && !comparisonDisabled) onCompare?.();
+    } }}><Button icon={<MoreOutlined />} disabled={guard.writing}>更多操作</Button></Dropdown>}
     {cancellable && guard.can('sys:ai:task:cancel') && <Button danger disabled={guard.writing} onClick={() => setCancelConfirm(true)}>取消任务</Button>}
     {approvalAvailable && guard.can('sys:ai:task:reject') && <Button danger disabled={guard.writing} onClick={() => openDecision('reject')}>拒绝</Button>}
     {approvalAvailable && guard.can('sys:ai:task:approve') && <Button type="primary" disabled={guard.writing} onClick={() => openDecision('approve')}>确认并继续</Button>}
@@ -192,7 +203,6 @@ export function TaskDetailContent({ task, renderFeedback }: { task: AiTaskInfo; 
     </dl>
     <h3>本次输入</h3><TaskRecordedValue value={task.input} empty="未提供输入" />
     {!!task.steps?.length && <><h3>步骤执行过程</h3><ol className={styles.stepRecords}>{task.steps.map(step => <li key={step.id}><TaskStepRecord step={step} /></li>)}</ol></>}
-    {task.error && <><h3>错误 / 拒绝原因</h3><pre className={styles.code}>{task.error}</pre></>}
     </details>
     {task.status === 'pending_approval' && <Alert type="warning" showIcon title="批准后继续执行当前步骤；拒绝后本次任务结束。" />}
   </div>;
