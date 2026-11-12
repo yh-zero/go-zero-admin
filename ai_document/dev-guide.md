@@ -40,7 +40,7 @@ API 的 `TrustedProxies` 是显式 IP/CIDR 列表，宿主配置默认为 `[]`�
 | 平台 `default` | `172.20.0.0/16` | `172.20.128.0/17` | `172.20.0.3`，平台 API 仅信任该 `/32` |
 | 租户边缘 `gozero-edge` | `172.21.0.0/16` | `172.21.128.0/17` | `172.21.0.2`，新租户 API 仅信任该 `/32` |
 
-切换环境时整体设置 `GOZERO_PLATFORM_SUBNET`、`GOZERO_PLATFORM_IP_RANGE`、`GOZERO_PLATFORM_PROXY_IP`，以及对应的 `GOZERO_EDGE_*` 三项；代理 IP 同时用于 Nginx 地址和 API 的可信 `/32` 注入。代理必须位于对应子网内、动态池外，不能占用显式网关或默认首个可用地址，子网不得与本机其他网络冲突。[verify-network.ps1](../go-zero-admin/data/scripts/verify-network.ps1) 只渲染 Compose 并检查上述关系，存在后端 `.env.local` 时显式加载，不要求 Docker 引擎在线、不打印完整配置；构建入口先执行该检查。多文件配置可用其 `-ComposeFiles` 参数核对。外部网络不重复要求 IPAM，须另行只读核对实际子网、动态池与代理地址。此处仅说明新部署；已有网络和已生成的租户配置不自动迁移，不用 `down` 或重建网络代替迁移核对。
+切换环境时整体设置 `GOZERO_PLATFORM_SUBNET`、`GOZERO_PLATFORM_IP_RANGE`、`GOZERO_PLATFORM_PROXY_IP`，以及对应的 `GOZERO_EDGE_*` 三项；代理 IP 同时用于 Nginx 地址和 API 的可信 `/32` 注入。代理必须位于对应子网内、动态池外，不能占用显式网关或默认首个可用地址，子网不得与本机其他网络冲突。[verify-network.ps1](../go-zero-admin/data/scripts/verify-network.ps1) 只渲染 Compose 并检查上述关系；存在后端 `.env.local` 时由脚本自行解析并写入进程环境后再渲染，不依赖 Compose 版本对 `--env-file` 的插值优先级，不要求 Docker 引擎在线、不打印完整配置；构建入口先执行该检查。多文件配置可用其 `-ComposeFiles` 参数核对。外部网络不重复要求 IPAM，须另行只读核对实际子网、动态池与代理地址。此处仅说明新部署；已有网络和已生成的租户配置不自动迁移，不用 `down` 或重建网络代替迁移核对。
 
 已有栈迁移网络前记录容器ID、端点和卷，确认无在途任务，保留基础服务的数据及登录状态。本机 Redis 容器可能没有数据卷，不能通过删容器重建处理网络问题。本轮在保留原容器重连后出现“容器内正常、宿主映射端口超时”，正常重启原基础容器才刷新端口转发；Redis先确认`SAVE`成功，再逐个核对原ID、挂载、握手及健康，不使用`down -v`、prune或批量清缓存。其他项目端点和既有租户栈不在平台迁移范围内。
 
