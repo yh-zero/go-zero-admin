@@ -60,14 +60,19 @@ test('SafeMarkdown 保留分析标签原文并维持现有聊天渲染', async t
       assert.match(inline, /<strong>重点<\/strong>/);
       assert.match(inline, /<code>代码<\/code>/);
       assert.match(inline, /<a href="https:\/\/example\.test" target="_blank" rel="noopener noreferrer">官网<\/a>/);
-      const blocks = render('# 标题\n- 条目\n> 引文\n```js\nconst x = 1;\n```\n| A | B |\n| --- | --- |\n| x | y |');
+      const blocks = render('# 标题\n- 条目\n> 引文\n```js\nconst x = 1;\nconst text = "<img>";\n```\n| A | B |\n| --- | --- |\n| x | y |');
       assert.match(blocks, /role="heading"/);
       assert.match(blocks, /<blockquote>引文<\/blockquote>/);
-      assert.match(blocks, /<pre><code>const x = 1;<\/code><\/pre>/);
+      assert.match(blocks, /<pre><code>const x = 1;\nconst text = &quot;&lt;img&gt;&quot;;<\/code><\/pre>/);
+      assert.match(blocks, /复制代码/);
+      assert.match(blocks, /<table>/);
+      assert.match(blocks, /<th>A<\/th>/);
       assert.match(blocks, /<td>x<\/td><td>y<\/td>/);
-      const unsafe = render('<img src=x onerror=evil()> ![图片](https://example.test/a.png) [脚本](javascript:evil()) [本地](file:///tmp)');
+      const unsafe = render('<script>alert(1)</script>\n<img src=x onerror=evil()> ![图片](https://example.test/a.png) [脚本](javascript:evil()) [本地](file:///tmp) [数据](data:text/html,evil)');
+      assert.match(unsafe, /&lt;script&gt;/);
       assert.ok(unsafe.includes('&lt;img src=x onerror=evil()&gt;'));
       assert.doesNotMatch(unsafe, /<(?:img|a|script)\b/);
+      assert.doesNotMatch(unsafe, /href="(?:javascript:|data:|https:\/\/example.test\/a.png)/);
     });
   } finally {
     await server.close();

@@ -9,6 +9,34 @@ test('迟到导入响应不能恢复已放弃资料、复活已确认回执或�
     assert.equal(typeof imports.updateKnowledgeImportAttempt, 'function');
     const makeStorage = () => { const values = new Map(); return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) }; };
     const prepare = () => imports.prepareKnowledgeBatch(Array.from({ length: 4 }, (_, index) => ({ title: `${index}`, content: '正文' })));
+    await t.test('导入离页保留已发出未知项，确定失败和未发出项不会混进未知锁', async () => {
+      const { ApiError } = await server.ssrLoadModule('/src/utils/response.ts');
+      const prepared = prepare();
+      let current = true;
+      let releaseFirst;
+      const first = new Promise(resolve => { releaseFirst = resolve; });
+      let attempt = { batchId: prepared.batchId, requestIds: [], unsubmittedIds: prepared.items.map(item => item.id) };
+      const sent = [];
+      await imports.runKnowledgeImport(prepared.items, async values => {
+        sent.push(values.request_id);
+        if (values.title === '0') { await first; throw new Error('network outcome unknown'); }
+        current = false; releaseFirst(); throw new ApiError(400, '确定未接收');
+      }, () => {}, () => current, change => { attempt = imports.advanceKnowledgeImportAttempt(attempt, change); });
+      assert.equal(sent.length, 2);
+      assert.deepEqual(attempt.requestIds, [prepared.items[0].id]);
+      assert.deepEqual(attempt.unsubmittedIds, prepared.items.slice(2).map(item => item.id));
+      const storage = makeStorage();
+      imports.writeKnowledgeImportAttempt(storage, 'original', attempt);
+      assert.deepEqual(imports.readKnowledgeImportAttempt(storage, 'original'), attempt);
+    });
+    await t.test('未确认导入保留原批次和请求标识，恢复时按身份隔离', () => {
+      const batch = prepare();
+      const pending = { batchId: batch.batchId, requestIds: batch.items.map(item => item.id) };
+      const storage = makeStorage();
+      imports.writeKnowledgeImportAttempt(storage, 'scope-a:kb1', pending);
+      assert.deepEqual(imports.readKnowledgeImportAttempt(storage, 'scope-a:kb1'), pending);
+      assert.equal(imports.readKnowledgeImportAttempt(storage, 'scope-b:kb1'), null);
+    });
     async function start(storage, key) {
       const prepared = prepare();
       let current = true;

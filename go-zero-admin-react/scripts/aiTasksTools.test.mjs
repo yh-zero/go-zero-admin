@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { App } from 'antd';
 
 test('任务审批、状态与工具安全展示', async t => {
   const originalWindow = globalThis.window;
@@ -99,6 +102,43 @@ test('任务审批、状态与工具安全展示', async t => {
       assert.ok(!denied.includes('/ai/workflows'));
       const allowed = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(ToolCard, { tool, canUse: true, onView() {} })));
       assert.ok(allowed.includes('/ai/workflows/new?tool=%3Cscript%3Etool%3C%2Fscript%3E'));
+    });
+    await t.test('运行结果先于输入和执行过程，名称及问题摘要直接可读', async () => {
+      const { TaskDetailContent } = await server.ssrLoadModule('/src/pages/ai/TaskDetail.tsx');
+      const html = renderToStaticMarkup(createElement(TaskDetailContent, { task: { id: 1, workflow_id: 0, title: '资料风险分析', workflow_name: '一次性分析', input_summary: '本次需要核对什么', status: 'succeeded', next_step: 1, input: '{}', result: '本次分析结果', error: '', created_at: 1, updated_at: 2, completed_at: 2, approved_by: 0, steps: [{ id: 'one', index: 0, name: '资料分析', tool: 'kb_analyze', status: 'succeeded', input: '{}', output: '结果', error: '', started_at: 1, completed_at: 2 }] } }));
+      assert.ok(html.includes('资料风险分析'));
+      assert.ok(html.includes('本次需要核对什么'));
+      assert.ok(html.indexOf('执行结果') < html.indexOf('本次输入'));
+      assert.ok(html.indexOf('执行结果') < html.indexOf('步骤执行过程'));
+    });
+    await t.test('任务错误仅在结果区域安全展示一次，技术字段继续保留', async () => {
+      const { TaskDetailContent } = await server.ssrLoadModule('/src/pages/ai/TaskDetail.tsx');
+      const html = renderToStaticMarkup(createElement(TaskDetailContent, { task: { id: 1, workflow_id: 3, status: 'failed', next_step: 0, input: '{}', result: '', error: '<svg>唯一错误</svg>', approved_by: 0, created_at: 1, completed_at: 2 } }));
+      assert.equal((html.match(/唯一错误/g) ?? []).length, 1);
+      assert.ok(html.includes('&lt;svg&gt;'));
+      assert.ok(html.includes('审批人 ID'));
+      assert.ok(html.includes('本次输入'));
+    });
+    await t.test('记录首屏仅三个常用状态，终态条目不显示步骤进度', async () => {
+      const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
+      const scope = ['tasks-presentation', 1, 0];
+      const auth = { token: 'local-fixture', sessionId: scope[0], sessionVersion: 1, departmentVersion: 0, permissionsReady: true, permCodes: ['sys:ai:task:list'] };
+      Object.assign(useAuthStore.getInitialState(), auth);
+      useAuthStore.setState(auth);
+      const queries = await server.ssrLoadModule('/src/pages/ai/workspaceQueries.ts');
+      const { AITaskSession } = await server.ssrLoadModule('/src/pages/ai/AITasks.tsx');
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      try {
+        client.setQueryData(queries.taskListOptions(scope, { page: 1, page_size: 20 }).queryKey, { total: 2, list: [
+          { id: 1, title: '完成的分析', status: 'succeeded', next_step: 3, created_at: 1 },
+          { id: 2, title: '进行的分析', status: 'running', next_step: 1, created_at: 1 },
+        ] });
+        const html = renderToStaticMarkup(createElement(QueryClientProvider, { client }, createElement(MemoryRouter, { initialEntries: ['/ai/tasks'] }, createElement(App, null, createElement(AITaskSession, { scope })))));
+        assert.equal((html.match(/role="tab"/g) ?? []).length, 3);
+        assert.ok(html.includes('更多状态'));
+        assert.ok(!html.includes('已完成 3 步'));
+        assert.ok(html.includes('第 2 步'));
+      } finally { client.clear(); }
     });
   } finally { await server.close(); globalThis.window = originalWindow; }
 });

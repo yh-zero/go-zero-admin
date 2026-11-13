@@ -4,6 +4,9 @@ import { existsSync } from 'node:fs';
 import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { App } from 'antd';
 
 const tools = [
   { name: 'text_stats', description: '文本统计', parameters_schema: '{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}' },
@@ -103,4 +106,38 @@ test('工作流 DSL 与只读呈现边界', async t => {
       assert.ok(!html.includes('/ai/tasks'));
     });
   } finally { await server.close(); }
+});
+
+test('流程列表只常显运行编辑，能力目录受工具读取权限约束', async () => {
+  const originalWindow = globalThis.window;
+  const values = new Map();
+  const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+  globalThis.window = { localStorage: storage, sessionStorage: storage, addEventListener() {} };
+  const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', server: { middlewareMode: true, watch: null, ws: false } });
+  try {
+    const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
+    const scope = ['workflows-presentation', 1, 0];
+    const auth = { token: 'local-fixture', sessionId: scope[0], sessionVersion: 1, departmentVersion: 0, permissionsReady: true,
+      permCodes: ['sys:ai:workflow:list', 'sys:ai:workflow:create', 'sys:ai:workflow:edit', 'sys:ai:workflow:run', 'sys:ai:workflow:delete', 'sys:ai:tool:list', 'sys:ai:task:list'] };
+    Object.assign(useAuthStore.getInitialState(), auth);
+    useAuthStore.setState(auth);
+    const queries = await server.ssrLoadModule('/src/pages/ai/workspaceQueries.ts');
+    const { AIWorkflowsSession } = await server.ssrLoadModule('/src/pages/ai/AIWorkflows.tsx');
+    const render = () => {
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      client.setQueryData(queries.workflowListOptions(scope, { page: 1, page_size: 20 }).queryKey, { list: [{ id: 81, name: '我的流程', step_count: 1, enabled: 1, updated_at: 1 }], total: 1 });
+      try { return renderToStaticMarkup(createElement(QueryClientProvider, { client }, createElement(MemoryRouter, { initialEntries: ['/ai/workflows'] }, createElement(App, null, createElement(AIWorkflowsSession, { scope }))))); }
+      finally { client.clear(); }
+    };
+    const allowed = render();
+    assert.ok(allowed.includes('href="/ai/tools"'));
+    assert.ok(allowed.includes('我的流程'));
+    assert.ok(allowed.includes('更多操作'));
+    assert.ok(!allowed.includes('手动运行'));
+    assert.ok(!allowed.includes('#81'));
+    assert.ok(!allowed.includes('>复制<'));
+    assert.ok(!allowed.includes('>删除<'));
+    useAuthStore.setState({ permCodes: auth.permCodes.filter(code => code !== 'sys:ai:tool:list') });
+    assert.ok(!render().includes('href="/ai/tools"'));
+  } finally { await server.close(); globalThis.window = originalWindow; }
 });

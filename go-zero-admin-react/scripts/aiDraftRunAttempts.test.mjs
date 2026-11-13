@@ -6,6 +6,16 @@ test('草稿运行标识在浏览器存储异常后保留，离页恢复不会�
   const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, watch: null, ws: false } });
   try {
     const attempts = await server.ssrLoadModule('/src/pages/ai/draftRunAttempts.ts');
+    await t.test('未确认的草稿运行保留原始定义、输入与请求标识，关闭返回不变更', () => {
+      const values = new Map();
+      const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+      const attempt = { name: '风险分析', definition: '{"steps":[]}', input: '{"kb_id":7}', request_id: '11111111-1111-4111-8111-111111111111' };
+      attempts.writeDraftRunAttempt(storage, 'scope-a:new', attempt);
+      assert.deepEqual(attempts.readDraftRunAttempt(storage, 'scope-a:new'), attempt);
+      assert.equal(attempts.readDraftRunAttempt(storage, 'scope-b:new'), null);
+      attempts.clearDraftRunAttempt(storage, 'scope-a:new');
+      assert.equal(attempts.readDraftRunAttempt(storage, 'scope-a:new'), null);
+    });
     await t.test('存储配额不足后返回仍恢复原定义、输入和UUID，并保持身份隔离', () => {
       const storage = { getItem: () => null, setItem() { throw new Error('QuotaExceeded'); }, removeItem() {} };
       const attempt = { name: '原分析', definition: '{"version":2,"steps":[]}', input: '{"kb_id":7,"question":"原问题"}', request_id: '11111111-1111-4111-8111-111111111111' };

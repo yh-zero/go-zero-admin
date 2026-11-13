@@ -91,6 +91,21 @@ test('AI 工作区接入边界', async t => {
       assert.equal(client.getQueryData(options.queryKey), undefined);
       client.clear();
     });
+    await t.test('预取消的知识库查询不进入传输适配器，普通读取保留筛选参数和默认30秒超时', async () => {
+      authorize(['sys:ai:kb:list']);
+      const requests = [];
+      request.defaults.adapter = async config => {
+        requests.push({ timeout: config.timeout, params: config.params });
+        return { data: { code: 200, result: { list: [], total: 0, capabilities: { retrieval_configured: false, analysis_configured: false, ingestion_mode: 'background' } } }, status: 200, statusText: 'OK', headers: {}, config };
+      };
+      const controller = new AbortController();
+      controller.abort();
+      await assert.rejects(api.fetchAiKbs({ page: 1 }, controller.signal), error => error.code === 'ERR_CANCELED');
+      assert.equal(requests.length, 0, '已取消的查询不能到达传输适配器');
+      const result = await api.fetchAiKbs({ page: 1, query: '发布' });
+      assert.equal(result.total, 0);
+      assert.deepEqual(requests, [{ timeout: 30_000, params: { page: 1, query: '发布' } }]);
+    });
     await t.test('统一请求层拒绝无权限写入；审批显式发送零断点且不更换请求', async () => {
       let calls = 0;
       let payload;

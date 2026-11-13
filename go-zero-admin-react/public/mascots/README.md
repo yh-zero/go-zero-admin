@@ -15,14 +15,10 @@
 node scripts/build-login-cat.mjs public/mascots/login-cat.riv src/assets/login-cat-atlas.png
 ```
 
-详细格式与维护说明见 `../../scripts/build-login-cat.md`。Rive 运行库按其 MIT 许可证使用。
+详细格式与维护说明见 [登录猫咪生成器](../../scripts/build-login-cat.md)。Rive 运行库按其 MIT 许可证使用。
 
 ## 交互接口
 
-- Artboard：`cat_artboard`；State machine：`Login Machine`。
-- `is_hands_up`：Boolean，分段抬爪捂眼、放爪。
-- `look_direction`：Number，`-1` 左看、`0` 正面、`1` 右看。
-- `success` / `fail`：Trigger，开心挥爪或低头轻摇，约一秒后恢复。
-- 正面闲置包含轻微呼吸和间歇眨眼。
+Artboard、状态机、输入类型及动作时序统一见 [生成器接入接口](../../scripts/build-login-cat.md#接入接口)。
 
 这是图片姿态与 Rive 动画轨道组合的角色，不是实时三维模型。素材文件和 WASM 都在本地站点提供；密码内容不会传入动画组件。

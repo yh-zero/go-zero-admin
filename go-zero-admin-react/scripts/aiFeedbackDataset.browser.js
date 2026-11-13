@@ -1,7 +1,13 @@
-// 全拦截独立浏览器：仅5999静态资源放行，业务读及显式评测提交均由响应桩处理。
+// 全拦截独立浏览器：仅当前同源静态资源放行，业务读及显式评测提交均由响应桩处理。
 // oxlint-disable-next-line no-unused-expressions -- playwright-cli执行此函数表达式。
 async (page) => {
+  const origin = new URL(page.url()).origin;
   const check = (condition, message) => { if (!condition) throw new Error(message); };
+  const ensureAdvancedOpen = async () => {
+    const summary = page.getByText('高级设置', { exact: true });
+    await summary.waitFor();
+    if (!await summary.evaluate(node => node.parentElement.open)) await summary.click();
+  };
   const now = Math.floor(Date.now() / 1000), reads = [], writes = [], unexpected = [], errors = [];
   const content = '发布前必须备份数据库。验收通过后才可切换流量。';
   const doc = { id: 9, kb_id: 7, title: '发布资料', status: 'ready', version: 2, embedding_model: 'fixture', chunk_count: 1, stage: 'ready', error: '', created_at: now, updated_at: now };
@@ -27,7 +33,7 @@ async (page) => {
   await page.addInitScript(() => localStorage.setItem('go-zero-auth', JSON.stringify({ state: { token: 'dataset-fixture-access', refreshToken: 'dataset-fixture-refresh', sessionId: 'dataset-fixture-session', expiresAt: Date.now() / 1000 + 3600, refreshExpiresAt: Date.now() / 1000 + 7200 }, version: 0 })));
   await page.route('**/*', route => {
     const url = route.request().url(), path = url.replace(/^https?:\/\/[^/]+/, '');
-    if (!url.startsWith('http://127.0.0.1:5999/') || path.startsWith('/v1/')) { unexpected.push(url.split('?')[0]); return route.abort('blockedbyclient'); }
+    if (!url.startsWith(`${origin}/`) || path.startsWith('/v1/')) { unexpected.push(url.split('?')[0]); return route.abort('blockedbyclient'); }
     return route.continue();
   });
   await page.route('**/v1/**', async route => {
@@ -60,9 +66,9 @@ async (page) => {
     if (path === '/v1/sys/ai/kbs/7/evaluations/4') return send({ evaluation: run });
     unexpected.push(`${request.method()} ${path}`); return route.abort('blockedbyclient');
   });
-  await page.goto('http://127.0.0.1:5999/login');
+  await page.goto(`${origin}/login`);
   digest = await page.evaluate(async text => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))].map(value => value.toString(16).padStart(2, '0')).join(''), content);
-  await page.goto('http://127.0.0.1:5999/ai/knowledge/7?tab=feedback');
+  await page.goto(`${origin}/ai/knowledge/7?tab=feedback`);
   await page.getByRole('button', { name: '查看评价', exact: true }).click();
   let drawer = page.getByRole('dialog', { name: '反馈复核 #3', exact: true });
   await drawer.getByRole('button', { name: '生成验收题集', exact: true }).click();
@@ -76,6 +82,7 @@ async (page) => {
   check((await downloaded).suggestedFilename() === 'kb-7-feedback-3-r4.json', '下载须标识反馈版本');
   await drawer.getByRole('button', { name: '导入质量验收页', exact: true }).click();
   await page.getByRole('heading', { name: '冻结题集回归库 · 质量验收', exact: true }).waitFor();
+  await ensureAdvancedOpen();
   await page.getByRole('button', { name: '移除导入题集', exact: true }).waitFor();
   await page.getByLabel('冻结题集预览', { exact: true }).waitFor();
   check(writes.length === 0, '跨页导入仍不能自动运行');
@@ -98,14 +105,16 @@ async (page) => {
   check(reads.some(url => url === '/v1/sys/ai/kbs/7/evaluations/4'), '核对必须补读详情验证原快照');
   await page.getByRole('button', { name: '使用此批次冻结题集', exact: true }).click();
   check(writes.length === 2, '复用快照仅设置下一次题集');
+  await ensureAdvancedOpen();
   await page.getByRole('button', { name: '移除导入题集', exact: true }).click();
+  await ensureAdvancedOpen();
   await page.getByLabel('导入冻结题集JSON', { exact: true }).evaluate((input, value) => {
     const transfer = new DataTransfer(); transfer.items.add(new File([value], 'merged.json', { type: 'application/json' })); input.files = transfer.files; input.dispatchEvent(new Event('change', { bubbles: true }));
   }, raw);
   await page.getByLabel('冻结题集预览', { exact: true }).waitFor();
   check(writes.length === 2, '上传合并题集不能提交');
   negative = true;
-  await page.goto('http://127.0.0.1:5999/ai/knowledge/7?tab=feedback');
+  await page.goto(`${origin}/ai/knowledge/7?tab=feedback`);
   await page.getByRole('button', { name: '查看评价', exact: true }).click();
   drawer = page.getByRole('dialog', { name: '反馈复核 #3', exact: true });
   const beforeDocs = reads.filter(url => url.includes('/docs/9')).length;

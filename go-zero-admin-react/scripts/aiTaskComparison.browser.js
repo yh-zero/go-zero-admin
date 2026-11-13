@@ -1,6 +1,7 @@
-// 独立浏览器响应桩；仅放行5999静态资源，业务接口显式mock，其他请求全部拒绝。
+// 独立浏览器响应桩；仅放行当前同源静态资源，业务接口显式mock，其他请求全部拒绝。
 // oxlint-disable-next-line no-unused-expressions -- playwright-cli读取此函数表达式执行。
 async (page) => {
+  const origin = new URL(page.url()).origin;
   const check = (value, message) => { if (!value) throw new Error(message); };
   const now = Math.floor(Date.now() / 1000), reads = [], unexpected = [], errors = [];
   let failRight = false, holdRight = false, otherIdentity = false, releaseHeld, markHeld;
@@ -20,7 +21,7 @@ async (page) => {
   await page.addInitScript(() => localStorage.setItem('go-zero-auth', JSON.stringify({ state: { token: 'comparison-fixture-access', refreshToken: 'comparison-fixture-refresh', sessionId: 'comparison-fixture-session', expiresAt: Date.now() / 1000 + 3600, refreshExpiresAt: Date.now() / 1000 + 7200 }, version: 0 })));
   await page.route('**/*', route => {
     const url = route.request().url(), path = url.replace(/^https?:\/\/[^/]+/, '');
-    if (!url.startsWith('http://127.0.0.1:5999/') || path.startsWith('/v1/')) { unexpected.push({ url: url.split('?')[0], method: route.request().method() }); return route.abort('blockedbyclient'); }
+    if (!url.startsWith(`${origin}/`) || path.startsWith('/v1/')) { unexpected.push({ url: url.split('?')[0], method: route.request().method() }); return route.abort('blockedbyclient'); }
     return route.continue();
   });
   await page.route('**/v1/**', async route => {
@@ -53,12 +54,14 @@ async (page) => {
     unexpected.push({ path, method: request.method() });
     return route.abort('blockedbyclient');
   });
-  await page.goto('http://127.0.0.1:5999/ai/tasks?task_id=101');
-  const compare = page.getByRole('button', { name: '对比运行', exact: true });
-  await compare.waitFor();
+  await page.goto(`${origin}/ai/tasks?task_id=101`);
+  const compare = async () => {
+    await page.getByRole('button', { name: /更多操作$/ }).click();
+    await page.getByRole('menuitem', { name: '对比运行', exact: true }).click();
+  };
   await page.getByRole('heading', { name: '执行结果' }).waitFor();
   const before = { lists: reads.filter(r => r.kind === 'list').length, left: reads.filter(r => r.kind === 'detail' && r.id === 101).length };
-  await compare.click();
+  await compare();
   const drawer = page.getByRole('dialog', { name: '对比运行 · 左侧 #101', exact: true });
   await drawer.getByRole('button', { name: '选择运行 #101', exact: true }).waitFor();
   check(await drawer.getByRole('button', { name: '选择运行 #101', exact: true }).isDisabled(), '不能选择自己比较');
@@ -96,7 +99,7 @@ async (page) => {
   finally { releaseHeld?.(); }
   await drawer.waitFor({ state: 'hidden' });
   holdRight = false;
-  await compare.click();
+  await compare();
   await drawer.waitFor();
   otherIdentity = true;
   await page.evaluate(() => {

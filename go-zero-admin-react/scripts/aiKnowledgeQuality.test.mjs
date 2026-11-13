@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { createServer } from 'vite';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { MemoryRouter } from 'react-router-dom';
 
 const document = { key: 'rules', kb: 'project_ops', source: 'ai_document/ai-rag/business-docs/rules.md', title: '发布规则', sha256: 'a'.repeat(64) };
 const item = { id: 'case-1', kb: 'project_ops', split: 'development', category: 'risk', query: '发布前有什么要求？', rationale: '核对来源', expected_documents: ['rules'], evidence: [{ document: 'rules', groups: [['先备份']] }], answer: { kind: 'answerable', required_groups: [['先备份']], forbidden_phrases: [], absence_policy: 'forbidden' }, checks: [{ label: '先备份', kind: 'condition', required_group: 0 }] };
@@ -17,6 +18,61 @@ const context = { binary_sha: 'b'.repeat(64), model: { provider: 'local-test', n
 const observation = { case_id: item.id, request_id: '76d38d38-caa4-4f2f-b24b-55259fb02411', task_id: 12, status: 'succeeded', stage: 'done', query: item.query, list: [{ ...source, index: undefined }], search_client_ms: 20, search_server_ms: 10, analysis_elapsed_ms: 50, analysis, error: '' };
 const run = { id: 1, kb_id: 7, request_id: '177654b5-56f1-4a44-afb4-f39ccb5e261f', dataset_key: 'test', dataset_sha256: sha, group_key: 'project_ops', status: 'succeeded', case_count: 1, completed_count: 1, failed_count: 0, stop_requested: false, corpus_verified: true, error: '', snapshot: raw, bindings: JSON.stringify({ documents: [binding], inventory: [{ id: 9, kb: 'project_ops', kb_id: 7, title: document.title, version: 2, status: 'ready', embedding_model: 'embedding-test' }] }), context: JSON.stringify(context), observations: JSON.stringify([observation]), created_at: 1, updated_at: 2, started_at: 1, completed_at: 2 };
 function storage() { const data = new Map(); return { getItem: k => data.get(k) ?? null, setItem: (k, v) => data.set(k, v), removeItem: k => data.delete(k) }; }
+
+test('知识库质量首屏保持历史、原请求和只读访问', async t => {
+  const previousWindow = globalThis.window, previousStorage = globalThis.sessionStorage;
+  globalThis.window = { localStorage: storage(), sessionStorage: storage(), addEventListener() {} };
+  globalThis.sessionStorage = globalThis.window.sessionStorage;
+  // 独立SSR实例保留首屏未执行详情模块的边界，不受下方详情渲染测试影响。
+  const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, watch: null, ws: false } });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
+  try {
+    const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
+    const scope = ['knowledge-quality-presentation', 1, 1];
+    useAuthStore.setState({ token: 'local-fixture', sessionId: scope[0], sessionVersion: 1, departmentVersion: 1, permissionsReady: true, isLoggingOut: false,
+      permCodes: ['sys:ai:kb:list', 'sys:ai:kb:edit', 'sys:ai:kb:delete', 'sys:ai:kb:evaluate'] });
+    Object.assign(useAuthStore.getInitialState(), useAuthStore.getState());
+    const { aiWorkspaceKeys } = await server.ssrLoadModule('/src/pages/ai/workspaceQueries.ts');
+    const kb = { id: 7, name: '发布手册', description: '', owner_id: 1, doc_count: 1, chunk_count: 0, created_at: 1, updated_at: 1, ready_count: 0, pending_count: 0, failed_count: 1 };
+    const capabilities = { analysis_configured: true, retrieval_configured: true };
+    client.setQueryData(aiWorkspaceKeys.kb(scope, 7), { kb, capabilities });
+    client.setQueryData([...aiWorkspaceKeys.kbDocs(scope, 7), { page: 1, page_size: 10 }], { list: [{ id: 8, kb_id: 7, title: '故障指南', status: 'failed', stage: 'failed', version: 1, error: '处理失败', chunk_count: 0, embedding_model: '', created_at: 1, updated_at: 1 }], total: 1, ready_count: 0, pending_count: 0, failed_count: 1 });
+    client.setQueryData(aiWorkspaceKeys.qualityDatasets(scope, 7), [{ key: 'fixture', name: '回归题集', sha256: 'a'.repeat(64), raw: '{}', dataset: { version: 1, documents: [], cases: [] } }]);
+    client.setQueryData([...aiWorkspaceKeys.qualityRuns(scope, 7), { page: 1, page_size: 10 }], { list: [], total: 0 });
+    const render = Component => renderToStaticMarkup(createElement(QueryClientProvider, { client }, createElement(MemoryRouter, null, createElement(Component, { scope, kbId: 7, kb, onChanged() {} }))));
+    await t.test('质量页默认历史，创建表单及题集导入不挂载，也不执行结果或任务详情模块', async () => {
+      const { KnowledgeQualitySession } = await server.ssrLoadModule('/src/pages/ai/KnowledgeQualityPage.tsx');
+      const html = render(KnowledgeQualitySession);
+      assert.match(html, /历史批次/);
+      assert.match(html, /新建评测/);
+      assert.doesNotMatch(html, /选择评测题集|开始一批评测|导入冻结题集JSON/);
+      assert.match(html, /调用.*用量/);
+      const executedDetailModules = [...server.environments.ssr.moduleGraph.idToModuleMap.values()]
+        .filter(module => module.ssrModule && /\/(?:KnowledgeQualityDetails|TaskDetail)\.tsx$/.test(module.id ?? ''));
+      assert.deepEqual(executedDetailModules.map(module => module.id), [], '历史首屏不应执行结果或任务详情模块');
+    });
+    await t.test('新建区收起时仍可核对原评测标识，避免未知提交被藏起', async () => {
+      const { qualityAttemptKey, writeQualityAttempt } = await server.ssrLoadModule('/src/pages/ai/knowledgeQuality.ts');
+      const key = qualityAttemptKey(scope, null, 7);
+      writeQualityAttempt(sessionStorage, key, { request_id: '11111111-1111-4111-8111-111111111111', dataset_key: 'fixture', dataset_sha256: 'a'.repeat(64), group_key: 'project_ai', case_ids: ['one'] });
+      try {
+        const { KnowledgeQualitySession } = await server.ssrLoadModule('/src/pages/ai/KnowledgeQualityPage.tsx');
+        const html = render(KnowledgeQualitySession);
+        for (const text of ['上次提交结果待确认', '11111111-1111-4111-8111-111111111111', '核对原请求', '使用原标识继续', '历史批次']) assert.ok(html.includes(text), text);
+        assert.doesNotMatch(html, /选择评测题集/);
+      } finally { sessionStorage.removeItem(key); }
+    });
+    await t.test('只读身份仍能打开资料名称，编辑删除和添加入口均不可见', async () => {
+      useAuthStore.setState({ permCodes: ['sys:ai:kb:list'] });
+      Object.assign(useAuthStore.getInitialState(), useAuthStore.getState());
+      const { KnowledgeDocumentsPanel } = await server.ssrLoadModule('/src/pages/ai/KnowledgeDocumentsDrawer.tsx');
+      const html = render(KnowledgeDocumentsPanel);
+      assert.match(html, /故障指南/);
+      assert.match(html, /查看导入批次/);
+      assert.doesNotMatch(html, /添加资料|更多：|重试故障指南|>删除</);
+    });
+  } finally { client.clear(); await server.close(); globalThis.window = previousWindow; globalThis.sessionStorage = previousStorage; }
+});
 
 test('质量验收的冻结题集、实际观测和原请求恢复', async t => {
   const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', server: { middlewareMode: true, watch: null, ws: false } });

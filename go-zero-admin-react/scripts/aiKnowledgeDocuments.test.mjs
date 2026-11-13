@@ -6,6 +6,15 @@ test('批量资料导入保留原文并限制类型、UTF-8字节和并发', asy
   const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', server: { middlewareMode: true, watch: null, ws: false } });
   try {
     const files = await server.ssrLoadModule('/src/pages/ai/knowledgeImport.ts').catch(() => ({}));
+    await t.test('导入批次在提交前分配唯一请求标识，最多20篇且终态停止轮询', () => {
+      const batch = files.prepareKnowledgeBatch([{ title: '甲', content: '正文' }, { title: '乙', content: '正文' }]);
+      assert.equal(new Set(batch.items.map(item => item.values.request_id)).size, 2);
+      assert.ok(batch.items.every(item => item.values.batch_id === batch.batchId));
+      assert.equal(files.knowledgeBatchPollInterval({ queued: 1, running: 0 }, true), 3000);
+      assert.equal(files.knowledgeBatchPollInterval({ queued: 0, running: 0 }, true), false);
+      assert.equal(files.knowledgeBatchPollInterval({ queued: 1, running: 1 }, false), false);
+      assert.throws(() => files.prepareKnowledgeBatch(Array.from({ length: 21 }, () => ({ title: '甲', content: '正文' }))), /20/);
+    });
     await t.test('TXT/Markdown原始CRLF和BOM保留，标题使用文件名', async () => {
       assert.equal(typeof files.readKnowledgeFile, 'function');
       const body = '\uFEFF第一行\r\n第二行\r\n';

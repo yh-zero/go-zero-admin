@@ -4,12 +4,11 @@
 
 完整方案见[架构规划](../ai_document/refactor-plan.md)，当前接口语义见[API 契约](../ai_document/api-contract.md)，启动和排障见[开发手册](../ai_document/dev-guide.md)。
 
-## 工具版本
+## 依赖与工具来源
 
-- Go `1.27.3`（`go 1.27.0` + toolchain `go1.27.3`）
-- go-zero `v1.10.3` / goctl `v1.10.2`（分别核对 `go.mod` 与生成脚本/CI 的工具版本，不把声明当作本机安装验证）
-- jwt/v5 `v5.3.1` / x/crypto `v0.58.0`
-- MySQL `9.7`
+- Go、go-zero 及运行库版本以 [go.mod](go.mod) / [go.sum](go.sum) 为准。
+- 生成工具版本以[生成脚本](data/scripts/gen.ps1)与 [CI](../.github/workflows/ci.yml) 为准；声明不等于本机安装验证。
+- MySQL 等服务镜像以 [Compose](docker-compose.yml) 为准；启动步骤见[开发手册](../ai_document/dev-guide.md#2-构建启动与就绪检查)。
 
 ## 目录
 
@@ -37,12 +36,9 @@
 - 开发先读[根规范](../AGENTS.md)，再读[后端规范](AGENTS.md)；涉及接口时遵守[共享契约](../ai_document/api-contract.md)。本目录未提供 `CLAUDE.md`，不依赖不存在的指针文件。
 - **mcp-zero** 为可选辅助工具：[.mcp.json](.mcp.json) 包含其客户端配置，不代表工具已安装、路径有效或当前客户端已加载。安装/版本变更先获批准并选定版本，不默认安装 `@latest`；未接入也可按 `gen.ps1` 工作流开发，工具不得绕过该生成入口。
 - 仓库当前未提供 `.agents/skills/go-zero-admin` / `.claude/skills/go-zero-admin` 两个项目技能目录，不把它们写成已可用能力；如需接入，先确认来源、版本、安装位置及客户端发现方式。
-- 可选接入官方指令层/知识库：以下仅为接入示例，须明确批准后执行并记录审查过的提交版本，不自动安装或跟随上游更新；本仓库已由 Git 管理，无需再次 `git init`：
-  `git submodule add https://github.com/zeromicro/ai-context.git .github/ai-context`
-  `git submodule add https://github.com/zeromicro/zero-skills.git .github/zero-skills`
+- 官方指令层与知识库已通过 `.ai-context/` submodule 接入，入口为 [go-zero 指令](../.ai-context/go-zero/00-instructions.md)与 [zero-skills](../.ai-context/zero-skills/SKILL.md)；初始化与更新纪律见[根规范](../AGENTS.md#1-官方规范层后端-go-zero-任务先读)。
 - 提交前自检：`.\data\scripts\verify.ps1`；静态门槛不代替受影响回归和功能验收，纯文档检查范围按根规范执行。
 
 ## 生成物命名约定
 
-- 本仓库 `gen.ps1 rpc` 使用 `--name-from-filename`：`admin.proto` → `admin.go` 与 `etc/admin.yaml`，其他模块同理；这取决于生成参数，不是固定生成 `pb.go`。既有 main 可能被跳过，新 service 仍须检查注册，不为改名丢失已有初始化和业务代码。
-- `goctl model` 生成 `<table>_model_gen.go`（勿改）+ `<table>_model.go`（手写扩展）。
+RPC 文件命名、配置命名及 model 生成物与手写扩展的边界统一见[后端规范](AGENTS.md#2-生成入口与文件边界官方规则之上的项目适配)。

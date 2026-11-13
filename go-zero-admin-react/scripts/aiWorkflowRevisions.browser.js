@@ -1,9 +1,12 @@
 // 独立playwright-cli会话；全部业务请求由显式响应桩接管，供应商及未知业务请求拒绝。
 // oxlint-disable-next-line no-unused-expressions -- playwright-cli读取此函数表达式执行。
 async (page) => {
+  const origin = new URL(page.url()).origin;
   const check = (value, message) => { if (!value) throw new Error(message); };
-  const now = Math.floor(Date.now() / 1000), updates = [], restores = [], unexpected = [], errors = [];
-  let permissions = ['sys:ai:workflow:list', 'sys:ai:workflow:edit', 'sys:ai:tool:list'];
+  const now = Math.floor(Date.now() / 1000), creates = [], updates = [], restores = [], unexpected = [], errors = [];
+  let permissions = ['sys:ai:workflow:list', 'sys:ai:workflow:create', 'sys:ai:workflow:edit', 'sys:ai:tool:list'];
+  const handleDialog = dialog => dialog.type() === 'beforeunload' ? dialog.accept() : dialog.dismiss();
+  page.on('dialog', handleDialog);
   let workflow = { id: 71, name: '原始流程', enabled: 1, interval_seconds: 0, next_run_at: 0, created_by: 1, created_at: now, updated_at: now, revision: 1, step_count: 1,
     definition: JSON.stringify({ steps: [{ name: '读取时间', tool: 'get_current_time', input: {}, approval: false }] }) };
   const history = new Map();
@@ -15,7 +18,7 @@ async (page) => {
   }, version: 0 })));
   await page.route('**/*', route => {
     const url = route.request().url(), path = url.replace(/^https?:\/\/[^/]+/, '');
-    if (!url.startsWith('http://127.0.0.1:5999/') || path.startsWith('/v1/')) { unexpected.push({ url: url.split('?')[0], method: route.request().method() }); return route.abort('blockedbyclient'); }
+    if (!url.startsWith(`${origin}/`) || path.startsWith('/v1/')) { unexpected.push({ url: url.split('?')[0], method: route.request().method() }); return route.abort('blockedbyclient'); }
     return route.continue();
   });
   await page.route('**/v1/**', async route => {
@@ -26,8 +29,17 @@ async (page) => {
     if (path === '/v1/sys/menu/my/perm-codes') return send({ codes: permissions });
     if (path === '/v1/sys/menu/my') return send({ list: [{ id: 901, parent_id: 0, title: '常用流程', name: 'ai_workflow', path: '/ai/workflows', component: 'ai_workflow', type: 2, visible: true, status: 1, sort: 0 }] });
     if (path === '/v1/sys/profile/') return send({ user: { id: 1, username: 'workflow-fixture', nickname: '版本验收', email: '', phone: '', avatar_url: '', dept_id: 0, role_ids: [] } });
-    if (path === '/v1/sys/ai/tools') return send({ list: [{ name: 'get_current_time', description: '读取当前时间', parameters_schema: '{"type":"object","properties":{}}' }], capabilities: { retrieval_configured: false, analysis_configured: false, ingestion_mode: 'background' } });
+    if (path === '/v1/sys/ai/tools') return send({ list: [
+      { name: 'get_current_time', description: '读取当前时间', parameters_schema: '{"type":"object","properties":{}}' },
+      { name: 'text_stats', description: '统计文本', parameters_schema: '{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}' },
+    ], capabilities: { retrieval_configured: false, analysis_configured: false, ingestion_mode: 'background' } });
     if (path === '/v1/sys/ai/workflows' && method === 'GET') return send({ list: [{ ...workflow, definition: '' }], total: 1 });
+    if (path === '/v1/sys/ai/workflows' && method === 'POST') {
+      const data = request.postDataJSON(); creates.push(data);
+      check(creates.length === 1 && data.name === 'Form提交持久化回归', '新建只能由本次明确保存触发一次');
+      check(JSON.parse(data.definition).steps[0].input.text === '提交中刷新必须保留这段文本', '实际 Form 提交必须保留工具输入');
+      return send({}, 503);
+    }
     if (path === '/v1/sys/ai/workflows/71' && method === 'GET') return send({ workflow });
     if (path === '/v1/sys/ai/workflows/71' && method === 'PUT') {
       const data = request.postDataJSON(); updates.push(data);
@@ -52,7 +64,31 @@ async (page) => {
     unexpected.push({ path, method });
     return route.abort('blockedbyclient');
   });
-  await page.goto('http://127.0.0.1:5999/ai/workflows/71/edit');
+  // 真实 antd Form：新建未挂载 enabled 字段，切换工具仍应保存完整草稿。
+  await page.goto(`${origin}/ai/workflows/new`);
+  await page.getByRole('textbox', { name: '工作流名称', exact: true }).fill('Form提交持久化回归');
+  await page.getByRole('textbox', { name: '处理文本', exact: true }).fill('提交中刷新必须保留这段文本');
+  await page.getByLabel('步骤类型', { exact: true }).click();
+  await page.locator('.ant-select-item-option[title="当前时间"]').click();
+  await page.getByLabel('步骤类型', { exact: true }).click();
+  await page.locator('.ant-select-item-option[title="文本统计"]').click();
+  check(await page.getByRole('textbox', { name: '处理文本', exact: true }).inputValue() === '提交中刷新必须保留这段文本', '切回工具必须还原文本缓存');
+  await page.getByRole('button', { name: /保存为常用流程$/ }).click();
+  await page.getByText('上次保存结果未知，草稿已保留', { exact: true }).waitFor();
+  const draftKey = `ai-workflow-draft:${JSON.stringify(['workflow-history-fixture-session', null, 'new'])}`;
+  const submitted = await page.evaluate(key => JSON.parse(sessionStorage.getItem(key)), draftKey);
+  check(submitted.draft.enabled === true, '未挂载的 enabled 字段必须保留，刷新时才能恢复合法草稿');
+  check(submitted.submissionState === 'unknown', '未知提交必须落盘为 unknown');
+  check(JSON.parse(submitted.draft.steps[0].toolInputs.text_stats).text === '提交中刷新必须保留这段文本', '实际 Form 提交必须保留工具缓存');
+  await page.reload();
+  await page.getByText('上次保存结果未知，草稿已保留', { exact: true }).waitFor();
+  check(await page.getByRole('textbox', { name: '工作流名称', exact: true }).inputValue() === 'Form提交持久化回归', '未知提交刷新后名称必须恢复');
+  check(await page.getByRole('textbox', { name: '处理文本', exact: true }).inputValue() === '提交中刷新必须保留这段文本', '未知提交刷新后文本必须恢复');
+  check(await page.getByRole('button', { name: /保存为常用流程$/ }).isDisabled() && creates.length === 1, '未知提交刷新后必须锁住保存且不自动重发POST');
+  await page.getByRole('button', { name: '丢弃草稿', exact: true }).click();
+  await page.getByRole('button', { name: '丢弃并返回列表', exact: true }).click();
+  await page.waitForURL('**/ai/workflows');
+  await page.goto(`${origin}/ai/workflows/71/edit`);
   const name = page.getByRole('textbox', { name: '工作流名称', exact: true });
   await name.fill('我的未保存草稿');
   await page.getByRole('button', { name: /保存为常用流程$/ }).click();
@@ -98,5 +134,8 @@ async (page) => {
   const mobile = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth }));
   check(mobile.scrollWidth <= mobile.width + 2, '手机宽度不能产生页面横向溢出');
   check(errors.length === 0 && unexpected.length === 0, `不得出现页面错误或未mock请求：${JSON.stringify({ errors, unexpected })}`);
-  return { staleSavePreservedDraft: true, unknownRestoreKeptOriginal: true, explicitRestoreCreatedNewVersion: true, readOnlyHistory: true, mobile, writes: updates.length + restores.length, realBusinessWrites: 0, realModelCalls: 0, pageErrors: errors.length };
+  page.off('dialog', handleDialog);
+  const result = { actualFormEnabledPreserved: true, toolCachePreserved: true, unknownCreateRestoredWithoutReplay: true, createRequests: creates.length, staleSavePreservedDraft: true, unknownRestoreKeptOriginal: true, explicitRestoreCreatedNewVersion: true, readOnlyHistory: true, mobile, writes: creates.length + updates.length + restores.length, realBusinessWrites: 0, realModelCalls: 0, pageErrors: errors.length };
+  console.log(JSON.stringify(result));
+  return result;
 }

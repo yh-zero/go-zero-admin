@@ -54,6 +54,32 @@ test('AI对话关键边界', async t => {
       assert.equal(calls.length, 3, '失败不自动重试');
     });
 
+    await t.test('资料范围跟随原请求重查，知识问答按2000 UTF8字节限制', async () => {
+      const calls = [];
+      let serial = 0;
+      const sender = helpers.createMessageSender(async request => {
+        calls.push(request);
+        if (calls.length === 1) throw new Error('结果未知');
+        return { conversation_id: 8, conversation: { id: 8 } };
+      }, () => `request-${++serial}`);
+      assert.equal(sender.start(0, '中'.repeat(667), {}, { kb_id: 2, grounded: true }), null);
+      assert.equal(sender.start(0, '问题', {}, { kb_id: 0, grounded: true }), null);
+      assert.equal(serial, 0, '超限或缺少资料范围时不创建请求');
+      const content = '中'.repeat(666) + 'aa';
+      const first = sender.start(0, content, {}, { kb_id: 2, grounded: true });
+      assert.ok(first, '正好2000 UTF8字节的问题可以发送');
+      await assert.rejects(first.promise, /结果未知/);
+      await sender.recheck().promise;
+      assert.deepEqual(calls[1], calls[0]);
+      assert.equal(calls[1].content, content);
+      assert.equal(calls[1].kb_id, 2);
+      assert.equal(calls[1].grounded, true);
+      await sender.start(8, '问题', {}, { kb_id: 3, grounded: false }).promise;
+      assert.equal(calls[2].kb_id, 3);
+      assert.equal(calls[2].grounded, false);
+      assert.notEqual(calls[0].request_id, calls[2].request_id);
+    });
+
     await t.test('流式通道保存meta和原请求，卸载中止后不接受迟到结果', async () => {
       const pending = deferred();
       let signal;
@@ -85,6 +111,28 @@ test('AI对话关键边界', async t => {
       assert.equal(helpers.nextMessageCursor({ has_more: true, next_before_id: 12 }, 12), undefined);
       assert.equal(helpers.nextMessageCursor({ has_more: true, next_before_id: 13 }, 12), undefined);
       assert.equal(helpers.nextMessageCursor({ has_more: true, next_before_id: 0 }, 0), undefined);
+    });
+
+    await t.test('完整导出逐页到起点，坏游标和身份变化不下载残缺结果', async () => {
+      const read = [];
+      const message = id => ({ id, created_at: id });
+      const result = await helpers.readEntireConversation(async before => {
+        read.push(before);
+        return { conversation: { title: '整个会话' }, messages: before ? [message(1), message(2)] : [message(3), message(4)], has_more: before === 0, next_before_id: before ? 0 : 3 };
+      }, () => true, new AbortController().signal);
+      assert.deepEqual(read, [0, 3]);
+      assert.deepEqual(result.messages.map(row => row.id), [1, 2, 3, 4]);
+      assert.equal(result.has_more, false);
+      await assert.rejects(helpers.readEntireConversation(async () => ({ messages: [], has_more: true, next_before_id: 0 }), () => true, new AbortController().signal), /游标/);
+      const stopped = new AbortController();
+      stopped.abort();
+      await assert.rejects(helpers.readEntireConversation(async () => { throw new Error('不应读取'); }, () => true, stopped.signal), { name: 'AbortError' });
+      await assert.rejects(helpers.readEntireConversation(async () => ({ messages: [], has_more: false }), () => false, new AbortController().signal), { name: 'AbortError' });
+      let current = true;
+      await assert.rejects(helpers.readEntireConversation(async () => {
+        current = false;
+        return { messages: [message(1)], has_more: false, next_before_id: 0 };
+      }, () => current, new AbortController().signal), { name: 'AbortError' });
     });
 
     await t.test('消息缓存按身份与会话隔离，删除时取消的迟到响应不能恢复缓存', async () => {
@@ -129,6 +177,15 @@ test('AI对话关键边界', async t => {
       assert.match(markup, /用量可能不完整/);
       assert.match(markup, /模型调用失败/);
       assert.ok(!markup.includes('免费'));
+    });
+
+    await t.test('回答实际来源可展开且标题正文均转义', async () => {
+      const { MessageRecord } = await server.ssrLoadModule('/src/pages/ai/MessageRecord.tsx');
+      const markup = renderToStaticMarkup(createElement(MessageRecord, { message: { id: 1, role: 'assistant', status: 'succeeded', content: '**结论** [1]', tool_calls: '[]', tokens: 5, created_at: 1, error: '', feedback: '', feedback_note: '', sources: [{ chunk_id: 9, kb_id: 2, doc_id: 4, doc_title: '<script>标题</script>', snippet: '<img src=x onerror=evil()>原文', score: 0.7 }] } }));
+      for (const text of ['参考资料', '查看原文', '本次引用片段', '<details>', '<strong>结论</strong>', '&lt;script&gt;标题', '&lt;img src=x', '分块 ID：9', '复制回答']) assert.ok(markup.includes(text), text);
+      assert.doesNotMatch(markup, /<script>|<img src=x/);
+      assert.doesNotMatch(markup, /已完成|已知 token/);
+      assert.match(markup, /用量与调用详情/);
     });
 
     await t.test('刷新入口放在会话列表标题栏，不再占用独立页面标题区', async () => {

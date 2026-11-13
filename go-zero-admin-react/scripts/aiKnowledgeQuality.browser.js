@@ -1,6 +1,7 @@
 // 独立Playwright会话；所有业务接口由响应桩接管，真实业务写入与模型调用均为0。
 // oxlint-disable-next-line no-unused-expressions -- playwright-cli读取此函数表达式执行。
 async (page) => {
+  const origin = new URL(page.url()).origin;
   const now = Math.floor(Date.now() / 1000), writes = [], stops = [], reads = [], errors = [];
   const require = (condition, text) => { if (!condition) throw new Error(text); };
   const document = { key: 'rules', kb: 'project_ops', source: 'ai_document/ai-rag/business-docs/rules.md', title: '发布规则', sha256: 'a'.repeat(64) };
@@ -68,10 +69,11 @@ async (page) => {
     if (/^\/v1\/sys\/ai\/tasks\/\d+\/feedback$/.test(path) && request.method() === 'GET') return send(200, { list: [] });
     throw new Error(`响应桩未定义业务请求：${request.method()} ${path}`);
   });
-  await page.goto('http://127.0.0.1:5999/login');
+  await page.goto(`${origin}/login`);
   sha = await page.evaluate(async value => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)))].map(x => x.toString(16).padStart(2, '0')).join(''), raw);
   runs = new Map([[1, makeRun(1)], [2, makeRun(2, { binary: 'c'.repeat(64) })], [3, makeRun(3, { status: 'failed' })], [5, makeRun(5, { version: 3 })]]);
-  await page.goto('http://127.0.0.1:5999/ai/knowledge/7/quality');
+  await page.goto(`${origin}/ai/knowledge/7/quality`);
+  await page.getByRole('button', { name: '新建评测', exact: true }).click();
   await page.getByRole('combobox', { name: '选择资料题组', exact: true }).click();
   await page.locator('.ant-select-dropdown').getByText('项目运维资料', { exact: true }).click();
   await page.getByRole('button', { name: '开始评测', exact: true }).dblclick();
@@ -82,7 +84,7 @@ async (page) => {
   await page.getByText('批次 #4', { exact: true }).waitFor();
   require(reads.some(value => value.includes(`request_id=${writes[0].request_id}`)), '核对必须使用原UUID');
   const saved = page.url();
-  await page.goto('http://127.0.0.1:5999/ai/knowledge/7');
+  await page.goto(`${origin}/ai/knowledge/7`);
   await page.getByRole('button', { name: '质量验收', exact: true }).waitFor();
   await page.goto(saved);
   await page.getByRole('button', { name: '停止后续题目', exact: true }).click();

@@ -1,14 +1,7 @@
-##### 右上角求点个star 谢谢大佬们
-#### 右上角求点个star 谢谢大佬们
-### 右上角求点个star 谢谢大佬们
-
-## 📺 视频教程：[![视频教程](https://img.shields.io/badge/Video_Tutorial-Bilibili-00A1D6?logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV15mW76qE3J/)
-[Bilibili - 项目演示与快速上手:https://www.bilibili.com/video/BV15mW76qE3J/](https://www.bilibili.com/video/BV15mW76qE3J/)
-
-
 # go-zero-admin
 
 [![CI](https://github.com/yh-zero/go-zero-admin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/yh-zero/go-zero-admin/actions/workflows/ci.yml)
+[![视频教程](https://img.shields.io/badge/Video_Tutorial-Bilibili-00A1D6?logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV15mW76qE3J/)
 
 基于 **go-zero + React** 的管理后台，包含权限、部门、文件、审计、APP 用户管理，以及 AI 对话、知识库检索与审批工作流，适合作为业务系统的开发起点。
 
@@ -120,7 +113,7 @@ node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan
 
 **运行记录** 统一显示一次性分析与已保存流程的运行，以可读标题、输入摘要、状态和结果为主；实际输入、步骤输出、耗时及原始记录放在技术详情中。带审批的步骤执行前暂停，确认参数后批准或拒绝；也可取消未结束的任务。取消会停止后续步骤，已经发生的模型调用或外部操作不会撤回。结果未知时保留原请求标识、定义与输入，核对原运行，不自动重复执行。
 
-流程修改先核对当前版本，可查看提交前的历史快照并恢复为新版本；恢复不会执行任务。运行记录可对照两条本人终态运行的实际输入、步骤和结果，差异不等于质量提升。版本历史、运行对照、用量页和反馈题集已完成本地主栈验证；异常边界另有隔离回归，生产容量仍需专门测量。
+流程修改先核对当前版本，可查看提交前的历史快照并恢复为新版本；恢复不会执行任务。运行记录可对照两条本人终态运行的实际输入、步骤和结果，差异不等于质量提升。历史验收范围见[验证证据](ai_document/validation-evidence.md)，生产容量仍需专门测量。
 
 **工具与能力** 按中文用途提供输入输出示例，可在目录创建流程或在编辑器加入当前流程，参数 Schema 默认折叠。目录里的“已配置”“未配置”“配置状态未知”反映服务端客户端配置，**不做供应商实时健康探测**；实际请求仍可能失败。知识库分析 `kb_analyze` 需要检索与聊天模型均已配置，内部通过 Eino 兼容模型封装执行。当前不提供定时调度；PDF/Office/OCR、混合检索、重排和逐篇全文/全库审阅仍未实现。
 
@@ -182,3 +175,4 @@ Rive 猫咪默认开启互动，支持呼吸、眨眼、鼠标跟随、输入密
 - [架构规划](ai_document/refactor-plan.md)：架构与后续方向
 - [前端说明](go-zero-admin-react/README.md)：页面、命令与对接约定
 - [开发规范](AGENTS.md)：通用规则及前后端规范入口
+- [验证证据](ai_document/validation-evidence.md)：历史验收范围、性能基线与前端原始观测入口

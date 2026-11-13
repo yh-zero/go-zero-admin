@@ -1,11 +1,53 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'vite';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 
 const storage = () => {
   const values = new Map();
   return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
 };
+
+test('知识库和资料名称作为默认入口，次要操作按需展开', async t => {
+  const previousWindow = globalThis.window;
+  globalThis.window = { localStorage: storage(), sessionStorage: storage(), addEventListener() {} };
+  const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, watch: null, ws: false } });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
+  try {
+    const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
+    const scope = ['knowledge-presentation', 1, 1];
+    useAuthStore.setState({ token: 'local-fixture', sessionId: scope[0], sessionVersion: 1, departmentVersion: 1, permissionsReady: true, isLoggingOut: false,
+      permCodes: ['sys:ai:kb:list', 'sys:ai:kb:edit', 'sys:ai:kb:delete', 'sys:ai:kb:evaluate'] });
+    Object.assign(useAuthStore.getInitialState(), useAuthStore.getState());
+    const { aiWorkspaceKeys } = await server.ssrLoadModule('/src/pages/ai/workspaceQueries.ts');
+    const kb = { id: 7, name: '发布手册', description: '', owner_id: 1, doc_count: 1, chunk_count: 0, created_at: 1, updated_at: 1, ready_count: 0, pending_count: 0, failed_count: 1 };
+    const capabilities = { analysis_configured: true, retrieval_configured: true };
+    client.setQueryData([...aiWorkspaceKeys.kbs(scope), { page: 1, page_size: 20, query: '' }], { list: [kb], total: 1, capabilities });
+    client.setQueryData(aiWorkspaceKeys.kb(scope, 7), { kb, capabilities });
+    client.setQueryData([...aiWorkspaceKeys.kbDocs(scope, 7), { page: 1, page_size: 10 }], { list: [{ id: 8, kb_id: 7, title: '故障指南', status: 'failed', stage: 'failed', version: 1, error: '处理失败', chunk_count: 0, embedding_model: '', created_at: 1, updated_at: 1 }], total: 1, ready_count: 0, pending_count: 0, failed_count: 1 });
+    const render = Component => renderToStaticMarkup(createElement(QueryClientProvider, { client }, createElement(MemoryRouter, null, createElement(Component, { scope, kbId: 7, kb, onChanged() {} }))));
+    await t.test('名称是唯一知识库入口，编辑删除默认收起', async () => {
+      const { AIKnowledgeSession } = await server.ssrLoadModule('/src/pages/ai/AIKnowledge.tsx');
+      const html = render(AIKnowledgeSession);
+      assert.match(html, /发布手册/);
+      assert.doesNotMatch(html, /进入工作区/);
+      assert.match(html, /更多/);
+      assert.doesNotMatch(html, />编辑<|>删除</);
+    });
+    await t.test('资料名称打开原文，失败重试明确且添加方式收起', async () => {
+      const { KnowledgeDocumentsPanel } = await server.ssrLoadModule('/src/pages/ai/KnowledgeDocumentsDrawer.tsx');
+      const html = render(KnowledgeDocumentsPanel);
+      assert.match(html, /故障指南/);
+      assert.match(html, />重试处理</);
+      assert.match(html, /添加资料/);
+      assert.match(html, /查看导入批次/);
+      assert.doesNotMatch(html, />原文<|>导入 TXT \/ Markdown<|>粘贴资料<|>删除</);
+    });
+  } finally { client.clear(); await server.close(); globalThis.window = previousWindow; }
+});
 
 test('知识库后台摄取返回接收凭证，提交与普通管理请求保留默认超时', async () => {
   const previousWindow = globalThis.window;
@@ -74,6 +116,7 @@ test('知识库文档提交与状态恢复行为', async t => {
       assert.equal(documents.canRetryDocument(pending, 220000), false);
       assert.equal(documents.canRetryDocument({ ...pending, status: 'failed' }, 100001), true);
       assert.equal(documents.canRetryDocument({ ...pending, status: 'ready' }, 999999), false);
+      for (const stage of ['queued', 'embedding', 'indexing']) assert.equal(documents.canRetryDocument({ ...pending, stage, updated_at: 1 }, 999999999), false);
     });
     await t.test('后台批次逐篇使用预生成标识提交，接收后不自动重放', async () => {
       const { prepareKnowledgeBatch, runKnowledgeImport } = await server.ssrLoadModule('/src/pages/ai/knowledgeImport.ts');

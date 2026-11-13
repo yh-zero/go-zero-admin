@@ -1,6 +1,7 @@
-// 独立 playwright-cli 会话及 6009 测试端口；所有业务请求均由响应桩接收。
+// 独立 playwright-cli 会话；使用当前页面同源测试服务，所有业务请求均由响应桩接收。
 // oxlint-disable-next-line no-unused-expressions -- playwright-cli 执行可重复的函数入口。
 async page => {
+  const origin = new URL(page.url()).origin;
   const failures = [], errors = [], calls = [];
   const check = (condition, message) => { if (!condition) failures.push(message); };
   let taskAccess = false;
@@ -33,13 +34,14 @@ async page => {
     if (path === '/v1/sys/ai/tasks/41') return send(taskAccess ? 200 : 403, { task });
     return send(404);
   });
-  await page.goto('http://127.0.0.1:6009/ai/knowledge/7');
+  await page.goto(`${origin}/ai/knowledge/7`);
   await page.getByRole('heading', { name: kb.name, exact: true }).waitFor();
+  await page.getByRole('button', { name: /用资料分析$/ }).click();
   await page.getByRole('textbox', { name: /你希望了解什么？$/ }).fill('权限最小组合的问题');
   await page.getByRole('button', { name: /开始分析$/ }).click();
   await page.getByText('已创建运行记录 #41，需要任务查看权限才能查看结果。', { exact: true }).waitFor();
   check(await page.getByRole('button', { name: '保存为常用流程', exact: true }).count() === 0, '缺少任务查看权限时不应提供依赖任务快照的保存入口');
-  await page.goto('http://127.0.0.1:6009/ai/workflows/new?from_task=41');
+  await page.goto(`${origin}/ai/workflows/new?from_task=41`);
   const forbidden = page.getByText('需要查看运行记录权限，才能使用本次快照', { exact: true });
   await forbidden.waitFor({ timeout: 2000 }).catch(() => {});
   check(await forbidden.count() === 1, '直接打开from_task无任务查看权限时应显示明确403，而非持续加载');
@@ -49,8 +51,9 @@ async page => {
     await page.getByRole('heading', { name: '常用流程', exact: true }).waitFor();
   }
   taskAccess = true;
-  await page.goto('http://127.0.0.1:6009/ai/knowledge/7');
+  await page.goto(`${origin}/ai/knowledge/7`);
   await page.getByRole('heading', { name: kb.name, exact: true }).waitFor();
+  await page.getByRole('button', { name: /用资料分析$/ }).click();
   const save = page.getByRole('button', { name: '保存为常用流程', exact: true });
   await save.waitFor();
   await save.click();
@@ -58,11 +61,13 @@ async page => {
   const name = page.getByRole('textbox', { name: /工作流名称$/ });
   await name.waitFor();
   check(await name.inputValue() === task.workflow_name, '有权限时应带入本次任务名称及执行快照');
+  await page.getByRole('button', { name: /试运行$/ }).click();
   check(await page.getByRole('textbox', { name: /本次问题$/ }).inputValue() === '保留的原问题', '有权限时应保留原任务的问题');
   // 必须使用SPA导航，让新组件恢复同一页面运行环境中未落盘的原请求。
   await page.getByRole('menuitem', { name: '知识库', exact: true }).click();
   await page.getByRole('button', { name: kb.name, exact: true }).click();
   await page.getByRole('heading', { name: kb.name, exact: true }).waitFor();
+  await page.getByRole('button', { name: /用资料分析$/ }).click();
   await page.evaluate(() => {
     const setItem = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key, value) {
@@ -80,6 +85,7 @@ async page => {
   await page.getByRole('heading', { name: '常用流程', exact: true }).waitFor();
   await page.getByRole('menuitem', { name: '知识库', exact: true }).click();
   await page.getByRole('button', { name: kb.name, exact: true }).click();
+  await page.getByRole('button', { name: /用资料分析$/ }).click();
   await page.getByText('上次运行结果待确认', { exact: true }).waitFor();
   check(await page.getByRole('textbox', { name: /你希望了解什么？$/ }).inputValue() === '存储失败仍应保留原问题', '配额不足后SPA返回应恢复原问题');
   check(await page.getByRole('button', { name: /开始分析$/ }).isDisabled(), '配额不足后SPA返回应继续锁住新提交');

@@ -10,6 +10,20 @@ test('工作流变量、运行表单和步骤快照', async t => {
     const dsl = await server.ssrLoadModule('/src/pages/ai/workflowDefinition.ts');
     const attempts = await server.ssrLoadModule('/src/pages/ai/workflowRunAttempts.ts');
     const tools = [{ name: 'text_stats', parameters_schema: '{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}' }, { name: 'json_formatter', parameters_schema: '{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}' }];
+    const knowledgeTools = [...tools, { name: 'kb_analyze', parameters_schema: JSON.stringify({ type: 'object', properties: { kb_id: { type: 'integer', minimum: 1 }, query: { type: 'string', minLength: 1 } }, required: ['kb_id', 'query'] }) }];
+    await t.test('默认分析仅执行有实际用途的一步，并在每次运行选择知识库和问题', () => {
+      const draft = dsl.workflowTemplate('kb_analyze', knowledgeTools);
+      assert.equal(draft.steps.length, 1);
+      assert.deepEqual(JSON.parse(draft.steps[0].input), { kb_id: { $ref: 'input.kb_id' }, query: { $ref: 'input.question' } });
+      const definition = dsl.serializeWorkflow(draft.steps, knowledgeTools);
+      assert.deepEqual(dsl.workflowRunFields(definition), { question: true, text: false, kb_id: true });
+    });
+    await t.test('JSON起步模板按格式整理命名，并明确使用本次文本', () => {
+      const draft = dsl.workflowTemplate('json_formatter', tools);
+      assert.match(draft.name, /JSON/);
+      assert.deepEqual(JSON.parse(draft.steps[0].input), { text: { $ref: 'input.text' } });
+      assert.doesNotThrow(() => dsl.serializeWorkflow(draft.steps, tools));
+    });
     await t.test('v2稳定ID在刷新与移动后保留，只允许前序引用', () => {
       const first = { ...dsl.newWorkflowStep('json_formatter'), input: '{"text":{"$ref":"input.text"}}' };
       const next = { ...dsl.newWorkflowStep('text_stats'), input: JSON.stringify({ text: { $ref: `steps.${first.key}` } }) };
@@ -28,6 +42,9 @@ test('工作流变量、运行表单和步骤快照', async t => {
       assert.deepEqual(JSON.parse(dsl.prepareWorkflowRunInput({ input: '{"extra":7,"question":"旧"}', question: '本次问题' })), { extra: 7, question: '本次问题' });
       assert.throws(() => dsl.prepareWorkflowRunInput({ input: '[]' }), /对象/);
       assert.throws(() => dsl.prepareWorkflowRunInput({ text: '中'.repeat(6000) }), /16000/);
+      assert.deepEqual(JSON.parse(dsl.prepareWorkflowRunInput({ input: '{"kb_id":2,"extra":7}', kb_id: 13, question: '本次分析' })), { kb_id: 13, extra: 7, question: '本次分析' });
+      for (const kb_id of [0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => dsl.prepareWorkflowRunInput({ kb_id }), /知识库/);
+      assert.throws(() => dsl.prepareWorkflowRunInput({ kb_id: 1, question: '中'.repeat(6000) }), /16000/);
     });
     await t.test('复制步骤保留参数，身份独立；完整模板连接输入与后序步骤', () => {
       const draft = dsl.workflowTemplate('text_stats', tools);

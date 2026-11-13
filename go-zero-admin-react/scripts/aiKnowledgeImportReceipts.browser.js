@@ -1,8 +1,11 @@
 // 独立 playwright-cli 会话；业务读写全部由响应桩处理。
+// 初始页面 URL 的 receipt_scenario 可选 quota（默认）或 partial，两场景分别执行。
 // oxlint-disable-next-line no-unused-expressions -- playwright-cli 执行函数表达式。
 async page => {
-  const scenario = 'quota';
+  const origin = new URL(page.url()).origin;
+  const scenario = new URL(page.url()).searchParams.get('receipt_scenario') ?? 'quota';
   const assert = (value, message) => { if (!value) throw new Error(message); };
+  assert(['quota', 'partial'].includes(scenario), '场景仅允许 quota 或 partial');
   const sessionId = 'import-receipt-browser-session';
   const batchId = '11111111-1111-4111-8111-111111111111';
   const requestA = '22222222-2222-4222-8222-222222222222';
@@ -44,7 +47,7 @@ async page => {
     }
     return send(404);
   });
-  await page.goto('http://127.0.0.1:5999/ai/knowledge/7');
+  await page.goto(`${origin}/ai/knowledge/7`);
   await page.getByRole('heading', { name: '回执组件回归', exact: true }).waitFor();
   if (scenario === 'partial') {
     await page.evaluate(({ sessionId, batchId, requestA, requestB }) => sessionStorage.setItem(`ai-knowledge-import:${JSON.stringify([sessionId, null, 7])}:pending`, JSON.stringify({ batchId, requestIds: [requestA, requestB], unsubmittedIds: [] })), { sessionId, batchId, requestA, requestB });
@@ -61,7 +64,8 @@ async page => {
   }
   for (const quota of ['pointer', 'all']) {
     await page.evaluate(quota => { sessionStorage.clear(); window.__receiptQuota = quota; }, quota);
-    await page.getByRole('button', { name: /粘贴资料$/ }).click();
+    await page.getByRole('button', { name: /添加资料$/ }).click();
+    await page.getByRole('menuitem', { name: /粘贴资料$/ }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByRole('textbox', { name: /标题$/ }).fill(`配额回归${quota}`);
     await dialog.getByRole('textbox', { name: /正文（纯文本）$/ }).fill('回执组件的受控资料。');

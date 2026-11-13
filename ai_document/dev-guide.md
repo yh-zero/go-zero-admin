@@ -46,6 +46,10 @@ API 的 `TrustedProxies` 是显式 IP/CIDR 列表，宿主配置默认为 `[]`�
 
 文件上传预算按对象存储 30 秒 → file-rpc 服务端 35 秒 → API 的 FileRpc 客户端 40 秒 → 上传 HTTP 45 秒 → 前端上传 50 秒逐层留余量；宿主、Compose 与新租户配置同步。只有上传 HTTP 路由获得 45 秒，其他文件 HTTP 路由保留原预算。修改任一层时核对调用链与生成路由，超时/取消不证明对象写入回滚，仍按文件引用与补偿机制核对结果。
 
+### 对象存储测试素材
+
+后端 `data/test-files/` 用于保存配合 RustFS 对象存储使用的演示图片与测试文件，供 file-rpc 上传、下载和签名 URL 的演示与联调。建议使用公开的 PNG/JPEG 演示图片，每张小于 1MB；这些素材仅供本地开发，不打包进任何镜像。
+
 ### AI 与邮件
 
 在后端目录复制模板（不覆盖已有本地配置），再自行填写所需凭据；模板是变量说明，不是运行凭据文件：
@@ -161,7 +165,7 @@ AI 发送与 model 已恢复 Go 回归：本地模型桩验证工具检查点与
 
 “粘贴资料”和 TXT/Markdown 导入共用后台批次。正文须非空白、最多 65536 UTF-8 字节，标题最多 128 字符；文件严格按 UTF-8 解码并保留 BOM/CRLF，每批最多 20 篇，浏览器最多并发提交 2 篇。收到回执即可关闭，返回“查看导入批次”查询 `queued/running/succeeded/failed/cancelled/reused`；`pending/stage=queued` 仅表示接收成功，不能当作处理完成。停止批次只取消排队项并阻止后续入队，运行项继续执行。离开页面后停止发送尚未发出的项；页面保留批次与原请求标识，返回后明确显示未提交项和结果未知项，不自动补传。单篇编辑/重试也保留接收回执；网络中断时先核对原批次，404 不作为自动换请求标识重发的依据。浏览器只保存回执标识，不将导入正文复制到批次恢复记录。
 
-相关回归入口包括前端 `node --test scripts/aiKnowledge.test.mjs scripts/aiKnowledgeDocuments.test.mjs scripts/aiKnowledgeImportReceipts.test.mjs scripts/aiWorkspacePolling.test.mjs scripts/aiWorkspaceTransport.test.mjs`，以及后端 `go test ./pkg/llm ./pkg/agenttools ./application/ai/rpc/internal/svc ./application/ai/rpc/internal/model ./application/ai/rpc/internal/logic/aiservice -run '^(TestEmbed|TestKb|TestCompact|TestContextBudget|TestAIStream)' -count=1`。数据库/Redis 摄取用例仍需显式隔离环境；Embedding/聊天使用本地 HTTP 桩，向量使用受控桩，不调用付费服务。命令是复验入口，实际运行结果与真实页面验收范围分别记录，不能据此推定真实供应商或生产负载已通过。仓库合成演示素材见 [ai-rag](ai-rag/README.md)，共 11 篇；PDF/Office/OCR、混合检索、重排及逐篇全文/全库审阅尚未接入。
+相关回归入口包括前端 `node --test scripts/aiKnowledge.test.mjs scripts/aiKnowledgeDocuments.test.mjs scripts/aiKnowledgeImportReceipts.test.mjs scripts/aiWorkspacePolling.test.mjs scripts/aiWorkspace.test.mjs`，以及后端 `go test ./pkg/llm ./pkg/agenttools ./application/ai/rpc/internal/svc ./application/ai/rpc/internal/model ./application/ai/rpc/internal/logic/aiservice -run '^(TestEmbed|TestKb|TestCompact|TestContextBudget|TestAIStream)' -count=1`。数据库/Redis 摄取用例仍需显式隔离环境；Embedding/聊天使用本地 HTTP 桩，向量使用受控桩，不调用付费服务。命令是复验入口，实际运行结果与真实页面验收范围分别记录，不能据此推定真实供应商或生产负载已通过。仓库合成演示素材见 [ai-rag](ai-rag/README.md)，共 11 篇；PDF/Office/OCR、混合检索、重排及逐篇全文/全库审阅尚未接入。
 
 知识库“测试资料检索”通过 `POST /v1/sys/ai/kbs/:id/search` 返回真实片段、来源 ID、相似度及服务端耗时，复用线上检索器；服务端 10 秒截止、前端等待 15 秒，不调用聊天模型。查看页面操作码和服务端 Casbin 路由授权分别生效，知识库归属仍须通过。新增路由通过“接口管理 → 同步路由”登记目录，保留原角色权限，不因页面入口可见就自动授予 API。已有实例需核对本轮新增批次/作业表与接口授权，不重导初始化 SQL 覆盖业务数据。固定题集与评测工具使用方式见 [直接召回测试](ai-rag/README.md#直接召回测试)，先用真实片段区分检索问题与回答问题，再评估分段、阈值或重排；目前无最低相似度阈值。
 
@@ -177,7 +181,7 @@ AI 四模块入口为“知识库”`/ai/knowledge`、“常用流程”`/ai/wor
 
 当前未保存内容可“试运行并查看结果”，知识库工作区也可直接“开始分析”；两者通过 `POST /v1/sys/ai/tasks/run` 留下正式任务，`workflow_id=0` 表示未关联常用流程，不自动创建流程。可在结果确认后“保存为常用流程”，也可直接保存；已保存流程的手动运行使用保存定义。草稿按当前会话、部门和流程保留在当前标签页，刷新可恢复，保存成功或明确丢弃后清除。运行 `request_id`、原定义和原输入保留到结果确认，结果未知时核对原运行，不生成另一任务标识。浏览器存储失败时同页内存仍保留标识；刷新前须到运行记录核对。
 
-`kb_analyze` 的注册能力始终可见，运行仍要求检索与聊天模型均已配置；内部执行一次检索和一次有界分析，不向聊天 Agent 暴露该嵌套模型工具。模型适配沿用 Eino；生成与 Embedding 按供应商计费。结果展示分析、实际参考片段和已知聊天用量，不含 Embedding，供应商未返回时标记不完整，0 不等于免费。运行和批准只等待提交（普通请求 30 秒），工作流后台每轮 90 秒、每实例 8 并发。审批前预览本次已解析参数；取消停止后续步骤且不撤回已有模型调用或外部作用。进程中断不自动重放，详情读取会将连续 100 秒未更新的 `running` 标记未知失败；工作流持久执行队列、定时调度和跨人审批仍未实现。
+`kb_analyze` 仅在知识库检索与聊天模型依赖齐全时注册，运行仍须核对本人知识库归属；内部执行一次检索和一次有界分析，不向聊天 Agent 暴露该嵌套模型工具。模型适配沿用 Eino；生成与 Embedding 按供应商计费。结果展示分析、实际参考片段和已知聊天用量，不含 Embedding，供应商未返回时标记不完整，0 不等于免费。运行和批准只等待提交（普通请求 30 秒），工作流后台每轮 90 秒、每实例 8 并发。审批前预览本次已解析参数；取消停止后续步骤且不撤回已有模型调用或外部作用。进程中断不自动重放，详情读取会将连续 100 秒未更新的 `running` 标记未知失败；工作流持久执行队列、定时调度和跨人审批仍未实现。
 
 任务执行槽与供应商并发是不同边界：任务数不能当作模型请求次数，内部检索、分析及重定向可能产生多个实际 HTTP 尝试，另受下述全栈供应商额度约束。
 
@@ -187,17 +191,16 @@ AI 四模块入口为“知识库”`/ai/knowledge`、“常用流程”`/ai/wor
 
 “工具与能力”按中文用途展示资料分析、查找资料、JSON 格式整理及本地工具的输入输出示例，可从目录创建流程或在编辑器加入当前流程；参数 Schema 默认折叠。`retrieval_configured`、`analysis_configured` 表示服务端对应客户端已配置，**不是供应商实时健康探测**；未知、未配置与读取失败分别展示，不能据“已配置”推定本次调用成功。目录与工作区不回显密钥或供应商地址。
 
-前端复验入口为 `node --test --test-concurrency=1 scripts/aiProductWorkspace.test.mjs scripts/aiWorkflowDataflow.test.mjs scripts/aiWorkflowEditor.test.mjs scripts/aiWorkflowAnalysis.test.mjs scripts/aiTasksTools.test.mjs scripts/aiToolCapabilities.test.mjs`；浏览器探针 `scripts/aiToolCapabilities.browser.js` 和 `scripts/aiWorkflowRun.browser.js` 仅在独立会话、全 API 响应桩下运行，不可直接对真实业务执行。响应桩回归不能替代真实主栈配置、权限和页面闭环验收。
+前端复验入口为 `node --test --test-concurrency=1 scripts/aiKnowledgeImportReceipts.test.mjs scripts/aiKnowledgeDocuments.test.mjs scripts/aiDraftRunAttempts.test.mjs scripts/aiWorkflowDataflow.test.mjs scripts/aiWorkflowEditor.test.mjs scripts/aiWorkflowAnalysis.test.mjs scripts/aiTasksTools.test.mjs scripts/aiToolCapabilities.test.mjs`；浏览器探针 `scripts/aiToolCapabilities.browser.js` 和 `scripts/aiWorkflowRun.browser.js` 仅在独立会话、全 API 响应桩下运行，不可直接对真实业务执行。响应桩回归不能替代真实主栈配置、权限和页面闭环验收。
 
 对话输入区可以指定本人知识库并选择“仅依据资料回答”；实际检索片段保存为历史来源快照，后续文档修改不会改写旧消息。依据模式的问题最多2000 UTF-8字节，无可用片段时不调用聊天模型；候选片段不等于一定有答案，资料不足仍需模型按约束说明。会话支持标题/正文搜索、重命名/置顶，成功助手消息可评价并补充说明。完整导出逐页读取，支持取消与身份切换保护；已加载消息导出单独标明。受限Markdown只创建React元素，不渲染原始HTML或自动加载图片。
 
-此前同步摄取版本的局部测量记录：相同 owner/KB/软删过滤下，11 篇演示资料的列表 CLI UTF-8 序列化结果从 13095 降到 914 字节（剔除 12181 字节正文），COUNT+分页仍为 2 次 SQL；单文档状态只查 1 次元信息。任务摘要固定夹具从 197068 降到 80 字节，仍为 2 次 SQL；后台取消观察每秒只读 status。阶段可见性当时增加一次摄取 CAS 事务。这些历史数据不作为本轮后台批次、搜索字段或轮询协调实现的性能验收；本轮未据此宣称模型时延或并发吞吐提升，需要独立数据集与隔离负载重新测量。
+历史主栈与隔离验证范围见[验证证据](validation-evidence.md)，不同版本的投影字节数、请求量和 SQL 次数统一保留在[性能基线](ai-rag/performance-baseline.md#历史工作区投影与请求量)，不作为当前构建的验收结果。
 
-原有工作区回归入口保留：前端 `node --test scripts/aiWorkspace.test.mjs scripts/aiWorkflows.test.mjs scripts/aiTasksTools.test.mjs`，后端菜单源检查 `powershell -NoProfile -ExecutionPolicy Bypass -File test/ai_workspace_seed_test.ps1`。隔离工作流回归使用 `go test ./application/ai/rpc/internal/logic/aiservice -run '^TestAIWorkspace' -count=1 -v`，只有显式设置 `GOZERO_AI_TEST_DSN`、`GOZERO_AI_TEST_REDIS` 才执行数据库/缓存场景，缺环境时明确跳过。另有 `scripts/aiKnowledgeImportReceipts.test.mjs` 与全响应桩浏览器入口 `scripts/aiKnowledgeImportReceipts.browser.js`，覆盖离页、迟到回执、配额失败与部分确认不重复渲染。四模块本地主栈已验证文本导入、直接分析及来源、草稿/保存流程、审批与失败、筛选和窄屏；完整边界见[问题清单](README.md#后端剩余事项)。运行命令按本次影响范围选择，不默认重跑聊天或其他模块。
+原有工作区回归入口保留：前端 `node --test scripts/aiWorkspace.test.mjs scripts/aiWorkflows.test.mjs scripts/aiTasksTools.test.mjs`，后端菜单源检查 `powershell -NoProfile -ExecutionPolicy Bypass -File test/ai_workspace_seed_test.ps1`。隔离工作流回归使用 `go test ./application/ai/rpc/internal/logic/aiservice -run '^TestAIWorkspace' -count=1 -v`，只有显式设置 `GOZERO_AI_TEST_DSN`、`GOZERO_AI_TEST_REDIS` 才执行数据库/缓存场景，缺环境时明确跳过。另有 `scripts/aiKnowledgeImportReceipts.test.mjs` 与全响应桩浏览器入口 `scripts/aiKnowledgeImportReceipts.browser.js`，覆盖离页、迟到回执、配额失败与部分确认不重复渲染。历史验证范围见[验证证据](validation-evidence.md)，未覆盖项见[问题清单](README.md#后端剩余事项)。运行命令按本次影响范围选择，不默认重跑聊天或其他模块。
 
 追加复查入口：`scripts/aiDraftRunAttempts.test.mjs` 验证存储异常下保留原运行标识；`scripts/aiDraftRunAccess.browser.js` 在独立6009端口、全API响应桩下验证任务快照权限与SPA离页恢复，不能直接对业务数据执行。后端 `go test ./application/ai/rpc/internal/logic/aiservice -run '^TestKbBackground' -count=1 -v` 配合上述隔离环境，覆盖更新作业过期时新旧向量补偿、跨知识库请求标识竞争及事务回滚。任务快照保存需要运行记录查看权限；存储异常的内存备份仅在当前页面运行环境内恢复，硬刷新或关闭标签页前仍需核对运行记录。
 
-2026-11-07 工作区版本的有限性能证据：两篇合成文本的后台接收回执分别约471/573毫秒，接收耗时不包含Embedding完成；真实浏览器就绪原文和终态任务各为一次完整详情GET、零额外meta GET。普通任务详情由原先两次SELECT改为一次，超时状态恢复分支例外；流程列表不返回定义，同批三条流程详情合计1166字节定义从列表省去。KB计数会增加统计查询工作，检索的Embedding/向量/原文调用链没有减少，不能将这些局部证据解释为模型提速或生产吞吐结论。
 
 认证可复用[登录 HTTP 回归入口](../go-zero-admin/test/login_e2e.ps1)：只用专用测试账号，正常取得一次性图形码，不读数据库/缓存绕过验证，也不退出其他设备。纯文档只需检查内容、链接与 `git diff --check`，不强制构建或全量 E2E。外部环境和故障场景边界见[问题清单](README.md#后端剩余事项)。
 
@@ -215,7 +218,7 @@ MySQL 按全局策略行→用户策略行顺序锁定，统一检查全栈未�
 
 已有库升级先备份并按完整初始化来源精确核对 `ai_workflow.revision_seq`（API字段为`revision`）、`ai_workflow_revision`、`ai_usage_call`、`ai_usage_policy` 及新增索引，补齐全局策略 `owner_id=0` 和菜单/接口授权；包括 `ai_usage_call` 的 `idx_status_lease`，不能仅建表后漏索引。先在隔离库验证增量 DDL 和 model 生成来源，再对授权目标执行，不重导会 DROP 的初始化 SQL、不重置原授权。已有调用不回填成已计费账本，账本启用时间用于解释历史范围；缺表或默认策略时不得放行未计量调用。
 
-本轮流程历史/对照、用量页、反馈题集、可信代理和上传预算已完成本地主栈验证；权限、额度、取消及竞争边界另有本地桩/隔离回归。一题公开项目反馈的保留样本记录了3次实际供应商请求（1聊天/2Embedding）、已知合计4596tokens；这不是供应商账单或生产容量验收。复验按影响范围选择：前端 `scripts/aiWorkflowRevisions.test.mjs`、`scripts/aiTaskComparison.test.mjs`、`scripts/aiUsage.test.mjs`；后端 `TestUsage` 系列及 `pkg/llm` 重定向/取消用例。数据库回归仅使用显式隔离连接，各次唯一 ID/key 精确清理，禁止清库或 `FLUSHDB/FLUSHALL`。
+复验按影响范围选择：前端 `scripts/aiWorkflowRevisions.test.mjs`、`scripts/aiTaskComparison.test.mjs`、`scripts/aiUsage.test.mjs`；后端 `TestUsage` 系列及 `pkg/llm` 重定向/取消用例。数据库回归仅使用显式隔离连接，各次唯一 ID/key 精确清理，禁止清库或 `FLUSHDB/FLUSHALL`。历史主栈范围和供应商请求观测见[验证证据](validation-evidence.md)与[性能基线](ai-rag/performance-baseline.md#历史工作区投影与请求量)。
 
 ### Qdrant 启动恢复与孤儿索引对账
 
@@ -223,7 +226,7 @@ Qdrant 配置有效但初始集合暂不可用时，ai-rpc 保留客户端，后
 
 ai-rpc 启动约 5 秒后执行首次孤儿对账，此后每轮结束等待 5 分钟；同地址/集合由 Redis 150 秒租约协调，单轮最多 120 秒。先完整读取至多 100 万索引 ID，再按每批 500 个回查 MySQL：有效知识库、文档和 `pending/ready` 分块继续保留，已失效/孤立 ID 才删除。索引快照不完整不驱动删除，批次事实源查询失败不驱动该批删除；失败/部分删除在后续周期按实际快照再核对，超扫描上限明确要求人工处理，不能据一条完成日志声称跨库事务或全部恢复。
 
-对账只删除孤儿，不补缺失向量、不重放 Embedding，也不自动清空集合。集合丢失或模型/维度变更仍需先核对 MySQL 原文、当前集合和配置，按明确文档范围人工重试重建并评估费用；清空集合、跨库批量补偿或重建须有对应授权。检索回 MySQL 的归属、软删与 ready 校验继续生效。本轮真实小集合验证自动删除1个专用孤立点且原40个点及payload保持；恢复、代次竞争及失败另有本地桩/隔离回归，持续真实故障、大集合和生产恢复仍单独验收。
+对账只删除孤儿，不补缺失向量、不重放 Embedding，也不自动清空集合。集合丢失或模型/维度变更仍需先核对 MySQL 原文、当前集合和配置，按明确文档范围人工重试重建并评估费用；清空集合、跨库批量补偿或重建须有对应授权。检索回 MySQL 的归属、软删与 ready 校验继续生效。小集合删除与原有点保持的历史观测见[性能基线](ai-rag/performance-baseline.md#历史工作区投影与请求量)。恢复、代次竞争及失败按影响范围选用本地桩/隔离回归，持续真实故障、大集合和生产恢复仍单独验收。
 
 ### 知识库效果评测
 
@@ -271,7 +274,7 @@ rescore仅重算派生指标并保留源SHA、任务、答案、来源、计时�
 
 评测器要求完整的构建/模型/Embedding/预算标签，成功接受状态只允许pending/running/succeeded，完成记录须严格逐题串行；空召回不得夹带聊天正用量。终态耗时在GET确认时捕获。相关失败边界通过本地桩回归，无需为检查工具追加真实模型调用。前端问项转义回归在`go-zero-admin-react/`目录执行 `node --test scripts/safeMarkdown.test.mjs scripts/aiWorkflowAnalysis.test.mjs`，覆盖真实展示组件与现有聊天格式。
 
-演示资料及题集的换行由[根属性文件](../.gitattributes)限定：两素材目录CRLF、题集元数据JSON为LF，以保持原始SHA。首次检出已验证兼容`core.autocrlf=false/true`；既有工作树不保证自动重写全部文件，校验失败时先保存并核对本地差异、用隔离新检出确认，不能用批量还原覆盖用户改动。
+演示资料及题集的换行由[根属性文件](../.gitattributes)限定：两素材目录CRLF、题集元数据JSON为LF，以保持原始SHA。跨平台检出的历史证据见[验证证据](validation-evidence.md)；既有工作树不保证自动重写全部文件，校验失败时先保存并核对本地差异、用隔离新检出确认，不能用批量还原覆盖用户改动。
 
 ## 4. 常见故障排查
 

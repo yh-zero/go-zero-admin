@@ -9,6 +9,17 @@ test('独立工作流编辑：参数、草稿及菜单访问边界', async t => 
   try {
     const dsl = await server.ssrLoadModule('/src/pages/ai/workflowDefinition.ts');
     const tool = { name: 'kb_analyze', description: '知识库分析', parameters_schema: JSON.stringify({ type: 'object', properties: { kb_id: { type: 'integer' }, query: { type: 'string' } }, required: ['kb_id', 'query'] }) };
+    await t.test('参数来源先展示引用摘要，完整选择按需展开且未知高级字段原样保留', async () => {
+      const { WorkflowParameters } = await server.ssrLoadModule('/src/pages/ai/WorkflowParameters.tsx');
+      const textTool = { name: 'text_stats', parameters_schema: '{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}' };
+      const html = renderToStaticMarkup(createElement(WorkflowParameters, { value: '{"text":{"$ref":"input.question"}}', tool: textTool }));
+      assert.match(html, /<summary[^>]*>[\s\S]*使用本次运行的问题[\s\S]*更改/);
+      assert.match(html, /input.question/);
+      assert.ok(!/<details[^>]*open=""[^>]*>[\s\S]*?<summary[^>]*>[\s\S]*?更改/.test(html));
+      const unknown = renderToStaticMarkup(createElement(WorkflowParameters, { value: '{"text":"旧内容","unknown":{"preserve":1}}', tool: textTool }));
+      assert.ok(unknown.includes('&quot;preserve&quot;:1'));
+      assert.ok(unknown.includes('高级参数'));
+    });
     await t.test('知识库参数拒绝空白、非正整数和UTF8超长，并返回具体字段', () => {
       for (const kb_id of [0, -1, 1.5, '1']) assert.throws(() => dsl.parseStepInput(JSON.stringify({ kb_id, query: '分析' }), tool), /知识库|kb_id/);
       assert.throws(() => dsl.parseStepInput('{"kb_id":1,"query":"  "}', tool), /分析目标|query/);
