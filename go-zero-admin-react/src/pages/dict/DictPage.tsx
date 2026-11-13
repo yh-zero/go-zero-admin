@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteDict, fetchDicts } from '../../api/dict';
 import type { DictInfo, GetDictListReq } from '../../api/types';
 import { Auth } from '../../components/Auth';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
@@ -31,8 +30,6 @@ export default function DictPage() {
   } });
 
   return <div className="page-stack">
-    <PageHeader title="字典管理" description="配置字典编码、启停状态和可选值。"
-      extra={<Auth code="sys:dict:add"><Button type="primary" icon={<PlusOutlined />} onClick={() => setEditing({ open: true, code: null })}>新增字典</Button></Auth>} />
     <Card className="filter-card">
       <Form name="dict-filter" className="filter-form" form={filterForm} layout="inline" onFinish={(values) => setFilters({ ...values, page: 1, page_size: filters.page_size })}>
         <Form.Item name="name" label="名称"><Input allowClear placeholder="搜索字典名称" /></Form.Item>
@@ -42,7 +39,8 @@ export default function DictPage() {
           <Button icon={<ReloadOutlined />} loading={query.isFetching} onClick={() => { void query.refetch(); }}>刷新</Button></Space></Form.Item>
       </Form>
     </Card>
-    <Card className="data-card" title="字典列表">
+    <Card className="data-card" title="字典列表"
+      extra={<Auth code="sys:dict:add"><Button type="primary" icon={<PlusOutlined />} onClick={() => setEditing({ open: true, code: null })}>新增字典</Button></Auth>}>
       <QueryState isPending={query.isPending} error={query.error} onRetry={() => { void query.refetch(); }} />
       {!query.isPending && !query.error && <Table<DictInfo> rowKey="id" dataSource={query.data?.list ?? []} scroll={{ x: 1000 }}
         pagination={pagination} columns={[

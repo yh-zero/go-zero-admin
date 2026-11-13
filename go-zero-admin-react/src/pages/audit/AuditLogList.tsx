@@ -4,7 +4,6 @@ import { ReloadOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAuditLogs } from '../../api/audit';
 import type { AuditLogInfo, GetAuditLogListReq } from '../../api/types';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { formatTime } from '../../utils/format';
 import { queryKeys } from '../../utils/queryKeys';
@@ -16,7 +15,7 @@ export default function AuditLogList() {
   const query = useQuery({ queryKey: [queryKeys.auditLogs, params], queryFn: () => fetchAuditLogs(params) });
   const pagination = useTablePagination(params, setParams, query.data?.total ?? 0);
 
-  return <div className="page-stack"><PageHeader title="审计日志" description="查询操作结果与请求记录" />
+  return <div className="page-stack">
     <Card className="filter-card"><Form name="audit-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setParams({ ...values, page: 1, page_size: params.page_size })}>
       <Form.Item name="module" label="模块"><Input placeholder="如 sys/user" allowClear /></Form.Item>
       <Form.Item name="action" label="动作"><Input placeholder="如 create" allowClear /></Form.Item>

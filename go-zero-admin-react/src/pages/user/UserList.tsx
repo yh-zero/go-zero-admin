@@ -6,7 +6,6 @@ import { deleteUser, fetchUsers } from '../../api/user';
 import { fetchDeptTree } from '../../api/dept';
 import type { GetUserListReq, UserInfo } from '../../api/types';
 import { Auth } from '../../components/Auth';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
@@ -36,9 +35,6 @@ export default function UserList() {
   const submitFilters = (values: GetUserListReq) => setParams({ ...values, page: 1, page_size: params.page_size });
 
   return <div className="page-stack">
-    <PageHeader title="用户管理" description="管理用户资料、部门和账号状态" extra={<Auth code="sys:user:add">
-      <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增用户</Button>
-    </Auth>} />
     <Card className="filter-card"><Form name="user-filter" className="filter-form" form={filterForm} layout="inline" onFinish={submitFilters}>
       <Form.Item name="username" label="用户名"><Input allowClear placeholder="搜索用户名" /></Form.Item>
       <Form.Item name="nickname" label="昵称"><Input allowClear placeholder="搜索昵称" /></Form.Item>
@@ -49,7 +45,9 @@ export default function UserList() {
         filterForm.resetFields(); setParams({ page: 1, page_size: params.page_size });
       }}>重置</Button><Button aria-label="刷新用户列表" icon={<ReloadOutlined />} onClick={() => void users.refetch()} /></Space></Form.Item>
     </Form></Card>
-    <Card className="data-card" title="用户列表">
+    <Card className="data-card" title="用户列表" extra={<Auth code="sys:user:add">
+      <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增用户</Button>
+    </Auth>}>
       <QueryState isPending={users.isPending} error={users.error} onRetry={() => void users.refetch()} />
       <Table<UserInfo> rowKey="id" dataSource={users.data?.list ?? []} loading={users.isFetching} scroll={{ x: 1100 }}
         pagination={pagination} columns={[

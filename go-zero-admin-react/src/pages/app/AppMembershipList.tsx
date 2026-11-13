@@ -6,7 +6,6 @@ import { useSearchParams } from 'react-router-dom';
 import { fetchAppMemberships, revokeAppMembership } from '../../api/app';
 import type { AppMembershipInfo, GetAppMembershipListReq } from '../../api/types';
 import { Auth } from '../../components/Auth';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { formatTime } from '../../utils/format';
@@ -80,10 +79,6 @@ function MembershipPage({ initialFilters, pageSize, onPageSizeChange, onFiltersC
     setParams({ ...filters, page: 1, page_size: params.page_size });
   };
   return <div className="page-stack app-page">
-    <div className="app-page-heading"><span className="app-heading-icon app-heading-icon--amber" aria-hidden="true"><CrownOutlined /></span>
-    <PageHeader title="会员管理" description="查看 APP 用户的会员权益、有效期和开通记录" extra={<Auth code="sys:app:membership:grant">
-      <Button type="primary" icon={<PlusOutlined />} onClick={() => setGrantOpen(true)}>开通会员</Button>
-    </Auth>} /></div>
     <Card className="filter-card app-filter-card"><Form<GetAppMembershipListReq> form={form} name="app-membership-filter"
       className="filter-form" layout="inline" initialValues={initialFilters} onFinish={submitFilters}>
       <Form.Item name="user_id" label="用户 ID" rules={[
@@ -103,7 +98,9 @@ function MembershipPage({ initialFilters, pageSize, onPageSizeChange, onFiltersC
       </Space></Form.Item>
     </Form></Card>
     <Card className="data-card app-data-card" title={<div className="app-section-title"><span className="app-section-icon" aria-hidden="true"><CrownOutlined /></span>
-      <span>会员记录</span>{memberships.isSuccess && <span className="app-count">{memberships.data.total}</span>}</div>}>
+      <span>会员记录</span>{memberships.isSuccess && <span className="app-count">{memberships.data.total}</span>}</div>} extra={<Auth code="sys:app:membership:grant">
+      <Button type="primary" icon={<PlusOutlined />} onClick={() => setGrantOpen(true)}>开通会员</Button>
+    </Auth>}>
       <QueryState isPending={memberships.isPending} error={memberships.error} onRetry={() => memberships.refetch()} />
       <Table<AppMembershipInfo> rowKey="id" dataSource={memberships.data?.list ?? []} loading={memberships.isFetching} scroll={{ x: 1200 }}
 pagination={{ ...pagination,

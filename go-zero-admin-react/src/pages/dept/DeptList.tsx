@@ -7,7 +7,6 @@ import { deleteDept, fetchDeptTree } from '../../api/dept';
 import { fetchMyMenus } from '../../api/auth';
 import type { DeptInfo } from '../../api/types';
 import { Auth } from '../../components/Auth';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { getAccessiblePagePaths } from '../../router/menuRoutes';
@@ -87,27 +86,26 @@ export default function DeptList() {
   </Space>;
 
   return <div className="page-stack dept-page">
-    <PageHeader title="部门管理" description="维护组织架构、负责人和直属成员" extra={<Space>
-      <Button icon={<ReloadOutlined />} onClick={() => void Promise.all([query.refetch(),
-        queryClient.invalidateQueries({ queryKey: [queryKeys.users, 'dept-members'] })])}>刷新</Button>
-      <Auth code="sys:dept:add"><Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增部门</Button></Auth>
-    </Space>} />
-    <QueryState isPending={query.isPending} error={query.error} onRetry={() => void query.refetch()} />
-    {query.isSuccess && <div className="dept-workspace">
+    <div className="dept-workspace">
       <Card className="data-card dept-organization" title={<div className="dept-section-heading">
         <span className="dept-section-icon"><ApartmentOutlined /></span><span>组织架构</span>
         <span className="dept-section-count">{departments.length}</span>
-      </div>}>
-        <div className="dept-tree-filters"><Input allowClear prefix={<SearchOutlined />} placeholder="搜索部门名称"
+      </div>} extra={<Space>
+        <Button icon={<ReloadOutlined />} onClick={() => void Promise.all([query.refetch(),
+          queryClient.invalidateQueries({ queryKey: [queryKeys.users, 'dept-members'] })])}>刷新</Button>
+        <Auth code="sys:dept:add"><Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增部门</Button></Auth>
+      </Space>}>
+        <QueryState isPending={query.isPending} error={query.error} onRetry={() => void query.refetch()} />
+        {query.isSuccess && <><div className="dept-tree-filters"><Input allowClear prefix={<SearchOutlined />} placeholder="搜索部门名称"
           value={keyword} onChange={event => setKeyword(event.target.value)} />
           <Select allowClear aria-label="部门状态" placeholder="全部状态" options={statusOptions} value={status} onChange={setStatus} /></div>
         {visible.length ? <Tree key={`${keyword}:${status ?? 'all'}`} blockNode showIcon showLine={{ showLeafIcon: false }} defaultExpandAll
           selectedKeys={selected ? [selected.id] : []} treeData={departmentNodes(buildTree(visible))}
           onSelect={keys => { if (keys[0] !== undefined) setSelectedId(Number(keys[0])); }} />
           : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="没有匹配的部门" />}
-        <div className="dept-tree-caption"><TeamOutlined /><span>仅统计当前身份可查看的直属成员</span></div>
+        <div className="dept-tree-caption"><TeamOutlined /><span>仅统计当前身份可查看的直属成员</span></div></>}
       </Card>
-      <div className="dept-detail">
+      {query.isSuccess && <div className="dept-detail">
         {selected ? <>
           <Card className="data-card dept-overview">
             <div className="dept-overview-top">
@@ -134,8 +132,8 @@ export default function DeptList() {
           </Card>
           <DeptMembers key={selected.id} dept={selected} canReadUsers={canReadUsers && selected.members_visible} />
         </> : <Card className="data-card"><Empty description="选择部门查看详情与成员" /></Card>}
-      </div>
-    </div>}
+      </div>}
+    </div>
     {editor && <DeptForm open dept={editor.dept} initialParentId={editor.parentId} departments={departments}
       canReadUsers={canReadUsers} departmentsPending={query.isPending} departmentsError={query.error}
       onRetryDepartments={() => void query.refetch()} onCancel={() => setEditor(null)} onSaved={() => setEditor(null)} />}

@@ -1,7 +1,7 @@
 .groups { display: grid; gap: 18px; }
 .table { border: 1px solid var(--app-border); border-radius: 12px; overflow: hidden; }
-.table :global(.ant-table-thead > tr > th) { padding: 14px 18px; color: #65748b; background: #f5f7fb; font-size: 12px; font-weight: 600; }
-.table :global(.ant-table-tbody > tr > td) { padding: 16px 18px; vertical-align: middle; border-bottom-color: #edf0f5; }
+.table :global(.ant-table-thead > tr > th) { color: #65748b; background: #f5f7fb; font-size: 12px; font-weight: 600; }
+.table :global(.ant-table-tbody > tr > td) { vertical-align: middle; border-bottom-color: #edf0f5; }
 .directoryRow > td { background: #fafbfe; }
 .pageRow > td { background: #fff; }
 .resource { display: inline-flex; align-items: center; gap: 10px; max-width: calc(100% - 40px); vertical-align: middle; }

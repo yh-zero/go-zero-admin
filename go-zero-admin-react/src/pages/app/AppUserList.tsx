@@ -7,7 +7,6 @@ import { fetchAppUsers } from '../../api/app';
 import { fetchMyMenus } from '../../api/auth';
 import type { AppAdminUserInfo, GetAppUserListReq } from '../../api/types';
 import { Auth } from '../../components/Auth';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { formatTime } from '../../utils/format';
@@ -41,8 +40,6 @@ export default function AppUserList() {
   const unavailable = users.isFetching || users.isError;
 
   return <div className="page-stack app-page">
-    <div className="app-page-heading"><span className="app-heading-icon"><TeamOutlined /></span>
-      <PageHeader title="APP用户" description="管理用户资料与账号状态，让每一次访问清晰可控" /></div>
     <Card className="filter-card app-filter-card"><Form name="app-user-filter" form={form} className="filter-form" layout="inline"
       onFinish={values => setParams({ ...values, account: values.account?.trim() || undefined, page: 1, page_size: params.page_size })}>
       <Form.Item name="account" label="账号" rules={[{ validator: (_, value?: string) =>

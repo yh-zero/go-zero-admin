@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createTenant, deleteTenant, fetchTenants, resetTenantAdmin, startTenant, stopTenant } from '../../api/tenant';
 import type { CreateTenantReq, GetTenantListReq, TenantInfo } from '../../api/types';
 import { Auth } from '../../components/Auth';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { formatTime } from '../../utils/format';
@@ -129,14 +128,6 @@ export default function TenantListPage() {
 
   return (
     <div className="page-stack">
-      <PageHeader title="租户管理" description="每租户独立整套服务与数据库，子域名经 Nginx 路由。" extra={
-        <Space>
-          <Button icon={<ReloadOutlined />} onClick={() => query.refetch()}>刷新</Button>
-          <Auth code="sys:tenant:create">
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建租户</Button>
-          </Auth>
-        </Space>
-      } />
       <Card className="filter-card">
         <Form<TenantFilterValues> form={filterForm} layout="inline" className="filter-form"
           onFinish={values => setFilters(current => ({ ...current, page: 1, status: values.status }))}>
@@ -150,7 +141,14 @@ export default function TenantListPage() {
           </Space></Form.Item>
         </Form>
       </Card>
-      <Card className="data-card" title="租户列表">
+      <Card className="data-card" title="租户列表" extra={
+        <Space>
+          <Button icon={<ReloadOutlined />} onClick={() => query.refetch()}>刷新</Button>
+          <Auth code="sys:tenant:create">
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建租户</Button>
+          </Auth>
+        </Space>
+      }>
         <QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />
         <Table<TenantInfo>
           rowKey="id" loading={query.isFetching} columns={columns} dataSource={query.data?.list ?? []}

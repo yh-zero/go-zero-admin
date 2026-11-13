@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteRole, fetchRoles } from '../../api/role';
 import type { GetRoleListReq, RoleInfo } from '../../api/types';
 import { Auth } from '../../components/Auth';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { StatusTag } from '../../components/StatusTag';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
@@ -34,9 +33,6 @@ export default function RoleList() {
   });
 
   return <div className="page-stack">
-    <PageHeader title="角色管理" description="配置角色资料、数据范围和功能授权" extra={<Auth code="sys:role:add">
-      <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增角色</Button>
-    </Auth>} />
     <Card className="filter-card"><Form name="role-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setParams({ ...values, page: 1, page_size: params.page_size })}>
       <Form.Item name="name" label="角色名称"><Input allowClear placeholder="搜索角色名称" /></Form.Item>
       <Form.Item name="code" label="角色编码"><Input allowClear placeholder="搜索角色编码" /></Form.Item>
@@ -45,7 +41,9 @@ export default function RoleList() {
         form.resetFields(); setParams({ page: 1, page_size: params.page_size });
       }}>重置</Button><Button aria-label="刷新角色列表" icon={<ReloadOutlined />} onClick={() => void roles.refetch()} /></Space></Form.Item>
     </Form></Card>
-    <Card className="data-card" title="角色列表">
+    <Card className="data-card" title="角色列表" extra={<Auth code="sys:role:add">
+      <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增角色</Button>
+    </Auth>}>
       <QueryState isPending={roles.isPending} error={roles.error} onRetry={() => void roles.refetch()} />
       <Table<RoleInfo> rowKey="id" dataSource={roles.data?.list ?? []} loading={roles.isFetching} scroll={{ x: 1050 }}
         pagination={pagination} columns={[

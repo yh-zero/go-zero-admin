@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchAppFeedback, updateAppFeedback } from '../../api/app';
 import type { AppFeedbackInfo, GetAppFeedbackListReq, UpdateAppFeedbackReq } from '../../api/types';
 import { Auth } from '../../components/Auth';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { useFormDraft } from '../../hooks/useFormDraft';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
@@ -70,8 +69,6 @@ export default function AppFeedbackList() {
   const pagination = useTablePagination(params, setParams, feedback.data?.total ?? 0);
 
   return <div className="page-stack app-page">
-    <div className="app-page-heading"><span className="app-heading-icon app-heading-icon--cyan"><MessageOutlined /></span>
-      <PageHeader title="意见反馈" description="倾听用户的声音，及时回应每一条建议" /></div>
     <Card className="filter-card app-filter-card"><Form name="app-feedback-filter" form={form} layout="inline" className="filter-form"
       onFinish={values => setParams({ ...values, page: 1, page_size: params.page_size })}>
       <Form.Item name="user_id" label="用户 ID" rules={[{ type: 'integer', min: 1, max: Number.MAX_SAFE_INTEGER, message: '请输入有效用户 ID' }]}>

@@ -21,8 +21,9 @@ export const appTheme: ThemeConfig = {
     Card: { headerFontSize: 15, headerHeight: 58, paddingLG: 24 },
     Table: {
       headerBg: '#f7f9fc', headerColor: '#5c6d85', headerSplitColor: 'transparent',
-      rowHoverBg: '#f5f8ff', borderColor: '#edf0f5', cellPaddingBlock: 15,
-      cellPaddingInline: 18, fontSize: 13,
+      rowHoverBg: '#f5f8ff', borderColor: '#edf0f5', cellPaddingBlock: 10,
+      cellPaddingInline: 16, cellPaddingBlockMD: 10, cellPaddingInlineMD: 16,
+      cellPaddingBlockSM: 10, cellPaddingInlineSM: 16, fontSize: 13,
     },
     Button: { fontWeight: 500, primaryShadow: '0 3px 8px rgba(37, 99, 235, 0.15)' },
     Input: { activeShadow: '0 0 0 3px rgba(37, 99, 235, 0.08)' },

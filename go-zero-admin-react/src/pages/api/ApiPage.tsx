@@ -6,7 +6,6 @@ import { deleteApiResource, fetchApiResources, syncApiResources } from '../../ap
 import { fetchProfile } from '../../api/profile';
 import type { ApiInfo, GetApiListReq } from '../../api/types';
 import { Auth } from '../../components/Auth';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { formatTime } from '../../utils/format';
@@ -31,8 +30,6 @@ export default function ApiPage() {
   } });
 
   return <div className="page-stack">
-    <PageHeader title="API 资源" description="维护接口资源目录，支持按分组、方法和路径查询。" extra={profile.data?.is_super_admin &&
-      <Button type="primary" icon={<SyncOutlined />} loading={sync.isPending} onClick={() => sync.mutate()}>同步接口</Button>} />
     <Card className="filter-card">
       <Form name="api-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setFilters({ ...values, page: 1, page_size: filters.page_size })}>
         <Form.Item name="group" label="分组"><Input allowClear placeholder="例如 sys/user" /></Form.Item>
@@ -43,7 +40,8 @@ export default function ApiPage() {
           <Button icon={<ReloadOutlined />} loading={query.isFetching} onClick={() => { void query.refetch(); }}>刷新</Button></Space></Form.Item>
       </Form>
     </Card>
-    <Card className="data-card" title="API 资源目录">
+    <Card className="data-card" title="API 资源目录" extra={profile.data?.is_super_admin &&
+      <Button type="primary" icon={<SyncOutlined />} loading={sync.isPending} onClick={() => sync.mutate()}>同步接口</Button>}>
       <QueryState isPending={query.isPending} error={query.error} onRetry={() => { void query.refetch(); }} />
       {!query.isPending && !query.error && <Table<ApiInfo> rowKey="id" dataSource={query.data?.list ?? []} scroll={{ x: 950 }}
         pagination={pagination} columns={[

@@ -1,7 +1,7 @@
 .resourceName { display: inline-flex; max-width: calc(100% - 30px); vertical-align: middle; gap: 10px !important; }
 .resourceTitle { color: #263d5e; font-size: 13px !important; font-weight: 550; padding-inline: 0 !important; white-space: normal; text-align: left; }
-.menuTable :global(.ant-table-thead > tr > th) { padding: 14px; color: #5f728e; font-size: 12px; background: #f6f8fc; border-bottom-color: #edf1f7; }
-.menuTable :global(.ant-table-tbody > tr > td) { padding: 14px; border-bottom-color: #edf1f7; }
+.menuTable :global(.ant-table-thead > tr > th) { color: #5f728e; font-size: 12px; background: #f6f8fc; border-bottom-color: #edf1f7; }
+.menuTable :global(.ant-table-tbody > tr > td) { border-bottom-color: #edf1f7; }
 .directoryRow > td { background: #fafbff; }
 .directoryRow .resourceTitle { color: #273b60; font-weight: 650; }
 .routeChip { display: inline-block; max-width: 100%; padding: 3px 8px; overflow: hidden; border: 1px solid #edf0f5; border-radius: 6px; color: #5b6f8c; background: #f8fafd; font: 11px/1.7 "Cascadia Code", Consolas, monospace; text-overflow: ellipsis; vertical-align: middle; }
@@ -41,5 +41,8 @@
   .permissionsDrawer { top: 62px !important; }
 }
 @media (max-width: 575px) {
+  .menuCard > :global(.ant-card-head) > :global(.ant-card-head-wrapper) { flex-wrap: wrap; gap: 12px; padding-block: 14px; }
+  .menuCard :global(.ant-card-head-title) { flex-basis: 100%; }
+  .menuCard :global(.ant-card-extra) { max-width: 100%; margin-inline-start: auto; }
   .permissionHeader { flex-wrap: wrap; }
 }

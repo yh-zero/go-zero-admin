@@ -2,12 +2,6 @@
 .app-panel-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
 .app-plain-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .app-page { gap: 20px; }
-.app-page-heading { display: flex; align-items: center; gap: 15px; padding-block: 2px 4px; }
-.app-page-heading .page-header { flex: 1; min-width: 0; padding: 0; }
-.app-page-heading .page-header h3.ant-typography { font-size: 23px; margin-bottom: 5px; }
-.app-heading-icon { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 50px; height: 50px; border: 1px solid #e1e8ff; border-radius: 15px; color: #5472df; background: #edf2ff; font-size: 23px; }
-.app-heading-icon--amber { color: #b68b3b; background: #fcf6e8; border-color: #f4e9cc; }
-.app-heading-icon--cyan { color: #42979b; background: #edf8f7; border-color: #dcefeb; }
 .app-page .app-filter-card, .app-page .app-data-card { min-width: 0; border: 1px solid #e7ecf3; border-radius: 16px; box-shadow: 0 3px 18px #233c6003; }
 .app-filter-card .ant-input-prefix { margin-inline-end: 8px; color: #9ba9bf; }
 .app-filter-card .ant-btn { box-shadow: none; }
@@ -20,8 +14,8 @@
 .app-section-icon--cyan { color: #5b9da0; background: #edf7f6; }
 .app-count { min-width: 24px; padding: 1px 7px; border-radius: 6px; color: #8390a8; background: #f1f4f8; font-size: 11px; font-weight: 500; text-align: center; font-variant-numeric: tabular-nums; }
 .app-card-hint { color: #a0aabc; font-size: 11px; }
-.app-page .ant-table-thead > tr > th, .app-user-drawer .ant-table-thead > tr > th { padding-block: 13px; color: #8190a6; background: #f7f9fc; font-size: 12px; }
-.app-page .ant-table-tbody > tr > td { padding-block: 17px; border-color: #f0f3f8; color: #6a7a92; font-size: 12px; }
+.app-page .ant-table-thead > tr > th, .app-user-drawer .ant-table-thead > tr > th { color: #8190a6; background: #f7f9fc; font-size: 12px; }
+.app-page .ant-table-tbody > tr > td { border-color: #f0f3f8; color: #6a7a92; font-size: 12px; }
 .app-page .ant-tag, .app-user-drawer .ant-tag { margin-inline-end: 0; padding: 2px 8px; border: 0; border-radius: 6px; font-size: 11px; line-height: 19px; }
 .app-table-identity { display: flex; align-items: center; gap: 11px; min-width: 0; }
 .app-table-identity .ant-avatar { flex: none; border-radius: 11px; font-weight: 500; }
@@ -86,10 +80,6 @@
 @media (max-width: 575px) {
   .app-panel-toolbar { align-items: flex-start; flex-direction: column; }
   .app-page { gap: 16px; }
-  .app-page-heading { align-items: flex-start; gap: 12px; }
-  .app-heading-icon { width: 43px; height: 43px; border-radius: 13px; font-size: 20px; }
-  .app-page-heading .page-header { min-height: 0; }
-  .app-page-heading .page-header h3.ant-typography { font-size: 21px; }
   .app-page .app-data-card > .ant-card-head { min-height: 66px; padding-inline: 16px; }
   .app-page .app-data-card > .ant-card-body { padding-inline: 12px; }
   .app-card-hint { display: none; }

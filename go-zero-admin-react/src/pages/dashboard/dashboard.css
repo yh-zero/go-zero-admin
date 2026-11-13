@@ -17,7 +17,6 @@
 .dashboard-lower-single { grid-template-columns: minmax(0, 1fr); }
 .dashboard-lower-single .shortcut-list { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
 .dashboard-audit { min-width: 0; }
-.dashboard-page .dashboard-audit .ant-table-tbody > tr > td { padding-block: 20px; }
 .section-link { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: #7b8ca5; font-weight: normal; }
 .section-link:hover { color: #2563eb; }
 .shortcut-card > .ant-card-body { padding: 8px 16px 14px; }

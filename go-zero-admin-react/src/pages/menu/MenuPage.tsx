@@ -4,7 +4,6 @@ import { ApartmentOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteMenu, fetchMenuTree } from '../../api/menu';
 import { Auth } from '../../components/Auth';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { buildTree } from '../../utils/tree';
 import { invalidateMenuData } from '../../utils/queryInvalidation';
@@ -38,10 +37,6 @@ export default function MenuPage() {
   } });
   const busy = query.isFetching || remove.isPending;
   return <div className={`page-stack ${pageId !== null ? styles.withPermissions : ''}`}>
-    <PageHeader title="菜单管理" description="维护目录与页面，操作权限按页面单独管理。" extra={
-      <Auth code="sys:menu:add"><Button type="primary" icon={<PlusOutlined />} disabled={!ready}
-        onClick={() => setEditing({ id: null, kind: 'navigation' })}>新增菜单</Button></Auth>
-    } />
     <Card className={`filter-card ${styles.filterCard}`}><Form name="menu-filter" className="filter-form" form={filterForm} layout="inline" onFinish={setFilters}>
       <Form.Item name="keyword" label="菜单名称"><Input allowClear prefix={<SearchOutlined />} placeholder="搜索菜单名称" /></Form.Item>
       <Form.Item name="status" label="状态"><Select className="filter-select" allowClear placeholder="全部状态" options={statusOptions} /></Form.Item>
@@ -53,8 +48,11 @@ export default function MenuPage() {
     <Card className={`data-card ${styles.menuCard}`} title={<div className={styles.structureHeading}>
       <span className={styles.structureHeadingIcon}><ApartmentOutlined /></span><span>菜单结构</span>
       {query.isSuccess && <span className={styles.structureCount}>{resources.filter(menu => menu.type === 1).length} 个目录 · {resources.filter(menu => menu.type === 2).length} 个页面</span>}
-    </div>} extra={unassignedCount > 0 &&
-      <Button type="link" disabled={busy} onClick={() => setPageId(0)}>其他操作权限（{unassignedCount}）</Button>}>
+    </div>} extra={<Space wrap>
+      {unassignedCount > 0 && <Button type="link" disabled={busy} onClick={() => setPageId(0)}>其他操作权限（{unassignedCount}）</Button>}
+      <Auth code="sys:menu:add"><Button type="primary" icon={<PlusOutlined />} disabled={!ready}
+        onClick={() => setEditing({ id: null, kind: 'navigation' })}>新增菜单</Button></Auth>
+    </Space>}>
       <QueryState isPending={query.isPending} error={query.error} onRetry={() => { void query.refetch(); }} />
       {query.isSuccess && <MenuTable key={`${filters.keyword ?? ''}:${filters.status ?? ''}`}
         rows={buildTree(filterNavigationMenus(resources, filters.keyword ?? '', filters.status))} resources={resources}

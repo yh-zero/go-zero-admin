@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteFile, fetchFiles } from '../../api/file';
 import type { FileInfo, GetFileListReq } from '../../api/types';
 import { Auth } from '../../components/Auth';
-import { PageHeader } from '../../components/PageHeader';
 import { QueryState } from '../../components/QueryState';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { formatBytes, formatTime } from '../../utils/format';
@@ -24,17 +23,17 @@ export default function FileList() {
   const pagination = useTablePagination(params, setParams, query.data?.total ?? 0);
   const remove = useMutation({ mutationFn: deleteFile, onSuccess: async () => { await client.invalidateQueries({ queryKey: [queryKeys.files] }); void message.success('文件已删除'); } });
 
-  return <div className="page-stack"><PageHeader title="文件管理" description="查询文件资源、获取访问链接和管理引用" extra={<Space wrap>
-    <Select aria-label="上传文件可见性" value={uploadVisibility} onChange={setUploadVisibility}
-      options={[{ value: 'private', label: '私有文件' }, { value: 'public', label: '公开文件' }]} />
-    <FileUploadButton visibility={uploadVisibility} />
-  </Space>} />
+  return <div className="page-stack">
     <Card className="filter-card"><Form name="file-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setParams({ ...values, page: 1, page_size: params.page_size })}>
       <Form.Item name="visibility" label="可见性"><Select allowClear className="filter-select" placeholder="全部" options={[{ value: 'public', label: '公开' }, { value: 'private', label: '私有' }]} /></Form.Item>
       <Form.Item name="uploader_id" label="上传者 ID"><InputNumber min={1} precision={0} /></Form.Item>
       <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button><Button onClick={() => { form.resetFields(); setParams({ page: 1, page_size: params.page_size }); }}>重置</Button><Button aria-label="刷新文件列表" icon={<ReloadOutlined />} onClick={() => void query.refetch()} /></Space></Form.Item>
     </Form></Card>
-    <Card className="data-card" title="文件列表"><QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />
+    <Card className="data-card" title="文件列表" extra={<Space wrap>
+      <Select aria-label="上传文件可见性" value={uploadVisibility} onChange={setUploadVisibility}
+        options={[{ value: 'private', label: '私有文件' }, { value: 'public', label: '公开文件' }]} />
+      <FileUploadButton visibility={uploadVisibility} />
+    </Space>}><QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />
       <Table<FileInfo> rowKey="id" dataSource={query.data?.list ?? []} loading={query.isFetching} scroll={{ x: 1000 }} pagination={pagination} columns={[
         { title: '文件名称', dataIndex: 'original_name', ellipsis: true, render: (value: string) => <span className="table-primary">{value}</span> },
         { title: '类型', dataIndex: 'mime' }, { title: '大小', dataIndex: 'size', render: formatBytes },
