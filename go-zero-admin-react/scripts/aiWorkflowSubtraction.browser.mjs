@@ -56,18 +56,18 @@ async page => {
   const listRow = () => page.getByRole('row').filter({ has: page.getByRole('button', { name, exact: true }) });
   const moreRow = () => listRow().getByRole('button', { name: `更多操作：${name}`, exact: true });
   const waitEditorUnmount = async () => {
-    await page.getByRole('button', { name: '返回工作流列表', exact: true }).waitFor({ state: 'detached' });
+    await page.getByRole('button', { name: '返回常用流程列表', exact: true }).waitFor({ state: 'detached' });
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   };
   const leaveEditor = async () => {
     const path = new URL(page.url()).pathname;
     if (!/^\/ai\/workflows\/(?:new|[1-9]\d*\/edit)$/.test(path)) return;
-    const back = page.getByRole('button', { name: '返回工作流列表', exact: true });
+    const back = page.getByRole('button', { name: '返回常用流程列表', exact: true });
     if (!await back.isVisible()) return;
     await back.click();
     await page.waitForFunction(() => location.pathname === '/ai/workflows'
-      || [...document.querySelectorAll('[role="dialog"]')].some(dialog => dialog.textContent.includes('离开工作流编辑？')));
-    const confirmation = page.getByRole('dialog', { name: '离开工作流编辑？', exact: true });
+      || [...document.querySelectorAll('[role="dialog"]')].some(dialog => dialog.textContent.includes('离开常用流程编辑？')));
+    const confirmation = page.getByRole('dialog', { name: '离开常用流程编辑？', exact: true });
     if (await confirmation.isVisible()) await confirmation.getByRole('button', { name: /保留草稿并离开$/ }).click();
     await page.waitForURL(`${origin}/ai/workflows`);
     await waitEditorUnmount();
@@ -108,15 +108,15 @@ async page => {
     assert(await listRow().getByRole('button', { name: /编\s*辑$/ }).isVisible(), '流程行应常显编辑');
     assert(!await listRow().getByRole('button', { name: /复\s*制$/ }).count() && !await listRow().getByRole('button', { name: /删\s*除$/ }).count(), '复制和删除不应常显');
     assert(!(await listRow().textContent()).includes('手动运行') && !(await listRow().textContent()).includes(`#${workflowId}`), '流程行不重复显示ID与手动运行');
-    assert(await page.getByRole('link', { name: '能力目录', exact: true }).getAttribute('href') === '/ai/tools', '能力目录应指向工具页');
+    assert(!await page.getByRole('link', { name: '能力目录', exact: true }).count(), '列表不再提供编辑器已有的能力目录跳转');
     await listRow().getByRole('button', { name: /运\s*行$/ }).click();
-    const runModal = page.getByRole('dialog', { name: '确认运行工作流', exact: true });
+    const runModal = page.getByRole('dialog', { name: '确认运行常用流程', exact: true });
     await runModal.waitFor();
     await runModal.getByRole('button', { name: /^取\s*消$/ }).click();
     await runModal.waitFor({ state: 'hidden' });
     await moreRow().click();
     await page.getByRole('menuitem', { name: /删除/ }).click();
-    const deleteModal = page.getByRole('dialog', { name: '删除工作流', exact: true });
+    const deleteModal = page.getByRole('dialog', { name: '删除常用流程', exact: true });
     await deleteModal.waitFor();
     assert((await deleteModal.textContent()).includes(name), '删除确认应保留明确目标');
     await deleteModal.getByRole('button', { name: /^取\s*消$/ }).click();
@@ -124,12 +124,12 @@ async page => {
     await moreRow().click();
     await page.getByRole('menuitem', { name: /复制/ }).click();
     await page.waitForURL(`**/ai/workflows/new?copy=${workflowId}`);
-    await page.getByLabel(/工作流名称$/).waitFor();
-    assert(await page.getByLabel(/工作流名称$/).inputValue() === `${name} 副本`, '更多中的复制应带入原定义');
+    await page.getByLabel(/常用流程名称$/).waitFor();
+    assert(await page.getByLabel(/常用流程名称$/).inputValue() === `${name} 副本`, '更多中的复制应带入原定义');
     await go('/ai/workflows');
     await listRow().getByRole('button', { name: /编\s*辑$/ }).click();
     await page.waitForURL(`**/ai/workflows/${workflowId}/edit`);
-    await page.getByLabel(/工作流名称$/).waitFor();
+    await page.getByLabel(/常用流程名称$/).waitFor();
     const parameter = page.locator('[data-parameter="text"]');
     const source = parameter.locator('details').first();
     assert(await source.getAttribute('open') === null, '参数来源应默认收起');
@@ -151,10 +151,10 @@ async page => {
     assert(await trial.getByRole('textbox', { name: /本次文本$/ }).count() === 0, '试运行首次展开前不挂载运行表单');
     await trial.getByRole('button', { name: /试运行$/, exact: false }).click();
     await trial.getByRole('textbox', { name: /本次文本$/ }).fill('试运行折叠保留输入');
-    await page.getByLabel(/工作流名称$/).fill('编辑器保留草稿');
+    await page.getByLabel(/常用流程名称$/).fill('编辑器保留草稿');
     await trial.getByRole('button', { name: /收起试运行$/ }).click();
     assert(!await trial.getByRole('textbox', { name: /本次文本$/ }).isVisible(), '收起试运行应隐藏表单');
-    assert(await page.getByLabel(/工作流名称$/).inputValue() === '编辑器保留草稿', '收起试运行不能改变编辑草稿');
+    assert(await page.getByLabel(/常用流程名称$/).inputValue() === '编辑器保留草稿', '收起试运行不能改变编辑草稿');
     await trial.getByRole('button', { name: /试运行$/ }).click();
     assert(await trial.getByRole('textbox', { name: /本次文本$/ }).inputValue() === '试运行折叠保留输入', '再次展开应保留试运行输入');
     await setPermissions(fullPermissions.filter(code => !['sys:ai:workflow:run', 'sys:ai:workflow:create', 'sys:ai:workflow:delete'].includes(code)));
@@ -195,7 +195,7 @@ async page => {
     assert(await listRow().getByRole('button').count() === 1, '只读流程仅保留名称详情入口');
     assert(!await page.getByRole('link', { name: '能力目录', exact: true }).count(), '无工具读取权限时隐藏能力目录');
     await listRow().getByRole('button', { name, exact: true }).click();
-    await page.getByRole('dialog', { name: '工作流详情', exact: true }).waitFor();
+    await page.getByRole('dialog', { name: '常用流程详情', exact: true }).waitFor();
     assert(writes.length === 0, '界面操作不应产生任何写请求');
     assert(unexpected.length === 0, `出现未登记的AI读取：${unexpected.join(', ')}`);
     return 'PASS：流程常用操作/更多/删除取消、3标签与5状态单请求、终态进度、缓存对比入口、参数摘要与值引用保留、试运行按需挂载与草稿保留、只读权限；零业务写入';

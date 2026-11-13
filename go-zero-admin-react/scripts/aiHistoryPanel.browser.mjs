@@ -11,7 +11,7 @@ async page => {
   try {
     await page.route(pattern, fail);
     await page.getByRole('button', { name: workflow.name, exact: true }).first().click();
-    const detail = page.getByRole('dialog', { name: '工作流详情', exact: true });
+    const detail = page.getByRole('dialog', { name: '常用流程详情', exact: true });
     await detail.getByRole('button', { name: '版本历史', exact: true }).click();
     await detail.getByText('面板加载失败，当前页面和草稿已保留', { exact: true }).waitFor({ timeout: 5000 });
     await page.unroute(pattern, fail);

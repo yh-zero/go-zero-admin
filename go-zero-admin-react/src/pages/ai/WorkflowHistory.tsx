@@ -86,7 +86,7 @@ export function WorkflowHistory({ scope, workflow, currentVerified, guard, onClo
   return <Drawer open title={`版本历史 · ${workflow.name}`} size={900} onClose={() => { if (!busy) onClose(); }} closable={!busy} keyboard={!busy} maskClosable={!busy}>
     <Space orientation="vertical" className={styles.fullWidth} size="middle">
       <Space wrap><Typography.Text>当前版本：{workflow.revision}</Typography.Text><Button disabled={busy} onClick={() => void refresh()}>刷新版本与历史</Button></Space>
-      <Alert type="info" title="历史保存提交前的完整版本；恢复会创建新版本。" description="恢复不会执行任务、审批或工具，也不会覆盖已创建任务的原快照。编辑器中的未保存草稿仍会保留。" />
+      <Alert type="info" title="历史保存提交前的完整版本；恢复会创建新版本。" description="恢复不会执行流程、审批或工具，也不会覆盖已有运行记录的原快照。编辑器中的未保存草稿仍会保留。" />
       {notice && <Alert type="info" showIcon title={notice} />}
       {unknown && <Alert type="warning" showIcon title="上次恢复结果待核对" description={attempt ? `原目标版本 ${attempt.revision}，原条件版本 ${attempt.expected_revision}。请先核对当前版本及历史。` : '原恢复标识不可读，请先核对历史。'}
         action={<Button disabled={busy || !validCurrent} onClick={clearAttempt}>已核对，允许后续操作</Button>} />}
@@ -104,14 +104,14 @@ export function WorkflowHistory({ scope, workflow, currentVerified, guard, onClo
         {matching && record && !detail.error && <>
           <WorkflowDefinitionView name={`版本 ${record.revision} · ${record.name}`} definition={record.definition} />
           <Button danger disabled={busy || !canRestore} onClick={() => setConfirmation({ revision: record.revision, expected_revision: workflow.revision })}>恢复版本 {record.revision}</Button>
-          {!guard.can('sys:ai:workflow:edit') && <Typography.Paragraph type="secondary">需要编辑工作流权限才能恢复。</Typography.Paragraph>}
+          {!guard.can('sys:ai:workflow:edit') && <Typography.Paragraph type="secondary">需要编辑常用流程权限才能恢复。</Typography.Paragraph>}
         </>}
       </section>}
     </Space>
     <Modal open={!!confirmation} title="确认恢复历史版本" okText="确认恢复为新版本" cancelText="继续核对" confirmLoading={busy}
       onOk={() => { if (confirmation) void restore(confirmation); }} onCancel={() => { if (!busy) setConfirmation(null); }}
       okButtonProps={{ danger: true, disabled: busy || !canRestore }} cancelButtonProps={{ disabled: busy }} closable={!busy} keyboard={!busy} mask={{ closable: !busy }}>
-      <p>将版本 {confirmation?.revision} 的名称、完整定义和启用状态恢复为新版本。</p><p>仅当当前版本仍为 {confirmation?.expected_revision} 时提交；不会执行任何任务。当前未保存草稿继续保留。</p>
+      <p>将版本 {confirmation?.revision} 的名称、完整定义和启用状态恢复为新版本。</p><p>仅当当前版本仍为 {confirmation?.expected_revision} 时提交；不会执行任何流程。当前未保存草稿继续保留。</p>
     </Modal>
   </Drawer>;
 }

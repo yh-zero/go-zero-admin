@@ -38,7 +38,7 @@ export function WorkflowParameters({ value = '{}', onChange, tool, knowledge, di
           <summary>{sourceOptions.find(option => option.value === (reference ?? 'literal'))?.label ?? `高级变量：${reference}`}<span>更改</span></summary>
           <Select aria-label={`${field.label}来源`} className={styles.fullWidth} disabled={disabled} value={reference ?? 'literal'} onChange={source => change(field.name, source === 'literal' ? field.name === 'kb_id' ? undefined : '' : { $ref: source })} options={sourceOptions} />
         </details>}
-        {reference ? <Typography.Paragraph type="secondary">将在本次执行时读取变量；实际输入会在任务步骤和审批确认中展示。</Typography.Paragraph> :
+        {reference ? <Typography.Paragraph type="secondary">将在本次执行时读取变量；实际输入会在运行步骤和审批确认中展示。</Typography.Paragraph> :
         field.name === 'kb_id' && (tool?.name === 'kb_analyze' || tool?.name === 'kb_search') ? <KnowledgeChoice value={input![field.name]} onChange={next => change(field.name, next)} knowledge={knowledge} optional={tool.name === 'kb_search'} disabled={disabled} />
           : field.enum ? <Select aria-label={field.label} className={styles.fullWidth} disabled={disabled} allowClear={!field.required} value={typeof input![field.name] === 'boolean' ? String(input![field.name]) : input![field.name] as string | number | undefined} onChange={next => change(field.name, field.enum!.find(option => String(option) === String(next)))} options={field.enum.map(option => ({ value: typeof option === 'boolean' ? String(option) : option, label: String(option) }))} />
             : field.type === 'boolean' ? <Switch aria-label={field.label} disabled={disabled} checked={input![field.name] === true} onChange={next => change(field.name, next)} />

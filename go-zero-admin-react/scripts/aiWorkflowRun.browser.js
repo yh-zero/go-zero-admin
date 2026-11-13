@@ -2,7 +2,7 @@
 // oxlint-disable-next-line no-unused-expressions
 async (page) => {
   const assert = (value, message) => { if (!value) throw new Error(message); };
-  const calls = [], unexpected = [], errors = [];
+  const calls = [], reads = [], unexpected = [], errors = [];
   const now = Math.floor(Date.now() / 1000);
   const permissions = ['sys:ai:workflow:list', 'sys:ai:workflow:run', 'sys:ai:task:list', 'sys:ai:tool:list'];
   const workflow = { id: 71, name: '运行回归响应桩', enabled: 1, interval_seconds: 0, created_at: now, updated_at: now,
@@ -21,6 +21,7 @@ async (page) => {
   });
   await page.route('**/v1/**', async route => {
     const request = route.request(), path = new URL(request.url()).pathname, method = request.method();
+    if (method === 'GET') reads.push(path);
     let result;
     if (path === '/v1/sys/dept/my') result = { list: [] };
     else if (path === '/v1/sys/menu/my/perm-codes') result = { codes: permissions };
@@ -38,7 +39,7 @@ async (page) => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ code: 200, result }) });
   });
   await page.goto('http://127.0.0.1:5999/ai/workflows?run=71');
-  const dialog = page.getByRole('dialog', { name: '确认运行工作流' });
+  const dialog = page.getByRole('dialog', { name: '确认运行常用流程' });
   await dialog.waitFor();
   await page.waitForURL('**/ai/workflows');
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -51,9 +52,11 @@ async (page) => {
   await dialog.getByRole('button', { name: /取\s*消/ }).click();
   await dialog.waitFor({ state: 'hidden' });
   await page.getByRole('button', { name: /运行$/ }).click();
-  await page.getByRole('button', { name: '核对原任务', exact: true }).waitFor();
-  await page.getByRole('button', { name: '核对原任务', exact: true }).evaluate(button => { button.click(); button.click(); });
-  await page.waitForURL('**/ai/tasks?task_id=81');
+  await page.getByRole('button', { name: '核对原运行', exact: true }).waitFor();
+  await page.getByRole('button', { name: '核对原运行', exact: true }).evaluate(button => { button.click(); button.click(); });
+  await page.getByRole('region', { name: '运行结果', exact: true }).waitFor();
+  await dialog.waitFor({ state: 'hidden' });
+  assert(new URL(page.url()).pathname === '/ai/workflows' && reads.includes('/v1/sys/ai/tasks/81'), '成功核对后应在当前流程页读取并展示原运行结果');
   assert(calls.length === 2, '双击核对必须只增加一次请求');
   assert(calls[0].request_id === calls[1].request_id && calls[0].input === calls[1].input, '存储配额失败、关闭重开后必须复用相同ID和输入');
   assert(errors.length === 0 && unexpected.length === 0, `出现未预期错误/请求：${JSON.stringify({ errors, unexpected })}`);

@@ -22,7 +22,7 @@ export function ChatKnowledgePicker({ scope, value, onChange, disabled }: { scop
     <Space wrap>
       <Select aria-label="对话知识库" className={styles.knowledgeSelect} value={value.kb_id} disabled={disabled} loading={query.isFetching} options={[{ value: 0, label: '自动检索我的知识库' }, ...options]}
         onChange={kb_id => onChange({ kb_id, grounded: kb_id > 0 && value.grounded })} />
-      <Space size="small"><Switch aria-label="仅依据所选资料回答" checked={value.grounded} disabled={disabled || value.kb_id === 0} onChange={grounded => onChange({ ...value, grounded })} /><Typography.Text>仅依据资料回答</Typography.Text></Space>
+      {value.kb_id > 0 && <Space size="small"><Switch aria-label="仅依据所选资料回答" checked={value.grounded} disabled={disabled} onChange={grounded => onChange({ ...value, grounded })} /><Typography.Text>仅依据资料回答</Typography.Text></Space>}
     </Space>
     {(query.data?.total ?? 0) > 20 && <Pagination size="small" simple current={page} pageSize={20} total={query.data!.total} showSizeChanger={false} disabled={disabled} onChange={setPage} />}
     {value.grounded && <Typography.Text type="secondary" className={styles.recordNote}>本次问题最多 2000 UTF-8 字节；依据不足时说明无法回答。来源为实际检索摘录，相似度不代表答案正确率。</Typography.Text>}

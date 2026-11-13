@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Drawer, Empty, Form, Input, Pagination, Radio, Select, Space, Tag, Typography } from 'antd';
-import { MinusCircleOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Alert, Button, Drawer, Dropdown, Empty, Form, Input, Pagination, Radio, Select, Space, Tag, Typography } from 'antd';
+import { DownOutlined, MinusCircleOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { fetchAiKbFeedback } from '../../api/ai';
@@ -34,7 +34,7 @@ export function KnowledgeFeedbackPanel({ scope, kbId, guard }: { scope: AiWorksp
     setParams(value => value === params ? { ...value, page: lastPage } : value);
   }, [current, params, records.isFetching, records.isSuccess, total]);
   return <section className={styles.panel} aria-label="知识库反馈与复核">
-    <Typography.Paragraph type="secondary">这里保留本人知识库分析的评价。复核后可下载回归样本；采纳不会自动重跑分析或修改模型。</Typography.Paragraph>
+    <Typography.Paragraph type="secondary">这里保留本人知识库分析的评价。采纳后可用样本新建评测；采纳和题集准备不会运行模型。</Typography.Paragraph>
     <div className={styles.toolbar}><Select aria-label="反馈状态" className={styles.statusSelect} value={params.status} disabled={guard.writing}
       options={[{ value: 'pending', label: '待复核' }, { value: 'accepted', label: '已采纳' }, { value: 'dismissed', label: '已忽略' }, { value: 'all', label: '全部评价' }]}
       onChange={status => { if (guard.isCurrent() && !guard.writing) setParams(value => ({ ...value, page: 1, status })); }} />
@@ -43,7 +43,7 @@ export function KnowledgeFeedbackPanel({ scope, kbId, guard }: { scope: AiWorksp
     {records.data && !records.error && <>
       {records.data.list.length ? <div className={styles.records}>{records.data.list.map(record => <article key={record.id} className={styles.record}>
         <div className={styles.recordHeader}><Tag>{feedbackLabels[record.feedback]}</Tag><Tag color={record.status === 'accepted' ? 'success' : record.status === 'pending' ? 'processing' : 'default'}>{reviewStatusLabels[record.status]}</Tag>
-          <span className={styles.note}>任务 #{record.task_id} · 第 {record.step_index + 1} 步</span></div>
+          <span className={styles.note}>运行记录 #{record.task_id} · 第 {record.step_index + 1} 步</span></div>
         <p>{record.question}</p>{record.note && <p className={styles.note}>{record.note}</p>}
         <Space wrap><Button size="small" disabled={guard.writing} onClick={() => { if (guard.isCurrent()) setSelectedId(record.id); }}>{guard.can('sys:ai:kb:review') ? '查看并复核' : '查看评价'}</Button>
           <span className={styles.note}>{formatTime(record.updated_at)}</span></Space>
@@ -94,9 +94,11 @@ function KnowledgeFeedbackDetail({ scope, kbId, id, guard, onClose }: { scope: A
     {notice && <Alert type="info" showIcon title={notice} />}
     {record && <div className={styles.detail}>
       <Space wrap><Tag>{feedbackLabels[record.feedback]}</Tag><Tag>{reviewStatusLabels[record.status]}</Tag><Typography.Text type="secondary">版本 {record.revision}</Typography.Text>
-        {guard.can('sys:ai:task:list') && <Link to={`/ai/tasks?task_id=${record.task_id}`}>打开原任务 #{record.task_id}</Link>}
-        {record.status === 'accepted' && <><Button disabled={guard.writing || !snapshot || !readVerified} onClick={() => void download()}>下载回归样本</Button>
-          <Button disabled={guard.writing || !snapshot || !readVerified} onClick={() => { if (guard.isCurrent()) setGenerating(true); }}>生成验收题集</Button></>}</Space>
+        {guard.can('sys:ai:task:list') && <Link to={`/ai/tasks?task_id=${record.task_id}`}>打开原运行记录 #{record.task_id}</Link>}
+        {record.status === 'accepted' && <><Button type="primary" disabled={guard.writing || !snapshot || !readVerified} onClick={() => { if (guard.isCurrent()) setGenerating(true); }}>用此样本新建评测</Button>
+          <Dropdown trigger={['click']} menu={{ items: [{ key: 'regression', label: '下载回归样本', disabled: guard.writing || !snapshot || !readVerified, onClick: () => void download() }] }}>
+            <Button aria-label="更多导出" disabled={guard.writing || !snapshot || !readVerified}>更多导出 <DownOutlined aria-hidden /></Button>
+          </Dropdown></>}</Space>
       {generating && readVerified && record.status === 'accepted' && <FeedbackDatasetGenerator key={`${record.id}:${record.revision}`} scope={scope} kbId={kbId} record={record} guard={guard} onClose={() => setGenerating(false)} />}
       <section><h3>原始问题</h3><p className={styles.text}>{record.question}</p><h3>当时的分析回答</h3><pre className={styles.code}>{record.answer}</pre>
         {record.note && <><h4>评价说明</h4><p className={styles.text}>{record.note}</p></>}</section>
@@ -155,7 +157,7 @@ function FeedbackReviewForm({ scope, kbId, record, snapshot, guard, refreshing, 
       if (!guard.isCurrent()) return;
       setExpectedRevision(response.feedback.revision);
       client.setQueryData(aiWorkspaceKeys.kbFeedback(scope, kbId, record.id), response);
-      setNotice(response.feedback.status === 'accepted' ? '已采纳，可下载回归样本；尚未运行新的模型评测。' : '已忽略此评价。');
+      setNotice(response.feedback.status === 'accepted' ? '已采纳，可用此样本新建评测；尚未运行新的模型评测。' : '已忽略此评价。');
       await refreshRecord();
     } catch (error) {
       if (!guard.isCurrent()) return;

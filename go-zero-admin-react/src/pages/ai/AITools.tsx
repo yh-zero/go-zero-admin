@@ -41,7 +41,7 @@ export function AIToolSession({ scope }: { scope: AiWorkspaceScope }) {
     }} />)}</div>}
     <Drawer open={!!selected && !tools.error} title="工具详情" size={520} className={styles.drawer} onClose={() => setSelectedName(null)}
       footer={<Space wrap className={styles.drawerActions}><Button onClick={() => setSelectedName(null)}>关闭</Button>
-        {selected && canCreateWorkflow && <Link to={`/ai/workflows/new?tool=${encodeURIComponent(selected.name)}`}><Button type="primary" icon={<PlusOutlined />}>用此工具创建工作流</Button></Link>}
+        {selected && canCreateWorkflow && <Link to={`/ai/workflows/new?tool=${encodeURIComponent(selected.name)}`}><Button type="primary" icon={<PlusOutlined />}>用此工具创建常用流程</Button></Link>}
       </Space>}>
       {selected && <ToolDetailContent tool={selected} capabilities={tools.data?.capabilities} />}
     </Drawer>
@@ -58,7 +58,7 @@ export function ToolCard({ tool, capabilities, canUse, onView, onSelect }: { too
     <div className={styles.availability}><Tag color={availability.color}>{availability.label}</Tag><span>{availability.description}</span></div>
     <div className={styles.cardActions}>
       {canUse && (onSelect ? <Button type={tool.name === 'kb_analyze' ? 'primary' : 'default'} icon={<PlusOutlined />} onClick={onSelect}>加入当前流程</Button>
-        : <Link to={`/ai/workflows/new?tool=${encodeURIComponent(tool.name)}`}><Button type={tool.name === 'kb_analyze' ? 'primary' : 'default'} icon={<PlusOutlined />}>用于工作流</Button></Link>)}
+        : <Link to={`/ai/workflows/new?tool=${encodeURIComponent(tool.name)}`}><Button type={tool.name === 'kb_analyze' ? 'primary' : 'default'} icon={<PlusOutlined />}>用于常用流程</Button></Link>)}
       <Button type="link" onClick={onView}>看输入输出</Button>
     </div>
   </article>;

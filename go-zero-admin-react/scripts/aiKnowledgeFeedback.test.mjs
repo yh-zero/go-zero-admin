@@ -108,6 +108,7 @@ test('知识库分析反馈与复核边界', async t => {
     await t.test('只导出已采纳完整原记录，不把待复核或摘要当回归样本', () => {
       assert.equal(typeof helpers.feedbackRegressionJson, 'function');
       assert.deepEqual(JSON.parse(helpers.feedbackRegressionJson(record)), { version: 1, type: 'kb_feedback_regression', feedback: record });
+      assert.equal(helpers.feedbackRegressionJson(record), JSON.stringify({ version: 1, type: 'kb_feedback_regression', feedback: record }, null, 2) + '\n', '菜单导出继续使用完整原记录格式和原快照字节');
       for (const value of [{ ...record, status: 'pending' }, { ...record, review: null }, { ...record, snapshot: '' },
         { ...record, kb_id: 99 }, { ...record, review: { ...record.review, evidence: [{ source_index: 1, quote: '伪造' }] } }]) assert.throws(() => helpers.feedbackRegressionJson(value));
     });

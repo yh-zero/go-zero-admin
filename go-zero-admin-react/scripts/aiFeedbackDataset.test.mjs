@@ -4,6 +4,8 @@ import { createHash } from 'node:crypto';
 import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { IsRestoringProvider, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 import { readFile } from 'node:fs/promises';
 import { invalidCustomSamples, validCustomVariants } from '../../go-zero-admin/data/scripts/kb-custom-dataset.test-fixtures.mjs';
 
@@ -100,6 +102,22 @@ test('采纳反馈生成可校验的冻结题集并保留原提交字节', async
       const html = renderToStaticMarkup(createElement(FeedbackDatasetPreview, { catalogue: value }));
       for (const text of ['备份数据库', '切换流量', '发布资料', '开发题', '预期答案', '&lt;img']) assert.ok(html.includes(text), text);
       assert.ok(!html.includes('<img src=x'));
+    });
+    await t.test('题集预览把显式前往新建评测作为主操作，下载收进更多导出', async () => {
+      const { FeedbackDatasetGenerator } = await server.ssrLoadModule('/src/pages/ai/FeedbackDatasetGenerator.tsx');
+      const scope = ['feedback-preview-fixture', 1, 1], client = new QueryClient();
+      client.setQueryData(helper.feedbackDatasetOptions(scope, 7, record, false).queryKey, frozen);
+      const guard = { can: () => true, isCurrent: () => true, writing: false };
+      try {
+        const html = renderToStaticMarkup(createElement(QueryClientProvider, { client }, createElement(IsRestoringProvider, { value: true }, createElement(MemoryRouter, null,
+          createElement(FeedbackDatasetGenerator, { scope, kbId: 7, record, guard, onClose() {} })))));
+        assert.match(html, /ant-btn-primary[^>]*>[\s\S]*?确认题集，前往新建评测/u);
+        assert.match(html, /href="\/ai\/knowledge\/7\/quality"/u);
+        assert.ok(html.includes('只有点击“开始评测”才执行模型'));
+        assert.ok(html.includes('更多导出'));
+        assert.ok(!html.includes('下载冻结题集'), '下载操作应在打开菜单后显示');
+        assert.ok(!html.includes('导入质量验收页'), '不能继续把下载与移交并列为无主次动作');
+      } finally { client.clear(); }
     });
   } finally { await server.close(); globalThis.window = originalWindow; }
 });

@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { App } from 'antd';
 
 test('独立工作流编辑：参数、草稿及菜单访问边界', async t => {
   const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', server: { middlewareMode: true, watch: null, ws: false } });
@@ -73,6 +76,7 @@ test('独立工作流编辑：参数、草稿及菜单访问边界', async t => 
       assert.match(html, /第 1 步的类型已不可用/);
       const save = [...html.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/g)].find(match => match[0].includes('保存为常用流程'))?.[0];
       assert.match(save, /disabled/);
+      assert.match(html, /常用流程名称/);
     });
     await t.test('草稿刷新可恢复，身份、部门和新建编辑隔离，提交中恢复为未知', () => {
       const storage = new Map();
@@ -104,4 +108,45 @@ test('独立工作流编辑：参数、草稿及菜单访问边界', async t => 
       assert.equal(routes.isPageAccessible('/ai/workflows/new', new Set(['/dashboard'])), false);
     });
   } finally { await server.close(); }
+});
+
+test('新建首屏只保留资料分析和空白入口，JSON工具仍可在编辑器和旧定义中使用', async () => {
+  const originalWindow = globalThis.window;
+  const values = new Map();
+  const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+  globalThis.window = { localStorage: storage, sessionStorage: storage, addEventListener() {} };
+  const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', server: { middlewareMode: true, watch: null, ws: false } });
+  let client;
+  let router;
+  try {
+    const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
+    const scope = ['workflow-template-presentation', 1, 0];
+    const auth = { token: 'local-fixture', sessionId: scope[0], sessionVersion: 1, departmentVersion: 0, permissionsReady: true,
+      permCodes: ['sys:ai:workflow:list', 'sys:ai:workflow:create', 'sys:ai:tool:list', 'sys:ai:kb:list'] };
+    Object.assign(useAuthStore.getInitialState(), auth);
+    useAuthStore.setState(auth);
+    const tools = [
+      { name: 'kb_analyze', description: '知识库分析', parameters_schema: '{"type":"object","properties":{"kb_id":{"type":"integer"},"query":{"type":"string"}},"required":["kb_id","query"]}' },
+      { name: 'json_formatter', description: 'JSON格式化', parameters_schema: '{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}' },
+    ];
+    const queries = await server.ssrLoadModule('/src/pages/ai/workspaceQueries.ts');
+    const { default: WorkflowEditorPage } = await server.ssrLoadModule('/src/pages/ai/WorkflowEditorPage.tsx');
+    client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(queries.toolListOptions(scope).queryKey, { list: tools, capabilities: { retrieval_configured: false, analysis_configured: false, ingestion_mode: 'disabled' } });
+    router = createMemoryRouter([{ path: '/ai/workflows/new', element: createElement(WorkflowEditorPage) }], { initialEntries: ['/ai/workflows/new?tool=json_formatter'] });
+    const html = renderToStaticMarkup(createElement(QueryClientProvider, { client }, createElement(App, null, createElement(RouterProvider, { router }))));
+    const buttons = [...html.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/g)].map(match => match[0]);
+    assert.ok(buttons.some(button => button.includes('资料分析')));
+    assert.ok(buttons.some(button => button.includes('空白起步')));
+    assert.ok(!buttons.some(button => button.includes('JSON 格式整理')), '首屏不再放JSON整理模板');
+    const dsl = await server.ssrLoadModule('/src/pages/ai/workflowDefinition.ts');
+    const jsonDraft = dsl.workflowTemplate('json_formatter', tools);
+    assert.equal(jsonDraft.steps[0].tool, 'json_formatter', '既有工具参数入口继续生成相同工具');
+    const old = '{"steps":[{"name":"旧JSON流程","tool":"json_formatter","input":{"text":"{\\"keep\\":true}"},"approval":true}]}';
+    assert.deepEqual(JSON.parse(dsl.serializeWorkflow(dsl.parseWorkflow(old, tools), tools)), JSON.parse(old));
+    const { ToolCard } = await server.ssrLoadModule('/src/pages/ai/AITools.tsx');
+    const card = renderToStaticMarkup(createElement(ToolCard, { tool: tools[1], canUse: true, onView() {}, onSelect() {} }));
+    assert.ok(card.includes('JSON 格式整理'));
+    assert.ok(card.includes('加入当前流程'));
+  } finally { router?.dispose(); client?.clear(); await server.close(); globalThis.window = originalWindow; }
 });

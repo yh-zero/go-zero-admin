@@ -38,7 +38,7 @@ export function pairTaskSteps(left: AiTaskInfo, right: AiTaskInfo) {
     statusChanged: !!(pair.left && pair.right && pair.left.status !== pair.right.status),
   }));
   return { mode: stable ? 'stable_id' as const : 'order' as const, rows,
-    explanation: stable ? '同一流程按两次任务快照中的稳定步骤ID配对；位置变化单独标记。'
+    explanation: stable ? '同一流程按两次运行记录快照中的稳定步骤ID配对；位置变化单独标记。'
       : left.workflow_id <= 0 || left.workflow_id !== right.workflow_id ? '不同流程或一次性运行按执行顺序对照，不表示对应步骤职责相同。'
         : '旧记录或原快照缺少可确认的稳定步骤ID，按执行顺序对照。',
   };

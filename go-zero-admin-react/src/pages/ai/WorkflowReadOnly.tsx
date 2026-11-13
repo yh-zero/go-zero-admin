@@ -21,5 +21,5 @@ const taskStatusLabels: Record<AiTaskStatus, string> = {
 };
 
 export function WorkflowRunResultNotice({ result }: { result: AiRunWorkflowResp }) {
-  return <Alert type="success" showIcon title={<Space>已创建任务 #{result.task_id}<Tag>{taskStatusLabels[result.status] ?? '未知状态'}</Tag></Space>} description="当前没有查看任务权限，请联系管理员授予任务查看权限后核对进展。" />;
+  return <Alert type="success" showIcon title={<Space>已创建运行记录 #{result.task_id}<Tag>{taskStatusLabels[result.status] ?? '未知状态'}</Tag></Space>} description="当前没有查看运行记录权限，请联系管理员授予运行记录查看权限后核对进展。" />;
 }

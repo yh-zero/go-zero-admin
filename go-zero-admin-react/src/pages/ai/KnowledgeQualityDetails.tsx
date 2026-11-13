@@ -65,7 +65,7 @@ export function QualityAnswer({ row, scope, guard }: { row: QualityRow; scope: A
     {row.item.answer.absence_policy === 'required' && <p>本题还需人工核对：是否准确说明真实未知范围，且没有编造实例值。</p>}
     {!!row.screen?.reasons.length && <Alert type="warning" showIcon title={row.screen.reasons.map(qualityReasonLabel).join('；')} description="请对照实际引用片段确认，词法未命中也可能只是表达差异。" />}
     {row.executionFailed && <>
-      <Alert type={row.status === 'unknown' ? 'warning' : 'error'} title={row.error || '本题执行未完成，结果待核对'} description={row.status === 'unknown' ? '请先按本题请求标识搜索运行记录，核对原任务结果。结果未知时不能直接复测；已发生的调用和用量不能按零解释。' : '保留原运行记录；失败费用和模型用量不能按零解释。可按本题请求标识搜索原运行记录。'} />
+      <Alert type={row.status === 'unknown' ? 'warning' : 'error'} title={row.error || '本题执行未完成，结果待核对'} description={row.status === 'unknown' ? '请先按本题请求标识搜索运行记录，核对原运行结果。结果未知时不能直接复测；已发生的调用和用量不能按零解释。' : '保留原运行记录；失败费用和模型用量不能按零解释。可按本题请求标识搜索原运行记录。'} />
       <Typography.Paragraph>本题请求标识</Typography.Paragraph>
       <Typography.Paragraph code copyable={{ text: row.requestId }}>{row.requestId}</Typography.Paragraph>
     </>}

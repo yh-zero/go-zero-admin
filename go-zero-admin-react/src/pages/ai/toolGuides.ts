@@ -34,7 +34,7 @@ export const toolGuides: Record<string, ToolGuide> = {
     title: '资料分析', category: '知识库', order: 1, purpose: '分析资料并提炼结论，保留引用来源，说明哪些信息尚不足。',
     input: '{"kb_id":1,"query":"整理发布失败后的处理步骤"}',
     output: '返回分析正文、实际使用的资料片段和已知聊天用量。',
-    note: '仅用于工作流。会调用检索及聊天模型；资料不足时应明确说明。',
+    note: '仅用于常用流程。会调用检索及聊天模型；资料不足时应明确说明。',
   },
 };
 

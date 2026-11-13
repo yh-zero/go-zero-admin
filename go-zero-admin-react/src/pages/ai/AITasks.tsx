@@ -114,7 +114,7 @@ export function AITaskSession({ scope }: { scope: AiWorkspaceScope }) {
       }}>重置</Button></Space></Form.Item>
     </Form>
     <QueryState isPending={tasks.isPending} error={tasks.error} onRetry={() => tasks.refetch()} />
-    {!tasks.isPending && !tasks.error && !tasks.data?.list.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无符合条件的任务" />}
+    {!tasks.isPending && !tasks.error && !tasks.data?.list.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无符合条件的运行记录" />}
     <div className={styles.taskLayout}><div className={styles.taskList} aria-label="我的运行记录">
       {!tasks.error && tasks.data?.list.map(task => <button key={task.id} type="button" disabled={guard.writing} aria-pressed={selectedId === task.id} className={`${styles.taskItem} ${selectedId === task.id ? styles.selectedTask : ''}`} onClick={() => selectTask(task.id)}>
         <Tag color={taskStatuses[task.status]?.color}>{taskStatuses[task.status]?.label ?? task.status}</Tag><strong>{task.title || `运行记录 #${task.id}`}</strong>
@@ -122,7 +122,7 @@ export function AITaskSession({ scope }: { scope: AiWorkspaceScope }) {
       </button>)}
     </div><div className={styles.resultWorkspace}>{selectedId !== null ? <AsyncContent key={selectedId} load={loadDetail} componentProps={{ inline: true, scope, taskId: selectedId, guard, metadata: tasks.error ? undefined : tasks.data?.list.find(task => task.id === selectedId), metadataUpdatedAt: tasks.dataUpdatedAt, onClose: () => selectTask(null),
       comparisonDisabled: guard.writing || !guard.can('sys:ai:task:list') || !selectedDetail.data || selectedDetail.isError || selectedDetail.isFetching || !isTerminalTask(selectedDetail.data.task.status), onCompare: () => { if (guard.isCurrent()) setComparisonId(selectedId); } }} /> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="选择一条运行记录，查看结果与参考来源" />}</div></div>
-    <div className={styles.footer}><span>仅显示本人任务 · 自动刷新最多持续 2 分钟</span>
+    <div className={styles.footer}><span>仅显示本人运行记录 · 自动刷新最多持续 2 分钟</span>
       <Pagination current={params.page} pageSize={params.page_size} total={tasks.data?.total ?? 0} showSizeChanger pageSizeOptions={[10, 20, 50, 100]} size="small"
         disabled={guard.writing} showTotal={total => `共 ${total} 条`} onChange={(page, pageSize) => setParams(current => ({ ...current, page, page_size: pageSize }))} />
     </div>

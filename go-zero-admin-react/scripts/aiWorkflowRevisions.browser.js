@@ -66,7 +66,7 @@ async (page) => {
   });
   // 真实 antd Form：新建未挂载 enabled 字段，切换工具仍应保存完整草稿。
   await page.goto(`${origin}/ai/workflows/new`);
-  await page.getByRole('textbox', { name: '工作流名称', exact: true }).fill('Form提交持久化回归');
+  await page.getByRole('textbox', { name: '常用流程名称', exact: true }).fill('Form提交持久化回归');
   await page.getByRole('textbox', { name: '处理文本', exact: true }).fill('提交中刷新必须保留这段文本');
   await page.getByLabel('步骤类型', { exact: true }).click();
   await page.locator('.ant-select-item-option[title="当前时间"]').click();
@@ -82,17 +82,17 @@ async (page) => {
   check(JSON.parse(submitted.draft.steps[0].toolInputs.text_stats).text === '提交中刷新必须保留这段文本', '实际 Form 提交必须保留工具缓存');
   await page.reload();
   await page.getByText('上次保存结果未知，草稿已保留', { exact: true }).waitFor();
-  check(await page.getByRole('textbox', { name: '工作流名称', exact: true }).inputValue() === 'Form提交持久化回归', '未知提交刷新后名称必须恢复');
+  check(await page.getByRole('textbox', { name: '常用流程名称', exact: true }).inputValue() === 'Form提交持久化回归', '未知提交刷新后名称必须恢复');
   check(await page.getByRole('textbox', { name: '处理文本', exact: true }).inputValue() === '提交中刷新必须保留这段文本', '未知提交刷新后文本必须恢复');
   check(await page.getByRole('button', { name: /保存为常用流程$/ }).isDisabled() && creates.length === 1, '未知提交刷新后必须锁住保存且不自动重发POST');
   await page.getByRole('button', { name: '丢弃草稿', exact: true }).click();
   await page.getByRole('button', { name: '丢弃并返回列表', exact: true }).click();
   await page.waitForURL('**/ai/workflows');
   await page.goto(`${origin}/ai/workflows/71/edit`);
-  const name = page.getByRole('textbox', { name: '工作流名称', exact: true });
+  const name = page.getByRole('textbox', { name: '常用流程名称', exact: true });
   await name.fill('我的未保存草稿');
   await page.getByRole('button', { name: /保存为常用流程$/ }).click();
-  await page.getByText('已保存的工作流在编辑期间发生变化', { exact: true }).waitFor();
+  await page.getByText('已保存的常用流程在编辑期间发生变化', { exact: true }).waitFor();
   check(await name.inputValue() === '我的未保存草稿', '409后必须保留表单草稿');
   check(await page.getByRole('button', { name: /保存为常用流程$/ }).isDisabled(), '409后不能绕过版本核对继续保存');
   check(updates.length === 1 && updates[0].expected_revision === 1, '首次保存只能提交原基线一次');

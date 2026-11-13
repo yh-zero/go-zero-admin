@@ -105,7 +105,7 @@ export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedK
     {unknown && <Alert type="warning" showIcon title="上次运行结果待确认" description={attempt ? `请求标识：${attempt.request_id}` : '请先到运行记录核对，页面不会自动重新提交。'} action={attempt ? <Button disabled={busy || !canRun} onClick={() => void submit({})}>核对原运行</Button> : <Button href="/ai/tasks">查看运行记录</Button>} />}
     {feedback && <Alert type="info" title={feedback} />}
     {taskId && <div className={styles.resultPanel}><Typography.Title level={4}>本次结果</Typography.Title>
-      {guard.can('sys:ai:task:list') ? <TaskDetail key={taskId} inline showSaveAction={false} scope={scope} taskId={taskId} guard={guard} onClose={() => setTaskId(null)} /> : <Alert type="success" title={`已创建运行记录 #${taskId}，需要任务查看权限才能查看结果。`} />}
+      {guard.can('sys:ai:task:list') ? <TaskDetail key={taskId} inline showSaveAction={false} scope={scope} taskId={taskId} guard={guard} onClose={() => setTaskId(null)} /> : <Alert type="success" title={`已创建运行记录 #${taskId}，需要运行记录查看权限才能查看结果。`} />}
       {onSave && guard.can('sys:ai:task:list') && guard.can('sys:ai:workflow:list') && guard.can('sys:ai:workflow:create') && guard.can('sys:ai:tool:list') && <Space><Button onClick={() => onSave(taskId)} disabled={busy}>保存为常用流程</Button></Space>}
     </div>}
   </div>;

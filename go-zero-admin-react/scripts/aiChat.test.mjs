@@ -80,6 +80,101 @@ test('AI对话关键边界', async t => {
       assert.notEqual(calls[0].request_id, calls[2].request_id);
     });
 
+    await t.test('知识库选择器按资料范围显示约束并保留读取与权限边界', async t => {
+      const { ChatKnowledgePicker } = await server.ssrLoadModule('/src/pages/ai/ChatKnowledgePicker.tsx');
+      const { kbListOptions } = await server.ssrLoadModule('/src/pages/ai/workspaceQueries.ts');
+      const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
+      // Zustand 的 SSR 读取初始快照，逐例设置权限后恢复，避免把权限分支替换成桩。
+      const snapshot = useAuthStore.getInitialState();
+      const originalPermissions = { permissionsReady: snapshot.permissionsReady, permCodes: snapshot.permCodes };
+      const scope = ['picker-session', 1, 1];
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryOnMount: false } } });
+      const listKey = kbListOptions(scope, { page: 1, page_size: 20 }).queryKey;
+      const selectedKey = ['ai-chat', ...scope, 'selected-kb', 27];
+      const kb = { id: 2, name: '团队资料', description: '', owner_id: 1, doc_count: 3, chunk_count: 6,
+        ready_count: 3, pending_count: 0, failed_count: 0, created_at: 1, updated_at: 1 };
+      const capabilities = { retrieval_configured: true, analysis_configured: false, ingestion_mode: 'async' };
+      const reset = () => {
+        client.clear();
+        Object.assign(snapshot, { permissionsReady: true, permCodes: ['sys:ai:kb:list'] });
+        client.setQueryData(listKey, { list: [kb], total: 1, capabilities });
+      };
+      const render = (value, disabled = false) => renderToStaticMarkup(createElement(QueryClientProvider, { client },
+        createElement(ChatKnowledgePicker, { scope, value, disabled, onChange() { assert.fail('渲染不应触发选择变更'); } })));
+      const readSwitch = markup => {
+        const control = markup.match(/<button\b[^>]*\brole="switch"[^>]*>/)?.[0];
+        assert.ok(control, '指定知识库时显示资料约束开关');
+        return control;
+      };
+      try {
+        await t.test('自动检索范围只显示资料选择，不渲染禁用的约束开关或标签', () => {
+          reset();
+          const markup = render({ kb_id: 0, grounded: false });
+          assert.match(markup, /自动检索我的知识库/);
+          assert.doesNotMatch(markup, /role="switch"/);
+          assert.doesNotMatch(markup, /仅依据资料回答/);
+        });
+
+        await t.test('选定知识库后显示原约束值，开关仅在写入时禁用', () => {
+          reset();
+          for (const grounded of [false, true]) {
+            for (const writing of [false, true]) {
+              const markup = render({ kb_id: 2, grounded }, writing);
+              const control = readSwitch(markup);
+              assert.match(control, /aria-label="仅依据所选资料回答"/);
+              assert.match(control, new RegExp(`aria-checked="${grounded}"`));
+              assert.equal(/\bdisabled=""/.test(control), writing);
+              assert.match(markup, /仅依据资料回答/);
+              assert.equal(markup.includes('2000 UTF-8 字节'), grounded);
+            }
+          }
+        });
+
+        await t.test('已选资料不在当前页时仍显示资料名和分页', () => {
+          reset();
+          client.setQueryData(listKey, { list: [kb], total: 21, capabilities });
+          client.setQueryData(selectedKey, { ...kb, id: 27, name: '分页外资料' });
+          const markup = render({ kb_id: 27, grounded: true });
+          assert.match(markup, /分页外资料/);
+          assert.match(markup, /ant-pagination/);
+          assert.match(readSwitch(markup), /aria-checked="true"/);
+          assert.match(markup, /2000 UTF-8 字节/);
+        });
+
+        await t.test('列表或已选资料读取失败仍显示恢复提示', () => {
+          for (const failingKey of [listKey, selectedKey]) {
+            reset();
+            client.getQueryCache().build(client, { queryKey: failingKey }).setState({
+              status: 'error', error: new Error('资料读取失败'), fetchStatus: 'idle',
+            });
+            const markup = render({ kb_id: 27, grounded: true });
+            assert.match(markup, /知识库读取失败，请刷新后重试/);
+            assert.match(markup, /知识库 #27/);
+          }
+        });
+
+        await t.test('权限未就绪或无知识库查看权限时不显示选择器且禁止两类查询', () => {
+          for (const permissions of [
+            { permissionsReady: false, permCodes: ['sys:ai:kb:list'] },
+            { permissionsReady: true, permCodes: ['sys:ai:conversation:list'] },
+          ]) {
+            reset();
+            Object.assign(snapshot, permissions);
+            assert.equal(render({ kb_id: 27, grounded: true }), '');
+            const queries = client.getQueryCache().getAll();
+            assert.equal(queries.length, 2, '列表和分页外已选资料均受权限约束');
+            for (const query of queries) {
+              assert.equal(query.options.enabled, false);
+              assert.equal(query.state.fetchStatus, 'idle');
+            }
+          }
+        });
+      } finally {
+        Object.assign(snapshot, originalPermissions);
+        client.clear();
+      }
+    });
+
     await t.test('流式通道保存meta和原请求，卸载中止后不接受迟到结果', async () => {
       const pending = deferred();
       let signal;

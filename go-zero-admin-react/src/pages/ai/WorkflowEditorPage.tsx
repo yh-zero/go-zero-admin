@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, App, Button, Card, Result, Space, Spin, Typography } from 'antd';
-import { ArrowLeftOutlined, DatabaseOutlined, FileTextOutlined, PlusOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DatabaseOutlined, PlusOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useBlocker, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createAiWorkflow, updateAiWorkflow } from '../../api/ai';
@@ -28,8 +28,8 @@ interface EditorSeed { key: string; draft: WorkflowDraft; baseSnapshot: string |
 export default function WorkflowEditorPage() {
   const { id } = useParams();
   const workflowId = id === undefined ? 'new' : Number(id);
-  if (workflowId !== 'new' && (!Number.isSafeInteger(workflowId) || workflowId <= 0)) return <Result status="404" title="工作流不存在" />;
-  return <AIWorkspaceAccess code={readCode} title="工作流编辑">{scope => <WorkflowEditorPageSession key={`${scope.join(':')}:${workflowId}`} scope={scope} workflowId={workflowId} />}</AIWorkspaceAccess>;
+  if (workflowId !== 'new' && (!Number.isSafeInteger(workflowId) || workflowId <= 0)) return <Result status="404" title="常用流程不存在" />;
+  return <AIWorkspaceAccess code={readCode} title="常用流程编辑">{scope => <WorkflowEditorPageSession key={`${scope.join(':')}:${workflowId}`} scope={scope} workflowId={workflowId} />}</AIWorkspaceAccess>;
 }
 
 function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceScope; workflowId: number | 'new' }) {
@@ -104,7 +104,7 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
   useEffect(() => {
     if (seed || !toolsQuery.isSuccess || toolsQuery.isFetching || (existing || copyId > 0) && (!detail.isSuccess || detail.isFetching) || fromTaskId > 0 && (!sourceTask.isSuccess || sourceTask.isFetching)) return;
     try {
-      let initial: WorkflowDraft = { name: '我的工作流', enabled: true, steps: [newWorkflowStep()] };
+      let initial: WorkflowDraft = { name: '我的常用流程', enabled: true, steps: [newWorkflowStep()] };
       if (!existing) {
         const incoming = params.get('tool');
         const preferred = incoming && toolsQuery.data.list.some(tool => tool.name === incoming) ? incoming : canReadKnowledge && toolsQuery.data.list.some(tool => tool.name === 'kb_analyze') ? 'kb_analyze' : toolsQuery.data.list.some(tool => tool.name === 'text_stats') ? 'text_stats' : '';
@@ -140,7 +140,7 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
   const blocker = useBlocker(() => !allowLeave.current && (pendingChanges.current || submissionRef.current !== 'idle'));
   useEffect(() => {
     if (blocker.state !== 'blocked') return;
-    const confirmation = modal.confirm({ title: submissionRef.current === 'submitting' ? '正在保存，请留在当前页面' : '离开工作流编辑？', content: submissionRef.current === 'submitting' ? '请求已经发出。请等待结果，避免重复创建。' : '未保存的内容会保留在当前标签页草稿中，返回后可继续编辑。', okText: '保留草稿并离开', cancelText: '继续编辑', okButtonProps: { disabled: submissionRef.current === 'submitting' }, onOk: () => blocker.proceed(), onCancel: () => blocker.reset() });
+    const confirmation = modal.confirm({ title: submissionRef.current === 'submitting' ? '正在保存，请留在当前页面' : '离开常用流程编辑？', content: submissionRef.current === 'submitting' ? '请求已经发出。请等待结果，避免重复创建。' : '未保存的内容会保留在当前标签页草稿中，返回后可继续编辑。', okText: '保留草稿并离开', cancelText: '继续编辑', okButtonProps: { disabled: submissionRef.current === 'submitting' }, onOk: () => blocker.proceed(), onCancel: () => blocker.reset() });
     return () => confirmation.destroy();
   }, [blocker, modal]);
 
@@ -171,7 +171,7 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
     if (submissionRef.current !== 'idle' || conflict || toolsQuery.isFetching || toolsQuery.error || existing && (detail.isFetching || detail.error)) return;
     let request: AiUpdateWorkflowReq | undefined;
     try { if (existing) request = workflowUpdateRequest(draft, definition, baseSnapshot.current); }
-    catch (error) { setStorageError(error instanceof Error ? error.message : '请先核对工作流版本'); return; }
+    catch (error) { setStorageError(error instanceof Error ? error.message : '请先核对常用流程版本'); return; }
     if (!beginWrite(operationCode)) return;
     liveDraft.current = draft;
     setSubmissionState('submitting');
@@ -186,7 +186,7 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
       if (existing) client.removeQueries({ queryKey: aiWorkspaceKeys.workflow(scope, workflowId) });
       if (existing) void client.invalidateQueries({ queryKey: aiWorkspaceKeys.workflowRevisions(scope, workflowId) });
       void client.invalidateQueries({ queryKey: aiWorkspaceKeys.workflows(scope) });
-      void message.success(existing ? '工作流已保存，可开始运行' : '工作流已创建，可开始运行');
+      void message.success(existing ? '常用流程已保存，可开始运行' : '常用流程已创建，可开始运行');
       navigate('/ai/workflows');
     } catch (error) {
       if (!isCurrent()) return;
@@ -197,17 +197,17 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
       }
     } finally { finishWrite(); }
   }
-  if (!canEdit || !canReadTools) return <Result status="403" title={canEdit ? '需要查看工具权限，才能配置工作流' : `没有${existing ? '编辑' : '新建'}工作流权限`} extra={<Button onClick={() => navigate('/ai/workflows')}>返回列表</Button>} />;
+  if (!canEdit || !canReadTools) return <Result status="403" title={canEdit ? '需要查看工具权限，才能配置常用流程' : `没有${existing ? '编辑' : '新建'}常用流程权限`} extra={<Button onClick={() => navigate('/ai/workflows')}>返回列表</Button>} />;
   if (fromTaskId > 0 && !canReadTasks) return <Result status="403" title="需要查看运行记录权限，才能使用本次快照" extra={<Button onClick={() => navigate('/ai/workflows')}>返回列表</Button>} />;
   const kbStepWithoutAccess = requiresKnowledge && !canReadKnowledge;
   const incoming = params.get('tool');
   return <div className={`${styles.workspace} ${styles.editorPage}`}>
-    <div className={styles.pageHeading}><Space><Button type="text" icon={<ArrowLeftOutlined />} aria-label="返回工作流列表" onClick={() => navigate('/ai/workflows')} /><Typography.Title level={3}>{existing ? '编辑常用流程' : '新建常用流程'}</Typography.Title></Space><Space>{existing && detail.data && <Button disabled={writing} onClick={() => setHistoryOpen(true)}>版本历史</Button>}<Typography.Text type="secondary">{writing ? '正在提交…' : submission === 'unknown' ? '保存结果待核对 · 草稿已保留' : dirty ? storageError || restored.error ? '有未保存修改' : '未提交 · 当前标签页草稿已保存' : '先试运行，再保存'}</Typography.Text>{seed && <Button type="text" danger disabled={writing} onClick={discardDraft}>丢弃草稿</Button>}</Space></div>
+    <div className={styles.pageHeading}><Space><Button type="text" icon={<ArrowLeftOutlined />} aria-label="返回常用流程列表" onClick={() => navigate('/ai/workflows')} /><Typography.Title level={3}>{existing ? '编辑常用流程' : '新建常用流程'}</Typography.Title></Space><Space>{existing && detail.data && <Button disabled={writing} onClick={() => setHistoryOpen(true)}>版本历史</Button>}<Typography.Text type="secondary">{writing ? '正在提交…' : submission === 'unknown' ? '保存结果待核对 · 草稿已保留' : dirty ? storageError || restored.error ? '有未保存修改' : '未提交 · 当前标签页草稿已保存' : '先试运行，再保存'}</Typography.Text>{seed && <Button type="text" danger disabled={writing} onClick={discardDraft}>丢弃草稿</Button>}</Space></div>
     {(storageError || restored.error) && <Alert type="warning" showIcon title={storageError || '浏览器草稿存储不可用，刷新或关闭前请自行保留当前内容。'} />}
     {restoredNotice && <Alert type="success" showIcon closable onClose={() => setRestoredNotice(false)} title="已恢复当前标签页的未保存草稿" />}
     {incoming && toolsQuery.isSuccess && !tools.some(tool => tool.name === incoming) && <Alert type="warning" title="所选工具已不可用，请重新选择起步方式。" />}
-    {submission === 'unknown' && <Alert type="warning" showIcon title="上次保存结果未知，草稿已保留" description="请先在工作流列表核对是否已保存，确认后再继续。页面不会自动重复提交。" action={<Space><Button href="/ai/workflows" target="_blank">打开列表核对</Button><Button onClick={() => modal.confirm({ title: '已核对保存结果？', content: '确认需要再次保存后继续。新建操作可能产生重复工作流，请先确认列表。', okText: '已核对，继续编辑', cancelText: '返回核对', onOk: () => setSubmissionState('idle') })}>已核对</Button></Space>} />}
-    {conflict && <Alert type="warning" showIcon title={baselineRevision === null ? '当前草稿缺少已核对的版本' : '已保存的工作流在编辑期间发生变化'} description="当前草稿保持不变。请核对最新定义和版本；再次保存仍由服务端核对版本，冲突时不会覆盖新内容。" action={<Space wrap><Button disabled={writing} onClick={() => void detail.refetch()}>刷新最新版本</Button><Button disabled={!mayAcceptCurrent} onClick={() => modal.confirm({ title: '保留草稿并采用已核对的版本？', content: `后续保存以版本 ${detail.data?.workflow.revision} 为条件，使用当前草稿替换该版本。若之后版本再次变化，服务端会拒绝本次保存。`, okText: '已核对，保留草稿', cancelText: '继续核对', onOk: () => { if (!isCurrent()) return; baseSnapshot.current = currentSnapshot; setSeed(current => current ? { ...current, baseSnapshot: currentSnapshot } : current); setServerConflict(false); if (liveDraft.current) persist(liveDraft.current); } })}>核对后继续</Button></Space>} />}
+    {submission === 'unknown' && <Alert type="warning" showIcon title="上次保存结果未知，草稿已保留" description="请先在常用流程列表核对是否已保存，确认后再继续。页面不会自动重复提交。" action={<Space><Button href="/ai/workflows" target="_blank">打开列表核对</Button><Button onClick={() => modal.confirm({ title: '已核对保存结果？', content: '确认需要再次保存后继续。新建操作可能产生重复常用流程，请先确认列表。', okText: '已核对，继续编辑', cancelText: '返回核对', onOk: () => setSubmissionState('idle') })}>已核对</Button></Space>} />}
+    {conflict && <Alert type="warning" showIcon title={baselineRevision === null ? '当前草稿缺少已核对的版本' : '已保存的常用流程在编辑期间发生变化'} description="当前草稿保持不变。请核对最新定义和版本；再次保存仍由服务端核对版本，冲突时不会覆盖新内容。" action={<Space wrap><Button disabled={writing} onClick={() => void detail.refetch()}>刷新最新版本</Button><Button disabled={!mayAcceptCurrent} onClick={() => modal.confirm({ title: '保留草稿并采用已核对的版本？', content: `后续保存以版本 ${detail.data?.workflow.revision} 为条件，使用当前草稿替换该版本。若之后版本再次变化，服务端会拒绝本次保存。`, okText: '已核对，保留草稿', cancelText: '继续核对', onOk: () => { if (!isCurrent()) return; baseSnapshot.current = currentSnapshot; setSeed(current => current ? { ...current, baseSnapshot: currentSnapshot } : current); setServerConflict(false); if (liveDraft.current) persist(liveDraft.current); } })}>核对后继续</Button></Space>} />}
     <QueryState error={toolsQuery.error} onRetry={toolsQuery.refetch} />
     {(existing || copyId > 0) && <QueryState error={detail.error} onRetry={detail.refetch} />}
     {fromTaskId > 0 && <QueryState error={sourceTask.error} onRetry={sourceTask.refetch} />}
@@ -215,7 +215,6 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
     {toolsQuery.isSuccess && !tools.length && <Alert type="info" title="暂时没有可用工具，请联系管理员检查工具配置后刷新。" />}
     {!existing && tools.length > 0 && <div className={styles.templateGrid}>
       {tools.some(tool => tool.name === 'kb_analyze') && <Button className={styles.templateButton} disabled={writing || !canReadKnowledge || submission !== 'idle'} onClick={() => selectTemplate('kb_analyze')}><DatabaseOutlined /><span><strong>资料分析</strong><small>{canReadKnowledge ? '每次选择知识库与问题，输出分析和来源' : '需要查看知识库权限'}</small></span></Button>}
-      {tools.some(tool => tool.name === 'json_formatter') && <Button className={styles.templateButton} disabled={writing || submission !== 'idle'} onClick={() => selectTemplate('json_formatter')}><FileTextOutlined /><span><strong>JSON 格式整理</strong><small>排版合法 JSON 文本，便于阅读结构</small></span></Button>}
       <Button className={styles.templateButton} disabled={writing || submission !== 'idle'} onClick={() => selectTemplate('')}><PlusOutlined /><span><strong>空白起步</strong><small>按需要添加和安排步骤</small></span></Button>
     </div>}
     {seed ? <div className={styles.editorWorkspace}><Card className={styles.editorCard}>

@@ -24,6 +24,35 @@
 
 运行与失败复核证据位于本地忽略目录 `tmp/test-consolidation-20261113/`：`node-final.log`、`browser-targets.log`、`browser-usage-final.log`、`browser-dataset-comparison.log`、`browser-dataset-final.log` 和 `browser-import-receipts.log`。题集初次复验因高级设置再次收起而失败，最终通过记录单独保留；原始性能 JSON 及之前的质量/性能证据未改。归并后的测试文件为 32 个 Node 回归和 18 个浏览器脚本，共 50 个；文件数量减少不是覆盖率或性能提升的测量。
 
+## AI 入口与操作减法（2026-11-13）
+
+本轮基于 `e45fa76bcf977196641c0168ae09badde05fc50d` 后的工作区源码验证，仅修改前端 AI 页面和直接回归。常用流程列表移除重复能力目录链接，新建首屏移除 JSON 模板，保留编辑器能力选择、`json_formatter` 旧入口及仅工具查看权限用户的只读目录；界面统一“常用流程”“运行记录”。聊天自动知识库范围隐藏资料约束开关，指定知识库后显示，原发送值归一化与写入禁用保持。反馈采用“用此样本新建评测”，核对后通过“确认题集，前往新建评测”导入；两个下载入口分别收进“更多导出”，只有明确点击“开始评测”才执行。
+
+针对性 Node 回归分组通过：流程相关 7 文件 75 项，编辑器/工具/草稿 3 文件 31 项，聊天 19 项，反馈及题集 63 项；术语收尾后反馈/质量/工具 3 文件 46 项复验通过。组间有重叠，不相加为独立用例数。新增入口、开关与评测主动作断言均保留实现前的预期失败和实现后的通过日志。`tsc -b`、改动文件限定 oxlint、浏览器脚本语法检查通过；历史面板验证需要生产资源，额外执行当前源码 `vite build` 成功，仅保留已有公共 chunk 体积提示。未运行全仓前后端回归。
+
+浏览器执行以下 8 个入口，均取得实际完成结果：
+
+| 入口 | 本次确认的行为 |
+|---|---|
+| [组合入口与聊天](../scripts/aiShellChatSubtraction.browser.mjs) | 隐藏重复入口、保留编辑器 JSON 能力与旧参数入口、只读目录兜底；新旧聊天指定库/自动范围开关切换；转义和 5 页 390px 布局。 |
+| [流程列表与编辑](../scripts/aiWorkflowSubtraction.browser.mjs) | 常用/更多操作、删除取消、筛选与状态读取、进度/比较、参数引用、草稿和只读呈现。 |
+| [流程编辑与版本](../scripts/aiWorkflowRevisions.browser.js) | 实际 Form 的 enabled/工具缓存、未知创建刷新不重提、冲突保留草稿、恢复需明确新操作、只读历史及 390px。 |
+| [草稿运行权限](../scripts/aiDraftRunAccess.browser.js) | 最小权限、直接禁止路由、不读取无权运行记录、配额失败后 SPA 恢复及复用原请求。 |
+| [已存流程运行](../scripts/aiWorkflowRun.browser.js) | 存储失败后关闭重开、双击核对仅追加一次请求、同一标识及输入、当前页读取并展示原运行结果。 |
+| [反馈复核](../scripts/aiKnowledgeFeedback.browser.js) | 复核与事实校验、更多导出原样本、读取失败恢复和版本边界。 |
+| [反馈题集](../scripts/aiFeedbackDataset.browser.js) | 资料 SHA 变化拒绝、导出与提交原字节一致、导入不自动运行、双击防重、未知请求原标识恢复、快照复用、负例须核对全部资料、身份隔离及 390px。 |
+| [历史面板](../scripts/aiHistoryPanel.browser.mjs) | 生产资源加载失败提示、解除故障后重试成功、关闭返回原详情。 |
+
+前 7 项加载原有 `5999` 开发服务当前源码；反馈、版本、草稿和运行提交均由响应桩接收，没有真实业务写入或模型调用。历史面板使用本轮构建的临时 `6019` 生产预览，资源含 `WorkflowHistory-DhM_3YKC.js`，通过本地演示账号正常登录，只读取已有流程及历史，未恢复版本。真实供应商、付费评测和后端逻辑不在本次验证范围。
+
+原始日志、源码保护指纹和浏览器 JSON 保存在本地忽略目录 `tmp/ai-subtraction-20261113/`。Node 命令见 `workflow-commands.txt`、`chat-commands.log`、`feedback-green-node.log` 与 `final-followup-commands.log`；静态检查见 `static-*.log`、`final-followup-*.log`，构建见 `history-preview-build.log`。浏览器结果分别在 `live/`、`feedback-browser/`、`dataset-browser/`、`revisions-browser/`、`draft-browser/`、`run-browser/` 和 `history-preview/` 下。
+
+两处初次验证结果保留：历史脚本依赖生产 `/assets/WorkflowHistory-*.js`，在开发服务无法注入该故障，改用生产预览后通过；运行脚本原先等待旧版跳转地址，已改为核对现有内联结果和实际读取的记录 ID，原标识、输入与防重断言保留。版本脚本遇到 CLI 的 beforeunload 提前返回 `{}`，该空值未计通过；通过本地包装器等待全部断言结束，`revisions-browser/completion.json` 明确记录 `ok:true`、零页面错误、零真实写入及完整结果。
+
+1144 个范围外跟踪文件最终指纹一致，后端、model、生成物、API 契约、权限码和依赖未改。本轮真实演示登录均正常退出，独立浏览器全部关闭，临时 preview PID 36192 已结束且 6019 释放；原 5999 服务保留。本节功能验收结束时尚未提交，后续 Git 交付以提交记录为准。
+
+提交前完整自检再次执行本地已安装工具入口：`node node_modules/typescript/bin/tsc -b`、`node node_modules/oxlint/bin/oxlint --format=json`、`node node_modules/vite/bin/vite.js build`，均退出 0。全量 lint 检查 248 个文件、零错误，保留两处既有 `react(refs)` 警告（`Conversation.tsx:71`、`NewConversationComposer.tsx:52`，两文件均与基线提交一致）；构建保留已有公共 chunk 大于 500 kB 提示。原始结果在同一本地任务目录的 `commit-tsc.log`、`commit-lint.json` 和 `commit-build.log`。源码与功能验收时指纹一致，本次交付未重复浏览器或真实模型调用。
+
 ## 基础管理模块与请求对接
 
 2026-10-30 的初始对接记录覆盖 user/dept/role/menu/dict/api/file/audit/profile、登录、菜单、权限、路由和真实统计首页。记录称 TypeScript 严格检查、Vite、oxlint 与 12 项测试通过；Node 内置测试涉及响应解包、树和验证码，但没有保留完整命令、逐项报告或构建标识，不能据此复原每项断言。

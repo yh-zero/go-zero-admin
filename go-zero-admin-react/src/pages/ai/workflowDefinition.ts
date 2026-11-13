@@ -147,7 +147,7 @@ export function moveWorkflowStep(steps: WorkflowStepDraft[], key: string, direct
 }
 
 export function serializeWorkflow(steps: WorkflowStepDraft[], tools?: readonly AiToolInfo[]): string {
-  if (steps.length < 1 || steps.length > 32) throw new Error('工作流须包含 1..32 个步骤');
+  if (steps.length < 1 || steps.length > 32) throw new Error('常用流程须包含 1..32 个步骤');
   const inputs = steps.map(step => parseStepInput(step.input, tools?.find(tool => tool.name === step.tool)));
   const v2 = steps.some(step => step.id) || inputs.some(input => workflowReferences(input).length > 0);
   const prior = new Set<string>();
@@ -166,18 +166,18 @@ export function serializeWorkflow(steps: WorkflowStepDraft[], tools?: readonly A
     prior.add(id);
     return { ...(v2 ? { id } : {}), name: step.name, tool: step.tool, input: inputs[index], approval: step.approval };
   }) });
-  if (byteLength(definition) > 65536) throw new Error('工作流定义最多 65536 UTF-8 字节');
+  if (byteLength(definition) > 65536) throw new Error('常用流程定义最多 65536 UTF-8 字节');
   return definition;
 }
 
 export function parseWorkflow(raw: string, tools?: readonly AiToolInfo[]): WorkflowStepDraft[] {
-  if (!raw || byteLength(raw) > 65536) throw new Error('工作流定义须为 1..65536 UTF-8 字节');
+  if (!raw || byteLength(raw) > 65536) throw new Error('常用流程定义须为 1..65536 UTF-8 字节');
   let value: unknown;
-  try { value = JSON.parse(raw); } catch { throw new Error('工作流定义必须为有效 JSON'); }
-  if (!isObject(value)) throw new Error('工作流定义必须为 JSON 对象');
+  try { value = JSON.parse(raw); } catch { throw new Error('常用流程定义必须为有效 JSON'); }
+  if (!isObject(value)) throw new Error('常用流程定义必须为 JSON 对象');
   rejectUnknown(value, ['steps', 'version']);
-  if (value.version !== undefined && value.version !== 2) throw new Error('工作流版本不支持');
-  if (!Array.isArray(value.steps) || value.steps.length < 1 || value.steps.length > 32) throw new Error('工作流须包含 1..32 个步骤');
+  if (value.version !== undefined && value.version !== 2) throw new Error('常用流程版本不支持');
+  if (!Array.isArray(value.steps) || value.steps.length < 1 || value.steps.length > 32) throw new Error('常用流程须包含 1..32 个步骤');
   const steps = value.steps.map((step): WorkflowStepDraft => {
     if (!isObject(step)) throw new Error('步骤必须为 JSON 对象');
     rejectUnknown(step, ['id', 'name', 'tool', 'input', 'approval']);
@@ -259,5 +259,5 @@ export function workflowTemplate(tool: string, tools: readonly AiToolInfo[]): Wo
     return { name: 'JSON 整理与统计', enabled: true, steps: [first, next] };
   }
   const first = newWorkflowStep(tool);
-  return { name: tool ? `${workflowToolLabels[tool] ?? tool}工作流` : '我的工作流', enabled: true, steps: [first] };
+  return { name: tool ? `${workflowToolLabels[tool] ?? tool}常用流程` : '我的常用流程', enabled: true, steps: [first] };
 }

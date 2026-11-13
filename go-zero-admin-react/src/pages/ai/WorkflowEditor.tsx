@@ -68,7 +68,7 @@ export function WorkflowEditor({ initial, tools, existing, saving, saveDisabled,
     setValidationError('');
     let definition: string;
     try { definition = serializeWorkflow(draft.steps, tools); }
-    catch (error) { setValidationError(error instanceof Error ? error.message : '请核对工作流定义'); return; }
+    catch (error) { setValidationError(error instanceof Error ? error.message : '请核对常用流程定义'); return; }
     await onSave(draft, definition);
   }
 
@@ -86,7 +86,7 @@ export function WorkflowEditor({ initial, tools, existing, saving, saveDisabled,
     }, 0);
   }} disabled={saving} className={styles.editorForm}>
     <div className={styles.nameRow}>
-      <Form.Item label="工作流名称" name="name" rules={[nameRule]} className={styles.nameField}><Input placeholder="例如：文本整理与复核" /></Form.Item>
+      <Form.Item label="常用流程名称" name="name" rules={[nameRule]} className={styles.nameField}><Input placeholder="例如：文本整理与复核" /></Form.Item>
       {existing ? <Form.Item label="启用" name="enabled" valuePropName="checked"><Switch /></Form.Item> : <Tag color="success">新建默认启用</Tag>}
     </div>
     {!!missingTools.length && <Alert type="warning" showIcon title={`第 ${missingTools.join('、')} 步的类型已不可用，原参数已保留。请选择可用类型后再保存。`} />}

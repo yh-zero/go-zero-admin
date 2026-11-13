@@ -39,7 +39,7 @@ async page => {
   await page.getByRole('button', { name: /用资料分析$/ }).click();
   await page.getByRole('textbox', { name: /你希望了解什么？$/ }).fill('权限最小组合的问题');
   await page.getByRole('button', { name: /开始分析$/ }).click();
-  await page.getByText('已创建运行记录 #41，需要任务查看权限才能查看结果。', { exact: true }).waitFor();
+  await page.getByText('已创建运行记录 #41，需要运行记录查看权限才能查看结果。', { exact: true }).waitFor();
   check(await page.getByRole('button', { name: '保存为常用流程', exact: true }).count() === 0, '缺少任务查看权限时不应提供依赖任务快照的保存入口');
   await page.goto(`${origin}/ai/workflows/new?from_task=41`);
   const forbidden = page.getByText('需要查看运行记录权限，才能使用本次快照', { exact: true });
@@ -58,7 +58,7 @@ async page => {
   await save.waitFor();
   await save.click();
   await page.getByRole('heading', { name: '新建常用流程', exact: true }).waitFor();
-  const name = page.getByRole('textbox', { name: /工作流名称$/ });
+  const name = page.getByRole('textbox', { name: /常用流程名称$/ });
   await name.waitFor();
   check(await name.inputValue() === task.workflow_name, '有权限时应带入本次任务名称及执行快照');
   await page.getByRole('button', { name: /试运行$/ }).click();

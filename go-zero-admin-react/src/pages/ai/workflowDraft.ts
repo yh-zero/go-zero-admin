@@ -34,7 +34,7 @@ export function workflowBaseRevision(snapshot: string | null): number | null {
 }
 export function workflowUpdateRequest(draft: WorkflowDraft, definition: string, snapshot: string | null): AiUpdateWorkflowReq {
   const revision = workflowBaseRevision(snapshot);
-  if (revision === null) throw new Error('草稿缺少有效基线版本，请先核对最新工作流。');
+  if (revision === null) throw new Error('草稿缺少有效基线版本，请先核对最新常用流程。');
   return { expected_revision: revision, name: draft.name.trim(), definition, enabled: draft.enabled ? 1 : 0 };
 }
 export const draftContent = (draft: WorkflowDraft) => JSON.stringify({ ...draft, steps: draft.steps.map(({ key: _key, ...step }) => step) });

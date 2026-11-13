@@ -81,7 +81,7 @@ test('任务审批、状态与工具安全展示', async t => {
         input: '<img src=x onerror=alert(1)>', result: '{bad <script>result()</script>', error: '<svg onload=alert(1)>',
         approved_by: 0, created_at: 1, completed_at: 0,
       } }));
-      for (const text of ['&lt;img', '&lt;script&gt;', '&lt;svg', '当前步骤', '第 1 步', '本人任务']) assert.ok(markup.includes(text), text);
+      for (const text of ['&lt;img', '&lt;script&gt;', '&lt;svg', '当前步骤', '第 1 步', '本人运行记录']) assert.ok(markup.includes(text), text);
       for (const text of ['<img src=x', '<script>', '总进度', '时间线', 'next_step', '服务端断点', '从 0 开始']) assert.ok(!markup.includes(text), text);
       const raw = ' { "a": 1 } ';
       const rawMarkup = renderToStaticMarkup(createElement(TaskDetailContent, { task: { id: 7, workflow_id: 8, status: 'succeeded', next_step: 1,
@@ -102,6 +102,23 @@ test('任务审批、状态与工具安全展示', async t => {
       assert.ok(!denied.includes('/ai/workflows'));
       const allowed = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(ToolCard, { tool, canUse: true, onView() {} })));
       assert.ok(allowed.includes('/ai/workflows/new?tool=%3Cscript%3Etool%3C%2Fscript%3E'));
+    });
+    await t.test('仅工具查看权限用户保留原只读目录和输入输出，不显示创建入口', async () => {
+      const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
+      const scope = ['tools-readonly-presentation', 1, 0];
+      const auth = { token: 'local-fixture', sessionId: scope[0], sessionVersion: 1, departmentVersion: 0, permissionsReady: true, permCodes: ['sys:ai:tool:list'] };
+      Object.assign(useAuthStore.getInitialState(), auth);
+      useAuthStore.setState(auth);
+      const queries = await server.ssrLoadModule('/src/pages/ai/workspaceQueries.ts');
+      const { AIToolSession } = await server.ssrLoadModule('/src/pages/ai/AITools.tsx');
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      try {
+        client.setQueryData(queries.toolListOptions(scope).queryKey, { list: [{ name: 'json_formatter', description: 'JSON格式化', parameters_schema: '{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}' }], capabilities: { retrieval_configured: false, analysis_configured: false, ingestion_mode: 'disabled' } });
+        const html = renderToStaticMarkup(createElement(QueryClientProvider, { client }, createElement(MemoryRouter, { initialEntries: ['/ai/tools'] }, createElement(App, null, createElement(AIToolSession, { scope })))));
+        assert.ok(html.includes('JSON 格式整理'));
+        assert.ok(html.includes('看输入输出'));
+        assert.ok(!html.includes('/ai/workflows/new'));
+      } finally { client.clear(); }
     });
     await t.test('运行结果先于输入和执行过程，名称及问题摘要直接可读', async () => {
       const { TaskDetailContent } = await server.ssrLoadModule('/src/pages/ai/TaskDetail.tsx');

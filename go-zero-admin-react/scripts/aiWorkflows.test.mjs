@@ -108,7 +108,7 @@ test('工作流 DSL 与只读呈现边界', async t => {
   } finally { await server.close(); }
 });
 
-test('流程列表只常显运行编辑，能力目录受工具读取权限约束', async () => {
+test('常用流程列表只常显运行编辑，不再提供重复能力目录入口', async () => {
   const originalWindow = globalThis.window;
   const values = new Map();
   const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
@@ -130,7 +130,9 @@ test('流程列表只常显运行编辑，能力目录受工具读取权限约�
       finally { client.clear(); }
     };
     const allowed = render();
-    assert.ok(allowed.includes('href="/ai/tools"'));
+    assert.ok(!allowed.includes('href="/ai/tools"'), '编辑器已可选择能力，列表不再跳转目录');
+    assert.ok(allowed.includes('新建常用流程'));
+    assert.ok(allowed.includes('刷新常用流程列表'));
     assert.ok(allowed.includes('我的流程'));
     assert.ok(allowed.includes('更多操作'));
     assert.ok(!allowed.includes('手动运行'));

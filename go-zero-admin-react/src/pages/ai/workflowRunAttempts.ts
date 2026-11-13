@@ -12,7 +12,7 @@ export function readWorkflowRunAttempt(storage: Pick<AttemptStorage, 'getItem'>,
   if (!raw) return null;
   const value: unknown = JSON.parse(raw);
   if (!value || typeof value !== 'object' || !('workflowId' in value) || value.workflowId !== workflowId || !('request_id' in value) || typeof value.request_id !== 'string'
-    || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value.request_id) || !('input' in value) || typeof value.input !== 'string' || validateRunInput(value.input)) throw new Error('运行标识格式异常，请先到任务中心核对上次运行。');
+    || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value.request_id) || !('input' in value) || typeof value.input !== 'string' || validateRunInput(value.input)) throw new Error('运行标识格式异常，请先到运行记录核对上次运行。');
   const attempt = { workflowId, request_id: value.request_id, input: value.input };
   memory.set(key, attempt); return attempt;
 }

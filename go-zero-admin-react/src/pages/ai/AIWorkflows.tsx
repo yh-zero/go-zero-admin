@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, App, Button, Card, Drawer, Dropdown, Form, Input, Modal, Space, Table, Tag, Typography } from 'antd';
 import { ApartmentOutlined, CopyOutlined, DeleteOutlined, EditOutlined, MoreOutlined, PlayCircleOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { deleteAiWorkflow, runAiWorkflow } from '../../api/ai';
 import type { AiRunWorkflowReq, AiRunWorkflowResp, AiWorkflowInfo } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
@@ -29,7 +29,7 @@ const loadDetail = () => import('./TaskDetail').then(module => module.TaskDetail
 type Panel = { mode: 'view' | 'run'; id: number; key: string };
 
 export default function AIWorkflows() {
-  return <AIWorkspaceAccess code={readCode} title="工作流管理">{scope => <AIWorkflowsSession scope={scope} />}</AIWorkspaceAccess>;
+  return <AIWorkspaceAccess code={readCode} title="常用流程">{scope => <AIWorkflowsSession scope={scope} />}</AIWorkspaceAccess>;
 }
 
 export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
@@ -68,7 +68,7 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
     try {
       const stored = readWorkflowRunAttempt(sessionStorage, runAttempts.current, workflowRunAttemptKey(sessionId, departmentId, id), id);
       if (stored) { setRunAttempt(stored); setUncertain('run'); }
-    } catch { setUncertain('run'); setRunError('浏览器无法恢复运行标识，请先到任务中心核对上次运行。'); }
+    } catch { setUncertain('run'); setRunError('浏览器无法恢复运行标识，请先到运行记录核对上次运行。'); }
   }, [sessionId, departmentId]);
   const list = useQuery(workflowListOptions(scope, pageParams));
   const completedTotal = list.isSuccess && !list.isFetching ? list.data.total : undefined;
@@ -129,7 +129,7 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
       setDeleteTarget(null);
       if (detailId === id) setPanel(null);
       if ((list.data?.list.length ?? 0) <= 1 && page > 1) setPageParams(current => ({ ...current, page: Math.max(1, current.page - 1) }));
-      void message.success('工作流已删除，已有任务记录保留');
+      void message.success('常用流程已删除，已有运行记录保留');
       await refreshList();
     } catch { /* 失败保留确认上下文，由请求层展示错误。 */ }
     finally { finishWrite(); }
@@ -143,7 +143,7 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
     }
     if (!beginWrite(permission('run'))) return;
     setRunAttempt(attempt); setRunError('');
-    try { saveWorkflowRunAttempt(sessionStorage, runAttempts.current, attemptKey(workflow.id), attempt); } catch { setRunError('运行标识暂时只能保留在本页面，刷新前请先核对任务结果。'); }
+    try { saveWorkflowRunAttempt(sessionStorage, runAttempts.current, attemptKey(workflow.id), attempt); } catch { setRunError('运行标识暂时只能保留在本页面，刷新前请先核对运行结果。'); }
     try {
       const result = await run.mutateAsync(attempt);
       if (!isCurrent()) return;
@@ -170,9 +170,8 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
   return <div className={styles.workspace}>
     <Card>
       <div className={styles.header}><div><Space><ApartmentOutlined /><Typography.Title level={3}>常用流程</Typography.Title><Tag>{list.data?.total ?? 0} 个流程</Tag></Space><p className={styles.headerNote}>保存常用的分析方式，每次单独填写资料与问题</p></div><Space>
-        {canReadTools && <Link to="/ai/tools">能力目录</Link>}
-        <Button icon={<ReloadOutlined />} aria-label="刷新工作流列表" disabled={writing} onClick={() => void refreshList()} />
-        {canCreate && <Button type="primary" icon={<PlusOutlined />} disabled={writing || !canReadTools} title={!canReadTools ? '需要查看工具权限才能选择注册工具' : undefined} onClick={() => navigate('/ai/workflows/new')}>新建工作流</Button>}
+        <Button icon={<ReloadOutlined />} aria-label="刷新常用流程列表" disabled={writing} onClick={() => void refreshList()} />
+        {canCreate && <Button type="primary" icon={<PlusOutlined />} disabled={writing || !canReadTools} title={!canReadTools ? '需要查看工具权限才能选择注册工具' : undefined} onClick={() => navigate('/ai/workflows/new')}>新建常用流程</Button>}
       </Space></div>
     </Card>
     {lastRunWithoutAccess && <WorkflowRunResultNotice result={lastRunWithoutAccess} />}
@@ -180,8 +179,8 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
     <Card>
       <div className={styles.toolbar}><Input.Search className={styles.search} prefix={<SearchOutlined />} allowClear aria-label="搜索流程名称" placeholder="搜索流程名称" value={search} onChange={event => setSearch(event.target.value)} onSearch={query => setPageParams(current => ({ ...current, page: 1, query: query.trim() || undefined }))} /><Typography.Text type="secondary">仅显示我创建的流程</Typography.Text></div>
       <QueryState error={list.error} onRetry={list.refetch} />
-      {!list.error && <Table<AiWorkflowInfo> rowKey="id" loading={list.isPending} dataSource={displayed} scroll={{ x: 790 }} pagination={{ current: page, pageSize, total: list.data?.total ?? 0, showSizeChanger: true, pageSizeOptions: [10, 20, 50, 100], showTotal: total => `共 ${total} 个工作流`, onChange: (next, size) => { if (!writing) setPageParams(current => ({ ...current, page: size !== pageSize ? 1 : next, page_size: size })); }, disabled: writing }} columns={[
-        { title: '工作流', dataIndex: 'name', render: (_: unknown, row) => <Button type="link" className={styles.workflowName} disabled={writing} onClick={() => openExisting(row.id, 'view')}>{row.name}</Button> },
+      {!list.error && <Table<AiWorkflowInfo> rowKey="id" loading={list.isPending} dataSource={displayed} scroll={{ x: 790 }} pagination={{ current: page, pageSize, total: list.data?.total ?? 0, showSizeChanger: true, pageSizeOptions: [10, 20, 50, 100], showTotal: total => `共 ${total} 个常用流程`, onChange: (next, size) => { if (!writing) setPageParams(current => ({ ...current, page: size !== pageSize ? 1 : next, page_size: size })); }, disabled: writing }} columns={[
+        { title: '常用流程', dataIndex: 'name', render: (_: unknown, row) => <Button type="link" className={styles.workflowName} disabled={writing} onClick={() => openExisting(row.id, 'view')}>{row.name}</Button> },
         { title: '步骤', width: 90, render: (_: unknown, row) => `${row.step_count} 步` },
         { title: '状态', width: 100, dataIndex: 'enabled', render: (enabled: number) => <Tag color={enabled === 1 ? 'success' : 'default'}>{enabled === 1 ? '已启用' : '已停用'}</Tag> },
         { title: '更新于', dataIndex: 'updated_at', render: formatTime, responsive: ['lg'] },
@@ -198,32 +197,32 @@ export function AIWorkflowsSession({ scope }: { scope: AiWorkspaceScope }) {
       ]} />}
     </Card>
     {selectedTask && <Card title="本次运行结果"><AsyncContent key={selectedTask} load={loadDetail} componentProps={{ inline: true, scope, taskId: selectedTask, guard, onClose: () => setSelectedTask(null) }} /></Card>}
-    <Drawer open={panel?.mode === 'view'} title="工作流详情" size={880} onClose={closePanel} destroyOnHidden>
+    <Drawer open={panel?.mode === 'view'} title="常用流程详情" size={880} onClose={closePanel} destroyOnHidden>
       <QueryState isPending={detail.isPending || detail.isFetching} error={detail.error} onRetry={detail.refetch} />
       {workflow && !detail.isFetching && !detail.error && <><Button disabled={writing} onClick={() => setHistoryOpen(true)}>版本历史</Button><WorkflowDefinitionView name={workflow.name} definition={workflow.definition} /></>}
       {historyOpen && workflow && <AsyncContent load={loadHistory} componentProps={{ scope, workflow, currentVerified: detail.isSuccess && !detail.isFetching && !detail.error, guard, onRefresh: () => detail.refetch(), onClose: () => setHistoryOpen(false) }} />}
     </Drawer>
-    <Modal open={panel?.mode === 'run'} title="确认运行工作流" onCancel={closePanel} closable={!writing} mask={{ closable: !writing }} keyboard={!writing} confirmLoading={writing} okText={uncertain ? '核对原任务' : '开始后台运行'} okButtonProps={{ disabled: !workflow || workflow.enabled !== 1 || detail.isFetching || !!detail.error || (!!uncertain && !runAttempt) || !can(permission('run')) }} onOk={() => uncertain ? void runWorkflow({}) : runForm.submit()} destroyOnHidden>
+    <Modal open={panel?.mode === 'run'} title="确认运行常用流程" onCancel={closePanel} closable={!writing} mask={{ closable: !writing }} keyboard={!writing} confirmLoading={writing} okText={uncertain ? '核对原运行' : '开始后台运行'} okButtonProps={{ disabled: !workflow || workflow.enabled !== 1 || detail.isFetching || !!detail.error || (!!uncertain && !runAttempt) || !can(permission('run')) }} onOk={() => uncertain ? void runWorkflow({}) : runForm.submit()} destroyOnHidden>
       <QueryState isPending={detail.isPending || detail.isFetching} error={detail.error} onRetry={detail.refetch} />
       {workflow && !detail.isFetching && !detail.error && <>
-        <Typography.Paragraph>将运行已保存的工作流「{workflow.name}」，不会使用未保存的编辑内容。</Typography.Paragraph>
-        {workflow.enabled !== 1 && <Alert type="warning" showIcon title="此工作流已停用，请在编辑中启用后再运行。" />}
+        <Typography.Paragraph>将运行已保存的常用流程「{workflow.name}」，不会使用未保存的编辑内容。</Typography.Paragraph>
+        {workflow.enabled !== 1 && <Alert type="warning" showIcon title="此常用流程已停用，请在编辑中启用后再运行。" />}
         <details className={styles.runDetails}><summary>查看本次已保存定义</summary><WorkflowDefinitionView name={workflow.name} definition={workflow.definition} /></details>
         <Form form={runForm} layout="vertical" initialValues={{ input: '', question: undefined, text: undefined }} onFinish={runWorkflow} disabled={writing || !!uncertain} clearOnDestroy>
           {runFields.kb_id && <Form.Item label="本次使用的知识库" name="kb_id" rules={[{ required: true, message: '请选择本次使用的知识库' }]}><KnowledgeChoice knowledge={{ scope, canRead: can('sys:ai:kb:list') }} disabled={writing || !!uncertain} /></Form.Item>}
           {runFields.question && <Form.Item label="本次问题" name="question" rules={[{ required: true, whitespace: true, message: '请输入本次希望分析的问题' }]}><Input.TextArea rows={4} placeholder="希望从资料中了解什么？" /></Form.Item>}
           {runFields.text && <Form.Item label="本次文本" name="text" rules={[{ required: true, message: '请输入本次需要处理的文本' }]}><Input.TextArea rows={5} placeholder="粘贴本次运行需要处理的文本" /></Form.Item>}
-          {!runFields.question && !runFields.text && <Typography.Paragraph type="secondary">本工作流使用已保存的固定参数；提交后可以关闭页面，在任务中心查看进度。</Typography.Paragraph>}
+          {!runFields.question && !runFields.text && <Typography.Paragraph type="secondary">本常用流程使用已保存的固定参数；提交后可以关闭页面，在运行记录查看进度。</Typography.Paragraph>}
           <details className={styles.runDetails}><summary>高级运行选项（可选）</summary>
           <Form.Item label="运行输入 JSON（可选）" name="input" extra="JSON 对象中的字段可由 input.字段名 引用；上方问题和文本覆盖同名字段，总计最多 16000 UTF-8 字节。" rules={[{ validator: (_: unknown, value: string) => { const error = validateRunInput(value ?? ''); return error ? Promise.reject(new Error(error)) : Promise.resolve(); } }]}><Input.TextArea rows={4} spellCheck={false} placeholder="{}" className={styles.jsonInput} /></Form.Item>
           </details>
         </Form>
       </>}
       {runError && <Alert type="warning" showIcon title={runError} />}
-      {uncertain === 'run' && <Alert type="warning" showIcon title="上次运行结果待确认" description="点击“核对原任务”会复用原请求标识和输入，已有任务会直接返回，不会重复执行；也可到任务中心查看。" action={canReadTasks ? <Button onClick={() => navigate('/ai/tasks')}>前往任务中心</Button> : undefined} />}
+      {uncertain === 'run' && <Alert type="warning" showIcon title="上次运行结果待确认" description="点击“核对原运行”会复用原请求标识和输入，已有运行记录会直接返回，不会重复执行；也可到运行记录查看。" action={canReadTasks ? <Button onClick={() => navigate('/ai/tasks')}>前往运行记录</Button> : undefined} />}
     </Modal>
-    <Modal open={!!deleteTarget} title="删除工作流" okText="确认删除" okButtonProps={{ danger: true, disabled: !can(permission('delete')) }} confirmLoading={writing} onOk={() => void deleteWorkflow()} onCancel={() => { if (!writing) setDeleteTarget(null); }} closable={!writing} mask={{ closable: !writing }} keyboard={!writing}>
-      <Typography.Paragraph>确定删除「{deleteTarget?.name}」？已有任务记录保留，删除后无法再运行此工作流。</Typography.Paragraph>
+    <Modal open={!!deleteTarget} title="删除常用流程" okText="确认删除" okButtonProps={{ danger: true, disabled: !can(permission('delete')) }} confirmLoading={writing} onOk={() => void deleteWorkflow()} onCancel={() => { if (!writing) setDeleteTarget(null); }} closable={!writing} mask={{ closable: !writing }} keyboard={!writing}>
+      <Typography.Paragraph>确定删除「{deleteTarget?.name}」？已有运行记录保留，删除后无法再运行此常用流程。</Typography.Paragraph>
     </Modal>
   </div>;
 }

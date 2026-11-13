@@ -71,16 +71,25 @@ async (page) => {
   await page.goto(`${origin}/ai/knowledge/7?tab=feedback`);
   await page.getByRole('button', { name: '查看评价', exact: true }).click();
   let drawer = page.getByRole('dialog', { name: '反馈复核 #3', exact: true });
-  await drawer.getByRole('button', { name: '生成验收题集', exact: true }).click();
+  await drawer.getByRole('button', { name: '用此样本新建评测', exact: true }).click();
   await drawer.getByText('来源ID、版本、标题或正文指纹已变化，请重新复核反馈', { exact: true }).waitFor();
   check(writes.length === 0, '来源变化拒绝后不能提交');
   stale = false; await drawer.getByRole('button', { name: /重试|重新加载/ }).click();
-  await drawer.getByRole('button', { name: '导入质量验收页', exact: true }).waitFor();
+  await drawer.getByRole('button', { name: '确认题集，前往新建评测', exact: true }).waitFor();
+  await drawer.getByText('核对后可前往新建评测，只有点击“开始评测”才执行模型。', { exact: true }).waitFor();
+  check(await drawer.getByRole('button', { name: '下载冻结题集', exact: true }).count() === 0, '冻结题集下载须收进更多导出');
   check(writes.length === 0, '生成预览不得提交评测');
+  await page.evaluate(() => {
+    const create = URL.createObjectURL;
+    URL.createObjectURL = blob => { window.feedbackDatasetExportRaw = blob.text(); return create.call(URL, blob); };
+  });
   const downloaded = page.waitForEvent('download');
-  await drawer.getByRole('button', { name: '下载冻结题集', exact: true }).click();
+  await drawer.getByRole('region', { name: '评测题集预览', exact: true }).getByRole('button', { name: '更多导出', exact: true }).click();
+  await page.getByRole('menuitem', { name: '下载冻结题集', exact: true }).click();
   check((await downloaded).suggestedFilename() === 'kb-7-feedback-3-r4.json', '下载须标识反馈版本');
-  await drawer.getByRole('button', { name: '导入质量验收页', exact: true }).click();
+  const frozenExportRaw = await page.evaluate(async () => await window.feedbackDatasetExportRaw);
+  check(writes.length === 0, '菜单下载不能提交评测');
+  await drawer.getByRole('button', { name: '确认题集，前往新建评测', exact: true }).click();
   await page.getByRole('heading', { name: '冻结题集回归库 · 质量验收', exact: true }).waitFor();
   await ensureAdvancedOpen();
   await page.getByRole('button', { name: '移除导入题集', exact: true }).waitFor();
@@ -94,6 +103,7 @@ async (page) => {
   await page.getByText('上次提交结果待确认', { exact: true }).waitFor();
   check(writes.length === 1, '双击不得重复提交');
   const raw = writes[0].dataset_snapshot;
+  check(raw === frozenExportRaw, '新建评测必须沿用菜单下载的冻结题集原字节');
   await page.reload(); await page.getByText('上次提交结果待确认', { exact: true }).waitFor();
   check(writes.length === 1, '重载不得自动重提');
   await page.getByRole('button', { name: '核对原请求', exact: true }).click();
@@ -118,11 +128,12 @@ async (page) => {
   await page.getByRole('button', { name: '查看评价', exact: true }).click();
   drawer = page.getByRole('dialog', { name: '反馈复核 #3', exact: true });
   const beforeDocs = reads.filter(url => url.includes('/docs/9')).length;
-  await drawer.getByRole('button', { name: '生成验收题集', exact: true }).click();
+  await drawer.getByRole('button', { name: '用此样本新建评测', exact: true }).click();
   await drawer.getByText('原反馈不能证明整个知识库无答案', { exact: true }).waitFor();
   check(reads.filter(url => url.includes('/docs/9')).length === beforeDocs, '未确认负例不得拉取全文并生成');
   await drawer.getByRole('checkbox', { name: '我已核对当前库全部就绪资料，确认本题资料不足', exact: true }).check();
-  await drawer.getByRole('button', { name: '下载冻结题集', exact: true }).waitFor();
+  await drawer.getByRole('button', { name: '确认题集，前往新建评测', exact: true }).waitFor();
+  check(await drawer.getByRole('region', { name: '评测题集预览', exact: true }).getByRole('button', { name: '更多导出', exact: true }).isEnabled(), '明确核对全部当前资料后可导出冻结题集');
   denyRead = true;
   await page.evaluate(() => {
     localStorage.setItem('go-zero-auth', JSON.stringify({ state: { token: 'dataset-other-access', refreshToken: 'dataset-other-refresh', sessionId: 'dataset-other-session', expiresAt: Date.now() / 1000 + 3600, refreshExpiresAt: Date.now() / 1000 + 7200 }, version: 0 }));
