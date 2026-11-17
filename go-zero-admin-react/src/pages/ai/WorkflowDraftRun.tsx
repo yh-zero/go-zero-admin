@@ -25,9 +25,10 @@ export interface WorkflowDraftRunProps {
   attemptId: string; tools?: readonly AiToolInfo[]; fixedKb?: AiKbInfo; capabilities?: AiCapabilities;
   disabled?: boolean; onSave?: (taskId: number) => void; initialInput?: string;
   onStateChange?: (state: DraftRunViewState) => void;
+  questionDraft?: { id: string; question: string }; active?: boolean;
 }
 
-export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedKb, capabilities, disabled, onSave, initialInput, onStateChange }: WorkflowDraftRunProps) {
+export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedKb, capabilities, disabled, onSave, initialInput, onStateChange, questionDraft, active = true }: WorkflowDraftRunProps) {
   const departmentId = useAuthStore(state => state.selectedDeptId);
   const key = draftRunAttemptKey([scope[0], departmentId], attemptId);
   const [restored] = useState(() => {
@@ -44,7 +45,7 @@ export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedK
   const [form] = Form.useForm<RunValues>();
   const [initialValues] = useState<RunValues>(() => {
     const raw = restored.attempt?.input ?? initialInput;
-    if (!raw) return { question: '', text: '', input: '' };
+    if (!raw) return { question: restored.error ? '' : questionDraft?.question ?? '', text: '', input: '' };
     try { const input = JSON.parse(raw); return { question: typeof input.question === 'string' ? input.question : '', text: typeof input.text === 'string' ? input.text : '', kb_id: typeof input.kb_id === 'number' ? input.kb_id : undefined, input: raw }; } catch { return { input: raw }; }
   });
   const mutation = useMutation({ mutationFn: runAiDraft, retry: false });
@@ -57,7 +58,18 @@ export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedK
   const configurationMissing = needsRetrieval && (!capabilities?.retrieval_configured || needsAnalysis && !capabilities.analysis_configured);
   const canRun = guard.can('sys:ai:workflow:run');
   const busy = guard.writing || mutation.isPending;
+  const appliedQuestion = useRef(questionDraft?.id);
   useEffect(() => { onStateChange?.({ kind: unknown ? 'unknown' : mutation.isPending ? 'running' : taskId ? 'result' : 'idle', taskId }); }, [unknown, mutation.isPending, taskId, onStateChange]);
+  useEffect(() => {
+    if (!questionDraft || appliedQuestion.current === questionDraft.id) return;
+    appliedQuestion.current = questionDraft.id;
+    if (unknown || attemptRef.current || busy) {
+      // oxlint-disable-next-line react/set-state-in-effect -- 显式带入不能覆盖仍待确认的原请求。
+      setFeedback('请先核对原运行；这次检索问题尚未替换原输入。确认后可再次点击“用此问题分析”。');
+      return;
+    }
+    form.setFieldValue('question', questionDraft.question);
+  }, [questionDraft, unknown, busy, form]);
 
   async function submit(values: RunValues) {
     if (!canRun || !unknown && (disabled || configurationMissing || fixedKb && fixedKb.ready_count < 1)) return;
@@ -105,7 +117,7 @@ export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedK
     {unknown && <Alert type="warning" showIcon title="上次运行结果待确认" description={attempt ? `请求标识：${attempt.request_id}` : '请先到运行记录核对，页面不会自动重新提交。'} action={attempt ? <Button disabled={busy || !canRun} onClick={() => void submit({})}>核对原运行</Button> : <Button href="/ai/tasks">查看运行记录</Button>} />}
     {feedback && <Alert type="info" title={feedback} />}
     {taskId && <div className={styles.resultPanel}><Typography.Title level={4}>本次结果</Typography.Title>
-      {guard.can('sys:ai:task:list') ? <TaskDetail key={taskId} inline showSaveAction={false} scope={scope} taskId={taskId} guard={guard} onClose={() => setTaskId(null)} /> : <Alert type="success" title={`已创建运行记录 #${taskId}，需要运行记录查看权限才能查看结果。`} />}
+      {guard.can('sys:ai:task:list') ? <TaskDetail key={taskId} inline active={active} showSaveAction={false} scope={scope} taskId={taskId} guard={guard} onClose={() => setTaskId(null)} /> : <Alert type="success" title={`已创建运行记录 #${taskId}，需要运行记录查看权限才能查看结果。`} />}
       {onSave && guard.can('sys:ai:task:list') && guard.can('sys:ai:workflow:list') && guard.can('sys:ai:workflow:create') && guard.can('sys:ai:tool:list') && <Space><Button onClick={() => onSave(taskId)} disabled={busy}>保存为常用流程</Button></Space>}
     </div>}
   </div>;

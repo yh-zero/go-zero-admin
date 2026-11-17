@@ -7,3 +7,5 @@
 /ai_document/ai-rag/business-cases.md text eol=lf
 # 自定义题集互通夹具的SHA针对原始字节，Windows检出不得改写换行。
 /go-zero-admin/application/ai/rpc/internal/logic/aiservice/testdata/custom-*.json text eol=lf
+# 服务端嵌入题集与对外发布的冻结JSON必须保持同一原始字节指纹。
+/go-zero-admin/application/ai/rpc/internal/logic/aiservice/evaluation_data/*.json text eol=lf

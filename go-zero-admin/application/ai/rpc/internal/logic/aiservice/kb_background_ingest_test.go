@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"go-zero-admin/application/ai/rpc/aipb"
 	"go-zero-admin/application/ai/rpc/internal/model"
+	"go-zero-admin/application/ai/rpc/internal/svc"
 	"go-zero-admin/pkg/vectordb"
 	"go-zero-admin/pkg/xerr"
 	"google.golang.org/protobuf/proto"
@@ -139,14 +140,18 @@ func TestKbBackgroundRestartResumesQueuedAndCancelledRequestDoesNotReplay(t *tes
 		t.Fatal("request performed embedding")
 	}
 	// 重新组装队列模拟新进程；持久任务不依赖旧请求、内存channel或Redis队列。
-	restarted := *h.s
-	restarted.KbIngestQueue = model.NewKbIngestQueue(h.s.DB, h.s.AiKbDocModel)
+	restarted := &svc.ServiceContext{
+		Config: h.s.Config, DB: h.s.DB, Redis: h.s.Redis,
+		AiKbModel: h.s.AiKbModel, AiKbDocModel: h.s.AiKbDocModel, AiKbChunkModel: h.s.AiKbChunkModel,
+		Embedder: h.s.Embedder, VectorStore: h.s.VectorStore,
+		KbIngestQueue: model.NewKbIngestQueue(h.s.DB, h.s.AiKbDocModel),
+	}
 	stop := restarted.StartKbIngestWorkers(context.Background())
 	defer stop()
 	if doc, err := h.waitDoc(context.Background(), out.Doc.Id); err != nil || doc.Status != "ready" {
 		t.Fatalf("restart doc=%+v %v", doc, err)
 	}
-	replay, err := NewCreateKbDocLogic(context.Background(), &restarted).CreateKbDoc(req)
+	replay, err := NewCreateKbDocLogic(context.Background(), restarted).CreateKbDoc(req)
 	if err != nil || replay.JobId != out.JobId || replay.BatchId != req.RequestId || h.calls.Load() != 1 {
 		t.Fatalf("recovered=%+v calls=%d %v", replay, h.calls.Load(), err)
 	}

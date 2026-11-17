@@ -79,9 +79,10 @@ export function kbListOptions(scope: AiWorkspaceScope, params: AiListKbsReq) {
     queryFn: ({ signal }) => readActive(signal, () => fetchAiKbs(params, signal)) });
 }
 
-export function kbDocListOptions(scope: AiWorkspaceScope, kbId: number, params: AiListKbDocsReq) {
+export function kbDocListOptions(scope: AiWorkspaceScope, kbId: number, params: AiListKbDocsReq, active = true) {
   return queryOptions<AiListKbDocsResp>({ queryKey: [...aiWorkspaceKeys.kbDocs(scope, kbId), params], staleTime: 0, retry: false,
-    refetchInterval: query => query.state.data?.list.some(doc => doc.status === 'pending') ? 3000 : false,
+    enabled: active,
+    refetchInterval: query => active && !query.state.error && (query.state.data?.pending_count || query.state.data?.list.some(doc => doc.status === 'pending')) ? 3000 : false,
     refetchIntervalInBackground: false,
     queryFn: ({ signal }) => readActive(signal, () => fetchAiKbDocs(kbId, params, signal)) });
 }

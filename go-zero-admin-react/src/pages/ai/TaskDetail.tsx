@@ -31,9 +31,10 @@ interface TaskDetailProps {
   showSaveAction?: boolean;
   onCompare?: () => void;
   comparisonDisabled?: boolean;
+  active?: boolean;
 }
 
-export function TaskDetail({ scope, taskId, guard, onClose, inline = false, metadata, metadataUpdatedAt = 0, showSaveAction = true, onCompare, comparisonDisabled = true }: TaskDetailProps) {
+export function TaskDetail({ scope, taskId, guard, onClose, inline = false, metadata, metadataUpdatedAt = 0, showSaveAction = true, onCompare, comparisonDisabled = true, active = true }: TaskDetailProps) {
   const client = useQueryClient();
   const navigate = useNavigate();
   const [decision, setDecision] = useState<TaskDecision | null>(null);
@@ -45,22 +46,22 @@ export function TaskDetail({ scope, taskId, guard, onClose, inline = false, meta
   const lastMetadata = useRef('');
   const details = useQuery({
     ...taskDetailOptions(scope, taskId),
-    enabled: guard.can('sys:ai:task:list'),
+    enabled: active && guard.can('sys:ai:task:list'),
   });
   const metaOptions = taskMetadataOptions(scope, taskId, details.data?.task, metadata);
   const meta = useQuery({ ...metaOptions,
-    enabled: metaOptions.enabled && guard.can('sys:ai:task:list'),
-    refetchInterval: query => taskPollInterval(query.state.data?.task.status ?? details.data?.task.status, !guard.writing && !decision && !cancelConfirm && guard.isCurrent(), Date.now() - pollStartedAt.current, query.state.fetchFailureCount),
+    enabled: active && metaOptions.enabled && guard.can('sys:ai:task:list'),
+    refetchInterval: query => taskPollInterval(query.state.data?.task.status ?? details.data?.task.status, active && !guard.writing && !decision && !cancelConfirm && guard.isCurrent(), Date.now() - pollStartedAt.current, query.state.fetchFailureCount),
     refetchIntervalInBackground: false });
   const latest = metadata && metadataUpdatedAt > details.dataUpdatedAt ? metadata : meta.dataUpdatedAt > details.dataUpdatedAt ? meta.data?.task : undefined;
   useEffect(() => {
-    if (!latest || !details.data || guard.writing || !guard.isCurrent()) return;
+    if (!active || !latest || !details.data || guard.writing || !guard.isCurrent()) return;
     const signature = `${latest.updated_at}:${latest.status}:${latest.next_step}`;
     if (lastMetadata.current === signature) return;
     lastMetadata.current = signature;
     const current = details.data.task;
     if (latest.status !== current.status || latest.updated_at !== current.updated_at || latest.next_step !== current.next_step) void client.invalidateQueries({ queryKey: aiWorkspaceKeys.task(scope, taskId), exact: true });
-  }, [latest, details.data, guard, client, scope, taskId]);
+  }, [active, latest, details.data, guard, client, scope, taskId]);
   const mutation = useMutation({ mutationFn: async ({ snapshot, reason }: { snapshot: TaskDecision; reason?: string }) => {
     if (snapshot.action === 'approve') return approveAiTask(snapshot.id, { expected_step: snapshot.expected_step });
     return rejectAiTask(snapshot.id, { expected_step: snapshot.expected_step, reason: reason!.trim() });

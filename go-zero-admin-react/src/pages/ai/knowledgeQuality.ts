@@ -146,10 +146,13 @@ function analysisValue(value: unknown, kbId: number, known: Map<number, QualityI
   return result;
 }
 
-export async function decodeQualityEvaluation(run: AiKbEvaluationInfo, kbId: number): Promise<QualityRunView> {
+export async function decodeQualityEvaluation(run: AiKbEvaluationInfo, kbId: number, previous?: QualityRunView): Promise<QualityRunView> {
   assertQualityRunInfo(run, kbId);
-  const catalogue = await parseQualityDataset({ key: run.dataset_key, name: run.dataset_key, sha256: run.dataset_sha256, dataset: run.snapshot });
-  const dataset = catalogue.dataset, rawBindings = parseQualityJson(run.bindings), rawContext = parseQualityJson(run.context, 16_384), observations = parseQualityJson(run.observations);
+  // 只复用已验签且逐字相同的冻结题集；当前语料、配置和观测始终重新核对。
+  const unchanged = previous?.run.kb_id === kbId && previous.run.dataset_key === run.dataset_key
+    && previous.run.dataset_sha256 === run.dataset_sha256 && previous.run.snapshot === run.snapshot;
+  const dataset = unchanged ? previous.dataset : (await parseQualityDataset({ key: run.dataset_key, name: run.dataset_key, sha256: run.dataset_sha256, dataset: run.snapshot })).dataset;
+  const rawBindings = parseQualityJson(run.bindings), rawContext = parseQualityJson(run.context, 16_384), observations = parseQualityJson(run.observations);
   validateContext(rawContext);
   if (!object(rawBindings) || !Array.isArray(rawBindings.documents) || !Array.isArray(rawBindings.inventory) || !Array.isArray(observations) || observations.length !== run.case_count) throw new Error('批次资料绑定或观测数量无效');
   const inventory = new Map<number, QualityInventory>();

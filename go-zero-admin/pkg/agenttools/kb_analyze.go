@@ -216,11 +216,19 @@ func (t *kbAnalyzeTool) fitSources(query string, kbID int64, hits []KbSearchHit,
 	if quotes.request != "" {
 		modelQuery, originalQuery = quotes.request, query
 	}
+	snippets := make([]kbSnippet, len(sources))
+	minimums := make([]int, len(sources))
+	for i, source := range sources {
+		snippets[i] = newKbSnippet(source.Snippet, modelQuery)
+		// 二分最小值须有完整的非空白内容；不能把小窗口为空误判为超预算。
+		for minimums[i] < len(source.Snippet) && strings.TrimSpace(snippets[i].text(minimums[i])) == "" {
+			minimums[i]++
+		}
+	}
 	build := func(count, limit int) ([]*schema.Message, []KbAnalysisSource, bool) {
 		bounded := make([]KbAnalysisSource, 0, count)
-		for _, source := range sources[:count] {
-			_, firstRuneBytes := utf8.DecodeRuneInString(source.Snippet)
-			source.Snippet = truncateUTF8(source.Snippet, max(limit, firstRuneBytes))
+		for i, source := range sources[:count] {
+			source.Snippet = snippets[i].text(max(limit, minimums[i]))
 			if strings.TrimSpace(source.Snippet) == "" {
 				continue
 			}

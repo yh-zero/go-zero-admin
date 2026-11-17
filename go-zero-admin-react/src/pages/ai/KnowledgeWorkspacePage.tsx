@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, Button, Card, Form, Input, Result, Space, Tabs, Tag, Typography } from 'antd';
 import { ArrowLeftOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -35,6 +35,8 @@ function KnowledgeWorkspaceSession({ scope, kbId }: { scope: AiWorkspaceScope; k
   const kb = useQuery(kbDetailOptions(scope, kbId));
   const [draft] = useState(() => workflowTemplate('kb_analyze', []));
   const [tab, setTab] = useState(() => params.get('tab') === 'feedback' ? 'feedback' : 'docs');
+  const [analysisQuestion, setAnalysisQuestion] = useState<{ id: string; question: string }>();
+  const analysisPanel = useRef<HTMLDivElement>(null);
   function refresh() {
     if (!guard.isCurrent()) return;
     void client.invalidateQueries({ queryKey: aiWorkspaceKeys.kb(scope, kbId) });
@@ -45,17 +47,21 @@ function KnowledgeWorkspaceSession({ scope, kbId }: { scope: AiWorkspaceScope; k
       {kb.data && <Space wrap><Tag color="success">{kb.data.kb.ready_count} 篇可使用</Tag><Tag color="processing">{kb.data.kb.pending_count} 篇处理中</Tag><Typography.Text type="secondary">{kb.data.kb.description}</Typography.Text></Space>}</div><Space wrap><Button disabled={guard.writing || !kb.data || !!kb.error} onClick={() => navigate(`/ai/knowledge/${kbId}/quality`)}>质量验收</Button><Button icon={<ReloadOutlined />} loading={kb.isFetching} onClick={refresh}>刷新</Button></Space></div>
     <QueryState isPending={kb.isPending} error={kb.error} onRetry={() => kb.refetch()} />
     {kb.data && !kb.error && <>
-      <Card><Tabs activeKey={tab} onChange={next => { if (!guard.writing && guard.isCurrent()) setTab(next); }} destroyOnHidden items={[
-        { key: 'docs', label: '资料', disabled: guard.writing, children: <KnowledgeDocumentsPanel key={params.get('doc_id') ?? 'docs'} scope={scope} kb={kb.data.kb} onChanged={refresh} initialDocId={parseTaskId(params.get('doc_id'))} /> },
-        { key: 'search', label: '测试资料检索', disabled: guard.writing, children: <KnowledgeSearchPanel scope={scope} kbId={kbId} configured={kb.data.capabilities.retrieval_configured} /> },
-        { key: 'feedback', label: '反馈与复核', disabled: guard.writing, children: <AsyncContent load={loadFeedback} componentProps={{ scope, kbId, guard }} /> },
+      <Card><Tabs activeKey={tab} onChange={next => { if (!guard.writing && guard.isCurrent()) setTab(next); }} items={[
+        { key: 'docs', label: '资料', disabled: guard.writing, children: <KnowledgeDocumentsPanel key={params.get('doc_id') ?? 'docs'} scope={scope} kb={kb.data.kb} active={tab === 'docs'} onChanged={refresh} initialDocId={parseTaskId(params.get('doc_id'))} /> },
+        { key: 'search', label: '测试资料检索', disabled: guard.writing, children: <KnowledgeSearchPanel scope={scope} kbId={kbId} active={tab === 'search'} configured={kb.data.capabilities.retrieval_configured} onAnalyze={guard.can('sys:ai:workflow:run') ? question => {
+          if (guard.writing || !guard.isCurrent()) return;
+          setAnalysisQuestion({ id: crypto.randomUUID(), question });
+          analysisPanel.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } : undefined} /> },
+        { key: 'feedback', label: '反馈与复核', disabled: guard.writing, children: <AsyncContent load={loadFeedback} componentProps={{ scope, kbId, guard, active: tab === 'feedback' }} /> },
       ]} /></Card>
-      <DeferredWorkflowRun scope={scope} guard={guard} draft={draft} attemptId={`knowledge:${kbId}`} fixedKb={kb.data.kb} capabilities={kb.data.capabilities} onSave={taskId => navigate(`/ai/workflows/new?from_task=${taskId}`)} />
+      <div ref={analysisPanel}><DeferredWorkflowRun scope={scope} guard={guard} draft={draft} questionDraft={analysisQuestion} attemptId={`knowledge:${kbId}`} fixedKb={kb.data.kb} capabilities={kb.data.capabilities} onSave={taskId => navigate(`/ai/workflows/new?from_task=${taskId}`)} /></div>
     </>}
   </div>;
 }
 
-function KnowledgeSearchPanel({ scope, kbId, configured }: { scope: AiWorkspaceScope; kbId: number; configured: boolean }) {
+function KnowledgeSearchPanel({ scope, kbId, configured, active, onAnalyze }: { scope: AiWorkspaceScope; kbId: number; configured: boolean; active: boolean; onAnalyze?: (query: string) => void }) {
   const guard = useAiWorkspaceGuard(scope, 'sys:ai:kb:list');
   const search = useMutation(kbSearchOptions(scope, kbId));
   const [docId, setDocId] = useState<number | null>(null);
@@ -72,7 +78,7 @@ function KnowledgeSearchPanel({ scope, kbId, configured }: { scope: AiWorkspaceS
       <Button type="primary" htmlType="submit" loading={guard.writing} disabled={!configured}>查找资料</Button>
     </Form>
     {search.isError && <Alert type="warning" title="本次检索未完成，请根据请求错误提示处理后重试。" />}
-    {search.data && !search.isPending && <KbSearchResults result={search.data} onOpenDoc={setDocId} />}
-    {docId && <KnowledgeDocumentModal scope={scope} kbId={kbId} docId={docId} canEdit={false} writing={false} beginWrite={() => false} finishWrite={() => undefined} isCurrent={guard.isCurrent} onClose={() => setDocId(null)} onChanged={() => undefined} />}
+    {search.data && !search.isPending && <KbSearchResults result={search.data} query={search.variables?.query} onAnalyze={onAnalyze} onOpenDoc={setDocId} />}
+    {active && docId && <KnowledgeDocumentModal scope={scope} kbId={kbId} docId={docId} canEdit={false} writing={false} beginWrite={() => false} finishWrite={() => undefined} isCurrent={guard.isCurrent} onClose={() => setDocId(null)} onChanged={() => undefined} />}
   </div>;
 }

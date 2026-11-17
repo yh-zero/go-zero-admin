@@ -17,13 +17,16 @@ const (
 func chunkText(content string) []model.KbChunkRow {
 	chunks := make([]model.KbChunkRow, 0)
 	var current []rune
+	hasNewContent := false
 
 	flush := func() {
 		trimmed := strings.TrimSpace(string(current))
 		current = nil
-		if trimmed == "" {
+		// 上一满块留下的重叠和段落分隔符，不能单独再生成一个尾块。
+		if !hasNewContent || trimmed == "" {
 			return
 		}
+		hasNewContent = false
 		chunks = append(chunks, model.KbChunkRow{
 			Seq:        int64(len(chunks)),
 			Content:    trimmed,
@@ -54,6 +57,7 @@ func chunkText(content string) []model.KbChunkRow {
 			}
 			take := min(room, len(rs))
 			current = append(current, rs[:take]...)
+			hasNewContent = true
 			rs = rs[take:]
 			if len(current) >= kbChunkTargetTokens {
 				flushWithOverlap()

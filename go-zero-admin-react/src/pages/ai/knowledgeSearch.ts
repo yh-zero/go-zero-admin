@@ -14,6 +14,19 @@ export function validateKbSearchQuery(query: string): string | undefined {
   if (kbSearchQueryBytes(query) > KB_SEARCH_MAX_BYTES) return '查询最多 2000 字节（UTF-8）';
 }
 
+// 下拉框关闭或身份切换时撤销待发搜索，避免迟到输入重新打开旧查询。
+export function createKnowledgeSearchDebouncer(onSearch: (query: string) => void, onCancel: () => void) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  function clearPending() {
+    clearTimeout(timer);
+    timer = undefined;
+  }
+  return { cancel() { clearPending(); onCancel(); }, search(query: string) {
+    clearPending();
+    timer = setTimeout(() => { timer = undefined; onSearch(query.trim()); }, 300);
+  } };
+}
+
 export function kbSearchOptions(scope: AiWorkspaceScope, kbId: number) {
   const assertCurrent = () => {
     if (!isAiWorkspaceCurrent(scope, 'sys:ai:kb:list')) throw new Error('当前工作区已变化，请重新打开召回测试');

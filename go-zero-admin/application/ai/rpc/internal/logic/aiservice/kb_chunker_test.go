@@ -59,3 +59,23 @@ func TestChunkTextMultibyte(t *testing.T) {
 		}
 	}
 }
+
+func TestChunkTextDoesNotEmitOverlapWithoutNewContent(t *testing.T) {
+	for _, size := range []int{kbChunkTargetTokens, kbChunkTargetTokens*2 - kbChunkOverlapTokens} {
+		content := strings.Repeat("文", size)
+		chunks := chunkText(content)
+		want := (size-kbChunkTargetTokens)/(kbChunkTargetTokens-kbChunkOverlapTokens) + 1
+		if len(chunks) != want {
+			t.Fatalf("%d字符恰好填满时，不应另存只有重叠的尾块: got=%d want=%d", size, len(chunks), want)
+		}
+	}
+}
+
+func TestChunkTextKeepsNewContentAfterFullChunk(t *testing.T) {
+	for _, suffix := range []string{"尾", "\n\n尾", "\n\n  \n\n尾"} {
+		chunks := chunkText(strings.Repeat("文", kbChunkTargetTokens) + suffix)
+		if len(chunks) != 2 || !strings.HasSuffix(chunks[1].Content, "尾") || len([]rune(chunks[1].Content)) < kbChunkOverlapTokens+1 {
+			t.Fatalf("重叠后真实新内容必须保留: suffix=%q chunks=%d", suffix, len(chunks))
+		}
+	}
+}

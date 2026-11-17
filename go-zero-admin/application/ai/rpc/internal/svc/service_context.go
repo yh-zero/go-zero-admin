@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -26,10 +27,12 @@ type ServiceContext struct {
 	UsageGovernor *UsageGovernor
 
 	// 知识库检索：Qdrant.Address 或 Embedding 未配置时为 nil，对应功能按契约降级
-	VectorStore   vectordb.Store
-	Embedder      *llm.Embedder
-	KbSearcher    agenttools.KbSearcher
-	KbIngestQueue *model.KbIngestQueue
+	VectorStore        vectordb.Store
+	Embedder           *llm.Embedder
+	KbSearcher         agenttools.KbSearcher
+	KbIngestQueue      *model.KbIngestQueue
+	kbIngestNotifyOnce sync.Once
+	kbIngestNotify     chan struct{}
 
 	AiConversationModel model.AiConversationModel
 	AiMessageModel      model.AiMessageModel
@@ -85,6 +88,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 			embedder:      svcCtx.Embedder,
 			chunks:        svcCtx.AiKbChunkModel,
 			snippetBudget: ai.MaxContextTokens / 4,
+			queryVectors:  newKbQueryVectorCache(rdb, svcCtx.Embedder, ai),
 		}
 		agenttools.RegisterIfAbsent(agenttools.NewKbSearch(svcCtx.KbSearcher))
 	}

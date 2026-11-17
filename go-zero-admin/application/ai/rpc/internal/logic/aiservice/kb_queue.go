@@ -56,5 +56,8 @@ func enqueueKbDoc(ctx context.Context, s *svc.ServiceContext, r model.KbEnqueueR
 	if err != nil && !model.KbDocCommitted(err) {
 		return nil, kbQueueError(err)
 	}
+	if out != nil && out.Job != nil && out.Job.Status == "queued" {
+		s.NotifyKbIngest()
+	}
 	return out, nil
 }

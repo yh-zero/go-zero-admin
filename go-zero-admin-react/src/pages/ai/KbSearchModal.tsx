@@ -55,9 +55,11 @@ export default function KbSearchModal({ scope, kb, onCancel }: KbSearchModalProp
   }
 }
 
-export function KbSearchResults({ result, onOpenDoc }: { result: AiSearchKbResp; onOpenDoc?: (docId: number) => void }) {
+export function KbSearchResults({ result, onOpenDoc, query, onAnalyze }: { result: AiSearchKbResp; onOpenDoc?: (docId: number) => void; query?: string; onAnalyze?: (query: string) => void }) {
   return <Space orientation="vertical" size="middle" className="kb-search-content">
+    {query && <Typography.Paragraph className="kb-search-query">本次查询：{query}</Typography.Paragraph>}
     <Typography.Text type="secondary">召回 {result.list.length} 个片段 · 服务端检索耗时 {result.elapsed_ms} ms</Typography.Text>
+    {query && onAnalyze && <Button onClick={() => onAnalyze(query)}>用此问题分析</Button>}
     {!result.list.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="未召回片段，可调整查询后重试" />}
     {result.list.map((hit, rank) => <Card key={hit.chunk_id} size="small" title={`${rank + 1}. ${hit.doc_title}`}>
       <details><summary>技术详情</summary><Space wrap size="middle">

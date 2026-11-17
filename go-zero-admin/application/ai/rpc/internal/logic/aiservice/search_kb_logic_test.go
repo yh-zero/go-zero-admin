@@ -16,8 +16,9 @@ import (
 
 type searchOwnedModel struct {
 	model.AiKbModel
-	calls int
-	err   error
+	calls         int
+	requiredCalls int
+	err           error
 }
 
 func (m *searchOwnedModel) FindOwned(_ context.Context, kb, owner int64) (*model.KbRow, error) {
@@ -26,6 +27,23 @@ func (m *searchOwnedModel) FindOwned(_ context.Context, kb, owner int64) (*model
 		return nil, model.ErrNotFound
 	}
 	return &model.KbRow{Id: kb, OwnerId: owner}, m.err
+}
+
+func (m *searchOwnedModel) RequireOwned(_ context.Context, kb, owner int64) error {
+	m.requiredCalls++
+	if kb != 2 || owner != 7 {
+		return model.ErrNotFound
+	}
+	return m.err
+}
+
+func TestSearchKbUsesLightweightOwnership(t *testing.T) {
+	m := &searchOwnedModel{}
+	_, err := NewSearchKbLogic(context.Background(), &svc.ServiceContext{AiKbModel: m}).SearchKb(&aipb.SearchKbRequest{Actor: &aipb.Actor{UserId: 7}, KbId: 2, Query: "资料"})
+	assertSearchCode(t, err, 503)
+	if m.requiredCalls != 1 || m.calls != 0 {
+		t.Fatalf("authorization read statistics: lightweight=%d full=%d", m.requiredCalls, m.calls)
+	}
 }
 
 func assertSearchCode(t *testing.T, err error, code uint32) {
@@ -52,7 +70,7 @@ func TestSearchKbRejectsInvalidBeforeDependencies(t *testing.T) {
 			m := &searchOwnedModel{}
 			_, err := NewSearchKbLogic(context.Background(), &svc.ServiceContext{AiKbModel: m}).SearchKb(tc.req)
 			assertSearchCode(t, err, tc.code)
-			if m.calls != 0 {
+			if m.calls != 0 || m.requiredCalls != 0 {
 				t.Fatal("invalid request accessed model")
 			}
 		})
@@ -68,7 +86,7 @@ func TestSearchKbChecksOwnershipBeforeDependencies(t *testing.T) {
 			code = 404
 		}
 		assertSearchCode(t, err, code)
-		if m.calls != 1 {
+		if m.requiredCalls != 1 || m.calls != 0 {
 			t.Fatal("ownership must be checked exactly once")
 		}
 	}

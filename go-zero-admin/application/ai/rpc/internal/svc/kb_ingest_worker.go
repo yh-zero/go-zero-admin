@@ -16,18 +16,39 @@ import (
 const KbIngestTimeout = 90 * time.Second
 const kbCleanupTimeout = 5 * time.Second
 
+func (s *ServiceContext) kbIngestWakeup() chan struct{} {
+	s.kbIngestNotifyOnce.Do(func() { s.kbIngestNotify = make(chan struct{}, 2) })
+	return s.kbIngestNotify
+}
+
+// NotifyKbIngest 只提示本实例重新核对MySQL队列；跨实例或漏通知仍由有界轮询兜底。
+func (s *ServiceContext) NotifyKbIngest() {
+	wakeup := s.kbIngestWakeup()
+	for range 2 {
+		select {
+		case wakeup <- struct{}{}:
+		default:
+		}
+	}
+}
+
 // StartKbIngestWorkers 的两个执行槽从持久队列领取；请求取消不会终止已提交的任务。
 // stop 取消本进程正在执行的任务并等待其安全终态，queued 保留供下次启动继续。
 func (s *ServiceContext) StartKbIngestWorkers(parent context.Context) func() {
 	ctx, cancel := context.WithCancel(parent)
 	var wg sync.WaitGroup
 	if s.KbIngestQueue != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			reapKbIngestPeriodically(ctx, 5*time.Second, s.reapKbIngest)
+		}()
+		wakeup := s.kbIngestWakeup()
 		for range 2 {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				for ctx.Err() == nil {
-					s.reapKbIngest(ctx)
+				pollKbIngest(ctx, wakeup, func(ctx context.Context) bool {
 					var attempt *model.KbIngestAttempt
 					err := model.ErrNotFound
 					if s.Embedder != nil && s.VectorStore != nil && checkKbVectorReady(ctx, s.VectorStore) == nil {
@@ -35,38 +56,79 @@ func (s *ServiceContext) StartKbIngestWorkers(parent context.Context) func() {
 					}
 					if err == nil {
 						s.runKbIngest(ctx, attempt)
-						continue
+						return true
 					}
 					if !errors.Is(err, model.ErrNotFound) && !errors.Is(err, context.Canceled) {
 						logx.WithContext(ctx).Error("知识库后台任务领取失败")
 					}
-					timer := time.NewTimer(250 * time.Millisecond)
-					select {
-					case <-ctx.Done():
-						timer.Stop()
-					case <-timer.C:
-					}
-				}
+					return false
+				})
 			}()
 		}
 	}
 	return func() { cancel(); wg.Wait() }
 }
 
+func pollKbIngest(ctx context.Context, wakeup <-chan struct{}, poll func(context.Context) bool) {
+	delay := 250 * time.Millisecond
+	for ctx.Err() == nil {
+		if poll(ctx) {
+			delay = 250 * time.Millisecond
+			continue
+		}
+		timer := time.NewTimer(delay)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return
+		case <-wakeup:
+			timer.Stop()
+			delay = 250 * time.Millisecond
+		case <-timer.C:
+			delay = min(delay*2, 2*time.Second)
+		}
+	}
+}
+
+func reapKbIngestPeriodically(ctx context.Context, interval time.Duration, reap func(context.Context)) {
+	for ctx.Err() == nil {
+		// 最多20个过期作业：事实源5秒、每个索引删除5秒；整轮仍有界且不重叠。
+		scan, cancel := context.WithTimeout(ctx, 2*time.Minute)
+		reap(scan)
+		cancel()
+		timer := time.NewTimer(interval)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return
+		case <-timer.C:
+		}
+	}
+}
+
 func (s *ServiceContext) reapKbIngest(ctx context.Context) {
-	attempts, err := s.KbIngestQueue.Expired(ctx)
+	reapKbIngestAttempts(ctx, s.KbIngestQueue.Expired, s.VectorStore)
+}
+
+func reapKbIngestAttempts(ctx context.Context, expired func(context.Context) ([]*model.KbIngestAttempt, error), store vectordb.Store) {
+	expiry, cancel := context.WithTimeout(ctx, kbCleanupTimeout)
+	attempts, err := expired(expiry)
+	cancel()
 	if err != nil && !errors.Is(err, context.Canceled) {
 		logx.WithContext(ctx).Error("知识库过期任务收敛失败")
 	}
 	for _, attempt := range attempts {
-		if s.VectorStore == nil {
+		if ctx.Err() != nil {
+			return
+		}
+		if store == nil {
 			continue
 		}
-		cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), kbCleanupTimeout)
+		cleanup, cancel := context.WithTimeout(ctx, kbCleanupTimeout)
 		// 进程可能在清理旧代次之前中断，恢复时一并补偿该作业接管的旧索引。
 		ids := append([]uint64(nil), attempt.ChunkIds...)
 		ids = append(ids, attempt.OldChunkIds...)
-		if err := s.VectorStore.Delete(cleanup, ids); err != nil {
+		if err := store.Delete(cleanup, ids); err != nil {
 			logx.WithContext(cleanup).Errorf("知识库任务 %d 过期向量清理失败", attempt.Job.Id)
 		}
 		cancel()

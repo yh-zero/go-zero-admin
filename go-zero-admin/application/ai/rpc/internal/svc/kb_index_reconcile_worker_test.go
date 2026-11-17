@@ -72,7 +72,7 @@ func awaitReconcileEntry(t *testing.T, entered <-chan context.Context) context.C
 func TestKbIndexReconcilerUsesSharedLeaseAndCancelsOnStop(t *testing.T) {
 	store := &reconcileWorkerStore{entered: make(chan context.Context, 2), block: true}
 	first := reconcileWorkerContext(t, store)
-	second := *first
+	second := &ServiceContext{Config: first.Config, Redis: first.Redis, VectorStore: first.VectorStore, AiKbChunkModel: first.AiKbChunkModel}
 	first.Config.Qdrant.Address = " local-reconcile:6334 "
 	second.Config.Qdrant.Address = "local-reconcile:6334"
 	stop := first.startKbIndexReconciler(context.Background(), 0, time.Hour)

@@ -16,6 +16,7 @@ type (
 	AiKbModel interface {
 		aiKbModel
 		FindOwned(ctx context.Context, id, ownerId int64) (*KbRow, error)
+		RequireOwned(ctx context.Context, id, ownerId int64) error
 		ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*KbRow, int64, error)
 		SearchOwned(ctx context.Context, ownerId, page, pageSize int64, query string) ([]*KbRow, int64, error)
 		UpdateOwned(ctx context.Context, id, ownerId int64, patch KbPatch) error
@@ -67,6 +68,12 @@ func (m *customAiKbModel) FindOwned(ctx context.Context, id, ownerId int64) (*Kb
 	var row KbRow
 	err := m.QueryRowNoCacheCtx(ctx, &row, kbSelect+"WHERE k.id=? AND k.owner_id=? AND k.deleted_at IS NULL", id, ownerId)
 	return &row, err
+}
+
+// RequireOwned 仅校验当前归属，避免检索前为授权读取文档和分块统计。
+func (m *customAiKbModel) RequireOwned(ctx context.Context, id, ownerId int64) error {
+	var found int64
+	return m.QueryRowNoCacheCtx(ctx, &found, "SELECT id FROM ai_kb WHERE id=? AND owner_id=? AND deleted_at IS NULL", id, ownerId)
 }
 
 func (m *customAiKbModel) ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*KbRow, int64, error) {

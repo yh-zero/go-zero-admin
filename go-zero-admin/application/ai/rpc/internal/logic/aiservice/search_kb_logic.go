@@ -38,7 +38,7 @@ func (l *SearchKbLogic) SearchKb(in *aipb.SearchKbRequest) (*aipb.SearchKbRespon
 	ctx, cancel := context.WithTimeout(l.ctx, 10*time.Second)
 	defer cancel()
 	// 先校验归属，避免越权请求触发向量化，也不向其透露检索配置。
-	if _, err := l.svcCtx.AiKbModel.FindOwned(ctx, in.KbId, in.Actor.UserId); err != nil {
+	if err := l.svcCtx.AiKbModel.RequireOwned(ctx, in.KbId, in.Actor.UserId); err != nil {
 		return nil, aiModelError(err)
 	}
 	if l.svcCtx.KbSearcher == nil {

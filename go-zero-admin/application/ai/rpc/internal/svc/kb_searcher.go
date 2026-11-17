@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"sort"
-	"unicode/utf8"
 
 	"go-zero-admin/application/ai/rpc/internal/model"
 	"go-zero-admin/pkg/agenttools"
@@ -19,6 +18,7 @@ type kbSearcher struct {
 	embedder      *llm.Embedder
 	chunks        model.AiKbChunkModel
 	snippetBudget int64 // 检索片段总 token 上限（MaxContextTokens 的 25%）
+	queryVectors  *kbQueryVectorCache
 }
 
 const (
@@ -43,14 +43,24 @@ func (s *kbSearcher) search(ctx context.Context, ownerID, kbID int64, query stri
 	if err := checkKbVectorReady(ctx, s.store); err != nil {
 		return nil, err
 	}
-	vecs, err := s.embedder.Embed(ctx, []string{query})
+	var vector []float32
+	var err error
+	if s.queryVectors != nil {
+		vector, err = s.queryVectors.Embed(ctx, ownerID, query)
+	} else {
+		var vectors [][]float32
+		vectors, err = s.embedder.Embed(ctx, []string{query})
+		if err == nil {
+			if len(vectors) != 1 {
+				return nil, errors.New("embedding 返回数量异常")
+			}
+			vector = vectors[0]
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
-	if len(vecs) != 1 {
-		return nil, errors.New("embedding 返回数量异常")
-	}
-	hits, err := s.store.Search(ctx, vecs[0], ownerID, kbID, kbSearchRecallTopK)
+	hits, err := s.store.Search(ctx, vector, ownerID, kbID, kbSearchRecallTopK)
 	if err != nil {
 		return nil, err
 	}
@@ -89,16 +99,8 @@ func (s *kbSearcher) search(ctx context.Context, ownerID, kbID int64, query stri
 		cost := max(r.TokenCount, (int64(len(r.Content))+2)/3)
 		content := r.Content
 		if budget+cost > remaining {
-			if returnTopK == kbSearchRecallTopK {
-				// 分析引用必须对应真实正文；JSON资料也只取字节前缀，不重写为另一JSON。
-				limit := min(len(content), int((remaining-budget)*3))
-				for limit > 0 && limit < len(content) && !utf8.RuneStart(content[limit]) {
-					limit--
-				}
-				content = content[:limit]
-			} else {
-				content = agenttools.CompactToolResult(content, int((remaining-budget)*3))
-			}
+			// JSON资料同样保留原文连续窗口，不能改写为另一份JSON再冒充摘录。
+			content = agenttools.RelevantKbSnippet(content, query, int((remaining-budget)*3))
 			cost = (int64(len(content)) + 2) / 3
 		}
 		if content == "" {

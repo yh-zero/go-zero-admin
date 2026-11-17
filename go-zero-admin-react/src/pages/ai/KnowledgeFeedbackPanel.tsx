@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { fetchAiKbFeedback } from '../../api/ai';
 import type { AiKbFeedbackInfo, AiListKbFeedbackReq } from '../../api/types';
+import type { AiSearchKbHit } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
 import { formatTime } from '../../utils/format';
 import { ApiError } from '../../utils/response';
@@ -15,14 +16,15 @@ import type { FeedbackReviewValues, FeedbackSnapshot } from './knowledgeFeedback
 import type { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
 import { aiWorkspaceKeys } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
+import { ChatSourcePreview } from './ChatSourcePreview';
 import styles from './knowledgeFeedback.module.css';
 
 type Guard = ReturnType<typeof useAiWorkspaceGuard>;
 
-export function KnowledgeFeedbackPanel({ scope, kbId, guard }: { scope: AiWorkspaceScope; kbId: number; guard: Guard }) {
+export function KnowledgeFeedbackPanel({ scope, kbId, guard, active = true }: { scope: AiWorkspaceScope; kbId: number; guard: Guard; active?: boolean }) {
   const [params, setParams] = useState<AiListKbFeedbackReq>({ page: 1, page_size: 10, status: 'pending' });
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const records = useQuery({ ...kbFeedbackListOptions(scope, kbId, params), enabled: guard.can('sys:ai:kb:list') });
+  const records = useQuery({ ...kbFeedbackListOptions(scope, kbId, params), enabled: active && guard.can('sys:ai:kb:list') });
   const total = records.data?.total;
   const current = guard.isCurrent;
   useEffect(() => {
@@ -51,7 +53,7 @@ export function KnowledgeFeedbackPanel({ scope, kbId, guard }: { scope: AiWorksp
       <Pagination current={params.page} pageSize={params.page_size} total={records.data.total} showSizeChanger pageSizeOptions={[10, 20, 50]} disabled={guard.writing}
         showTotal={count => `共 ${count} 条`} onChange={(page, pageSize) => { if (guard.isCurrent()) setParams(value => ({ ...value, page: pageSize === value.page_size ? page : 1, page_size: pageSize })); }} />
     </>}
-    {selectedId && <KnowledgeFeedbackDetail key={selectedId} scope={scope} kbId={kbId} id={selectedId} guard={guard} onClose={() => setSelectedId(null)} />}
+    {active && selectedId && <KnowledgeFeedbackDetail key={selectedId} scope={scope} kbId={kbId} id={selectedId} guard={guard} onClose={() => setSelectedId(null)} />}
   </section>;
 }
 
@@ -115,13 +117,15 @@ function KnowledgeFeedbackDetail({ scope, kbId, id, guard, onClose }: { scope: A
 }
 
 export function FeedbackSourceSnapshot({ snapshot }: { snapshot: FeedbackSnapshot }) {
+  const [preview, setPreview] = useState<AiSearchKbHit | null>(null);
   return <section><h3>本次分析使用的历史片段</h3><p className={styles.note}>以下是当时传给模型的片段；资料版本和正文摘要在评价采集时核对，不能证明模型调用时的完整资料版本。当前原文可能已更新。</p>
     {snapshot.sources.length ? <ol className={styles.sources}>{snapshot.sources.map(source => <li key={source.index}>
       <strong>[{source.index}] {source.doc_title}</strong><p className={styles.text}>{source.snippet}</p>
-      <a href={`/ai/knowledge/${source.kb_id}?doc_id=${source.doc_id}`}>打开当前原文</a>
+      <Button type="link" size="small" onClick={() => setPreview(source)}>查看当前原文</Button>
     </li>)}</ol> : <p>本次没有检索到资料片段。</p>}
     {snapshot.documents.some(doc => doc.status !== 'verified') && <Alert type="warning" showIcon title="部分资料在评价时已变化或不可核对，导入回归题集前须重新复核。" />}
     <details><summary>评价采集时核对的资料版本</summary>{snapshot.documents.map(doc => <p key={doc.doc_id} className={styles.text}>{doc.title} · 文档 #{doc.doc_id} · 版本 {doc.version} · {doc.status === 'verified' ? '已核对' : doc.status === 'stale' ? '已变化' : '不可核对'}<br />SHA256：{doc.content_sha256 || '未知'}</p>)}</details>
+    {preview && <ChatSourcePreview key={`${preview.kb_id}:${preview.doc_id}`} source={preview} onClose={() => setPreview(null)} />}
   </section>;
 }
 

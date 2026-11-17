@@ -78,6 +78,30 @@ test('质量验收的冻结题集、实际观测和原请求恢复', async t => 
   const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', server: { middlewareMode: true, watch: null, ws: false } });
   try {
     const helpers = await server.ssrLoadModule('/src/pages/ai/knowledgeQuality.ts').catch(() => ({}));
+    await t.test('轮询复用原字节未变的冻结题集，仍读取最新观测并拒绝变更后的无效语料', async () => {
+      const digest = crypto.subtle.digest;
+      let hashes = 0;
+      crypto.subtle.digest = function (...args) { hashes++; return digest.apply(this, args); };
+      let first;
+      let next;
+      const updated = { ...run, status: 'running', corpus_verified: false, updated_at: 3,
+        observations: JSON.stringify([{ ...observation, analysis: { ...analysis, analysis: '先备份，再发布。更新后的结论。[1]' } }]) };
+      try {
+        first = await helpers.decodeQualityEvaluation(run, 7);
+        assert.equal(hashes, 1);
+        next = await helpers.decodeQualityEvaluation(updated, 7, first);
+        assert.equal(hashes, 1, '相同冻结原字节不重复计算SHA');
+      } finally { crypto.subtle.digest = digest; }
+      assert.equal(next.dataset, first.dataset, '冻结原字节没有变化时复用已核对题集');
+      assert.match(next.rows[0].analysis.analysis, /更新后的结论/);
+      assert.equal(next.run.corpus_verified, false, '不能缓存旧的语料核对结论');
+      assert.equal(next.run.updated_at, 3);
+      await assert.rejects(helpers.decodeQualityEvaluation({ ...updated, bindings: JSON.stringify({ documents: [binding], inventory: [] }) }, 7, first), '当前语料绑定仍须重新核对');
+      await assert.rejects(helpers.decodeQualityEvaluation({ ...updated, dataset_sha256: 'f'.repeat(64) }, 7, first), 'SHA变化不能沿用旧题集');
+      const changedRaw = raw + '\n';
+      const changed = await helpers.decodeQualityEvaluation({ ...updated, snapshot: changedRaw, dataset_sha256: createHash('sha256').update(changedRaw).digest('hex') }, 7, first);
+      assert.notEqual(changed.dataset, first.dataset, '冻结原字节变化须重新解码和验签');
+    });
     await t.test('分析8来源可解码展示，第9来源拒绝，普通检索仍最多5项', async () => {
       const expanded = count => ({ ...analysis, sources: Array.from({ length: count }, (_, i) => ({ ...source, index: i + 1, chunk_id: 11 + i, snippet: `先备份。扩展片段${i + 1}` })) });
       const decode = (result, list = observation.list) => helpers.decodeQualityEvaluation({ ...run, observations: JSON.stringify([{ ...observation, list, analysis: result }]) }, 7);

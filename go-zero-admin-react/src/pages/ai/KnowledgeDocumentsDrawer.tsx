@@ -17,14 +17,14 @@ import { KnowledgeDocumentModal } from './KnowledgeDocumentModal';
 import { KnowledgeImportModal } from './KnowledgeImportModal';
 import styles from './workspace.module.css';
 
-interface Props { scope: AiWorkspaceScope; kb: AiKbInfo; onChanged: () => void; initialDocId?: number | null }
+interface Props { scope: AiWorkspaceScope; kb: AiKbInfo; onChanged: () => void; initialDocId?: number | null; active?: boolean }
 const colors = { pending: 'processing', ready: 'success', failed: 'error' } as const;
 
 export function KnowledgeDocumentsDrawer({ onClose, ...props }: Props & { onClose: () => void }) {
   return <Drawer open title={`资料：${props.kb.name}`} size={960} onClose={onClose}><KnowledgeDocumentsPanel {...props} /></Drawer>;
 }
 
-export function KnowledgeDocumentsPanel({ scope, kb, onChanged, initialDocId }: Props) {
+export function KnowledgeDocumentsPanel({ scope, kb, onChanged, initialDocId, active = true }: Props) {
   const guard = useAiWorkspaceGuard(scope, 'sys:ai:kb:list');
   const { isCurrent } = guard;
   const client = useQueryClient();
@@ -37,11 +37,11 @@ export function KnowledgeDocumentsPanel({ scope, kb, onChanged, initialDocId }: 
   const [importing, setImporting] = useState<'files' | 'paste' | null>(null);
   const [batchId, setBatchId] = useState<string | undefined>(retryAttempt?.batchId);
   const [feedback, setFeedback] = useState(retryAttempt ? `请先核对原批次 ${retryAttempt.batchId}，不会自动再次重试。` : '');
-  const docs = useQuery({ ...kbDocListOptions(scope, kb.id, params), enabled: guard.can('sys:ai:kb:list'),
-    refetchInterval: query => !importing && !guard.writing && !query.state.error && query.state.data?.pending_count ? 3000 : false });
+  const docs = useQuery({ ...kbDocListOptions(scope, kb.id, params, active), enabled: active && guard.can('sys:ai:kb:list'),
+    refetchInterval: query => active && !importing && !guard.writing && !query.state.error && query.state.data?.pending_count ? 3000 : false });
   const retry = useMutation({ mutationFn: ({ id, request_id }: { id: number; request_id: string }) => retryAiKbDoc(kb.id, id, { request_id }), retry: false });
   const remove = useMutation({ mutationFn: (id: number) => deleteAiKbDoc(kb.id, id), retry: false });
-  const retryReceipt = useQuery({ ...kbImportOptions(scope, kb.id, retryAttempt?.batchId ?? ''), enabled: !!retryAttempt && !guard.writing && !importing && isCurrent() });
+  const retryReceipt = useQuery({ ...kbImportOptions(scope, kb.id, retryAttempt?.batchId ?? ''), enabled: active && !!retryAttempt && !guard.writing && !importing && isCurrent() });
   useEffect(() => subscribeKnowledgeImportAttempt(sessionStorage, retryKey, latest => {
     if (!isCurrent()) return;
     setRetryAttempt(latest); setFeedback(latest ? `请先核对原批次 ${latest.batchId}，不会自动再次重试。` : '');
@@ -114,7 +114,7 @@ export function KnowledgeDocumentsPanel({ scope, kb, onChanged, initialDocId }: 
       { key: 'paste', label: '粘贴资料', icon: <PlusOutlined /> },
     ], onClick: ({ key }) => { if (!guard.writing && guard.can('sys:ai:kb:edit')) setImporting(key === 'files' ? 'files' : 'paste'); } }}><Button type="primary" icon={<PlusOutlined />} disabled={guard.writing}>添加资料</Button></Dropdown>}<Button type="link" disabled={guard.writing} onClick={() => setImporting('files')}>查看导入批次</Button></div>
     {contextHolder}
-    {previewId && <KnowledgeDocumentModal scope={scope} kbId={kb.id} docId={previewId} metadata={docs.error ? undefined : docs.data?.list.find(doc => doc.id === previewId)} metadataUpdatedAt={docs.dataUpdatedAt} onClose={() => { setPreviewId(null); refresh(); }} canEdit={guard.can('sys:ai:kb:edit')} beginWrite={() => guard.beginWrite('sys:ai:kb:edit')} finishWrite={guard.finishWrite} writing={guard.writing} isCurrent={guard.isCurrent} onChanged={refresh} />}
-    {importing && <KnowledgeImportModal scope={scope} kbId={kb.id} canEdit={guard.can('sys:ai:kb:edit')} initialMode={importing} initialBatchId={batchId} writing={guard.writing} beginWrite={() => guard.beginWrite('sys:ai:kb:edit')} finishWrite={guard.finishWrite} isCurrent={guard.isCurrent} onClose={() => { setImporting(null); refresh(); }} onChanged={refresh} onPreview={id => { setImporting(null); setPreviewId(id); }} />}
+    {active && previewId && <KnowledgeDocumentModal scope={scope} kbId={kb.id} docId={previewId} metadata={docs.error ? undefined : docs.data?.list.find(doc => doc.id === previewId)} metadataUpdatedAt={docs.dataUpdatedAt} onClose={() => setPreviewId(null)} canEdit={guard.can('sys:ai:kb:edit')} beginWrite={() => guard.beginWrite('sys:ai:kb:edit')} finishWrite={guard.finishWrite} writing={guard.writing} isCurrent={guard.isCurrent} onChanged={refresh} />}
+    {active && importing && <KnowledgeImportModal scope={scope} kbId={kb.id} canEdit={guard.can('sys:ai:kb:edit')} initialMode={importing} initialBatchId={batchId} writing={guard.writing} beginWrite={() => guard.beginWrite('sys:ai:kb:edit')} finishWrite={guard.finishWrite} isCurrent={guard.isCurrent} onClose={() => setImporting(null)} onChanged={refresh} onPreview={id => { setImporting(null); setPreviewId(id); }} />}
   </div>;
 }

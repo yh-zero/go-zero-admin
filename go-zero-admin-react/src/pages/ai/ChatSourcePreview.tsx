@@ -18,8 +18,8 @@ export function ChatSourcePreview({ source, onClose }: Props) {
   const detail = useQuery({ ...knowledgeDocumentOptions(scope, source.kb_id, source.doc_id), enabled: canRead });
 
   return <Drawer open title="当前原文" placement="right" size={720} rootClassName={styles.sourceDrawer} mask={{ closable: false }} onClose={onClose}>
-    <Typography.Paragraph type="secondary">当前原文可能已更新，与回答时的版本不同。本次引用片段保留在对话中。</Typography.Paragraph>
-    {!canRead ? <Alert type="warning" showIcon title="暂无查看原文权限" description="仍可在对话中查看本次引用片段。" /> : <>
+    <Typography.Paragraph type="secondary">当前原文可能已更新，与生成结果时的版本不同。本次引用片段保留在原结果中。</Typography.Paragraph>
+    {!canRead ? <Alert type="warning" showIcon title="暂无查看原文权限" description="仍可在原结果中查看本次引用片段。" /> : <>
       <QueryState isPending={detail.isPending || detail.isFetching} error={detail.error} onRetry={() => { if (guard.isCurrent()) void detail.refetch(); }} />
       {!detail.isFetching && !detail.error && detail.data && <>
         <Typography.Title level={4}>{detail.data.doc.title}</Typography.Title>

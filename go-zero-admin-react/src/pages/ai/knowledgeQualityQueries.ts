@@ -29,9 +29,10 @@ export function qualityRunOptions(scope: AiWorkspaceScope, kbId: number, id: num
   return queryOptions<QualityRunView>({ queryKey: aiWorkspaceKeys.qualityRun(scope, kbId, id), staleTime: 0, retry: false, refetchOnWindowFocus: false,
     refetchInterval: query => !query.state.fetchFailureCount && query.state.data && ['pending', 'running'].includes(query.state.data.run.status) ? 2000 : false,
     refetchIntervalInBackground: false,
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ signal, client }) => {
       const result = await fetchAiKbEvaluation(kbId, id, signal); signal.throwIfAborted();
       if (result.evaluation.id !== id) throw new Error('批次标识不符');
-      const parsed = await decodeQualityEvaluation(result.evaluation, kbId); signal.throwIfAborted(); return parsed;
+      const previous = client.getQueryData<QualityRunView>(aiWorkspaceKeys.qualityRun(scope, kbId, id));
+      const parsed = await decodeQualityEvaluation(result.evaluation, kbId, previous); signal.throwIfAborted(); return parsed;
     } });
 }

@@ -12,7 +12,6 @@ func newKbAnalyzer(s *ServiceContext) agenttools.Tool {
 		return nil
 	}
 	return agenttools.NewKbAnalyze(s.KbSearcher, func(ctx context.Context, kbID, ownerID int64) error {
-		_, err := s.AiKbModel.FindOwned(ctx, kbID, ownerID)
-		return err
+		return s.AiKbModel.RequireOwned(ctx, kbID, ownerID)
 	}, s.LLM, s.Config.AI.MaxContextTokens)
 }
