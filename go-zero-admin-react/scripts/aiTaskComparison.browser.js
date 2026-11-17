@@ -10,6 +10,7 @@ async (page) => {
     sources: [{ index: 1, chunk_id: doc * 10, kb_id: 7, doc_id: doc, doc_title: title, snippet: '保存于任务中的实际历史片段', score: 0.8 }], usage: { scope: 'chat', prompt_tokens: 10, completion_tokens: 5, total_tokens: 15, complete: true } });
   const step = (id, index, tool, output) => ({ id, index, name: tool === 'kb_analyze' ? '资料分析' : '统计文字', tool, input: '{"text":"本次输入"}', output, status: 'succeeded', error: '', started_at: 100, completed_at: 130 });
   const leftAnalysis = analysis('左侧可靠结果[1]', '甲侧历史原文', 9), rightAnalysis = analysis('右侧不同结果[1]', '乙侧历史原文', 10);
+  const currentContent = doc => `文档 ${doc} 当前版全文起点\n与历史引用不同的更新正文\n文档 ${doc} 当前版全文终点`;
   const makeTask = (id, title, steps, result) => ({ id, title, workflow_id: 71, workflow_name: '记录中的流程', conversation_id: 0, status: 'succeeded', input: '{"question":"比较问题"}', input_summary: '比较问题', result, error: '', steps, next_step: steps.length,
     request_id: `fixture-${id}`, approved_by: 0, created_at: now - 8, updated_at: now - 5, completed_at: now - 5,
     definition: JSON.stringify({ version: 2, steps: steps.map(item => ({ id: item.id, name: item.name, tool: item.tool, input: {} })) }) });
@@ -30,7 +31,7 @@ async (page) => {
     if (request.method() !== 'GET') { unexpected.push({ path, method: request.method() }); return route.abort('blockedbyclient'); }
     if (path === '/v1/sys/auth/captcha') return send({ enabled: false });
     if (path === '/v1/sys/dept/my') return send({ list: [] });
-    if (path === '/v1/sys/menu/my/perm-codes') return send({ codes: ['sys:ai:task:list'] });
+    if (path === '/v1/sys/menu/my/perm-codes') return send({ codes: ['sys:ai:task:list', 'sys:ai:kb:list'] });
     if (path === '/v1/sys/menu/my') return send({ list: [{ id: 901, parent_id: 0, title: '运行记录', name: 'ai_task', path: '/ai/tasks', component: 'ai_task', type: 2, visible: true, status: 1, sort: 0 }] });
     if (path === '/v1/sys/profile/') return send({ user: { id: otherIdentity ? 2 : 1, username: 'comparison-fixture', nickname: otherIdentity ? '其他身份' : '对照验收', email: '', phone: '', avatar_url: '', dept_id: 0, role_ids: [] } });
     if (path === '/v1/sys/ai/tasks') {
@@ -43,6 +44,11 @@ async (page) => {
       return send({ list: [lite(left), lite(right)], total: 2 });
     }
     if (/^\/v1\/sys\/ai\/tasks\/\d+\/feedback$/.test(path)) return send({ list: [] });
+    if (path === '/v1/sys/ai/kbs/7/docs/9' || path === '/v1/sys/ai/kbs/7/docs/10') {
+      const doc = Number(path.split('/').at(-1));
+      reads.push({ kind: 'document', kb: 7, doc, url: relative });
+      return send({ doc: { id: doc, kb_id: 7, title: `当前资料 ${doc}`, version: 3, status: 'ready', stage: 'ready', chunk_count: 1, error: '', embedding_model: 'fixture', created_at: 1, updated_at: 2 }, content: currentContent(doc) });
+    }
     if (path === '/v1/sys/ai/tasks/101' || path === '/v1/sys/ai/tasks/102') {
       const id = path.endsWith('/101') ? 101 : 102;
       reads.push({ kind: 'detail', id });
@@ -76,6 +82,32 @@ async (page) => {
   check(await drawer.getByText('执行位置变化', { exact: true }).count() === 2, '重排步骤必须继续按稳定ID配对');
   const initialReads = { candidateLists: reads.filter(r => r.kind === 'list').length - before.lists, leftDetails: reads.filter(r => r.kind === 'detail' && r.id === 101).length - before.left, rightDetails: reads.filter(r => r.kind === 'detail' && r.id === 102).length };
   check(initialReads.candidateLists === 3 && initialReads.leftDetails === 1 && initialReads.rightDetails === 1, `打开/翻页/搜索各一次列表和左右各一次详情：${JSON.stringify(initialReads)}`);
+  const comparisonUrl = page.url();
+  check(reads.filter(r => r.kind === 'document').length === 0, '查看当前原文前不得预取全文');
+  for (const { label, doc, result, title } of [
+    { label: '左侧', doc: 9, result: '左侧可靠结果[1]', title: '甲侧历史原文' },
+    { label: '右侧', doc: 10, result: '右侧不同结果[1]', title: '乙侧历史原文' },
+  ]) {
+    const side = drawer.getByLabel(`${label}历史结果`, { exact: true });
+    const documentReads = reads.filter(r => r.kind === 'document').length;
+    await side.getByRole('button', { name: '查看当前原文', exact: true }).click();
+    const preview = page.getByRole('dialog', { name: '当前原文', exact: true });
+    const full = preview.getByLabel('当前原文全文', { exact: true });
+    await full.waitFor();
+    check(await full.textContent() === currentContent(doc), `${label}应展示对应文档的当前全文`);
+    await preview.getByRole('heading', { name: `当前资料 ${doc}`, exact: true }).waitFor();
+    check(await preview.getByText('第 3 版', { exact: true }).isVisible(), '应明确显示当前文档版本');
+    const latest = reads.filter(r => r.kind === 'document');
+    check(latest.length === documentReads + 1 && latest.at(-1).kb === 7 && latest.at(-1).doc === doc
+      && new URLSearchParams(latest.at(-1).url.split('?')[1]).get('meta_only') === 'false', `${label}应按来源知识库/文档ID请求全文`);
+    check(await side.getByText('保存于任务中的实际历史片段', { exact: true }).count() === 1, `${label}历史片段不能被当前全文替换`);
+    await preview.getByRole('button', { name: '关闭', exact: true }).click();
+    await preview.waitFor({ state: 'detached' });
+    check(page.url() === comparisonUrl, '原文预览开关不得改变运行记录URL');
+    check(await drawer.getByText('左侧 #101 · 右侧 #102', { exact: true }).isVisible(), '关闭原文应保留左右运行选择');
+    check(await side.getByText(title, { exact: true }).isVisible() && await side.getByText(result, { exact: true }).isVisible()
+      && await side.getByText('保存于任务中的实际历史片段', { exact: true }).isVisible(), `${label}关闭原文应保留历史结果、标题和片段`);
+  }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForFunction(() => {
     const rect = document.querySelector('[role="dialog"]').getBoundingClientRect();
@@ -107,7 +139,7 @@ async (page) => {
     window.dispatchEvent(new StorageEvent('storage', { key: 'go-zero-auth', storageArea: localStorage }));
   });
   await drawer.waitFor({ state: 'hidden' });
-  await page.getByText('暂无符合条件的任务', { exact: true }).waitFor();
+  await page.getByText('暂无符合条件的运行记录', { exact: true }).waitFor();
   check(errors.length === 0 && unexpected.length === 0, `不得出现页面错误或未知请求：${JSON.stringify({ errors, unexpected })}`);
-  return { selectionSearchAndPaging: true, staleCacheHiddenOnFailure: true, closeCancelledDetail: true, identityIsolated: true, initialReads, mobile, realBusinessWrites: 0, realModelCalls: 0, pageErrors: errors.length };
+  return { selectionSearchAndPaging: true, currentSourcePreview: true, comparisonPreservedAfterPreview: true, sourceDocuments: reads.filter(r => r.kind === 'document'), staleCacheHiddenOnFailure: true, closeCancelledDetail: true, identityIsolated: true, initialReads, mobile, realBusinessWrites: 0, realModelCalls: 0, pageErrors: errors.length };
 }

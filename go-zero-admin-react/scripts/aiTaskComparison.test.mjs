@@ -57,7 +57,10 @@ test('普通运行对照按实际历史记录配对并安全展示', async t => 
       assert.ok(html.includes('用量：未记录'));
       assert.ok(!html.includes('<script>恶意步骤'));
       assert.ok(!html.includes('<img src=x'));
-      assert.ok(html.includes('/ai/knowledge/7?doc_id=9'));
+      const previewButton = html.match(/<button\b[^>]*>[\s\S]*?<\/button>/g)?.find(button => button.includes('查看当前原文'));
+      assert.ok(previewButton, '历史来源应保留就地查看原文入口');
+      assert.doesNotMatch(html, /href="\/ai\/knowledge\//, '查看原文不离开当前对照结果');
+      for (const identifier of ['知识库 ID：7', '文档 ID：9', '分块 ID：11']) assert.ok(html.includes(identifier), identifier);
     });
     await t.test('非终态或相同任务不展示对照结果，旧任务无步骤仍可读', () => {
       const old = task(1, [], { definition: '', result: '旧版运行原文' });

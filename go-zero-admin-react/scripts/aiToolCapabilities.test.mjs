@@ -64,8 +64,10 @@ test('工具按用途选择并如实展示配置状态和来源版本', async t 
           usage: { scope: 'chat', complete: true, prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
         },
       } }));
-      assert.match(markup, /href="\/ai\/knowledge\/7\?doc_id=9"/);
-      assert.match(markup, /打开当前原文/);
+      const previewButton = markup.match(/<button\b[^>]*>[\s\S]*?<\/button>/g)?.find(button => button.includes('查看当前原文'));
+      assert.ok(previewButton, '历史来源应保留就地查看原文入口');
+      assert.doesNotMatch(markup, /href="\/ai\/knowledge\//, '查看原文不离开当前分析结果');
+      for (const identifier of ['知识库 ID：7', '文档 ID：9', '分块 ID：21']) assert.ok(markup.includes(identifier), identifier);
       assert.match(markup, /执行当时的摘录 &lt;script&gt;/);
       assert.match(markup, /当前原文可能已更新/);
       assert.doesNotMatch(markup, /<script>unsafe/);
