@@ -9,3 +9,6 @@
 /go-zero-admin/application/ai/rpc/internal/logic/aiservice/testdata/custom-*.json text eol=lf
 # 服务端嵌入题集与对外发布的冻结JSON必须保持同一原始字节指纹。
 /go-zero-admin/application/ai/rpc/internal/logic/aiservice/evaluation_data/*.json text eol=lf
+# 完整数据库快照保留导出原始字节，避免换行转换导致恢复校验值失真。
+/go-zero-admin/data/db/init/20261117/*.sql -text
+/go-zero-admin/data/db/init/20261117/*.json text eol=lf

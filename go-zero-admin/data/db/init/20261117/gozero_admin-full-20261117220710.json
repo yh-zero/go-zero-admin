@@ -1,0 +1,209 @@
+{
+  "source_container": "gozero-new-mysql",
+  "source_container_id": "f3bb33ee1b51af6974ce878ebd9728aa201bb7937813c4f88429107f6b4b915e",
+  "source_image_id": "sha256:86b390ef642f89a0157d6215dee33ddc928b8b0ecab173117f56f6c40cb24eab",
+  "database": "gozero_admin",
+  "started_at": "2026-11-17T14:07:10.412Z",
+  "exported_at": "2026-11-17T14:07:11.184Z",
+  "timezone": "Asia/Shanghai",
+  "filename": "gozero_admin-full-20261117220710.sql",
+  "bytes": 2460643,
+  "sha256": "891f56de610c02ca39519b921ac9ffc06487bf17b43fe565cca4f60bf0fb9835",
+  "mysqldump_options": [
+    "--single-transaction",
+    "--quick",
+    "--skip-lock-tables",
+    "--routines",
+    "--triggers",
+    "--events",
+    "--hex-blob",
+    "--default-character-set=utf8mb4",
+    "--no-tablespaces",
+    "--set-gtid-purged=OFF",
+    "--skip-extended-insert",
+    "--complete-insert",
+    "--order-by-primary",
+    "--databases",
+    "gozero_admin"
+  ],
+  "tables": {
+    "ai_conversation": {
+      "rows": 12,
+      "data_insert_sha256": "770641eb75a571634a8170cf43a5f82ce8b7e231984cae55d6aa5f999b1623cd"
+    },
+    "ai_kb": {
+      "rows": 7,
+      "data_insert_sha256": "503cdac59523fc885b5e9a7fed2f5ad5f831c69b7a110ad3bedb6a84c09cd4af"
+    },
+    "ai_kb_chunk": {
+      "rows": 42,
+      "data_insert_sha256": "b997e5e8d7f586a0f00b95375cd932ccf75455f733bea3adf011d2819898881f"
+    },
+    "ai_kb_doc": {
+      "rows": 26,
+      "data_insert_sha256": "8a1c451d35165e9256dafee1b6af2e63625ba159320e63a62d5a3270873b9be0"
+    },
+    "ai_kb_evaluation": {
+      "rows": 13,
+      "data_insert_sha256": "8a34ff1dadb4b8edc3e1e3f7cf49b5031cf3155a55b5220871a425e9830ccc02"
+    },
+    "ai_kb_feedback": {
+      "rows": 6,
+      "data_insert_sha256": "3d01a82196c617632cf09b10a9a416359e0a734c76ee60ca1d1aa1b3d7a10df2"
+    },
+    "ai_kb_ingest_batch": {
+      "rows": 10,
+      "data_insert_sha256": "e7dbbf6ffb538187f4a9632c80d126c5237f4b87b2fbe949e56eca5e6c423281"
+    },
+    "ai_kb_ingest_job": {
+      "rows": 12,
+      "data_insert_sha256": "d7cc8c2d2f5e1b719160f8c40205c751dc713bb4bf6d0d5c98447863f7f2bb0d"
+    },
+    "ai_message": {
+      "rows": 30,
+      "data_insert_sha256": "4a2c250dc70e4efc29600301efbe74518ec3230b1341e4fcf1450c7a1b869faf"
+    },
+    "ai_task": {
+      "rows": 35,
+      "data_insert_sha256": "dafc6b41c915e7d74abe1247696eb0b3026089f87d3def274d1399bf2eb00840"
+    },
+    "ai_usage_call": {
+      "rows": 25,
+      "data_insert_sha256": "9e77d01dfe2bc005a8d34b368311d2d918e5fd0b93414c3b626f072eeb3929d2"
+    },
+    "ai_usage_policy": {
+      "rows": 2,
+      "data_insert_sha256": "208ff067861e83b98f60dea113e2b42f102fba9a90b5c73840ed01cf39440639"
+    },
+    "ai_workflow": {
+      "rows": 7,
+      "data_insert_sha256": "a99dbf6fd36f72c9ea84a8a4a018ec24168a768336408831f58721737a5abae1"
+    },
+    "ai_workflow_revision": {
+      "rows": 0,
+      "data_insert_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "app_feedback": {
+      "rows": 4,
+      "data_insert_sha256": "f20be967ba8b582e2664c63ec704ef4bea6d4a41a82035389f1720e0ba8a76bb"
+    },
+    "app_membership_grant": {
+      "rows": 4,
+      "data_insert_sha256": "a73630eb913cab11e9159ea75c0eb960d318fc0d5d398d786865280950afcbd6"
+    },
+    "app_user": {
+      "rows": 6,
+      "data_insert_sha256": "fa7783fc9f8136cb26c396dbe3dddda581c3cd4ef4109b3d4ab82a13f46122fc"
+    },
+    "casbin_rule": {
+      "rows": 51,
+      "data_insert_sha256": "43d3e28633657a51cb7b1211500035634eb1f323dba3282fb0b9123db61ae27b"
+    },
+    "sys_api": {
+      "rows": 133,
+      "data_insert_sha256": "4cdb1ca913660d76b3af8762643402c00d5551dc4c2bc423e959d605162d23f7"
+    },
+    "sys_audit_log": {
+      "rows": 1226,
+      "data_insert_sha256": "b21dd95b2b440ddb7a0d7deed9d17971bad64d708685043a9c197cff4a326c88"
+    },
+    "sys_dept": {
+      "rows": 7,
+      "data_insert_sha256": "7e315883d5398e1a22e37b242ce1f06db627ee082712e8f972cd9f35715d99da"
+    },
+    "sys_dict": {
+      "rows": 4,
+      "data_insert_sha256": "2764add33164ffdcebeb7068835f0c3e51d69fc144a2eaadd82556a2e0066e59"
+    },
+    "sys_file": {
+      "rows": 1,
+      "data_insert_sha256": "5430c539d2d562e4c49a547c69fd7685bade599c4132d4dd64c7a86ae1dc607a"
+    },
+    "sys_file_reference": {
+      "rows": 0,
+      "data_insert_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sys_menu": {
+      "rows": 81,
+      "data_insert_sha256": "c5346b03ed890ea63c10626a45d1e0d97d4f6ee16fde2a6a683285fcb107320e"
+    },
+    "sys_menu_lock": {
+      "rows": 1,
+      "data_insert_sha256": "e6f6a740c4fb3f0c964561c52c3cdf44638275f35715334ad96424781dba23e1"
+    },
+    "sys_role": {
+      "rows": 6,
+      "data_insert_sha256": "d6ca344b32eea760f87030d0bc978e0527a88d21ebecf52438d1e9afe9c048ea"
+    },
+    "sys_role_menu": {
+      "rows": 105,
+      "data_insert_sha256": "6797b859118b8f5ef6e9be6ead924c6cd5f59bd4fd4dd234db5729b7eea89e4a"
+    },
+    "sys_user": {
+      "rows": 9,
+      "data_insert_sha256": "24759abe7d701b733dd35aab10d1c2a6cab820d2b6f1c4b5cb9fff0e470fd90c"
+    },
+    "tenant_registry": {
+      "rows": 0,
+      "data_insert_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "snapshot_note": "全部InnoDB表使用single-transaction一致性快照；行数来自原始SQL逐行INSERT，并非导出后动态源库计数。",
+  "scope_note": "完整gozero_admin数据库SQL；文件对象、Qdrant向量与Redis不属于MySQL备份范围。",
+  "mysql_version": "9.7.4",
+  "mysqldump_version": "mysqldump  Ver 9.7.4 for Linux on x86_64 (MySQL Community Server - GPL)",
+  "table_count": 30,
+  "total_rows": 1865,
+  "non_table_objects": [],
+  "source_schema_observed_at": "2026-11-17T14:09:06.586Z",
+  "data_hash_algorithm": "逐表按主键排序的完整字段单行INSERT原始字节（含LF）拼接后SHA256；空表使用空字节摘要。",
+  "restore_verified": true,
+  "restore_verified_at": "2026-11-17T14:08:34.494Z",
+  "restore_mysql_version": "9.7.4",
+  "restore_image_id": "sha256:86b390ef642f89a0157d6215dee33ddc928b8b0ecab173117f56f6c40cb24eab",
+  "restore_container_id": "4595b4c2579a1396bda5d2888b8ce785ce8ddb2b463fc2153696aea316764c84",
+  "restore_checks": {
+    "table_list": true,
+    "object_list": true,
+    "exact_row_counts": true,
+    "redumped_insert_bytes_identical": true,
+    "redump_compared_at": "2026-11-17T14:08:46.011Z",
+    "network": "none",
+    "published_ports": [],
+    "event_scheduler": "OFF",
+    "business_services_started": false
+  },
+  "restore_cleanup": {
+    "cleanedAt": "2026-11-17T22:10:14.2838155+08:00",
+    "containerId": "4595b4c2579a1396bda5d2888b8ce785ce8ddb2b463fc2153696aea316764c84",
+    "containerRemoved": true,
+    "anonymousVolume": "6bcae3418192fa3757953632b6fe300e780c47b74216570ddf249d4f6cccae93",
+    "volumeRemoved": true,
+    "network": "none",
+    "publishedPorts": [],
+    "portReleaseCheck": "No host port was published at any time",
+    "sourceContainerUntouched": true
+  },
+  "publication_review": {
+    "reviewed_at": "2026-11-17T14:12:36.465Z",
+    "status": "clean",
+    "counts": {
+      "example_email": 19,
+      "nonexample_email": 0,
+      "provider_key": 0,
+      "github_token": 0,
+      "aws_access_key": 0,
+      "jwt": 0,
+      "private_key": 0,
+      "url_userinfo": 0,
+      "phone": 0,
+      "id_card": 0,
+      "passwordHashes": 15,
+      "hashesMatchingInitialization": 13,
+      "explicitFictionalAdditionalAccountHashes": 2,
+      "internalLeaseTokens": 12
+    },
+    "note": "未发现禁止公开的信息；初始化演示hash、明确虚构且使用示例邮箱的演示账号hash、已完成摄取任务的内部租约标识保留原貌。扫描与上下文审查不能保证发现所有秘密。"
+  },
+  "validation_scope": "本次仅新增数据库快照及其清单和原始字节属性；通过隔离恢复、逐表计数、恢复重导数据字节比对与发布审查，未重跑前后端业务构建，也未启动会调用模型等外部服务的业务进程。"
+}
