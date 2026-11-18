@@ -84,7 +84,7 @@ services:
       - ./docker/etc/admin-rpc.ai-dev.local.yaml:/app/etc/admin.yaml:ro
 ```
 
-从后端目录使用 `docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.ai-dev.local.yaml up -d --no-deps --no-build --wait admin-rpc` 应用验证码配置；其他服务按各自启动流程处理，后端代码改变仍须先编译并构建对应镜像。通过 `/v1/sys/auth/captcha` 核对 `enabled=false` 且图片、ID 为空，再用有效测试账号正常登录。两个 `*.local.yaml` 文件均被忽略，不提交；远程/生产/租户启动不使用这个本地覆盖文件。验证码专项验收改用标准配置并核对 `enabled=true`。
+整栈启动见[构建、启动与就绪检查](#2-构建启动与就绪检查)。其余服务已运行、仅需切换 admin-rpc 到本地覆盖挂载时，从后端目录执行 `docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.ai-dev.local.yaml up -d --no-deps --no-build --wait admin-rpc`。两个 `*.local.yaml` 文件均被忽略，仅用于本机开发栈。验证码专项验收使用标准配置并核对 `enabled=true`。
 
 开源初始化的演示管理员为 `admin / Admin@123456`，属于可公开的开发默认凭据，可以写入规范和文档。AI 可直接核对本地开发库与完整初始化 SQL 后正常登录，无需重复索要这些演示凭据。若 README 的本地改动与 SQL 不一致，以实际初始化来源和运行库核对结果为准，保留用户既有文档改动；此流程不授权改密、重置账号或公开真实凭据、AI Key、会话令牌。
 
@@ -101,20 +101,35 @@ services:
 
 ### Compose（日常默认）
 
-[Dockerfile](../go-zero-admin/docker/Dockerfile)只复制宿主预编译的 Linux 二进制，`docker compose --build` **不会编译 Go 源码**。以下示例沿用快速开始中已创建的 `.env.local`，保证启动与网络预检查使用同一变量文件。首次运行或后端代码变更后，先执行[构建入口](../go-zero-admin/data/scripts/build-images.ps1)；构建失败立即停止，不部署旧产物。
+在后端目录准备 `.env.local`（见 [AI 与邮件](#ai-与邮件)）。AI 本机开发还需准备[免图形验证码的两个本地文件](#ai-本地开发免图形验证码)。选择本次使用的 Compose 配置，后续命令沿用同一组参数。
 
 ```powershell
 # 终端 A：从仓库根目录执行
 cd go-zero-admin
-powershell -NoProfile -ExecutionPolicy Bypass -File ./data/scripts/build-images.ps1
-if ($LASTEXITCODE -ne 0) { throw "后端编译失败，停止部署" }
-docker compose --env-file .env.local up -d --build --wait
-if ($LASTEXITCODE -ne 0) { throw "Compose 启动失败，先排查日志" }
-docker compose --env-file .env.local ps
+$composeArgs = @('--env-file', '.env.local', '-f', 'docker-compose.yml')
+# AI 本机开发追加本地覆盖。标准配置启动时跳过下面这一行。
+$composeArgs += @('-f', 'docker-compose.ai-dev.local.yaml')
+docker compose @composeArgs ps -a
 if ($LASTEXITCODE -ne 0) { throw "无法读取容器状态" }
 ```
 
-前端另开终端；首次或依赖声明/锁文件变化后安装依赖：
+**恢复已有开发栈。** 确认容器属于本项目，镜像及配置与本轮一致。AI 本地模式下，admin-rpc 的 `/app/etc/admin.yaml` 应已挂载自 `admin-rpc.ai-dev.local.yaml`。服务均在运行时直接做就绪检查；有容器停止时，用已有镜像启动并保留现有容器和数据卷。
+
+```powershell
+docker compose @composeArgs up -d --no-recreate --no-build --pull never --wait
+if ($LASTEXITCODE -ne 0) { throw "已有开发栈启动失败，先排查日志" }
+```
+
+**首次启动或后端代码已变更。** [Dockerfile](../go-zero-admin/docker/Dockerfile) 打包宿主预编译的 Linux 二进制。先执行[构建脚本](../go-zero-admin/data/scripts/build-images.ps1)，成功后再用同一组 Compose 参数构建镜像并启动。已有栈仅改配置时按下方配置说明处理。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ./data/scripts/build-images.ps1
+if ($LASTEXITCODE -ne 0) { throw "后端编译失败，停止部署" }
+docker compose @composeArgs up -d --build --wait
+if ($LASTEXITCODE -ne 0) { throw "Compose 启动失败，先排查日志" }
+```
+
+前端已由本项目的 Vite 监听 `127.0.0.1:5999` 时复用。需要启动 Vite 时另开终端。依赖已安装且声明、锁文件均未变化时，从前端目录直接执行 `pnpm dev`。
 
 ```powershell
 # 终端 B：从仓库根目录执行
@@ -124,7 +139,7 @@ if ($LASTEXITCODE -ne 0) { throw "依赖安装失败，停止启动" }
 pnpm dev
 ```
 
-只改 YAML：重启读取它的服务；修改 `.env.local` 中的 AI/SMTP 变量：在后端目录 `docker compose --env-file .env.local up -d --force-recreate ai-rpc app-rpc`，检查退出码并复验对应功能。其他变量按实际归属处理；既有网络变化先单独核对迁移方案，不套用普通重建。代码变更则先重新编译、构建镜像再创建容器，不用 restart 代替部署。
+仅修改已挂载 YAML 的内容时，重启读取它的服务。切换 admin-rpc 的配置挂载时，待其依赖就绪后，使用目标模式的参数执行 `docker compose @composeArgs up -d --no-deps --no-build --wait admin-rpc`。修改 `.env.local` 中的 AI/SMTP 变量时，在后端目录执行 `docker compose @composeArgs up -d --force-recreate ai-rpc app-rpc`，检查退出码并复验对应功能。其他变量按实际归属处理。已有网络变更先单独核对迁移方案。
 
 ### 宿主单服务调试（手动重启，不是自动热更新）
 
@@ -151,7 +166,7 @@ $ready = Invoke-RestMethod -Uri "http://127.0.0.1:7001/ready" -TimeoutSec 15 -Er
 if ($ready.code -ne 200 -or -not $ready.result.ready) { throw "API 尚未就绪" }
 ```
 
-再检查 `/ping`、前端入口及受影响接口/页面；HTML 200 只说明页面可达，AI/邮件还需各自验证。持久失败查[排障表](#4-常见故障排查)，不靠不断重启掩盖错误。
+检查 `/ping` 后打开 `http://127.0.0.1:5999/login`。通过前端代理请求 `http://127.0.0.1:5999/v1/sys/auth/captcha`，AI 本地模式应返回 `code=200`、`result.enabled=false`，且 `captcha_id` 和 `image_base64` 均为空字符串。使用上文的演示账号正常登录，确认进入后台，再退出本次验证会话。涉及 AI 或邮件的功能按本次任务另行验证。持续失败时查[排障表](#4-常见故障排查)。
 
 ## 3. 日常开发与验证流程
 

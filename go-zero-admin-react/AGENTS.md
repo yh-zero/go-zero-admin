@@ -48,7 +48,9 @@ src/
 └── utils/       # request.ts 等
 ```
 
-- 新增页面三步：`pages/<模块>/` 建文件 → 在 `router/registry.ts` 的 `pages` 与 `pageLinks` 登记（key 与后端菜单 `name` 一致）→ 后端菜单配置对应 `component`。`router/index.tsx` 负责组装路由，不维护页面注册表。
+- **页面注册**：在 `pages/<模块>/` 创建页面组件，在 `router/registry.ts` 的 `pages` 登记组件。独立菜单页同时登记 `pageLinks`，与后端菜单核对 `name`（对应注册 key）、`path` 和 `component`。沿用父菜单的详情、编辑等隐藏子页在 `router/hiddenPages.ts` 的 `hiddenPageLinks` 登记，通过 `menuPath` 关联父菜单；含动态参数时同步核对 `hiddenPageForPath` 对实际 URL 的匹配。`router/index.tsx` 负责组装路由。
+- **全新安装**：新增功能页面时，同步核对前端路由和[完整初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql)。凡新增或调整独立菜单、按钮权限码、受控接口资源及其服务端授权、默认角色授权、表结构或必要种子数据，将对应变更写入该文件，使预期角色在全新安装后能进入页面、使用获授权的功能。仅新增展示子页且完全复用已有菜单、接口、权限和数据时，初始化 SQL 可保持原样。
+- **已有业务库**：按[开发手册](../ai_document/dev-guide.md#数据初始化)核对目标库与完整初始化 SQL 的差异。功能更新时只应用本功能所需的结构、数据和授权变更，保留既有业务数据和角色授权。完整初始化 SQL 含有 `DROP TABLE`，重置已有库须另行明确授权。
 
 ## 6. 安全
 
