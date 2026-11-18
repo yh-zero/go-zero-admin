@@ -53,6 +53,19 @@ test('AI流式权威结果与精确缓存回填', async t => {
         assert.equal(called, false);
       }
     });
+    await t.test('单篇请求的两条消息和全部引用都必须属于指定文档', async () => {
+      const request = { ...input, kb_id: 7, doc_id: 82, grounded: true };
+      const scoped = result();
+      for (const row of [scoped.user_message, scoped.ai_message]) Object.assign(row, { kb_id: 7, doc_id: 82 });
+      scoped.ai_message.sources = [{ kb_id: 7, doc_id: 82, doc_version: 3, chunk_id: 9, doc_title: '海外差旅制度', snippet: '住宿限额 900 元。', score: 1 }];
+      globalThis.fetch = async () => stream(success(scoped));
+      assert.equal((await sendAiMessageStream(request, {})).ai_message.sources[0].doc_version, 3);
+      scoped.ai_message.sources[0].doc_id = 81;
+      await assert.rejects(sendAiMessageStream(request, {}));
+      scoped.ai_message.sources = [];
+      delete scoped.user_message.doc_id;
+      await assert.rejects(sendAiMessageStream(request, {}));
+    });
     await t.test('身份切换后的迟到终帧被拒绝', async () => {
       globalThis.fetch = async () => { login(); return stream(success(result())); };
       await assert.rejects(sendAiMessageStream(input, {}));

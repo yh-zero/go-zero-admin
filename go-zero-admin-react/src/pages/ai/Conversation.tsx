@@ -9,7 +9,8 @@ import { conversationMessagesOptions } from './chatQueries';
 import type { AiChatScope } from './chatQueries';
 import { exportConversation, mergeMessagePages, readEntireConversation, validateMessageContent } from './chatState';
 import { ChatKnowledgePicker } from './ChatKnowledgePicker';
-import type { ChatKnowledgeSelection } from './ChatKnowledgePicker';
+import type { ChatKnowledgeSelection } from './chatKnowledge';
+import { latestConversationKnowledge } from './chatKnowledge';
 import { SafeMarkdown } from './SafeMarkdown';
 import { useMessageSend } from './useMessageSend';
 import { useChatScroll } from './useChatScroll';
@@ -25,8 +26,9 @@ export interface ConversationProps {
   isCurrent: () => boolean; beginWrite: (permission: string) => boolean; finishWrite: () => void; onCompleted: (result: AiSendMessageResult) => void;
 }
 
-export function Conversation({ id, scope, canRead, canSend, writing, scrollPosition, knowledge = { kb_id: 0, grounded: false }, onKnowledgeChange, isCurrent, beginWrite, finishWrite, onCompleted }: ConversationProps) {
+export function Conversation({ id, scope, canRead, canSend, writing, scrollPosition, knowledge: selectedKnowledge, onKnowledgeChange, isCurrent, beginWrite, finishWrite, onCompleted }: ConversationProps) {
   const query = useInfiniteQuery({ ...conversationMessagesOptions(scope, id), enabled: canRead });
+  const knowledge = selectedKnowledge ?? latestConversationKnowledge(query.data?.pages[0]?.messages ?? []);
   const [form] = Form.useForm<ComposerValues>();
   const draft = Form.useWatch('content', form) ?? '';
   const draftRevision = useRef(0);
@@ -38,7 +40,7 @@ export function Conversation({ id, scope, canRead, canSend, writing, scrollPosit
     const snapshot = await readEntireConversation(before_id => fetchAiConversation(id, { before_id, page_size: 20 }), isCurrent, controller.signal);
     if (isCurrent() && !controller.signal.aborted) exportConversation(snapshot.conversation.title, snapshot.messages, format);
   }, retry: false });
-  const { start, recheck, feedback, streamState, sending } = useMessageSend({ conversationId: id, scope, isCurrent, beginWrite, finishWrite, onCompleted });
+  const { start, recheck, feedback, streamState, canUseScope, canSendSelection, documentScope, sending } = useMessageSend({ conversationId: id, scope, knowledge, isCurrent, beginWrite, finishWrite, onCompleted });
   // 历史消息只在分页数据变化时重算，避免流式增量触发全量重建。
   const messages = useMemo(() => mergeMessagePages(query.data?.pages ?? []), [query.data?.pages]);
   const hasRunning = messages.some(row => row.status === 'running');
@@ -50,7 +52,7 @@ export function Conversation({ id, scope, canRead, canSend, writing, scrollPosit
     start(values.content, request => {
       // 等待期间编辑的新草稿不随旧请求成功而清空。
       if (submittedRevision === draftRevision.current && form.getFieldValue('content') === request.content) form.setFieldValue('content', '');
-    }, knowledge);
+    });
   }
 
   const conversationTitle = query.data?.pages[0]?.conversation.title || 'AI 对话';
@@ -74,7 +76,7 @@ export function Conversation({ id, scope, canRead, canSend, writing, scrollPosit
       <div className={styles.messageList} ref={scroll.contentRef}>
       <QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />
       {!query.isPending && !query.error && messages.length === 0 && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无消息，发送第一条消息吧" />}
-      {messages.map((message: AiChatMessage) => <MessageRecord key={message.id} message={message} feedbackContext={canSend ? { conversationId: id, scope, isCurrent } : undefined} />)}
+      {messages.map((message: AiChatMessage) => <MessageRecord key={message.id} message={message} askDocumentDisabled={writing || sending || !!draft.trim() || feedback?.state === 'unknown' || hasRunning} feedbackContext={canSend ? { conversationId: id, scope, isCurrent } : undefined} />)}
       {streamState && <article className={styles.message}>
         <div className={styles.messageMeta}>
           <strong>AI 助手</strong>
@@ -98,12 +100,13 @@ export function Conversation({ id, scope, canRead, canSend, writing, scrollPosit
       description={<Space direction="vertical">
         <span>本次请求未确认成功，请查看上方消息状态。失败记录表示调用失败；未发现记录时结果仍可能未知。草稿已保留。</span>
         <span>不会自动重新发送。重查复用原请求 ID；若此前未送达，服务端可能首次开始处理。重新发送会创建新的请求，可能再次计费。</span>
-        {canSend && <Button size="small" disabled={writing || query.isError || !query.data} onClick={recheck}>重查本次结果</Button>}
+        {!canUseScope(feedback.request.kb_id) && <span>恢复原知识库权限后可重查本次结果。</span>}
+        {canSend && <Button size="small" disabled={writing || query.isError || !query.data || !canUseScope(feedback.request.kb_id)} onClick={recheck}>重查本次结果</Button>}
       </Space>} />}
     {hasRunning && feedback?.state !== 'sending' && <Alert className={styles.feedback} type="info" showIcon title="会话有处理中或执行中断的消息"
       description="可刷新查看状态。服务端不会自动重放；再次发送会发起新请求，可能产生新的用量。" />}
     {canSend ? <Form<ComposerValues> form={form} className={styles.composer} onFinish={sendMessage} initialValues={{ content: '' }}>
-      {onKnowledgeChange && <ChatKnowledgePicker scope={scope} value={knowledge} onChange={onKnowledgeChange} disabled={writing} />}
+      {onKnowledgeChange && (query.data || selectedKnowledge) && <ChatKnowledgePicker scope={scope} value={knowledge} onChange={onKnowledgeChange} disabled={writing || !query.data} documentScope={documentScope} />}
       <Form.Item name="content" rules={[{ validator: (_, value: string) => {
         const error = validateMessageContent(value ?? '') || (knowledge.grounded && new TextEncoder().encode(value ?? '').length > 2000 ? '仅依据资料回答时，问题最多 2000 UTF-8 字节' : undefined);
         return error ? Promise.reject(new Error(error)) : Promise.resolve();
@@ -119,7 +122,7 @@ export function Conversation({ id, scope, canRead, canSend, writing, scrollPosit
       <div className={styles.composerActions}>
         <Typography.Text type="secondary" className={styles.recordNote}>{new TextEncoder().encode(draft).length} / {knowledge.grounded ? 2000 : 16000} UTF-8 字节</Typography.Text>
         <Button type="primary" htmlType="submit" icon={<SendOutlined />} loading={sending}
-          disabled={writing || query.isError || !query.data || !draft.trim()}>{feedback?.state === 'unknown' || hasRunning ? '重新发送（新请求）' : '发送'}</Button>
+          disabled={writing || query.isError || !query.data || !draft.trim() || !canSendSelection}>{feedback?.state === 'unknown' || hasRunning ? '重新发送（新请求）' : '发送'}</Button>
       </div>
     </Form> : <Typography.Text type="secondary">当前账号没有发送消息权限，可查看历史消息。</Typography.Text>}
   </Card>;

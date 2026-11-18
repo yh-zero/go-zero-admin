@@ -11,19 +11,27 @@ export function CopyTextButton({ text, label = '复制' }: { text: string; label
   }}>{label}</Button>;
 }
 
+interface Citations { count: number; open: (index: number) => void }
+
 // 只创建 React 元素；原始 HTML、图片和非 HTTP 链接始终作为文字保留。
-function inline(text: string): ReactNode[] {
+function inline(text: string, citations?: Citations, insideStrong = false): ReactNode[] {
   const parts: ReactNode[] = [];
   // 先消费转义标点为文字；先整体反转义会把分析问项重新激活成链接、代码等语法。
-  const tokens = /\\[!-/:-@[-`{-~]|`[^`\n]+`|\*\*[^*\n]+\*\*|\[[^\]\n]{1,300}\]\([^\s)\n]{1,2000}\)/g;
+  const tokens = /\\[!-/:-@[-`{-~]|`[^`\n]+`|\*\*[^*\n]+\*\*|\[[^\]\n]{1,300}\]\([^\s)\n]{1,2000}\)|\[([1-9]\d*)\](?!\()/g;
   let previous = 0;
   for (const match of text.matchAll(tokens)) {
     const start = match.index;
     if (start > previous) parts.push(text.slice(previous, start));
     const value = match[0];
-    if (value.startsWith('\\')) parts.push(value[1]);
+    if (match[1]) {
+      const index = Number(match[1]);
+      if (citations && index <= citations.count && text[start - 1] !== '!') {
+        parts.push(<button type="button" className={styles.citation} key={start} aria-label={`查看引用 [${index}]`} onClick={() => citations.open(index)}>{value}</button>);
+      } else parts.push(value);
+    } else if (insideStrong) parts.push(value); // 保留受限 Markdown 原有的粗体文字格式。
+    else if (value.startsWith('\\')) parts.push(value[1]);
     else if (value.startsWith('`')) parts.push(<code key={start}>{value.slice(1, -1)}</code>);
-    else if (value.startsWith('**')) parts.push(<strong key={start}>{value.slice(2, -2)}</strong>);
+    else if (value.startsWith('**')) parts.push(<strong key={start}>{citations ? inline(value.slice(2, -2), citations, true) : value.slice(2, -2)}</strong>);
     else {
       const split = value.indexOf('](');
       const url = value.slice(split + 2, -1);
@@ -53,7 +61,8 @@ function cells(line: string): string[] | null {
   return values;
 }
 
-export function SafeMarkdown({ content }: { content: string }) {
+export function SafeMarkdown({ content, citations }: { content: string; citations?: Citations }) {
+  const renderInline = (text: string) => inline(text, citations);
   const lines = content.split(/\r?\n/);
   const blocks: ReactNode[] = [];
   for (let index = 0; index < lines.length;) {
@@ -79,18 +88,18 @@ export function SafeMarkdown({ content }: { content: string }) {
         if (!values) break;
         rows.push({ key: index++, values });
       }
-      blocks.push(<div className={styles.tableWrap} key={key}><table><thead><tr>{headers.map((cell, column) => <th key={`${key}:${column}`}>{inline(cell)}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.key}>{headers.map((_, column) => <td key={`${row.key}:${column}`}>{inline(row.values[column] ?? '')}</td>)}</tr>)}</tbody></table></div>);
+      blocks.push(<div className={styles.tableWrap} key={key}><table><thead><tr>{headers.map((cell, column) => <th key={`${key}:${column}`}>{renderInline(cell)}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.key}>{headers.map((_, column) => <td key={`${row.key}:${column}`}>{renderInline(row.values[column] ?? '')}</td>)}</tr>)}</tbody></table></div>);
       continue;
     }
     const heading = /^(#{1,4})\s+(.+)$/.exec(line);
     if (heading) {
-      blocks.push(<div role="heading" aria-level={heading[1]!.length + 1} className={styles.heading} key={key}>{inline(heading[2]!)}</div>);
+      blocks.push(<div role="heading" aria-level={heading[1]!.length + 1} className={styles.heading} key={key}>{renderInline(heading[2]!)}</div>);
     } else if (/^\s*[-*]\s+/.test(line)) {
-      blocks.push(<div className={styles.listLine} key={key}><span aria-hidden="true">•</span><span>{inline(line.replace(/^\s*[-*]\s+/, ''))}</span></div>);
+      blocks.push(<div className={styles.listLine} key={key}><span aria-hidden="true">•</span><span>{renderInline(line.replace(/^\s*[-*]\s+/, ''))}</span></div>);
     } else if (/^>\s?/.test(line)) {
-      blocks.push(<blockquote key={key}>{inline(line.replace(/^>\s?/, ''))}</blockquote>);
+      blocks.push(<blockquote key={key}>{renderInline(line.replace(/^>\s?/, ''))}</blockquote>);
     } else {
-      blocks.push(<div className={styles.line} key={key}>{line ? inline(line) : <br />}</div>);
+      blocks.push(<div className={styles.line} key={key}>{line ? renderInline(line) : <br />}</div>);
     }
     index++;
   }

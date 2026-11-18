@@ -206,6 +206,8 @@ func (t *kbAnalyzeTool) fitSources(query string, kbID int64, hits []KbSearchHit,
 			return nil, nil, &ExecutionError{Message: "知识库检索资料格式无效"}
 		}
 		seen[hit.ChunkID] = true
+		// 历史工作流分析的 v1 来源有固定字段；聊天的定位版本不进入该结果。
+		hit.DocVersion = 0
 		hit.DocTitle = truncateUTF8(hit.DocTitle, 256)
 		hit.Snippet = strings.TrimSpace(hit.Snippet)
 		maxSnippet = max(maxSnippet, len(hit.Snippet))

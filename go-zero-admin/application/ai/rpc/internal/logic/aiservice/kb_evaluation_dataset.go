@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"go-zero-admin/application/ai/rpc/internal/model"
@@ -46,10 +47,24 @@ var evaluationDatasetKeys = []string{"business-evidence-cases", "business-accept
 var errEvaluationDataset = errors.New("evaluation dataset invalid")
 var evaluationSHA = regexp.MustCompile(`^[a-f0-9]{64}$`)
 
+// 内置题集随二进制冻结，各调用方只读取目录和冻结原文。
+var evaluationDatasetLoaders = func() map[string]func() (*evaluationDataset, error) {
+	loaders := make(map[string]func() (*evaluationDataset, error), len(evaluationDatasetKeys))
+	for _, key := range evaluationDatasetKeys {
+		loaders[key] = sync.OnceValues(func() (*evaluationDataset, error) { return readEvaluationDataset(key) })
+	}
+	return loaders
+}()
+
 func loadEvaluationDataset(key string) (*evaluationDataset, error) {
-	if evaluationDatasetNames[key] == "" {
+	load := evaluationDatasetLoaders[key]
+	if load == nil {
 		return nil, errEvaluationDataset
 	}
+	return load()
+}
+
+func readEvaluationDataset(key string) (*evaluationDataset, error) {
 	raw, err := evaluationData.ReadFile("evaluation_data/" + key + ".json")
 	if err != nil {
 		return nil, err

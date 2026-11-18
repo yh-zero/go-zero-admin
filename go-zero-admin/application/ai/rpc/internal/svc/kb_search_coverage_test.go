@@ -59,7 +59,7 @@ type analysisPrefixChunks struct {
 	content string
 }
 
-func (m *analysisPrefixChunks) FindReadyByIDs(context.Context, []uint64, int64, int64) ([]*model.KbChunkRow, error) {
+func (m *analysisPrefixChunks) FindReadyByIDs(context.Context, []uint64, int64, int64, int64) ([]*model.KbChunkRow, error) {
 	return []*model.KbChunkRow{{Id: 1, KbId: 5, DocId: 10, Content: m.content, TokenCount: 500, DocTitle: "JSON原文"}}, nil
 }
 
@@ -95,7 +95,7 @@ type coverageStore struct {
 	topK       int
 }
 
-func (s *coverageStore) Search(_ context.Context, _ []float32, owner, kb int64, topK int) ([]vectordb.Hit, error) {
+func (s *coverageStore) Search(_ context.Context, _ []float32, owner, kb, _ int64, topK int) ([]vectordb.Hit, error) {
 	s.calls++
 	s.owner, s.kb, s.topK = owner, kb, topK
 	hits := make([]vectordb.Hit, 0, len(s.candidates))
@@ -113,7 +113,7 @@ type coverageChunks struct {
 	ids        []uint64
 }
 
-func (m *coverageChunks) FindReadyByIDs(_ context.Context, ids []uint64, owner, kb int64) ([]*model.KbChunkRow, error) {
+func (m *coverageChunks) FindReadyByIDs(_ context.Context, ids []uint64, owner, kb, _ int64) ([]*model.KbChunkRow, error) {
 	m.calls++
 	m.owner, m.kb, m.ids = owner, kb, slices.Clone(ids)
 	rows := make([]*model.KbChunkRow, 0, len(m.candidates))
@@ -267,7 +267,7 @@ type recallStore struct {
 	topK      int
 }
 
-func (s *recallStore) Search(_ context.Context, _ []float32, owner, kb int64, topK int) ([]vectordb.Hit, error) {
+func (s *recallStore) Search(_ context.Context, _ []float32, owner, kb, _ int64, topK int) ([]vectordb.Hit, error) {
 	s.owner, s.kb, s.topK = owner, kb, topK
 	return []vectordb.Hit{{ID: 9, Score: .8}, {ID: 6, Score: .8}, {ID: 3, Score: .8}, {ID: 8, Score: .8}, {ID: 7, Score: .8}, {ID: 2, Score: .9}, {ID: 1, Score: 1}}, nil
 }
@@ -277,7 +277,7 @@ type recallChunks struct {
 	owner, kb int64
 }
 
-func (m *recallChunks) FindReadyByIDs(_ context.Context, ids []uint64, owner, kb int64) ([]*model.KbChunkRow, error) {
+func (m *recallChunks) FindReadyByIDs(_ context.Context, ids []uint64, owner, kb, _ int64) ([]*model.KbChunkRow, error) {
 	m.owner, m.kb = owner, kb
 	rows := make([]*model.KbChunkRow, 0, len(ids))
 	for _, id := range ids {

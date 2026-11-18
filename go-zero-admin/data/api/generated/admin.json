@@ -1088,6 +1088,9 @@
                       "created_at": {
                         "type": "integer"
                       },
+                      "doc_id": {
+                        "type": "integer"
+                      },
                       "error": {
                         "type": "string"
                       },
@@ -1097,7 +1100,13 @@
                       "feedback_note": {
                         "type": "string"
                       },
+                      "grounded": {
+                        "type": "boolean"
+                      },
                       "id": {
+                        "type": "integer"
+                      },
+                      "kb_id": {
                         "type": "integer"
                       },
                       "role": {
@@ -1124,6 +1133,9 @@
                             },
                             "doc_title": {
                               "type": "string"
+                            },
+                            "doc_version": {
+                              "type": "integer"
                             },
                             "kb_id": {
                               "type": "integer"
@@ -1337,6 +1349,18 @@
         "operationId": "aiListKbs",
         "parameters": [
           {
+            "type": "boolean",
+            "name": "choices_only",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
             "type": "integer",
             "name": "page",
             "in": "query",
@@ -1379,6 +1403,9 @@
                       "type": "boolean"
                     }
                   }
+                },
+                "choices": {
+                  "type": "array"
                 },
                 "list": {
                   "type": "array",
@@ -1749,6 +1776,12 @@
             "required": true
           },
           {
+            "type": "boolean",
+            "name": "meta_only",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
             "type": "integer",
             "name": "page",
             "in": "query",
@@ -1835,6 +1868,9 @@
                       }
                     }
                   }
+                },
+                "page_signature": {
+                  "type": "string"
                 },
                 "pending_count": {
                   "type": "integer"
@@ -2353,6 +2389,18 @@
             "name": "id",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "boolean",
+            "name": "meta_only",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "dataset_key",
+            "in": "query",
+            "allowEmptyValue": true
           }
         ],
         "responses": {
@@ -2512,6 +2560,9 @@
                         "type": "integer"
                       },
                       "observations": {
+                        "type": "string"
+                      },
+                      "observations_sha256": {
                         "type": "string"
                       },
                       "request_id": {
@@ -2678,6 +2729,9 @@
                     "observations": {
                       "type": "string"
                     },
+                    "observations_sha256": {
+                      "type": "string"
+                    },
                     "request_id": {
                       "type": "string"
                     },
@@ -2726,6 +2780,18 @@
             "name": "evaluation_id",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "boolean",
+            "name": "progress_only",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "known_observations_sha256",
+            "in": "query",
+            "allowEmptyValue": true
           }
         ],
         "responses": {
@@ -2803,6 +2869,9 @@
                       "type": "integer"
                     },
                     "observations": {
+                      "type": "string"
+                    },
+                    "observations_sha256": {
                       "type": "string"
                     },
                     "request_id": {
@@ -2933,6 +3002,9 @@
                       "type": "integer"
                     },
                     "observations": {
+                      "type": "string"
+                    },
+                    "observations_sha256": {
                       "type": "string"
                     },
                     "request_id": {
@@ -3991,6 +4063,9 @@
                       "doc_title": {
                         "type": "string"
                       },
+                      "doc_version": {
+                        "type": "integer"
+                      },
                       "kb_id": {
                         "type": "integer"
                       },
@@ -4041,6 +4116,9 @@
                 "conversation_id": {
                   "type": "integer"
                 },
+                "doc_id": {
+                  "type": "integer"
+                },
                 "grounded": {
                   "type": "boolean"
                 },
@@ -4082,6 +4160,9 @@
                     "created_at": {
                       "type": "integer"
                     },
+                    "doc_id": {
+                      "type": "integer"
+                    },
                     "error": {
                       "type": "string"
                     },
@@ -4091,7 +4172,13 @@
                     "feedback_note": {
                       "type": "string"
                     },
+                    "grounded": {
+                      "type": "boolean"
+                    },
                     "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
                       "type": "integer"
                     },
                     "role": {
@@ -4118,6 +4205,9 @@
                           },
                           "doc_title": {
                             "type": "string"
+                          },
+                          "doc_version": {
+                            "type": "integer"
                           },
                           "kb_id": {
                             "type": "integer"
@@ -4202,6 +4292,9 @@
                     "created_at": {
                       "type": "integer"
                     },
+                    "doc_id": {
+                      "type": "integer"
+                    },
                     "error": {
                       "type": "string"
                     },
@@ -4211,7 +4304,13 @@
                     "feedback_note": {
                       "type": "string"
                     },
+                    "grounded": {
+                      "type": "boolean"
+                    },
                     "id": {
+                      "type": "integer"
+                    },
+                    "kb_id": {
                       "type": "integer"
                     },
                     "role": {
@@ -4238,6 +4337,9 @@
                           },
                           "doc_title": {
                             "type": "string"
+                          },
+                          "doc_version": {
+                            "type": "integer"
                           },
                           "kb_id": {
                             "type": "integer"
@@ -11927,7 +12029,7 @@
       }
     }
   },
-  "x-date": "2026-11-08 01:44:01",
+  "x-date": "2026-11-18 22:35:16",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

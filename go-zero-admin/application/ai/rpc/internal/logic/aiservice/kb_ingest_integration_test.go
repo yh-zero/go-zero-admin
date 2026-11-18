@@ -669,7 +669,7 @@ func (s *ingestVectorStore) Upsert(ctx context.Context, p []vectordb.Point) erro
 	}
 	return nil
 }
-func (s *ingestVectorStore) Search(context.Context, []float32, int64, int64, int) ([]vectordb.Hit, error) {
+func (s *ingestVectorStore) Search(context.Context, []float32, int64, int64, int64, int) ([]vectordb.Hit, error) {
 	return nil, errors.New("not used")
 }
 func (s *ingestVectorStore) Delete(ctx context.Context, ids []uint64) error {

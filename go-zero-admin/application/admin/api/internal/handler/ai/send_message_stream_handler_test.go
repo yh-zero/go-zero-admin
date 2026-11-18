@@ -220,6 +220,9 @@ func TestWriteStreamChunkPropagatesWriteError(t *testing.T) {
 func TestAIStreamDoneContainsCommittedMessages(t *testing.T) {
 	result := &aipb.SendMessageResponse{ConversationId: 9, Conversation: &aipb.ConversationInfo{Id: 9, Title: "本地会话", MessageCount: 2}, UserMessage: &aipb.ChatMessage{Id: 1, Role: "user", Content: "问题", Status: "succeeded"}, AiMessage: &aipb.ChatMessage{Id: 2, Role: "assistant", Content: "结果", ToolCalls: "[]", Status: "succeeded"}}
 	recorder := httptest.NewRecorder()
+	result.UserMessage.KbId, result.UserMessage.DocId = 4, 7
+	result.AiMessage.KbId, result.AiMessage.DocId = 4, 7
+	result.AiMessage.Sources = []*aipb.KbSearchHit{{KbId: 4, DocId: 7, DocVersion: 3, Snippet: "实际条款"}}
 	terminal, err := writeStreamChunk(recorder, &aipb.StreamChunk{Type: "done", Tokens: 12, UsageComplete: true, Result: result})
 	if err != nil || !terminal || !recorder.Flushed {
 		t.Fatalf("done 必须 Flush 并结束流：终帧 = %v，错误 = %v", terminal, err)
@@ -236,11 +239,18 @@ func TestAIStreamDoneContainsCommittedMessages(t *testing.T) {
 				MessageCount int64  `json:"message_count"`
 			} `json:"conversation"`
 			UserMessage struct {
+				KbID    int64  `json:"kb_id"`
+				DocID   int64  `json:"doc_id"`
 				Id      int64  `json:"id"`
 				Content string `json:"content"`
 				Status  string `json:"status"`
 			} `json:"user_message"`
 			AiMessage struct {
+				KbID    int64 `json:"kb_id"`
+				DocID   int64 `json:"doc_id"`
+				Sources []struct {
+					DocVersion int64 `json:"doc_version"`
+				} `json:"sources"`
 				Id        int64  `json:"id"`
 				Content   string `json:"content"`
 				ToolCalls string `json:"tool_calls"`
@@ -259,6 +269,10 @@ func TestAIStreamDoneContainsCommittedMessages(t *testing.T) {
 	}
 	if payload.Result.UserMessage.Id != 1 || payload.Result.UserMessage.Content != "问题" || payload.Result.UserMessage.Status != "succeeded" {
 		t.Fatalf("done 未返回已提交的用户消息：%+v", payload.Result.UserMessage)
+	}
+	user, reply := payload.Result.UserMessage, payload.Result.AiMessage
+	if user.KbID != 4 || user.DocID != 7 || reply.KbID != 4 || reply.DocID != 7 || len(reply.Sources) != 1 || reply.Sources[0].DocVersion != 3 {
+		t.Fatal("消息对的文档范围和来源版本应完整传给浏览器")
 	}
 	if payload.Result.AiMessage.Id != 2 || payload.Result.AiMessage.Content != "结果" || payload.Result.AiMessage.ToolCalls != "[]" || payload.Result.AiMessage.Status != "succeeded" {
 		t.Fatalf("done 未返回已提交的助手消息：%+v", payload.Result.AiMessage)
@@ -348,12 +362,24 @@ func newSSETestRequest(body string) *http.Request {
 
 type sseTestAIClient struct {
 	aiservice.AiService
-	stream aipb.AiService_SendMessageStreamClient
-	err    error
+	stream  aipb.AiService_SendMessageStreamClient
+	err     error
+	request *aipb.SendMessageRequest
 }
 
-func (c *sseTestAIClient) SendMessageStream(context.Context, *aipb.SendMessageRequest, ...grpc.CallOption) (aipb.AiService_SendMessageStreamClient, error) {
+func (c *sseTestAIClient) SendMessageStream(_ context.Context, req *aipb.SendMessageRequest, _ ...grpc.CallOption) (aipb.AiService_SendMessageStreamClient, error) {
+	c.request = req
 	return c.stream, c.err
+}
+
+func TestSendMessageStreamForwardsDocumentScope(t *testing.T) {
+	client := &sseTestAIClient{stream: &sseTestStream{}}
+	handler := SendMessageStreamHandler(&svc.ServiceContext{AiRpc: client, Validator: svc.NewValidator()})
+	body := `{"request_id":"00000000-0000-4000-8000-000000000001","conversation_id":0,"content":"额度？","kb_id":4,"doc_id":7,"grounded":true}`
+	handler(httptest.NewRecorder(), newSSETestRequest(body))
+	if client.request == nil || client.request.KbId != 4 || client.request.DocId != 7 || !client.request.Grounded {
+		t.Fatal("HTTP 到 RPC 的转换丢失单篇范围")
+	}
 }
 
 type sseTestStream struct {

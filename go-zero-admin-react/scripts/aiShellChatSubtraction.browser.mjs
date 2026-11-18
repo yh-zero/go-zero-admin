@@ -24,12 +24,17 @@ async page => {
     if (route.request().method() !== 'GET') throw new Error('验收不允许知识库写请求');
     const kb = { id: 7, name: '范围回归知识库', description: '', doc_count: 1, chunk_count: 1, ready_count: 1, pending_count: 0, failed_count: 0, created_at: 1, updated_at: 1 };
     const capabilities = { retrieval_configured: true, analysis_configured: true, ingestion_mode: 'background' };
-    return route.fulfill({ json: { code: 200, msg: '成功', result: new URL(route.request().url()).pathname.endsWith('/7') ? { kb, capabilities } : { list: [kb], total: 1, capabilities } } });
+    const url = new URL(route.request().url());
+    if (url.searchParams.get('choices_only') === 'true') {
+      const choices = (!url.searchParams.has('id') || Number(url.searchParams.get('id')) === kb.id) && kb.name.includes(url.searchParams.get('query') ?? '') ? [{ id: kb.id, name: kb.name }] : [];
+      return route.fulfill({ json: { code: 200, msg: '成功', result: { choices, total: choices.length } } });
+    }
+    return route.fulfill({ json: { code: 200, msg: '成功', result: url.pathname.endsWith('/7') ? { kb, capabilities } : { list: [kb], total: 1, capabilities } } });
   };
   const checkKnowledgePicker = async () => {
     assert(await page.getByRole('switch', { name: '仅依据所选资料回答', exact: true }).count() === 0, '自动检索不应显示不可操作的约束开关');
     await page.getByRole('combobox', { name: '对话知识库', exact: true }).click();
-    await page.getByText('范围回归知识库（1 篇）', { exact: true }).last().click();
+    await page.getByText('范围回归知识库', { exact: true }).last().click();
     const constraint = page.getByRole('switch', { name: '仅依据所选资料回答', exact: true });
     await constraint.waitFor();
     await constraint.click();

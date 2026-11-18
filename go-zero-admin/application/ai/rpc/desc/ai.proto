@@ -86,6 +86,7 @@ message ChatMessage {
   int64 id = 1; string role = 2; string content = 3; string tool_calls = 4; int64 tokens = 5; int64 created_at = 6;
   string status = 7; string error = 8;
   repeated KbSearchHit sources = 9; string feedback = 10; string feedback_note = 11;
+  int64 kb_id = 12; int64 doc_id = 13; bool grounded = 14; // 发送时的实际范围，历史消息可能缺失。
 }
 message ConversationInfo {
   int64 id = 1; string title = 2; int64 user_id = 3; int64 message_count = 4; int64 created_at = 5; int64 updated_at = 6;
@@ -110,6 +111,7 @@ message SendMessageRequest {
   string request_id = 4;
   int64 kb_id = 5;
   bool grounded = 6;
+  int64 doc_id = 7;  // 非零时仅检索本库的指定文档，要求 grounded。
 }
 message SendMessageResponse { ChatMessage user_message = 1; ChatMessage ai_message = 2; int64 conversation_id = 3; ConversationInfo conversation = 4; }
 
@@ -208,14 +210,16 @@ message KbDocInfo {
 }
 message CreateKbRequest { Actor actor = 1; string name = 2; string description = 3; }
 message CreateKbResponse { KbInfo kb = 1; Capabilities capabilities = 2; }
-message ListKbsRequest { Actor actor = 1; PageRequest page = 2; string query = 3; }
-message ListKbsResponse { repeated KbInfo list = 1; PageResponse page = 2; Capabilities capabilities = 3; }
+message KbChoice { int64 id = 1; string name = 2; }
+message ListKbsRequest { Actor actor = 1; PageRequest page = 2; string query = 3; bool choices_only = 4; int64 id = 5; }
+message ListKbsResponse { repeated KbInfo list = 1; PageResponse page = 2; Capabilities capabilities = 3; repeated KbChoice choices = 4; }
 message GetKbRequest { Actor actor = 1; int64 kb_id = 2; }
 message GetKbResponse { KbInfo kb = 1; Capabilities capabilities = 2; }
 message SearchKbRequest { Actor actor = 1; int64 kb_id = 2; string query = 3; }
 message KbSearchHit {
   int64 chunk_id = 1; int64 kb_id = 2; int64 doc_id = 3; string doc_title = 4;
   string snippet = 5; float score = 6;
+  int64 doc_version = 7;  // 检索时的文档版本，历史记录可能为 0。
 }
 message SearchKbResponse { repeated KbSearchHit list = 1; int64 elapsed_ms = 2; }
 message UpdateKbRequest { Actor actor = 1; int64 kb_id = 2; optional string name = 3; optional string description = 4; }
@@ -223,8 +227,8 @@ message DeleteKbRequest { Actor actor = 1; int64 kb_id = 2; }
 // 创建文档原子保存接收凭证并后台摄取，pending不表示完成。
 message CreateKbDocRequest { Actor actor = 1; int64 kb_id = 2; string title = 3; string content = 4; string request_id = 5; string batch_id = 6; }
 message CreateKbDocResponse { KbDocInfo doc = 1; int64 job_id = 2; string batch_id = 3; }
-message ListKbDocsRequest { Actor actor = 1; int64 kb_id = 2; PageRequest page = 3; string query = 4; string status = 5; }
-message ListKbDocsResponse { repeated KbDocInfo list = 1; PageResponse page = 2; int64 ready_count = 3; int64 pending_count = 4; int64 failed_count = 5; }
+message ListKbDocsRequest { Actor actor = 1; int64 kb_id = 2; PageRequest page = 3; string query = 4; string status = 5; bool meta_only = 6; }
+message ListKbDocsResponse { repeated KbDocInfo list = 1; PageResponse page = 2; int64 ready_count = 3; int64 pending_count = 4; int64 failed_count = 5; string page_signature = 6; }
 message GetKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; bool meta_only = 4; }
 message GetKbDocResponse { KbDocInfo doc = 1; string content = 2; }
 message UpdateKbDocRequest { Actor actor = 1; int64 kb_id = 2; int64 doc_id = 3; string title = 4; string content = 5; int64 expected_version = 6; string request_id = 7; string batch_id = 8; }
@@ -277,7 +281,7 @@ message ReviewKbFeedbackRequest {
 message KbEvaluationDatasetInfo {
   string key = 1; string name = 2; string sha256 = 3; string dataset = 4;
 }
-message ListKbEvaluationDatasetsRequest { Actor actor = 1; int64 kb_id = 2; }
+message ListKbEvaluationDatasetsRequest { Actor actor = 1; int64 kb_id = 2; bool meta_only = 3; string dataset_key = 4; }
 message ListKbEvaluationDatasetsResponse { repeated KbEvaluationDatasetInfo list = 1; }
 message KbEvaluationInfo {
   int64 id = 1; int64 kb_id = 2; string request_id = 3; string dataset_key = 4; string dataset_sha256 = 5;
@@ -285,6 +289,7 @@ message KbEvaluationInfo {
   bool stop_requested = 11; bool corpus_verified = 12; string error = 13; string snapshot = 14;
   string bindings = 15; string context = 16; string observations = 17;
   int64 created_at = 18; int64 updated_at = 19; int64 started_at = 20; int64 completed_at = 21;
+  string observations_sha256 = 22;
 }
 message KbEvaluationResponse { KbEvaluationInfo evaluation = 1; }
 message StartKbEvaluationRequest {
@@ -294,7 +299,7 @@ message StartKbEvaluationRequest {
 }
 message ListKbEvaluationsRequest { Actor actor = 1; int64 kb_id = 2; PageRequest page = 3; string status = 4; string request_id = 5; }
 message ListKbEvaluationsResponse { repeated KbEvaluationInfo list = 1; PageResponse page = 2; }
-message GetKbEvaluationRequest { Actor actor = 1; int64 kb_id = 2; int64 evaluation_id = 3; }
+message GetKbEvaluationRequest { Actor actor = 1; int64 kb_id = 2; int64 evaluation_id = 3; bool progress_only = 4; string known_observations_sha256 = 5; }
 message StopKbEvaluationRequest { Actor actor = 1; int64 kb_id = 2; int64 evaluation_id = 3; }
 
 service AiService {

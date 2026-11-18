@@ -19,6 +19,7 @@ type (
 		RequireOwned(ctx context.Context, id, ownerId int64) error
 		ListOwned(ctx context.Context, ownerId, page, pageSize int64) ([]*KbRow, int64, error)
 		SearchOwned(ctx context.Context, ownerId, page, pageSize int64, query string) ([]*KbRow, int64, error)
+		ChoicesOwned(ctx context.Context, ownerId, id, page, pageSize int64, query string) ([]KbChoiceRow, int64, error)
 		UpdateOwned(ctx context.Context, id, ownerId int64, patch KbPatch) error
 		// DeleteOwned 事务内软删知识库及其文档、删除 chunk 行，返回需从向量索引清除的 chunk ID
 		DeleteOwned(ctx context.Context, id, ownerId int64) (chunkIds []uint64, err error)
@@ -27,6 +28,11 @@ type (
 	customAiKbModel struct {
 		*defaultAiKbModel
 		conn sqlx.SqlConn
+	}
+
+	KbChoiceRow struct {
+		Id   int64  `db:"id"`
+		Name string `db:"name"`
 	}
 
 	// KbRow 知识库行（时间已转 int64，统计列随查询聚合）
@@ -81,13 +87,7 @@ func (m *customAiKbModel) ListOwned(ctx context.Context, ownerId, page, pageSize
 }
 
 func (m *customAiKbModel) SearchOwned(ctx context.Context, ownerId, page, pageSize int64, query string) ([]*KbRow, int64, error) {
-	where := "WHERE k.owner_id=? AND k.deleted_at IS NULL"
-	args := []any{ownerId}
-	if query != "" {
-		pattern := "%" + strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(query) + "%"
-		where += " AND (k.name LIKE ? ESCAPE '!' OR k.description LIKE ? ESCAPE '!')"
-		args = append(args, pattern, pattern)
-	}
+	where, args := kbListFilter(ownerId, query)
 	var count struct {
 		Total int64 `db:"total"`
 	}
@@ -98,6 +98,34 @@ func (m *customAiKbModel) SearchOwned(ctx context.Context, ownerId, page, pageSi
 	args = append(args, pageSize, (page-1)*pageSize)
 	err := m.QueryRowsNoCacheCtx(ctx, &rows, kbSelect+where+" ORDER BY k.id DESC LIMIT ? OFFSET ?", args...)
 	return rows, count.Total, err
+}
+
+func kbListFilter(ownerId int64, query string) (string, []any) {
+	where := "WHERE k.owner_id=? AND k.deleted_at IS NULL"
+	args := []any{ownerId}
+	if query != "" {
+		pattern := "%" + strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(query) + "%"
+		where += " AND (k.name LIKE ? ESCAPE '!' OR k.description LIKE ? ESCAPE '!')"
+		args = append(args, pattern, pattern)
+	}
+	return where, args
+}
+
+func (m *customAiKbModel) ChoicesOwned(ctx context.Context, ownerId, id, page, pageSize int64, query string) ([]KbChoiceRow, int64, error) {
+	where, args := kbListFilter(ownerId, query)
+	rows := make([]KbChoiceRow, 0)
+	const selectChoice = "SELECT k.id,k.name FROM ai_kb k "
+	if id > 0 {
+		err := m.QueryRowsNoCacheCtx(ctx, &rows, selectChoice+where+" AND k.id=?", append(args, id)...)
+		return rows, int64(len(rows)), err
+	}
+	var total int64
+	if err := m.QueryRowNoCacheCtx(ctx, &total, "SELECT COUNT(*) FROM ai_kb k "+where, args...); err != nil {
+		return nil, 0, err
+	}
+	args = append(args, pageSize, (page-1)*pageSize)
+	err := m.QueryRowsNoCacheCtx(ctx, &rows, selectChoice+where+" ORDER BY k.id DESC LIMIT ? OFFSET ?", args...)
+	return rows, total, err
 }
 
 func (m *customAiKbModel) UpdateOwned(ctx context.Context, id, ownerId int64, patch KbPatch) error {

@@ -60,9 +60,9 @@ func mapAiMessage(row *aipb.ChatMessage) *types.AiChatMessage {
 	}
 	sources := make([]*types.AiKbSearchHit, 0, len(row.Sources))
 	for _, hit := range row.Sources {
-		sources = append(sources, &types.AiKbSearchHit{ChunkId: hit.ChunkId, KbId: hit.KbId, DocId: hit.DocId, DocTitle: hit.DocTitle, Snippet: hit.Snippet, Score: hit.Score})
+		sources = append(sources, &types.AiKbSearchHit{ChunkId: hit.ChunkId, KbId: hit.KbId, DocId: hit.DocId, DocTitle: hit.DocTitle, DocVersion: hit.DocVersion, Snippet: hit.Snippet, Score: hit.Score})
 	}
-	return &types.AiChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: row.ToolCalls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: row.Status, Error: row.Error, Sources: sources, Feedback: row.Feedback, FeedbackNote: row.FeedbackNote}
+	return &types.AiChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: row.ToolCalls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: row.Status, Error: row.Error, Sources: sources, Feedback: row.Feedback, FeedbackNote: row.FeedbackNote, KbId: row.KbId, DocId: row.DocId, Grounded: row.Grounded}
 }
 func mapAiWorkflow(row *aipb.WorkflowInfo) *types.AiWorkflowInfo {
 	if row == nil {

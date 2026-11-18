@@ -1,0 +1,93 @@
+// 独立浏览器上下文；开流、确认、删除和身份变化均由当前页面响应桩处理。
+// oxlint-disable-next-line no-unused-expressions -- Playwright CLI 执行函数表达式。
+async page => {
+  const origin = new URL(page.url()).origin;
+  const session = 'knowledge-persistence-fixture';
+  const codes = ['sys:ai:kb:list', 'sys:ai:conversation:list', 'sys:ai:conversation:create', 'sys:ai:conversation:delete', 'sys:ai:message:send'];
+  const kb = { id: 7, name: '持久选库资料', description: '', ready_count: 1, pending_count: 0, failed_count: 0, doc_count: 1, chunk_count: 1 };
+  const conversation = { id: 31, user_id: 1, title: '首条回执会话', created_at: 1, updated_at: 1, message_count: 2, pinned: false };
+  const assert = (value, message) => { if (!value) throw new Error(message); };
+  const requests = [], errors = [];
+  let deleted = false;
+  page.on('pageerror', error => errors.push(error.message));
+  await page.addInitScript(sid => localStorage.setItem('go-zero-auth', JSON.stringify({ state: { sessionId: sid, token: 'local-fixture', refreshToken: 'local-fixture-refresh', expiresAt: Date.now() / 1000 + 3600, refreshExpiresAt: Date.now() / 1000 + 7200 }, version: 0 })), session);
+  await page.route('**/v1/**', route => {
+    const request = route.request(), url = new URL(request.url()), path = url.pathname;
+    const send = result => route.fulfill({ json: { code: 200, result } });
+    if (request.method() === 'POST' && path === '/v1/sys/ai/messages/stream') {
+      const payload = request.postDataJSON(); requests.push(payload);
+      if (payload.content === '分配会话前中断') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ code: 503, msg: '确认前中断' }) });
+      const meta = { conversation_id: 31, user_message_id: 61, ai_message_id: 62 };
+      const message = (id, role, content) => ({ id, role, content, status: 'succeeded', error: '', tokens: 0, tool_calls: '[]', created_at: 1, sources: [] });
+      const result = { conversation_id: 31, conversation, user_message: message(61, 'user', payload.content), ai_message: message(62, 'assistant', '已收到') };
+      const frame = (event, data) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+      return route.fulfill({ contentType: 'text/event-stream', body: frame('meta', meta) + (requests.length === 1 ? '' : frame('done', { tokens: 0, usage_complete: true, result })) });
+    }
+    if (request.method() === 'DELETE' && path === '/v1/sys/ai/conversations/31') { deleted = true; return send({}); }
+    if (request.method() !== 'GET') return route.abort('blockedbyclient');
+    if (path === '/v1/sys/dept/my') return send({ list: [{ id: 8, parent_id: 0, name: '其他部门', status: 1, sort: 0, path: '/8/' }] });
+    if (path.endsWith('/perm-codes')) return send({ codes });
+    if (path === '/v1/sys/menu/my') return send({ list: [['ai_chat', 'AI 对话', '/ai/chat'], ['ai_kb', '知识库', '/ai/knowledge']].map(([name,title,path], i) => ({ id: i+1, parent_id: 0, name, title, path, component: name, type: 2, status: 1, visible: true, perm_code: '', icon: '', sort: i, created_at: 1 })) });
+    if (path === '/v1/sys/profile/') return send({ user: { id: 1, username: 'fixture', nickname: '回归账号', dept_id: 0, role_ids: [] } });
+    if (path === '/v1/sys/ai/kbs/7') return send({ kb, capabilities: { retrieval_configured: true, analysis_configured: true } });
+    if (path === '/v1/sys/ai/kbs/7/docs') return send({ list: [], total: 0, ready_count: 1, pending_count: 0, failed_count: 0 });
+    if (path === '/v1/sys/ai/kbs') return send({ choices: [{ id: kb.id, name: kb.name }], total: 1 });
+    if (path === '/v1/sys/ai/conversations') return send({ list: !deleted && requests.length ? [conversation] : [], total: !deleted && requests.length ? 1 : 0 });
+    if (path === '/v1/sys/ai/conversations/31') return send({ conversation, messages: [], has_more: false, next_before_id: 0 });
+    return send({});
+  });
+  const picker = page.getByRole('combobox', { name: '对话知识库' });
+  const strict = page.getByRole('switch', { name: '仅依据所选资料回答' });
+  const choose = async (name) => { await picker.click(); await page.locator('.ant-select-dropdown:visible').getByText(name, { exact: true }).click(); };
+  const openConversation = () => page.getByRole('button', { name: /^首条回执会话 2 条消息/ }).click();
+  const readSaved = (id, dept = null) => page.evaluate(async ([sid, dept, id]) => (await import('/src/pages/ai/chatKnowledge.ts')).readChatKnowledge(sid, dept, id), [session, dept, id]);
+  await page.goto(origin + '/ai/knowledge/7');
+  await page.getByRole('button', { name: '在对话中使用' }).click();
+  await strict.waitFor();
+  await choose('自动检索我的知识库');
+  await page.reload(); await picker.waitFor();
+  assert(await strict.count() === 0, '刷新不应重新套用已经清空的知识库跳转');
+  await choose(kb.name); await strict.click();
+  await page.getByRole('textbox', { name: '消息内容' }).fill('按资料核对');
+  await page.getByRole('button', { name: /发\s*送$/ }).click();
+  const retry = page.getByRole('button', { name: '重查本次结果' });
+  await retry.waitFor();
+  assert((await readSaved(31))?.grounded, '断流前取得会话 ID 即保留首条的严格选库');
+  await choose('自动检索我的知识库');
+  await retry.click();
+  await strict.waitFor();
+  assert(await strict.getAttribute('aria-checked') === 'true' && JSON.stringify(requests[0]) === JSON.stringify(requests[1]), '重查复用原请求及首条选库');
+  await page.reload(); await openConversation(); await strict.waitFor();
+  assert(await strict.getAttribute('aria-checked') === 'true', '刷新后原会话应恢复资料约束');
+  await page.goto(origin + '/ai/knowledge/7'); await page.goto(origin + '/ai/chat'); await openConversation(); await strict.waitFor();
+  assert(await strict.getAttribute('aria-checked') === 'true', '离页再进入原会话仍有严格选库');
+  await page.evaluate(async rights => { const { useAuthStore } = await import('/src/stores/auth.ts'); useAuthStore.getState().setDepartment(8); useAuthStore.getState().setPermCodes(rights); }, codes);
+  await openConversation(); await picker.waitFor();
+  assert(await strict.count() === 0 && !(await readSaved(31, 8)), '别的部门不读取原选库');
+  await page.evaluate(async rights => { const { useAuthStore } = await import('/src/stores/auth.ts'); useAuthStore.getState().setDepartment(null); useAuthStore.getState().setPermCodes(rights); }, codes);
+  await openConversation(); await strict.waitFor();
+  await page.evaluate(async rights => (await import('/src/stores/auth.ts')).useAuthStore.getState().setPermCodes(rights.filter(code => code !== 'sys:ai:kb:list')), codes);
+  await page.getByText('当前没有查看原知识库的权限，已保留原资料范围。').waitFor();
+  await page.getByRole('textbox', { name: '消息内容' }).fill('权限变化后的草稿');
+  const send = page.getByRole('button', { name: /发\s*送$/ });
+  assert(await send.isDisabled() && (await readSaved(31)).grounded, '撤权保留资料范围并暂停发送');
+  await page.getByRole('textbox', { name: '消息内容' }).press('Enter');
+  await page.getByRole('button', { name: '改用自动检索' }).click();
+  assert(await send.isEnabled() && !(await readSaved(31)).kb_id, '用户显式清空后恢复发送');
+  await page.reload(); await openConversation();
+  assert(await strict.count() === 0, '显式清空会话选择后刷新仍使用自动范围');
+  await page.getByRole('button', { name: '删除会话 首条回执会话' }).click();
+  await page.locator('.ant-popconfirm').getByRole('button').last().click();
+  await page.getByText('暂无会话', { exact: true }).waitFor();
+  assert(deleted && !(await readSaved(31)), '删除成功后清理原会话选库');
+  await page.goto(origin + '/ai/knowledge/7');
+  await page.getByRole('button', { name: '在对话中使用' }).click();
+  await strict.waitFor();
+  await page.getByRole('textbox', { name: '消息内容' }).fill('分配会话前中断');
+  await send.click(); await retry.waitFor();
+  await page.reload(); await strict.waitFor();
+  assert(await strict.getAttribute('aria-checked') === 'true' && requests.length === 3, '尚无会话 ID 时保留新会话资料范围，刷新不重放');
+  await page.evaluate(async () => (await import('/src/stores/auth.ts')).useAuthStore.getState().logout());
+  assert(!(await readSaved(0)) && !errors.length && requests.length === 3, '退出清理草稿；离页、刷新及切换身份不重新发送消息');
+  return { checks: ['跨挂载', '首条断流与原意图重查', '清空选择', '部门隔离', '删除', '退出'], realBusinessWrites: 0 };
+}

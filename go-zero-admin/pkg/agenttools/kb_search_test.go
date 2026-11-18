@@ -36,6 +36,77 @@ func TestKbSearchRejectsUntrustedArgumentsBeforeSearch(t *testing.T) {
 
 type budgetTestSearcher struct{ calls int }
 
+type documentSearchFixture struct {
+	budgetTestSearcher
+	owner, kb, doc int64
+	returnedDoc    int64
+}
+
+func (s *documentSearchFixture) SearchDocument(_ context.Context, owner, kb, doc int64, _ string) ([]KbSearchHit, error) {
+	s.owner, s.kb, s.doc = owner, kb, doc
+	return []KbSearchHit{{KbID: kb, DocID: s.returnedDoc, ChunkID: 3, DocVersion: 4, Snippet: "住宿上限 300 元"}}, nil
+}
+
+func TestKbSearchDocumentScopeFailsClosed(t *testing.T) {
+	ctx := WithActor(context.Background(), 9)
+	collector := &KbSourceCollector{}
+	ctx = WithKbSources(WithKbDocumentScope(ctx, 11, 17), collector)
+	args := json.RawMessage(`{"query":"住宿上限","kb_id":99}`)
+	s := &documentSearchFixture{returnedDoc: 17}
+	if _, err := NewKbSearch(s).Execute(ctx, args); err != nil || s.owner != 9 || s.kb != 11 || s.doc != 17 || s.calls != 0 {
+		t.Fatal("文档范围须取自已授权的服务端上下文", err)
+	}
+	if hits := collector.Sources(); len(hits) != 1 || hits[0].DocVersion != 4 {
+		t.Fatal("来源快照丢失版本")
+	}
+	s.returnedDoc++
+	if _, err := NewKbSearch(s).Execute(ctx, args); err == nil {
+		t.Fatal("禁止向模型返回其他资料")
+	}
+	broadOnly := &budgetTestSearcher{}
+	if _, err := NewKbSearch(broadOnly).Execute(ctx, args); err == nil || broadOnly.calls != 0 {
+		t.Fatal("缺少文档检索能力须拒绝，不能扩大到整个库")
+	}
+	if _, err := NewKbSearch(s).Execute(WithKbDocumentScope(ctx, 0, 0), args); err == nil {
+		t.Fatal("无效文档范围须明确失败")
+	}
+}
+
+func TestKbCitationsKeepTheirIndexAcrossSearches(t *testing.T) {
+	c := &KbSourceCollector{}
+	makeHit := func(id int64, snippet string) KbSearchHit {
+		return KbSearchHit{KbID: 1, DocID: 1, ChunkID: id, Snippet: snippet}
+	}
+	for round, hits := range [][]KbSearchHit{
+		{makeHit(7, "证据 A"), makeHit(6, "证据 B")},
+		{makeHit(6, "已改写 B"), makeHit(5, "证据 C"), makeHit(7, "已改写 A"), makeHit(5, "重复 C")},
+	} {
+		result, err := c.render(hits, 16000)
+		var material struct{ Hits []numberedKbHit }
+		if err != nil || json.Unmarshal([]byte(result), &material) != nil {
+			t.Fatal("引用材料不可读")
+		}
+		want := [][]int{{1, 2}, {2, 3, 1}}[round]
+		if len(material.Hits) != len(want) {
+			t.Fatalf("round %d: hits=%d", round, len(material.Hits))
+		}
+		for i, hit := range material.Hits {
+			if hit.Index != want[i] || c.Sources()[hit.Index-1] != hit.KbSearchHit || !strings.HasPrefix(hit.Snippet, "证据") {
+				t.Fatalf("round %d: 引用与首次展示或持久化内容不符", round)
+			}
+		}
+	}
+	limits := []int{2, 80, 300, 600}
+	for _, limit := range limits {
+		partial := &KbSourceCollector{}
+		result, err := partial.render([]KbSearchHit{makeHit(1, strings.Repeat("文", 999)), makeHit(2, "two")}, limit)
+		var material struct{ Hits []numberedKbHit }
+		if err != nil || len(result) > limit || json.Unmarshal([]byte(result), &material) != nil || len(material.Hits) != len(partial.Sources()) {
+			t.Fatalf("字节预算 %d 内出现无效或不可见的来源", limit)
+		}
+	}
+}
+
 type scopedChatSearcher struct{ seenKb int64 }
 
 func (s *scopedChatSearcher) Search(_ context.Context, owner, kb int64, _ string) ([]KbSearchHit, error) {

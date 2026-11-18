@@ -215,6 +215,23 @@
 - 租户 `slug=platform` 为平台保留标识，创建返回 400；平台 `localhost`、`platform.localhost` 域名不能作为租户路由。平台上游使用独有网络别名，避免共享网络内同名 `api` 解析到租户服务。
 - 租户导航与 APP 管理同级；列表复用 `GET /v1/sys/tenant/list` 的状态筛选，详情复用 `GET /v1/sys/tenant/:id`，详情抽屉只读。公开初始化库提供完整菜单及创建/启停/重置/删除操作码，默认关联超级管理员，租户登记初始为空；实际生命周期需要配置运行环境，验收范围见[问题清单](README.md#后端剩余事项)。
 
+### AI 工作区与知识库性能（2026-11-18）
+
+- ✅ “问这篇资料”复用 `POST /v1/sys/ai/messages/stream`。新增可选 `doc_id`，省略或 0 沿用原范围。正值要求同时提供 `kb_id>0` 且 `grounded=true`。服务器验证文档属于当前用户和指定库、尚可检索；向量检索在候选截断前限定文档，读取原文时再次校验库、文档及就绪状态。未命中时说明本篇依据不足，只有用户显式操作才将范围扩大至本库。追问上下文限于同文档，原请求重查保留文档范围。
+- ✅ 聊天来源可带检索时的 `doc_version`。点击已保存回答正文中有效的 `[n]` 或来源入口，按既有授权读取当前原文。能在当前正文中唯一确定原摘录时滚动并高亮；版本变化需提示，出现多处匹配、摘录已变或无法读取时保留历史摘录，不猜测位置。旧消息可继续查看。
+- ✅ SSE 终帧和历史读取中的消息对保留已知的请求范围。选库消息返回 `kb_id`，严格模式返回 `grounded=true`，单篇另含 `doc_id`。没有命中时仍可恢复原范围。用户显式改问整库并发送后，跨标签页重开继续使用该库。旧消息缺失的范围不作推定。
+
+- ✅ 知识库保留现有路由和授权。同一问题可显式查找原文，或提交一次带引用的分析。从知识库进入对话会预选该库。聊天按登录会话、部门、对话保存选库与严格模式。资料权限被撤销时保留原范围并暂停发送，显式切为自动检索才放宽范围。浏览器禁止会话存储时仅在当页保留选择。打开页面、保存流程或恢复未知请求均不自动发起模型调用。
+- ✅ 严格资料模式遇到明确的指代词时，可将同会话、同库且有来源的上一组成功问答附入本轮检索。追加内容最多含 320 字节旧问题和 640 字节旧回答，合计问题仍受 2,000 字节限制。仅将重新检索的片段用作依据。一次回答内跨轮检索的同一库与分块沿用首次返回的摘录和编号。工具结果的 `index` 对应消息 `sources` 的一基位置，历史重查恢复同一快照。无命中可返回资料不足，检索故障返回流式错误。集成覆盖使用隔离存储与本机模型桩。
+- ✅ 更新已就绪资料时，正文和 Embedding 模型相同且仅标题变化，原事务校验归属与 `expected_version`，更新标题并递增资料版本，保留 ready、分块和向量。完全相同的提交保持版本。两种情况均返回 `reused` 作业，无 Embedding 或向量写入。若事务提交后缓存失效未获确认，返回 503，使用原 `request_id` 核对并恢复缓存，成功后返回原作业。历史引用保留当时的标题与摘录。
+- ✅ 编辑器普通保存后返回列表，有运行权限时可显式选择“保存并准备运行”。确认页重新读取已启用的流程，点击“开始后台运行”才执行。运行记录地址保留 `task_id`，详情沿用本人归属校验。用量汇总按业务筛选独立读取，请求明细展开后分页加载。浏览器交互通过本地接口桩验收。
+- ✅ `GET /v1/sys/ai/kbs?choices_only=true` 仅查询本人可见库的 `id/name`，返回 `choices/total`，支持现有分页与名称查询，以及可选正整数 `id` 精确回显。省略轻量参数沿用完整列表和能力配置。
+- ✅ 资料列表 `GET /v1/sys/ai/kbs/:id/docs` 返回当前筛选、页码下的 `page_signature`。同条件传 `meta_only=true` 返回空列表、相同口径的签名、筛选总数及全库三类状态计数。页面只在签名或计数变化时补读当前完整页。
+- ✅ 内置题集目录 `GET /v1/sys/ai/kbs/:id/evaluation-datasets?meta_only=true` 仅返回每个题集的 key、名称和原始字节 SHA256。传 `dataset_key` 精确读取指定内置题集，省略两个参数保留原有完整目录。前端按键及 SHA 载入并校验原文，自定义题集和历史冻结快照沿用原校验。
+- ✅ 评测详情 `GET /v1/sys/ai/kbs/:id/evaluations/:evaluation_id` 省略参数返回完整冻结记录。传 `progress_only=true` 仅读取本批次进度与观测摘要 `observations_sha256`，可带上次服务端返回的 `known_observations_sha256`，相同则省略观测正文，变化则返回最新观测。轻量结果与完整结果均校验本人知识库、批次归属及租约。前端首次、终态读取完整详情，主动刷新和错误恢复可重读完整详情。
+
+请求量、响应大小及验收环境见[工作区专项记录](ai-rag/optimization-20261117.md#2026-11-18-ai-工作区验收)。
+
 ### AI 工作区轻重构（2026-11-07）
 
 ✅ 两端已实现并完成本地主栈联调。历史验收范围与未覆盖边界见[历史验证证据](validation-evidence.md#工作区流程与后台摄取)。
@@ -248,7 +265,7 @@
 | PUT `/conversations/:id/messages/:message_id/feedback` | feedback（helpful/irrelevant_source/missing_knowledge，空串清除）、note（≤1000 UTF-8字节） | `{}`，仅本人成功的助手消息 |
 | GET `/conversations/:id` | id、before_id（0/省略取最新页）、page_size（0/省略默认20，最大20） | conversation、messages、has_more、next_before_id |
 | DELETE `/conversations/:id` | id | `{}` |
-| POST `/messages/stream` | request_id（规范 UUID，逻辑提交重试复用）、conversation_id（0 自动新建）、content（非空，最多 16000 字节）、kb_id（可选，0=不限定）、grounded（可选，默认false；true要求kb_id>0且content≤2000 UTF-8字节） | SSE；done.result 含 conversation_id、conversation、user_message、ai_message；消息新增实际sources及反馈 |
+| POST `/messages/stream` | request_id（规范 UUID，逻辑提交重试复用）、conversation_id（0 自动新建）、content（非空，最多 16000 字节）、kb_id（可选，0=不限定）、grounded（可选，true 要求 kb_id>0 且问题≤2000 UTF-8 字节）、doc_id（可选，正值要求 grounded=true） | SSE。done.result 含 conversation_id、conversation、user_message、ai_message。消息含实际来源、反馈及已知的请求范围。 |
 | GET `/tools` | 无 | list：name、description、parameters_schema；capabilities |
 | POST `/workflows` | name、definition（JSON 字符串）、interval_seconds（默认 0） | workflow |
 | GET `/workflows` | 分页、query（可选，最多128字符） | list、total；每项含step_count，definition为空串 |

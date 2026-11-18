@@ -28,7 +28,7 @@ func NewGetKbEvaluationLogic(ctx context.Context, svcCtx *svc.ServiceContext) *G
 	}
 }
 
-func (l *GetKbEvaluationLogic) GetKbEvaluation(req *types.AiKbEvaluationReq) (resp *types.AiKbEvaluationResp, err error) {
+func (l *GetKbEvaluationLogic) GetKbEvaluation(req *types.AiGetKbEvaluationReq) (resp *types.AiKbEvaluationResp, err error) {
 	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
@@ -36,7 +36,7 @@ func (l *GetKbEvaluationLogic) GetKbEvaluation(req *types.AiKbEvaluationReq) (re
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.GetKbEvaluation(l.ctx, &aipb.GetKbEvaluationRequest{Actor: actor, KbId: req.Id, EvaluationId: req.EvaluationId})
+	out, err := l.svcCtx.AiRpc.GetKbEvaluation(l.ctx, &aipb.GetKbEvaluationRequest{Actor: actor, KbId: req.Id, EvaluationId: req.EvaluationId, ProgressOnly: req.ProgressOnly, KnownObservationsSha256: req.KnownObservationsSha256})
 	if err != nil {
 		return nil, err
 	}

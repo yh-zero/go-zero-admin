@@ -23,6 +23,7 @@ async (page) => {
     const request = route.request(), relative = request.url().replace(/^https?:\/\/[^/]+/, ''), [path, query = ''] = relative.split('?');
     const queryValues = new Map(query.split('&').map(pair => pair.split('=')));
     const send = (code, result = {}, msg = '') => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ code, result, msg }) });
+    if (path === '/v1/sys/auth/captcha' && request.method() === 'GET') return send(200, { enabled: false, captcha_id: '', image_base64: '' });
     if (path === '/v1/sys/dept/my') return send(200, { list: [] });
     if (path === '/v1/sys/menu/my/perm-codes') return send(200, { codes: ['sys:ai:task:list', 'sys:ai:task:feedback', 'sys:ai:kb:list', 'sys:ai:kb:review'] });
     if (path === '/v1/sys/menu/my') return send(200, { list: [
@@ -60,7 +61,8 @@ async (page) => {
     throw new Error(`响应桩未定义业务请求：${request.method()} ${path}`);
   });
 
-  await page.goto('http://127.0.0.1:5999/ai/tasks?task_id=8');
+  const origin = new URL(page.url()).origin;
+  await page.goto(`${origin}/ai/tasks?task_id=8`);
   await page.getByRole('button', { name: '评价分析', exact: true }).click();
   let dialog = page.getByRole('dialog', { name: '评价第 1 步分析', exact: true });
   await dialog.getByRole('combobox', { name: /评价$/ }).click();
@@ -74,8 +76,8 @@ async (page) => {
   await dialog.waitFor({ state: 'hidden' });
   require(writes.length === 1 && writes[0].expected_revision === 0 && writes[0].feedback === 'incorrect_answer', '双击评价只能创建一次');
 
-  await page.goto('http://127.0.0.1:5999/ai/knowledge/7?tab=feedback');
-  await page.getByRole('tab', { name: '反馈与复核', exact: true }).waitFor();
+  await page.goto(`${origin}/ai/knowledge/7?tab=feedback`);
+  await page.getByRole('region', { name: '知识库反馈与复核', exact: true }).waitFor();
   await page.getByRole('button', { name: '查看并复核', exact: true }).click();
   dialog = page.getByRole('dialog', { name: '反馈复核 #3', exact: true });
   await dialog.getByText('发布前必须备份数据库。验收通过后才可切换流量。', { exact: true }).waitFor();

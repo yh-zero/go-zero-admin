@@ -28,9 +28,16 @@ func (l *ListKbsLogic) ListKbs(req *types.AiListKbsReq) (*types.AiListKbsResp, e
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.ListKbs(l.ctx, &aipb.ListKbsRequest{Actor: actor, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}, Query: req.Query})
+	out, err := l.svcCtx.AiRpc.ListKbs(l.ctx, &aipb.ListKbsRequest{Actor: actor, Page: &aipb.PageRequest{Page: req.Page, PageSize: req.PageSize}, Query: req.Query, ChoicesOnly: req.ChoicesOnly, Id: req.Id})
 	if err != nil {
 		return nil, err
+	}
+	if req.ChoicesOnly {
+		choices := make([]types.AiKbChoice, 0, len(out.Choices))
+		for _, row := range out.Choices {
+			choices = append(choices, types.AiKbChoice{Id: row.Id, Name: row.Name})
+		}
+		return &types.AiListKbsResp{Choices: &choices, Total: out.GetPage().GetTotal()}, nil
 	}
 	list := make([]*types.AiKbInfo, 0, len(out.List))
 	for _, item := range out.List {

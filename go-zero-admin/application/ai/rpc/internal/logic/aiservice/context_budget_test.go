@@ -3,6 +3,7 @@ package aiservicelogic
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/cloudwego/eino/schema"
 	"go-zero-admin/application/ai/rpc/aipb"
+	"go-zero-admin/application/ai/rpc/internal/model"
 	"go-zero-admin/pkg/agenttools"
 	"go-zero-admin/pkg/llm"
 	"go-zero-admin/pkg/xerr"
@@ -59,6 +61,17 @@ func TestContextBudgetDropsWholeOlderToolRoundAndKeepsLatestPairs(t *testing.T) 
 	}
 	if len(fit) != 4 || fit[0].Content != "当前问题" || len(fit[1].ToolCalls) != 2 || fit[2].ToolCallID != "new-a" || fit[3].ToolCallID != "new-b" {
 		t.Fatal("裁剪产生孤立工具调用/结果，或丢弃当前问题")
+	}
+}
+
+func TestContextBudgetPreservesNumberedSearchEvidence(t *testing.T) {
+	search := schema.ToolCall{ID: "search", Function: schema.FunctionCall{Name: "kb_search", Arguments: "{}"}}
+	other := schema.ToolCall{ID: "stats", Function: schema.FunctionCall{Name: "text_stats", Arguments: "{}"}}
+	evidence := strings.Repeat("依据", 100)
+	input := []*schema.Message{schema.UserMessage("问题"), schema.AssistantMessage("", []schema.ToolCall{search, other}), schema.ToolMessage(evidence, search.ID), schema.ToolMessage(strings.Repeat("大", 5000), other.ID)}
+	fit, err := (&contextBudget{maxTokens: 1000}).fit(input, []byte("[]"), false)
+	if err != nil || fit[2].Content != evidence || fit[3].Content == input[3].Content {
+		t.Fatal("其它工具结果挤压预算时须完整保留已编号的摘录")
 	}
 }
 
@@ -132,9 +145,85 @@ func TestAIStreamBudgetLongHistoryAndLargeJSONTool(t *testing.T) {
 
 type budgetKbSearcher struct{ calls int }
 
-func (s *budgetKbSearcher) Search(context.Context, int64, int64, string) ([]agenttools.KbSearchHit, error) {
+func (s *budgetKbSearcher) Search(_ context.Context, _ int64, _ int64, query string) ([]agenttools.KbSearchHit, error) {
 	s.calls++
+	hit := func(id int64) agenttools.KbSearchHit {
+		return agenttools.KbSearchHit{ChunkID: id, KbID: 1, DocID: 2, Snippet: fmt.Sprintf("摘录%d", id)}
+	}
+	switch query {
+	case "first":
+		return []agenttools.KbSearchHit{hit(41), hit(63)}, nil
+	case "second":
+		return []agenttools.KbSearchHit{hit(63), hit(8)}, nil
+	case "failed":
+		return nil, errors.New("本地检索桩故障")
+	}
 	return []agenttools.KbSearchHit{{KbID: 1, DocID: 2, DocTitle: "资料", Snippet: strings.Repeat("资", 900), Score: 1}}, nil
+}
+
+func TestAIStreamNumberedKbToolRounds(t *testing.T) {
+	agenttools.RegisterIfAbsent(agenttools.NewKbSearch(&budgetKbSearcher{}))
+	for _, finalQuery := range []string{"second", "failed"} {
+		t.Run(finalQuery, func(t *testing.T) {
+			round := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				round++
+				var body struct{ Messages []*schema.Message }
+				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+					t.Error(err)
+					return
+				}
+				if round > 1 {
+					var material struct {
+						Hits []struct {
+							Index   int
+							ChunkID int64 `json:"chunk_id"`
+						}
+					}
+					last := body.Messages[len(body.Messages)-1]
+					want := [][]int64{{41, 63}, {63, 8}}[round-2]
+					if last.Role != schema.Tool || json.Unmarshal([]byte(last.Content), &material) != nil || len(material.Hits) != 2 {
+						t.Error("模型未收到本轮引用")
+						return
+					}
+					for i, hit := range material.Hits {
+						if hit.Index != round-1+i || hit.ChunkID != want[i] {
+							t.Error("模型收到的引用编号与检索命中不一致")
+						}
+					}
+				}
+				w.Header().Set("Content-Type", "text/event-stream")
+				delta, reason := map[string]any{"content": "见 [2] 和 [3]。"}, "stop"
+				if round < 3 {
+					query := []string{"first", finalQuery}[round-1]
+					delta = map[string]any{"tool_calls": []any{map[string]any{"index": 0, "id": fmt.Sprintf("call-%d", round), "type": "function", "function": map[string]any{"name": "kb_search", "arguments": fmt.Sprintf(`{"query":"%s"}`, query)}}}}
+					reason = "tool_calls"
+				}
+				writeModelFrame(t, w, map[string]any{"choices": []any{map[string]any{"index": 0, "delta": delta, "finish_reason": reason}}})
+				fmt.Fprint(w, "data: [DONE]\n\n")
+			}))
+			defer server.Close()
+			client, err := llm.New(llm.Config{BaseURL: server.URL + "/v1", APIKey: "local-test-only", Model: "local-test", Timeout: 2})
+			if err != nil {
+				t.Fatal(err)
+			}
+			collector := &agenttools.KbSourceCollector{}
+			ctx := agenttools.WithKbSources(agenttools.WithActor(context.Background(), 7), collector)
+			answer, _, err := askModelStream(ctx, client, []*schema.Message{schema.UserMessage("查找资料")}, func(*aipb.StreamChunk) error { return nil }, func(int64, []schema.ToolCall, bool) error { return nil }, 32000)
+			if finalQuery == "failed" {
+				code, ok := xerr.AsCodeError(err)
+				if !ok || code.GetErrCode() != 503 || round != 2 || answer != "" {
+					t.Fatal("检索故障后不得继续生成")
+				}
+				return
+			}
+			record := callRecord{Version: 1, Sources: collector.Sources()}
+			saved := messageProto(&model.MessageRow{Content: answer, Role: "assistant", Status: "succeeded", ToolCalls: record.marshal()})
+			if err != nil || answer != "见 [2] 和 [3]。" || len(saved.Sources) != 3 || saved.Sources[1].ChunkId != 63 || saved.Sources[2].ChunkId != 8 {
+				t.Fatal("消息读回的编号或摘录发生变化")
+			}
+		})
+	}
 }
 
 // 同一次发送的多轮检索必须共享额度，不能每次重新取得 25%。

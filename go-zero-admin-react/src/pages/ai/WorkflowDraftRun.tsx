@@ -16,6 +16,7 @@ import type { DraftRunAttempt } from './draftRunAttempts';
 import { KnowledgeChoice } from './WorkflowParameters';
 import { TaskDetail } from './TaskDetail';
 import { getToolAvailability } from './toolGuides';
+import { validateKbSearchQuery } from './knowledgeSearch';
 import styles from './workspace.module.css';
 
 interface RunValues { question?: string; text?: string; input?: string; kb_id?: number }
@@ -25,10 +26,11 @@ export interface WorkflowDraftRunProps {
   attemptId: string; tools?: readonly AiToolInfo[]; fixedKb?: AiKbInfo; capabilities?: AiCapabilities;
   disabled?: boolean; onSave?: (taskId: number) => void; initialInput?: string;
   onStateChange?: (state: DraftRunViewState) => void;
-  questionDraft?: { id: string; question: string }; active?: boolean;
+  active?: boolean;
+  onFindSources?: (question: string) => void; findingSources?: boolean;
 }
 
-export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedKb, capabilities, disabled, onSave, initialInput, onStateChange, questionDraft, active = true }: WorkflowDraftRunProps) {
+export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedKb, capabilities, disabled, onSave, initialInput, onStateChange, active = true, onFindSources, findingSources }: WorkflowDraftRunProps) {
   const departmentId = useAuthStore(state => state.selectedDeptId);
   const key = draftRunAttemptKey([scope[0], departmentId], attemptId);
   const [restored] = useState(() => {
@@ -45,7 +47,7 @@ export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedK
   const [form] = Form.useForm<RunValues>();
   const [initialValues] = useState<RunValues>(() => {
     const raw = restored.attempt?.input ?? initialInput;
-    if (!raw) return { question: restored.error ? '' : questionDraft?.question ?? '', text: '', input: '' };
+    if (!raw) return { question: '', text: '', input: '' };
     try { const input = JSON.parse(raw); return { question: typeof input.question === 'string' ? input.question : '', text: typeof input.text === 'string' ? input.text : '', kb_id: typeof input.kb_id === 'number' ? input.kb_id : undefined, input: raw }; } catch { return { input: raw }; }
   });
   const mutation = useMutation({ mutationFn: runAiDraft, retry: false });
@@ -58,18 +60,7 @@ export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedK
   const configurationMissing = needsRetrieval && (!capabilities?.retrieval_configured || needsAnalysis && !capabilities.analysis_configured);
   const canRun = guard.can('sys:ai:workflow:run');
   const busy = guard.writing || mutation.isPending;
-  const appliedQuestion = useRef(questionDraft?.id);
   useEffect(() => { onStateChange?.({ kind: unknown ? 'unknown' : mutation.isPending ? 'running' : taskId ? 'result' : 'idle', taskId }); }, [unknown, mutation.isPending, taskId, onStateChange]);
-  useEffect(() => {
-    if (!questionDraft || appliedQuestion.current === questionDraft.id) return;
-    appliedQuestion.current = questionDraft.id;
-    if (unknown || attemptRef.current || busy) {
-      // oxlint-disable-next-line react/set-state-in-effect -- 显式带入不能覆盖仍待确认的原请求。
-      setFeedback('请先核对原运行；这次检索问题尚未替换原输入。确认后可再次点击“用此问题分析”。');
-      return;
-    }
-    form.setFieldValue('question', questionDraft.question);
-  }, [questionDraft, unknown, busy, form]);
 
   async function submit(values: RunValues) {
     if (!canRun || !unknown && (disabled || configurationMissing || fixedKb && fixedKb.ready_count < 1)) return;
@@ -102,17 +93,23 @@ export function WorkflowDraftRun({ scope, guard, draft, attemptId, tools, fixedK
   }
 
   return <div className={styles.analysisPanel}>
-    <Typography.Title level={4}>{fixedKb ? '用这些资料完成工作' : '用真实问题试一次'}</Typography.Title>
-    <Typography.Paragraph type="secondary">{fixedKb ? '按问题检索相关片段，生成带来源的结果。资料不足时会说明。' : '直接运行当前编辑内容，每次可以换资料库和问题。试运行也会保留正式运行记录。'}</Typography.Paragraph>
-    <Form form={form} layout="vertical" onFinish={values => void submit(values)} disabled={busy || unknown} initialValues={initialValues}>
+    {!onFindSources && <><Typography.Title level={4}>{fixedKb ? '用这些资料完成工作' : '用真实问题试一次'}</Typography.Title>
+      <Typography.Paragraph type="secondary">{fixedKb ? '按问题检索相关片段，生成带来源的结果。资料不足时会说明。' : '直接运行当前编辑内容，每次可以换资料库和问题。试运行也会保留正式运行记录。'}</Typography.Paragraph></>}
+    <Form form={form} layout="vertical" onFinish={values => onFindSources ? onFindSources(values.question ?? '') : void submit(values)} disabled={busy || unknown} initialValues={initialValues}>
       {fields.kb_id && !fixedKb && <Form.Item label="本次使用的知识库" name="kb_id" rules={[{ required: true, message: '请选择本次知识库' }]}><KnowledgeChoice knowledge={{ scope, canRead: guard.can('sys:ai:kb:list') }} disabled={busy || unknown} /></Form.Item>}
-      {fields.question && <Form.Item label={fixedKb ? '你希望了解什么？' : '本次问题'} name="question" rules={[{ required: true, whitespace: true, message: '请输入本次问题' }]}><Input.TextArea rows={4} placeholder="例如：总结关键步骤、列出风险与依据，并说明还缺哪些信息。" /></Form.Item>}
+      {fields.question && <Form.Item label={fixedKb ? '你希望了解什么？' : '本次问题'} name="question" rules={onFindSources ? [{ validator: (_, value?: string) => {
+        const error = validateKbSearchQuery(value ?? ''); return error ? Promise.reject(new Error(error)) : Promise.resolve();
+      } }] : [{ required: true, whitespace: true, message: '请输入本次问题' }]}><Input.TextArea rows={3} placeholder="例如：发布前需要做哪些检查？" /></Form.Item>}
       {fields.text && <Form.Item label="本次文本" name="text" rules={[{ required: true, message: '请输入本次文本' }]}><Input.TextArea rows={5} placeholder={draft.steps.some(step => step.tool === 'json_formatter') ? '粘贴合法 JSON 文本' : '粘贴本次需要处理的文本'} /></Form.Item>}
-      <details className={styles.advanced}><summary>高级运行参数</summary><Form.Item name="input" label="输入 JSON（可选）" rules={[{ validator: (_, value: string) => { const error = validateRunInput(value ?? ''); return error ? Promise.reject(new Error(error)) : Promise.resolve(); } }]}><Input.TextArea rows={3} placeholder="{}" /></Form.Item></details>
+      {!onFindSources && <details className={styles.advanced}><summary>高级运行参数</summary><Form.Item name="input" label="输入 JSON（可选）" rules={[{ validator: (_, value: string) => { const error = validateRunInput(value ?? ''); return error ? Promise.reject(new Error(error)) : Promise.resolve(); } }]}><Input.TextArea rows={3} placeholder="{}" /></Form.Item></details>}
       {configurationMissing && <Alert type="warning" showIcon title={availability.label} description={availability.description} />}
       {fixedKb && fixedKb.ready_count === 0 && <Alert type="info" showIcon title="先添加资料并等待处理完成，再开始分析。" />}
       {!canRun && <Alert type="info" title="需要运行流程权限，才能执行分析。" />}
-      <Button type="primary" icon={<PlayCircleOutlined />} loading={busy} disabled={!canRun || disabled || !!configurationMissing || !!fixedKb && fixedKb.ready_count < 1 || unknown} htmlType="submit">{fixedKb ? '开始分析' : '试运行并查看结果'}</Button>
+      <Space wrap>
+        {onFindSources && <Button htmlType="submit" loading={findingSources} disabled={busy || unknown || !capabilities?.retrieval_configured || !fixedKb?.ready_count}>查找原文</Button>}
+        <Button type="primary" icon={<PlayCircleOutlined />} loading={mutation.isPending} disabled={!canRun || disabled || !!configurationMissing || !!fixedKb && fixedKb.ready_count < 1 || unknown || busy}
+          htmlType={onFindSources ? 'button' : 'submit'} onClick={onFindSources ? () => { void form.validateFields().then(submit).catch(() => undefined); } : undefined}>{onFindSources ? '生成带引用的回答' : fixedKb ? '开始分析' : '试运行并查看结果'}</Button>
+      </Space>
     </Form>
     {unknown && <Alert type="warning" showIcon title="上次运行结果待确认" description={attempt ? `请求标识：${attempt.request_id}` : '请先到运行记录核对，页面不会自动重新提交。'} action={attempt ? <Button disabled={busy || !canRun} onClick={() => void submit({})}>核对原运行</Button> : <Button href="/ai/tasks">查看运行记录</Button>} />}
     {feedback && <Alert type="info" title={feedback} />}

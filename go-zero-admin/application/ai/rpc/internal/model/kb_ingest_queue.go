@@ -15,6 +15,7 @@ import (
 var ErrKbRequestConflict = errors.New("kb request identity conflict")
 var ErrKbBatchStopped = errors.New("kb import stopped")
 var ErrKbBatchFull = errors.New("kb import has twenty items")
+var ErrKbIngestUnavailable = errors.New("kb document requires an available ingest service")
 var ErrKbGenerationChanged = fmt.Errorf("kb ingest generation changed: %w", ErrKbDocState)
 
 // KbIngestQueue 的查询绕过缓存；队列与文档代次在同一 MySQL 事务中提交。
@@ -27,6 +28,8 @@ type KbEnqueueRequest struct {
 	KbId, DocId, OwnerId, ExpectedVersion int64
 	RequestId, BatchId, Operation         string
 	Title, Content, EmbeddingModel        string
+	// 仅真正替换正文时调用的本地分块函数，输入由 API 限制在 64 KiB 内。
+	SplitUpdatedContent func(string) []KbChunkRow
 }
 
 type KbIngestJobRow struct {
@@ -109,11 +112,21 @@ func (q *KbIngestQueue) FindRequest(ctx context.Context, r KbEnqueueRequest) (*K
 	if job.KbId != r.KbId || job.RequestHash != kbIngestRequestHash(r) {
 		return nil, ErrKbRequestConflict
 	}
+	return q.readReceipt(ctx, r, &job, false)
+}
+
+func (q *KbIngestQueue) readReceipt(ctx context.Context, r KbEnqueueRequest, job *KbIngestJobRow, changed bool) (*KbEnqueueResult, error) {
 	doc, err := q.docs.FindMetadataOwned(ctx, r.KbId, job.DocId, r.OwnerId)
 	if err != nil {
 		return nil, err
 	}
-	return &KbEnqueueResult{Job: &job, Doc: doc, BatchId: r.BatchId}, nil
+	out := &KbEnqueueResult{Job: job, Doc: doc, BatchId: r.BatchId}
+	// 改名事务可能已提交而上次缓存删除失败。原请求回执可重试失效，不重复修改版本或索引。
+	renamed := job.Operation == "update" && job.Status == "reused" && job.DocVersion > r.ExpectedVersion
+	if changed || renamed {
+		return out, q.docs.InvalidateCommitted(ctx, job.DocId)
+	}
+	return out, nil
 }
 
 func (q *KbIngestQueue) Enqueue(ctx context.Context, r KbEnqueueRequest, chunks []KbChunkRow) (*KbEnqueueResult, error) {
@@ -121,19 +134,17 @@ func (q *KbIngestQueue) Enqueue(ctx context.Context, r KbEnqueueRequest, chunks 
 		r.BatchId = r.RequestId
 	}
 	originalRequest := r
-	out := &KbEnqueueResult{BatchId: r.BatchId}
+	var job KbIngestJobRow
 	var changed bool
 	err := q.conn.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
 		if err := lockKb(ctx, s, r.KbId, r.OwnerId); err != nil {
 			return err
 		}
-		var prior KbIngestJobRow
-		err := s.QueryRowCtx(ctx, &prior, "SELECT "+kbJobFields+" FROM ai_kb_ingest_job WHERE owner_id=? AND request_id=?", r.OwnerId, r.RequestId)
+		err := s.QueryRowCtx(ctx, &job, "SELECT "+kbJobFields+" FROM ai_kb_ingest_job WHERE owner_id=? AND request_id=?", r.OwnerId, r.RequestId)
 		if err == nil {
-			if prior.KbId != r.KbId || prior.RequestHash != kbIngestRequestHash(r) {
+			if job.KbId != r.KbId || job.RequestHash != kbIngestRequestHash(r) {
 				return ErrKbRequestConflict
 			}
-			out.Job = &prior
 			return nil
 		}
 		if !errors.Is(err, ErrNotFound) {
@@ -191,15 +202,39 @@ func (q *KbIngestQueue) Enqueue(ctx context.Context, r KbEnqueueRequest, chunks 
 			}
 		case "update", "retry":
 			var doc struct {
-				Version int64  `db:"version"`
-				Status  string `db:"status"`
-				Active  bool   `db:"active"`
+				Version   int64  `db:"version"`
+				Title     string `db:"title"`
+				Status    string `db:"status"`
+				Active    bool   `db:"active"`
+				SameIndex bool   `db:"same_index"`
 			}
-			if err := s.QueryRowCtx(ctx, &doc, "SELECT version,status,(updated_at>DATE_SUB(NOW(),INTERVAL 120 SECOND)) AS active FROM ai_kb_doc WHERE id=? AND kb_id=? AND deleted_at IS NULL FOR UPDATE", r.DocId, r.KbId); err != nil {
+			if err := s.QueryRowCtx(ctx, &doc, "SELECT version,title,status,(updated_at>DATE_SUB(NOW(),INTERVAL 120 SECOND)) AS active,"+
+				"(?='update' AND status='ready' AND BINARY embedding_model=BINARY ? AND BINARY content=BINARY ?) AS same_index "+
+				"FROM ai_kb_doc WHERE id=? AND kb_id=? AND deleted_at IS NULL FOR UPDATE", r.Operation, r.EmbeddingModel, r.Content, r.DocId, r.KbId); err != nil {
 				return err
 			}
 			if doc.Version != r.ExpectedVersion {
 				return ErrKbDocState
+			}
+			if doc.SameIndex {
+				status, version = "reused", doc.Version
+				if r.Title != doc.Title {
+					version++
+					if _, err := s.ExecCtx(ctx, "UPDATE ai_kb_doc SET title=?,version=?,updated_at=NOW() WHERE id=?", r.Title, version, r.DocId); err != nil {
+						return err
+					}
+					changed = true
+				}
+				break
+			}
+			if r.Operation == "update" && len(chunks) == 0 {
+				if r.SplitUpdatedContent == nil {
+					return ErrKbIngestUnavailable
+				}
+				chunks = r.SplitUpdatedContent(r.Content)
+				if len(chunks) == 0 {
+					return ErrKbDocState
+				}
 			}
 			if r.Operation == "retry" {
 				var active int64
@@ -267,8 +302,7 @@ func (q *KbIngestQueue) Enqueue(ctx context.Context, r KbEnqueueRequest, chunks 
 		if err != nil {
 			return err
 		}
-		out.Job = &KbIngestJobRow{}
-		if err := s.QueryRowCtx(ctx, out.Job, "SELECT "+kbJobFields+" FROM ai_kb_ingest_job WHERE id=?", id); err != nil {
+		if err := s.QueryRowCtx(ctx, &job, "SELECT "+kbJobFields+" FROM ai_kb_ingest_job WHERE id=?", id); err != nil {
 			return err
 		}
 		_, err = s.ExecCtx(ctx, "UPDATE ai_kb_ingest_batch SET updated_at=NOW() WHERE id=?", batch.Id)
@@ -284,15 +318,7 @@ func (q *KbIngestQueue) Enqueue(ctx context.Context, r KbEnqueueRequest, chunks 
 		}
 		return nil, err
 	}
-	var errRead error
-	out.Doc, errRead = q.docs.FindMetadataOwned(ctx, r.KbId, out.Job.DocId, r.OwnerId)
-	if errRead != nil {
-		return out, errRead
-	}
-	if changed {
-		return out, q.docs.InvalidateCommitted(ctx, out.Job.DocId)
-	}
-	return out, nil
+	return q.readReceipt(ctx, r, &job, changed)
 }
 
 func nonNilIds(ids []uint64) []uint64 {

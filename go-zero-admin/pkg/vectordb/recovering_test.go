@@ -50,7 +50,7 @@ func TestRecoveringStoreWaitingCallerCanCancel(t *testing.T) {
 	}
 }
 
-func (f *recoveryFixture) Search(context.Context, []float32, int64, int64, int) ([]Hit, error) {
+func (f *recoveryFixture) Search(context.Context, []float32, int64, int64, int64, int) ([]Hit, error) {
 	f.searches++
 	return []Hit{{ID: 7, Score: .8}}, nil
 }
@@ -60,7 +60,7 @@ func TestRecoveringStoreBackoffAndRecovery(t *testing.T) {
 	s := NewRecoveringStore(f)
 	now := time.Unix(100, 0)
 	s.now = func() time.Time { return now }
-	if _, err := s.Search(context.Background(), nil, 1, 2, 5); err == nil {
+	if _, err := s.Search(context.Background(), nil, 1, 2, 0, 5); err == nil {
 		t.Fatal("故障应返回错误")
 	}
 	for range 20 {
@@ -71,7 +71,7 @@ func TestRecoveringStoreBackoffAndRecovery(t *testing.T) {
 	}
 	f.fail = false
 	now = now.Add(time.Second)
-	hits, err := s.Search(context.Background(), nil, 1, 2, 5)
+	hits, err := s.Search(context.Background(), nil, 1, 2, 0, 5)
 	if err != nil || len(hits) != 1 || hits[0].ID != 7 || f.checks != 2 {
 		t.Fatalf("恢复后应复用原调用: %v %v", hits, err)
 	}

@@ -14,7 +14,7 @@ func mapKbEvaluation(row *aipb.KbEvaluationInfo) *types.AiKbEvaluationInfo {
 		Status: row.Status, CaseCount: row.CaseCount, CompletedCount: row.CompletedCount,
 		FailedCount: row.FailedCount, StopRequested: row.StopRequested, CorpusVerified: row.CorpusVerified,
 		Error: row.Error, Snapshot: row.Snapshot, Bindings: row.Bindings, Context: row.Context,
-		Observations: row.Observations, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
+		Observations: row.Observations, ObservationsSha256: row.ObservationsSha256, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
 		StartedAt: row.StartedAt, CompletedAt: row.CompletedAt}
 }
 

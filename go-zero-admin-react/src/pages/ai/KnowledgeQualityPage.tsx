@@ -16,9 +16,9 @@ import { aiWorkspaceKeys, kbDetailOptions } from './workspaceQueries';
 import type { AiWorkspaceScope } from './workspaceQueries';
 import { parseTaskId } from './taskState';
 import type { QualityFilter } from './KnowledgeQualityDetails';
-import { qualityCatalogueOptions, qualityListOptions, qualityRunOptions } from './knowledgeQualityQueries';
-import { assertQualityAttemptResult, assertQualityRunInfo, canRepeatQualityRow, clearQualityAttempt, createQualityAttempt, importQualityDataset, qualityAttemptKey, qualityGroupLabel, qualityStatusLabels, readQualityAttempt, writeQualityAttempt } from './knowledgeQuality';
-import type { QualityCase, QualityCatalogue, QualityRow } from './knowledgeQuality';
+import { qualityCatalogueOptions, qualityDatasetOptions, qualityListOptions, qualityRunOptions } from './knowledgeQualityQueries';
+import { assertQualityAttemptResult, assertQualityRunInfo, canRepeatQualityRow, clearQualityAttempt, createQualityAttempt, importQualityDataset, qualityAttemptKey, qualityGroupLabel, qualityStatusLabels, readQualityAttempt, resolveQualityDataset, writeQualityAttempt } from './knowledgeQuality';
+import type { QualityCase, QualityCatalogue, QualityDatasetVersion, QualityRow } from './knowledgeQuality';
 import styles from './knowledgeQuality.module.css';
 import { FeedbackDatasetPreview } from './FeedbackDatasetPreview';
 import { downloadQualityDataset } from './feedbackDataset';
@@ -54,7 +54,7 @@ export function KnowledgeQualitySession({ scope, kbId }: { scope: AiWorkspaceSco
   const [notice, setNotice] = useState(restored.error);
   const [storageNotice, setStorageNotice] = useState('');
   const [creating, setCreating] = useState(false);
-  const [datasetKey, setDatasetKey] = useState('');
+  const [selectedVersion, setSelectedVersion] = useState<QualityDatasetVersion>();
   const [imported, setImported] = useState<QualityCatalogue | null>(null);
   const [importing, setImporting] = useState(false);
   const [groupKey, setGroupKey] = useState('');
@@ -65,14 +65,18 @@ export function KnowledgeQualitySession({ scope, kbId }: { scope: AiWorkspaceSco
   const [baselineId, setBaselineId] = useState<number | null>(null);
   const [taskId, setTaskId] = useState<number | null>(null);
   const kb = useQuery(kbDetailOptions(scope, kbId));
-  const catalogues = useQuery({ ...qualityCatalogueOptions(scope, kbId), enabled: !!kb.data && !kb.error && guard.isCurrent() });
-  const history = useQuery({ ...qualityListOptions(scope, kbId, { page, page_size: 10, ...(historyStatus === 'all' ? {} : { status: historyStatus }) }), enabled: !!kb.data && !kb.error && guard.isCurrent() });
-  const detail = useQuery({ ...qualityRunOptions(scope, kbId, selectedId ?? 0), enabled: !!selectedId && !!kb.data && !kb.error && guard.isCurrent() });
-  const baseline = useQuery({ ...qualityRunOptions(scope, kbId, baselineId ?? 0), enabled: !!baselineId && baselineId !== selectedId && !!kb.data && !kb.error && guard.isCurrent() });
+  const readable = !kb.error && guard.isCurrent();
+  const catalogues = useQuery({ ...qualityCatalogueOptions(scope, kbId), enabled: readable });
+  const history = useQuery({ ...qualityListOptions(scope, kbId, { page, page_size: 10, ...(historyStatus === 'all' ? {} : { status: historyStatus }) }), enabled: readable });
+  const detail = useQuery({ ...qualityRunOptions(scope, kbId, selectedId ?? 0), enabled: !!selectedId && readable });
+  const baseline = useQuery({ ...qualityRunOptions(scope, kbId, baselineId ?? 0), enabled: !!baselineId && baselineId !== selectedId && readable });
   const start = useMutation({ mutationFn: (request: AiStartKbEvaluationReq) => startAiKbEvaluation(kbId, request), retry: false });
   const stop = useMutation({ mutationFn: (id: number) => stopAiKbEvaluation(kbId, id), retry: false });
   const available = [...(catalogues.error ? [] : catalogues.data ?? []), ...(imported ? [imported] : [])];
-  const chosen = available.find(d => d.key === datasetKey) ?? available[0];
+  const selectedEntry = resolveQualityDataset(available, selectedVersion);
+  const usingImport = !!imported && selectedEntry?.key === imported.key;
+  const dataset = useQuery({ ...qualityDatasetOptions(scope, kbId, selectedEntry), enabled: creating && !!selectedEntry && !usingImport && !!kb.data && !kb.error && guard.isCurrent() });
+  const chosen = !selectedEntry ? undefined : usingImport ? imported : dataset.error ? undefined : dataset.data;
   const groupCases = chosen?.dataset.cases.filter(item => item.kb === groupKey) ?? [];
   const caseIds = selectedCases ?? groupCases.filter(item => item.split === 'development').map(item => item.id);
   const busy = guard.writing || start.isPending || stop.isPending || importing;
@@ -87,7 +91,7 @@ export function KnowledgeQualitySession({ scope, kbId }: { scope: AiWorkspaceSco
     let active = true;
     void importQualityDataset(incoming.datasetRaw).then(value => {
       if (!active || !currentWorkspace()) return;
-      setImported(value); setDatasetKey(value.key); setGroupKey(value.dataset.cases[0].kb); setSelectedCases(null); setCreating(true);
+      setImported(value); setSelectedVersion({ key: value.key, sha256: value.sha256 }); setGroupKey(value.dataset.cases[0].kb); setSelectedCases(null); setCreating(true);
       setNotice('已导入冻结题集，尚未开始分析。请核对预览后明确开始评测。');
       // 题集移交完成后清除路由历史中的全文，后续恢复只使用原请求的会话存储。
       navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
@@ -194,20 +198,20 @@ export function KnowledgeQualitySession({ scope, kbId }: { scope: AiWorkspaceSco
     const view = detail.data;
     if (!view || detail.error || busy || unknown || !configured || !canEvaluate) return false;
     const current = view.rows.find(item => item.item.id === row.item.id && item.requestId === row.requestId);
-    return !!current && canRepeatQualityRow(view.run.status, current) && (view.run.dataset_key.startsWith('custom-') || available.some(d => d.key === view.run.dataset_key && d.sha256 === view.run.dataset_sha256 && d.dataset.cases.some(c => c.id === current.item.id)));
+    return !!current && canRepeatQualityRow(view.run.status, current) && (view.run.dataset_key.startsWith('custom-') || available.some(d => d.key === view.run.dataset_key && d.sha256 === view.run.dataset_sha256));
   }
   function repeat(row: QualityRow) {
     const view = detail.data;
     if (!view || !canRepeatRow(row)) return;
     const source = available.find(d => d.key === view.run.dataset_key && d.sha256 === view.run.dataset_sha256);
-    if (source) void run(source, view.run.group_key, [row.item.id]);
+    if (source) void run({ ...source, raw: view.run.snapshot, dataset: view.dataset }, view.run.group_key, [row.item.id]);
     else if (view.run.dataset_key.startsWith('custom-')) void importQualityDataset(view.run.snapshot).then(value => {
       if (guard.isCurrent()) void run(value, view.run.group_key, [row.item.id]);
     }).catch(error => { if (guard.isCurrent()) setNotice(error instanceof Error ? error.message : '原题集无法恢复'); });
   }
   function refresh() {
     if (!guard.isCurrent()) return;
-    void kb.refetch(); void catalogues.refetch(); void history.refetch(); if (selectedId) void detail.refetch();
+    void kb.refetch(); void catalogues.refetch(); void history.refetch(); if (selectedId) void client.invalidateQueries({ queryKey: aiWorkspaceKeys.qualityRun(scope, kbId, selectedId), exact: true });
   }
 
   async function importRaw(raw: string, group?: string, ids?: string[]) {
@@ -216,7 +220,7 @@ export function KnowledgeQualitySession({ scope, kbId }: { scope: AiWorkspaceSco
     try {
       const value = await importQualityDataset(raw);
       if (!guard.isCurrent()) return;
-      setImported(value); setDatasetKey(value.key); setGroupKey(group ?? value.dataset.cases[0].kb); setSelectedCases(ids ?? null); setCreating(true);
+      setImported(value); setSelectedVersion({ key: value.key, sha256: value.sha256 }); setGroupKey(group ?? value.dataset.cases[0].kb); setSelectedCases(ids ?? null); setCreating(true);
       setNotice('已导入冻结题集，尚未开始分析。请核对预览后明确开始评测。');
     } catch (error) { if (guard.isCurrent()) setNotice(error instanceof Error ? error.message : '题集导入失败'); }
     finally { if (guard.isCurrent()) setImporting(false); }
@@ -232,9 +236,9 @@ export function KnowledgeQualitySession({ scope, kbId }: { scope: AiWorkspaceSco
   function reuseSnapshot() {
     const view = detail.data;
     if (!view || detail.error || busy || unknown || !guard.isCurrent()) return;
-    const builtIn = catalogues.data?.find(value => value.key === view.run.dataset_key && value.sha256 === view.run.dataset_sha256 && value.raw === view.run.snapshot);
+    const builtIn = catalogues.data?.find(value => value.key === view.run.dataset_key && value.sha256 === view.run.dataset_sha256);
     if (builtIn) {
-      setDatasetKey(builtIn.key); setGroupKey(view.run.group_key); setSelectedCases(view.rows.map(row => row.item.id)); setCreating(true); setNotice('已选择此批次的冻结题集，尚未重新运行。');
+      setSelectedVersion({ key: builtIn.key, sha256: builtIn.sha256 }); setGroupKey(view.run.group_key); setSelectedCases(view.rows.map(row => row.item.id)); setCreating(true); setNotice('已选择此批次的冻结题集，尚未重新运行。');
     } else void importRaw(view.run.snapshot, view.run.group_key, view.rows.map(row => row.item.id));
   }
 
@@ -260,15 +264,17 @@ export function KnowledgeQualitySession({ scope, kbId }: { scope: AiWorkspaceSco
       </Card>
       {creating && <Card title="新建评测">
         <details className={styles.advanced}><summary>高级设置</summary><Space wrap><label className={styles.field}>导入冻结题集 JSON<input type="file" accept=".json,application/json" aria-label="导入冻结题集JSON" disabled={busy || unknown} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; void importFile(file); }} /></label>
-          {imported && <><Button disabled={busy || unknown} onClick={() => { setImported(null); setDatasetKey(''); setGroupKey(''); setSelectedCases(null); }}>移除导入题集</Button><Button onClick={() => { if (guard.isCurrent()) downloadQualityDataset(imported.raw, `${imported.key}.json`); }}>下载当前冻结题集</Button></>}</Space></details>
+          {imported && <><Button disabled={busy || unknown} onClick={() => { setImported(null); if (selectedVersion?.key === imported.key) { setSelectedVersion(undefined); setGroupKey(''); setSelectedCases(null); } }}>移除导入题集</Button><Button onClick={() => { if (guard.isCurrent()) downloadQualityDataset(imported.raw, `${imported.key}.json`); }}>下载当前冻结题集</Button></>}</Space></details>
         <QueryState isPending={catalogues.isPending} error={catalogues.error} onRetry={() => catalogues.refetch()} />
         {available.length === 0 && !catalogues.isPending && <Empty description="暂无可用题集，可导入冻结JSON" />}
-        {chosen && <>
+        {selectedVersion && !selectedEntry && catalogues.isSuccess && <Alert type="warning" showIcon title="原选题集版本已变化或已下架，请重新选择题集并核对题目。" />}
+        {available.length > 0 && <>
           <div className={styles.setup}>
-            <label className={styles.field}>选择题集<Select aria-label="选择评测题集" value={chosen.key} disabled={busy || unknown} options={available.map(d => ({ value: d.key, label: d.name }))} onChange={value => { setDatasetKey(value); setGroupKey(''); setSelectedCases(null); }} /></label>
-            <label className={styles.field}>资料对应题组<Select aria-label="选择资料题组" value={groupKey || undefined} placeholder="选择与当前资料对应的题组" disabled={busy || unknown} options={[...new Set(chosen.dataset.cases.map(c => c.kb))].map(value => ({ value, label: qualityGroupLabel(value) }))} onChange={value => { setGroupKey(value); setSelectedCases(null); }} /></label>
+            <label className={styles.field}>选择题集<Select aria-label="选择评测题集" value={selectedEntry?.key} placeholder="选择题集" disabled={busy || unknown} options={available.map(d => ({ value: d.key, label: d.name }))} onChange={key => { const entry = available.find(item => item.key === key); if (entry) { setSelectedVersion({ key, sha256: entry.sha256 }); setGroupKey(''); setSelectedCases(null); setNotice(''); } }} /></label>
+            {chosen && <label className={styles.field}>资料对应题组<Select aria-label="选择资料题组" value={groupKey || undefined} placeholder="选择与当前资料对应的题组" disabled={busy || unknown} options={[...new Set(chosen.dataset.cases.map(c => c.kb))].map(value => ({ value, label: qualityGroupLabel(value) }))} onChange={value => { setSelectedVersion({ key: chosen.key, sha256: chosen.sha256 }); setGroupKey(value); setSelectedCases(null); }} /></label>}
           </div>
-          <div className={styles.selection}>
+          {selectedEntry && !usingImport && <QueryState isPending={dataset.isPending} error={dataset.error} onRetry={() => dataset.refetch()} />}
+          {chosen && <div className={styles.selection}>
             <Typography.Paragraph type="secondary">{chosen.key.startsWith('custom-') ? '当前为自定义冻结题集；采纳反馈不等于质量签署，预期答案与检查项只供评分预览，不送给模型。' : '题目基于仓库实际项目文档，由AI辅助编制，并非真实用户历史。初始预留题一经试跑即为已使用数据。'}开始前会核对当前资料的正文、版本与就绪状态。</Typography.Paragraph>
             {chosen.key.startsWith('custom-') && <FeedbackDatasetPreview catalogue={chosen} />}
             {!!groupKey && <><Space wrap><Button size="small" disabled={busy || unknown} onClick={() => setSelectedCases(groupCases.filter(c => c.split === 'development').map(c => c.id))}>选择开发题</Button><Button size="small" disabled={busy || unknown} onClick={() => setSelectedCases(groupCases.map(c => c.id))}>选择全部题</Button><Typography.Text>已选 {caseIds.length} 题</Typography.Text></Space>
@@ -279,10 +285,10 @@ export function KnowledgeQualitySession({ scope, kbId }: { scope: AiWorkspaceSco
             {!configured && <Alert type="warning" title="检索或分析模型尚未配置，请联系管理员。" />}
             {!canEvaluate && <Alert type="info" title="当前可查看结果，需要质量验收运行权限才能开始或停止评测。" />}
             <Space wrap><Button type="primary" aria-label="开始评测" icon={<PlayCircleOutlined />} loading={start.isPending} disabled={busy || unknown || !canEvaluate || !configured || !caseIds.length || caseIds.length > 30} onClick={() => void run(chosen, groupKey, caseIds)}>开始评测</Button><Typography.Text type="secondary">本批最多 {caseIds.length} 次分析、{caseIds.length * 2} 次查询 Embedding；执行失败后停止余题。</Typography.Text></Space>
-          </div>
+          </div>}
         </>}
       </Card>}
-      {selectedId && <Card title={`批次 #${selectedId}`} extra={<Space wrap><Button disabled={busy || unknown || !detail.data || !!detail.error} onClick={reuseSnapshot}>使用此批次冻结题集</Button><Button disabled={busy} onClick={() => void detail.refetch()}>刷新状态</Button>{detail.data && ['pending', 'running'].includes(detail.data.run.status) && <Button danger disabled={busy || !canEvaluate || detail.data.run.stop_requested} loading={stop.isPending} onClick={() => void stopSelected()}>停止后续题目</Button>}</Space>}>
+      {selectedId && <Card title={`批次 #${selectedId}`} extra={<Space wrap><Button disabled={busy || unknown || !detail.data || !!detail.error} onClick={reuseSnapshot}>使用此批次冻结题集</Button><Button disabled={busy} onClick={() => void client.invalidateQueries({ queryKey: aiWorkspaceKeys.qualityRun(scope, kbId, selectedId), exact: true })}>刷新状态</Button>{detail.data && ['pending', 'running'].includes(detail.data.run.status) && <Button danger disabled={busy || !canEvaluate || detail.data.run.stop_requested} loading={stop.isPending} onClick={() => void stopSelected()}>停止后续题目</Button>}</Space>}>
         <QueryState isPending={detail.isPending} error={detail.error} onRetry={() => detail.refetch()} />
         {detail.data && !detail.error && <>
           <div className={styles.toolbar}><Select aria-label="筛选评测题目" value={filter} onChange={setFilter} options={[{ value: 'all', label: '全部题目' }, { value: 'review', label: '规则提示待复核' }, { value: 'execution', label: '执行未完成' }, { value: 'waiting', label: '未执行或执行中' }]} />{baselineId && <Button disabled={busy} onClick={() => setBaselineId(null)}>取消对照 #{baselineId}</Button>}</div>

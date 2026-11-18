@@ -1,31 +1,31 @@
-import { useState } from 'react';
-import { Alert, Pagination, Select, Space, Switch, Typography } from 'antd';
-import { useQuery } from '@tanstack/react-query';
-import { fetchAiKb } from '../../api/ai';
+import { Alert, Button, Space, Switch, Typography } from 'antd';
 import { useAuthStore } from '../../stores/auth';
-import { kbListOptions } from './workspaceQueries';
+import { KnowledgeChoice } from './KnowledgeChoice';
 import type { AiChatScope } from './chatQueries';
+import type { ChatKnowledgeSelection } from './chatKnowledge';
 import styles from './chat.module.css';
 
-export interface ChatKnowledgeSelection { kb_id: number; grounded: boolean }
-export function ChatKnowledgePicker({ scope, value, onChange, disabled }: { scope: AiChatScope; value: ChatKnowledgeSelection; onChange: (value: ChatKnowledgeSelection) => void; disabled: boolean }) {
+interface DocumentScope { title?: string; loading: boolean; problem?: string; retry: () => void }
+
+export function ChatKnowledgePicker({ scope, value, onChange, disabled, documentScope }: { scope: AiChatScope; value: ChatKnowledgeSelection; onChange: (value: ChatKnowledgeSelection) => void; disabled: boolean; documentScope?: DocumentScope }) {
   const canRead = useAuthStore(state => state.permissionsReady && state.permCodes.includes('sys:ai:kb:list'));
-  const [page, setPage] = useState(1);
-  const query = useQuery({ ...kbListOptions(scope, { page, page_size: 20 }), enabled: canRead });
-  const selected = useQuery({ queryKey: ['ai-chat', ...scope, 'selected-kb', value.kb_id], enabled: canRead && value.kb_id > 0 && !query.data?.list.some(kb => kb.id === value.kb_id), retry: false,
-    queryFn: async ({ signal }) => { const result = await fetchAiKb(value.kb_id); signal.throwIfAborted(); return result.kb; } });
-  if (!canRead) return null;
-  const rows = query.data?.list ?? [];
-  const options = rows.map(kb => ({ value: kb.id, label: `${kb.name}（${kb.doc_count} 篇）` }));
-  if (value.kb_id > 0 && !rows.some(kb => kb.id === value.kb_id)) options.push({ value: value.kb_id, label: selected.data?.name ?? `知识库 #${value.kb_id}` });
+  if (value.doc_id) {
+    if (!canRead) return <Alert type="warning" showIcon title="当前没有查看这篇资料的权限，已暂停发送并保留原范围。" />;
+    return <div className={styles.knowledgePicker} role="group" aria-label="本次提问资料">
+      <Space wrap><Typography.Text strong>{documentScope?.title ?? (documentScope?.loading ? '正在读取这篇资料…' : '已选资料')}</Typography.Text>
+        <Button size="small" disabled={disabled} onClick={() => onChange({ kb_id: value.kb_id, grounded: true })}>改问整个知识库</Button></Space>
+      {documentScope?.problem ? <Alert type="warning" showIcon title={documentScope.problem} action={<Button size="small" loading={documentScope.loading} onClick={documentScope.retry}>重试</Button>} />
+        : <Typography.Text type="secondary" className={styles.recordNote}>回答和追问仅使用这篇资料。</Typography.Text>}
+    </div>;
+  }
+  if (!canRead) return value.kb_id > 0 ? <Alert type="warning" title="当前没有查看原知识库的权限，已保留原资料范围。"
+    action={<Button size="small" disabled={disabled} onClick={() => onChange({ kb_id: 0, grounded: false })}>改用自动检索</Button>} /> : null;
   return <div className={styles.knowledgePicker}>
     <Space wrap>
-      <Select aria-label="对话知识库" className={styles.knowledgeSelect} value={value.kb_id} disabled={disabled} loading={query.isFetching} options={[{ value: 0, label: '自动检索我的知识库' }, ...options]}
-        onChange={kb_id => onChange({ kb_id, grounded: kb_id > 0 && value.grounded })} />
+      <div className={styles.knowledgeSelect}><KnowledgeChoice label="对话知识库" allLabel="自动检索我的知识库" optional knowledge={{ scope, canRead }} value={value.kb_id} disabled={disabled}
+        onChange={next => { const id = typeof next === 'number' ? next : 0; onChange({ kb_id: id, grounded: id > 0 && value.grounded }); }} /></div>
       {value.kb_id > 0 && <Space size="small"><Switch aria-label="仅依据所选资料回答" checked={value.grounded} disabled={disabled} onChange={grounded => onChange({ ...value, grounded })} /><Typography.Text>仅依据资料回答</Typography.Text></Space>}
     </Space>
-    {(query.data?.total ?? 0) > 20 && <Pagination size="small" simple current={page} pageSize={20} total={query.data!.total} showSizeChanger={false} disabled={disabled} onChange={setPage} />}
     {value.grounded && <Typography.Text type="secondary" className={styles.recordNote}>本次问题最多 2000 UTF-8 字节；依据不足时说明无法回答。来源为实际检索摘录，相似度不代表答案正确率。</Typography.Text>}
-    {(query.isError || selected.isError) && <Alert type="warning" title="知识库读取失败，请刷新后重试" />}
   </div>;
 }

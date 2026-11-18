@@ -263,7 +263,7 @@ type queryVectorSearchStore struct {
 }
 
 func (s *queryVectorSearchStore) Ready(context.Context) error { return s.readyErr }
-func (s *queryVectorSearchStore) Search(context.Context, []float32, int64, int64, int) ([]vectordb.Hit, error) {
+func (s *queryVectorSearchStore) Search(context.Context, []float32, int64, int64, int64, int) ([]vectordb.Hit, error) {
 	s.calls++
 	return []vectordb.Hit{{ID: 1, Score: .8}}, nil
 }

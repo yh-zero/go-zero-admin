@@ -7,7 +7,7 @@ async (page) => {
   const document = { key: 'rules', kb: 'project_ops', source: 'ai_document/ai-rag/business-docs/rules.md', title: '发布规则', sha256: 'a'.repeat(64) };
   const first = { id: 'case-1', kb: 'project_ops', split: 'development', category: 'risk', query: '发布前有什么要求？', rationale: '核对依据', expected_documents: ['rules'], evidence: [{ document: 'rules', groups: [['先备份']] }], answer: { kind: 'answerable', required_groups: [['先备份']], forbidden_phrases: [], absence_policy: 'forbidden' }, checks: [{ label: '先备份', kind: 'risk', required_group: 0 }] };
   const dataset = { version: 1, documents: [document], cases: [first, { ...first, id: 'case-2', query: '上线前怎样处理？' }] }, raw = JSON.stringify(dataset);
-  let sha = '', runs = new Map();
+  let sha = '', catalogueSha = '', runs = new Map();
   const source = { index: 1, chunk_id: 11, kb_id: 7, doc_id: 9, doc_title: document.title, snippet: '先备份，再发布。', score: 0.9 };
   const analysis = { version: 1, type: 'kb_analysis', status: 'completed', analysis: '先备份，再发布。[1]', sources: [source], usage: { scope: 'chat', prompt_tokens: 20, completion_tokens: 10, total_tokens: 30, complete: true } };
   const context = { binary_sha: 'b'.repeat(64), model: { provider: 'local-test', name: 'test' }, embedding: { provider: 'local-test', model: 'embedding-test', dimension: 16 }, config: { max_context_tokens: 32000, analysis_answer_token_cap: 2048, recall_top_k: 20, return_top_k: 5, analysis_temperature: 0 } };
@@ -43,7 +43,7 @@ async (page) => {
     if (path === '/v1/sys/profile/') return send(200, { user: { id: 1, username: 'quality-fixture', nickname: '质量回归', email: '', phone: '', avatar_url: '', dept_id: 0, role_ids: [] } });
     if (path === '/v1/sys/ai/kbs/7') return send(200, { kb, capabilities: { retrieval_configured: true, analysis_configured: true, ingestion_mode: 'async' } });
     if (path === '/v1/sys/ai/kbs/7/docs') return send(200, { list: [{ id: 9, kb_id: 7, title: document.title, status: 'ready', version: 2, embedding_model: 'embedding-test', created_at: now, updated_at: now, chunk_count: 1, stage: 'ready' }], total: 1, ready_count: 1, pending_count: 0, failed_count: 0 });
-    if (path === '/v1/sys/ai/kbs/7/evaluation-datasets') return send(200, { list: [{ key: 'test', name: '场景验收题集', sha256: sha, dataset: raw }] });
+    if (path === '/v1/sys/ai/kbs/7/evaluation-datasets') return send(200, { list: [{ key: 'test', name: '场景验收题集', sha256: catalogueSha || sha, dataset: values.has('meta_only') ? '' : raw }] });
     if (path === '/v1/sys/ai/kbs/7/evaluations') {
       if (request.method() === 'POST') {
         const data = request.postDataJSON(); writes.push(data);
@@ -64,7 +64,12 @@ async (page) => {
         const observations = JSON.parse(run.observations); observations[0] = { ...observations[0], status: 'succeeded', stage: 'done', analysis };
         const stopped = { ...run, status: 'cancelled', stop_requested: true, completed_count: 1, completed_at: now, observations: JSON.stringify(observations) }; runs.set(id, stopped); return send(200, { evaluation: stopped });
       }
-      return send(200, { evaluation: run });
+      const observations_sha256 = await page.evaluate(async text => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))), byte => byte.toString(16).padStart(2, '0')).join(''), run.observations);
+      if (values.get('progress_only') === 'true') {
+        reads.push(relative);
+        return send(200, { evaluation: { ...lite(run), observations_sha256, observations: values.get('known_observations_sha256') === observations_sha256 ? '' : run.observations } });
+      }
+      return send(200, { evaluation: { ...run, observations_sha256 } });
     }
     if (/^\/v1\/sys\/ai\/tasks\/\d+\/feedback$/.test(path) && request.method() === 'GET') return send(200, { list: [] });
     throw new Error(`响应桩未定义业务请求：${request.method()} ${path}`);
@@ -84,8 +89,10 @@ async (page) => {
   await page.getByText('批次 #4', { exact: true }).waitFor();
   require(reads.some(value => value.includes(`request_id=${writes[0].request_id}`)), '核对必须使用原UUID');
   const saved = page.url();
+  await page.waitForResponse(response => response.url().includes('/evaluations/4?') && new URL(response.url()).searchParams.has('known_observations_sha256'));
   await page.goto(`${origin}/ai/knowledge/7`);
-  await page.getByRole('button', { name: '质量验收', exact: true }).waitFor();
+  await page.getByRole('button', { name: /^管\s*理$/ }).click();
+  await page.getByRole('menuitem', { name: '质量验收', exact: true }).waitFor();
   await page.goto(saved);
   await page.getByRole('button', { name: '停止后续题目', exact: true }).click();
   await page.getByText('批次已停止，未开始的题目没有执行。', { exact: true }).waitFor();
@@ -108,6 +115,12 @@ async (page) => {
   await page.getByRole('button', { name: '评价分析', exact: true }).click();
   await page.getByRole('dialog', { name: '评价第 1 步分析', exact: true }).waitFor();
   await page.getByRole('dialog', { name: '评价第 1 步分析', exact: true }).getByRole('button', { name: '关闭', exact: true }).click();
+  await page.getByRole('button', { name: '使用此批次冻结题集' }).click();
+  await page.getByText('已选择此批次的冻结题集，尚未重新运行。', { exact:true }).waitFor();
+  catalogueSha = 'f'.repeat(64);
+  await page.getByRole('button', { name: /刷\s*新$/ }).click();
+  await page.getByText('原选题集版本已变化或已下架，请重新选择题集并核对题目。', { exact:true }).waitFor();
+  require(await page.getByRole('button', { name:'开始评测', exact:true }).count() === 0 && writes.length === 2, '换版不能沿用旧版题号提交新评测');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('heading', { name: '质量验收回归资料 · 质量验收', exact: true }).waitFor();
   const mobile = await page.evaluate(() => ({ viewport: innerWidth, page: document.documentElement.scrollWidth }));

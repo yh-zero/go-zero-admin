@@ -3,6 +3,7 @@ package aiservicelogic
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -21,11 +22,43 @@ type groundedOwnedKb struct {
 	owner int64
 }
 
-func (m *groundedOwnedKb) FindOwned(_ context.Context, kb, owner int64) (*model.KbRow, error) {
-	if kb != 2 || owner != m.owner {
-		return nil, model.ErrNotFound
+func TestChatMessageScopeKeepsHistoricalFingerprints(t *testing.T) {
+	for _, tc := range []struct {
+		kb       int64
+		grounded bool
+		hash     string
+	}{
+		{0, false, "23adabf0d25d4b010a5b282c8deac51eea9172383df42e7d14b7f57be33945f0"},
+		{3, true, "f72dd76d856852d461e87d2a2e5b5738a319a58c6386dee524ff5b9afc399462"},
+		{3, false, "896233fe0ecf2f238bb9dfa2cae4d07570bee5bae0d4cba4b834bc81469ec394"},
+	} {
+		if requestFingerprint(5, "hello", tc.kb, tc.grounded, 0) != tc.hash {
+			t.Fatal("兼容已有请求时不应把默认文档 ID 纳入指纹")
+		}
 	}
-	return &model.KbRow{Id: kb, OwnerId: owner}, nil
+	for _, grounded := range []bool{false, true} {
+		msg := messageProto(&model.MessageRow{Role: "assistant", ToolCalls: callRecord{Version: 1, KbID: 3, Grounded: &grounded}.marshal()})
+		if msg.KbId != 3 || msg.DocId != 0 || msg.Grounded != grounded {
+			t.Fatal("重新打开会话时应还原用户选定的库和回答模式")
+		}
+	}
+	legacy := messageProto(&model.MessageRow{Role: "assistant", ToolCalls: `{"version":1,"kb_id":3}`})
+	if legacy.KbId != 0 || legacy.DocId != 0 || legacy.Grounded {
+		t.Fatal("旧数据没有保存模式时应保持原兼容行为")
+	}
+}
+
+func TestGroundedReferenceDistinguishesNewTopicAndFollowup(t *testing.T) {
+	if isGroundedFollowup("服务器的部署端口是多少呢？") || isGroundedFollowup("第二季度的营业额是多少？") || !isGroundedFollowup("第二种呢？") || !isGroundedFollowup("What about the latter?") {
+		t.Fatal("独立问题应原样检索，明确的指代问题才补充同库上轮问答")
+	}
+}
+
+func (m *groundedOwnedKb) RequireOwned(_ context.Context, kb, owner int64) error {
+	if (kb != 2 && kb != 3) || owner != m.owner {
+		return model.ErrNotFound
+	}
+	return nil
 }
 
 func TestChatExperienceGroundingReplayAndFeedback(t *testing.T) {
@@ -128,6 +161,59 @@ func TestChatExperienceGroundingNoMatchesAndOwnership(t *testing.T) {
 	result = runAITestStream(t, context.Background(), service, req, nil).last()
 	if result.Type != "error" || result.ErrorCode != 404 || searcher.calls != 1 || calls.Load() != 0 {
 		t.Fatal("知识库归属须在检索或模型之前校验")
+	}
+}
+
+func TestChatExperienceFollowupUsesFreshEvidenceWithinSelectedKB(t *testing.T) {
+	var calls atomic.Int32
+	service, owner := aiIntegrationContext(t, func(w http.ResponseWriter, r *http.Request) {
+		n := calls.Add(1)
+		var payload struct{ Messages []struct{ Content string } }
+		if json.NewDecoder(r.Body).Decode(&payload) != nil || len(payload.Messages) != 2 {
+			t.Error("严格模式只能使用本轮资料与有界的指代上下文")
+			return
+		}
+		if n == 2 && (!strings.Contains(payload.Messages[0].Content, "不能作为证据") || !strings.Contains(payload.Messages[1].Content, "本轮复核资料")) {
+			t.Error("追问缺少本轮证据或指代约束")
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprint(w, "data: {\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"第二种是定期导入 [1]。\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":2,\"completion_tokens\":3,\"total_tokens\":5}}\n\ndata: [DONE]\n\n")
+	})
+	service.AiKbModel = &groundedOwnedKb{owner: owner}
+	queries := []string{}
+	service.KbSearcher = &directRecallSearcher{search: func(_ context.Context, gotOwner, kb int64, query string) ([]agenttools.KbSearchHit, error) {
+		queries = append(queries, query)
+		if gotOwner != owner {
+			t.Fatal("检索身份变化")
+		}
+		if len(queries) == 4 {
+			return nil, errors.New("fixture search error")
+		}
+		if kb == 3 {
+			return nil, nil
+		}
+		id := int64(len(queries))
+		return []agenttools.KbSearchHit{{KbID: kb, DocID: 5, ChunkID: id, Snippet: "本轮复核资料"}}, nil
+	}}
+	req := &aipb.SendMessageRequest{Actor: &aipb.Actor{UserId: owner}, RequestId: uuid.NewString(), Content: "导入有哪些方式？", KbId: 2, Grounded: true}
+	first := runAITestStream(t, context.Background(), service, req, nil).last()
+	if first.Type != "done" {
+		t.Fatalf("首轮失败 %s/%d", first.Type, first.ErrorCode)
+	}
+	req.RequestId, req.ConversationId, req.Content = uuid.NewString(), first.Result.ConversationId, "第二种呢？"
+	second := runAITestStream(t, context.Background(), service, req, nil).last()
+	if second.Type != "done" || len(queries) != 2 || !strings.HasPrefix(queries[1], req.Content) || !strings.Contains(queries[1], "定期导入") || len(second.Result.AiMessage.Sources) != 1 || second.Result.AiMessage.Sources[0].ChunkId != 2 {
+		t.Fatal("追问须重新检索并仅保存本轮证据")
+	}
+	req.RequestId, req.KbId = uuid.NewString(), 3
+	empty := runAITestStream(t, context.Background(), service, req, nil).last()
+	if empty.Type != "done" || len(queries) != 3 || queries[2] != req.Content || len(empty.Result.AiMessage.Sources) != 0 || calls.Load() != 2 {
+		t.Fatal("切库后不得沿用旧问答或为无依据问题调用模型")
+	}
+	req.RequestId = uuid.NewString()
+	failed := runAITestStream(t, context.Background(), service, req, nil).last()
+	if failed.Type != "error" || failed.ErrorCode != 503 || calls.Load() != 2 {
+		t.Fatal("检索失败须区别于无命中且不得调用模型")
 	}
 }
 

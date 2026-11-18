@@ -29,16 +29,21 @@ export function AITaskSession({ scope }: { scope: AiWorkspaceScope }) {
   const client = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [params, setParams] = useState<AiListTasksReq>({ page: 1, page_size: 20 });
-  const incomingTask = searchParams.get('task_id');
-  const [lastTaskLink, setLastTaskLink] = useState(incomingTask);
-  const [selectedId, setSelectedId] = useState<number | null>(() => parseTaskId(incomingTask));
+  const selectedId = parseTaskId(searchParams.get('task_id'));
   const [comparisonId, setComparisonId] = useState<number | null>(null);
   // 详情组件负责读取；此观察器仅订阅同一缓存，入口不额外发送请求。
   const selectedDetail = useQuery({ ...taskDetailOptions(scope, selectedId ?? 0), enabled: false });
   const [filterForm] = Form.useForm<{ workflow_id?: number; query?: string }>();
   const [workflowSearch, setWorkflowSearch] = useState('');
+  const [workflowInput, setWorkflowInput] = useState('');
+  const [workflowFilterOpen, setWorkflowFilterOpen] = useState(false);
   const [workflowPage, setWorkflowPage] = useState(1);
-  const workflows = useQuery({ ...workflowListOptions(scope, { page: workflowPage, page_size: 20, query: workflowSearch }), enabled: guard.can('sys:ai:workflow:list') });
+  useEffect(() => {
+    if (!workflowFilterOpen || workflowInput.trim() === workflowSearch) return;
+    const timer = window.setTimeout(() => { setWorkflowSearch(workflowInput.trim()); setWorkflowPage(1); }, 250);
+    return () => window.clearTimeout(timer);
+  }, [workflowFilterOpen, workflowInput, workflowSearch]);
+  const workflows = useQuery({ ...workflowListOptions(scope, { page: workflowPage, page_size: 20, query: workflowSearch }), enabled: workflowFilterOpen && guard.can('sys:ai:workflow:list') });
   const pollStartedAt = useRef(0);
   const tasks = useQuery({
     ...taskListOptions(scope, params),
@@ -50,12 +55,6 @@ export function AITaskSession({ scope }: { scope: AiWorkspaceScope }) {
     refetchIntervalInBackground: false,
   });
 
-  // 路由可在页面保持挂载时带入新任务，立即调整选择以防旧详情闪回。
-  if (incomingTask !== lastTaskLink) {
-    setLastTaskLink(incomingTask);
-    if (incomingTask !== null) { setSelectedId(parseTaskId(incomingTask)); setComparisonId(null); }
-  }
-
   useEffect(() => { pollStartedAt.current = Date.now(); }, [params]);
   const total = tasks.data?.total;
   const { isSuccess, isFetching } = tasks;
@@ -66,20 +65,16 @@ export function AITaskSession({ scope }: { scope: AiWorkspaceScope }) {
     // oxlint-disable-next-line react/set-state-in-effect
     setParams(current => correctTaskPageParams(current, params, { isSuccess, isFetching, total }));
   }, [isCurrent, params, isSuccess, isFetching, total]);
-  useEffect(() => {
-    if (!searchParams.has('task_id')) return;
-    const next = new URLSearchParams(searchParams);
-    next.delete('task_id');
-    setSearchParams(next, { replace: true });
-  }, [searchParams, setSearchParams, guard]);
-
   function selectTask(id: number | null) {
     if (guard.writing || !guard.isCurrent()) return;
     setComparisonId(null);
     if (selectedId !== null && selectedId !== id) {
       void client.cancelQueries({ queryKey: aiWorkspaceKeys.task(scope, selectedId) });
     }
-    if (guard.isCurrent()) setSelectedId(id);
+    const next = new URLSearchParams(searchParams);
+    if (id === null) next.delete('task_id');
+    else next.set('task_id', String(id));
+    if (selectedId !== id) setSearchParams(next);
   }
 
   function refreshTasks() {
@@ -107,7 +102,7 @@ export function AITaskSession({ scope }: { scope: AiWorkspaceScope }) {
     }}>
       <Form.Item name="query"><Input allowClear aria-label="搜索运行名称或问题" placeholder="按名称、问题查找" disabled={guard.writing} /></Form.Item>
       <Form.Item name="workflow_id"><Select className={styles.workflowSelect} aria-label="按流程名称筛选" allowClear placeholder="全部流程" disabled={guard.writing || !guard.can('sys:ai:workflow:list')} loading={workflows.isFetching}
-        showSearch={{ filterOption: false, onSearch: query => { setWorkflowSearch(query); setWorkflowPage(1); } }} options={workflows.data?.list.map(workflow => ({ value: workflow.id, label: workflow.name }))}
+        onOpenChange={setWorkflowFilterOpen} showSearch={{ filterOption: false, onSearch: setWorkflowInput }} options={workflows.data?.list.map(workflow => ({ value: workflow.id, label: workflow.name }))}
         popupRender={menu => <>{menu}{(workflows.data?.total ?? 0) > 20 && <Pagination simple size="small" current={workflowPage} pageSize={20} total={workflows.data?.total} onChange={setWorkflowPage} />}</>} /></Form.Item>
       <Form.Item><Space><Button htmlType="submit" disabled={guard.writing}>筛选</Button><Button disabled={guard.writing} onClick={() => {
         filterForm.resetFields(); setParams(current => ({ ...current, page: 1, workflow_id: undefined, query: undefined }));
@@ -126,6 +121,6 @@ export function AITaskSession({ scope }: { scope: AiWorkspaceScope }) {
       <Pagination current={params.page} pageSize={params.page_size} total={tasks.data?.total ?? 0} showSizeChanger pageSizeOptions={[10, 20, 50, 100]} size="small"
         disabled={guard.writing} showTotal={total => `共 ${total} 条`} onChange={(page, pageSize) => setParams(current => ({ ...current, page, page_size: pageSize }))} />
     </div>
-    {comparisonId !== null && <AsyncContent key={comparisonId} load={loadComparison} componentProps={{ scope, baseId: comparisonId, guard, onClose: () => setComparisonId(null) }} />}
+    {comparisonId !== null && comparisonId === selectedId && <AsyncContent key={comparisonId} load={loadComparison} componentProps={{ scope, baseId: comparisonId, guard, onClose: () => setComparisonId(null) }} />}
   </Card>;
 }

@@ -61,6 +61,7 @@ type KbEvaluationRow struct {
 	Bindings         string `db:"bindings"`
 	Context          string `db:"run_context"`
 	Observations     string `db:"observations"`
+	ObservationsSHA  string `db:"observations_sha256"`
 	LeaseToken       string `db:"lease_token"`
 	LeaseExpiresAt   int64  `db:"lease_expires_at"`
 	StartedAt        int64  `db:"started_at"`

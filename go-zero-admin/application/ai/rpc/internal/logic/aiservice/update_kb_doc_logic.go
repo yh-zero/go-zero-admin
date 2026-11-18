@@ -34,17 +34,14 @@ func (l *UpdateKbDocLogic) UpdateKbDoc(in *aipb.UpdateKbDocRequest) (*aipb.Updat
 		return nil, err
 	}
 	if out == nil {
-		if _, err := l.svcCtx.AiKbDocModel.FindMetadataOwned(l.ctx, in.KbId, in.DocId, in.Actor.UserId); err != nil {
-			return nil, aiModelError(err)
-		}
-		if err := requireKbReady(l.svcCtx); err != nil {
-			return nil, err
-		}
-		chunks := chunkText(in.Content)
-		if len(chunks) == 0 {
+		if strings.TrimSpace(in.Content) == "" {
 			return nil, xerr.NewErrCodeMsg(400, "文档内容无法分块（全为空白）")
 		}
-		out, err = enqueueKbDoc(l.ctx, l.svcCtx, r, chunks)
+		// 队列在版本锁内判断是否需要替换正文。纯改名跳过分块与摄取。
+		if l.svcCtx.Embedder != nil && l.svcCtx.VectorStore != nil {
+			r.SplitUpdatedContent = chunkText
+		}
+		out, err = enqueueKbDoc(l.ctx, l.svcCtx, r, nil)
 		if err != nil {
 			return nil, err
 		}

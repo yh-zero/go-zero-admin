@@ -8,7 +8,7 @@ import type { ChatFeedbackContext } from './ChatMessageFeedback';
 import { ChatSourcePreview } from './ChatSourcePreview';
 import styles from './chat.module.css';
 
-interface Props { message: AiChatMessage; feedbackContext?: ChatFeedbackContext }
+interface Props { message: AiChatMessage; feedbackContext?: ChatFeedbackContext; askDocumentDisabled?: boolean }
 interface ToolCallRecord { id?: string; type?: string; function: { name: string; arguments: string }; key: string }
 
 function readToolCalls(raw: string): ToolCallRecord[] | null {
@@ -42,8 +42,9 @@ const statuses = {
   failed: { color: 'error', title: '失败' },
 };
 
-export const MessageRecord = memo(function MessageRecord({ message, feedbackContext }: Props) {
+export const MessageRecord = memo(function MessageRecord({ message, feedbackContext, askDocumentDisabled }: Props) {
   const [preview, setPreview] = useState<AiSearchKbHit | null>(null);
+  const sources = message.sources ?? [];
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const status = statuses[message.status] ?? (message.status ? { color: 'default', title: message.status } : statuses.succeeded);
   return <article className={`${styles.message} ${message.role === 'user' ? styles.userMessage : ''}`}>
@@ -52,17 +53,18 @@ export const MessageRecord = memo(function MessageRecord({ message, feedbackCont
       {message.status && message.status !== 'succeeded' && <Tag color={status.color}>{status.title}</Tag>}
       <Typography.Text type="secondary">{formatTime(message.created_at)}</Typography.Text>
     </div>
-    {message.content && (message.role === 'assistant' ? <SafeMarkdown content={message.content} /> : <div className={styles.messageText}>{message.content}</div>)}
+    {message.content && (message.role === 'assistant' ? <SafeMarkdown content={message.content}
+      citations={sources.length && (message.status === 'succeeded' || !message.status) ? { count: sources.length, open: index => setPreview(sources[index - 1]!) } : undefined} /> : <div className={styles.messageText}>{message.content}</div>)}
     <div className={styles.messageActions}>{message.content && <CopyTextButton text={message.content} label={message.role === 'assistant' ? '复制回答' : '复制内容'} />}
       {message.role === 'assistant' && message.status === 'succeeded' && feedbackContext && <ChatMessageFeedback message={message} context={feedbackContext} />}
     </div>
-    {message.role === 'assistant' && (message.sources ?? []).length > 0 && <div className={styles.sources}><Typography.Text strong>参考资料</Typography.Text>{message.sources.map((source, position) => <div className={styles.sourceReference} key={`${source.kb_id}:${source.chunk_id}`}>
+    {message.role === 'assistant' && sources.length > 0 && <div className={styles.sources}><Typography.Text strong>{message.status === 'failed' ? '失败前检索到的资料' : '参考资料'}</Typography.Text>{sources.map((source, position) => <div className={styles.sourceReference} key={`${source.kb_id}:${source.chunk_id}`}>
       <div className={styles.sourceHeading}><Typography.Text strong>[{position + 1}] {source.doc_title || `文档 #${source.doc_id}`}</Typography.Text><Button type="link" size="small" onClick={() => setPreview(source)}>查看原文</Button></div>
-      <details><summary>本次引用片段</summary><div className={styles.messageText}>{source.snippet}</div>
+      <details><summary>{message.status === 'failed' ? '检索片段' : '本次引用片段'}</summary><div className={styles.messageText}>{source.snippet}</div>
         <details><summary>来源信息</summary><Typography.Paragraph type="secondary">知识库 ID：{source.kb_id} · 文档 ID：{source.doc_id} · 分块 ID：{source.chunk_id} · 相似度：{source.score}</Typography.Paragraph></details>
       </details>
     </div>)}</div>}
-    {preview && <ChatSourcePreview key={`${preview.kb_id}:${preview.doc_id}`} source={preview} onClose={() => setPreview(null)} />}
+    {preview && <ChatSourcePreview key={`${preview.kb_id}:${preview.chunk_id}`} source={preview} askDisabled={askDocumentDisabled} onClose={() => setPreview(null)} />}
     {message.error && <Typography.Paragraph type="danger" className={styles.messageText}>{message.error}</Typography.Paragraph>}
     {message.role === 'assistant' && <details className={styles.diagnostics} onToggle={event => setDiagnosticsOpen(event.currentTarget.open)}><summary>用量与调用详情</summary>
       {diagnosticsOpen && <MessageDiagnostics message={message} />}

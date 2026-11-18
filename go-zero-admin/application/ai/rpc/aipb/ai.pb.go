@@ -1524,6 +1524,9 @@ type ChatMessage struct {
 	Sources       []*KbSearchHit         `protobuf:"bytes,9,rep,name=sources,proto3" json:"sources,omitempty"`
 	Feedback      string                 `protobuf:"bytes,10,opt,name=feedback,proto3" json:"feedback,omitempty"`
 	FeedbackNote  string                 `protobuf:"bytes,11,opt,name=feedback_note,json=feedbackNote,proto3" json:"feedback_note,omitempty"`
+	KbId          int64                  `protobuf:"varint,12,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	DocId         int64                  `protobuf:"varint,13,opt,name=doc_id,json=docId,proto3" json:"doc_id,omitempty"`
+	Grounded      bool                   `protobuf:"varint,14,opt,name=grounded,proto3" json:"grounded,omitempty"` // 发送时的实际范围，历史消息可能缺失。
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1633,6 +1636,27 @@ func (x *ChatMessage) GetFeedbackNote() string {
 		return x.FeedbackNote
 	}
 	return ""
+}
+
+func (x *ChatMessage) GetKbId() int64 {
+	if x != nil {
+		return x.KbId
+	}
+	return 0
+}
+
+func (x *ChatMessage) GetDocId() int64 {
+	if x != nil {
+		return x.DocId
+	}
+	return 0
+}
+
+func (x *ChatMessage) GetGrounded() bool {
+	if x != nil {
+		return x.Grounded
+	}
+	return false
 }
 
 type ConversationInfo struct {
@@ -2276,6 +2300,7 @@ type SendMessageRequest struct {
 	RequestId      string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	KbId           int64                  `protobuf:"varint,5,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
 	Grounded       bool                   `protobuf:"varint,6,opt,name=grounded,proto3" json:"grounded,omitempty"`
+	DocId          int64                  `protobuf:"varint,7,opt,name=doc_id,json=docId,proto3" json:"doc_id,omitempty"` // 非零时仅检索本库的指定文档，要求 grounded。
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -2350,6 +2375,13 @@ func (x *SendMessageRequest) GetGrounded() bool {
 		return x.Grounded
 	}
 	return false
+}
+
+func (x *SendMessageRequest) GetDocId() int64 {
+	if x != nil {
+		return x.DocId
+	}
+	return 0
 }
 
 type SendMessageResponse struct {
@@ -5086,18 +5118,72 @@ func (x *CreateKbResponse) GetCapabilities() *Capabilities {
 	return nil
 }
 
+type KbChoice struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KbChoice) Reset() {
+	*x = KbChoice{}
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[66]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KbChoice) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KbChoice) ProtoMessage() {}
+
+func (x *KbChoice) ProtoReflect() protoreflect.Message {
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[66]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KbChoice.ProtoReflect.Descriptor instead.
+func (*KbChoice) Descriptor() ([]byte, []int) {
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{66}
+}
+
+func (x *KbChoice) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *KbChoice) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 type ListKbsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
 	Page          *PageRequest           `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
 	Query         string                 `protobuf:"bytes,3,opt,name=query,proto3" json:"query,omitempty"`
+	ChoicesOnly   bool                   `protobuf:"varint,4,opt,name=choices_only,json=choicesOnly,proto3" json:"choices_only,omitempty"`
+	Id            int64                  `protobuf:"varint,5,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListKbsRequest) Reset() {
 	*x = ListKbsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[66]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5109,7 +5195,7 @@ func (x *ListKbsRequest) String() string {
 func (*ListKbsRequest) ProtoMessage() {}
 
 func (x *ListKbsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[66]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5122,7 +5208,7 @@ func (x *ListKbsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbsRequest.ProtoReflect.Descriptor instead.
 func (*ListKbsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{66}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ListKbsRequest) GetActor() *Actor {
@@ -5146,18 +5232,33 @@ func (x *ListKbsRequest) GetQuery() string {
 	return ""
 }
 
+func (x *ListKbsRequest) GetChoicesOnly() bool {
+	if x != nil {
+		return x.ChoicesOnly
+	}
+	return false
+}
+
+func (x *ListKbsRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
 type ListKbsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	List          []*KbInfo              `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
 	Page          *PageResponse          `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
 	Capabilities  *Capabilities          `protobuf:"bytes,3,opt,name=capabilities,proto3" json:"capabilities,omitempty"`
+	Choices       []*KbChoice            `protobuf:"bytes,4,rep,name=choices,proto3" json:"choices,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListKbsResponse) Reset() {
 	*x = ListKbsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[67]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5169,7 +5270,7 @@ func (x *ListKbsResponse) String() string {
 func (*ListKbsResponse) ProtoMessage() {}
 
 func (x *ListKbsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[67]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5182,7 +5283,7 @@ func (x *ListKbsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbsResponse.ProtoReflect.Descriptor instead.
 func (*ListKbsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{67}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *ListKbsResponse) GetList() []*KbInfo {
@@ -5206,6 +5307,13 @@ func (x *ListKbsResponse) GetCapabilities() *Capabilities {
 	return nil
 }
 
+func (x *ListKbsResponse) GetChoices() []*KbChoice {
+	if x != nil {
+		return x.Choices
+	}
+	return nil
+}
+
 type GetKbRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
@@ -5216,7 +5324,7 @@ type GetKbRequest struct {
 
 func (x *GetKbRequest) Reset() {
 	*x = GetKbRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[68]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5228,7 +5336,7 @@ func (x *GetKbRequest) String() string {
 func (*GetKbRequest) ProtoMessage() {}
 
 func (x *GetKbRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[68]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5241,7 +5349,7 @@ func (x *GetKbRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbRequest.ProtoReflect.Descriptor instead.
 func (*GetKbRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{68}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *GetKbRequest) GetActor() *Actor {
@@ -5268,7 +5376,7 @@ type GetKbResponse struct {
 
 func (x *GetKbResponse) Reset() {
 	*x = GetKbResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[69]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5280,7 +5388,7 @@ func (x *GetKbResponse) String() string {
 func (*GetKbResponse) ProtoMessage() {}
 
 func (x *GetKbResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[69]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5293,7 +5401,7 @@ func (x *GetKbResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbResponse.ProtoReflect.Descriptor instead.
 func (*GetKbResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{69}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *GetKbResponse) GetKb() *KbInfo {
@@ -5321,7 +5429,7 @@ type SearchKbRequest struct {
 
 func (x *SearchKbRequest) Reset() {
 	*x = SearchKbRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[70]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5333,7 +5441,7 @@ func (x *SearchKbRequest) String() string {
 func (*SearchKbRequest) ProtoMessage() {}
 
 func (x *SearchKbRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[70]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5346,7 +5454,7 @@ func (x *SearchKbRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchKbRequest.ProtoReflect.Descriptor instead.
 func (*SearchKbRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{70}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *SearchKbRequest) GetActor() *Actor {
@@ -5378,13 +5486,14 @@ type KbSearchHit struct {
 	DocTitle      string                 `protobuf:"bytes,4,opt,name=doc_title,json=docTitle,proto3" json:"doc_title,omitempty"`
 	Snippet       string                 `protobuf:"bytes,5,opt,name=snippet,proto3" json:"snippet,omitempty"`
 	Score         float32                `protobuf:"fixed32,6,opt,name=score,proto3" json:"score,omitempty"`
+	DocVersion    int64                  `protobuf:"varint,7,opt,name=doc_version,json=docVersion,proto3" json:"doc_version,omitempty"` // 检索时的文档版本，历史记录可能为 0。
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *KbSearchHit) Reset() {
 	*x = KbSearchHit{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[71]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5396,7 +5505,7 @@ func (x *KbSearchHit) String() string {
 func (*KbSearchHit) ProtoMessage() {}
 
 func (x *KbSearchHit) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[71]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5409,7 +5518,7 @@ func (x *KbSearchHit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbSearchHit.ProtoReflect.Descriptor instead.
 func (*KbSearchHit) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{71}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *KbSearchHit) GetChunkId() int64 {
@@ -5454,6 +5563,13 @@ func (x *KbSearchHit) GetScore() float32 {
 	return 0
 }
 
+func (x *KbSearchHit) GetDocVersion() int64 {
+	if x != nil {
+		return x.DocVersion
+	}
+	return 0
+}
+
 type SearchKbResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	List          []*KbSearchHit         `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
@@ -5464,7 +5580,7 @@ type SearchKbResponse struct {
 
 func (x *SearchKbResponse) Reset() {
 	*x = SearchKbResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[72]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5476,7 +5592,7 @@ func (x *SearchKbResponse) String() string {
 func (*SearchKbResponse) ProtoMessage() {}
 
 func (x *SearchKbResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[72]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5489,7 +5605,7 @@ func (x *SearchKbResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchKbResponse.ProtoReflect.Descriptor instead.
 func (*SearchKbResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{72}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *SearchKbResponse) GetList() []*KbSearchHit {
@@ -5518,7 +5634,7 @@ type UpdateKbRequest struct {
 
 func (x *UpdateKbRequest) Reset() {
 	*x = UpdateKbRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[73]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5530,7 +5646,7 @@ func (x *UpdateKbRequest) String() string {
 func (*UpdateKbRequest) ProtoMessage() {}
 
 func (x *UpdateKbRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[73]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5543,7 +5659,7 @@ func (x *UpdateKbRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateKbRequest.ProtoReflect.Descriptor instead.
 func (*UpdateKbRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{73}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *UpdateKbRequest) GetActor() *Actor {
@@ -5584,7 +5700,7 @@ type DeleteKbRequest struct {
 
 func (x *DeleteKbRequest) Reset() {
 	*x = DeleteKbRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[74]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5596,7 +5712,7 @@ func (x *DeleteKbRequest) String() string {
 func (*DeleteKbRequest) ProtoMessage() {}
 
 func (x *DeleteKbRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[74]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5609,7 +5725,7 @@ func (x *DeleteKbRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteKbRequest.ProtoReflect.Descriptor instead.
 func (*DeleteKbRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{74}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *DeleteKbRequest) GetActor() *Actor {
@@ -5641,7 +5757,7 @@ type CreateKbDocRequest struct {
 
 func (x *CreateKbDocRequest) Reset() {
 	*x = CreateKbDocRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[75]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5653,7 +5769,7 @@ func (x *CreateKbDocRequest) String() string {
 func (*CreateKbDocRequest) ProtoMessage() {}
 
 func (x *CreateKbDocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[75]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5666,7 +5782,7 @@ func (x *CreateKbDocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateKbDocRequest.ProtoReflect.Descriptor instead.
 func (*CreateKbDocRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{75}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *CreateKbDocRequest) GetActor() *Actor {
@@ -5722,7 +5838,7 @@ type CreateKbDocResponse struct {
 
 func (x *CreateKbDocResponse) Reset() {
 	*x = CreateKbDocResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[76]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5734,7 +5850,7 @@ func (x *CreateKbDocResponse) String() string {
 func (*CreateKbDocResponse) ProtoMessage() {}
 
 func (x *CreateKbDocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[76]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5747,7 +5863,7 @@ func (x *CreateKbDocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateKbDocResponse.ProtoReflect.Descriptor instead.
 func (*CreateKbDocResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{76}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *CreateKbDocResponse) GetDoc() *KbDocInfo {
@@ -5778,13 +5894,14 @@ type ListKbDocsRequest struct {
 	Page          *PageRequest           `protobuf:"bytes,3,opt,name=page,proto3" json:"page,omitempty"`
 	Query         string                 `protobuf:"bytes,4,opt,name=query,proto3" json:"query,omitempty"`
 	Status        string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	MetaOnly      bool                   `protobuf:"varint,6,opt,name=meta_only,json=metaOnly,proto3" json:"meta_only,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListKbDocsRequest) Reset() {
 	*x = ListKbDocsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[77]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5796,7 +5913,7 @@ func (x *ListKbDocsRequest) String() string {
 func (*ListKbDocsRequest) ProtoMessage() {}
 
 func (x *ListKbDocsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[77]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5809,7 +5926,7 @@ func (x *ListKbDocsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbDocsRequest.ProtoReflect.Descriptor instead.
 func (*ListKbDocsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{77}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *ListKbDocsRequest) GetActor() *Actor {
@@ -5847,6 +5964,13 @@ func (x *ListKbDocsRequest) GetStatus() string {
 	return ""
 }
 
+func (x *ListKbDocsRequest) GetMetaOnly() bool {
+	if x != nil {
+		return x.MetaOnly
+	}
+	return false
+}
+
 type ListKbDocsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	List          []*KbDocInfo           `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
@@ -5854,13 +5978,14 @@ type ListKbDocsResponse struct {
 	ReadyCount    int64                  `protobuf:"varint,3,opt,name=ready_count,json=readyCount,proto3" json:"ready_count,omitempty"`
 	PendingCount  int64                  `protobuf:"varint,4,opt,name=pending_count,json=pendingCount,proto3" json:"pending_count,omitempty"`
 	FailedCount   int64                  `protobuf:"varint,5,opt,name=failed_count,json=failedCount,proto3" json:"failed_count,omitempty"`
+	PageSignature string                 `protobuf:"bytes,6,opt,name=page_signature,json=pageSignature,proto3" json:"page_signature,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListKbDocsResponse) Reset() {
 	*x = ListKbDocsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[78]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5872,7 +5997,7 @@ func (x *ListKbDocsResponse) String() string {
 func (*ListKbDocsResponse) ProtoMessage() {}
 
 func (x *ListKbDocsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[78]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5885,7 +6010,7 @@ func (x *ListKbDocsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbDocsResponse.ProtoReflect.Descriptor instead.
 func (*ListKbDocsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{78}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *ListKbDocsResponse) GetList() []*KbDocInfo {
@@ -5923,6 +6048,13 @@ func (x *ListKbDocsResponse) GetFailedCount() int64 {
 	return 0
 }
 
+func (x *ListKbDocsResponse) GetPageSignature() string {
+	if x != nil {
+		return x.PageSignature
+	}
+	return ""
+}
+
 type GetKbDocRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
@@ -5935,7 +6067,7 @@ type GetKbDocRequest struct {
 
 func (x *GetKbDocRequest) Reset() {
 	*x = GetKbDocRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[79]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5947,7 +6079,7 @@ func (x *GetKbDocRequest) String() string {
 func (*GetKbDocRequest) ProtoMessage() {}
 
 func (x *GetKbDocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[79]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5960,7 +6092,7 @@ func (x *GetKbDocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbDocRequest.ProtoReflect.Descriptor instead.
 func (*GetKbDocRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{79}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *GetKbDocRequest) GetActor() *Actor {
@@ -6001,7 +6133,7 @@ type GetKbDocResponse struct {
 
 func (x *GetKbDocResponse) Reset() {
 	*x = GetKbDocResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[80]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6013,7 +6145,7 @@ func (x *GetKbDocResponse) String() string {
 func (*GetKbDocResponse) ProtoMessage() {}
 
 func (x *GetKbDocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[80]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6026,7 +6158,7 @@ func (x *GetKbDocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbDocResponse.ProtoReflect.Descriptor instead.
 func (*GetKbDocResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{80}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *GetKbDocResponse) GetDoc() *KbDocInfo {
@@ -6059,7 +6191,7 @@ type UpdateKbDocRequest struct {
 
 func (x *UpdateKbDocRequest) Reset() {
 	*x = UpdateKbDocRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[81]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6071,7 +6203,7 @@ func (x *UpdateKbDocRequest) String() string {
 func (*UpdateKbDocRequest) ProtoMessage() {}
 
 func (x *UpdateKbDocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[81]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6084,7 +6216,7 @@ func (x *UpdateKbDocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateKbDocRequest.ProtoReflect.Descriptor instead.
 func (*UpdateKbDocRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{81}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *UpdateKbDocRequest) GetActor() *Actor {
@@ -6154,7 +6286,7 @@ type UpdateKbDocResponse struct {
 
 func (x *UpdateKbDocResponse) Reset() {
 	*x = UpdateKbDocResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[82]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6166,7 +6298,7 @@ func (x *UpdateKbDocResponse) String() string {
 func (*UpdateKbDocResponse) ProtoMessage() {}
 
 func (x *UpdateKbDocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[82]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6179,7 +6311,7 @@ func (x *UpdateKbDocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateKbDocResponse.ProtoReflect.Descriptor instead.
 func (*UpdateKbDocResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{82}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *UpdateKbDocResponse) GetDoc() *KbDocInfo {
@@ -6214,7 +6346,7 @@ type DeleteKbDocRequest struct {
 
 func (x *DeleteKbDocRequest) Reset() {
 	*x = DeleteKbDocRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[83]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6226,7 +6358,7 @@ func (x *DeleteKbDocRequest) String() string {
 func (*DeleteKbDocRequest) ProtoMessage() {}
 
 func (x *DeleteKbDocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[83]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6239,7 +6371,7 @@ func (x *DeleteKbDocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteKbDocRequest.ProtoReflect.Descriptor instead.
 func (*DeleteKbDocRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{83}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *DeleteKbDocRequest) GetActor() *Actor {
@@ -6276,7 +6408,7 @@ type RetryKbDocRequest struct {
 
 func (x *RetryKbDocRequest) Reset() {
 	*x = RetryKbDocRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[84]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6288,7 +6420,7 @@ func (x *RetryKbDocRequest) String() string {
 func (*RetryKbDocRequest) ProtoMessage() {}
 
 func (x *RetryKbDocRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[84]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6301,7 +6433,7 @@ func (x *RetryKbDocRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetryKbDocRequest.ProtoReflect.Descriptor instead.
 func (*RetryKbDocRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{84}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *RetryKbDocRequest) GetActor() *Actor {
@@ -6350,7 +6482,7 @@ type RetryKbDocResponse struct {
 
 func (x *RetryKbDocResponse) Reset() {
 	*x = RetryKbDocResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[85]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6362,7 +6494,7 @@ func (x *RetryKbDocResponse) String() string {
 func (*RetryKbDocResponse) ProtoMessage() {}
 
 func (x *RetryKbDocResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[85]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6375,7 +6507,7 @@ func (x *RetryKbDocResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetryKbDocResponse.ProtoReflect.Descriptor instead.
 func (*RetryKbDocResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{85}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *RetryKbDocResponse) GetDoc() *KbDocInfo {
@@ -6419,7 +6551,7 @@ type KbIngestBatchInfo struct {
 
 func (x *KbIngestBatchInfo) Reset() {
 	*x = KbIngestBatchInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[86]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6431,7 +6563,7 @@ func (x *KbIngestBatchInfo) String() string {
 func (*KbIngestBatchInfo) ProtoMessage() {}
 
 func (x *KbIngestBatchInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[86]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6444,7 +6576,7 @@ func (x *KbIngestBatchInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbIngestBatchInfo.ProtoReflect.Descriptor instead.
 func (*KbIngestBatchInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{86}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *KbIngestBatchInfo) GetId() string {
@@ -6548,7 +6680,7 @@ type KbIngestJobInfo struct {
 
 func (x *KbIngestJobInfo) Reset() {
 	*x = KbIngestJobInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[87]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6560,7 +6692,7 @@ func (x *KbIngestJobInfo) String() string {
 func (*KbIngestJobInfo) ProtoMessage() {}
 
 func (x *KbIngestJobInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[87]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6573,7 +6705,7 @@ func (x *KbIngestJobInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbIngestJobInfo.ProtoReflect.Descriptor instead.
 func (*KbIngestJobInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{87}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *KbIngestJobInfo) GetId() int64 {
@@ -6650,7 +6782,7 @@ type ListKbImportsRequest struct {
 
 func (x *ListKbImportsRequest) Reset() {
 	*x = ListKbImportsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[88]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6662,7 +6794,7 @@ func (x *ListKbImportsRequest) String() string {
 func (*ListKbImportsRequest) ProtoMessage() {}
 
 func (x *ListKbImportsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[88]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6675,7 +6807,7 @@ func (x *ListKbImportsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbImportsRequest.ProtoReflect.Descriptor instead.
 func (*ListKbImportsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{88}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *ListKbImportsRequest) GetActor() *Actor {
@@ -6709,7 +6841,7 @@ type ListKbImportsResponse struct {
 
 func (x *ListKbImportsResponse) Reset() {
 	*x = ListKbImportsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[89]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6721,7 +6853,7 @@ func (x *ListKbImportsResponse) String() string {
 func (*ListKbImportsResponse) ProtoMessage() {}
 
 func (x *ListKbImportsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[89]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6734,7 +6866,7 @@ func (x *ListKbImportsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbImportsResponse.ProtoReflect.Descriptor instead.
 func (*ListKbImportsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{89}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *ListKbImportsResponse) GetList() []*KbIngestBatchInfo {
@@ -6762,7 +6894,7 @@ type GetKbImportRequest struct {
 
 func (x *GetKbImportRequest) Reset() {
 	*x = GetKbImportRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[90]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6774,7 +6906,7 @@ func (x *GetKbImportRequest) String() string {
 func (*GetKbImportRequest) ProtoMessage() {}
 
 func (x *GetKbImportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[90]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6787,7 +6919,7 @@ func (x *GetKbImportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbImportRequest.ProtoReflect.Descriptor instead.
 func (*GetKbImportRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{90}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *GetKbImportRequest) GetActor() *Actor {
@@ -6821,7 +6953,7 @@ type GetKbImportResponse struct {
 
 func (x *GetKbImportResponse) Reset() {
 	*x = GetKbImportResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[91]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6833,7 +6965,7 @@ func (x *GetKbImportResponse) String() string {
 func (*GetKbImportResponse) ProtoMessage() {}
 
 func (x *GetKbImportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[91]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6846,7 +6978,7 @@ func (x *GetKbImportResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbImportResponse.ProtoReflect.Descriptor instead.
 func (*GetKbImportResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{91}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *GetKbImportResponse) GetBatch() *KbIngestBatchInfo {
@@ -6874,7 +7006,7 @@ type StopKbImportRequest struct {
 
 func (x *StopKbImportRequest) Reset() {
 	*x = StopKbImportRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[92]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6886,7 +7018,7 @@ func (x *StopKbImportRequest) String() string {
 func (*StopKbImportRequest) ProtoMessage() {}
 
 func (x *StopKbImportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[92]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6899,7 +7031,7 @@ func (x *StopKbImportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopKbImportRequest.ProtoReflect.Descriptor instead.
 func (*StopKbImportRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{92}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *StopKbImportRequest) GetActor() *Actor {
@@ -6934,7 +7066,7 @@ type KbFeedbackEvidence struct {
 
 func (x *KbFeedbackEvidence) Reset() {
 	*x = KbFeedbackEvidence{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[93]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6946,7 +7078,7 @@ func (x *KbFeedbackEvidence) String() string {
 func (*KbFeedbackEvidence) ProtoMessage() {}
 
 func (x *KbFeedbackEvidence) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[93]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6959,7 +7091,7 @@ func (x *KbFeedbackEvidence) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbFeedbackEvidence.ProtoReflect.Descriptor instead.
 func (*KbFeedbackEvidence) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{93}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *KbFeedbackEvidence) GetSourceIndex() int64 {
@@ -6989,7 +7121,7 @@ type KbFeedbackReview struct {
 
 func (x *KbFeedbackReview) Reset() {
 	*x = KbFeedbackReview{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[94]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7001,7 +7133,7 @@ func (x *KbFeedbackReview) String() string {
 func (*KbFeedbackReview) ProtoMessage() {}
 
 func (x *KbFeedbackReview) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[94]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7014,7 +7146,7 @@ func (x *KbFeedbackReview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbFeedbackReview.ProtoReflect.Descriptor instead.
 func (*KbFeedbackReview) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{94}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *KbFeedbackReview) GetAnswerable() bool {
@@ -7075,7 +7207,7 @@ type KbFeedbackInfo struct {
 
 func (x *KbFeedbackInfo) Reset() {
 	*x = KbFeedbackInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[95]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7087,7 +7219,7 @@ func (x *KbFeedbackInfo) String() string {
 func (*KbFeedbackInfo) ProtoMessage() {}
 
 func (x *KbFeedbackInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[95]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7100,7 +7232,7 @@ func (x *KbFeedbackInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbFeedbackInfo.ProtoReflect.Descriptor instead.
 func (*KbFeedbackInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{95}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *KbFeedbackInfo) GetId() int64 {
@@ -7222,7 +7354,7 @@ type SetTaskFeedbackRequest struct {
 
 func (x *SetTaskFeedbackRequest) Reset() {
 	*x = SetTaskFeedbackRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[96]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7234,7 +7366,7 @@ func (x *SetTaskFeedbackRequest) String() string {
 func (*SetTaskFeedbackRequest) ProtoMessage() {}
 
 func (x *SetTaskFeedbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[96]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7247,7 +7379,7 @@ func (x *SetTaskFeedbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetTaskFeedbackRequest.ProtoReflect.Descriptor instead.
 func (*SetTaskFeedbackRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{96}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *SetTaskFeedbackRequest) GetActor() *Actor {
@@ -7301,7 +7433,7 @@ type KbFeedbackResponse struct {
 
 func (x *KbFeedbackResponse) Reset() {
 	*x = KbFeedbackResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[97]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7313,7 +7445,7 @@ func (x *KbFeedbackResponse) String() string {
 func (*KbFeedbackResponse) ProtoMessage() {}
 
 func (x *KbFeedbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[97]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7326,7 +7458,7 @@ func (x *KbFeedbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbFeedbackResponse.ProtoReflect.Descriptor instead.
 func (*KbFeedbackResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{97}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *KbFeedbackResponse) GetFeedback() *KbFeedbackInfo {
@@ -7346,7 +7478,7 @@ type ListTaskFeedbackRequest struct {
 
 func (x *ListTaskFeedbackRequest) Reset() {
 	*x = ListTaskFeedbackRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[98]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7358,7 +7490,7 @@ func (x *ListTaskFeedbackRequest) String() string {
 func (*ListTaskFeedbackRequest) ProtoMessage() {}
 
 func (x *ListTaskFeedbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[98]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7371,7 +7503,7 @@ func (x *ListTaskFeedbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTaskFeedbackRequest.ProtoReflect.Descriptor instead.
 func (*ListTaskFeedbackRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{98}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *ListTaskFeedbackRequest) GetActor() *Actor {
@@ -7397,7 +7529,7 @@ type ListTaskFeedbackResponse struct {
 
 func (x *ListTaskFeedbackResponse) Reset() {
 	*x = ListTaskFeedbackResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[99]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7409,7 +7541,7 @@ func (x *ListTaskFeedbackResponse) String() string {
 func (*ListTaskFeedbackResponse) ProtoMessage() {}
 
 func (x *ListTaskFeedbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[99]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7422,7 +7554,7 @@ func (x *ListTaskFeedbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTaskFeedbackResponse.ProtoReflect.Descriptor instead.
 func (*ListTaskFeedbackResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{99}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *ListTaskFeedbackResponse) GetList() []*KbFeedbackInfo {
@@ -7444,7 +7576,7 @@ type ListKbFeedbackRequest struct {
 
 func (x *ListKbFeedbackRequest) Reset() {
 	*x = ListKbFeedbackRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[100]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7456,7 +7588,7 @@ func (x *ListKbFeedbackRequest) String() string {
 func (*ListKbFeedbackRequest) ProtoMessage() {}
 
 func (x *ListKbFeedbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[100]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7469,7 +7601,7 @@ func (x *ListKbFeedbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbFeedbackRequest.ProtoReflect.Descriptor instead.
 func (*ListKbFeedbackRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{100}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *ListKbFeedbackRequest) GetActor() *Actor {
@@ -7510,7 +7642,7 @@ type ListKbFeedbackResponse struct {
 
 func (x *ListKbFeedbackResponse) Reset() {
 	*x = ListKbFeedbackResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[101]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7522,7 +7654,7 @@ func (x *ListKbFeedbackResponse) String() string {
 func (*ListKbFeedbackResponse) ProtoMessage() {}
 
 func (x *ListKbFeedbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[101]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7535,7 +7667,7 @@ func (x *ListKbFeedbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbFeedbackResponse.ProtoReflect.Descriptor instead.
 func (*ListKbFeedbackResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{101}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *ListKbFeedbackResponse) GetList() []*KbFeedbackInfo {
@@ -7563,7 +7695,7 @@ type GetKbFeedbackRequest struct {
 
 func (x *GetKbFeedbackRequest) Reset() {
 	*x = GetKbFeedbackRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[102]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7575,7 +7707,7 @@ func (x *GetKbFeedbackRequest) String() string {
 func (*GetKbFeedbackRequest) ProtoMessage() {}
 
 func (x *GetKbFeedbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[102]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7588,7 +7720,7 @@ func (x *GetKbFeedbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbFeedbackRequest.ProtoReflect.Descriptor instead.
 func (*GetKbFeedbackRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{102}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *GetKbFeedbackRequest) GetActor() *Actor {
@@ -7626,7 +7758,7 @@ type ReviewKbFeedbackRequest struct {
 
 func (x *ReviewKbFeedbackRequest) Reset() {
 	*x = ReviewKbFeedbackRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[103]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7638,7 +7770,7 @@ func (x *ReviewKbFeedbackRequest) String() string {
 func (*ReviewKbFeedbackRequest) ProtoMessage() {}
 
 func (x *ReviewKbFeedbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[103]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7651,7 +7783,7 @@ func (x *ReviewKbFeedbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReviewKbFeedbackRequest.ProtoReflect.Descriptor instead.
 func (*ReviewKbFeedbackRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{103}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *ReviewKbFeedbackRequest) GetActor() *Actor {
@@ -7708,7 +7840,7 @@ type KbEvaluationDatasetInfo struct {
 
 func (x *KbEvaluationDatasetInfo) Reset() {
 	*x = KbEvaluationDatasetInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[104]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7720,7 +7852,7 @@ func (x *KbEvaluationDatasetInfo) String() string {
 func (*KbEvaluationDatasetInfo) ProtoMessage() {}
 
 func (x *KbEvaluationDatasetInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[104]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7733,7 +7865,7 @@ func (x *KbEvaluationDatasetInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbEvaluationDatasetInfo.ProtoReflect.Descriptor instead.
 func (*KbEvaluationDatasetInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{104}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *KbEvaluationDatasetInfo) GetKey() string {
@@ -7768,13 +7900,15 @@ type ListKbEvaluationDatasetsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
 	KbId          int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	MetaOnly      bool                   `protobuf:"varint,3,opt,name=meta_only,json=metaOnly,proto3" json:"meta_only,omitempty"`
+	DatasetKey    string                 `protobuf:"bytes,4,opt,name=dataset_key,json=datasetKey,proto3" json:"dataset_key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListKbEvaluationDatasetsRequest) Reset() {
 	*x = ListKbEvaluationDatasetsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[105]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7786,7 +7920,7 @@ func (x *ListKbEvaluationDatasetsRequest) String() string {
 func (*ListKbEvaluationDatasetsRequest) ProtoMessage() {}
 
 func (x *ListKbEvaluationDatasetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[105]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7799,7 +7933,7 @@ func (x *ListKbEvaluationDatasetsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbEvaluationDatasetsRequest.ProtoReflect.Descriptor instead.
 func (*ListKbEvaluationDatasetsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{105}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *ListKbEvaluationDatasetsRequest) GetActor() *Actor {
@@ -7816,6 +7950,20 @@ func (x *ListKbEvaluationDatasetsRequest) GetKbId() int64 {
 	return 0
 }
 
+func (x *ListKbEvaluationDatasetsRequest) GetMetaOnly() bool {
+	if x != nil {
+		return x.MetaOnly
+	}
+	return false
+}
+
+func (x *ListKbEvaluationDatasetsRequest) GetDatasetKey() string {
+	if x != nil {
+		return x.DatasetKey
+	}
+	return ""
+}
+
 type ListKbEvaluationDatasetsResponse struct {
 	state         protoimpl.MessageState     `protogen:"open.v1"`
 	List          []*KbEvaluationDatasetInfo `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
@@ -7825,7 +7973,7 @@ type ListKbEvaluationDatasetsResponse struct {
 
 func (x *ListKbEvaluationDatasetsResponse) Reset() {
 	*x = ListKbEvaluationDatasetsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[106]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7837,7 +7985,7 @@ func (x *ListKbEvaluationDatasetsResponse) String() string {
 func (*ListKbEvaluationDatasetsResponse) ProtoMessage() {}
 
 func (x *ListKbEvaluationDatasetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[106]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7850,7 +7998,7 @@ func (x *ListKbEvaluationDatasetsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbEvaluationDatasetsResponse.ProtoReflect.Descriptor instead.
 func (*ListKbEvaluationDatasetsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{106}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *ListKbEvaluationDatasetsResponse) GetList() []*KbEvaluationDatasetInfo {
@@ -7861,35 +8009,36 @@ func (x *ListKbEvaluationDatasetsResponse) GetList() []*KbEvaluationDatasetInfo 
 }
 
 type KbEvaluationInfo struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	KbId           int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
-	RequestId      string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	DatasetKey     string                 `protobuf:"bytes,4,opt,name=dataset_key,json=datasetKey,proto3" json:"dataset_key,omitempty"`
-	DatasetSha256  string                 `protobuf:"bytes,5,opt,name=dataset_sha256,json=datasetSha256,proto3" json:"dataset_sha256,omitempty"`
-	GroupKey       string                 `protobuf:"bytes,6,opt,name=group_key,json=groupKey,proto3" json:"group_key,omitempty"`
-	Status         string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
-	CaseCount      int64                  `protobuf:"varint,8,opt,name=case_count,json=caseCount,proto3" json:"case_count,omitempty"`
-	CompletedCount int64                  `protobuf:"varint,9,opt,name=completed_count,json=completedCount,proto3" json:"completed_count,omitempty"`
-	FailedCount    int64                  `protobuf:"varint,10,opt,name=failed_count,json=failedCount,proto3" json:"failed_count,omitempty"`
-	StopRequested  bool                   `protobuf:"varint,11,opt,name=stop_requested,json=stopRequested,proto3" json:"stop_requested,omitempty"`
-	CorpusVerified bool                   `protobuf:"varint,12,opt,name=corpus_verified,json=corpusVerified,proto3" json:"corpus_verified,omitempty"`
-	Error          string                 `protobuf:"bytes,13,opt,name=error,proto3" json:"error,omitempty"`
-	Snapshot       string                 `protobuf:"bytes,14,opt,name=snapshot,proto3" json:"snapshot,omitempty"`
-	Bindings       string                 `protobuf:"bytes,15,opt,name=bindings,proto3" json:"bindings,omitempty"`
-	Context        string                 `protobuf:"bytes,16,opt,name=context,proto3" json:"context,omitempty"`
-	Observations   string                 `protobuf:"bytes,17,opt,name=observations,proto3" json:"observations,omitempty"`
-	CreatedAt      int64                  `protobuf:"varint,18,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt      int64                  `protobuf:"varint,19,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	StartedAt      int64                  `protobuf:"varint,20,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
-	CompletedAt    int64                  `protobuf:"varint,21,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	KbId               int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	RequestId          string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	DatasetKey         string                 `protobuf:"bytes,4,opt,name=dataset_key,json=datasetKey,proto3" json:"dataset_key,omitempty"`
+	DatasetSha256      string                 `protobuf:"bytes,5,opt,name=dataset_sha256,json=datasetSha256,proto3" json:"dataset_sha256,omitempty"`
+	GroupKey           string                 `protobuf:"bytes,6,opt,name=group_key,json=groupKey,proto3" json:"group_key,omitempty"`
+	Status             string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	CaseCount          int64                  `protobuf:"varint,8,opt,name=case_count,json=caseCount,proto3" json:"case_count,omitempty"`
+	CompletedCount     int64                  `protobuf:"varint,9,opt,name=completed_count,json=completedCount,proto3" json:"completed_count,omitempty"`
+	FailedCount        int64                  `protobuf:"varint,10,opt,name=failed_count,json=failedCount,proto3" json:"failed_count,omitempty"`
+	StopRequested      bool                   `protobuf:"varint,11,opt,name=stop_requested,json=stopRequested,proto3" json:"stop_requested,omitempty"`
+	CorpusVerified     bool                   `protobuf:"varint,12,opt,name=corpus_verified,json=corpusVerified,proto3" json:"corpus_verified,omitempty"`
+	Error              string                 `protobuf:"bytes,13,opt,name=error,proto3" json:"error,omitempty"`
+	Snapshot           string                 `protobuf:"bytes,14,opt,name=snapshot,proto3" json:"snapshot,omitempty"`
+	Bindings           string                 `protobuf:"bytes,15,opt,name=bindings,proto3" json:"bindings,omitempty"`
+	Context            string                 `protobuf:"bytes,16,opt,name=context,proto3" json:"context,omitempty"`
+	Observations       string                 `protobuf:"bytes,17,opt,name=observations,proto3" json:"observations,omitempty"`
+	CreatedAt          int64                  `protobuf:"varint,18,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt          int64                  `protobuf:"varint,19,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	StartedAt          int64                  `protobuf:"varint,20,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	CompletedAt        int64                  `protobuf:"varint,21,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
+	ObservationsSha256 string                 `protobuf:"bytes,22,opt,name=observations_sha256,json=observationsSha256,proto3" json:"observations_sha256,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *KbEvaluationInfo) Reset() {
 	*x = KbEvaluationInfo{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[107]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7901,7 +8050,7 @@ func (x *KbEvaluationInfo) String() string {
 func (*KbEvaluationInfo) ProtoMessage() {}
 
 func (x *KbEvaluationInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[107]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7914,7 +8063,7 @@ func (x *KbEvaluationInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbEvaluationInfo.ProtoReflect.Descriptor instead.
 func (*KbEvaluationInfo) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{107}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *KbEvaluationInfo) GetId() int64 {
@@ -8064,6 +8213,13 @@ func (x *KbEvaluationInfo) GetCompletedAt() int64 {
 	return 0
 }
 
+func (x *KbEvaluationInfo) GetObservationsSha256() string {
+	if x != nil {
+		return x.ObservationsSha256
+	}
+	return ""
+}
+
 type KbEvaluationResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Evaluation    *KbEvaluationInfo      `protobuf:"bytes,1,opt,name=evaluation,proto3" json:"evaluation,omitempty"`
@@ -8073,7 +8229,7 @@ type KbEvaluationResponse struct {
 
 func (x *KbEvaluationResponse) Reset() {
 	*x = KbEvaluationResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[108]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8085,7 +8241,7 @@ func (x *KbEvaluationResponse) String() string {
 func (*KbEvaluationResponse) ProtoMessage() {}
 
 func (x *KbEvaluationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[108]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8098,7 +8254,7 @@ func (x *KbEvaluationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KbEvaluationResponse.ProtoReflect.Descriptor instead.
 func (*KbEvaluationResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{108}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *KbEvaluationResponse) GetEvaluation() *KbEvaluationInfo {
@@ -8124,7 +8280,7 @@ type StartKbEvaluationRequest struct {
 
 func (x *StartKbEvaluationRequest) Reset() {
 	*x = StartKbEvaluationRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[109]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8136,7 +8292,7 @@ func (x *StartKbEvaluationRequest) String() string {
 func (*StartKbEvaluationRequest) ProtoMessage() {}
 
 func (x *StartKbEvaluationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[109]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8149,7 +8305,7 @@ func (x *StartKbEvaluationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartKbEvaluationRequest.ProtoReflect.Descriptor instead.
 func (*StartKbEvaluationRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{109}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *StartKbEvaluationRequest) GetActor() *Actor {
@@ -8221,7 +8377,7 @@ type ListKbEvaluationsRequest struct {
 
 func (x *ListKbEvaluationsRequest) Reset() {
 	*x = ListKbEvaluationsRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[110]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8233,7 +8389,7 @@ func (x *ListKbEvaluationsRequest) String() string {
 func (*ListKbEvaluationsRequest) ProtoMessage() {}
 
 func (x *ListKbEvaluationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[110]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8246,7 +8402,7 @@ func (x *ListKbEvaluationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbEvaluationsRequest.ProtoReflect.Descriptor instead.
 func (*ListKbEvaluationsRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{110}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *ListKbEvaluationsRequest) GetActor() *Actor {
@@ -8294,7 +8450,7 @@ type ListKbEvaluationsResponse struct {
 
 func (x *ListKbEvaluationsResponse) Reset() {
 	*x = ListKbEvaluationsResponse{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[111]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8306,7 +8462,7 @@ func (x *ListKbEvaluationsResponse) String() string {
 func (*ListKbEvaluationsResponse) ProtoMessage() {}
 
 func (x *ListKbEvaluationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[111]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8319,7 +8475,7 @@ func (x *ListKbEvaluationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListKbEvaluationsResponse.ProtoReflect.Descriptor instead.
 func (*ListKbEvaluationsResponse) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{111}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *ListKbEvaluationsResponse) GetList() []*KbEvaluationInfo {
@@ -8337,17 +8493,19 @@ func (x *ListKbEvaluationsResponse) GetPage() *PageResponse {
 }
 
 type GetKbEvaluationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
-	KbId          int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
-	EvaluationId  int64                  `protobuf:"varint,3,opt,name=evaluation_id,json=evaluationId,proto3" json:"evaluation_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	Actor                   *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	KbId                    int64                  `protobuf:"varint,2,opt,name=kb_id,json=kbId,proto3" json:"kb_id,omitempty"`
+	EvaluationId            int64                  `protobuf:"varint,3,opt,name=evaluation_id,json=evaluationId,proto3" json:"evaluation_id,omitempty"`
+	ProgressOnly            bool                   `protobuf:"varint,4,opt,name=progress_only,json=progressOnly,proto3" json:"progress_only,omitempty"`
+	KnownObservationsSha256 string                 `protobuf:"bytes,5,opt,name=known_observations_sha256,json=knownObservationsSha256,proto3" json:"known_observations_sha256,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *GetKbEvaluationRequest) Reset() {
 	*x = GetKbEvaluationRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[112]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8359,7 +8517,7 @@ func (x *GetKbEvaluationRequest) String() string {
 func (*GetKbEvaluationRequest) ProtoMessage() {}
 
 func (x *GetKbEvaluationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[112]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8372,7 +8530,7 @@ func (x *GetKbEvaluationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKbEvaluationRequest.ProtoReflect.Descriptor instead.
 func (*GetKbEvaluationRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{112}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *GetKbEvaluationRequest) GetActor() *Actor {
@@ -8396,6 +8554,20 @@ func (x *GetKbEvaluationRequest) GetEvaluationId() int64 {
 	return 0
 }
 
+func (x *GetKbEvaluationRequest) GetProgressOnly() bool {
+	if x != nil {
+		return x.ProgressOnly
+	}
+	return false
+}
+
+func (x *GetKbEvaluationRequest) GetKnownObservationsSha256() string {
+	if x != nil {
+		return x.KnownObservationsSha256
+	}
+	return ""
+}
+
 type StopKbEvaluationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
@@ -8407,7 +8579,7 @@ type StopKbEvaluationRequest struct {
 
 func (x *StopKbEvaluationRequest) Reset() {
 	*x = StopKbEvaluationRequest{}
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[113]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[114]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8419,7 +8591,7 @@ func (x *StopKbEvaluationRequest) String() string {
 func (*StopKbEvaluationRequest) ProtoMessage() {}
 
 func (x *StopKbEvaluationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[113]
+	mi := &file_application_ai_rpc_desc_ai_proto_msgTypes[114]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8432,7 +8604,7 @@ func (x *StopKbEvaluationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopKbEvaluationRequest.ProtoReflect.Descriptor instead.
 func (*StopKbEvaluationRequest) Descriptor() ([]byte, []int) {
-	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{113}
+	return file_application_ai_rpc_desc_ai_proto_rawDescGZIP(), []int{114}
 }
 
 func (x *StopKbEvaluationRequest) GetActor() *Actor {
@@ -8613,7 +8785,7 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\x11_expected_versionB\x16\n" +
 	"\x14_daily_request_limitB\x16\n" +
 	"\x14_daily_token_warningB\x1a\n" +
-	"\x18_global_concurrent_limit\"\xbd\x02\n" +
+	"\x18_global_concurrent_limit\"\x85\x03\n" +
 	"\vChatMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04role\x18\x02 \x01(\tR\x04role\x12\x18\n" +
@@ -8628,7 +8800,10 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\asources\x18\t \x03(\v2\x11.aipb.KbSearchHitR\asources\x12\x1a\n" +
 	"\bfeedback\x18\n" +
 	" \x01(\tR\bfeedback\x12#\n" +
-	"\rfeedback_note\x18\v \x01(\tR\ffeedbackNote\"\xcc\x01\n" +
+	"\rfeedback_note\x18\v \x01(\tR\ffeedbackNote\x12\x13\n" +
+	"\x05kb_id\x18\f \x01(\x03R\x04kbId\x12\x15\n" +
+	"\x06doc_id\x18\r \x01(\x03R\x05docId\x12\x1a\n" +
+	"\bgrounded\x18\x0e \x01(\bR\bgrounded\"\xcc\x01\n" +
 	"\x10ConversationInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x17\n" +
@@ -8677,7 +8852,7 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\x0enext_before_id\x18\x04 \x01(\x03R\fnextBeforeId\"g\n" +
 	"\x19DeleteConversationRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12'\n" +
-	"\x0fconversation_id\x18\x02 \x01(\x03R\x0econversationId\"\xca\x01\n" +
+	"\x0fconversation_id\x18\x02 \x01(\x03R\x0econversationId\"\xe1\x01\n" +
 	"\x12SendMessageRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\x03R\x0econversationId\x12\x18\n" +
@@ -8685,7 +8860,8 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x04 \x01(\tR\trequestId\x12\x13\n" +
 	"\x05kb_id\x18\x05 \x01(\x03R\x04kbId\x12\x1a\n" +
-	"\bgrounded\x18\x06 \x01(\bR\bgrounded\"\xe2\x01\n" +
+	"\bgrounded\x18\x06 \x01(\bR\bgrounded\x12\x15\n" +
+	"\x06doc_id\x18\a \x01(\x03R\x05docId\"\xe2\x01\n" +
 	"\x13SendMessageResponse\x124\n" +
 	"\fuser_message\x18\x01 \x01(\v2\x11.aipb.ChatMessageR\vuserMessage\x120\n" +
 	"\n" +
@@ -8951,15 +9127,21 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\"h\n" +
 	"\x10CreateKbResponse\x12\x1c\n" +
 	"\x02kb\x18\x01 \x01(\v2\f.aipb.KbInfoR\x02kb\x126\n" +
-	"\fcapabilities\x18\x02 \x01(\v2\x12.aipb.CapabilitiesR\fcapabilities\"p\n" +
+	"\fcapabilities\x18\x02 \x01(\v2\x12.aipb.CapabilitiesR\fcapabilities\".\n" +
+	"\bKbChoice\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\xa3\x01\n" +
 	"\x0eListKbsRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12%\n" +
 	"\x04page\x18\x02 \x01(\v2\x11.aipb.PageRequestR\x04page\x12\x14\n" +
-	"\x05query\x18\x03 \x01(\tR\x05query\"\x93\x01\n" +
+	"\x05query\x18\x03 \x01(\tR\x05query\x12!\n" +
+	"\fchoices_only\x18\x04 \x01(\bR\vchoicesOnly\x12\x0e\n" +
+	"\x02id\x18\x05 \x01(\x03R\x02id\"\xbd\x01\n" +
 	"\x0fListKbsResponse\x12 \n" +
 	"\x04list\x18\x01 \x03(\v2\f.aipb.KbInfoR\x04list\x12&\n" +
 	"\x04page\x18\x02 \x01(\v2\x12.aipb.PageResponseR\x04page\x126\n" +
-	"\fcapabilities\x18\x03 \x01(\v2\x12.aipb.CapabilitiesR\fcapabilities\"F\n" +
+	"\fcapabilities\x18\x03 \x01(\v2\x12.aipb.CapabilitiesR\fcapabilities\x12(\n" +
+	"\achoices\x18\x04 \x03(\v2\x0e.aipb.KbChoiceR\achoices\"F\n" +
 	"\fGetKbRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
 	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\"e\n" +
@@ -8969,14 +9151,16 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\x0fSearchKbRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
 	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12\x14\n" +
-	"\x05query\x18\x03 \x01(\tR\x05query\"\xa1\x01\n" +
+	"\x05query\x18\x03 \x01(\tR\x05query\"\xc2\x01\n" +
 	"\vKbSearchHit\x12\x19\n" +
 	"\bchunk_id\x18\x01 \x01(\x03R\achunkId\x12\x13\n" +
 	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12\x15\n" +
 	"\x06doc_id\x18\x03 \x01(\x03R\x05docId\x12\x1b\n" +
 	"\tdoc_title\x18\x04 \x01(\tR\bdocTitle\x12\x18\n" +
 	"\asnippet\x18\x05 \x01(\tR\asnippet\x12\x14\n" +
-	"\x05score\x18\x06 \x01(\x02R\x05score\"X\n" +
+	"\x05score\x18\x06 \x01(\x02R\x05score\x12\x1f\n" +
+	"\vdoc_version\x18\a \x01(\x03R\n" +
+	"docVersion\"X\n" +
 	"\x10SearchKbResponse\x12%\n" +
 	"\x04list\x18\x01 \x03(\v2\x11.aipb.KbSearchHitR\x04list\x12\x1d\n" +
 	"\n" +
@@ -9002,20 +9186,22 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\x13CreateKbDocResponse\x12!\n" +
 	"\x03doc\x18\x01 \x01(\v2\x0f.aipb.KbDocInfoR\x03doc\x12\x15\n" +
 	"\x06job_id\x18\x02 \x01(\x03R\x05jobId\x12\x19\n" +
-	"\bbatch_id\x18\x03 \x01(\tR\abatchId\"\xa0\x01\n" +
+	"\bbatch_id\x18\x03 \x01(\tR\abatchId\"\xbd\x01\n" +
 	"\x11ListKbDocsRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
 	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12%\n" +
 	"\x04page\x18\x03 \x01(\v2\x11.aipb.PageRequestR\x04page\x12\x14\n" +
 	"\x05query\x18\x04 \x01(\tR\x05query\x12\x16\n" +
-	"\x06status\x18\x05 \x01(\tR\x06status\"\xca\x01\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12\x1b\n" +
+	"\tmeta_only\x18\x06 \x01(\bR\bmetaOnly\"\xf1\x01\n" +
 	"\x12ListKbDocsResponse\x12#\n" +
 	"\x04list\x18\x01 \x03(\v2\x0f.aipb.KbDocInfoR\x04list\x12&\n" +
 	"\x04page\x18\x02 \x01(\v2\x12.aipb.PageResponseR\x04page\x12\x1f\n" +
 	"\vready_count\x18\x03 \x01(\x03R\n" +
 	"readyCount\x12#\n" +
 	"\rpending_count\x18\x04 \x01(\x03R\fpendingCount\x12!\n" +
-	"\ffailed_count\x18\x05 \x01(\x03R\vfailedCount\"}\n" +
+	"\ffailed_count\x18\x05 \x01(\x03R\vfailedCount\x12%\n" +
+	"\x0epage_signature\x18\x06 \x01(\tR\rpageSignature\"}\n" +
 	"\x0fGetKbDocRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
 	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12\x15\n" +
@@ -9172,12 +9358,15 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
 	"\x06sha256\x18\x03 \x01(\tR\x06sha256\x12\x18\n" +
-	"\adataset\x18\x04 \x01(\tR\adataset\"Y\n" +
+	"\adataset\x18\x04 \x01(\tR\adataset\"\x97\x01\n" +
 	"\x1fListKbEvaluationDatasetsRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
-	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\"U\n" +
+	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12\x1b\n" +
+	"\tmeta_only\x18\x03 \x01(\bR\bmetaOnly\x12\x1f\n" +
+	"\vdataset_key\x18\x04 \x01(\tR\n" +
+	"datasetKey\"U\n" +
 	" ListKbEvaluationDatasetsResponse\x121\n" +
-	"\x04list\x18\x01 \x03(\v2\x1d.aipb.KbEvaluationDatasetInfoR\x04list\"\x9a\x05\n" +
+	"\x04list\x18\x01 \x03(\v2\x1d.aipb.KbEvaluationDatasetInfoR\x04list\"\xcb\x05\n" +
 	"\x10KbEvaluationInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x13\n" +
 	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12\x1d\n" +
@@ -9206,7 +9395,8 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"updated_at\x18\x13 \x01(\x03R\tupdatedAt\x12\x1d\n" +
 	"\n" +
 	"started_at\x18\x14 \x01(\x03R\tstartedAt\x12!\n" +
-	"\fcompleted_at\x18\x15 \x01(\x03R\vcompletedAt\"N\n" +
+	"\fcompleted_at\x18\x15 \x01(\x03R\vcompletedAt\x12/\n" +
+	"\x13observations_sha256\x18\x16 \x01(\tR\x12observationsSha256\"N\n" +
 	"\x14KbEvaluationResponse\x126\n" +
 	"\n" +
 	"evaluation\x18\x01 \x01(\v2\x16.aipb.KbEvaluationInfoR\n" +
@@ -9231,11 +9421,13 @@ const file_application_ai_rpc_desc_ai_proto_rawDesc = "" +
 	"request_id\x18\x05 \x01(\tR\trequestId\"o\n" +
 	"\x19ListKbEvaluationsResponse\x12*\n" +
 	"\x04list\x18\x01 \x03(\v2\x16.aipb.KbEvaluationInfoR\x04list\x12&\n" +
-	"\x04page\x18\x02 \x01(\v2\x12.aipb.PageResponseR\x04page\"u\n" +
+	"\x04page\x18\x02 \x01(\v2\x12.aipb.PageResponseR\x04page\"\xd6\x01\n" +
 	"\x16GetKbEvaluationRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
 	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12#\n" +
-	"\revaluation_id\x18\x03 \x01(\x03R\fevaluationId\"v\n" +
+	"\revaluation_id\x18\x03 \x01(\x03R\fevaluationId\x12#\n" +
+	"\rprogress_only\x18\x04 \x01(\bR\fprogressOnly\x12:\n" +
+	"\x19known_observations_sha256\x18\x05 \x01(\tR\x17knownObservationsSha256\"v\n" +
 	"\x17StopKbEvaluationRequest\x12!\n" +
 	"\x05actor\x18\x01 \x01(\v2\v.aipb.ActorR\x05actor\x12\x13\n" +
 	"\x05kb_id\x18\x02 \x01(\x03R\x04kbId\x12#\n" +
@@ -9313,7 +9505,7 @@ func file_application_ai_rpc_desc_ai_proto_rawDescGZIP() []byte {
 	return file_application_ai_rpc_desc_ai_proto_rawDescData
 }
 
-var file_application_ai_rpc_desc_ai_proto_msgTypes = make([]protoimpl.MessageInfo, 114)
+var file_application_ai_rpc_desc_ai_proto_msgTypes = make([]protoimpl.MessageInfo, 115)
 var file_application_ai_rpc_desc_ai_proto_goTypes = []any{
 	(*PageRequest)(nil),                      // 0: aipb.PageRequest
 	(*PageResponse)(nil),                     // 1: aipb.PageResponse
@@ -9381,54 +9573,55 @@ var file_application_ai_rpc_desc_ai_proto_goTypes = []any{
 	(*KbDocInfo)(nil),                        // 63: aipb.KbDocInfo
 	(*CreateKbRequest)(nil),                  // 64: aipb.CreateKbRequest
 	(*CreateKbResponse)(nil),                 // 65: aipb.CreateKbResponse
-	(*ListKbsRequest)(nil),                   // 66: aipb.ListKbsRequest
-	(*ListKbsResponse)(nil),                  // 67: aipb.ListKbsResponse
-	(*GetKbRequest)(nil),                     // 68: aipb.GetKbRequest
-	(*GetKbResponse)(nil),                    // 69: aipb.GetKbResponse
-	(*SearchKbRequest)(nil),                  // 70: aipb.SearchKbRequest
-	(*KbSearchHit)(nil),                      // 71: aipb.KbSearchHit
-	(*SearchKbResponse)(nil),                 // 72: aipb.SearchKbResponse
-	(*UpdateKbRequest)(nil),                  // 73: aipb.UpdateKbRequest
-	(*DeleteKbRequest)(nil),                  // 74: aipb.DeleteKbRequest
-	(*CreateKbDocRequest)(nil),               // 75: aipb.CreateKbDocRequest
-	(*CreateKbDocResponse)(nil),              // 76: aipb.CreateKbDocResponse
-	(*ListKbDocsRequest)(nil),                // 77: aipb.ListKbDocsRequest
-	(*ListKbDocsResponse)(nil),               // 78: aipb.ListKbDocsResponse
-	(*GetKbDocRequest)(nil),                  // 79: aipb.GetKbDocRequest
-	(*GetKbDocResponse)(nil),                 // 80: aipb.GetKbDocResponse
-	(*UpdateKbDocRequest)(nil),               // 81: aipb.UpdateKbDocRequest
-	(*UpdateKbDocResponse)(nil),              // 82: aipb.UpdateKbDocResponse
-	(*DeleteKbDocRequest)(nil),               // 83: aipb.DeleteKbDocRequest
-	(*RetryKbDocRequest)(nil),                // 84: aipb.RetryKbDocRequest
-	(*RetryKbDocResponse)(nil),               // 85: aipb.RetryKbDocResponse
-	(*KbIngestBatchInfo)(nil),                // 86: aipb.KbIngestBatchInfo
-	(*KbIngestJobInfo)(nil),                  // 87: aipb.KbIngestJobInfo
-	(*ListKbImportsRequest)(nil),             // 88: aipb.ListKbImportsRequest
-	(*ListKbImportsResponse)(nil),            // 89: aipb.ListKbImportsResponse
-	(*GetKbImportRequest)(nil),               // 90: aipb.GetKbImportRequest
-	(*GetKbImportResponse)(nil),              // 91: aipb.GetKbImportResponse
-	(*StopKbImportRequest)(nil),              // 92: aipb.StopKbImportRequest
-	(*KbFeedbackEvidence)(nil),               // 93: aipb.KbFeedbackEvidence
-	(*KbFeedbackReview)(nil),                 // 94: aipb.KbFeedbackReview
-	(*KbFeedbackInfo)(nil),                   // 95: aipb.KbFeedbackInfo
-	(*SetTaskFeedbackRequest)(nil),           // 96: aipb.SetTaskFeedbackRequest
-	(*KbFeedbackResponse)(nil),               // 97: aipb.KbFeedbackResponse
-	(*ListTaskFeedbackRequest)(nil),          // 98: aipb.ListTaskFeedbackRequest
-	(*ListTaskFeedbackResponse)(nil),         // 99: aipb.ListTaskFeedbackResponse
-	(*ListKbFeedbackRequest)(nil),            // 100: aipb.ListKbFeedbackRequest
-	(*ListKbFeedbackResponse)(nil),           // 101: aipb.ListKbFeedbackResponse
-	(*GetKbFeedbackRequest)(nil),             // 102: aipb.GetKbFeedbackRequest
-	(*ReviewKbFeedbackRequest)(nil),          // 103: aipb.ReviewKbFeedbackRequest
-	(*KbEvaluationDatasetInfo)(nil),          // 104: aipb.KbEvaluationDatasetInfo
-	(*ListKbEvaluationDatasetsRequest)(nil),  // 105: aipb.ListKbEvaluationDatasetsRequest
-	(*ListKbEvaluationDatasetsResponse)(nil), // 106: aipb.ListKbEvaluationDatasetsResponse
-	(*KbEvaluationInfo)(nil),                 // 107: aipb.KbEvaluationInfo
-	(*KbEvaluationResponse)(nil),             // 108: aipb.KbEvaluationResponse
-	(*StartKbEvaluationRequest)(nil),         // 109: aipb.StartKbEvaluationRequest
-	(*ListKbEvaluationsRequest)(nil),         // 110: aipb.ListKbEvaluationsRequest
-	(*ListKbEvaluationsResponse)(nil),        // 111: aipb.ListKbEvaluationsResponse
-	(*GetKbEvaluationRequest)(nil),           // 112: aipb.GetKbEvaluationRequest
-	(*StopKbEvaluationRequest)(nil),          // 113: aipb.StopKbEvaluationRequest
+	(*KbChoice)(nil),                         // 66: aipb.KbChoice
+	(*ListKbsRequest)(nil),                   // 67: aipb.ListKbsRequest
+	(*ListKbsResponse)(nil),                  // 68: aipb.ListKbsResponse
+	(*GetKbRequest)(nil),                     // 69: aipb.GetKbRequest
+	(*GetKbResponse)(nil),                    // 70: aipb.GetKbResponse
+	(*SearchKbRequest)(nil),                  // 71: aipb.SearchKbRequest
+	(*KbSearchHit)(nil),                      // 72: aipb.KbSearchHit
+	(*SearchKbResponse)(nil),                 // 73: aipb.SearchKbResponse
+	(*UpdateKbRequest)(nil),                  // 74: aipb.UpdateKbRequest
+	(*DeleteKbRequest)(nil),                  // 75: aipb.DeleteKbRequest
+	(*CreateKbDocRequest)(nil),               // 76: aipb.CreateKbDocRequest
+	(*CreateKbDocResponse)(nil),              // 77: aipb.CreateKbDocResponse
+	(*ListKbDocsRequest)(nil),                // 78: aipb.ListKbDocsRequest
+	(*ListKbDocsResponse)(nil),               // 79: aipb.ListKbDocsResponse
+	(*GetKbDocRequest)(nil),                  // 80: aipb.GetKbDocRequest
+	(*GetKbDocResponse)(nil),                 // 81: aipb.GetKbDocResponse
+	(*UpdateKbDocRequest)(nil),               // 82: aipb.UpdateKbDocRequest
+	(*UpdateKbDocResponse)(nil),              // 83: aipb.UpdateKbDocResponse
+	(*DeleteKbDocRequest)(nil),               // 84: aipb.DeleteKbDocRequest
+	(*RetryKbDocRequest)(nil),                // 85: aipb.RetryKbDocRequest
+	(*RetryKbDocResponse)(nil),               // 86: aipb.RetryKbDocResponse
+	(*KbIngestBatchInfo)(nil),                // 87: aipb.KbIngestBatchInfo
+	(*KbIngestJobInfo)(nil),                  // 88: aipb.KbIngestJobInfo
+	(*ListKbImportsRequest)(nil),             // 89: aipb.ListKbImportsRequest
+	(*ListKbImportsResponse)(nil),            // 90: aipb.ListKbImportsResponse
+	(*GetKbImportRequest)(nil),               // 91: aipb.GetKbImportRequest
+	(*GetKbImportResponse)(nil),              // 92: aipb.GetKbImportResponse
+	(*StopKbImportRequest)(nil),              // 93: aipb.StopKbImportRequest
+	(*KbFeedbackEvidence)(nil),               // 94: aipb.KbFeedbackEvidence
+	(*KbFeedbackReview)(nil),                 // 95: aipb.KbFeedbackReview
+	(*KbFeedbackInfo)(nil),                   // 96: aipb.KbFeedbackInfo
+	(*SetTaskFeedbackRequest)(nil),           // 97: aipb.SetTaskFeedbackRequest
+	(*KbFeedbackResponse)(nil),               // 98: aipb.KbFeedbackResponse
+	(*ListTaskFeedbackRequest)(nil),          // 99: aipb.ListTaskFeedbackRequest
+	(*ListTaskFeedbackResponse)(nil),         // 100: aipb.ListTaskFeedbackResponse
+	(*ListKbFeedbackRequest)(nil),            // 101: aipb.ListKbFeedbackRequest
+	(*ListKbFeedbackResponse)(nil),           // 102: aipb.ListKbFeedbackResponse
+	(*GetKbFeedbackRequest)(nil),             // 103: aipb.GetKbFeedbackRequest
+	(*ReviewKbFeedbackRequest)(nil),          // 104: aipb.ReviewKbFeedbackRequest
+	(*KbEvaluationDatasetInfo)(nil),          // 105: aipb.KbEvaluationDatasetInfo
+	(*ListKbEvaluationDatasetsRequest)(nil),  // 106: aipb.ListKbEvaluationDatasetsRequest
+	(*ListKbEvaluationDatasetsResponse)(nil), // 107: aipb.ListKbEvaluationDatasetsResponse
+	(*KbEvaluationInfo)(nil),                 // 108: aipb.KbEvaluationInfo
+	(*KbEvaluationResponse)(nil),             // 109: aipb.KbEvaluationResponse
+	(*StartKbEvaluationRequest)(nil),         // 110: aipb.StartKbEvaluationRequest
+	(*ListKbEvaluationsRequest)(nil),         // 111: aipb.ListKbEvaluationsRequest
+	(*ListKbEvaluationsResponse)(nil),        // 112: aipb.ListKbEvaluationsResponse
+	(*GetKbEvaluationRequest)(nil),           // 113: aipb.GetKbEvaluationRequest
+	(*StopKbEvaluationRequest)(nil),          // 114: aipb.StopKbEvaluationRequest
 }
 var file_application_ai_rpc_desc_ai_proto_depIdxs = []int32{
 	4,   // 0: aipb.UsageSummaryInfo.period:type_name -> aipb.UsagePeriod
@@ -9443,7 +9636,7 @@ var file_application_ai_rpc_desc_ai_proto_depIdxs = []int32{
 	11,  // 9: aipb.ListUsagePoliciesResponse.list:type_name -> aipb.UsagePolicyInfo
 	1,   // 10: aipb.ListUsagePoliciesResponse.page:type_name -> aipb.PageResponse
 	3,   // 11: aipb.SetUsagePolicyRequest.actor:type_name -> aipb.Actor
-	71,  // 12: aipb.ChatMessage.sources:type_name -> aipb.KbSearchHit
+	72,  // 12: aipb.ChatMessage.sources:type_name -> aipb.KbSearchHit
 	3,   // 13: aipb.CreateConversationRequest.actor:type_name -> aipb.Actor
 	17,  // 14: aipb.CreateConversationResponse.conversation:type_name -> aipb.ConversationInfo
 	3,   // 15: aipb.ListConversationsRequest.actor:type_name -> aipb.Actor
@@ -9502,173 +9695,174 @@ var file_application_ai_rpc_desc_ai_proto_depIdxs = []int32{
 	62,  // 68: aipb.ListKbsResponse.list:type_name -> aipb.KbInfo
 	1,   // 69: aipb.ListKbsResponse.page:type_name -> aipb.PageResponse
 	32,  // 70: aipb.ListKbsResponse.capabilities:type_name -> aipb.Capabilities
-	3,   // 71: aipb.GetKbRequest.actor:type_name -> aipb.Actor
-	62,  // 72: aipb.GetKbResponse.kb:type_name -> aipb.KbInfo
-	32,  // 73: aipb.GetKbResponse.capabilities:type_name -> aipb.Capabilities
-	3,   // 74: aipb.SearchKbRequest.actor:type_name -> aipb.Actor
-	71,  // 75: aipb.SearchKbResponse.list:type_name -> aipb.KbSearchHit
-	3,   // 76: aipb.UpdateKbRequest.actor:type_name -> aipb.Actor
-	3,   // 77: aipb.DeleteKbRequest.actor:type_name -> aipb.Actor
-	3,   // 78: aipb.CreateKbDocRequest.actor:type_name -> aipb.Actor
-	63,  // 79: aipb.CreateKbDocResponse.doc:type_name -> aipb.KbDocInfo
-	3,   // 80: aipb.ListKbDocsRequest.actor:type_name -> aipb.Actor
-	0,   // 81: aipb.ListKbDocsRequest.page:type_name -> aipb.PageRequest
-	63,  // 82: aipb.ListKbDocsResponse.list:type_name -> aipb.KbDocInfo
-	1,   // 83: aipb.ListKbDocsResponse.page:type_name -> aipb.PageResponse
-	3,   // 84: aipb.GetKbDocRequest.actor:type_name -> aipb.Actor
-	63,  // 85: aipb.GetKbDocResponse.doc:type_name -> aipb.KbDocInfo
-	3,   // 86: aipb.UpdateKbDocRequest.actor:type_name -> aipb.Actor
-	63,  // 87: aipb.UpdateKbDocResponse.doc:type_name -> aipb.KbDocInfo
-	3,   // 88: aipb.DeleteKbDocRequest.actor:type_name -> aipb.Actor
-	3,   // 89: aipb.RetryKbDocRequest.actor:type_name -> aipb.Actor
-	63,  // 90: aipb.RetryKbDocResponse.doc:type_name -> aipb.KbDocInfo
-	63,  // 91: aipb.KbIngestJobInfo.doc:type_name -> aipb.KbDocInfo
-	3,   // 92: aipb.ListKbImportsRequest.actor:type_name -> aipb.Actor
-	0,   // 93: aipb.ListKbImportsRequest.page:type_name -> aipb.PageRequest
-	86,  // 94: aipb.ListKbImportsResponse.list:type_name -> aipb.KbIngestBatchInfo
-	1,   // 95: aipb.ListKbImportsResponse.page:type_name -> aipb.PageResponse
-	3,   // 96: aipb.GetKbImportRequest.actor:type_name -> aipb.Actor
-	86,  // 97: aipb.GetKbImportResponse.batch:type_name -> aipb.KbIngestBatchInfo
-	87,  // 98: aipb.GetKbImportResponse.list:type_name -> aipb.KbIngestJobInfo
-	3,   // 99: aipb.StopKbImportRequest.actor:type_name -> aipb.Actor
-	93,  // 100: aipb.KbFeedbackReview.evidence:type_name -> aipb.KbFeedbackEvidence
-	94,  // 101: aipb.KbFeedbackInfo.review:type_name -> aipb.KbFeedbackReview
-	3,   // 102: aipb.SetTaskFeedbackRequest.actor:type_name -> aipb.Actor
-	95,  // 103: aipb.KbFeedbackResponse.feedback:type_name -> aipb.KbFeedbackInfo
-	3,   // 104: aipb.ListTaskFeedbackRequest.actor:type_name -> aipb.Actor
-	95,  // 105: aipb.ListTaskFeedbackResponse.list:type_name -> aipb.KbFeedbackInfo
-	3,   // 106: aipb.ListKbFeedbackRequest.actor:type_name -> aipb.Actor
-	0,   // 107: aipb.ListKbFeedbackRequest.page:type_name -> aipb.PageRequest
-	95,  // 108: aipb.ListKbFeedbackResponse.list:type_name -> aipb.KbFeedbackInfo
-	1,   // 109: aipb.ListKbFeedbackResponse.page:type_name -> aipb.PageResponse
-	3,   // 110: aipb.GetKbFeedbackRequest.actor:type_name -> aipb.Actor
-	3,   // 111: aipb.ReviewKbFeedbackRequest.actor:type_name -> aipb.Actor
-	94,  // 112: aipb.ReviewKbFeedbackRequest.review:type_name -> aipb.KbFeedbackReview
-	3,   // 113: aipb.ListKbEvaluationDatasetsRequest.actor:type_name -> aipb.Actor
-	104, // 114: aipb.ListKbEvaluationDatasetsResponse.list:type_name -> aipb.KbEvaluationDatasetInfo
-	107, // 115: aipb.KbEvaluationResponse.evaluation:type_name -> aipb.KbEvaluationInfo
-	3,   // 116: aipb.StartKbEvaluationRequest.actor:type_name -> aipb.Actor
-	3,   // 117: aipb.ListKbEvaluationsRequest.actor:type_name -> aipb.Actor
-	0,   // 118: aipb.ListKbEvaluationsRequest.page:type_name -> aipb.PageRequest
-	107, // 119: aipb.ListKbEvaluationsResponse.list:type_name -> aipb.KbEvaluationInfo
-	1,   // 120: aipb.ListKbEvaluationsResponse.page:type_name -> aipb.PageResponse
-	3,   // 121: aipb.GetKbEvaluationRequest.actor:type_name -> aipb.Actor
-	3,   // 122: aipb.StopKbEvaluationRequest.actor:type_name -> aipb.Actor
-	7,   // 123: aipb.AiService.GetUsageSummary:input_type -> aipb.UsageQueryRequest
-	7,   // 124: aipb.AiService.ListUsageCalls:input_type -> aipb.UsageQueryRequest
-	12,  // 125: aipb.AiService.GetUsagePolicy:input_type -> aipb.UsagePolicyRequest
-	7,   // 126: aipb.AiService.AdminGetUsageSummary:input_type -> aipb.UsageQueryRequest
-	7,   // 127: aipb.AiService.AdminListUsageCalls:input_type -> aipb.UsageQueryRequest
-	7,   // 128: aipb.AiService.AdminListUsagePolicies:input_type -> aipb.UsageQueryRequest
-	15,  // 129: aipb.AiService.AdminSetUsagePolicy:input_type -> aipb.SetUsagePolicyRequest
-	105, // 130: aipb.AiService.ListKbEvaluationDatasets:input_type -> aipb.ListKbEvaluationDatasetsRequest
-	109, // 131: aipb.AiService.StartKbEvaluation:input_type -> aipb.StartKbEvaluationRequest
-	110, // 132: aipb.AiService.ListKbEvaluations:input_type -> aipb.ListKbEvaluationsRequest
-	112, // 133: aipb.AiService.GetKbEvaluation:input_type -> aipb.GetKbEvaluationRequest
-	113, // 134: aipb.AiService.StopKbEvaluation:input_type -> aipb.StopKbEvaluationRequest
-	96,  // 135: aipb.AiService.SetTaskFeedback:input_type -> aipb.SetTaskFeedbackRequest
-	98,  // 136: aipb.AiService.ListTaskFeedback:input_type -> aipb.ListTaskFeedbackRequest
-	100, // 137: aipb.AiService.ListKbFeedback:input_type -> aipb.ListKbFeedbackRequest
-	102, // 138: aipb.AiService.GetKbFeedback:input_type -> aipb.GetKbFeedbackRequest
-	103, // 139: aipb.AiService.ReviewKbFeedback:input_type -> aipb.ReviewKbFeedbackRequest
-	18,  // 140: aipb.AiService.CreateConversation:input_type -> aipb.CreateConversationRequest
-	20,  // 141: aipb.AiService.ListConversations:input_type -> aipb.ListConversationsRequest
-	24,  // 142: aipb.AiService.GetConversation:input_type -> aipb.GetConversationRequest
-	26,  // 143: aipb.AiService.DeleteConversation:input_type -> aipb.DeleteConversationRequest
-	21,  // 144: aipb.AiService.UpdateConversation:input_type -> aipb.UpdateConversationRequest
-	22,  // 145: aipb.AiService.SetMessageFeedback:input_type -> aipb.SetMessageFeedbackRequest
-	27,  // 146: aipb.AiService.SendMessageStream:input_type -> aipb.SendMessageRequest
-	31,  // 147: aipb.AiService.ListTools:input_type -> aipb.ListToolsRequest
-	35,  // 148: aipb.AiService.CreateWorkflow:input_type -> aipb.CreateWorkflowRequest
-	37,  // 149: aipb.AiService.ListWorkflows:input_type -> aipb.ListWorkflowsRequest
-	39,  // 150: aipb.AiService.GetWorkflow:input_type -> aipb.GetWorkflowRequest
-	41,  // 151: aipb.AiService.UpdateWorkflow:input_type -> aipb.UpdateWorkflowRequest
-	43,  // 152: aipb.AiService.ListWorkflowRevisions:input_type -> aipb.ListWorkflowRevisionsRequest
-	45,  // 153: aipb.AiService.GetWorkflowRevision:input_type -> aipb.GetWorkflowRevisionRequest
-	47,  // 154: aipb.AiService.RestoreWorkflowRevision:input_type -> aipb.RestoreWorkflowRevisionRequest
-	48,  // 155: aipb.AiService.DeleteWorkflow:input_type -> aipb.DeleteWorkflowRequest
-	49,  // 156: aipb.AiService.RunWorkflow:input_type -> aipb.RunWorkflowRequest
-	51,  // 157: aipb.AiService.RunDraft:input_type -> aipb.RunDraftRequest
-	64,  // 158: aipb.AiService.CreateKb:input_type -> aipb.CreateKbRequest
-	66,  // 159: aipb.AiService.ListKbs:input_type -> aipb.ListKbsRequest
-	68,  // 160: aipb.AiService.GetKb:input_type -> aipb.GetKbRequest
-	70,  // 161: aipb.AiService.SearchKb:input_type -> aipb.SearchKbRequest
-	73,  // 162: aipb.AiService.UpdateKb:input_type -> aipb.UpdateKbRequest
-	74,  // 163: aipb.AiService.DeleteKb:input_type -> aipb.DeleteKbRequest
-	75,  // 164: aipb.AiService.CreateKbDoc:input_type -> aipb.CreateKbDocRequest
-	77,  // 165: aipb.AiService.ListKbDocs:input_type -> aipb.ListKbDocsRequest
-	79,  // 166: aipb.AiService.GetKbDoc:input_type -> aipb.GetKbDocRequest
-	81,  // 167: aipb.AiService.UpdateKbDoc:input_type -> aipb.UpdateKbDocRequest
-	83,  // 168: aipb.AiService.DeleteKbDoc:input_type -> aipb.DeleteKbDocRequest
-	84,  // 169: aipb.AiService.RetryKbDoc:input_type -> aipb.RetryKbDocRequest
-	88,  // 170: aipb.AiService.ListKbImports:input_type -> aipb.ListKbImportsRequest
-	90,  // 171: aipb.AiService.GetKbImport:input_type -> aipb.GetKbImportRequest
-	92,  // 172: aipb.AiService.StopKbImport:input_type -> aipb.StopKbImportRequest
-	55,  // 173: aipb.AiService.ListAgentTasks:input_type -> aipb.ListAgentTasksRequest
-	57,  // 174: aipb.AiService.GetAgentTask:input_type -> aipb.GetAgentTaskRequest
-	59,  // 175: aipb.AiService.ApproveTask:input_type -> aipb.ApproveTaskRequest
-	60,  // 176: aipb.AiService.RejectTask:input_type -> aipb.RejectTaskRequest
-	61,  // 177: aipb.AiService.CancelTask:input_type -> aipb.CancelTaskRequest
-	8,   // 178: aipb.AiService.GetUsageSummary:output_type -> aipb.UsageSummaryResponse
-	10,  // 179: aipb.AiService.ListUsageCalls:output_type -> aipb.ListUsageCallsResponse
-	13,  // 180: aipb.AiService.GetUsagePolicy:output_type -> aipb.UsagePolicyResponse
-	8,   // 181: aipb.AiService.AdminGetUsageSummary:output_type -> aipb.UsageSummaryResponse
-	10,  // 182: aipb.AiService.AdminListUsageCalls:output_type -> aipb.ListUsageCallsResponse
-	14,  // 183: aipb.AiService.AdminListUsagePolicies:output_type -> aipb.ListUsagePoliciesResponse
-	13,  // 184: aipb.AiService.AdminSetUsagePolicy:output_type -> aipb.UsagePolicyResponse
-	106, // 185: aipb.AiService.ListKbEvaluationDatasets:output_type -> aipb.ListKbEvaluationDatasetsResponse
-	108, // 186: aipb.AiService.StartKbEvaluation:output_type -> aipb.KbEvaluationResponse
-	111, // 187: aipb.AiService.ListKbEvaluations:output_type -> aipb.ListKbEvaluationsResponse
-	108, // 188: aipb.AiService.GetKbEvaluation:output_type -> aipb.KbEvaluationResponse
-	108, // 189: aipb.AiService.StopKbEvaluation:output_type -> aipb.KbEvaluationResponse
-	97,  // 190: aipb.AiService.SetTaskFeedback:output_type -> aipb.KbFeedbackResponse
-	99,  // 191: aipb.AiService.ListTaskFeedback:output_type -> aipb.ListTaskFeedbackResponse
-	101, // 192: aipb.AiService.ListKbFeedback:output_type -> aipb.ListKbFeedbackResponse
-	97,  // 193: aipb.AiService.GetKbFeedback:output_type -> aipb.KbFeedbackResponse
-	97,  // 194: aipb.AiService.ReviewKbFeedback:output_type -> aipb.KbFeedbackResponse
-	19,  // 195: aipb.AiService.CreateConversation:output_type -> aipb.CreateConversationResponse
-	23,  // 196: aipb.AiService.ListConversations:output_type -> aipb.ListConversationsResponse
-	25,  // 197: aipb.AiService.GetConversation:output_type -> aipb.GetConversationResponse
-	2,   // 198: aipb.AiService.DeleteConversation:output_type -> aipb.NoDataResponse
-	19,  // 199: aipb.AiService.UpdateConversation:output_type -> aipb.CreateConversationResponse
-	2,   // 200: aipb.AiService.SetMessageFeedback:output_type -> aipb.NoDataResponse
-	29,  // 201: aipb.AiService.SendMessageStream:output_type -> aipb.StreamChunk
-	33,  // 202: aipb.AiService.ListTools:output_type -> aipb.ListToolsResponse
-	36,  // 203: aipb.AiService.CreateWorkflow:output_type -> aipb.CreateWorkflowResponse
-	38,  // 204: aipb.AiService.ListWorkflows:output_type -> aipb.ListWorkflowsResponse
-	40,  // 205: aipb.AiService.GetWorkflow:output_type -> aipb.GetWorkflowResponse
-	40,  // 206: aipb.AiService.UpdateWorkflow:output_type -> aipb.GetWorkflowResponse
-	44,  // 207: aipb.AiService.ListWorkflowRevisions:output_type -> aipb.ListWorkflowRevisionsResponse
-	46,  // 208: aipb.AiService.GetWorkflowRevision:output_type -> aipb.GetWorkflowRevisionResponse
-	40,  // 209: aipb.AiService.RestoreWorkflowRevision:output_type -> aipb.GetWorkflowResponse
-	2,   // 210: aipb.AiService.DeleteWorkflow:output_type -> aipb.NoDataResponse
-	50,  // 211: aipb.AiService.RunWorkflow:output_type -> aipb.RunWorkflowResponse
-	50,  // 212: aipb.AiService.RunDraft:output_type -> aipb.RunWorkflowResponse
-	65,  // 213: aipb.AiService.CreateKb:output_type -> aipb.CreateKbResponse
-	67,  // 214: aipb.AiService.ListKbs:output_type -> aipb.ListKbsResponse
-	69,  // 215: aipb.AiService.GetKb:output_type -> aipb.GetKbResponse
-	72,  // 216: aipb.AiService.SearchKb:output_type -> aipb.SearchKbResponse
-	2,   // 217: aipb.AiService.UpdateKb:output_type -> aipb.NoDataResponse
-	2,   // 218: aipb.AiService.DeleteKb:output_type -> aipb.NoDataResponse
-	76,  // 219: aipb.AiService.CreateKbDoc:output_type -> aipb.CreateKbDocResponse
-	78,  // 220: aipb.AiService.ListKbDocs:output_type -> aipb.ListKbDocsResponse
-	80,  // 221: aipb.AiService.GetKbDoc:output_type -> aipb.GetKbDocResponse
-	82,  // 222: aipb.AiService.UpdateKbDoc:output_type -> aipb.UpdateKbDocResponse
-	2,   // 223: aipb.AiService.DeleteKbDoc:output_type -> aipb.NoDataResponse
-	85,  // 224: aipb.AiService.RetryKbDoc:output_type -> aipb.RetryKbDocResponse
-	89,  // 225: aipb.AiService.ListKbImports:output_type -> aipb.ListKbImportsResponse
-	91,  // 226: aipb.AiService.GetKbImport:output_type -> aipb.GetKbImportResponse
-	91,  // 227: aipb.AiService.StopKbImport:output_type -> aipb.GetKbImportResponse
-	56,  // 228: aipb.AiService.ListAgentTasks:output_type -> aipb.ListAgentTasksResponse
-	58,  // 229: aipb.AiService.GetAgentTask:output_type -> aipb.GetAgentTaskResponse
-	2,   // 230: aipb.AiService.ApproveTask:output_type -> aipb.NoDataResponse
-	2,   // 231: aipb.AiService.RejectTask:output_type -> aipb.NoDataResponse
-	2,   // 232: aipb.AiService.CancelTask:output_type -> aipb.NoDataResponse
-	178, // [178:233] is the sub-list for method output_type
-	123, // [123:178] is the sub-list for method input_type
-	123, // [123:123] is the sub-list for extension type_name
-	123, // [123:123] is the sub-list for extension extendee
-	0,   // [0:123] is the sub-list for field type_name
+	66,  // 71: aipb.ListKbsResponse.choices:type_name -> aipb.KbChoice
+	3,   // 72: aipb.GetKbRequest.actor:type_name -> aipb.Actor
+	62,  // 73: aipb.GetKbResponse.kb:type_name -> aipb.KbInfo
+	32,  // 74: aipb.GetKbResponse.capabilities:type_name -> aipb.Capabilities
+	3,   // 75: aipb.SearchKbRequest.actor:type_name -> aipb.Actor
+	72,  // 76: aipb.SearchKbResponse.list:type_name -> aipb.KbSearchHit
+	3,   // 77: aipb.UpdateKbRequest.actor:type_name -> aipb.Actor
+	3,   // 78: aipb.DeleteKbRequest.actor:type_name -> aipb.Actor
+	3,   // 79: aipb.CreateKbDocRequest.actor:type_name -> aipb.Actor
+	63,  // 80: aipb.CreateKbDocResponse.doc:type_name -> aipb.KbDocInfo
+	3,   // 81: aipb.ListKbDocsRequest.actor:type_name -> aipb.Actor
+	0,   // 82: aipb.ListKbDocsRequest.page:type_name -> aipb.PageRequest
+	63,  // 83: aipb.ListKbDocsResponse.list:type_name -> aipb.KbDocInfo
+	1,   // 84: aipb.ListKbDocsResponse.page:type_name -> aipb.PageResponse
+	3,   // 85: aipb.GetKbDocRequest.actor:type_name -> aipb.Actor
+	63,  // 86: aipb.GetKbDocResponse.doc:type_name -> aipb.KbDocInfo
+	3,   // 87: aipb.UpdateKbDocRequest.actor:type_name -> aipb.Actor
+	63,  // 88: aipb.UpdateKbDocResponse.doc:type_name -> aipb.KbDocInfo
+	3,   // 89: aipb.DeleteKbDocRequest.actor:type_name -> aipb.Actor
+	3,   // 90: aipb.RetryKbDocRequest.actor:type_name -> aipb.Actor
+	63,  // 91: aipb.RetryKbDocResponse.doc:type_name -> aipb.KbDocInfo
+	63,  // 92: aipb.KbIngestJobInfo.doc:type_name -> aipb.KbDocInfo
+	3,   // 93: aipb.ListKbImportsRequest.actor:type_name -> aipb.Actor
+	0,   // 94: aipb.ListKbImportsRequest.page:type_name -> aipb.PageRequest
+	87,  // 95: aipb.ListKbImportsResponse.list:type_name -> aipb.KbIngestBatchInfo
+	1,   // 96: aipb.ListKbImportsResponse.page:type_name -> aipb.PageResponse
+	3,   // 97: aipb.GetKbImportRequest.actor:type_name -> aipb.Actor
+	87,  // 98: aipb.GetKbImportResponse.batch:type_name -> aipb.KbIngestBatchInfo
+	88,  // 99: aipb.GetKbImportResponse.list:type_name -> aipb.KbIngestJobInfo
+	3,   // 100: aipb.StopKbImportRequest.actor:type_name -> aipb.Actor
+	94,  // 101: aipb.KbFeedbackReview.evidence:type_name -> aipb.KbFeedbackEvidence
+	95,  // 102: aipb.KbFeedbackInfo.review:type_name -> aipb.KbFeedbackReview
+	3,   // 103: aipb.SetTaskFeedbackRequest.actor:type_name -> aipb.Actor
+	96,  // 104: aipb.KbFeedbackResponse.feedback:type_name -> aipb.KbFeedbackInfo
+	3,   // 105: aipb.ListTaskFeedbackRequest.actor:type_name -> aipb.Actor
+	96,  // 106: aipb.ListTaskFeedbackResponse.list:type_name -> aipb.KbFeedbackInfo
+	3,   // 107: aipb.ListKbFeedbackRequest.actor:type_name -> aipb.Actor
+	0,   // 108: aipb.ListKbFeedbackRequest.page:type_name -> aipb.PageRequest
+	96,  // 109: aipb.ListKbFeedbackResponse.list:type_name -> aipb.KbFeedbackInfo
+	1,   // 110: aipb.ListKbFeedbackResponse.page:type_name -> aipb.PageResponse
+	3,   // 111: aipb.GetKbFeedbackRequest.actor:type_name -> aipb.Actor
+	3,   // 112: aipb.ReviewKbFeedbackRequest.actor:type_name -> aipb.Actor
+	95,  // 113: aipb.ReviewKbFeedbackRequest.review:type_name -> aipb.KbFeedbackReview
+	3,   // 114: aipb.ListKbEvaluationDatasetsRequest.actor:type_name -> aipb.Actor
+	105, // 115: aipb.ListKbEvaluationDatasetsResponse.list:type_name -> aipb.KbEvaluationDatasetInfo
+	108, // 116: aipb.KbEvaluationResponse.evaluation:type_name -> aipb.KbEvaluationInfo
+	3,   // 117: aipb.StartKbEvaluationRequest.actor:type_name -> aipb.Actor
+	3,   // 118: aipb.ListKbEvaluationsRequest.actor:type_name -> aipb.Actor
+	0,   // 119: aipb.ListKbEvaluationsRequest.page:type_name -> aipb.PageRequest
+	108, // 120: aipb.ListKbEvaluationsResponse.list:type_name -> aipb.KbEvaluationInfo
+	1,   // 121: aipb.ListKbEvaluationsResponse.page:type_name -> aipb.PageResponse
+	3,   // 122: aipb.GetKbEvaluationRequest.actor:type_name -> aipb.Actor
+	3,   // 123: aipb.StopKbEvaluationRequest.actor:type_name -> aipb.Actor
+	7,   // 124: aipb.AiService.GetUsageSummary:input_type -> aipb.UsageQueryRequest
+	7,   // 125: aipb.AiService.ListUsageCalls:input_type -> aipb.UsageQueryRequest
+	12,  // 126: aipb.AiService.GetUsagePolicy:input_type -> aipb.UsagePolicyRequest
+	7,   // 127: aipb.AiService.AdminGetUsageSummary:input_type -> aipb.UsageQueryRequest
+	7,   // 128: aipb.AiService.AdminListUsageCalls:input_type -> aipb.UsageQueryRequest
+	7,   // 129: aipb.AiService.AdminListUsagePolicies:input_type -> aipb.UsageQueryRequest
+	15,  // 130: aipb.AiService.AdminSetUsagePolicy:input_type -> aipb.SetUsagePolicyRequest
+	106, // 131: aipb.AiService.ListKbEvaluationDatasets:input_type -> aipb.ListKbEvaluationDatasetsRequest
+	110, // 132: aipb.AiService.StartKbEvaluation:input_type -> aipb.StartKbEvaluationRequest
+	111, // 133: aipb.AiService.ListKbEvaluations:input_type -> aipb.ListKbEvaluationsRequest
+	113, // 134: aipb.AiService.GetKbEvaluation:input_type -> aipb.GetKbEvaluationRequest
+	114, // 135: aipb.AiService.StopKbEvaluation:input_type -> aipb.StopKbEvaluationRequest
+	97,  // 136: aipb.AiService.SetTaskFeedback:input_type -> aipb.SetTaskFeedbackRequest
+	99,  // 137: aipb.AiService.ListTaskFeedback:input_type -> aipb.ListTaskFeedbackRequest
+	101, // 138: aipb.AiService.ListKbFeedback:input_type -> aipb.ListKbFeedbackRequest
+	103, // 139: aipb.AiService.GetKbFeedback:input_type -> aipb.GetKbFeedbackRequest
+	104, // 140: aipb.AiService.ReviewKbFeedback:input_type -> aipb.ReviewKbFeedbackRequest
+	18,  // 141: aipb.AiService.CreateConversation:input_type -> aipb.CreateConversationRequest
+	20,  // 142: aipb.AiService.ListConversations:input_type -> aipb.ListConversationsRequest
+	24,  // 143: aipb.AiService.GetConversation:input_type -> aipb.GetConversationRequest
+	26,  // 144: aipb.AiService.DeleteConversation:input_type -> aipb.DeleteConversationRequest
+	21,  // 145: aipb.AiService.UpdateConversation:input_type -> aipb.UpdateConversationRequest
+	22,  // 146: aipb.AiService.SetMessageFeedback:input_type -> aipb.SetMessageFeedbackRequest
+	27,  // 147: aipb.AiService.SendMessageStream:input_type -> aipb.SendMessageRequest
+	31,  // 148: aipb.AiService.ListTools:input_type -> aipb.ListToolsRequest
+	35,  // 149: aipb.AiService.CreateWorkflow:input_type -> aipb.CreateWorkflowRequest
+	37,  // 150: aipb.AiService.ListWorkflows:input_type -> aipb.ListWorkflowsRequest
+	39,  // 151: aipb.AiService.GetWorkflow:input_type -> aipb.GetWorkflowRequest
+	41,  // 152: aipb.AiService.UpdateWorkflow:input_type -> aipb.UpdateWorkflowRequest
+	43,  // 153: aipb.AiService.ListWorkflowRevisions:input_type -> aipb.ListWorkflowRevisionsRequest
+	45,  // 154: aipb.AiService.GetWorkflowRevision:input_type -> aipb.GetWorkflowRevisionRequest
+	47,  // 155: aipb.AiService.RestoreWorkflowRevision:input_type -> aipb.RestoreWorkflowRevisionRequest
+	48,  // 156: aipb.AiService.DeleteWorkflow:input_type -> aipb.DeleteWorkflowRequest
+	49,  // 157: aipb.AiService.RunWorkflow:input_type -> aipb.RunWorkflowRequest
+	51,  // 158: aipb.AiService.RunDraft:input_type -> aipb.RunDraftRequest
+	64,  // 159: aipb.AiService.CreateKb:input_type -> aipb.CreateKbRequest
+	67,  // 160: aipb.AiService.ListKbs:input_type -> aipb.ListKbsRequest
+	69,  // 161: aipb.AiService.GetKb:input_type -> aipb.GetKbRequest
+	71,  // 162: aipb.AiService.SearchKb:input_type -> aipb.SearchKbRequest
+	74,  // 163: aipb.AiService.UpdateKb:input_type -> aipb.UpdateKbRequest
+	75,  // 164: aipb.AiService.DeleteKb:input_type -> aipb.DeleteKbRequest
+	76,  // 165: aipb.AiService.CreateKbDoc:input_type -> aipb.CreateKbDocRequest
+	78,  // 166: aipb.AiService.ListKbDocs:input_type -> aipb.ListKbDocsRequest
+	80,  // 167: aipb.AiService.GetKbDoc:input_type -> aipb.GetKbDocRequest
+	82,  // 168: aipb.AiService.UpdateKbDoc:input_type -> aipb.UpdateKbDocRequest
+	84,  // 169: aipb.AiService.DeleteKbDoc:input_type -> aipb.DeleteKbDocRequest
+	85,  // 170: aipb.AiService.RetryKbDoc:input_type -> aipb.RetryKbDocRequest
+	89,  // 171: aipb.AiService.ListKbImports:input_type -> aipb.ListKbImportsRequest
+	91,  // 172: aipb.AiService.GetKbImport:input_type -> aipb.GetKbImportRequest
+	93,  // 173: aipb.AiService.StopKbImport:input_type -> aipb.StopKbImportRequest
+	55,  // 174: aipb.AiService.ListAgentTasks:input_type -> aipb.ListAgentTasksRequest
+	57,  // 175: aipb.AiService.GetAgentTask:input_type -> aipb.GetAgentTaskRequest
+	59,  // 176: aipb.AiService.ApproveTask:input_type -> aipb.ApproveTaskRequest
+	60,  // 177: aipb.AiService.RejectTask:input_type -> aipb.RejectTaskRequest
+	61,  // 178: aipb.AiService.CancelTask:input_type -> aipb.CancelTaskRequest
+	8,   // 179: aipb.AiService.GetUsageSummary:output_type -> aipb.UsageSummaryResponse
+	10,  // 180: aipb.AiService.ListUsageCalls:output_type -> aipb.ListUsageCallsResponse
+	13,  // 181: aipb.AiService.GetUsagePolicy:output_type -> aipb.UsagePolicyResponse
+	8,   // 182: aipb.AiService.AdminGetUsageSummary:output_type -> aipb.UsageSummaryResponse
+	10,  // 183: aipb.AiService.AdminListUsageCalls:output_type -> aipb.ListUsageCallsResponse
+	14,  // 184: aipb.AiService.AdminListUsagePolicies:output_type -> aipb.ListUsagePoliciesResponse
+	13,  // 185: aipb.AiService.AdminSetUsagePolicy:output_type -> aipb.UsagePolicyResponse
+	107, // 186: aipb.AiService.ListKbEvaluationDatasets:output_type -> aipb.ListKbEvaluationDatasetsResponse
+	109, // 187: aipb.AiService.StartKbEvaluation:output_type -> aipb.KbEvaluationResponse
+	112, // 188: aipb.AiService.ListKbEvaluations:output_type -> aipb.ListKbEvaluationsResponse
+	109, // 189: aipb.AiService.GetKbEvaluation:output_type -> aipb.KbEvaluationResponse
+	109, // 190: aipb.AiService.StopKbEvaluation:output_type -> aipb.KbEvaluationResponse
+	98,  // 191: aipb.AiService.SetTaskFeedback:output_type -> aipb.KbFeedbackResponse
+	100, // 192: aipb.AiService.ListTaskFeedback:output_type -> aipb.ListTaskFeedbackResponse
+	102, // 193: aipb.AiService.ListKbFeedback:output_type -> aipb.ListKbFeedbackResponse
+	98,  // 194: aipb.AiService.GetKbFeedback:output_type -> aipb.KbFeedbackResponse
+	98,  // 195: aipb.AiService.ReviewKbFeedback:output_type -> aipb.KbFeedbackResponse
+	19,  // 196: aipb.AiService.CreateConversation:output_type -> aipb.CreateConversationResponse
+	23,  // 197: aipb.AiService.ListConversations:output_type -> aipb.ListConversationsResponse
+	25,  // 198: aipb.AiService.GetConversation:output_type -> aipb.GetConversationResponse
+	2,   // 199: aipb.AiService.DeleteConversation:output_type -> aipb.NoDataResponse
+	19,  // 200: aipb.AiService.UpdateConversation:output_type -> aipb.CreateConversationResponse
+	2,   // 201: aipb.AiService.SetMessageFeedback:output_type -> aipb.NoDataResponse
+	29,  // 202: aipb.AiService.SendMessageStream:output_type -> aipb.StreamChunk
+	33,  // 203: aipb.AiService.ListTools:output_type -> aipb.ListToolsResponse
+	36,  // 204: aipb.AiService.CreateWorkflow:output_type -> aipb.CreateWorkflowResponse
+	38,  // 205: aipb.AiService.ListWorkflows:output_type -> aipb.ListWorkflowsResponse
+	40,  // 206: aipb.AiService.GetWorkflow:output_type -> aipb.GetWorkflowResponse
+	40,  // 207: aipb.AiService.UpdateWorkflow:output_type -> aipb.GetWorkflowResponse
+	44,  // 208: aipb.AiService.ListWorkflowRevisions:output_type -> aipb.ListWorkflowRevisionsResponse
+	46,  // 209: aipb.AiService.GetWorkflowRevision:output_type -> aipb.GetWorkflowRevisionResponse
+	40,  // 210: aipb.AiService.RestoreWorkflowRevision:output_type -> aipb.GetWorkflowResponse
+	2,   // 211: aipb.AiService.DeleteWorkflow:output_type -> aipb.NoDataResponse
+	50,  // 212: aipb.AiService.RunWorkflow:output_type -> aipb.RunWorkflowResponse
+	50,  // 213: aipb.AiService.RunDraft:output_type -> aipb.RunWorkflowResponse
+	65,  // 214: aipb.AiService.CreateKb:output_type -> aipb.CreateKbResponse
+	68,  // 215: aipb.AiService.ListKbs:output_type -> aipb.ListKbsResponse
+	70,  // 216: aipb.AiService.GetKb:output_type -> aipb.GetKbResponse
+	73,  // 217: aipb.AiService.SearchKb:output_type -> aipb.SearchKbResponse
+	2,   // 218: aipb.AiService.UpdateKb:output_type -> aipb.NoDataResponse
+	2,   // 219: aipb.AiService.DeleteKb:output_type -> aipb.NoDataResponse
+	77,  // 220: aipb.AiService.CreateKbDoc:output_type -> aipb.CreateKbDocResponse
+	79,  // 221: aipb.AiService.ListKbDocs:output_type -> aipb.ListKbDocsResponse
+	81,  // 222: aipb.AiService.GetKbDoc:output_type -> aipb.GetKbDocResponse
+	83,  // 223: aipb.AiService.UpdateKbDoc:output_type -> aipb.UpdateKbDocResponse
+	2,   // 224: aipb.AiService.DeleteKbDoc:output_type -> aipb.NoDataResponse
+	86,  // 225: aipb.AiService.RetryKbDoc:output_type -> aipb.RetryKbDocResponse
+	90,  // 226: aipb.AiService.ListKbImports:output_type -> aipb.ListKbImportsResponse
+	92,  // 227: aipb.AiService.GetKbImport:output_type -> aipb.GetKbImportResponse
+	92,  // 228: aipb.AiService.StopKbImport:output_type -> aipb.GetKbImportResponse
+	56,  // 229: aipb.AiService.ListAgentTasks:output_type -> aipb.ListAgentTasksResponse
+	58,  // 230: aipb.AiService.GetAgentTask:output_type -> aipb.GetAgentTaskResponse
+	2,   // 231: aipb.AiService.ApproveTask:output_type -> aipb.NoDataResponse
+	2,   // 232: aipb.AiService.RejectTask:output_type -> aipb.NoDataResponse
+	2,   // 233: aipb.AiService.CancelTask:output_type -> aipb.NoDataResponse
+	179, // [179:234] is the sub-list for method output_type
+	124, // [124:179] is the sub-list for method input_type
+	124, // [124:124] is the sub-list for extension type_name
+	124, // [124:124] is the sub-list for extension extendee
+	0,   // [0:124] is the sub-list for field type_name
 }
 
 func init() { file_application_ai_rpc_desc_ai_proto_init() }
@@ -9682,14 +9876,14 @@ func file_application_ai_rpc_desc_ai_proto_init() {
 	file_application_ai_rpc_desc_ai_proto_msgTypes[41].OneofWrappers = []any{}
 	file_application_ai_rpc_desc_ai_proto_msgTypes[59].OneofWrappers = []any{}
 	file_application_ai_rpc_desc_ai_proto_msgTypes[60].OneofWrappers = []any{}
-	file_application_ai_rpc_desc_ai_proto_msgTypes[73].OneofWrappers = []any{}
+	file_application_ai_rpc_desc_ai_proto_msgTypes[74].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_application_ai_rpc_desc_ai_proto_rawDesc), len(file_application_ai_rpc_desc_ai_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   114,
+			NumMessages:   115,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

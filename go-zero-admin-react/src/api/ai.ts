@@ -1,6 +1,7 @@
 import { apiDelete, apiGet, apiPost, apiPut } from '../utils/request';
+import { ApiError } from '../utils/response';
 import type { AiRestoreWorkflowRevisionReq, AiWorkflowRevisionInfo, AiWorkflowRevisionResp } from './types';
-import type { AiKbEvaluationDatasetsResp, AiKbEvaluationInfo, AiKbEvaluationResp, AiListKbEvaluationsReq, AiStartKbEvaluationReq } from './types';
+import type { AiKbChoice, AiKbEvaluationDatasetsResp, AiKbEvaluationInfo, AiKbEvaluationResp, AiListKbEvaluationsReq, AiStartKbEvaluationReq } from './types';
 import type { AiKbDocDetailResp, AiUpdateKbDocReq } from './types';
 import type { AiKbFeedbackInfo, AiKbFeedbackResp, AiListKbFeedbackReq, AiReviewKbFeedbackReq, AiSetTaskFeedbackReq, AiTaskFeedbackResp } from './types';
 import type { AiGetTaskReq, AiKbImportResp, AiKbIngestBatchInfo, AiKbIngestReq, AiListKbDocsReq, AiListKbDocsResp, AiListKbsReq, AiListKbsResp, AiListToolsResp, AiListWorkflowsReq, AiRunDraftReq } from './types';
@@ -13,10 +14,10 @@ import type {
 } from './types';
 
 const base = '/sys/ai';
-export const fetchAiKbEvaluationDatasets = (kbId: number, signal?: AbortSignal) => apiGet<AiKbEvaluationDatasetsResp>(`${base}/kbs/${kbId}/evaluation-datasets`, undefined, { signal });
+export const fetchAiKbEvaluationDatasets = (kbId: number, signal?: AbortSignal, params?: { meta_only?: boolean; dataset_key?: string }) => apiGet<AiKbEvaluationDatasetsResp>(`${base}/kbs/${kbId}/evaluation-datasets`, params, { signal });
 export const startAiKbEvaluation = (kbId: number, data: AiStartKbEvaluationReq) => apiPost<AiKbEvaluationResp>(`${base}/kbs/${kbId}/evaluations`, data);
 export const fetchAiKbEvaluations = (kbId: number, params: AiListKbEvaluationsReq = {}, signal?: AbortSignal) => apiGet<PageResult<AiKbEvaluationInfo>>(`${base}/kbs/${kbId}/evaluations`, params, { signal });
-export const fetchAiKbEvaluation = (kbId: number, id: number, signal?: AbortSignal) => apiGet<AiKbEvaluationResp>(`${base}/kbs/${kbId}/evaluations/${id}`, undefined, { signal });
+export const fetchAiKbEvaluation = (kbId: number, id: number, signal?: AbortSignal, params?: { progress_only: true; known_observations_sha256?: string }) => apiGet<AiKbEvaluationResp>(`${base}/kbs/${kbId}/evaluations/${id}`, params, { signal });
 export const stopAiKbEvaluation = (kbId: number, id: number) => apiPost<AiKbEvaluationResp>(`${base}/kbs/${kbId}/evaluations/${id}/stop`);
 export const createAiConversation = (title?: string) => apiPost<AiConversationResp>(`${base}/conversations`, { title });
 export const fetchAiConversations = (params: AiListConversationsReq = {}) => apiGet<PageResult<AiConversationInfo>>(`${base}/conversations`, params);
@@ -47,6 +48,42 @@ export const fetchAiKbFeedback = (kbId: number, id: number, signal?: AbortSignal
 export const reviewAiKbFeedback = (kbId: number, id: number, data: AiReviewKbFeedbackReq) => apiPut<AiKbFeedbackResp>(`${base}/kbs/${kbId}/feedback/${id}/review`, data);
 export const createAiKb = (data: AiCreateKbReq) => apiPost<AiKbResp>(`${base}/kbs`, data);
 export const fetchAiKbs = (params: AiListKbsReq = {}, signal?: AbortSignal) => apiGet<AiListKbsResp>(`${base}/kbs`, params, { signal });
+export async function fetchAiKbChoices(params: AiListKbsReq & { id?: number } = {}, signal?: AbortSignal) {
+  const filteredId = params.query?.trim() && params.id;
+  const pageSize = 100;
+  const lookup = filteredId ? { ...params, page: 1, page_size: pageSize } : params;
+  const result = await apiGet<{ choices?: AiKbChoice[]; list?: AiKbChoice[]; total: number }>(`${base}/kbs`, { ...lookup, choices_only: true }, { signal });
+  if (Array.isArray(result.choices)) return { list: result.choices, total: result.total };
+  // 旧服务忽略投影参数时，仅保留选项字段。历史选库可能位于当前列表页之外。
+  if (!Array.isArray(result.list)) throw new Error('知识库选项目录不可用');
+  const choices = result.list.map(({ id, name }) => ({ id, name }));
+  if (!params.id) return { list: choices, total: result.total };
+  const selected = choices.find(kb => kb.id === params.id);
+  if (selected) return { list: [selected], total: 1 };
+  if (filteredId) {
+    // 旧服务按 id 降序分页。组合筛选沿用数据库的名称/描述匹配和排序规则。
+    let first = 2, last = Math.ceil(result.total / pageSize);
+    if (!choices.length || filteredId >= choices[choices.length - 1].id) return { list: [], total: 0 };
+    while (first <= last) {
+      const page = Math.floor((first + last) / 2);
+      const { list } = await fetchAiKbs({ query: params.query, page, page_size: pageSize }, signal);
+      const match = list.find(kb => kb.id === filteredId);
+      if (match) return { list: [{ id: match.id, name: match.name }], total: 1 };
+      if (!list.length || filteredId > list[0].id) last = page - 1;
+      else if (filteredId < list[list.length - 1].id) first = page + 1;
+      else break;
+    }
+    return { list: [], total: 0 };
+  }
+  try {
+    const { kb } = await fetchAiKb(params.id, signal);
+    if (kb.id !== params.id) throw new Error('知识库标识不符');
+    return { list: [{ id: kb.id, name: kb.name }], total: 1 };
+  } catch (error) {
+    if (error instanceof ApiError && error.code === 404) return { list: [], total: 0 };
+    throw error;
+  }
+}
 export const fetchAiKb = (id: number, signal?: AbortSignal) => apiGet<AiKbResp>(`${base}/kbs/${id}`, undefined, { signal });
 export const updateAiKb = (id: number, data: AiUpdateKbReq) => apiPut(`${base}/kbs/${id}`, data);
 export const deleteAiKb = (id: number) => apiDelete(`${base}/kbs/${id}`);

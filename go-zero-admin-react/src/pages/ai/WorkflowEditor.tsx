@@ -17,15 +17,18 @@ interface WorkflowEditorProps {
   existing: boolean;
   saving: boolean;
   saveDisabled?: boolean;
-  onSave: (draft: WorkflowDraft, definition: string) => Promise<void>;
+  canPrepareRun?: boolean;
+  onSave: (draft: WorkflowDraft, definition: string, prepareRun: boolean) => Promise<void>;
   onCancel: () => void;
   onChange?: (draft: WorkflowDraft) => void;
   knowledge?: WorkflowKnowledgeAccess;
   capabilities?: AiCapabilities;
 }
 
-export function WorkflowEditor({ initial, tools, existing, saving, saveDisabled, onSave, onCancel, onChange, knowledge, capabilities }: WorkflowEditorProps) {
+export function WorkflowEditor({ initial, tools, existing, saving, saveDisabled, canPrepareRun, onSave, onCancel, onChange, knowledge, capabilities }: WorkflowEditorProps) {
   const [form] = Form.useForm<WorkflowDraft>();
+  const enabled = Form.useWatch('enabled', { form, preserve: true }) ?? initial.enabled;
+  const prepareRun = useRef(false);
   const steps: WorkflowStepDraft[] = Form.useWatch('steps', { form, preserve: true }) ?? initial.steps;
   const [selectedKey, setSelectedKey] = useState(initial.steps[0]?.key);
   const [validationError, setValidationError] = useState('');
@@ -69,10 +72,13 @@ export function WorkflowEditor({ initial, tools, existing, saving, saveDisabled,
     let definition: string;
     try { definition = serializeWorkflow(draft.steps, tools); }
     catch (error) { setValidationError(error instanceof Error ? error.message : '请核对常用流程定义'); return; }
-    await onSave(draft, definition);
+    await onSave(draft, definition, prepareRun.current);
   }
 
-  return <Form form={form} layout="vertical" initialValues={initial} onValuesChange={() => onChange?.(form.getFieldsValue(true))} onFinish={onFinish} onFinishFailed={({ errorFields }) => {
+  return <Form form={form} layout="vertical" initialValues={initial} onSubmitCapture={event => {
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    prepareRun.current = submitter instanceof HTMLButtonElement && submitter.value === 'prepare-run';
+  }} onValuesChange={() => onChange?.(form.getFieldsValue(true))} onFinish={onFinish} onFinishFailed={({ errorFields }) => {
     const path = errorFields[0]?.name;
     if (path?.[0] === 'steps' && typeof path[1] === 'number' && steps[path[1]]) setSelectedKey(steps[path[1]].key);
     const first = errorFields[0];
@@ -131,7 +137,10 @@ export function WorkflowEditor({ initial, tools, existing, saving, saveDisabled,
       </div>
     </div>
     {validationError && <Alert type="error" showIcon title={validationError} />}
-    <footer className={styles.editorFooter}><Typography.Text type="secondary" className={styles.saveHint}>先试运行，再保存为常用流程</Typography.Text><Button onClick={onCancel} disabled={saving}>返回列表</Button><Button type="primary" icon={<SaveOutlined />} htmlType="submit" loading={saving} disabled={saveDisabled || !tools.length || !!missingTools.length}>保存为常用流程</Button></footer>
+    <footer className={styles.editorFooter}><Button onClick={onCancel} disabled={saving}>返回列表</Button>
+      <Button type="primary" icon={<SaveOutlined />} htmlType="submit" loading={saving} disabled={saveDisabled || !tools.length || !!missingTools.length}>保存为常用流程</Button>
+      {canPrepareRun && (!existing || enabled) && <Button htmlType="submit" value="prepare-run" disabled={saving || saveDisabled || !tools.length || !!missingTools.length}>保存并准备运行</Button>}
+    </footer>
     <Drawer open={choosing} title="按用途选择能力" size={900} onClose={() => setChoosing(false)}>
       <Input.Search allowClear placeholder="搜索分析资料、整理 JSON 等用途" onSearch={setToolSearch} />
       {viewingTool && tools.find(tool => tool.name === viewingTool) && <><Button type="link" onClick={() => setViewingTool(null)}>收起输入输出</Button><ToolDetailContent tool={tools.find(tool => tool.name === viewingTool)!} capabilities={capabilities} /></>}

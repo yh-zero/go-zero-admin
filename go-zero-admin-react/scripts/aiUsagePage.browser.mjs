@@ -68,7 +68,7 @@ async page => {
       if (failure) { await route.fulfill({ json: { code: 503, msg: '统计暂不可用', result: null } }); return; }
       result = { summary: { ...base, ...(anomalies ? { uncertain_requests: 2, partial_requests: 1, unknown_requests: 1 } : {}),
         period: { from_day: url.searchParams.get('from_day'), to_day: url.searchParams.get('to_day'), timezone: 'Asia/Shanghai' }, recording_started_at: 1, groups: [] } };
-    } else if (url.pathname.endsWith('/calls')) result = { list: failure ? [] : [call, { ...call, id: 2, usage_state: 'unknown', total_tokens: undefined }, { ...call, id: 3, usage_state: 'partial', total_tokens: 15 }], total: failure ? 0 : 3 };
+    } else if (url.pathname.endsWith('/calls')) result = { list: failure ? [] : [call, { ...call, id: 2, usage_state: 'unknown', total_tokens: undefined }, { ...call, id: 3, usage_state: 'partial', total_tokens: 15 }], total: failure ? 0 : 23 };
     else if (url.pathname.endsWith('/policies')) result = { list: url.searchParams.has('user_id') ? [policy] : [{ ...policy, owner_id: 0, inherited: false }, policy], total: url.searchParams.has('user_id') ? 1 : 2 };
     else if (url.pathname.endsWith('/policy')) result = { policy };
     else throw new Error('未预期的用量接口');
@@ -83,8 +83,14 @@ async page => {
     await page.route(pattern, routeHandler);
     await page.goto(`${origin}/ai/usage`);
     await page.getByRole('region', { name: '今日额度' }).getByText('998', { exact: true }).waitFor();
+    assert(!gets.some(url => url.pathname.endsWith('/calls')), '收起明细不应查询调用账目');
+    await page.getByRole('button', { name: '查看明细' }).click();
     await page.getByRole('cell', { name: '未取得 未取得用量', exact: true }).waitFor();
     await page.getByRole('cell', { name: '15（不完整） 部分用量', exact: true }).waitFor();
+    const summariesBeforePage = gets.filter(url => url.pathname.endsWith('/summary')).length;
+    const second = page.waitForResponse(r => r.url().includes('/calls?') && new URL(r.url()).searchParams.get('page') === '2');
+    await page.locator('.ant-pagination-item-2').click(); await second;
+    assert(gets.filter(url => url.pathname.endsWith('/summary')).length === summariesBeforePage, '明细翻页不能重读汇总');
     const groupSummary = page.getByText('按来源与模型汇总', { exact: true });
     await groupSummary.click();
     assert(await groupSummary.evaluate(node => node.parentElement.open), '分组汇总应能展开');
@@ -174,6 +180,7 @@ async page => {
     await page.goto('about:blank');
     permissions = ['sys:ai:usage:read']; gets.length = 0;
     await page.goto(`${origin}/ai/usage`);
+    await page.getByRole('button', { name: '查看明细' }).click();
     await page.getByRole('cell', { name: '未取得 未取得用量', exact: true }).waitFor();
     assert(gets.every(url => !url.pathname.includes('/admin/')), '普通身份首次加载仅读取本人用量');
     assert(await page.getByRole('tab', { name: '全局用量', exact: true }).count() === 0, '普通身份首次加载不能展示管理员入口');

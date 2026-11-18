@@ -3,7 +3,9 @@ import { queryClient } from './queryClient';
 import { cancelPendingRequests } from './requestLifecycle';
 import type { LoginResp } from '../api/types';
 import { ApiError } from './response';
+import { clearChatKnowledgeSession } from '../pages/ai/chatKnowledge';
 useAuthStore.subscribe((state, previous) => {
+  if (state.sessionId !== previous.sessionId) clearChatKnowledgeSession(previous.sessionId);
   if (state.sessionVersion === previous.sessionVersion) return;
   cancelPendingRequests();
   void queryClient.cancelQueries();

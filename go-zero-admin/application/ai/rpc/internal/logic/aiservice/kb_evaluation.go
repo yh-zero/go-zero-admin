@@ -49,7 +49,7 @@ func checkEvaluationKb(ctx context.Context, service *svc.ServiceContext, actor *
 	if service == nil || service.AiKbModel == nil || service.AiKbEvaluationModel == nil {
 		return xerr.NewErrCodeMsg(503, "知识库评测暂不可用")
 	}
-	_, err := service.AiKbModel.FindOwned(ctx, kb, actor.UserId)
+	err := service.AiKbModel.RequireOwned(ctx, kb, actor.UserId)
 	if err != nil {
 		return aiModelError(err)
 	}
@@ -89,6 +89,7 @@ func evaluationProto(row *model.KbEvaluationRow, summary bool) *aipb.KbEvaluatio
 		value.Bindings = row.Bindings
 		value.Context = row.Context
 		value.Observations = row.Observations
+		value.ObservationsSha256 = row.ObservationsSHA
 	}
 	return value
 }
