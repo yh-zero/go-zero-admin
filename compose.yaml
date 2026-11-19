@@ -1,0 +1,115 @@
+name: gozero-quickstart
+
+x-core: &core
+  build:
+    context: .
+    dockerfile: go-zero-admin/docker/quickstart/Dockerfile
+    target: core
+  restart: on-failure
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: go-zero-admin/docker/quickstart/Dockerfile
+      target: web
+    ports:
+      - "127.0.0.1:${GOZERO_DEMO_PORT:-18080}:80"
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1/ready"]
+      interval: 5s
+      timeout: 4s
+      retries: 24
+
+  api:
+    <<: *core
+    command: ["/app/api", "-f", "/app/etc/admin.yaml"]
+    volumes:
+      - ./go-zero-admin/docker/quickstart/admin-api.yaml:/app/etc/admin.yaml:ro
+    depends_on:
+      admin-rpc: { condition: service_started }
+      file-rpc: { condition: service_started }
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1:7001/ready"]
+      start_period: 15s
+      interval: 5s
+      timeout: 4s
+      retries: 24
+
+  admin-rpc:
+    <<: *core
+    command: ["/app/admin-rpc", "-f", "/app/etc/admin.yaml"]
+    volumes:
+      - ./go-zero-admin/docker/etc/admin-rpc.yaml:/app/etc/admin.yaml:ro
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  file-rpc:
+    <<: *core
+    command: ["/app/file-rpc", "-f", "/app/etc/file.yaml"]
+    environment:
+      GOZERO_DEMO_STORAGE_ENDPOINT: "http://127.0.0.1:${GOZERO_DEMO_STORAGE_PORT:-19010}"
+    volumes:
+      - ./go-zero-admin/docker/quickstart/file-rpc.yaml:/app/etc/file.yaml:ro
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      storage-init: { condition: service_completed_successfully }
+
+  mysql:
+    image: mysql:9.7
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: gozero_admin
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./go-zero-admin/data/db/init/mysql-all.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql --protocol=tcp -h127.0.0.1 -uroot gozero_admin -e 'SELECT id FROM sys_user LIMIT 1' >/dev/null"]
+      start_period: 30s
+      interval: 5s
+      timeout: 4s
+      retries: 36
+
+  redis:
+    image: redis:8
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+
+  rustfs:
+    image: rustfs/rustfs:1.0.3
+    ports:
+      - "127.0.0.1:${GOZERO_DEMO_STORAGE_PORT:-19010}:9000"
+    environment: &storage-env
+      RUSTFS_ACCESS_KEY: GOZEROLOCALROOT
+      RUSTFS_SECRET_KEY: go-zero-local-storage-root-change-me
+    volumes:
+      - rustfs_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 36
+
+  storage-init:
+    image: rustfs/rustfs:1.0.3
+    environment: *storage-env
+    depends_on:
+      rustfs: { condition: service_healthy }
+    entrypoint: ["/bin/sh", "-eu", "/init-buckets.sh"]
+    volumes:
+      - ./go-zero-admin/docker/quickstart/init-buckets.sh:/init-buckets.sh:ro
+
+volumes:
+  mysql_data:
+  redis_data:
+  rustfs_data:

@@ -12,3 +12,5 @@
 # 完整数据库快照保留导出原始字节，避免换行转换导致恢复校验值失真。
 /go-zero-admin/data/db/init/20261117/*.sql -text
 /go-zero-admin/data/db/init/20261117/*.json text eol=lf
+# 容器从 Windows 检出目录挂载此脚本，POSIX shell 需要 LF。
+/go-zero-admin/docker/quickstart/init-buckets.sh text eol=lf

@@ -109,3 +109,31 @@ jobs:
       - name: 构建前端
         working-directory: go-zero-admin-react
         run: pnpm exec vite build
+
+  docker-quickstart:
+    name: Docker 全新克隆登录验收
+    if: github.event_name != 'push' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: 检出代码和子模块
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: 安装项目指定的 Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: go-zero-admin-react/package.json
+          package-manager-cache: false
+
+      - name: 安装验收用 Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/quickstart-browser" --no-package-lock --ignore-scripts playwright-core@1.56.1
+          node "$RUNNER_TEMP/quickstart-browser/node_modules/playwright-core/cli.js" install --with-deps --only-shell chromium
+
+      - name: 验证默认启动、浏览器登录、用户列表及数据持久化
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/quickstart-browser/node_modules/playwright-core
+        run: node .github/scripts/docker-quickstart.mjs
