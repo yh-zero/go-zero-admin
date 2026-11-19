@@ -26,3 +26,6 @@ Thumbs.db
 
 # 日志
 *.log
+
+# 浏览器验收产生的页面快照、截图和下载文件
+.playwright-cli/
