@@ -8,7 +8,8 @@
 
 | 运行方式 | 后端配置 | 如何指定服务地址 |
 |---|---|---|
-| Compose | [docker/etc](../go-zero-admin/docker/etc) 下的 YAML 挂载到容器 | 使用 Compose 服务名和容器端口 |
+| 基础后台演示（仓库根目录 Compose） | API 与 file-rpc 的 YAML 来自 [docker/quickstart](../go-zero-admin/docker/quickstart)，admin-rpc 使用 [docker/etc/admin-rpc.yaml](../go-zero-admin/docker/etc/admin-rpc.yaml) | 容器间使用服务名和容器端口，浏览器使用[演示端口](#基础后台演示) |
+| 完整平台开发栈（后端目录 Compose） | [docker/etc](../go-zero-admin/docker/etc) 下的 YAML 挂载到容器 | 使用 Compose 服务名和容器端口 |
 | 宿主 `go run` | [application](../go-zero-admin/application) 中各模块的 `api/etc` 或 `rpc/etc` | 使用宿主地址和映射端口，`-f` 指定实际加载的 YAML |
 
 YAML 的 `${变量名}` 由使用 `UseEnv()` 的加载入口从**进程环境**展开。完整平台的 `--env-file` 供应编排文件插值；AI/App 通过服务的 `env_file` 注入进程，API 和 tenant-rpc 的代理地址由 `environment` 注入。宿主运行需在启动终端设置相应环境变量。下表为完整平台开发栈的端口。[平台 Compose 配置](../go-zero-admin/docker-compose.yml)
