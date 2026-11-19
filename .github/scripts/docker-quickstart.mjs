@@ -50,7 +50,7 @@ async function checkStack(captchaEnabled) {
         } else {
           assert.equal(result.enabled, captchaEnabled, '验证码开关未生效');
           assert.equal(Boolean(result.captcha_id), captchaEnabled, '验证码 ID 与开关不符');
-          assert.equal(result.image_base64.startsWith('data:image/'), captchaEnabled, '验证码图片与开关不符');
+          assert(captchaEnabled ? result.image_base64.startsWith('data:image/') : result.image_base64 === '', '验证码图片与开关不符');
         }
       }
       return;
@@ -108,7 +108,10 @@ try {
   started = true;
   compose(['up', '-d', '--build', '--wait']);
   await checkStack(true);
-  console.log('空卷启动成功，默认返回图形验证码');
+  await page.goto(`${origin}/login`);
+  await page.getByRole('img', { name: '登录验证码' }).waitFor();
+  await page.goto('about:blank');
+  console.log('空卷启动成功，登录页显示默认图形验证码');
   compose(['up', '-d', '--no-deps', '--wait', 'admin-rpc'], override);
   await checkStack(false);
   await checkUserList(page);
