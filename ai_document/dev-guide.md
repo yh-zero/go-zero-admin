@@ -1,6 +1,6 @@
 # go-zero-admin 开发手册
 
-本手册使用 Windows PowerShell 命令。容器运行 Linux；后端构建脚本在宿主上交叉编译 Linux/amd64 二进制。准备 Docker、Docker Compose、Go、Node 和 pnpm。具体版本见 [go.mod](../go-zero-admin/go.mod) 和 [package.json](../go-zero-admin-react/package.json)。第一次安装可从[快速开始](../README.md#快速开始)进入。
+首次运行基础后台请从[快速开始](../README.md#快速开始)进入，仓库根目录的 Compose 在容器内构建前后端。本手册还提供[完整平台开发栈](#完整平台开发栈)的 Windows PowerShell 命令，供开发 AI、App、租户功能或在宿主上调试服务时使用。
 
 ## 1. 开发环境与配置
 
@@ -8,10 +8,11 @@
 
 | 运行方式 | 后端配置 | 如何指定服务地址 |
 |---|---|---|
-| Compose | [docker/etc](../go-zero-admin/docker/etc) 下的 YAML 挂载到容器 | 使用 Compose 服务名和容器端口 |
+| 基础后台演示（仓库根目录 Compose） | API 与 file-rpc 的 YAML 来自 [docker/quickstart](../go-zero-admin/docker/quickstart)，admin-rpc 使用 [docker/etc/admin-rpc.yaml](../go-zero-admin/docker/etc/admin-rpc.yaml) | 容器间使用服务名和容器端口，浏览器使用[演示端口](#基础后台演示) |
+| 完整平台开发栈（后端目录 Compose） | [docker/etc](../go-zero-admin/docker/etc) 下的 YAML 挂载到容器 | 使用 Compose 服务名和容器端口 |
 | 宿主 `go run` | [application](../go-zero-admin/application) 中各模块的 `api/etc` 或 `rpc/etc` | 使用宿主地址和映射端口，`-f` 指定实际加载的 YAML |
 
-YAML 的 `${变量名}` 由使用 `UseEnv()` 的加载入口从**进程环境**展开。Compose 的 `--env-file` 供应编排文件插值；AI/App 通过服务的 `env_file` 注入进程，API 和 tenant-rpc 的代理地址由 `environment` 注入。宿主运行需在启动终端设置相应环境变量。修改 YAML 中的字面值时，检查正在使用的那套配置。[Compose 配置](../go-zero-admin/docker-compose.yml)
+YAML 的 `${变量名}` 由使用 `UseEnv()` 的加载入口从**进程环境**展开。完整平台的 `--env-file` 供应编排文件插值；AI/App 通过服务的 `env_file` 注入进程，API 和 tenant-rpc 的代理地址由 `environment` 注入。宿主运行需在启动终端设置相应环境变量。下表为完整平台开发栈的端口。[平台 Compose 配置](../go-zero-admin/docker-compose.yml)
 
 | 服务 | 默认宿主地址 | 容器内 |
 |---|---|---|
@@ -49,7 +50,7 @@ if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .en
 
 ### AI 本地开发免图形验证码
 
-AI 本机开发、联调和验收默认使用本地覆盖配置。第一次配置时，将后端 `docker/etc/admin-rpc.yaml` 复制为 `docker/etc/admin-rpc.ai-dev.local.yaml`，把副本中的 `Captcha.Enabled` 改为 `false`。已有副本先核对，保留本地设置。在后端目录创建 `docker-compose.ai-dev.local.yaml`：
+AI 在本机使用完整平台开发栈联调和验收时，默认使用本地覆盖配置。第一次配置时，将后端 `docker/etc/admin-rpc.yaml` 复制为 `docker/etc/admin-rpc.ai-dev.local.yaml`，把副本中的 `Captcha.Enabled` 改为 `false`。已有副本先核对，保留本地设置。在后端目录创建 `docker-compose.ai-dev.local.yaml`：
 
 ```yaml
 services:
@@ -62,7 +63,25 @@ services:
 
 ## 2. 构建、启动与就绪检查
 
-### 选择启动配置
+### 基础后台演示
+
+从仓库根目录运行 `docker compose up -d --build --wait`。Compose 项目名为 `gozero-quickstart`，包括 Web、API、admin-rpc、file-rpc、MySQL、Redis 和 RustFS。首次启动在独立的空 MySQL 卷中导入[初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql)，再次启动会沿用原数据。
+
+浏览器访问[就绪接口](http://127.0.0.1:18080/ready)，确认 `code` 为 `200` 且 `result.ready` 为 `true`，再按[快速开始](../README.md#快速开始)登录并打开用户列表。启动失败时，从同一目录运行 `docker compose ps -a` 查看服务状态，运行 `docker compose logs --tail 50` 查看启动日志。`storage-init` 创建文件服务使用的公开桶和私有桶，完成后显示 `Exited (0)`。
+
+演示 Web 和对象存储只绑定本机回环地址。Web 默认端口为 `18080`，对象存储默认端口为 `19010`。如果端口已占用，在当前 PowerShell 终端设置对应变量后启动，例如：
+
+```powershell
+$env:GOZERO_DEMO_PORT = '18081'
+$env:GOZERO_DEMO_STORAGE_PORT = '19011'
+docker compose up -d --build --wait
+```
+
+此例从 `http://127.0.0.1:18081` 访问后台。在仓库根目录运行 `docker compose stop` 可停用演示并保留数据卷。下次启动沿用所选端口；更换终端时先重新设置自定义端口变量。
+
+### 完整平台开发栈
+
+准备支持 `linux/amd64` 容器的 Docker、Docker Compose 2.24 或更新版本，以及 Go 1.27.3、Node.js 24 和 pnpm 11.28.5。版本来源见 [go.mod](../go-zero-admin/go.mod) 与 [package.json](../go-zero-admin-react/package.json)。首次构建在宿主机编译一个 API 和五个 RPC，再单独启动 Vite 开发服务器。
 
 在后端目录准备好上文的 `.env.local`。标准开发栈使用下面一行。在同一个 PowerShell 终端执行后续命令。
 
