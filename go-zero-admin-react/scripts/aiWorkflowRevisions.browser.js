@@ -123,6 +123,13 @@ async (page) => {
   await page.waitForURL('**/ai/workflows');
   check(updates.length === 2 && updates[1].expected_revision === 4, '人工核对后的保存使用新版本4');
   check(restores.length === 2 && restores[0].expected_revision === 2 && restores[1].expected_revision === 3, '恢复未知后只有人工新操作才提交另一条件版本');
+  permissions.push('sys:ai:workflow:run');
+  await page.goto(`${origin}/ai/workflows/71/edit`);
+  await page.getByRole('button', { name: '保存并准备运行' }).click();
+  const confirmRun = page.getByRole('dialog', { name: '确认运行常用流程' });
+  await confirmRun.waitFor();
+  check(updates.length === 3 && unexpected.length === 0, '准备运行只能保存，再打开确认；不能自动提交运行');
+  await confirmRun.getByRole('button', { name: /取\s*消/ }).click();
   permissions = ['sys:ai:workflow:list'];
   await page.reload();
   await page.getByRole('button', { name: '我的未保存草稿', exact: true }).click();

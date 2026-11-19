@@ -33,8 +33,8 @@ type Store interface {
 	EnsureCollection(ctx context.Context) error
 	// Upsert 批量写入/覆盖向量点
 	Upsert(ctx context.Context, points []Point) error
-	// Search 按 owner（必选）与 kb（0 为全部）过滤检索 topK
-	Search(ctx context.Context, vector []float32, ownerID, kbID int64, topK int) ([]Hit, error)
+	// Search 在 topK 截断之前按归属、库和文档限制候选。kbID/docID 为 0 表示不加对应限制。
+	Search(ctx context.Context, vector []float32, ownerID, kbID, docID int64, topK int) ([]Hit, error)
 	// Delete 按 point ID 删除（不存在的 ID 不视为错误）
 	Delete(ctx context.Context, ids []uint64) error
 	// DeleteByKb 按 kb_id 过滤删除（知识库级联删除用）

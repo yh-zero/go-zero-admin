@@ -42,9 +42,9 @@ type integrationQueryVectorStore struct {
 	searches int
 }
 
-func (s *integrationQueryVectorStore) Search(ctx context.Context, v []float32, owner, kb int64, limit int) ([]vectordb.Hit, error) {
+func (s *integrationQueryVectorStore) Search(ctx context.Context, v []float32, owner, kb, doc int64, limit int) ([]vectordb.Hit, error) {
 	s.searches++
-	return s.Store.Search(ctx, v, owner, kb, limit)
+	return s.Store.Search(ctx, v, owner, kb, doc, limit)
 }
 
 // 组合回归仅使用显式隔离 Redis/MySQL/Qdrant；Embedding 固定为本地 httptest。
@@ -159,6 +159,11 @@ func TestKbQueryVectorCacheRealDependenciesRecheckFacts(t *testing.T) {
 	embedder, ai := queryVectorFixture(t, func(w http.ResponseWriter, _ *http.Request) { embeds.Add(1); queryVectorReply(w) }, nil)
 	qstore := &integrationQueryVectorStore{Store: actual}
 	searcher := &kbSearcher{store: qstore, embedder: embedder, chunks: model.NewAiKbChunkModel(conn, conf), snippetBudget: 1000, queryVectors: newKbQueryVectorCache(rcache, embedder, ai)}
+	t.Run("单篇制度在向量排序前限域且从事实源复核", func(t *testing.T) {
+		localEmbedder, _ := queryVectorFixture(t, func(w http.ResponseWriter, _ *http.Request) { queryVectorReply(w) }, nil)
+		documentSearcher := &kbSearcher{store: actual, embedder: localEmbedder, chunks: searcher.chunks, snippetBudget: 1000}
+		verifyDocumentRecall(t, ctx, db, actual, documentSearcher, owner, kb)
+	})
 	query := "权限审批条件"
 	for range 2 {
 		hits, err := searcher.Search(ctx, owner, kb, query)

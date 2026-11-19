@@ -59,11 +59,11 @@ func (s *RecoveringStore) Upsert(ctx context.Context, points []Point) error {
 	return s.Store.Upsert(ctx, points)
 }
 
-func (s *RecoveringStore) Search(ctx context.Context, vector []float32, ownerID, kbID int64, topK int) ([]Hit, error) {
+func (s *RecoveringStore) Search(ctx context.Context, vector []float32, ownerID, kbID, docID int64, topK int) ([]Hit, error) {
 	if err := s.EnsureCollection(ctx); err != nil {
 		return nil, err
 	}
-	return s.Store.Search(ctx, vector, ownerID, kbID, topK)
+	return s.Store.Search(ctx, vector, ownerID, kbID, docID, topK)
 }
 
 func (s *RecoveringStore) Delete(ctx context.Context, ids []uint64) error {

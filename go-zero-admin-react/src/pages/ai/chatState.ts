@@ -59,10 +59,12 @@ export function createMessageSender(send: (request: AiSendMessageReq, handlers: 
   }
 
   return {
-    start(conversationId: number, content: string, handlers: AiStreamHandlers = {}, knowledge: Pick<AiSendMessageReq, 'kb_id' | 'grounded'> = {}): MessageAttempt | null {
+    start(conversationId: number, content: string, handlers: AiStreamHandlers = {}, knowledge: Pick<AiSendMessageReq, 'kb_id' | 'doc_id' | 'grounded'> = {}): MessageAttempt | null {
       if (active || validateMessageContent(content)) return null;
       if (knowledge.grounded && (!(knowledge.kb_id && knowledge.kb_id > 0) || new TextEncoder().encode(content).length > 2000)) return null;
-      return begin({ request: { request_id: newId(), conversation_id: conversationId || createdConversationId, content, ...knowledge }, startedAt: Date.now() }, handlers);
+      const { kb_id, doc_id, grounded } = knowledge;
+      if (doc_id !== undefined && (!Number.isSafeInteger(doc_id) || doc_id < 0 || (doc_id > 0 && !grounded))) return null;
+      return begin({ request: { request_id: newId(), conversation_id: conversationId || createdConversationId, content, kb_id, doc_id, grounded }, startedAt: Date.now() }, handlers);
     },
     // 重查复用原请求 ID，确认服务端是否已处理，不会新建调用。
     recheck(handlers: AiStreamHandlers = {}) { return previous ? begin(previous, handlers) : null; },

@@ -167,7 +167,7 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
       navigate('/ai/workflows');
     } });
   }
-  async function save(draft: WorkflowDraft, definition: string) {
+  async function save(draft: WorkflowDraft, definition: string, prepareRun: boolean) {
     if (submissionRef.current !== 'idle' || conflict || toolsQuery.isFetching || toolsQuery.error || existing && (detail.isFetching || detail.error)) return;
     let request: AiUpdateWorkflowReq | undefined;
     try { if (existing) request = workflowUpdateRequest(draft, definition, baseSnapshot.current); }
@@ -176,8 +176,8 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
     liveDraft.current = draft;
     setSubmissionState('submitting');
     try {
-      if (request) await update.mutateAsync(request);
-      else await create.mutateAsync({ name: draft.name.trim(), definition, interval_seconds: 0 });
+      const saved = request ? await update.mutateAsync(request)
+        : await create.mutateAsync({ name: draft.name.trim(), definition, interval_seconds: 0 });
       if (!isCurrent()) return;
       try { clearWorkflowDraft(sessionStorage, storageKey); } catch { setStorageError('保存成功，但草稿清除失败。请勿重复创建，返回列表核对。'); setSubmissionState('unknown'); return; }
       allowLeave.current = true;
@@ -187,7 +187,8 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
       if (existing) void client.invalidateQueries({ queryKey: aiWorkspaceKeys.workflowRevisions(scope, workflowId) });
       void client.invalidateQueries({ queryKey: aiWorkspaceKeys.workflows(scope) });
       void message.success(existing ? '常用流程已保存，可开始运行' : '常用流程已创建，可开始运行');
-      navigate('/ai/workflows');
+      navigate(prepareRun && can('sys:ai:workflow:run') && saved.workflow.enabled === 1
+        ? `/ai/workflows?run=${saved.workflow.id}` : '/ai/workflows');
     } catch (error) {
       if (!isCurrent()) return;
       setSubmissionState(!(error instanceof ApiError) || error.code >= 500 ? 'unknown' : 'idle');
@@ -220,7 +221,8 @@ function WorkflowEditorPageSession({ scope, workflowId }: { scope: AiWorkspaceSc
     {seed ? <div className={styles.editorWorkspace}><Card className={styles.editorCard}>
       {(toolsQuery.isFetching || existing && detail.isFetching) && <Alert type="info" title="正在核对工具和已保存内容，当前草稿已保留，核对完成后可保存。" />}
       {kbStepWithoutAccess && <Alert type="warning" title="当前步骤需要查看知识库权限，请联系管理员授权后继续保存。" />}
-      <WorkflowEditor key={seed.key} initial={seed.draft} tools={tools} capabilities={toolsQuery.data?.capabilities} knowledge={{ scope, canRead: canReadKnowledge }} existing={existing} saving={writing} saveDisabled={submission !== 'idle' || conflict || toolsQuery.isFetching || !!toolsQuery.error || !tools.length || !!kbStepWithoutAccess || existing && (detail.isFetching || !!detail.error)} onChange={changeDraft} onSave={save} onCancel={() => navigate('/ai/workflows')} />
+      <WorkflowEditor key={seed.key} initial={seed.draft} tools={tools} capabilities={toolsQuery.data?.capabilities} knowledge={{ scope, canRead: canReadKnowledge }} existing={existing} saving={writing}
+        canPrepareRun={can('sys:ai:workflow:run')} saveDisabled={submission !== 'idle' || conflict || toolsQuery.isFetching || !!toolsQuery.error || !tools.length || !!kbStepWithoutAccess || existing && (detail.isFetching || !!detail.error)} onChange={changeDraft} onSave={save} onCancel={() => navigate('/ai/workflows')} />
     </Card><DeferredWorkflowRun scope={scope} guard={guard} draft={previewDraft ?? seed.draft} tools={tools} capabilities={toolsQuery.data?.capabilities} initialInput={fromTaskId ? sourceTask.data?.task.input : undefined} attemptId={`editor:${workflowId}`} disabled={submission !== 'idle' || toolsQuery.isFetching || !!toolsQuery.error || !!kbStepWithoutAccess} /></div> : !definitionError && !toolsQuery.error && (!existing || !detail.error) && <Spin className="route-spinner" />}
     {historyOpen && existing && detail.data && <AsyncContent load={loadHistory} componentProps={{ scope, workflow: detail.data.workflow, currentVerified, guard, onRefresh: () => detail.refetch(), onClose: () => setHistoryOpen(false) }} />}
   </div>;

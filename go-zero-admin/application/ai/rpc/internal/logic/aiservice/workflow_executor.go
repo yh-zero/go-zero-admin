@@ -277,6 +277,8 @@ func messageProto(row *model.MessageRow) *aipb.ChatMessage {
 	}
 	calls := "[]"
 	message := ""
+	var kbID, docID int64
+	var grounded bool
 	sources := make([]*aipb.KbSearchHit, 0)
 	feedback, feedbackNote := "", ""
 	if strings.HasPrefix(strings.TrimSpace(row.ToolCalls), "[") && json.Valid([]byte(row.ToolCalls)) {
@@ -284,6 +286,12 @@ func messageProto(row *model.MessageRow) *aipb.ChatMessage {
 	} else {
 		var record callRecord
 		if json.Unmarshal([]byte(row.ToolCalls), &record) == nil && record.Version == 1 {
+			if record.DocID > 0 {
+				kbID, docID = record.KbID, record.DocID
+				grounded = true
+			} else if record.Grounded != nil {
+				kbID, grounded = record.KbID, *record.Grounded
+			}
 			if row.Role == "assistant" && record.Calls != nil {
 				data, _ := json.Marshal(record.Calls)
 				calls = string(data)
@@ -291,13 +299,13 @@ func messageProto(row *model.MessageRow) *aipb.ChatMessage {
 			message = record.Error
 			if row.Role == "assistant" {
 				for _, hit := range record.Sources {
-					sources = append(sources, &aipb.KbSearchHit{ChunkId: hit.ChunkID, KbId: hit.KbID, DocId: hit.DocID, DocTitle: hit.DocTitle, Snippet: hit.Snippet, Score: hit.Score})
+					sources = append(sources, &aipb.KbSearchHit{ChunkId: hit.ChunkID, KbId: hit.KbID, DocId: hit.DocID, DocTitle: hit.DocTitle, DocVersion: hit.DocVersion, Snippet: hit.Snippet, Score: hit.Score})
 				}
 				feedback, feedbackNote = record.Feedback, record.FeedbackNote
 			}
 		}
 	}
-	return &aipb.ChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: calls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: status, Error: message, Sources: sources, Feedback: feedback, FeedbackNote: feedbackNote}
+	return &aipb.ChatMessage{Id: row.Id, Role: row.Role, Content: row.Content, ToolCalls: calls, Tokens: row.Tokens, CreatedAt: row.CreatedAt, Status: status, Error: message, Sources: sources, Feedback: feedback, FeedbackNote: feedbackNote, KbId: kbID, DocId: docID, Grounded: grounded}
 }
 func workflowProto(row *model.WorkflowRow) *aipb.WorkflowInfo {
 	return &aipb.WorkflowInfo{Id: row.Id, Name: row.Name, Definition: row.Definition, IntervalSeconds: row.IntervalSeconds, Enabled: row.Enabled, NextRunAt: row.NextRunAt, CreatedBy: row.CreatedBy, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, StepCount: row.StepCount, Revision: row.RevisionSeq}

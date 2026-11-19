@@ -1,5 +1,7 @@
 .markdown { min-width: 0; overflow-wrap: anywhere; line-height: 1.7; }
 .line { white-space: pre-wrap; min-height: 1em; }
+.citation { border: 0; padding: 0 2px; background: none; font: inherit; color: var(--ant-color-link); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.citation:focus-visible { outline: 2px solid var(--ant-color-primary); outline-offset: 2px; }
 .heading { font-weight: 600; font-size: 1.1em; margin: 12px 0 6px; }
 .listLine { display: flex; align-items: baseline; gap: 10px; padding-left: 8px; }
 .markdown blockquote { border-left: 3px solid var(--ant-color-border); padding-left: 12px; margin: 8px 0; color: var(--ant-color-text-secondary); }

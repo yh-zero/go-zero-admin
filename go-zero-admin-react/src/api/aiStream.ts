@@ -132,8 +132,10 @@ function validMessage(value: unknown, id: number, role: string): value is AiChat
   return message.id === id && message.role === role && message.status === 'succeeded' && message.error === ''
     && typeof message.content === 'string' && typeof message.tool_calls === 'string'
     && nonNegativeInteger(message.tokens) && nonNegativeInteger(message.created_at)
+    && (message.kb_id === undefined || nonNegativeInteger(message.kb_id)) && (message.doc_id === undefined || nonNegativeInteger(message.doc_id))
     && (message.sources === undefined || Array.isArray(message.sources) && message.sources.length <= 20 && message.sources.every(hit => hit && typeof hit === 'object'
-      && positiveInteger(hit.chunk_id) && positiveInteger(hit.kb_id) && positiveInteger(hit.doc_id) && typeof hit.doc_title === 'string' && typeof hit.snippet === 'string' && typeof hit.score === 'number' && Number.isFinite(hit.score)))
+      && positiveInteger(hit.chunk_id) && positiveInteger(hit.kb_id) && positiveInteger(hit.doc_id) && (hit.doc_version === undefined || nonNegativeInteger(hit.doc_version))
+      && typeof hit.doc_title === 'string' && typeof hit.snippet === 'string' && typeof hit.score === 'number' && Number.isFinite(hit.score)))
     && (message.feedback === undefined || ['', 'helpful', 'irrelevant_source', 'missing_knowledge'].includes(message.feedback))
     && (message.feedback_note === undefined || typeof message.feedback_note === 'string');
 }
@@ -149,6 +151,8 @@ function readResult(value: unknown, meta: AiStreamMeta, request: AiSendMessageRe
   if (result.conversation_id !== meta.conversation_id || !validMessage(result.user_message, meta.user_message_id, 'user')
     || !validMessage(result.ai_message, meta.ai_message_id, 'assistant') || result.user_message.content !== request.content
     || (result.conversation !== null && !validConversation(result.conversation, result.conversation_id))) throw protocolError();
+  if (request.doc_id && [result.user_message, result.ai_message].some(message =>
+    message.doc_id !== request.doc_id || message.kb_id !== request.kb_id || message.sources?.some(hit => hit.doc_id !== request.doc_id || hit.kb_id !== request.kb_id))) throw protocolError();
   return result;
 }
 function toApiError(raw: string): ApiError {

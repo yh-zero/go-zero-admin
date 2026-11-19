@@ -12,6 +12,21 @@ test('SafeMarkdown 保留分析标签原文并维持现有聊天渲染', async t
     const { SafeMarkdown } = await server.ssrLoadModule('/src/pages/ai/SafeMarkdown.tsx');
     const render = content => renderToStaticMarkup(createElement(SafeMarkdown, { content }));
 
+    await t.test('只有真实来源范围内的正文编号可以打开，代码、转义和链接保留含义', () => {
+      const content = ['依据 [1][2]，**补充 [1]**；越界 [3] [0] [01]。',
+        '\u0060[1]\u0060 与 \\[2] 和 [1](https://example.test)，[2](javascript:bad)。',
+        '\u0060\u0060\u0060', '[1]', '\u0060\u0060\u0060',
+        '| 条款 | 依据 |', '| --- | --- |', '| 住宿 | [2] |'].join('\n');
+      const markup = renderToStaticMarkup(createElement(SafeMarkdown, { content, citations: { count: 2, open() {} } }));
+      assert.equal((markup.match(/aria-label="查看引用 \[1\]"/g) ?? []).length, 2);
+      assert.equal((markup.match(/aria-label="查看引用 \[2\]"/g) ?? []).length, 2);
+      assert.doesNotMatch(markup, /查看引用 \[(?:3|0|01)\]/);
+      assert.match(markup, /<code>\[1\]<\/code>/);
+      assert.match(markup, /<a href="https:\/\/example.test"[^>]*>1<\/a>/);
+      assert.match(markup, /\[2\]\(javascript:bad\)/);
+      assert.doesNotMatch(render(content), /查看引用/);
+    });
+
     await t.test('后端转义的标点按文字展示且不会激活内联语法', () => {
       const cases = [
         ['版本1\\.0的a\\-b：五万元 [1]', '版本1.0的a-b：五万元 [1]'],

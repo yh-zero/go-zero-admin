@@ -38,11 +38,15 @@ func analysisCandidateHits(n int) []KbSearchHit {
 
 func TestKbAnalyzeUsesAnalysisCandidatesAndRenumbersOnlyCitations(t *testing.T) {
 	s := &candidateAnalysisSearcher{hits: analysisCandidateHits(20)}
+	s.hits[2].DocVersion = 7
 	_, c := analysisFixture()
 	c.response.Content = `{"answers":[{"target":"字段[12]","state":"supported","text":"两项实际事实。","citations":[12,3]}]}`
 	out, err := NewKbAnalyze(s, func(context.Context, int64, int64) error { return nil }, c, 32000).Execute(WithActor(context.Background(), 7), []byte(`{"kb_id":3,"query":"分析字段[12]"}`))
 	if err != nil {
 		t.Fatalf("低排名真实候选必须可引用: %v", err)
+	}
+	if strings.Contains(out, `"doc_version"`) {
+		t.Fatal("聊天定位字段不得改变既有工作流分析 v1 的来源字段集合")
 	}
 	var got KbAnalysisResult
 	var sent struct {

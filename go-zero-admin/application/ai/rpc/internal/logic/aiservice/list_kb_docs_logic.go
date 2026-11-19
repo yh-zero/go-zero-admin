@@ -33,17 +33,13 @@ func (l *ListKbDocsLogic) ListKbDocs(in *aipb.ListKbDocsRequest) (*aipb.ListKbDo
 	if !utf8.ValidString(in.Query) || utf8.RuneCountInString(in.Query) > 128 || (in.Status != "" && in.Status != "ready" && in.Status != "pending" && in.Status != "failed") {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
-	counts, err := l.svcCtx.AiKbDocModel.CountsInKb(l.ctx, in.KbId, in.Actor.UserId)
+	result, err := l.svcCtx.AiKbDocModel.ReadPage(l.ctx, in.KbId, in.Actor.UserId, page, size, strings.TrimSpace(in.Query), in.Status, in.MetaOnly)
 	if err != nil {
 		return nil, aiModelError(err)
 	}
-	rows, total, err := l.svcCtx.AiKbDocModel.SearchInKb(l.ctx, in.KbId, in.Actor.UserId, page, size, strings.TrimSpace(in.Query), in.Status)
-	if err != nil {
-		return nil, aiModelError(err)
-	}
-	list := make([]*aipb.KbDocInfo, 0, len(rows))
-	for _, r := range rows {
+	list := make([]*aipb.KbDocInfo, 0, len(result.Rows))
+	for _, r := range result.Rows {
 		list = append(list, kbDocRowToPb(r))
 	}
-	return &aipb.ListKbDocsResponse{List: list, Page: &aipb.PageResponse{Total: total}, ReadyCount: counts.ReadyCount, PendingCount: counts.PendingCount, FailedCount: counts.FailedCount}, nil
+	return &aipb.ListKbDocsResponse{List: list, Page: &aipb.PageResponse{Total: result.Total}, ReadyCount: result.Ready, PendingCount: result.Pending, FailedCount: result.Failed, PageSignature: result.Signature}, nil
 }

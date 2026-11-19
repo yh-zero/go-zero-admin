@@ -6,8 +6,6 @@
 
 24题中运维、AI各12题，每组8开发、4初始预留，共16题development、8题validation。20个有据题包含4个部分未知，另外4题在指定库无答案。分类为8跨文档、6多事实、2背景指令、4部分未知、4无答案；所有跨文档问题均限定同一个逻辑知识库，不要求或允许跨用户检索。
 
-validation仅表示初始预留编排。先用development核对旧构建基线及开发；最终验收时才首次执行validation，并在测量记录中记下首次使用时间。任何题一旦执行或据其调参，就属于已使用数据，不能继续宣称独立holdout。编题者能够查看本文件，分组本身也不证明统计独立性。旧32/40/12/14题及失败夹具保持原样。
-
 ## 中文检查项
 
 每题`checks`与`answer.required_groups`一一对应，`required_group`为0起始索引，`label`用于页面展示，`kind`为`fact`、`condition`、`risk`或`unknown`。当前题目的检查项使用事实、条件和风险分类，不另建评分规则；关键风险本身也放进原有事实字符串组，而非仅写在说明中。例如初始化题分别检查删除/DROP、重建、非升级脚本及重置前置条件。
@@ -16,57 +14,30 @@ validation仅表示初始预留编排。先用development核对旧构建基线�
 
 事实组给出来源中的至少一种表述及常见回答备选，证据组只在对应文档查找。它们仍是NFKC与空白规范化后的词法筛查，不能识别所有否定、指代、条件归属和同义改写。不能因为答案是另一种正确措辞就改旧记录求绿，也不能把有据事实缺失全归为词法误报；需对照问题、当时答案及实际引用复核。
 
-## 场景范围
+24 道题都已执行并复核。每题 ID、原始提问、事实组与各题的证据见[原 24 题](business-acceptance-cases.json)。页面与 CLI 使用同一份冻结题集。
 
-题目ID均以`acceptance-`开头。
+## 24题校准版
 
-| 分组 | 后缀 | 主要检查内容 |
-|---|---|---|
-| development | dev-init-destructive | 已有库生成model，明确DROP/重建风险及授权/确认/备份条件 |
-| development | dev-code-and-env | 同时改Go源码与环境，编译、镜像、重建及运行产物验收 |
-| development | dev-smtp-proof | SMTP服务商切换、From回退及假SMTP与真实发信边界 |
-| development | dev-host-network | 宿主API的RPC依赖、地址、容器内部端口与宿主映射 |
-| development | dev-reset-advice | 背景错误重置建议，实际要求是数据风险与重置边界 |
-| development | dev-isolated-cleanup | 隔离调试后的精确清理、既有数据/测试/备份/Git改动保留 |
-| development | dev-backup-checksum-gap | 备份校验及隔离恢复有据，实例实际SHA未知 |
-| development | dev-oncall-unknown | 指定文档未收录的实际告警阈值与值班电话 |
-| validation | val-backup-sensitive | 原始备份保留与公开提交受阻、替代文件和历史快照边界 |
-| validation | val-config-selection | 两套配置、字面值优先、env重建及ready不代替业务验收 |
-| validation | val-captcha-runtime-gap | 本地验证码配置规则有据，本实例当前实际开关未知 |
-| validation | val-runtime-build-unknown | 文档未收录的当前运行二进制实际SHA |
-| development | dev-import-pending | 接收/排队/处理/可用、停止批次、离页与待确认不重传 |
-| development | dev-history-and-owner | 修改后的版本/处理、历史来源与当前原文、创建者隔离 |
-| development | dev-text-limits | 标题字符、正文UTF-8字节、批次和两种并发范围 |
-| development | dev-capability-config | 配置状态非实时健康，缺聊天密钥降级及分析依赖 |
-| development | dev-refresh-advice | 背景错误权限/令牌建议，实际隔离、轮换及退出规则 |
-| development | dev-models-and-draft | 模型/向量未配置的管理与分析区别、未保存流程试跑 |
-| development | dev-cancel-task-gap | 取消不回滚和未知不重跑有据，实际历史任务ID未知 |
-| development | dev-sales-unknown | 指定AI资料没有公司真实回款或客户明细 |
-| validation | val-query-and-file | 2000与65536字节范围、两类无聊天场景、相似度含义 |
-| validation | val-task-owner-cancel | 他人任务越权、自己的任务取消及未知结果不重发 |
-| validation | val-edit-job-gap | 编辑、版本冲突和历史摘录有据，实际摄取作业ID未知 |
-| validation | val-invoice-unknown | 实际AI账单和发票未收录，不能用tokens或计费说明编造 |
+[证据覆盖校准版](business-evidence-cases.json)保留父版 24 题的问题、分组与 8 篇资料指纹，共 20 道有据题、4 道无答案题。旧 SHA 为 `176e20b4563d8c892b375fe45af89a4a27b78ee1d62c9686e9b49b3956696760`，新 SHA 为 `1b51cb93a575876002bd9877c4ffa2ef3ab95f43785bd5ea4a20292c8b6eb5ca`。以下六项校准依据原问和冻结资料。逐字段差异见新 JSON 的 `annotation.calibration_changes`。
 
-## 离线验证与内嵌数据
+| 场景 | 调整与依据 |
+|---|---|
+| `dev-backup-checksum-gap` | 原问关注校验、恢复环境及实例 SHA，“完整原始 SQL”移为补充复核。 |
+| `dev-refresh-advice` | 原问关注访问隔离、刷新与退出，404 移为补充复核，归属、授权和令牌轮换仍计入必答。 |
+| `val-captcha-runtime-gap` | 原问限定本机开发，生产/租户边界及核验接口移为补充，并纳入有字段和值约束的自然表述。当前实例实际开关仍须标为未知。 |
+| `dev-isolated-cleanup` | 删除对题设所给隔离端口的复述要求，移除仅支持该前提的必需文档。七组清理与保护要求保留。 |
+| `dev-text-limits` | 增加与正文 UTF-8 字节绑定的超限拒绝同义表述，仍须明确指出超限后无法提交。 |
+| `dev-capability-config` | 移除会把合法配置状态“未知”误报成无依据的全局词法警报，五组必答事实与来源要求保留。 |
 
-从仓库根执行，以下命令不会调用HTTP、模型或数据库：
+源码与环境变量同时更新、宿主与 Compose 配置选择两道实际失败的完整题目与父版相同。对比实验前后使用同一版题集和语料，校准前后的词法得分不可直接换算为质量提升。AI 辅助判断没有真人签署，两个版本均已用于回归。[同版完整测量](business-baseline.md#完整对照结果) · [实际来源与构造边界](business-evidence-fixtures.json)
+
+## 离线校验与内嵌同步
+
+从仓库根目录运行。四份源 JSON 为原 24 题、校准 24 题、32 道业务题和 14 道失败回归。服务端 `evaluation_data/` 内的副本按源文件逐字复制，原始字节参与 SHA 校验。
 
 ```powershell
-node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan --cases ai_document/ai-rag/business-acceptance-cases.json --split development
-node --test go-zero-admin/data/scripts/business-acceptance-cases.test.mjs
-
-# 校验题集、原文SHA、证据和检查项后，只复制四份源JSON的原始字节。
-node go-zero-admin/data/scripts/sync-kb-evaluation-data.mjs
-# 仅校验，不创建目录、不写文件。
+node --test go-zero-admin/data/scripts/business-acceptance-cases.test.mjs go-zero-admin/data/scripts/business-evidence-cases.test.mjs
 node go-zero-admin/data/scripts/sync-kb-evaluation-data.mjs --check
 ```
 
-同步目标固定为`go-zero-admin/application/ai/rpc/internal/logic/aiservice/evaluation_data/`中的`business-acceptance-cases.json`、`business-cases.json`、`business-failure-regression-cases.json`及新增的`business-evidence-cases.json`，供服务端`go:embed`读取。源文件是事实源，内嵌副本只作逐字复制，不手改；旧24/32/14题及新校准版分别核对冻结SHA。同步拒绝任意输出路径参数，`--check`遇到缺失或字节差异即失败；重复同步的相同文件不重写。
-
-本题集首次规划使用16开发题基线、8个validation最终首次验收；目前24题均已真实运行和阅读，不能再称为独立保留集。后续关键证据覆盖使用[派生校准版](business-evidence-cases.md)建立同SHA完整前后基线，原题和历史记录保留。认证、KB映射、运行配置及输出放入被忽略的`tmp`目录，报告/比较必须显式指定对应题集；不覆盖旧日志，不自动重试失败或未知任务。不能把本文件、离线桩或内嵌数据同步成功当作真实回答已通过。
-
-```powershell
-node go-zero-admin/data/scripts/eval-kb-quality.mjs --run --phase baseline --cases ai_document/ai-rag/business-acceptance-cases.json --split development --auth-file tmp/<本轮目录>/auth-private.json --kb-map tmp/<本轮目录>/kb-map.json --context-file tmp/<本轮目录>/context.json --output tmp/<本轮目录>/acceptance-development-before.jsonl
-```
-
-正常路径16开发题最多提交16次分析、32次逻辑查询Embedding及16次聊天；最终24题全部执行则对应24/48/24。未知题若仍有候选也可能调用聊天，具体供应商尝试数和费用需另记，失败用量未知不能按零。耗时按同题/同语料/同配置记录；原始引用、漏答、关键限制、未知范围及词法误报都应逐条复核。
+有意更新内嵌副本时运行 `node go-zero-admin/data/scripts/sync-kb-evaluation-data.mjs`，再用 `--check` 核对。完整运行、分母与对照要求见[评测入口](README.md#关键证据覆盖与完整题集基线)。

@@ -28,7 +28,7 @@ func NewListKbEvaluationDatasetsLogic(ctx context.Context, svcCtx *svc.ServiceCo
 	}
 }
 
-func (l *ListKbEvaluationDatasetsLogic) ListKbEvaluationDatasets(req *types.AiIdReq) (resp *types.AiKbEvaluationDatasetsResp, err error) {
+func (l *ListKbEvaluationDatasetsLogic) ListKbEvaluationDatasets(req *types.AiKbDatasetListReq) (resp *types.AiKbEvaluationDatasetsResp, err error) {
 	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
@@ -36,7 +36,7 @@ func (l *ListKbEvaluationDatasetsLogic) ListKbEvaluationDatasets(req *types.AiId
 	if err != nil {
 		return nil, err
 	}
-	out, err := l.svcCtx.AiRpc.ListKbEvaluationDatasets(l.ctx, &aipb.ListKbEvaluationDatasetsRequest{Actor: actor, KbId: req.Id})
+	out, err := l.svcCtx.AiRpc.ListKbEvaluationDatasets(l.ctx, &aipb.ListKbEvaluationDatasetsRequest{Actor: actor, KbId: req.Id, MetaOnly: req.MetaOnly, DatasetKey: req.DatasetKey})
 	if err != nil {
 		return nil, err
 	}

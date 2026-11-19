@@ -23,6 +23,67 @@ test('AI对话关键边界', async t => {
   const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', server: { middlewareMode: true, watch: null, ws: false } });
   try {
     const helpers = await server.ssrLoadModule('/src/pages/ai/chatState.ts');
+    await t.test('无本地选择时按最新请求恢复单篇、严格选库或普通选库，旧消息不从来源猜测范围', async () => {
+      const { latestConversationKnowledge } = await server.ssrLoadModule('/src/pages/ai/chatKnowledge.ts');
+      const doc = { id: 2, kb_id: 7, doc_id: 82 };
+      const strict = { id: 3, kb_id: 7, grounded: true };
+      const normal = { id: 4, kb_id: 8 };
+      const legacy = { id: 5, sources: [{ kb_id: 7, doc_id: 82 }] };
+      assert.deepEqual(latestConversationKnowledge([doc]), { kb_id: 7, doc_id: 82, grounded: true });
+      assert.deepEqual(latestConversationKnowledge([strict, doc]), { kb_id: 7, grounded: true });
+      assert.deepEqual(latestConversationKnowledge([doc, strict, normal]), { kb_id: 8, grounded: false });
+      assert.deepEqual(latestConversationKnowledge([normal, legacy]), { kb_id: 0, grounded: false });
+    });
+    await t.test('选库仅保存范围，按登录、部门和会话隔离；存储不可写时当前页仍能切换', async () => {
+      const { readChatKnowledge, writeChatKnowledge, clearChatKnowledgeSession } = await server.ssrLoadModule('/src/pages/ai/chatKnowledge.ts');
+      const old = Object.getOwnPropertyDescriptor(globalThis, 'sessionStorage');
+      const storage = memoryStorage();
+      Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: storage });
+      try {
+        writeChatKnowledge('source-session', null, 0, { kb_id: 7, grounded: true }, 'entry');
+        writeChatKnowledge('source-session', 2, 9, { kb_id: 8, grounded: false });
+        assert.deepEqual(readChatKnowledge('source-session', null, 0), { kb_id: 7, grounded: true, entryKey: 'entry' });
+        assert.equal(readChatKnowledge('source-session', 2, 0), undefined);
+        assert.equal(readChatKnowledge('other-session', null, 0), undefined);
+        assert.equal(readChatKnowledge('source-session', null, 9), undefined);
+        const stored = JSON.parse(storage.getItem('ai-chat-knowledge:source-session'));
+        assert.deepEqual(Object.keys(stored['[null,0]']).sort(), ['entryKey', 'grounded', 'kb_id']);
+        storage.setItem = () => { throw new Error('存储已满'); };
+        writeChatKnowledge('source-session', null, 0, { kb_id: 0, grounded: false }, 'entry');
+        assert.equal(readChatKnowledge('source-session', null, 0).kb_id, 0);
+        writeChatKnowledge('source-session', 2, 9);
+        assert.equal(readChatKnowledge('source-session', 2, 9), undefined);
+        clearChatKnowledgeSession('source-session');
+        assert.equal(readChatKnowledge('source-session', null, 0), undefined);
+      } finally {
+        if (old) Object.defineProperty(globalThis, 'sessionStorage', old);
+        else delete globalThis.sessionStorage;
+      }
+    });
+    await t.test('已发送的范围以较新的消息为准，未发送的选择和旧版选择在重查后保留', async () => {
+      const { readChatKnowledge, writeChatKnowledge, confirmChatKnowledge, latestConversationKnowledge, hasLegacyKnowledgeConflict } = await server.ssrLoadModule('/src/pages/ai/chatKnowledge.ts');
+      const session = 'scope-resolution', doc = { kb_id: 7, doc_id: 82, grounded: true }, library = { kb_id: 7, grounded: true };
+      const read = () => readChatKnowledge(session, null, 20);
+      const confirm = (choice, id) => confirmChatKnowledge(session, null, 20, choice, id);
+      writeChatKnowledge(session, null, 20, doc);
+      confirm(doc, 10);
+      assert.equal(read().confirmedMessageId, 10);
+      assert.equal(latestConversationKnowledge([], read()).doc_id, 82);
+      assert.equal(latestConversationKnowledge([{ id: 9, ...library }], read()).doc_id, 82);
+      assert.deepEqual(latestConversationKnowledge([{ id: 12, ...library }, { id: 10, ...doc }], read()), library);
+      confirm(library, 12);
+      confirm(doc, 10);
+      assert.equal(read().confirmedMessageId, 12);
+      writeChatKnowledge(session, null, 20, doc);
+      confirm(library, 12);
+      assert.equal(read().confirmedMessageId, undefined);
+      assert.equal(latestConversationKnowledge([{ id: 14, ...library }], read()).doc_id, 82);
+      confirmChatKnowledge(session, null, 20, doc, 10, true);
+      assert.equal(read().pending, true, '重查前改回同值仍是新的草稿');
+      assert.equal(hasLegacyKnowledgeConflict([{ id: 14, ...library }], read()), false, '新草稿可直接沿用');
+      assert.equal(hasLegacyKnowledgeConflict([{ id: 14, ...library }], doc), true, '来源不明的旧记录不能悄悄覆盖历史');
+      assert.equal(hasLegacyKnowledgeConflict([{ id: 14, ...doc }], doc), false);
+    });
     await t.test('消息限制按UTF8字节且保持原始正文，空白不能发送', () => {
       assert.equal(helpers.validateMessageContent('中'.repeat(5333) + 'a'), undefined);
       assert.match(helpers.validateMessageContent('中'.repeat(5334)), /16000/);
@@ -64,6 +125,8 @@ test('AI对话关键边界', async t => {
       }, () => `request-${++serial}`);
       assert.equal(sender.start(0, '中'.repeat(667), {}, { kb_id: 2, grounded: true }), null);
       assert.equal(sender.start(0, '问题', {}, { kb_id: 0, grounded: true }), null);
+      assert.equal(sender.start(0, '问题', {}, { kb_id: 2, doc_id: 82, grounded: false }), null);
+      assert.equal(sender.start(0, '问题', {}, { kb_id: 2, doc_id: -1, grounded: true }), null);
       assert.equal(serial, 0, '超限或缺少资料范围时不创建请求');
       const content = '中'.repeat(666) + 'aa';
       const first = sender.start(0, content, {}, { kb_id: 2, grounded: true });
@@ -82,15 +145,15 @@ test('AI对话关键边界', async t => {
 
     await t.test('知识库选择器按资料范围显示约束并保留读取与权限边界', async t => {
       const { ChatKnowledgePicker } = await server.ssrLoadModule('/src/pages/ai/ChatKnowledgePicker.tsx');
-      const { kbListOptions } = await server.ssrLoadModule('/src/pages/ai/workspaceQueries.ts');
+      const { kbChoiceOptions } = await server.ssrLoadModule('/src/pages/ai/knowledgeSearch.ts');
       const { useAuthStore } = await server.ssrLoadModule('/src/stores/auth.ts');
       // Zustand 的 SSR 读取初始快照，逐例设置权限后恢复，避免把权限分支替换成桩。
       const snapshot = useAuthStore.getInitialState();
       const originalPermissions = { permissionsReady: snapshot.permissionsReady, permCodes: snapshot.permCodes };
       const scope = ['picker-session', 1, 1];
       const client = new QueryClient({ defaultOptions: { queries: { retry: false, retryOnMount: false } } });
-      const listKey = kbListOptions(scope, { page: 1, page_size: 20 }).queryKey;
-      const selectedKey = ['ai-chat', ...scope, 'selected-kb', 27];
+      const listKey = kbChoiceOptions(scope, { page: 1, page_size: 20, query: '' }).queryKey;
+      const selectedKey = kbChoiceOptions(scope, { id: 27 }).queryKey;
       const kb = { id: 2, name: '团队资料', description: '', owner_id: 1, doc_count: 3, chunk_count: 6,
         ready_count: 3, pending_count: 0, failed_count: 0, created_at: 1, updated_at: 1 };
       const capabilities = { retrieval_configured: true, analysis_configured: false, ingestion_mode: 'async' };
@@ -130,13 +193,13 @@ test('AI对话关键边界', async t => {
           }
         });
 
-        await t.test('已选资料不在当前页时仍显示资料名和分页', () => {
+        await t.test('已选资料不在当前页时显示精确查回的名称，关闭时不展示分页', () => {
           reset();
           client.setQueryData(listKey, { list: [kb], total: 21, capabilities });
-          client.setQueryData(selectedKey, { ...kb, id: 27, name: '分页外资料' });
+          client.setQueryData(selectedKey, { list: [{ id: 27, name: '分页外资料' }], total: 1 });
           const markup = render({ kb_id: 27, grounded: true });
           assert.match(markup, /分页外资料/);
-          assert.match(markup, /ant-pagination/);
+          assert.doesNotMatch(markup, /ant-pagination/);
           assert.match(readSwitch(markup), /aria-checked="true"/);
           assert.match(markup, /2000 UTF-8 字节/);
         });
@@ -148,8 +211,8 @@ test('AI对话关键边界', async t => {
               status: 'error', error: new Error('资料读取失败'), fetchStatus: 'idle',
             });
             const markup = render({ kb_id: 27, grounded: true });
-            assert.match(markup, /知识库读取失败，请刷新后重试/);
-            assert.match(markup, /知识库 #27/);
+            assert.match(markup, failingKey === listKey ? /知识库加载失败/ : /无法读取已选知识库/);
+            assert.match(readSwitch(markup), /aria-checked="true"/);
           }
         });
 
@@ -159,14 +222,11 @@ test('AI对话关键边界', async t => {
             { permissionsReady: true, permCodes: ['sys:ai:conversation:list'] },
           ]) {
             reset();
+            client.clear();
             Object.assign(snapshot, permissions);
-            assert.equal(render({ kb_id: 27, grounded: true }), '');
-            const queries = client.getQueryCache().getAll();
-            assert.equal(queries.length, 2, '列表和分页外已选资料均受权限约束');
-            for (const query of queries) {
-              assert.equal(query.options.enabled, false);
-              assert.equal(query.state.fetchStatus, 'idle');
-            }
+            assert.equal(render({ kb_id: 0, grounded: false }), '');
+            assert.match(render({ kb_id: 27, grounded: true }), /已保留原资料范围/);
+            assert.equal(client.getQueryCache().getAll().length, 0, '无权限时不挂载目录或精确查询');
           }
         });
       } finally {
@@ -276,11 +336,17 @@ test('AI对话关键边界', async t => {
 
     await t.test('回答实际来源可展开且标题正文均转义', async () => {
       const { MessageRecord } = await server.ssrLoadModule('/src/pages/ai/MessageRecord.tsx');
-      const markup = renderToStaticMarkup(createElement(MessageRecord, { message: { id: 1, role: 'assistant', status: 'succeeded', content: '**结论** [1]', tool_calls: '[]', tokens: 5, created_at: 1, error: '', feedback: '', feedback_note: '', sources: [{ chunk_id: 9, kb_id: 2, doc_id: 4, doc_title: '<script>标题</script>', snippet: '<img src=x onerror=evil()>原文', score: 0.7 }] } }));
+      const message = { id: 1, role: 'assistant', status: 'succeeded', content: '**结论** [1]', tool_calls: '[]', tokens: 5, created_at: 1, error: '', feedback: '', feedback_note: '', sources: [{ chunk_id: 9, kb_id: 2, doc_id: 4, doc_title: '<script>标题</script>', snippet: '<img src=x onerror=evil()>原文', score: 0.7 }] };
+      const markup = renderToStaticMarkup(createElement(MessageRecord, { message }));
       for (const text of ['参考资料', '查看原文', '本次引用片段', '<details>', '<strong>结论</strong>', '&lt;script&gt;标题', '&lt;img src=x', '分块 ID：9', '复制回答']) assert.ok(markup.includes(text), text);
       assert.doesNotMatch(markup, /<script>|<img src=x/);
       assert.doesNotMatch(markup, /已完成|已知 token/);
       assert.match(markup, /用量与调用详情/);
+      const failed = renderToStaticMarkup(createElement(MessageRecord, { message: { ...message, status: 'failed', content: '', error: '检索后的模型调用失败' } }));
+      assert.match(failed, /失败前检索到的资料/);
+      assert.match(failed, /检索片段/);
+      assert.match(failed, /&lt;img src=x/);
+      assert.doesNotMatch(failed, /参考资料|本次引用片段/);
     });
 
     await t.test('刷新入口放在会话列表标题栏，不再占用独立页面标题区', async () => {

@@ -86,7 +86,7 @@ func TestFindReadyChunksRechecksFactSource(t *testing.T) {
 	add(kbs[3], kbs[3], "ready", "ready", false)
 	conn := sqlx.NewSqlConnFromDB(db)
 	m := &customAiKbChunkModel{conn: conn, defaultAiKbChunkModel: &defaultAiKbChunkModel{CachedConn: sqlc.NewConnWithCache(conn, nil)}}
-	rows, err := m.FindReadyByIDs(ctx, ids, owner, 0)
+	rows, err := m.FindReadyByIDs(ctx, ids, owner, 0, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,18 +98,18 @@ func TestFindReadyChunksRechecksFactSource(t *testing.T) {
 	if !slices.Equal(got, []uint64{good, otherKB}) {
 		t.Fatalf("fact source filter IDs=%v want=%v", got, []uint64{good, otherKB})
 	}
-	rows, err = m.FindReadyByIDs(ctx, ids, owner, kbs[0])
+	rows, err = m.FindReadyByIDs(ctx, ids, owner, kbs[0], 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(rows) != 1 || rows[0].Id != int64(good) {
 		t.Fatalf("specified KB leaked other KB chunks: %+v", rows)
 	}
-	rows, err = m.FindReadyByIDs(ctx, ids, owner+2, 0)
+	rows, err = m.FindReadyByIDs(ctx, ids, owner+2, 0, 0)
 	if err != nil || len(rows) != 0 {
 		t.Fatalf("foreign owner result=%+v err=%v", rows, err)
 	}
-	rows, err = m.FindReadyByIDs(ctx, nil, owner, 0)
+	rows, err = m.FindReadyByIDs(ctx, nil, owner, 0, 0)
 	if err != nil || rows == nil || len(rows) != 0 {
 		t.Fatalf("empty input result=%+v err=%v", rows, err)
 	}

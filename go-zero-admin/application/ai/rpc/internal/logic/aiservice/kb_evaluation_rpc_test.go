@@ -2,6 +2,8 @@ package aiservicelogic
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -50,6 +52,44 @@ func TestEvaluationRPCRequiresActorBeforeDependencies(t *testing.T) {
 
 type evaluationOwnedKb struct{ model.AiKbModel }
 
+func TestEvaluationDatasetCatalogueProjections(t *testing.T) {
+	l := NewListKbEvaluationDatasetsLogic(context.Background(), &svc.ServiceContext{AiKbModel: &evaluationOwnedKb{}, AiKbEvaluationModel: &evaluationReplayStore{}})
+	req := &aipb.ListKbEvaluationDatasetsRequest{Actor: &aipb.Actor{UserId: 7}, KbId: 5}
+	legacy, err := l.ListKbEvaluationDatasets(req)
+	if err != nil || len(legacy.List) == 0 {
+		t.Fatal("初始化内置题集", err)
+	}
+	req.MetaOnly = true
+	meta, err := l.ListKbEvaluationDatasets(req)
+	if err != nil || len(meta.List) != len(legacy.List) {
+		t.Fatal("目录缺失", err)
+	}
+	for i, item := range meta.List {
+		original := legacy.List[i]
+		if item.Dataset != "" || item.Name != original.Name || item.Key != original.Key || item.Sha256 != fmt.Sprintf("%x", sha256.Sum256([]byte(original.Dataset))) {
+			t.Fatal("目录指纹或数据投影错误")
+		}
+		req.MetaOnly = false
+		req.DatasetKey = item.Key
+		detail, err := l.ListKbEvaluationDatasets(req)
+		if err != nil || len(detail.List) != 1 || detail.List[0].Dataset != original.Dataset {
+			t.Fatal("选中题集原始字节不符", err)
+		}
+	}
+	t.Logf("目录 protobuf 字节数：完整 %d，轻量 %d", proto.Size(legacy), proto.Size(meta))
+	req.DatasetKey = "missing"
+	_, err = l.ListKbEvaluationDatasets(req)
+	assertWorkspaceCode(t, err, 400)
+	req.Actor.UserId = 8
+	_, err = l.ListKbEvaluationDatasets(req)
+	assertWorkspaceCode(t, err, 404)
+}
+
+func (k *evaluationOwnedKb) RequireOwned(ctx context.Context, kb, owner int64) error {
+	_, err := k.FindOwned(ctx, kb, owner)
+	return err
+}
+
 func (*evaluationOwnedKb) FindOwned(_ context.Context, kb, owner int64) (*model.KbRow, error) {
 	if kb != 5 || owner != 7 {
 		return nil, model.ErrNotFound
@@ -89,6 +129,39 @@ type evaluationReplayStore struct {
 	model.AiKbEvaluationModel
 	row   *model.KbEvaluationRow
 	reads int
+}
+
+type evaluationProgressFixture struct {
+	evaluationExpiringList
+}
+
+func (s *evaluationProgressFixture) ProgressOwned(_ context.Context, owner, kb, id int64, _ string) (*model.KbEvaluationRow, error) {
+	if s.row.OwnerId != owner || s.row.KbId != kb || s.row.Id != id {
+		return nil, model.ErrNotFound
+	}
+	s.reads++
+	row := s.row
+	return &row, nil
+}
+
+func TestEvaluationRPCProgressChecksLeaseOwnerAndDigest(t *testing.T) {
+	store := &evaluationProgressFixture{evaluationExpiringList{row: model.KbEvaluationRow{Id: 1, KbId: 5, OwnerId: 7, Status: "running", DatabaseTime: 50, LeaseExpiresAt: 49}}}
+	l := NewGetKbEvaluationLogic(context.Background(), &svc.ServiceContext{AiKbModel: &evaluationOwnedKb{}, AiKbEvaluationModel: store})
+	req := &aipb.GetKbEvaluationRequest{Actor: &aipb.Actor{UserId: 7}, KbId: 5, EvaluationId: 1, ProgressOnly: true}
+	result, err := l.GetKbEvaluation(req)
+	if err != nil || result.Evaluation.Status != "unknown" || store.reads != 2 || result.Evaluation.Snapshot != "" {
+		t.Fatal("轻量轮询应处理租约过期且只返回摘要", err)
+	}
+	req.KnownObservationsSha256 = "invalid"
+	_, err = l.GetKbEvaluation(req)
+	assertWorkspaceCode(t, err, 400)
+	req.KnownObservationsSha256 = ""
+	req.Actor.UserId = 8
+	_, err = l.GetKbEvaluation(req)
+	assertWorkspaceCode(t, err, 404)
+	if store.reads != 2 {
+		t.Fatal("无效指纹或非归属用户不可触达进度")
+	}
 }
 
 func (s *evaluationReplayStore) FindRequestOwned(context.Context, int64, string) (*model.KbEvaluationRow, error) {

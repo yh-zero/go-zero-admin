@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, Button } from 'antd';
 import { PlayCircleOutlined } from '@ant-design/icons';
 import { useAuthStore } from '../../stores/auth';
@@ -10,20 +10,15 @@ import styles from './deferredWorkflowRun.module.css';
 
 const loadRun = () => import('./WorkflowDraftRun').then(module => module.WorkflowDraftRun);
 
-export function DeferredWorkflowRun(props: WorkflowDraftRunProps) {
+export function DeferredWorkflowRun({ recoveryOnly = false, ...props }: WorkflowDraftRunProps & { recoveryOnly?: boolean }) {
   const departmentId = useAuthStore(state => state.selectedDeptId);
   const [state, setState] = useState(() => {
     try { return readDeferredRunState(typeof sessionStorage === 'undefined' ? undefined : sessionStorage, draftRunAttemptKey([props.scope[0], departmentId], props.attemptId)); }
     catch { return { kind: 'unknown' as const, taskId: null }; }
   });
-  const questionId = props.questionDraft?.id;
-  const [opened, setOpened] = useState(!!questionId);
-  const [visited, setVisited] = useState(!!questionId);
-  useEffect(() => {
-    if (!questionId) return;
-    // oxlint-disable-next-line react/set-state-in-effect -- 用户显式带入问题时展开现有草稿，尚不提交。
-    setOpened(true); setVisited(true);
-  }, [questionId]);
+  const [opened, setOpened] = useState(false);
+  const [visited, setVisited] = useState(false);
+  if (recoveryOnly && state.kind === 'idle' && !visited) return null;
   const label = props.fixedKb ? '用资料分析' : '试运行';
   return <section className={styles.panel} aria-label={label}>
     <Button icon={<PlayCircleOutlined />} aria-expanded={opened} disabled={props.guard.writing}

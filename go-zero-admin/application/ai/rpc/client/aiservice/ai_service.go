@@ -49,6 +49,7 @@ type (
 	GetWorkflowResponse              = aipb.GetWorkflowResponse
 	GetWorkflowRevisionRequest       = aipb.GetWorkflowRevisionRequest
 	GetWorkflowRevisionResponse      = aipb.GetWorkflowRevisionResponse
+	KbChoice                         = aipb.KbChoice
 	KbDocInfo                        = aipb.KbDocInfo
 	KbEvaluationDatasetInfo          = aipb.KbEvaluationDatasetInfo
 	KbEvaluationInfo                 = aipb.KbEvaluationInfo

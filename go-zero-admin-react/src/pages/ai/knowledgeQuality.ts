@@ -219,6 +219,12 @@ export function compareQualityRuns(before: QualityRunView, after: QualityRunView
       evidence5: before.summary.positive.evidence_coverage_at[5] === null || after.summary.positive.evidence_coverage_at[5] === null ? null : after.summary.positive.evidence_coverage_at[5]! - before.summary.positive.evidence_coverage_at[5]! } };
 }
 
+export type QualityDatasetVersion = Pick<QualityCatalogue, 'key' | 'sha256'>;
+
+export function resolveQualityDataset<T extends QualityDatasetVersion>(entries: T[], selected?: QualityDatasetVersion): T | undefined {
+  return selected ? entries.find(entry => entry.key === selected.key && entry.sha256 === selected.sha256) : entries[0];
+}
+
 export function createQualityAttempt(catalogue: QualityCatalogue, group: string, ids: string[], requestId: string): AiStartKbEvaluationReq {
   if (!uuid(requestId) || !ids.length || ids.length > 30 || new Set(ids).size !== ids.length || ids.some(id => catalogue.dataset.cases.find(c => c.id === id)?.kb !== group)) throw new Error('请选择同一题组的1..30道题目');
   return { request_id: requestId, dataset_key: catalogue.key, dataset_sha256: catalogue.sha256, group_key: group, case_ids: catalogue.dataset.cases.filter(c => ids.includes(c.id)).map(c => c.id), ...(catalogue.key.startsWith('custom-') ? { dataset_snapshot: catalogue.raw } : {}) };

@@ -16,6 +16,9 @@ type AiCapabilities struct {
 
 type AiChatMessage struct {
 	Id           int64            `json:"id"`
+	KbId         int64            `json:"kb_id,optional,omitempty"`
+	DocId        int64            `json:"doc_id,optional,omitempty"`
+	Grounded     bool             `json:"grounded,optional,omitempty"`
 	Role         string           `json:"role"`
 	Content      string           `json:"content"`
 	ToolCalls    string           `json:"tool_calls"`
@@ -84,6 +87,13 @@ type AiGetKbDocReq struct {
 	MetaOnly bool  `form:"meta_only,optional"`
 }
 
+type AiGetKbEvaluationReq struct {
+	Id                      int64  `path:"id" validate:"min=1"`
+	EvaluationId            int64  `path:"evaluation_id" validate:"min=1"`
+	ProgressOnly            bool   `form:"progress_only,optional"`
+	KnownObservationsSha256 string `form:"known_observations_sha256,optional" validate:"omitempty,len=64,hexadecimal"`
+}
+
 type AiGetTaskReq struct {
 	Id       int64 `path:"id" validate:"min=1"`
 	MetaOnly bool  `form:"meta_only,optional"`
@@ -91,6 +101,17 @@ type AiGetTaskReq struct {
 
 type AiIdReq struct {
 	Id int64 `path:"id" validate:"min=1"`
+}
+
+type AiKbChoice struct {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type AiKbDatasetListReq struct {
+	Id         int64  `path:"id" validate:"min=1"`
+	MetaOnly   bool   `form:"meta_only,optional"`
+	DatasetKey string `form:"dataset_key,optional" validate:"omitempty,max=64"`
 }
 
 type AiKbDocDetailResp struct {
@@ -114,6 +135,7 @@ type AiKbDocInfo struct {
 
 type AiKbDocListReq struct {
 	Id       int64  `path:"id" validate:"min=1"`
+	MetaOnly bool   `form:"meta_only,optional"`
 	Page     int64  `form:"page,optional" validate:"omitempty,min=1"`
 	PageSize int64  `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
 	Query    string `form:"query,optional" validate:"omitempty,max=128"`
@@ -143,27 +165,28 @@ type AiKbEvaluationDatasetsResp struct {
 }
 
 type AiKbEvaluationInfo struct {
-	Id             int64  `json:"id"`
-	KbId           int64  `json:"kb_id"`
-	RequestId      string `json:"request_id"`
-	DatasetKey     string `json:"dataset_key"`
-	DatasetSha256  string `json:"dataset_sha256"`
-	GroupKey       string `json:"group_key"`
-	Status         string `json:"status"`
-	CaseCount      int64  `json:"case_count"`
-	CompletedCount int64  `json:"completed_count"`
-	FailedCount    int64  `json:"failed_count"`
-	StopRequested  bool   `json:"stop_requested"`
-	CorpusVerified bool   `json:"corpus_verified"`
-	Error          string `json:"error"`
-	Snapshot       string `json:"snapshot"`
-	Bindings       string `json:"bindings"`
-	Context        string `json:"context"`
-	Observations   string `json:"observations"`
-	CreatedAt      int64  `json:"created_at"`
-	UpdatedAt      int64  `json:"updated_at"`
-	StartedAt      int64  `json:"started_at"`
-	CompletedAt    int64  `json:"completed_at"`
+	Id                 int64  `json:"id"`
+	KbId               int64  `json:"kb_id"`
+	RequestId          string `json:"request_id"`
+	DatasetKey         string `json:"dataset_key"`
+	DatasetSha256      string `json:"dataset_sha256"`
+	GroupKey           string `json:"group_key"`
+	Status             string `json:"status"`
+	CaseCount          int64  `json:"case_count"`
+	CompletedCount     int64  `json:"completed_count"`
+	FailedCount        int64  `json:"failed_count"`
+	StopRequested      bool   `json:"stop_requested"`
+	CorpusVerified     bool   `json:"corpus_verified"`
+	Error              string `json:"error"`
+	Snapshot           string `json:"snapshot"`
+	Bindings           string `json:"bindings"`
+	Context            string `json:"context"`
+	Observations       string `json:"observations"`
+	ObservationsSha256 string `json:"observations_sha256,optional"`
+	CreatedAt          int64  `json:"created_at"`
+	UpdatedAt          int64  `json:"updated_at"`
+	StartedAt          int64  `json:"started_at"`
+	CompletedAt        int64  `json:"completed_at"`
 }
 
 type AiKbEvaluationReq struct {
@@ -290,12 +313,13 @@ type AiKbResp struct {
 }
 
 type AiKbSearchHit struct {
-	ChunkId  int64   `json:"chunk_id"`
-	KbId     int64   `json:"kb_id"`
-	DocId    int64   `json:"doc_id"`
-	DocTitle string  `json:"doc_title"`
-	Snippet  string  `json:"snippet"`
-	Score    float32 `json:"score"`
+	ChunkId    int64   `json:"chunk_id"`
+	KbId       int64   `json:"kb_id"`
+	DocId      int64   `json:"doc_id"`
+	DocTitle   string  `json:"doc_title"`
+	DocVersion int64   `json:"doc_version,optional,omitempty"`
+	Snippet    string  `json:"snippet"`
+	Score      float32 `json:"score"`
 }
 
 type AiListConversationsReq struct {
@@ -310,11 +334,12 @@ type AiListConversationsResp struct {
 }
 
 type AiListKbDocsResp struct {
-	List         []*AiKbDocInfo `json:"list"`
-	Total        int64          `json:"total"`
-	ReadyCount   int64          `json:"ready_count"`
-	PendingCount int64          `json:"pending_count"`
-	FailedCount  int64          `json:"failed_count"`
+	PageSignature string         `json:"page_signature"`
+	List          []*AiKbDocInfo `json:"list"`
+	Total         int64          `json:"total"`
+	ReadyCount    int64          `json:"ready_count"`
+	PendingCount  int64          `json:"pending_count"`
+	FailedCount   int64          `json:"failed_count"`
 }
 
 type AiListKbEvaluationsReq struct {
@@ -336,12 +361,15 @@ type AiListKbImportsResp struct {
 }
 
 type AiListKbsReq struct {
-	Page     int64  `form:"page,optional" validate:"omitempty,min=1"`
-	PageSize int64  `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
-	Query    string `form:"query,optional" validate:"omitempty,max=128"`
+	ChoicesOnly bool   `form:"choices_only,optional"`
+	Id          int64  `form:"id,optional" validate:"omitempty,min=1"`
+	Page        int64  `form:"page,optional" validate:"omitempty,min=1"`
+	PageSize    int64  `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+	Query       string `form:"query,optional" validate:"omitempty,max=128"`
 }
 
 type AiListKbsResp struct {
+	Choices      []AiKbChoice    `json:"choices,optional"`
 	List         []*AiKbInfo     `json:"list"`
 	Total        int64           `json:"total"`
 	Capabilities *AiCapabilities `json:"capabilities"`
@@ -463,6 +491,7 @@ type AiSendMessageReq struct {
 	Content        string `json:"content" validate:"max=16000"`
 	KbId           int64  `json:"kb_id,optional" validate:"min=0"`
 	Grounded       bool   `json:"grounded,optional"`
+	DocId          int64  `json:"doc_id,optional" validate:"min=0"`
 }
 
 type AiSendMessageResp struct {

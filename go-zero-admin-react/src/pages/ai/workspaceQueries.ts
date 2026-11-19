@@ -80,11 +80,20 @@ export function kbListOptions(scope: AiWorkspaceScope, params: AiListKbsReq) {
 }
 
 export function kbDocListOptions(scope: AiWorkspaceScope, kbId: number, params: AiListKbDocsReq, active = true) {
-  return queryOptions<AiListKbDocsResp>({ queryKey: [...aiWorkspaceKeys.kbDocs(scope, kbId), params], staleTime: 0, retry: false,
+  const queryKey = [...aiWorkspaceKeys.kbDocs(scope, kbId), params];
+  return queryOptions<AiListKbDocsResp>({ queryKey, staleTime: 0, retry: false,
     enabled: active,
     refetchInterval: query => active && !query.state.error && (query.state.data?.pending_count || query.state.data?.list.some(doc => doc.status === 'pending')) ? 3000 : false,
     refetchIntervalInBackground: false,
-    queryFn: ({ signal }) => readActive(signal, () => fetchAiKbDocs(kbId, params, signal)) });
+    queryFn: ({ signal, client }) => readActive(signal, async () => {
+      const previous = client?.getQueryData<AiListKbDocsResp>(queryKey), state = client?.getQueryState(queryKey);
+      if (previous?.page_signature && previous.pending_count > 0 && !state?.isInvalidated && state?.status !== 'error') {
+        const summary = await fetchAiKbDocs(kbId, { ...params, meta_only: true }, signal); signal.throwIfAborted();
+        if (summary.page_signature === previous.page_signature && summary.total === previous.total
+          && summary.ready_count === previous.ready_count && summary.pending_count === previous.pending_count && summary.failed_count === previous.failed_count) return previous;
+      }
+      return fetchAiKbDocs(kbId, params, signal);
+    }) });
 }
 
 export function kbDetailOptions(scope: AiWorkspaceScope, kbId: number) {

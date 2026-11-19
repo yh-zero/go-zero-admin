@@ -15,7 +15,7 @@ type (
 	AiKbChunkModel interface {
 		aiKbChunkModel
 		// FindReadyByIDs 复核 owner、指定库（0 为全部）、文档/分块 ready、库一致与软删；不可用 ID 静默跳过。
-		FindReadyByIDs(ctx context.Context, ids []uint64, ownerId, kbId int64) ([]*KbChunkRow, error)
+		FindReadyByIDs(ctx context.Context, ids []uint64, ownerId, kbId, docId int64) ([]*KbChunkRow, error)
 		// FindRetainedIndexIDs 对账时保留未软删且归属一致的 pending/ready 分块，避免清理正在写入的索引。
 		FindRetainedIndexIDs(ctx context.Context, ids []uint64) (map[uint64]struct{}, error)
 		// ListReadyIDs 只统计 ready 分块，不能作为在线索引删除依据。
@@ -36,6 +36,7 @@ type (
 		Content    string `db:"content"`
 		TokenCount int64  `db:"token_count"`
 		DocTitle   string `db:"doc_title"`
+		DocVersion int64  `db:"doc_version"`
 	}
 )
 
@@ -77,28 +78,32 @@ func (m *customAiKbChunkModel) FindRetainedIndexIDs(ctx context.Context, ids []u
 	return retained, nil
 }
 
-func (m *customAiKbChunkModel) FindReadyByIDs(ctx context.Context, ids []uint64, ownerId, kbId int64) ([]*KbChunkRow, error) {
+func (m *customAiKbChunkModel) FindReadyByIDs(ctx context.Context, ids []uint64, ownerId, kbId, docId int64) ([]*KbChunkRow, error) {
 	rows := make([]*KbChunkRow, 0)
 	if len(ids) == 0 {
 		return rows, nil
 	}
 	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(ids)), ",")
-	args := make([]any, 0, len(ids)+2)
+	args := make([]any, 0, len(ids)+3)
 	args = append(args, ownerId)
-	kbFilter := ""
+	scopeFilter := ""
 	if kbId > 0 {
-		kbFilter = " AND c.kb_id=?"
+		scopeFilter += " AND c.kb_id=?"
 		args = append(args, kbId)
+	}
+	if docId > 0 {
+		scopeFilter += " AND c.doc_id=?"
+		args = append(args, docId)
 	}
 	for _, id := range ids {
 		args = append(args, id)
 	}
 	err := m.QueryRowsNoCacheCtx(ctx, &rows,
-		"SELECT c.id,c.doc_id,c.kb_id,c.seq,c.content,c.token_count,d.title AS doc_title "+
+		"SELECT c.id,c.doc_id,c.kb_id,c.seq,c.content,c.token_count,d.title AS doc_title,d.version AS doc_version "+
 			"FROM ai_kb_chunk c "+
 			"JOIN ai_kb_doc d ON c.doc_id=d.id AND d.kb_id=c.kb_id AND d.status='ready' AND d.deleted_at IS NULL "+
 			"JOIN ai_kb k ON c.kb_id=k.id AND k.deleted_at IS NULL "+
-			"WHERE k.owner_id=?"+kbFilter+" AND c.status='ready' AND c.id IN ("+placeholders+")", args...)
+			"WHERE k.owner_id=?"+scopeFilter+" AND c.status='ready' AND c.id IN ("+placeholders+")", args...)
 	return rows, err
 }
 

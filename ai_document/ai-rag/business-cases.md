@@ -6,8 +6,6 @@
 
 题集SHA256：`f3a4016eabc10a974e3acffc6d7347477976d00923c196c608de55a6db99538b`。后续反馈应另建有审核记录的新版本，保留原始题集与实测日志，不在看到模型结果后原地放宽必需事实或删去失败题。
 
-2026-11-07已完成32题首次真实运行与AI辅助复核，两组都已使用，后续作为历史回归。[首轮业务基线](business-baseline.md)记录警报、漏召回、额外措辞歧义及真实反馈转题闭环；题集JSON与8篇原文摘要保持不变。
-
 ## 冻结语料与来源
 
 素材冻结自提交[fc226fb](https://github.com/yh-zero/go-zero-admin/commit/fc226fbc8d1cd196453617fa7ff2fcdb548ba945)。[business-corpus-provenance.json](business-corpus-provenance.json)记录每篇素材的原文路径、完整Git blob SHA256、起止行（结束行不含）、章节标记和摘录SHA256。单段是逐字连续摘录，多段只以一个LF连接；后续项目文档修改不覆盖本次素材。素材统一UTF-8/LF，每篇小于65536字节。
@@ -29,28 +27,12 @@
 
 创建两个仅本人可访问的测试知识库，分别导入对应4篇冻结素材，标题严格使用上表；保留完整正文和换行，等待每篇可使用。不要混入旧合成演示语料、题目、预期答案或来源清单，不复用已经有无关资料的业务库。
 
-在忽略的本地文件`tmp/business-kb-map.json`中记录实际ID，例如`{"project_ops":101,"project_ai":102}`，示例ID只用于说明。认证使用正常本地开发登录的result；构建/模型/Embedding/预算上下文按现有评测工具要求准备，不写入密钥。以下命令从仓库根目录执行：
+原题以 `business-` 开头，逐题问题、证据组、分组与答案规则以[冻结 JSON](business-cases.json) 为准。32 题均已运行并复核，历史结果见[业务基线](business-baseline.md)。从仓库根目录可离线检查题集。真实运行使用[评测入口的命令](README.md#检索与回答质量评测)，将 `--cases` 指向本文件对应 JSON，并使用业务库映射。
 
 ```powershell
-# 只读取本地文件并校验SHA与规则：0 HTTP，无模型费用。
 node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan --cases ai_document/ai-rag/business-cases.json
-
-# 数据、逐字来源、三组plan与全响应桩回归：不请求真实服务。
 node --test go-zero-admin/data/scripts/business-cases.test.mjs
-
-# 明确实跑开发集；一次完整开发集最多20次分析提交和40次查询Embedding。
-node go-zero-admin/data/scripts/eval-kb-quality.mjs --run --cases ai_document/ai-rag/business-cases.json --split development --auth-file tmp/auth-private.json --kb-map tmp/business-kb-map.json --context-file tmp/business-context.json --output tmp/business-development-01.jsonl
-
-# 开发方案确定后首次实跑预留集；最多12次分析提交和24次查询Embedding。
-node go-zero-admin/data/scripts/eval-kb-quality.mjs --run --cases ai_document/ai-rag/business-cases.json --split validation --auth-file tmp/auth-private.json --kb-map tmp/business-kb-map.json --context-file tmp/business-context.json --output tmp/business-validation-01.jsonl
-
-# 报告只读取原始JSONL，不请求服务；文件路径须为新的忽略路径。
-node go-zero-admin/data/scripts/eval-kb-quality.mjs --report tmp/business-development-01.jsonl --cases ai_document/ai-rag/business-cases.json --output tmp/business-development-01.md
 ```
-
-`--run`会调用实际查询Embedding和分析模型，按供应商计费；输出先保存请求标识再提交，失败保留原始日志并停止，不自动重试。只跑开发集中的小范围问题可加`--case-ids`，仍须记录具体ID和样本量。报告检查实际语料库存、正文SHA、版本与状态；素材或配置不一致时不能比较。不把响应桩构造的答案、零规则警报或旧构建测试当作本轮真实回答效果。
-
-检索指标分别记录原始片段的Hit/Recall/MRR与证据覆盖；无答案题即使返回高分片段，也不代表有可用依据。回答检查只识别必需事实的字符串备选、引用和不足措辞，无法证明完整覆盖、语义一致或否定范围。每题仍需结合问题、原文、实际命中片段和答案人工复核。串行P50/P95应注明样本数；小规模并发性能由独立性能基线记录，不能从本题集单次串行结果推出生产容量。
 
 ## 采纳反馈成为可运行回归
 
@@ -75,41 +57,20 @@ node --test go-zero-admin/data/scripts/merge-kb-feedback.test.mjs
 
 输出仅允许仓库忽略的`tmp`目录及其真实子目录，符号链接不能越界，已有文件不覆盖；写入后重新执行原题集校验，失败删除本次不完整副本。导出原件、认证、运行日志和合并结果按本地资料保留，不随工具代码直接提交。SHA记录文件一致性，不是导出签名；文档SHA对应反馈采集时的正文核对，不能据此声称取得模型调用时的全库版本快照。
 
-## 题目范围
+## 14题失败回归
 
-| 分组 | 题目ID后缀 | 验证内容 |
-|---|---|---|
-| development | dev-compose-config | Compose配置、服务名和环境变量注入 |
-| development | dev-literal-yaml | YAML直填与UseEnv占位符 |
-| development | dev-env-recreate | 环境变更重建与租户凭据隔离 |
-| development | dev-existing-database | 已有数据卷与初始化SQL边界 |
-| development | dev-backup-partial | 备份记录、隔离恢复及实际时间未知项 |
-| development | dev-local-captcha | 本地验证码覆盖与认证保留 |
-| development | dev-build-source | 宿主编译和镜像构建职责 |
-| development | dev-ready-acceptance | 就绪、构建与业务验收边界 |
-| development | dev-ops-private-credential | 生产真实凭据未收录 |
-| development | dev-ops-business-hours | 采购审批时间未收录 |
-| development | dev-import-limits | 导入字节、批次和并发限制 |
-| development | dev-import-receipt | 接收、排队、就绪与停止 |
-| development | dev-analysis-scope | 片段分析与历史摘录 |
-| development | dev-grounded-empty | 依据模式预算与空召回 |
-| development | dev-independent-embedding | 聊天/Embedding独立与存储分工 |
-| development | dev-unsaved-partial | 草稿试运行、运行记录及实例ID未知项 |
-| development | dev-cancel-effects | 取消外部作用与未知结果核对 |
-| development | dev-access-instruction | 拒绝越权建议，保留服务端校验 |
-| development | dev-ai-contract-penalty | 客户合同赔付未收录 |
-| development | dev-ai-monitoring-other-kb | 不借用旧合成库的告警规则 |
-| validation | val-host-rpc | 宿主API依赖与默认RPC端口 |
-| validation | val-config-literal | 宿主环境文件与未启用UseEnv |
-| validation | val-backup-status | 原始备份与各阶段交付状态 |
-| validation | val-cleanup-resource | 精确清理与既有资源保留 |
-| validation | val-ops-critical-response | 实际生产告警与值班人未收录 |
-| validation | val-ops-recovery-rto | 生产恢复时限未收录 |
-| validation | val-search-no-chat | 检索调用、生成和分数含义 |
-| validation | val-source-history | 编辑版本、冲突与历史来源 |
-| validation | val-session-logout | 退出失效范围与一次性刷新 |
-| validation | val-model-access | 跨文档配置降级与知识库归属 |
-| validation | val-ai-model-price | 当日供应商价格未收录 |
-| validation | val-ai-real-person | 真实人员账号与部门未收录 |
+[14 题开发回归](business-failure-regression-cases.json) 复用相同的 8 份冻结资料，本组实际查询限于 `project_ai`。13 题有可回答目标，其中 2 题另有真正未知的问题，1 题全部资料不足。11 题检查额外的不足断言，其余 3 题要求明确指出缺少哪项证据。
 
-完整ID均加`business-`前缀；逐题问题、证据组、回答词法备选和标注理由见JSON。该标注冻结了预期边界；如原文有误或实际功能与文档不同，应单独核对来源并形成有说明的新版本。
+| 原任务 | 观测与复核要点 |
+|---|---|
+| 178 | 资料支持归属、404 与服务端授权。回答把问题引述的错误建议追加成未知问项，旧规则没有报警。复核时区分背景引述与用户明确要求回答的引号内问题。 |
+| 190 | 检索与分析引用均缺权限文档，文档 Recall@5 为 0.5。夹具将该文档记为预期缺失，`actual_source_index=null`。 |
+
+[失败夹具](business-failure-fixtures.json) 保存实际回答、来源、直接检索和用量，不包含供应商内部逐问项记录。来源为本机 `tmp/ai-product-20261107/feedback-business-quality.jsonl`，源日志和观测字段的摘要在夹具中。没有本地日志的检出可校验自包含夹具与冻结资料。
+
+失败题的逐字重复、改写、调整问序、三文档题和单文档对照均已用于开发。可用 `--case-ids business-failure-access-repeat-1,business-failure-cross-repeat-1` 单独检查两个原问，完整历史对照见[业务基线](business-baseline.md#跨文档与引文范围的后续修复)。
+
+```powershell
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan --cases ai_document/ai-rag/business-failure-regression-cases.json
+node --test go-zero-admin/data/scripts/business-failure-regression.test.mjs
+```

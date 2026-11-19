@@ -21,7 +21,7 @@ type vectorReadinessFixture struct {
 }
 
 func (s *vectorReadinessFixture) Ready(context.Context) error { return s.err }
-func (s *vectorReadinessFixture) Search(context.Context, []float32, int64, int64, int) ([]vectordb.Hit, error) {
+func (s *vectorReadinessFixture) Search(context.Context, []float32, int64, int64, int64, int) ([]vectordb.Hit, error) {
 	return nil, nil
 }
 

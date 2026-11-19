@@ -20,8 +20,67 @@ test('知识库操作保留上下文并减少无效读取', async t => {
     useAuthStore.setState({ token: 'local-fixture', sessionId: scope[0], sessionVersion: 1, departmentVersion: 1, permissionsReady: true, isLoggingOut: false,
       expiresAt: Date.now() / 1000 + 3600, permCodes: ['sys:ai:kb:list'] });
     const calls = [];
-    request.defaults.adapter = async config => { calls.push(config); return { config, status: 200, statusText: 'OK', headers: {}, data: { code: 200, result: { list: [], total: 0, pending_count: 1, ready_count: 0, failed_count: 0 } } }; };
+    request.defaults.adapter = async config => { calls.push(config); return { config, status: 200, statusText: 'OK', headers: {}, data: { code: 200, result: config.params?.choices_only ? { choices: [], total: 0 } : { list: [], total: 0, pending_count: 1, ready_count: 0, failed_count: 0 } } }; };
 
+    await t.test('资料页只在签名或库统计变化后补读当前完整页', async () => {
+      const previous = request.defaults.adapter;
+      let revision = 'v1', pending = 1;
+      const projections = [];
+      request.defaults.adapter = async config => {
+        const meta = !!config.params.meta_only;
+        projections.push(meta);
+        const result = { list: meta ? [] : [{ id: 9, status: pending ? 'pending' : 'ready', stage: revision }], total: 1, pending_count: pending, ready_count: 1 - pending, failed_count: 0, page_signature: revision };
+        return { config, status: 200, headers: {}, data: { code: 200, result } };
+      };
+      try {
+        const opts = queries.kbDocListOptions(scope, 7, { page: 2, page_size: 10, query: 'same' });
+        const first = await client.fetchQuery(opts), same = await client.fetchQuery(opts);
+        assert.deepEqual(same, first);
+        revision = 'v2';
+        assert.equal((await client.fetchQuery(opts)).list[0].stage, 'v2');
+        pending = 0;
+        const end = await client.fetchQuery(opts);
+        assert.equal(end.list[0].status, 'ready');
+        assert.equal(opts.refetchInterval({ state: { data: end } }), false);
+        assert.deepEqual(projections, [false, true, true, false, true, false]);
+      } finally { request.defaults.adapter = previous; client.clear(); }
+    });
+    await t.test('旧服务的选项列表移除管理字段，跨页选中值按原 ID 读取', async () => {
+      const { fetchAiKbChoices } = await server.ssrLoadModule('/src/api/ai.ts');
+      const previous = request.defaults.adapter, paths = [];
+      request.defaults.adapter = async config => {
+        paths.push(config.url);
+        const result = config.url.endsWith('/42') ? { kb: { id: 42, name: '原值', chunk_count: 30 } } : { list: [{ id: 1, name: '第一页', chunk_count: 20 }], total: 31 };
+        return { config, status: 200, headers: {}, data: { code: 200, result } };
+      };
+      try {
+        assert.deepEqual(await fetchAiKbChoices({}), { list: [{ id: 1, name: '第一页' }], total: 31 });
+        assert.deepEqual(await fetchAiKbChoices({ id: 42 }), { list: [{ id: 42, name: '原值' }], total: 1 });
+        assert.deepEqual(paths, ['/sys/ai/kbs', '/sys/ai/kbs', '/sys/ai/kbs/42']);
+      } finally { request.defaults.adapter = previous; }
+    });
+    await t.test('旧服务精确 ID 与关键词组合从筛选分页核对，不因详情可读而绕过关键词', async () => {
+      const { fetchAiKbChoices } = await server.ssrLoadModule('/src/api/ai.ts');
+      const previous = request.defaults.adapter, reads = [];
+      const matches = Array.from({ length: 503 }, (_, i) => ({ id: (503 - i) * 2, name: '描述匹配的选项' }));
+      request.defaults.adapter = async config => {
+        assert.equal(config.url, '/sys/ai/kbs');
+        const { query, page, page_size: size } = config.params;
+        assert.equal(query, '%关键字'); assert.equal(size, 100);
+        reads.push(page);
+        return { config, status: 200, headers: {}, data: { code: 200, result: { list: matches.slice((page - 1) * size, page * size), total: matches.length } } };
+      };
+      try {
+        assert.deepEqual(await fetchAiKbChoices({ id: 4, page: 9, page_size: 1, query: '%关键字' }), { list: [{ id: 4, name: '描述匹配的选项' }], total: 1 });
+        assert.deepEqual(reads, [1, 4, 5, 6]);
+        reads.length = 0;
+        assert.deepEqual(await fetchAiKbChoices({ id: 3, query: '%关键字' }), { list: [], total: 0 });
+        assert.deepEqual(reads, [1, 4, 5, 6]);
+        reads.length = 0;
+        assert.deepEqual(await fetchAiKbChoices({ id: 2000, query: '%关键字' }), { list: [], total: 0 });
+        assert.deepEqual(reads, [1]);
+      } finally { request.defaults.adapter = previous; }
+    });
     await t.test('隐藏资料标签不发请求也不轮询，恢复后保留同一筛选缓存', async () => {
       const params = { page: 2, page_size: 10, query: '故障', status: 'ready' };
       const hidden = queries.kbDocListOptions(scope, 7, params, false);
@@ -47,7 +106,7 @@ test('知识库操作保留上下文并减少无效读取', async t => {
       let currentKey;
       const requests = [];
       const debouncer = search.createKnowledgeSearchDebouncer(value => {
-        const options = queries.kbListOptions(scope, { page: 1, page_size: 20, query: value });
+        const options = search.kbChoiceOptions(scope, { page: 1, page_size: 20, query: value });
         currentKey = options.queryKey;
         requests.push(client.fetchQuery(options));
       }, () => { if (currentKey) void client.cancelQueries({ queryKey: currentKey, exact: true }); });
@@ -59,6 +118,7 @@ test('知识库操作保留上下文并减少无效读取', async t => {
         t.mock.timers.tick(1); await Promise.all(requests);
         assert.equal(calls.length, 1);
         assert.equal(calls[0].params.query, '发布规范');
+        assert.equal(calls[0].params.choices_only, true);
         debouncer.search('关闭前的输入'); debouncer.cancel(); t.mock.timers.tick(1000);
         assert.equal(calls.length, 1, '已关闭的下拉框不再启动搜索');
 
@@ -74,16 +134,14 @@ test('知识库操作保留上下文并减少无效读取', async t => {
       } finally { debouncer.cancel(); t.mock.timers.reset(); client.clear(); calls.length = 0; }
     });
 
-    await t.test('检索完成后可明确带入原问题，展示本身不提交分析', async () => {
+    await t.test('检索结果保留原问题且不重复提供分析入口', async () => {
       const { KbSearchResults } = await server.ssrLoadModule('/src/pages/ai/KbSearchModal.tsx');
-      let submissions = 0;
-      const html = renderToStaticMarkup(createElement(KbSearchResults, { result: { list: [], elapsed_ms: 1 }, query: '发布失败如何回滚？', onAnalyze: () => { submissions++; } }));
-      assert.match(html, /用此问题分析/);
-      assert.equal(submissions, 0);
+      const html = renderToStaticMarkup(createElement(KbSearchResults, { result: { list: [], elapsed_ms: 1 }, query: '发布失败如何回滚？' }));
+      assert.doesNotMatch(html, /用此问题分析/);
       assert.match(html, /发布失败如何回滚/);
     });
 
-    await t.test('检索问题预填分析草稿，未知原请求的标识和问题不会被覆盖', async () => {
+    await t.test('统一问题输入提供两项显式操作，恢复未知请求时保留原标识与问题', async () => {
       const previousStorage = globalThis.sessionStorage;
       globalThis.sessionStorage = window.sessionStorage;
       const { WorkflowDraftRun } = await server.ssrLoadModule('/src/pages/ai/WorkflowDraftRun.tsx');
@@ -91,21 +149,20 @@ test('知识库操作保留上下文并减少无效读取', async t => {
       const { draftRunAttemptKey, writeDraftRunAttempt } = await server.ssrLoadModule('/src/pages/ai/draftRunAttempts.ts');
       const props = { scope, attemptId: 'knowledge:7', guard: { writing: false, can: () => true, isCurrent: () => true },
         draft: workflowTemplate('kb_analyze', []), fixedKb: { id: 7, ready_count: 1 }, capabilities: { retrieval_configured: true, analysis_configured: true },
-        questionDraft: { id: 'explicit-prefill', question: '检索后的新问题' } };
+        onFindSources() {} };
       const render = () => renderToStaticMarkup(createElement(QueryClientProvider, { client }, createElement(WorkflowDraftRun, props)));
       const key = draftRunAttemptKey([scope[0], null], props.attemptId);
       const before = calls.length;
       try {
         const html = render();
-        assert.match(html, /检索后的新问题/);
-        assert.match(html, /开始分析/);
-        assert.equal(calls.length, before, '预填不会启动检索或模型');
+        assert.match(html, /查找原文/);
+        assert.match(html, /生成带引用的回答/);
+        assert.equal(calls.length, before, '显示操作不会触发检索或模型');
         const request = { request_id: '11111111-1111-4111-8111-111111111111', name: '原运行', definition: '{"version":2,"steps":[]}', input: '{"question":"原未知问题","kb_id":7}' };
         writeDraftRunAttempt(sessionStorage, key, request);
         const restored = render();
         assert.match(restored, /原未知问题/);
         assert.match(restored, /11111111-1111-4111-8111-111111111111/);
-        assert.doesNotMatch(restored, /检索后的新问题/);
         assert.equal(calls.length, before);
       } finally { sessionStorage.removeItem(key); globalThis.sessionStorage = previousStorage; }
     });

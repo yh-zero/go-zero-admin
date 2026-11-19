@@ -88,6 +88,22 @@ async function withTabs(count, action) {
   finally { environment.resumeClock(); }
 }
 
+test('网关拒绝访问或资源被移除时保留 HTTP 状态，临时故障仍可重试', async () => {
+  await withTabs(1, async ({ tabs: [tab] }) => {
+    for (const [status, body, expectedCode] of [
+      [403, '<html>Forbidden</html>', 403], [404, 'Not found', 404],
+      [410, { code: 503, msg: '上游故障' }, 410], [503, 'Service unavailable', 503],
+      [503, { code: 403, msg: '资料目录读取已拒绝' }, 403],
+    ]) {
+      tab.request.defaults.adapter = async config => {
+        throw new axios.AxiosError('HTTP ' + status, undefined, config, undefined,
+          { config, status, statusText: '', headers: {}, data: body });
+      };
+      await assert.rejects(tab.apiGet('/sys/ai/kbs/1/docs'), { code: expectedCode });
+    }
+  });
+});
+
 test('两个标签页同时过期只轮换一次，等待锁的请求采用已轮换会话', async () => {
   await withTabs(2, async ({ tabs, storage }) => {
     const expired = session('old', now - 1), rotated = session('new');

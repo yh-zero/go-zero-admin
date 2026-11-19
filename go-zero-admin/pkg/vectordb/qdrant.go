@@ -58,7 +58,7 @@ func (s *QdrantStore) Close() error { return s.client.Close() }
 
 func ptrBool(v bool) *bool { return &v }
 
-// EnsureCollection 集合不存在时创建（Cosine 距离），并确保 owner_id/kb_id 过滤索引存在
+// EnsureCollection 集合不存在时创建（Cosine 距离），并确保范围过滤所用的字段索引存在。
 func (s *QdrantStore) EnsureCollection(ctx context.Context) error {
 	exists, err := s.client.CollectionExists(ctx, s.collection)
 	if err != nil {
@@ -77,7 +77,7 @@ func (s *QdrantStore) EnsureCollection(ctx context.Context) error {
 	}
 	// payload 过滤索引（幂等：已存在时服务端忽略或报已存在，按错误信息容忍）
 	intType := qdrant.FieldType_FieldTypeInteger
-	for _, field := range []string{"owner_id", "kb_id"} {
+	for _, field := range []string{"owner_id", "kb_id", "doc_id"} {
 		_, err := s.client.CreateFieldIndex(ctx, &qdrant.CreateFieldIndexCollection{
 			CollectionName: s.collection,
 			FieldName:      field,
@@ -122,13 +122,16 @@ func (s *QdrantStore) Upsert(ctx context.Context, points []Point) error {
 	return nil
 }
 
-func (s *QdrantStore) Search(ctx context.Context, vector []float32, ownerID, kbID int64, topK int) ([]Hit, error) {
+func (s *QdrantStore) Search(ctx context.Context, vector []float32, ownerID, kbID, docID int64, topK int) ([]Hit, error) {
 	if len(vector) != int(s.dims) {
 		return nil, fmt.Errorf("查询向量维度 %d 与集合 %d 不一致", len(vector), s.dims)
 	}
 	must := []*qdrant.Condition{qdrant.NewMatchInt("owner_id", ownerID)}
 	if kbID > 0 {
 		must = append(must, qdrant.NewMatchInt("kb_id", kbID))
+	}
+	if docID > 0 {
+		must = append(must, qdrant.NewMatchInt("doc_id", docID))
 	}
 	limit := uint64(topK)
 	scored, err := s.client.Query(ctx, &qdrant.QueryPoints{

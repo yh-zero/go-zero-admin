@@ -16,6 +16,9 @@ type callRecord struct {
 	Version       int                      `json:"version"`
 	Calls         []schema.ToolCall        `json:"calls"`
 	Fingerprint   string                   `json:"fingerprint"`
+	KbID          int64                    `json:"kb_id,omitempty"`
+	DocID         int64                    `json:"doc_id,omitempty"`
+	Grounded      *bool                    `json:"grounded,omitempty"`
 	Error         string                   `json:"error,omitempty"`
 	ErrorCode     uint32                   `json:"error_code,omitempty"`
 	UsageComplete bool                     `json:"usage_complete"`
@@ -26,11 +29,14 @@ type callRecord struct {
 
 func (r callRecord) marshal() string { data, _ := json.Marshal(r); return string(data) }
 
-func requestFingerprint(conversationId int64, content string, options ...any) string {
+func requestFingerprint(conversationId int64, content string, kbID int64, grounded bool, docID int64) string {
 	values := []any{conversationId, content}
-	// 旧版未选择知识库的请求保留原指纹，已有调用仍可重查。
-	if len(options) == 2 && (options[0] != int64(0) || options[1] != false) {
-		values = append(values, options...)
+	// 省略新增字段时保持原字节序列，已完成的请求仍按原指纹重查。
+	if kbID != 0 || grounded {
+		values = append(values, kbID, grounded)
+	}
+	if docID > 0 {
+		values = append(values, docID)
 	}
 	data, _ := json.Marshal(values)
 	return fmt.Sprintf("%x", sha256.Sum256(data))

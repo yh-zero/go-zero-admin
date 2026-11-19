@@ -19,7 +19,7 @@ const labels = { waiting: '等待接收', submitting: '提交资料', ready: '�
 const jobLabels = { queued: '等待后台处理', running: '后台处理中', succeeded: '处理完成', failed: '处理失败', cancelled: '已停止', reused: '原文已存在' };
 
 export function KnowledgeImportModal({ scope, kbId, initialMode = 'files', initialBatchId, writing, beginWrite, finishWrite, isCurrent, onClose, onChanged, onPreview, canEdit = true }: {
-  scope: AiWorkspaceScope; kbId: number; initialMode?: 'files' | 'paste'; initialBatchId?: string;
+  scope: AiWorkspaceScope; kbId: number; initialMode?: 'files' | 'paste' | 'history'; initialBatchId?: string;
   writing: boolean; beginWrite: () => boolean; finishWrite: () => void; isCurrent: () => boolean;
   onClose: () => void; onChanged: () => void; onPreview: (docId: number) => void;
   canEdit?: boolean;
@@ -33,8 +33,10 @@ export function KnowledgeImportModal({ scope, kbId, initialMode = 'files', initi
   const [reading, setReading] = useState(false);
   const [error, setError] = useState(restored.error);
   const [page, setPage] = useState(1);
+  const showHistory = initialMode === 'history' || !!restored.error;
   const [batchId, setBatchId] = useState<string | null>(() => {
     if (restored.attempt) return restored.attempt.batchId;
+    if (!showHistory) return null;
     if (initialBatchId) return initialBatchId;
     try { return sessionStorage.getItem(storageKey); } catch { return null; }
   });
@@ -43,7 +45,7 @@ export function KnowledgeImportModal({ scope, kbId, initialMode = 'files', initi
   const content = Form.useWatch('content', form) ?? '';
   const active = writing || reading;
   const client = useQueryClient();
-  const batches = useQuery({ ...kbImportListOptions(scope, kbId, { page, page_size: 10 }), enabled: isCurrent() });
+  const batches = useQuery({ ...kbImportListOptions(scope, kbId, { page, page_size: 10 }), enabled: showHistory && isCurrent() });
   const batch = useQuery({ ...kbImportOptions(scope, kbId, batchId ?? ''), enabled: !!batchId && !active && isCurrent(),
     refetchInterval: query => knowledgeBatchPollInterval(query.state.data?.batch, !active && isCurrent() && !query.state.error), refetchIntervalInBackground: false });
   const stop = useMutation({ mutationFn: () => stopAiKbImport(kbId, batchId!), retry: false });
@@ -52,6 +54,7 @@ export function KnowledgeImportModal({ scope, kbId, initialMode = 'files', initi
   useEffect(() => subscribeKnowledgeImportAttempt(sessionStorage, pendingKey, latest => {
     if (!isCurrent()) return;
     setPending(latest); setUnknown(!!latest?.requestIds.length);
+    if (latest) setBatchId(latest.batchId);
   }), [pendingKey, isCurrent]);
   useEffect(() => {
     if (!pending?.requestIds.length || !batch.data || batch.data.batch.id !== pending.batchId || !isCurrent()) return;
@@ -128,7 +131,7 @@ export function KnowledgeImportModal({ scope, kbId, initialMode = 'files', initi
   return <Modal open title="资料导入与后台批次" width={900} footer={null} onCancel={() => { if (!active) onClose(); }} closable={!active} keyboard={!active} mask={{ closable: !active }} destroyOnHidden>
     <Space orientation="vertical" className={styles.fullWidth} size="middle">
       <Typography.Paragraph>TXT / Markdown，每篇最多64 KiB，每批最多20篇。资料接收后由后台处理，可以关闭并稍后查看批次；停止批次只取消尚未开始的资料。</Typography.Paragraph>
-      {canEdit && (initialMode === 'paste' ? <Form form={form} layout="vertical" onFinish={values => void submit([values])} disabled={active || unknown || !!pending?.unsubmittedIds?.length}>
+      {canEdit && initialMode !== 'history' && (initialMode === 'paste' ? <Form form={form} layout="vertical" onFinish={values => void submit([values])} disabled={active || unknown || !!pending?.unsubmittedIds?.length}>
         <KnowledgeDocumentFields content={content} /><Button type="primary" htmlType="submit" loading={writing}>接收并后台处理</Button>
       </Form> : <>
         <input aria-label="选择知识库资料文件" type="file" accept=".txt,.md,.markdown" multiple disabled={active || unknown || !!pending?.unsubmittedIds?.length} onChange={event => { void selectFiles(Array.from(event.target.files ?? [])); event.target.value = ''; }} />
@@ -145,9 +148,10 @@ export function KnowledgeImportModal({ scope, kbId, initialMode = 'files', initi
         } catch { setError('浏览器无法保存放弃状态，原标识仍保留，请先核对。'); }
       }}>放弃未提交项</Button>} />}
       {unknown && <Alert type="warning" showIcon title="部分接收结果尚未确认" description={unresolved.length ? `保留原批次和请求标识。${unresolved.length}篇资料仍需核对，页面不会自动重传。` : '已保留原批次与请求标识，已接收资料以服务端作业状态为准；不会自动重传。'} action={<Button loading={batch.isFetching} onClick={() => void batch.refetch()}>核对原批次</Button>} />}
-      <div className={styles.toolbar}><Typography.Title level={5}>查看导入批次</Typography.Title><Select className={styles.search} disabled={active} value={batchId ?? undefined} placeholder="按接收时间选择批次" onChange={setBatchId} options={batches.data?.list.map(item => ({ value: item.id, label: `${formatTime(item.created_at)} · ${item.total}篇 · ${item.queued + item.running ? '处理中' : '已结束'}` }))} /><Button disabled={active} loading={batches.isFetching || batch.isFetching} onClick={() => { void batches.refetch(); if (batchId) void batch.refetch(); }}>刷新状态</Button></div>
+      {showHistory && <><div className={styles.toolbar}><Typography.Title level={5}>查看导入批次</Typography.Title><Select className={styles.search} disabled={active || !!pending?.requestIds.length} value={batchId ?? undefined} placeholder="按接收时间选择批次" onChange={setBatchId} options={batches.data?.list.map(item => ({ value: item.id, label: `${formatTime(item.created_at)} · ${item.total}篇 · ${item.queued + item.running ? '处理中' : '已结束'}` }))} /><Button disabled={active} loading={batches.isFetching || batch.isFetching} onClick={() => { void batches.refetch(); if (batchId) void batch.refetch(); }}>刷新状态</Button></div>
       <QueryState error={batches.error} onRetry={() => batches.refetch()} />
       {(batches.data?.total ?? 0) > 10 && <Pagination size="small" current={page} pageSize={10} total={batches.data?.total} onChange={setPage} />}
+      </>}
       {batchId && <>
         <QueryState isPending={batch.isPending && !active} error={active ? undefined : batch.error} onRetry={() => batch.refetch()} />
         <details><summary>批次与原请求标识</summary><p>{batchId}</p>{pending?.requestIds.map(id => <p key={id}>{id}</p>)}{rows.map(row => <p key={row.id}>{row.filename}：{row.id}</p>)}</details>

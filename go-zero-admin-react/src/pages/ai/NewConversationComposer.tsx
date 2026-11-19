@@ -5,7 +5,7 @@ import type { AiSendMessageResult } from '../../api/types';
 import type { AiChatScope } from './chatQueries';
 import { validateMessageContent } from './chatState';
 import { ChatKnowledgePicker } from './ChatKnowledgePicker';
-import type { ChatKnowledgeSelection } from './ChatKnowledgePicker';
+import type { ChatKnowledgeSelection } from './chatKnowledge';
 import { SafeMarkdown } from './SafeMarkdown';
 import { useMessageSend } from './useMessageSend';
 import { useChatScroll } from './useChatScroll';
@@ -16,18 +16,19 @@ type ComposerValues = { content: string };
 interface Props {
   scope: AiChatScope; canSend: boolean; writing: boolean; isCurrent: () => boolean;
   scrollPosition: { current: ChatScrollPosition | null };
-  knowledge?: ChatKnowledgeSelection; onKnowledgeChange?: (value: ChatKnowledgeSelection) => void;
+  knowledge?: ChatKnowledgeSelection; knowledgeRevision?: number; onKnowledgeChange?: (value: ChatKnowledgeSelection) => void;
   beginWrite: (permission: string) => boolean; finishWrite: () => void;
   onCompleted: (result: AiSendMessageResult) => void;
+  onConversationAssigned?: (id: number) => void;
 }
 
 // 第一条消息由流式发送自动创建会话，成功结果直接填充正式会话缓存。
-export function NewConversationComposer({ scope, canSend, writing, scrollPosition, knowledge = { kb_id: 0, grounded: false }, onKnowledgeChange, isCurrent, beginWrite, finishWrite, onCompleted }: Props) {
+export function NewConversationComposer({ scope, canSend, writing, scrollPosition, knowledge = { kb_id: 0, grounded: false }, knowledgeRevision, onKnowledgeChange, isCurrent, beginWrite, finishWrite, onCompleted, onConversationAssigned }: Props) {
   const [form] = Form.useForm<ComposerValues>();
   const draft = Form.useWatch('content', form) ?? '';
   const revision = useRef(0);
   const [retainedResult, setRetainedResult] = useState<AiSendMessageResult | null>(null);
-  const { start, recheck, feedback, streamState, sending } = useMessageSend({ conversationId: 0, scope, isCurrent, beginWrite, finishWrite,
+  const { start, recheck, feedback, streamState, canUseScope, canSendSelection, documentScope, sending } = useMessageSend({ conversationId: 0, scope, knowledge, knowledgeRevision, isCurrent, beginWrite, finishWrite, onConversationAssigned,
     onCompleted: (result, request) => {
       const currentDraft = form.getFieldValue('content') as string | undefined;
       if (result.conversation && currentDraft?.trim() && currentDraft !== request.content) {
@@ -43,7 +44,7 @@ export function NewConversationComposer({ scope, canSend, writing, scrollPositio
     const submittedRevision = revision.current;
     start(values.content, request => {
       if (revision.current === submittedRevision && form.getFieldValue('content') === request.content) form.setFieldValue('content', '');
-    }, knowledge);
+    });
   }
   return <Card className={styles.conversation} title="新会话">
     {retainedResult && <Alert className={styles.feedback} type="success" showIcon title="会话已创建，新草稿已保留"
@@ -72,10 +73,11 @@ export function NewConversationComposer({ scope, canSend, writing, scrollPositio
       description={<Space direction="vertical">
         <span>本次请求未确认成功，草稿已保留。重查复用原请求 ID；此前未送达时可能首次开始处理。</span>
         <span>重新发送会创建新请求，可能再次计费。</span>
-        {canSend && <Button size="small" disabled={writing} onClick={recheck}>重查本次结果</Button>}
+        {!canUseScope(feedback.request.kb_id) && <span>恢复原知识库权限后可重查本次结果。</span>}
+        {canSend && <Button size="small" disabled={writing || !canUseScope(feedback.request.kb_id)} onClick={recheck}>重查本次结果</Button>}
       </Space>} />}
     {canSend ? <Form<ComposerValues> form={form} className={styles.composer} onFinish={handleSend} initialValues={{ content: '' }}>
-      {onKnowledgeChange && <ChatKnowledgePicker scope={scope} value={knowledge} onChange={onKnowledgeChange} disabled={writing} />}
+      {onKnowledgeChange && <ChatKnowledgePicker scope={scope} value={knowledge} onChange={onKnowledgeChange} disabled={writing} documentScope={documentScope} />}
       <Form.Item name="content" rules={[{ validator: (_, value: string) => {
         const error = validateMessageContent(value ?? '') || (knowledge.grounded && new TextEncoder().encode(value ?? '').length > 2000 ? '仅依据资料回答时，问题最多 2000 UTF-8 字节' : undefined);
         return error ? Promise.reject(new Error(error)) : Promise.resolve();
@@ -90,7 +92,7 @@ export function NewConversationComposer({ scope, canSend, writing, scrollPositio
       </Form.Item>
       <div className={styles.composerActions}>
         <Typography.Text type="secondary" className={styles.recordNote}>{new TextEncoder().encode(draft).length} / {knowledge.grounded ? 2000 : 16000} UTF-8 字节</Typography.Text>
-        <Button type="primary" htmlType="submit" icon={<SendOutlined />} loading={sending} disabled={writing || !draft.trim()}>
+        <Button type="primary" htmlType="submit" icon={<SendOutlined />} loading={sending} disabled={writing || !draft.trim() || !canSendSelection}>
           {feedback?.state === 'unknown' ? '重新发送（新请求）' : '发送'}
         </Button>
       </div>

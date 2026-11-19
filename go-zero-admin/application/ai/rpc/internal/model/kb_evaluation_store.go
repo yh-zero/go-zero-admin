@@ -3,6 +3,7 @@ package model
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,8 +14,11 @@ import (
 
 const evaluationFields = "e.id,e.owner_id,e.kb_id,e.request_id,e.request_signature,e.dataset_key,e.dataset_sha256,e.group_key,e.status,e.case_count,e.completed_count,e.failed_count,e.stop_requested,e.corpus_verified,e.error,%s AS dataset_snapshot,%s AS bindings,%s AS run_context,%s AS observations,e.lease_token,COALESCE(UNIX_TIMESTAMP(e.lease_expires_at),0) AS lease_expires_at,COALESCE(UNIX_TIMESTAMP(e.started_at),0) AS started_at,COALESCE(UNIX_TIMESTAMP(e.completed_at),0) AS completed_at,UNIX_TIMESTAMP(e.created_at) AS created_at,UNIX_TIMESTAMP(e.updated_at) AS updated_at,UNIX_TIMESTAMP(NOW()) AS database_time "
 
-var evaluationSelect = "SELECT " + fmt.Sprintf(evaluationFields, "e.dataset_snapshot", "CAST(e.bindings AS CHAR)", "CAST(e.run_context AS CHAR)", "CAST(e.observations AS CHAR)") + "FROM ai_kb_evaluation e "
-var evaluationSummarySelect = "SELECT " + fmt.Sprintf(evaluationFields, "''", "''", "''", "''") + "FROM ai_kb_evaluation e "
+const observationsSHA = "SHA2(CAST(e.observations AS CHAR),256)"
+
+var evaluationSelect = "SELECT " + fmt.Sprintf(evaluationFields, "e.dataset_snapshot", "CAST(e.bindings AS CHAR)", "CAST(e.run_context AS CHAR)", "CAST(e.observations AS CHAR)") + ", '' AS observations_sha256 FROM ai_kb_evaluation e "
+var evaluationSummarySelect = "SELECT " + fmt.Sprintf(evaluationFields, "''", "''", "''", "''") + ", '' AS observations_sha256 FROM ai_kb_evaluation e "
+var evaluationProgressSelect = "SELECT " + fmt.Sprintf(evaluationFields, "''", "''", "''", "IF("+observationsSHA+"=?,'',CAST(e.observations AS CHAR))") + ", " + observationsSHA + " AS observations_sha256 FROM ai_kb_evaluation e "
 
 const evaluationKbJoin = "JOIN ai_kb k ON k.id=e.kb_id AND k.owner_id=e.owner_id AND k.deleted_at IS NULL "
 
@@ -30,6 +34,16 @@ func (m *customAiKbEvaluationModel) FindOwned(ctx context.Context, ownerId, kbId
 	var row KbEvaluationRow
 	err := m.QueryRowNoCacheCtx(ctx, &row, evaluationSelect+evaluationKbJoin+"WHERE e.id=? AND e.owner_id=? AND e.kb_id=?", id, ownerId, kbId)
 	if err == nil {
+		row.ObservationsSHA = fmt.Sprintf("%x", sha256.Sum256([]byte(row.Observations)))
+		err = compactEvaluationRow(&row)
+	}
+	return &row, err
+}
+
+func (m *customAiKbEvaluationModel) ProgressOwned(ctx context.Context, ownerId, kbId, id int64, knownSHA string) (*KbEvaluationRow, error) {
+	var row KbEvaluationRow
+	err := m.QueryRowNoCacheCtx(ctx, &row, evaluationProgressSelect+evaluationKbJoin+"WHERE e.id=? AND e.owner_id=? AND e.kb_id=?", knownSHA, id, ownerId, kbId)
+	if err == nil && row.Observations != "" {
 		err = compactEvaluationRow(&row)
 	}
 	return &row, err

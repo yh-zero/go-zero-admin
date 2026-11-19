@@ -74,10 +74,19 @@ func (b *contextBudget) fit(messages []*schema.Message, definitions []byte, init
 		}
 		out = append(out[:start], out[end:]...)
 	}
+	searchCalls := make(map[string]bool)
+	for _, message := range out[current+1:] {
+		for _, call := range message.ToolCalls {
+			if call.Function.Name == "kb_search" {
+				searchCalls[call.ID] = true
+			}
+		}
+	}
 	for size(out) > limit {
 		changed := false
 		for _, message := range out[current+1:] {
-			if message.Role != schema.Tool || len(message.Content) <= 2 {
+			// 检索摘录已经按共享预算裁剪并编号，再次裁剪会使模型输入与保存的来源快照分叉。
+			if message.Role != schema.Tool || len(message.Content) <= 2 || searchCalls[message.ToolCallID] {
 				continue
 			}
 			message.Content = agenttools.CompactToolResult(message.Content, max(2, len(message.Content)/2))

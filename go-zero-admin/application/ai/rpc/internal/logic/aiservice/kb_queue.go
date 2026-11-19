@@ -32,6 +32,10 @@ func kbQueueError(err error) error {
 		return xerr.NewErrCodeMsg(400, "该批次已停止，不能追加文档")
 	case errors.Is(err, model.ErrKbBatchFull):
 		return xerr.NewErrCodeMsg(400, "每个批次最多接收20项")
+	case errors.Is(err, model.ErrKbIngestUnavailable):
+		return xerr.NewErrCodeMsg(503, "知识库检索未配置（缺少 Embedding 密钥或向量索引），管理功能不受影响")
+	case model.KbDocCommitted(err):
+		return xerr.NewErrCodeMsg(503, "资料已提交，缓存刷新未确认，请按原请求标识核对")
 	default:
 		return aiModelError(err)
 	}
@@ -53,8 +57,11 @@ func findKbReplay(ctx context.Context, s *svc.ServiceContext, r model.KbEnqueueR
 
 func enqueueKbDoc(ctx context.Context, s *svc.ServiceContext, r model.KbEnqueueRequest, chunks []model.KbChunkRow) (*model.KbEnqueueResult, error) {
 	out, err := s.KbIngestQueue.Enqueue(ctx, r, chunks)
-	if err != nil && !model.KbDocCommitted(err) {
-		return nil, kbQueueError(err)
+	if err != nil {
+		// 已入队的摄取仍需唤醒 worker。同步完成的改名由原请求核对并恢复缓存。
+		if !model.KbDocCommitted(err) || out == nil || out.Job == nil || out.Job.Status != "queued" {
+			return nil, kbQueueError(err)
+		}
 	}
 	if out != nil && out.Job != nil && out.Job.Status == "queued" {
 		s.NotifyKbIngest()

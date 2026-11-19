@@ -16,6 +16,7 @@ type (
 		CreateOwned(context.Context, *KbEvaluationRow) (*KbEvaluationRow, bool, error)
 		FindRequestOwned(context.Context, int64, string) (*KbEvaluationRow, error)
 		FindOwned(context.Context, int64, int64, int64) (*KbEvaluationRow, error)
+		ProgressOwned(context.Context, int64, int64, int64, string) (*KbEvaluationRow, error)
 		ListOwned(context.Context, int64, int64, int64, int64, string, string) ([]*KbEvaluationRow, int64, error)
 		ActivateOwned(context.Context, int64, int64, int64, string) (*KbEvaluationRow, error)
 		HeartbeatOwned(context.Context, int64, int64, int64, string) error

@@ -1,7 +1,14 @@
-import { searchAiKb } from '../../api/ai';
+import { queryOptions } from '@tanstack/react-query';
+import { fetchAiKbChoices, searchAiKb } from '../../api/ai';
 import type { AiSearchKbReq } from '../../api/types';
 import { isAiWorkspaceCurrent } from './useAiWorkspaceGuard';
 import type { AiWorkspaceScope } from './workspaceQueries';
+import { aiWorkspaceKeys } from './workspaceQueries';
+
+export function kbChoiceOptions(scope: AiWorkspaceScope, params: { page?: number; page_size?: number; query?: string; id?: number }) {
+  return queryOptions({ queryKey: [...aiWorkspaceKeys.kbs(scope), 'choices', params], staleTime: 30_000, retry: false,
+    queryFn: ({ signal }) => fetchAiKbChoices(params, signal) });
+}
 
 export const KB_SEARCH_MAX_BYTES = 2000;
 

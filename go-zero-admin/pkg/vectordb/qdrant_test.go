@@ -53,7 +53,7 @@ func TestQdrantRoundTrip(t *testing.T) {
 	}
 
 	// 归属过滤：owner 7 不能看到 owner 8 的点，即使向量完全相同
-	hits, err := store.Search(ctx, []float32{1, 0, 0, 0}, 7, 0, 10)
+	hits, err := store.Search(ctx, []float32{1, 0, 0, 0}, 7, 0, 0, 10)
 	if err != nil {
 		t.Fatalf("search: %v", err)
 	}
@@ -67,7 +67,7 @@ func TestQdrantRoundTrip(t *testing.T) {
 	}
 
 	// kb 过滤
-	hits, err = store.Search(ctx, []float32{1, 0, 0, 0}, 7, 999, 10)
+	hits, err = store.Search(ctx, []float32{1, 0, 0, 0}, 7, 999, 0, 10)
 	if err != nil {
 		t.Fatalf("search kb: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestQdrantRoundTrip(t *testing.T) {
 	if err := store.Delete(ctx, []uint64{2, 99999}); err != nil {
 		t.Fatalf("重复/不存在删除应幂等: %v", err)
 	}
-	hits, err = store.Search(ctx, []float32{1, 0, 0, 0}, 7, 0, 10)
+	hits, err = store.Search(ctx, []float32{1, 0, 0, 0}, 7, 0, 0, 10)
 	if err != nil {
 		t.Fatalf("search after delete: %v", err)
 	}

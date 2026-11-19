@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, Button, Descriptions, Form, Modal, Popconfirm, Space, Typography } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { AiCreateKbDocReq, AiKbDocInfo, AiUpdateKbDocReq } from '../../api/types';
+import type { AiCreateKbDocReq, AiKbDocDetailResp, AiKbDocInfo, AiUpdateKbDocReq } from '../../api/types';
 import { fetchAiKbDoc, updateAiKbDoc } from '../../api/ai';
 import { QueryState } from '../../components/QueryState';
 import { useAuthStore } from '../../stores/auth';
@@ -9,6 +9,7 @@ import { knowledgeDocumentKeys, knowledgeDocumentMetadataOptions, knowledgeDocum
 import type { AiWorkspaceScope } from './workspaceQueries';
 import { DocumentFeedback } from './KnowledgeDocumentStatus';
 import { KnowledgeDocumentFields } from './KnowledgeDocumentFields';
+import { AskDocumentButton } from './AskDocumentButton';
 import { documentWriteFailure } from './knowledgeDocuments';
 import { readKnowledgeImportAttempt, subscribeKnowledgeImportAttempt, updateKnowledgeImportAttempt, writeKnowledgeImportAttempt } from './knowledgeImport';
 import { kbImportOptions } from './workspaceQueries';
@@ -71,7 +72,7 @@ export function KnowledgeDocumentModal({ scope, kbId, docId, canEdit, writing, i
   }
 
   async function save(values: DocumentValues) {
-    if (!editing || uncertain || original || !beginWrite()) return;
+    if (!editing || values.title.trim() === editing.values.title.trim() && values.content === editing.values.content || uncertain || original || !beginWrite()) return;
     const data = { ...values, expected_version: editing.version, request_id: crypto.randomUUID() };
     setAttempt(data); setSaveError('');
     const pending = { batchId: data.request_id, requestIds: [data.request_id] };
@@ -85,6 +86,8 @@ export function KnowledgeDocumentModal({ scope, kbId, docId, canEdit, writing, i
       try { updateKnowledgeImportAttempt(sessionStorage, receiptKey, data.request_id, () => null); } catch { /* 原回执再次查询不产生新写入。 */ }
       if (!isCurrent()) return;
       setEditing(null); setUncertain(false); setOriginal(null);
+      client.setQueryData<AiKbDocDetailResp>(knowledgeDocumentKeys.detail(scope, kbId, docId, false), previous =>
+        previous && previous.doc.version > result.doc.version ? previous : { doc: result.doc, content: values.content });
       onChanged(result.doc);
       await client.invalidateQueries({ queryKey: knowledgeDocumentKeys.detail(scope, kbId, docId, false) });
     } catch (cause) {
@@ -95,7 +98,7 @@ export function KnowledgeDocumentModal({ scope, kbId, docId, canEdit, writing, i
     finally { finishWrite(); }
   }
 
-  return <Modal open title={editing ? '编辑原文并重新处理' : '文档原文'} width={800} footer={null}
+  return <Modal open title={editing ? '编辑资料' : '文档原文'} width={800} footer={null}
     closable={!writing} keyboard={!writing} mask={{ closable: !writing }} onCancel={() => { if (!writing) onClose(); }} destroyOnHidden>
     <QueryState isPending={detail.isPending} error={detail.error} onRetry={refresh} />
     {detail.data && doc && <Space orientation="vertical" className={styles.fullWidth} size="middle">
@@ -109,7 +112,6 @@ export function KnowledgeDocumentModal({ scope, kbId, docId, canEdit, writing, i
       ]} />
       {doc.version > detail.data.doc.version && <Alert type="warning" showIcon title="文档已有新版本" description="当前展示的是读取时的原文，请刷新后查看最新正文。" />}
       {editing ? <>
-        <Alert type="info" showIcon title="保存后会替换当前原文并重新处理" description="重新处理完成前，本篇资料暂停参与检索；旧版本不会继续作为新正文的依据。" />
         {uncertain && <Alert type="warning" showIcon title="尚未确认保存结果，草稿已保留" description="请先刷新核对原文和版本，避免重复重新处理；版本冲突时需重新读取再编辑。" />}
         {saveError && !uncertain && <Alert type="error" showIcon title="本次保存未完成，草稿已保留" description={saveError} />}
         <DocumentEditForm key={editing.version} initialValues={editing.values} writing={writing || uncertain} onSubmit={save} />
@@ -122,8 +124,10 @@ export function KnowledgeDocumentModal({ scope, kbId, docId, canEdit, writing, i
       </> : <>
         <Typography.Paragraph copyable={{ text: detail.data.content }}>原文内容</Typography.Paragraph>
         <pre className={styles.documentBody}>{detail.data.content}</pre>
-        <Space wrap><Button loading={detail.isFetching} onClick={() => void refresh()}>刷新原文</Button>
-          {canEdit && <Button type="primary" disabled={writing || uncertain || !!original || doc.version !== detail.data.doc.version} onClick={() => {
+        <Space wrap>
+          {!detail.error && doc.id === docId && doc.kb_id === kbId && <AskDocumentButton scope={scope} doc={doc} disabled={writing || detail.isFetching || uncertain || !!original || doc.version !== detail.data.doc.version} />}
+          <Button loading={detail.isFetching} onClick={() => void refresh()}>刷新原文</Button>
+          {canEdit && <Button disabled={writing || uncertain || !!original || doc.version !== detail.data.doc.version} onClick={() => {
             setUncertain(false); setSaveError(''); setEditing({ values: { title: detail.data.doc.title, content: detail.data.content }, version: detail.data.doc.version });
           }}>编辑原文</Button>}</Space>
       </>}
@@ -134,8 +138,12 @@ export function KnowledgeDocumentModal({ scope, kbId, docId, canEdit, writing, i
 function DocumentEditForm({ initialValues, writing, onSubmit }: { initialValues: DocumentValues; writing: boolean; onSubmit: (values: DocumentValues) => Promise<void> }) {
   const [form] = Form.useForm<DocumentValues>();
   const content = Form.useWatch('content', form) ?? initialValues.content;
+  const title = Form.useWatch('title', form) ?? initialValues.title;
+  const contentChanged = content !== initialValues.content;
+  const changed = contentChanged || title.trim() !== initialValues.title.trim();
   return <Form form={form} initialValues={initialValues} layout="vertical" disabled={writing} onFinish={onSubmit} preserve={false}>
     <KnowledgeDocumentFields content={content} />
-    <Button type="primary" htmlType="submit" loading={writing} disabled={writing}>保存并重新处理</Button>
+    {contentChanged && <Alert type="info" showIcon title="正文变更后需要重新处理，处理期间这篇资料会暂停检索。" />}
+    <Button type="primary" htmlType="submit" loading={writing} disabled={writing || !changed}>{contentChanged ? '保存并重新处理' : changed ? '保存标题' : '保存修改'}</Button>
   </Form>;
 }

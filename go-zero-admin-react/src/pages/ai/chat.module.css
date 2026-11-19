@@ -45,6 +45,8 @@
 .sourceDrawer :global(.ant-drawer-content-wrapper) { max-width: 100vw; }
 .sourceDrawer :global(.ant-typography) { overflow-wrap: anywhere; }
 .sourceDocument { white-space: pre-wrap; overflow-wrap: anywhere; padding: 16px; border: 1px solid var(--ant-color-border-secondary); border-radius: 8px; background: var(--ant-color-fill-quaternary); }
+.sourceDocument mark { color: var(--ant-color-text); background: var(--ant-color-warning-bg-hover); box-shadow: inset 0 -2px var(--ant-color-warning-border); scroll-margin-block-start: 16px; }
+.historicalExcerpt { margin: 8px 0 16px; padding-inline-start: 12px; border-inline-start: 3px solid var(--ant-color-border); white-space: pre-wrap; overflow-wrap: anywhere; }
 .conversationSearch { margin-bottom: 12px; }
 @media (max-height: 640px) {
   .workspace { min-height: 400px; }

@@ -27,15 +27,22 @@ const (
 )
 
 func (s *kbSearcher) Search(ctx context.Context, ownerID, kbID int64, query string) ([]agenttools.KbSearchHit, error) {
-	return s.search(ctx, ownerID, kbID, query, kbSearchReturnTopK)
+	return s.search(ctx, ownerID, kbID, 0, query, kbSearchReturnTopK)
+}
+
+func (s *kbSearcher) SearchDocument(ctx context.Context, ownerID, kbID, docID int64, query string) ([]agenttools.KbSearchHit, error) {
+	if ownerID < 1 || kbID < 1 || docID < 1 {
+		return nil, errors.New("资料检索范围无效")
+	}
+	return s.search(ctx, ownerID, kbID, docID, query, kbSearchReturnTopK)
 }
 
 // SearchAnalysis 让单次分析在原召回内选择依据，不提前丢弃低排名的关键片段。
 func (s *kbSearcher) SearchAnalysis(ctx context.Context, ownerID, kbID int64, query string) ([]agenttools.KbSearchHit, error) {
-	return s.search(ctx, ownerID, kbID, query, kbSearchRecallTopK)
+	return s.search(ctx, ownerID, kbID, 0, query, kbSearchRecallTopK)
 }
 
-func (s *kbSearcher) search(ctx context.Context, ownerID, kbID int64, query string, returnTopK int) ([]agenttools.KbSearchHit, error) {
+func (s *kbSearcher) search(ctx context.Context, ownerID, kbID, docID int64, query string, returnTopK int) ([]agenttools.KbSearchHit, error) {
 	remaining := agenttools.KbSearchRemainingTokens(ctx, s.snippetBudget)
 	if remaining <= 0 {
 		return nil, nil
@@ -60,7 +67,7 @@ func (s *kbSearcher) search(ctx context.Context, ownerID, kbID int64, query stri
 	if err != nil {
 		return nil, err
 	}
-	hits, err := s.store.Search(ctx, vector, ownerID, kbID, kbSearchRecallTopK)
+	hits, err := s.store.Search(ctx, vector, ownerID, kbID, docID, kbSearchRecallTopK)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +81,7 @@ func (s *kbSearcher) search(ctx context.Context, ownerID, kbID int64, query stri
 		scoreByID[h.ID] = h.Score
 	}
 	// MySQL 复核：向量索引是影子，可能滞后；status/归属/软删以库为准
-	rows, err := s.chunks.FindReadyByIDs(ctx, ids, ownerID, kbID)
+	rows, err := s.chunks.FindReadyByIDs(ctx, ids, ownerID, kbID, docID)
 	if err != nil {
 		return nil, err
 	}
@@ -108,12 +115,13 @@ func (s *kbSearcher) search(ctx context.Context, ownerID, kbID int64, query stri
 		}
 		budget += cost
 		out = append(out, agenttools.KbSearchHit{
-			ChunkID:  r.Id,
-			KbID:     r.KbId,
-			DocID:    r.DocId,
-			DocTitle: r.DocTitle,
-			Snippet:  content,
-			Score:    scoreByID[uint64(r.Id)],
+			ChunkID:    r.Id,
+			KbID:       r.KbId,
+			DocID:      r.DocId,
+			DocVersion: r.DocVersion,
+			DocTitle:   r.DocTitle,
+			Snippet:    content,
+			Score:      scoreByID[uint64(r.Id)],
 		})
 	}
 	return out, nil

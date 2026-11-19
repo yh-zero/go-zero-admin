@@ -31,7 +31,11 @@ async (page) => {
     if (request.method() !== 'GET') { unexpected.push({ path, method: request.method() }); return route.abort('blockedbyclient'); }
     if (path === '/v1/sys/auth/captcha') return send({ enabled: false });
     if (path === '/v1/sys/dept/my') return send({ list: [] });
-    if (path === '/v1/sys/menu/my/perm-codes') return send({ codes: ['sys:ai:task:list', 'sys:ai:kb:list'] });
+    if (path === '/v1/sys/menu/my/perm-codes') return send({ codes: ['sys:ai:task:list', 'sys:ai:kb:list', 'sys:ai:workflow:list'] });
+    if (path === '/v1/sys/ai/workflows') {
+      reads.push({ kind: 'workflow', url: relative });
+      return send({ list: [{ id: 71, name: '记录中的流程' }], total: 1 });
+    }
     if (path === '/v1/sys/menu/my') return send({ list: [{ id: 901, parent_id: 0, title: '运行记录', name: 'ai_task', path: '/ai/tasks', component: 'ai_task', type: 2, visible: true, status: 1, sort: 0 }] });
     if (path === '/v1/sys/profile/') return send({ user: { id: otherIdentity ? 2 : 1, username: 'comparison-fixture', nickname: otherIdentity ? '其他身份' : '对照验收', email: '', phone: '', avatar_url: '', dept_id: 0, role_ids: [] } });
     if (path === '/v1/sys/ai/tasks') {
@@ -61,6 +65,22 @@ async (page) => {
     return route.abort('blockedbyclient');
   });
   await page.goto(`${origin}/ai/tasks?task_id=101`);
+  await page.getByRole('heading', { name: '执行结果' }).waitFor();
+  check(new URL(page.url()).searchParams.get('task_id') === '101', '已打开的运行记录应保留可刷新地址');
+  check(!reads.some(r => r.kind === 'workflow'), '首屏不能预读流程筛选选项');
+  const workflowFilter = page.getByRole('combobox', { name: '按流程名称筛选' });
+  await workflowFilter.click();
+  await page.getByText('记录中的流程', { exact: true }).last().waitFor();
+  await workflowFilter.fill('记');
+  await workflowFilter.fill('记录');
+  await page.waitForRequest(req => new URL(req.url()).searchParams.get('query') === '记录');
+  check(!reads.some(r => r.kind === 'workflow' && new URL(r.url, origin).searchParams.get('query') === '记'), '搜索防抖须跳过中间输入');
+  await workflowFilter.press('Escape');
+  await page.locator('[aria-label="我的运行记录"] button').filter({ hasText: '比较乙' }).click();
+  await page.waitForURL('**/ai/tasks?task_id=102');
+  await page.goBack();
+  await page.waitForURL('**/ai/tasks?task_id=101');
+  await page.reload();
   const compare = async () => {
     await page.getByRole('button', { name: /更多操作$/ }).click();
     await page.getByRole('menuitem', { name: '对比运行', exact: true }).click();

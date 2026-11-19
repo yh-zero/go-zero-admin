@@ -62,11 +62,15 @@ function UsageSession({ scope }: { scope: AiWorkspaceScope }) {
   const canManage = guard.can('sys:ai:usage:manage');
   const [params, setParams] = useState<AiUsageAdminQuery>(() => usageFilterDefaults());
   const [policyPage, setPolicyPage] = useState(1);
+  const [showCalls, setShowCalls] = useState(false);
   const query = { ...params };
   if (!activeAdmin) delete query.user_id;
-  const summary = useQuery({ queryKey: usageQueryKey(scope, activeAdmin, 'summary', query), retry: false, enabled: !managing,
-    queryFn: ({ signal }) => activeAdmin ? fetchAdminUsageSummary(query, signal) : fetchMyUsageSummary(query, signal) });
-  const calls = useQuery({ queryKey: usageQueryKey(scope, activeAdmin, 'calls', query), retry: false, enabled: !managing,
+  const summaryFilters = { ...query };
+  delete summaryFilters.page;
+  delete summaryFilters.page_size;
+  const summary = useQuery({ queryKey: usageQueryKey(scope, activeAdmin, 'summary', summaryFilters), retry: false, enabled: !managing,
+    queryFn: ({ signal }) => activeAdmin ? fetchAdminUsageSummary(summaryFilters, signal) : fetchMyUsageSummary(summaryFilters, signal) });
+  const calls = useQuery({ queryKey: usageQueryKey(scope, activeAdmin, 'calls', query), retry: false, enabled: !managing && showCalls,
     queryFn: ({ signal }) => activeAdmin ? fetchAdminUsageCalls(query, signal) : fetchMyUsageCalls(query, signal) });
   const mine = useQuery({ queryKey: usageQueryKey(scope, false, 'policy'), retry: false, enabled: !activeAdmin && !managing, queryFn: ({ signal }) => fetchMyUsagePolicy(signal) });
   const policies = useQuery({ queryKey: usageQueryKey(scope, true, 'policies', { page: policyPage }), retry: false,
@@ -123,7 +127,7 @@ function UsageSession({ scope }: { scope: AiWorkspaceScope }) {
 
   return <div className={styles.workspace}>
     <Card title="用量与额度" extra={<Button icon={<ReloadOutlined />} onClick={refresh} disabled={guard.writing}>刷新</Button>}>
-      <Tabs activeKey={activeView} onChange={key => { setView(key); setParams(current => ({ ...current, page: 1 })); }} items={[
+      <Tabs activeKey={activeView} onChange={key => { setView(key); setShowCalls(false); setParams(current => ({ ...current, page: 1 })); }} items={[
         { key: 'self', label: '我的用量' }, ...(canAdmin ? [{ key: 'admin', label: '全局用量' }, { key: 'policies', label: '额度管理' }] : []),
       ]} />
       {!managing && <>
@@ -148,8 +152,9 @@ function UsageSession({ scope }: { scope: AiWorkspaceScope }) {
       </>}
     </Card>
 
-    {!managing && <Card title="请求明细"><QueryState isPending={calls.isPending} error={calls.error} onRetry={() => calls.refetch()} />
-      {!calls.error && calls.data && <><Table<AiUsageCallInfo> rowKey="id" dataSource={calls.data.list} pagination={false} scroll={{ x: 700 }} locale={{ emptyText: <Empty description="此范围尚无账本记录" /> }} columns={[
+    {!managing && <Card title="请求明细" extra={<Button aria-expanded={showCalls} onClick={() => setShowCalls(!showCalls)}>{showCalls ? '收起明细' : '查看明细'}</Button>}>
+      {showCalls && <QueryState isPending={calls.isPending} error={calls.error} onRetry={() => calls.refetch()} />}
+      {showCalls && !calls.error && calls.data && <><Table<AiUsageCallInfo> rowKey="id" dataSource={calls.data.list} pagination={false} scroll={{ x: 700 }} locale={{ emptyText: <Empty description="此范围尚无账本记录" /> }} columns={[
         { title: '时间', dataIndex: 'started_at', render: formatTime, width: 170 },
         ...(activeAdmin ? [{ title: '用户 ID', dataIndex: 'owner_id', width: 90 }] : []),
         { title: '来源', key: 'source', render: (_, row) => sources[row.source as keyof typeof sources] ?? row.source },

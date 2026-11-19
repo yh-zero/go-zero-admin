@@ -78,6 +78,14 @@ test('质量验收的冻结题集、实际观测和原请求恢复', async t => 
   const server = await createServer({ configFile: false, envFile: false, logLevel: 'error', server: { middlewareMode: true, watch: null, ws: false } });
   try {
     const helpers = await server.ssrLoadModule('/src/pages/ai/knowledgeQuality.ts').catch(() => ({}));
+    await t.test('冻结选择按 key 和 SHA 保持，目录换版或下架不得改用其它快照', () => {
+      const old = { key: 'same', sha256: sha }, updated = { key: 'same', sha256: 'f'.repeat(64) }, other = { key: 'other', sha256: sha };
+      assert.equal(helpers.resolveQualityDataset([old], old), old);
+      assert.equal(helpers.resolveQualityDataset([updated, other], old), undefined);
+      assert.equal(helpers.resolveQualityDataset([other], old), undefined);
+      assert.equal(helpers.resolveQualityDataset([updated], updated), updated);
+      assert.equal(helpers.resolveQualityDataset([other]), other);
+    });
     await t.test('轮询复用原字节未变的冻结题集，仍读取最新观测并拒绝变更后的无效语料', async () => {
       const digest = crypto.subtle.digest;
       let hashes = 0;
@@ -293,6 +301,46 @@ test('质量验收API与Query遵守统一认证、取消和作用域', async t =
       request.defaults.adapter = async config => { calls.push(config); return response(config, {}, 409); };
       await assert.rejects(api.startAiKbEvaluation(7, attempt), e => e.code === 409);
       assert.equal(calls.length, 6);
+    });
+    await t.test('题集首页仅目录，选中时按冻结版本获取并验签', async () => {
+      const calls = [], info = { key: 'test', name: '测试题集', sha256: sha };
+      request.defaults.adapter = async config => {
+        calls.push(config.params);
+        return response(config, { list: [{ ...info, dataset: config.params.meta_only ? '' : raw }] });
+      };
+      const catalogue = await client.fetchQuery(queries.qualityCatalogueOptions(scope, 7));
+      assert.deepEqual(catalogue, [info]);
+      const selected = queries.qualityDatasetOptions(scope, 7, catalogue[0]);
+      assert.equal((await client.fetchQuery(selected)).raw, raw);
+      assert.equal((await client.fetchQuery(selected)).raw, raw);
+      assert.deepEqual(calls, [{ meta_only: true }, { dataset_key: 'test' }]);
+      request.defaults.adapter = async config => response(config, { list: [{ ...info, dataset: raw + ' ' }] });
+      await assert.rejects(selected.queryFn({ signal: new AbortController().signal }), /指纹/);
+    });
+    await t.test('活动批次首读完整，轮询不变时复用已校验数据，变化补新观测，终态补完整', async () => {
+      const calls = [], digest1 = '1'.repeat(64), digest2 = '2'.repeat(64);
+      let mode = 'initial';
+      const active = { ...run, status: 'running', corpus_verified: false, completed_at: 0, observations_sha256: digest1 };
+      const compact = { ...active, snapshot: '', bindings: '', context: '', observations: '' };
+      request.defaults.adapter = async config => {
+        calls.push(config.params);
+        if (!config.params?.progress_only) return response(config, { evaluation: mode === 'end' ? run : active });
+        if (mode === 'changed') return response(config, { evaluation: { ...compact, observations: JSON.stringify([{ ...observation, stage: '新阶段' }]), observations_sha256: digest2 } });
+        return response(config, { evaluation: mode === 'end' ? { ...compact, status: 'succeeded', corpus_verified: true } : compact });
+      };
+      const options = queries.qualityRunOptions(scope, 7, 1);
+      const first = await client.fetchQuery(options), same = await client.fetchQuery(options);
+      assert.equal(first.rows, same.rows);
+      mode = 'changed';
+      const changed = await client.fetchQuery(options);
+      assert.equal(changed.rows[0].stage, '新阶段');
+      assert.equal(changed.run.snapshot, raw);
+      mode = 'end';
+      const final = await client.fetchQuery(options);
+      assert.equal(final.run.status, 'succeeded');
+      assert.equal(final.run.observations, run.observations);
+      assert.deepEqual(calls.map(p => p?.progress_only ? p.known_observations_sha256 : 'full'), ['full', digest1, digest1, digest2, 'full']);
+      assert.equal(options.refetchInterval({ state: { data: final } }), false);
     });
     await t.test('分页/身份/知识库隔离，取消后迟到响应不能回填', async () => {
       const options = queries.qualityListOptions(scope, 7, { page: 2, page_size: 10 });

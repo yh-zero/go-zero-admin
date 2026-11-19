@@ -154,6 +154,7 @@ export interface AiConversationInfo {
 }
 export interface AiChatMessage {
   id: number; role: string; content: string; tool_calls: string; tokens: number; created_at: number;
+  kb_id?: number; doc_id?: number; grounded?: boolean;
   status: AiMessageStatus; error: string;
   sources: AiSearchKbHit[]; feedback: AiMessageFeedback; feedback_note: string;
 }
@@ -184,7 +185,7 @@ export interface AiGetConversationResp extends AiConversationResp {
   messages: AiChatMessage[]; has_more: boolean; next_before_id: number;
 }
 // 同一逻辑提交重试必须复用 request_id；用户有意发起新调用时由调用者生成新的 UUID。
-export interface AiSendMessageReq { request_id: string; conversation_id: number; content: string; kb_id?: number; grounded?: boolean }
+export interface AiSendMessageReq { request_id: string; conversation_id: number; content: string; kb_id?: number; doc_id?: number; grounded?: boolean }
 export interface AiListConversationsReq extends PageParams { query?: string }
 export interface AiUpdateConversationReq { title?: string; pinned?: boolean }
 export type AiMessageFeedback = '' | 'helpful' | 'irrelevant_source' | 'missing_knowledge';
@@ -248,9 +249,10 @@ export interface AiCreateKbReq { name: string; description?: string }
 export interface AiUpdateKbReq { name?: string; description?: string }
 export interface AiKbResp { kb: AiKbInfo; capabilities: AiCapabilities }
 export interface AiListKbsReq extends PageParams { query?: string }
+export interface AiKbChoice { id: number; name: string }
 export interface AiListKbsResp extends PageResult<AiKbInfo> { capabilities: AiCapabilities }
-export interface AiListKbDocsReq extends PageParams { query?: string; status?: AiKbDocInfo['status'] }
-export interface AiListKbDocsResp extends PageResult<AiKbDocInfo> { ready_count: number; pending_count: number; failed_count: number }
+export interface AiListKbDocsReq extends PageParams { query?: string; status?: AiKbDocInfo['status']; meta_only?: boolean }
+export interface AiListKbDocsResp extends PageResult<AiKbDocInfo> { page_signature?: string; ready_count: number; pending_count: number; failed_count: number }
 export interface AiKbIngestReq { request_id: string; batch_id?: string }
 export interface AiCreateKbDocReq extends AiKbIngestReq { title: string; content: string }
 export interface AiKbDocResp { doc: AiKbDocInfo; job_id: number; batch_id: string }
@@ -258,7 +260,7 @@ export interface AiKbDocDetailResp { doc: AiKbDocInfo; content: string }
 export interface AiUpdateKbDocReq extends AiCreateKbDocReq { expected_version: number }
 export interface AiSearchKbReq { query: string }
 export interface AiSearchKbHit {
-  chunk_id: number; kb_id: number; doc_id: number; doc_title: string; snippet: string; score: number;
+  chunk_id: number; kb_id: number; doc_id: number; doc_version?: number; doc_title: string; snippet: string; score: number;
 }
 export interface AiSearchKbResp { list: AiSearchKbHit[]; elapsed_ms: number }
 export type AiKbIngestJobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'reused';
@@ -280,7 +282,7 @@ export interface AiKbEvaluationInfo {
   id: number; kb_id: number; request_id: string; dataset_key: string; dataset_sha256: string; group_key: string;
   status: AiKbEvaluationStatus; case_count: number; completed_count: number; failed_count: number;
   stop_requested: boolean; corpus_verified: boolean; error: string; snapshot: string; bindings: string; context: string;
-  observations: string; created_at: number; updated_at: number; started_at: number; completed_at: number;
+  observations: string; observations_sha256?: string; created_at: number; updated_at: number; started_at: number; completed_at: number;
 }
 export interface AiKbEvaluationResp { evaluation: AiKbEvaluationInfo }
 
