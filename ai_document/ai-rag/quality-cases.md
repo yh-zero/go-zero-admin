@@ -31,38 +31,16 @@ split按目标事实划分，同一篇资料可以出现在两个split，但尽�
 
 本题集只覆盖有限的合成资料、短文本事实与问题侧指令干扰，没有覆盖真实业务语料、文档侧恶意注入、穷举语义等价答案或生产负载。字符串规则是筛查信号，不能称为语义准确率或人工评审结论。
 
-从仓库根目录执行以下PowerShell命令，可重复核对原始文件哈希、正例证据、空负例及主要计数；不请求服务：
+## 12题回答回归
+
+[12 题 JSON](answer-regression-cases.json) 针对备份记录、二线升级和两板块盘中临停三项已观察问题。每个原问各有 2 个逐字重复、1 个改写和 1 个含部分未知的场景，用 `source_case_id` 关联原题。与同一轮 40 题的原问合并看重复表现时，每个原问有 3 次观察。这些回答共用样本，不能按独立题计算置信度。
+
+9 道原问或改写题以 `absence_policy=forbidden` 检查回答是否多报资料缺口。另 3 题的 `required` 要求既回答已知部分，又指出备份保存天数、二线电话号码或规则生效年月等资料未提供的信息。12 题全部属于 development。误报要回看问项、引用和原文。[实际失败夹具](answer-failure-fixtures.json) 保存了当时的坏答及实际来源。
+
+从仓库根目录用以下命令校验题集，运行与重算参数见[评测入口](README.md#检索与回答质量评测)。
 
 ```powershell
-@'
-const fs = require('node:fs'), assert = require('node:assert/strict');
-const { createHash } = require('node:crypto');
-const data = JSON.parse(fs.readFileSync('ai_document/ai-rag/quality-cases.json', 'utf8'));
-const old = JSON.parse(fs.readFileSync('ai_document/ai-rag/recall-cases.json', 'utf8'));
-assert.equal(data.version, 1); assert.deepEqual(data.documents, old.documents);
-const docs = new Map(data.documents.map(d => {
-  const bytes = fs.readFileSync(d.source);
-  assert.equal(createHash('sha256').update(bytes).digest('hex'), d.sha256);
-  return [d.key, { kb: d.kb, text: bytes.toString('utf8') }];
-}));
-assert.equal(docs.size, 11); assert.equal(data.cases.length, 40);
-assert.equal(new Set(data.cases.map(c => c.id)).size, 40);
-const counts = {};
-for (const c of data.cases) {
-  const k = c.split + '/' + c.answer.kind; counts[k] = (counts[k] || 0) + 1;
-  if (c.answer.kind === 'unanswerable') {
-    assert.deepEqual([c.expected_documents, c.evidence, c.answer.required_groups], [[], [], []]);
-    continue;
-  }
-  assert.ok(c.expected_documents.length && c.answer.required_groups.length);
-  assert.deepEqual(c.evidence.map(e => e.document).sort(), [...c.expected_documents].sort());
-  for (const e of c.evidence) {
-    assert.equal(docs.get(e.document).kb, c.kb); assert.ok(e.groups.length);
-    for (const g of e.groups) assert.ok(g.length && g.some(v => docs.get(e.document).text.includes(v)), c.id);
-  }
-}
-assert.deepEqual(counts, {'development/answerable':17, 'development/unanswerable':7,
-  'validation/answerable':11, 'validation/unanswerable':5});
-console.log(JSON.stringify({ result: 'passed', counts }));
-'@ | node
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan
+node go-zero-admin/data/scripts/eval-kb-quality.mjs --plan --cases ai_document/ai-rag/answer-regression-cases.json --split development
+node --test go-zero-admin/data/scripts/eval-kb-quality.test.mjs
 ```

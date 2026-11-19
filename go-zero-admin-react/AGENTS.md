@@ -1,82 +1,49 @@
-# AGENTS.md — 前端开发规范（React 实践 + 仓库约定）
+# 前端开发规范
 
-> 先读仓库根 `../AGENTS.md`（通用纪律），再读本文件。冲突时以本文件为准。
+先读[根规范](../AGENTS.md)。本页补充 React 前端的目录、状态、对接与验证约定。
 
 ## 1. 技术栈与依赖
 
-沿用 React 函数组件、TypeScript 严格模式、Vite、antd、TanStack Query、zustand 与现有请求封装；版本和已安装依赖以 `package.json`、锁文件及实际安装为准，不在本文重复维护。
-
-- 新增依赖必须先经批准，并说明理由（同根规范 6）
-- Node 与 pnpm 分别按 `engines` / `packageManager`；依赖操作遵守根“安全基线”，不为迎合文档擅自升降级
+沿用现有 React、TypeScript 严格模式、Vite、antd、TanStack Query 和 zustand。Node、pnpm 与依赖版本见 [package.json](package.json) 和[锁文件](pnpm-lock.yaml)。新增依赖须事先说明理由并取得授权。
 
 ## 2. React 规范
 
-1. **函数组件 + Hooks**，禁止 class 组件
-2. 组件文件 `PascalCase`（`UserList.tsx`）；hooks 文件 `useXxx.ts`；工具函数 `camelCase.ts`
-3. props 必须显式类型；事件回调命名 `onXxx`；列表渲染 key 用稳定 id，**禁止 index 作 key**
-4. render 保持纯净；外部订阅、资源生命周期用 `useEffect` 并清理，用户操作在事件/Mutation 中处理，不把所有副作用机械搬进 Effect
-5. 抽组件/hook 以独立职责、复用或测试收益为准，不为行数、嵌套层数增加转发层；纯整理不改变交互和状态语义
+使用函数组件和 Hooks。组件文件用 PascalCase，Hook 用 `useXxx`，工具函数用 camelCase。显式声明 props 类型，事件回调用 `onXxx`，列表 key 使用稳定标识。保持渲染纯净；订阅与资源释放成对处理，用户操作由事件或 Mutation 发起。组件或 Hook 按独立职责、复用或测试需要拆分。
 
-## 3. 接口对接（契约见 ../ai_document/api-contract.md）
+## 3. 接口对接
 
-1. **常规业务 API 请求走 `src/utils/request.ts`**；流式等专用传输可在 `src/api/` 封装，复用统一认证、刷新、部门上下文、错误处理及会话取消语义。API 函数统一放 `src/api/`，禁止组件内裸 axios/fetch 绕过这些能力。
-2. **接口请求/响应类型统一从 `src/api/types.ts` 导入**；当前按共享契约及核对后的后端类型手工维护，没有现成的 TypeScript 类型生成入口。禁止自造与契约不符的接口类型；组件 Props、UI 状态类型可在所属组件或模块定义。
-3. 请求层统一处理错误及会话失效；组件可做字段提示、失败反馈和恢复交互，但不重复弹同一错误，也不吞掉失败伪装成功
-4. 写成功后，有足够完整且适用的服务端已提交结果时，可使用 Query 缓存 API 精确回填；无法确认列表排序、分页边界或对象存续时，通过 `queryClient.invalidateQueries` 或补读刷新受影响范围。精确回填需验证一致性，乐观更新额外验证失败回滚；不另用组件 state 长期维护服务器列表副本。
-5. 分页/过滤参数与契约 §4 一致（`page`/`page_size` → `list`/`total`）
+- 常规业务请求经 [request.ts](src/utils/request.ts)，流式传输在 [src/api](src/api) 封装，复用认证、刷新、部门上下文和会话取消逻辑。组件通过 API 函数发起请求。
+- 请求和响应类型从 [types.ts](src/api/types.ts) 导入，按[共享契约](../ai_document/api-contract.md)及后端 `.api` 手工核对。组件自行定义 Props 和局部 UI 类型。
+- 请求层处理共用错误和会话失效。页面负责字段提示与可恢复的交互，不重复弹窗或将失败展示为成功。
 
-## 4. 状态纪律
+## 4. 状态归属
 
-| 状态 | 归属 |
-|---|---|
-| 常规服务端查询与业务写操作 | 默认 `useQuery`/`useMutation`；不在 Effect 裸请求或复制缓存到 state |
-| 会话、权限快照、主题等共享客户端状态 | 沿用 zustand 与既有会话流程，不强制把登录/刷新状态机改造成普通查询 |
-| 表单与局部交互 | antd Form 管表单值，展开/选择/动画等用局部状态；避免与 Form 或 Query 双份维护 |
+服务端数据使用 Query 和 Mutation。写入成功后，仅在服务端结果完整且分页、排序和对象存续均确定时回填缓存，其他情况刷新受影响查询。乐观更新应验证失败回滚。表单值由 antd Form 管理，展开与选择由组件管理，会话、权限快照及主题由 zustand 管理。
 
-尚未确认提交的流式增量或异步过程数据仅作临时展示，以契约约定的已提交结果确认成功。断流、超时或取消不等于服务端回滚；结果未知时，按契约保留原操作标识并重查，不得将重查自动变成一次新提交。
+尚未确认提交的流式增量或异步结果只作临时展示。断流、超时或取消后按契约保留原操作标识核查结果，重查不得重新提交。
 
-## 5. 目录规范
+## 5. 页面与权限登记
 
-```
-src/
-├── api/         # 接口函数 + types.ts（与后端契约一一对应）
-├── components/  # 通用组件（Auth 权限组件等）
-├── layouts/     # 布局
-├── pages/       # 业务页面（按模块分目录）
-├── router/      # 路由表 + 页面注册表（新增页面必须登记）
-├── stores/      # zustand
-└── utils/       # request.ts 等
-```
-
-- **页面注册**：在 `pages/<模块>/` 创建页面组件，在 `router/registry.ts` 的 `pages` 登记组件。独立菜单页同时登记 `pageLinks`，与后端菜单核对 `name`（对应注册 key）、`path` 和 `component`。沿用父菜单的详情、编辑等隐藏子页在 `router/hiddenPages.ts` 的 `hiddenPageLinks` 登记，通过 `menuPath` 关联父菜单；含动态参数时同步核对 `hiddenPageForPath` 对实际 URL 的匹配。`router/index.tsx` 负责组装路由。
-- **全新安装**：新增功能页面时，同步核对前端路由和[完整初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql)。凡新增或调整独立菜单、按钮权限码、受控接口资源及其服务端授权、默认角色授权、表结构或必要种子数据，将对应变更写入该文件，使预期角色在全新安装后能进入页面、使用获授权的功能。仅新增展示子页且完全复用已有菜单、接口、权限和数据时，初始化 SQL 可保持原样。
-- **已有业务库**：按[开发手册](../ai_document/dev-guide.md#数据初始化)核对目标库与完整初始化 SQL 的差异。功能更新时只应用本功能所需的结构、数据和授权变更，保留既有业务数据和角色授权。完整初始化 SQL 含有 `DROP TABLE`，重置已有库须另行明确授权。
+- 在 `src/pages/<模块>/` 实现页面，在 [registry.ts](src/router/registry.ts) 的 `pages` 注册。独立菜单页还要登记 `pageLinks`，核对后端菜单的 `name`、`path` 和 `component`。
+- 沿用父菜单的详情、编辑等隐藏子页，在 [hiddenPages.ts](src/router/hiddenPages.ts) 登记 `hiddenPageLinks` 和 `menuPath`。含动态参数时核对 `hiddenPageForPath` 匹配实际 URL。
+- 新增或调整表结构、独立菜单、按钮权限、受控接口、默认角色授权或必要种子时，将相应变更写入[完整初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql)，核对全新安装后的可见性与服务端授权。完全复用现有菜单、权限、接口和数据的展示子页只需核对。已有库按[数据初始化](../ai_document/dev-guide.md#数据初始化)补齐本次变更，保留既有数据与授权。
 
 ## 6. 安全
 
-- token 只存 zustand（persist 到 localStorage），由统一请求层或专用传输适配注入；退出即清
-- **禁止 `dangerouslySetInnerHTML` 渲染后端内容**（防 XSS）
-- 环境变量只走 `VITE_` 前缀；任何密钥不进前端代码/仓库
-- 权限判断以后端为准：前端 `<Auth code>` 只做渲染隐藏，**不做真正的访问控制**
+令牌经现有 zustand 会话存储和统一传输逻辑管理，退出时清理。权限码组件控制界面显示，服务端仍须鉴权。后端内容用文本转义渲染，禁止用 `dangerouslySetInnerHTML` 展示。客户端配置采用 `VITE_` 前缀，不存密钥。
 
 ## 7. 样式与易读
 
-- 以 antd 组件 + 主题为准；禁止大规模内联 style 对象，公共布局样式进 `index.css` 或 CSS 模块
-- 图标用 `@ant-design/icons`，禁止 emoji 当图标
-- 注释解释"为什么"；提交前删掉调试代码/console.log
+沿用 antd 主题和 `@ant-design/icons`，公共布局样式放入 `index.css` 或 CSS 模块。避免大块内联样式、用 emoji 充当图标；提交前移除调试输出。
 
 ## 8. 开发验证与提交前自检
 
-开发阶段按根 §9，只运行本次页面、组件或函数对应的回归；布局与交互只验收受影响页面和状态，不遍历无关页面。lint 优先限定改动文件；类型检查使用项目支持的入口，无法可靠局部隔离时才运行 `tsc -b`；涉及构建配置、资源打包或产物行为时再运行 `vite build`。不因一次普通功能调整默认执行全部测试或整套类型/lint/build 检查。
+开发阶段按[根规范的完成定义](../AGENTS.md#9-任务完成定义)验证直接受影响的查询、交互和失败状态。lint 优先限定改动文件；修改资源打包或构建配置时验证实际构建。
 
-**提交代码前必须执行完整自检，不过不提交。** 工作目录为 `go-zero-admin-react/`：
+提交前端代码前，在 `go-zero-admin-react/` 执行以下三项。全部成功后再提交。纯文档修改按根规范核对内容、链接和差异。
 
 ```powershell
-pnpm exec tsc -b      # 类型零错误
-pnpm lint             # oxlint 零错误
-pnpm exec vite build  # 构建成功
+pnpm exec tsc -b
+pnpm lint
+pnpm exec vite build
 ```
-
-上述为提交前及 CI 门槛，不要求开发过程中每次修改都重复执行；远端流水线结果以实际执行为准。业务变更补相关可重复回归并验证受影响交互；认证/权限/状态竞争场景按根 §9，仅覆盖本次受影响行为。
-
-纯文档或规则修改按根规范检查内容一致性、路径引用和差异，不要求运行上述构建。

@@ -1,116 +1,84 @@
 # go-zero-admin
 
-[![CI](https://github.com/yh-zero/go-zero-admin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/yh-zero/go-zero-admin/actions/workflows/ci.yml)
-[![视频教程](https://img.shields.io/badge/Video_Tutorial-Bilibili-00A1D6?logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV15mW76qE3J/)
+[![CI](https://github.com/yh-zero/go-zero-admin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/yh-zero/go-zero-admin/actions/workflows/ci.yml) · [视频教程](https://www.bilibili.com/video/BV15mW76qE3J/) · [MIT 许可证](LICENSE)
 
-基于 **go-zero + React 19 + Ant Design 6** 的开源管理后台，集成权限管理、APP 用户、AI 对话、知识库与审批工作流，适合作为业务系统的开发起点。
-
-后端为 **1 个 HTTP API + 5 个 RPC 服务**（admin / app / file / ai / tenant），配套 MySQL、Redis、Qdrant、RustFS 和 Docker Compose。
-
-## 功能
-
-| 模块 | 主要能力 |
-|---|---|
-| 系统与权限 | 用户、角色、菜单、部门、字典、文件、审计；JWT、Casbin 与部门数据范围 |
-| APP 管理 | 用户资料、会员、设备、账号状态与反馈 |
-| AI 与知识库 | 流式对话、TXT/Markdown 后台导入、带来源回答、反馈复核与质量验收 |
-| 流程与运行 | 多步骤、审批、版本管理、运行记录与结果对照 |
-| 用量与额度 | 模型用量统计与额度策略 |
-| 租户管理 | 租户状态和生命周期接口，运行栈需另行配置 |
+go-zero-admin 是基于 go-zero、React 和 Ant Design 的开源管理后台。开箱即可管理用户、部门、角色权限、文件和审计记录。配置模型后，还可以用自己的资料进行知识库问答，运行带审批的工作流并查看用量。
 
 ## 快速开始
 
-准备 **Go 1.27.3、PowerShell、Docker（Linux 容器）及 Compose、Node.js 24、pnpm 11.28.5**。版本以 [go.mod](go-zero-admin/go.mod) 和 [package.json](go-zero-admin-react/package.json) 为准。
+以下命令使用 **Windows PowerShell**。开始前准备好以下工具。
 
-克隆使用 `git clone --recursive`；已克隆的仓库执行 `git submodule update --init`。
+- Git 和 Go 1.27.3。[后端版本](go-zero-admin/go.mod)
+- 已启动的 Docker，使用支持 `linux/amd64` 的 Linux 容器，以及 Docker Compose 2.24.0 或更高版本。[Compose 配置要求](https://docs.docker.com/reference/compose-file/services/#required)
+- Node.js 24 和 pnpm 11.28.5。[前端版本](go-zero-admin-react/package.json)
 
-### 启动后端
+首次构建需要下载 Go 模块、前端依赖和容器镜像。启动基础后台可以留空 AI 和邮件配置。
 
-从仓库根目录打开 PowerShell：
+### 1. 获取项目
+
+```powershell
+git clone --recursive https://github.com/yh-zero/go-zero-admin.git
+cd go-zero-admin
+```
+
+这里是**仓库根目录**，其中同名的 `go-zero-admin/` 子目录才是后端。已克隆项目但缺少 `.ai-context/` 中的规范文件时，在仓库根目录运行 `git submodule update --init --recursive`。
+
+### 2. 启动后端并检查就绪状态
+
+在当前终端进入后端目录。构建脚本先在宿主机编译 1 个 API 和 5 个 RPC 服务的 Linux 二进制，Compose 再将它们打包并启动。
 
 ```powershell
 cd go-zero-admin
-if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .env.local }
+if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .env.local -ErrorAction Stop }
 powershell -NoProfile -ExecutionPolicy Bypass -File .\data\scripts\build-images.ps1
-if ($LASTEXITCODE -ne 0) { throw "后端编译失败，停止启动" }
+if ($LASTEXITCODE -ne 0) { throw "后端编译失败" }
 docker compose --env-file .env.local up -d --build --wait
-if ($LASTEXITCODE -ne 0) { throw "Compose 启动失败，请检查日志" }
+if ($LASTEXITCODE -ne 0) { throw "Compose 启动失败，请检查容器日志" }
+Invoke-RestMethod http://127.0.0.1:7001/ready | ConvertTo-Json -Depth 3
 ```
 
-Dockerfile 使用宿主机预编译的 Linux 二进制；首次启动或修改后端代码后，须先运行构建脚本。基础镜像需可拉取或已缓存。
+看到 `code` 为 `200`、`result.ready` 为 `true` 后启动前端。若首次请求仍返回 503，稍候重试；持续未就绪时，在后端目录运行 `docker compose --env-file .env.local logs --tail 50 api admin-rpc mysql redis`。[启动与排障](ai_document/dev-guide.md#2-构建启动与就绪检查)
 
-### 启动前端
+MySQL 空数据卷首次启动会自动导入[初始化 SQL](go-zero-admin/data/db/init/mysql-all.sql)。已有数据卷沿用原数据和密码。初始化 SQL 会重建业务表，升级已有库前请先阅读[数据初始化说明](ai_document/dev-guide.md#数据初始化)。
 
-另开终端，从仓库根目录执行：
+### 3. 启动前端并登录
+
+另开一个 PowerShell 终端，从**仓库根目录**执行以下命令。
 
 ```powershell
 cd go-zero-admin-react
 pnpm install --frozen-lockfile
+if ($LASTEXITCODE -ne 0) { throw "前端依赖安装失败" }
 pnpm dev
 ```
 
-访问 **[http://127.0.0.1:5999](http://127.0.0.1:5999)**，演示管理员：`admin / Admin@123456`。默认开启图形验证码，前端代理到 API `7001` 端口；演示凭据仅限本地开发，已有库沿用实际密码。
+打开[本地管理后台](http://127.0.0.1:5999)。全新开发库的演示账号是 `admin`，密码是 `Admin@123456`。填写页面上的图形验证码登录。看到工作台后，打开用户列表，能读到初始化用户就说明前端代理、后端登录和数据读取已串通。
 
-- **数据库**：[mysql-all.sql](go-zero-admin/data/db/init/mysql-all.sql) 在 MySQL 空数据卷首次启动时自动导入，已有卷不会自动更新。该 SQL 会重建业务表，不能作为已有库的升级脚本。
-- **可选配置**：AI 和邮件不影响基础后台启动，按[配置模板](go-zero-admin/.env.local.example)填写本地 `.env.local`，真实凭据不提交。
-- **启动与排障**：详见[开发手册](ai_document/dev-guide.md)，包含宿主调试、配置位置和数据库维护。
+## 从资料到有来源的回答
 
-## AI 与知识库使用
+在后端 `.env.local` 配置聊天模型密钥（默认 DeepSeek 使用 `AI_DEEPSEEK_KEY`）；知识库还需要独立的 Embedding 密钥 `AI_QWEN_KEY` 和 Compose 中的 Qdrant。修改后在后端目录运行 `docker compose --env-file .env.local up -d --force-recreate ai-rpc`。模型调用和向量化可能产生供应商费用。[模型与邮件配置](ai_document/dev-guide.md#ai-与邮件)
 
-### 配置模型与检索
+进入「AI 功能 → 知识库」，新建知识库，导入一篇 UTF-8 TXT 或 Markdown（每篇最多 64 KiB）。等资料显示「可使用」，输入问题查找原文，再生成带引用的回答。点击来源可打开对应原文。可以从仓库提供的[演示资料和测试问题](ai_document/ai-rag/README.md)开始。
 
-在后端 `.env.local` 配置所需密钥：聊天默认使用 DeepSeek（`AI_DEEPSEEK_KEY`）；知识库另需独立的 Qwen Embedding（`AI_QWEN_KEY`）与 Qdrant，Compose 已包含 Qdrant。修改环境变量后需重新创建 `ai-rpc` 容器，切换模型与宿主调试见[配置说明](ai_document/dev-guide.md#ai-与邮件)。
+## 开发与贡献
 
-模型生成与 Embedding 按供应商计费；失败或 0 token 不表示免费，token 提醒不代表费用封顶。
-
-### 从资料到有来源的回答
-
-1. 进入 **AI 功能 → 知识库**，新建知识库，粘贴文本或导入 UTF-8 的 TXT/Markdown；每篇最多 **64 KiB**，等待资料变为“可使用”。
-2. 测试资料检索，或填写问题直接“开始分析”，查看来源片段与运行记录；AI 对话中也可选择该知识库并启用“仅依据资料回答”。
-3. 按需评价、复核答案，在“质量验收”中运行题集，或将分析保存为常用流程。详细操作与评测工具见[开发手册](ai_document/dev-guide.md#3-日常开发与验证流程)和[知识库文档](ai_document/ai-rag/README.md)。
-
-知识库仅供本人使用，分析基于检索片段，相似度不代表答案正确率；当前不支持 PDF/Office/OCR、跨用户共享、混合检索、重排或全库全文审阅。
-
-## 项目结构与文档
-
-```text
-├── go-zero-admin/          Go 后端、数据与部署配置
-├── go-zero-admin-react/    React 管理前端
-└── ai_document/            开发文档、契约与截图
-```
-
-- [开发手册](ai_document/dev-guide.md)：环境、启动、日常开发与排障
-- [API 契约](ai_document/api-contract.md)：接口、权限与业务语义
-- [知识库与评测](ai_document/ai-rag/README.md)：演示资料、题集和评测工具
-- [前端说明](go-zero-admin-react/README.md) · [开发规范](AGENTS.md) · [架构规划](ai_document/refactor-plan.md)
-- [已知问题](ai_document/README.md#后端剩余事项) · [验证证据](ai_document/validation-evidence.md)
+- 修改功能前，先读[根开发规范](AGENTS.md)，再读[后端增量规范](go-zero-admin/AGENTS.md)或[前端增量规范](go-zero-admin-react/AGENTS.md)。
+- 新增接口时，从 [API 定义](go-zero-admin/application/admin/api/desc/admin.api)和[共享契约](ai_document/api-contract.md)开始，通过[生成脚本](go-zero-admin/data/scripts/gen.ps1)更新生成物。开发页面的命令与代理设置见[前端说明](go-zero-admin-react/README.md)。
+- 提交改动时写明受影响的行为和验证结果。租户隔离、鉴权、数据范围及其设计依据见[架构说明](ai_document/architecture.md)。其他主题见[文档索引](ai_document/README.md)。
 
 ## 界面预览
 
-### 猫咪登录
+![管理工作台](ai_document/screenshots/dashboard.jpg)
+
+<details>
+<summary>查看登录、授权、APP 和租户管理界面</summary>
 
 ![猫咪登录动态](ai_document/screenshots/login-cat.gif)
-
-### 工作台
-
-![工作台](ai_document/screenshots/dashboard.jpg)
-
-### 部门管理
-
 ![部门管理](ai_document/screenshots/departments.jpg)
-
-### 菜单与角色授权
-
 ![菜单管理](ai_document/screenshots/menus.jpg)
-
 ![角色授权](ai_document/screenshots/roles.jpg)
-
-### APP 管理
-
-![APP用户](ai_document/screenshots/app-users.jpg)
-
-![APP用户详情](ai_document/screenshots/app-user-details.jpg)
-
-### 租户管理
-
+![APP 用户](ai_document/screenshots/app-users.jpg)
+![APP 用户详情](ai_document/screenshots/app-user-details.jpg)
 ![租户管理](ai_document/screenshots/tenants.jpg)
+
+</details>
