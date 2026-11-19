@@ -55,8 +55,9 @@ async page => {
   assert((await readSaved(31))?.grounded, '断流前取得会话 ID 即保留首条的严格选库');
   await choose('自动检索我的知识库');
   await retry.click();
-  await strict.waitFor();
-  assert(await strict.getAttribute('aria-checked') === 'true' && JSON.stringify(requests[0]) === JSON.stringify(requests[1]), '重查复用原请求及首条选库');
+  await page.getByText('已收到', { exact: true }).waitFor();
+  assert(await strict.count() === 0 && !(await readSaved(31)).kb_id && JSON.stringify(requests[0]) === JSON.stringify(requests[1]), '重查复用原请求但下一问保留新选择');
+  await choose(kb.name); await strict.click();
   await page.reload(); await openConversation(); await strict.waitFor();
   assert(await strict.getAttribute('aria-checked') === 'true', '刷新后原会话应恢复资料约束');
   await page.goto(origin + '/ai/knowledge/7'); await page.goto(origin + '/ai/chat'); await openConversation(); await strict.waitFor();

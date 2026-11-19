@@ -14,6 +14,7 @@ import (
 	"go-zero-admin/application/ai/rpc/aipb"
 	"go-zero-admin/application/ai/rpc/internal/model"
 	"go-zero-admin/pkg/agenttools"
+	"go-zero-admin/pkg/xerr"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -49,8 +50,19 @@ func TestChatMessageScopeKeepsHistoricalFingerprints(t *testing.T) {
 }
 
 func TestGroundedReferenceDistinguishesNewTopicAndFollowup(t *testing.T) {
-	if isGroundedFollowup("服务器的部署端口是多少呢？") || isGroundedFollowup("第二季度的营业额是多少？") || !isGroundedFollowup("第二种呢？") || !isGroundedFollowup("What about the latter?") {
-		t.Fatal("独立问题应原样检索，明确的指代问题才补充同库上轮问答")
+	for _, tc := range []struct {
+		question string
+		followup bool
+	}{
+		{"服务器的部署端口是多少呢？", false}, {"第二季度的营业额是多少？", false},
+		{"继续教育学分怎么申请？", false}, {"What are the IT department opening hours?", false},
+		{"第二种呢？", true}, {"请继续。", true}, {"请继续讲解。", true},
+		{"继续回答", true}, {"请继续回答。", true}, {"请继续回答吧！", true},
+		{"What about the latter?", true}, {"How do I use it, exactly?", true}, {"Tell me more!", true},
+	} {
+		if got := isGroundedFollowup(tc.question); got != tc.followup {
+			t.Errorf("%q 追问识别结果 %t，预期 %t", tc.question, got, tc.followup)
+		}
 	}
 }
 
@@ -164,6 +176,42 @@ func TestChatExperienceGroundingNoMatchesAndOwnership(t *testing.T) {
 	}
 }
 
+func TestChatSearchQuotaAndReplay(t *testing.T) {
+	var modelCalls atomic.Int32
+	service, owner := aiIntegrationContext(t, func(w http.ResponseWriter, r *http.Request) {
+		modelCalls.Add(1)
+		w.Header().Set("Content-Type", "text/event-stream")
+		args := map[string]any{"name": "kb_search", "arguments": `{"query":"quota"}`}
+		delta := map[string]any{"tool_calls": []any{map[string]any{"index": 0, "id": "search", "type": "function", "function": args}}}
+		writeModelFrame(t, w, map[string]any{"choices": []any{map[string]any{"index": 0, "delta": delta, "finish_reason": "tool_calls"}}})
+		fmt.Fprint(w, "data: [DONE]\n\n")
+	})
+	service.AiKbModel = &groundedOwnedKb{owner: owner}
+	const quotaMessage = "每日供应商请求额度已用完"
+	searcher := &directRecallSearcher{search: func(context.Context, int64, int64, string) ([]agenttools.KbSearchHit, error) {
+		return nil, fmt.Errorf("检索未准入: %w", xerr.NewErrCodeMsg(429, quotaMessage))
+	}}
+	service.KbSearcher = searcher
+	agenttools.RegisterIfAbsent(agenttools.NewKbSearch(&budgetKbSearcher{}))
+	for _, tc := range []struct {
+		name           string
+		grounded       bool
+		modelCalls     int32
+		groundedSearch int
+	}{{"严格资料先检索", true, 0, 1}, {"普通聊天调用检索工具", false, 1, 0}} {
+		t.Run(tc.name, func(t *testing.T) {
+			modelBefore, searchBefore := modelCalls.Load(), searcher.calls
+			req := &aipb.SendMessageRequest{Actor: &aipb.Actor{UserId: owner}, RequestId: uuid.NewString(), Content: "问题", KbId: 2, Grounded: tc.grounded}
+			for i := 0; i < 2; i++ {
+				frame := runAITestStream(t, context.Background(), service, req, nil).last()
+				if frame.Type != "error" || frame.ErrorCode != 429 || frame.Content != quotaMessage || modelCalls.Load()-modelBefore != tc.modelCalls || searcher.calls-searchBefore != tc.groundedSearch {
+					t.Fatalf("第 %d 次读取错误帧=%v，聊天调用=%d，严格资料检索=%d", i+1, frame, modelCalls.Load(), searcher.calls)
+				}
+			}
+		})
+	}
+}
+
 func TestChatExperienceFollowupUsesFreshEvidenceWithinSelectedKB(t *testing.T) {
 	var calls atomic.Int32
 	service, owner := aiIntegrationContext(t, func(w http.ResponseWriter, r *http.Request) {
@@ -176,6 +224,9 @@ func TestChatExperienceFollowupUsesFreshEvidenceWithinSelectedKB(t *testing.T) {
 		if n == 2 && (!strings.Contains(payload.Messages[0].Content, "不能作为证据") || !strings.Contains(payload.Messages[1].Content, "本轮复核资料")) {
 			t.Error("追问缺少本轮证据或指代约束")
 		}
+		if n == 3 && strings.Contains(payload.Messages[1].Content, "上轮回答：") {
+			t.Error("独立新问题不应携带前一轮问答")
+		}
 		w.Header().Set("Content-Type", "text/event-stream")
 		fmt.Fprint(w, "data: {\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"第二种是定期导入 [1]。\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":2,\"completion_tokens\":3,\"total_tokens\":5}}\n\ndata: [DONE]\n\n")
 	})
@@ -186,7 +237,7 @@ func TestChatExperienceFollowupUsesFreshEvidenceWithinSelectedKB(t *testing.T) {
 		if gotOwner != owner {
 			t.Fatal("检索身份变化")
 		}
-		if len(queries) == 4 {
+		if len(queries) == 5 {
 			return nil, errors.New("fixture search error")
 		}
 		if kb == 3 {
@@ -205,14 +256,19 @@ func TestChatExperienceFollowupUsesFreshEvidenceWithinSelectedKB(t *testing.T) {
 	if second.Type != "done" || len(queries) != 2 || !strings.HasPrefix(queries[1], req.Content) || !strings.Contains(queries[1], "定期导入") || len(second.Result.AiMessage.Sources) != 1 || second.Result.AiMessage.Sources[0].ChunkId != 2 {
 		t.Fatal("追问须重新检索并仅保存本轮证据")
 	}
-	req.RequestId, req.KbId = uuid.NewString(), 3
+	req.RequestId, req.Content = uuid.NewString(), "继续教育学分怎么申请？"
+	newTopic := runAITestStream(t, context.Background(), service, req, nil).last()
+	if newTopic.Type != "done" || len(queries) != 3 || queries[2] != req.Content {
+		t.Fatal("同一库的新主题应只检索当前问题")
+	}
+	req.RequestId, req.KbId, req.Content = uuid.NewString(), 3, "How do I use it, exactly?"
 	empty := runAITestStream(t, context.Background(), service, req, nil).last()
-	if empty.Type != "done" || len(queries) != 3 || queries[2] != req.Content || len(empty.Result.AiMessage.Sources) != 0 || calls.Load() != 2 {
+	if empty.Type != "done" || len(queries) != 4 || queries[3] != req.Content || len(empty.Result.AiMessage.Sources) != 0 || calls.Load() != 3 {
 		t.Fatal("切库后不得沿用旧问答或为无依据问题调用模型")
 	}
 	req.RequestId = uuid.NewString()
 	failed := runAITestStream(t, context.Background(), service, req, nil).last()
-	if failed.Type != "error" || failed.ErrorCode != 503 || calls.Load() != 2 {
+	if failed.Type != "error" || failed.ErrorCode != 503 || calls.Load() != 3 {
 		t.Fatal("检索失败须区别于无命中且不得调用模型")
 	}
 }

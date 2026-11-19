@@ -96,8 +96,12 @@ request.interceptors.response.use(async (response) => {
   const status = error.response?.status;
   if (status === 401) return handleFailure(new ApiError(401, '登录已过期，请重新登录'), config);
   const body = error.response?.data as unknown;
-  try { decodeResponse(body); } catch (businessError) {
-    if (businessError instanceof ApiError) return handleFailure(businessError, config);
+  // 网关可能直接返回 HTML。拒绝访问或资源已移除时，只有同码业务信封可以补充提示。
+  const accessDeniedOrGone = status === 403 || status === 404 || status === 410;
+  if (body && typeof body === 'object' && (!accessDeniedOrGone || 'code' in body && body.code === status)) {
+    try { decodeResponse(body); } catch (businessError) {
+      if (businessError instanceof ApiError) return handleFailure(businessError, config);
+    }
   }
   const text = status === 403 ? '没有访问权限'
     : status ? '请求失败（HTTP ' + status + '）'

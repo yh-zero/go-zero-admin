@@ -13,7 +13,7 @@ import type { AiChatScope } from './chatQueries';
 import { Conversation } from './Conversation';
 import { NewConversationComposer } from './NewConversationComposer';
 import { automaticKnowledge, readChatKnowledge, writeChatKnowledge } from './chatKnowledge';
-import type { ChatKnowledgeSelection } from './chatKnowledge';
+import type { ChatKnowledgeSelection, StoredChatKnowledge } from './chatKnowledge';
 import type { ChatScrollPosition } from './useChatScroll';
 import styles from './chat.module.css';
 
@@ -47,27 +47,32 @@ function AIChatSession({ scope, initialKbId, initialDocId, entryKey }: { scope: 
   const [search, setSearch] = useState('');
   const [renaming, setRenaming] = useState<AiConversationInfo | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [readLatestOnOpen, setReadLatestOnOpen] = useState(false);
   const sessionId = scope[0], departmentId = auth.selectedDeptId;
   const [initialDraft] = useState(() => {
     const stored = readChatKnowledge(sessionId, departmentId, 0);
     return initialKbId && (!stored || stored.entryKey !== entryKey) ? { kb_id: initialKbId, doc_id: initialDocId, grounded: true, entryKey } : stored ?? automaticKnowledge;
   });
-  const [knowledge, setSelection] = useState<ChatKnowledgeSelection | undefined>(initialDraft);
+  const [knowledge, setSelection] = useState<StoredChatKnowledge | undefined>(initialDraft);
+  const [knowledgeRevision, setKnowledgeRevision] = useState(0);
   const assignedConversation = useRef<number | null>(null);
   const draftEntryKey = entryKey ?? ('entryKey' in initialDraft ? initialDraft.entryKey : undefined);
   useEffect(() => {
     if (initialKbId) writeChatKnowledge(sessionId, departmentId, 0, initialDraft, draftEntryKey);
   }, [sessionId, departmentId, initialKbId, initialDraft, draftEntryKey]);
-  function setKnowledge(value: ChatKnowledgeSelection) {
+  function setKnowledge(value?: ChatKnowledgeSelection) {
     if (!isCurrent()) return;
+    setKnowledgeRevision(revision => revision + 1);
     writeChatKnowledge(sessionId, departmentId, selectedId ?? 0, value, selectedId === null ? draftEntryKey : undefined);
     if (selectedId === null && assignedConversation.current !== null) {
       writeChatKnowledge(sessionId, departmentId, assignedConversation.current, value);
     }
-    setSelection(value);
+    setSelection(readChatKnowledge(sessionId, departmentId, selectedId ?? 0));
   }
-  function selectConversation(id: number | null) {
+  function selectConversation(id: number | null, reopen = false) {
     assignedConversation.current = null;
+    if (reopen && id !== null && id === selectedId) void queryClient.invalidateQueries({ queryKey: aiChatKeys.latest(scope, id), exact: true });
+    setReadLatestOnOpen(reopen);
     setSelection(readChatKnowledge(sessionId, departmentId, id ?? 0) ?? (id === null ? automaticKnowledge : undefined));
     setSelectedId(id);
   }
@@ -151,7 +156,7 @@ function AIChatSession({ scope, initialKbId, initialDocId, entryKey }: { scope: 
       <Card className={styles.sidebar} title="我的会话" extra={<Space size={4}>
       <Button size="small" icon={<ReloadOutlined />} aria-label="刷新会话" title="刷新会话" disabled={writing} onClick={() => {
         void refreshLists();
-        if (selectedId !== null) void queryClient.invalidateQueries({ queryKey: aiChatKeys.messages(scope, selectedId) });
+        if (selectedId !== null) void queryClient.invalidateQueries({ queryKey: aiChatKeys.latest(scope, selectedId), exact: true });
       }} />
       {canCreate && <Button size="small" type="primary" icon={<PlusOutlined />} disabled={writing} onClick={() => { setScrollPosition({ current: null }); writeChatKnowledge(sessionId, departmentId, 0, automaticKnowledge, draftEntryKey); selectConversation(null); setComposerVersion(version => version + 1); }}>新建会话</Button>}
     </Space>}>
@@ -162,7 +167,7 @@ function AIChatSession({ scope, initialKbId, initialDocId, entryKey }: { scope: 
           {(conversations.data?.list ?? []).filter(row => !removedIds.has(row.id)).map(row => <div key={row.id}
             className={`${styles.conversationItem} ${selectedId === row.id ? styles.selected : ''}`}>
             <Button type="text" className={styles.selectConversation} disabled={writing} aria-pressed={selectedId === row.id}
-              onClick={() => { if (!busy.current && !removedIds.has(row.id)) { if (selectedId !== row.id) setScrollPosition({ current: null }); selectConversation(row.id); } }}>
+              onClick={() => { if (!busy.current && !removedIds.has(row.id)) { if (selectedId !== row.id) setScrollPosition({ current: null }); selectConversation(row.id, true); } }}>
               <span className={styles.title} title={row.title}>{row.pinned && <PushpinFilled />} {row.title || '未命名会话'}</span>
               <span className={styles.small}>{row.message_count} 条消息 · {formatTime(row.updated_at)}</span>
             </Button>
@@ -179,11 +184,11 @@ function AIChatSession({ scope, initialKbId, initialDocId, entryKey }: { scope: 
       {renaming && <RenameConversationDialog conversation={renaming} writing={writing} saving={update.isPending} onCancel={() => setRenaming(null)} onSave={values => organize(renaming.id, values)} />}
       {selectedId === null ? <NewConversationComposer key={composerVersion}
           scope={scope} canSend={canSend} writing={writing} scrollPosition={scrollPosition}
-          knowledge={knowledge} onKnowledgeChange={setKnowledge}
+          knowledge={knowledge} knowledgeRevision={knowledgeRevision} onKnowledgeChange={setKnowledge}
           isCurrent={isCurrent} beginWrite={beginWrite} finishWrite={finishWrite}
           onConversationAssigned={rememberAssignedConversation} onCompleted={onSendCompleted} />
-        : <Conversation key={selectedId} id={selectedId} scope={scope} canRead={canRead} canSend={canSend} writing={writing} scrollPosition={scrollPosition}
-          knowledge={knowledge} onKnowledgeChange={setKnowledge}
+        : <Conversation key={selectedId} id={selectedId} scope={scope} canRead={canRead} canSend={canSend} writing={writing} scrollPosition={scrollPosition} readLatestOnOpen={readLatestOnOpen}
+          knowledge={knowledge} knowledgeRevision={knowledgeRevision} onKnowledgeChange={setKnowledge}
           isCurrent={() => isCurrent() && !removedIds.has(selectedId)} beginWrite={beginWrite} finishWrite={finishWrite}
           onCompleted={onSendCompleted} />}
   </div>;

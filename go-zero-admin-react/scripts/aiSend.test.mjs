@@ -303,6 +303,46 @@ test('AI流式权威结果与精确缓存回填', async t => {
       assert.equal(client.getQueryState([...prefix, 3]).isInvalidated, true);
       client.clear();
     });
+    for (const outcome of ['发送成功', '失败后重查详情', '会话已删除']) {
+      await t.test(outcome + '后，较早的最新页响应不得恢复旧消息', async () => {
+        client = new QueryClient();
+        const key = queries.aiChatKeys.messages(scope, 7);
+        const initial = { conversation: conversation(7, 2), messages: [message(69, 'user'), message(70, 'assistant')], has_more: false, next_before_id: 0 };
+        const latest = { ...initial, conversation: conversation(7, 4), messages: [...initial.messages, message(71, 'user'), message(72, 'assistant')] };
+        client.setQueryData(key, { pages: [initial], pageParams: [0] });
+        client.setQueryData([...queries.aiChatKeys.lists(scope), 1], { list: [initial.conversation], total: 1 });
+        const started = Promise.withResolvers(), release = Promise.withResolvers();
+        const { request } = await server.ssrLoadModule('/src/utils/request.ts');
+        let transportSignal, oldRead;
+        request.defaults.adapter = async config => {
+          let data = latest;
+          if (!transportSignal) {
+            transportSignal = config.signal;
+            started.resolve();
+            await release.promise;
+            data = initial;
+          }
+          return { config, data: { code: 200, result: data }, headers: {}, status: 200, statusText: 'OK' };
+        };
+        const fetch = client.fetchQuery({ queryKey: queries.aiChatKeys.latest(scope, 7), queryFn: ({ signal }) => {
+          oldRead = queries.readConversationHead(client, scope, 7, () => true, signal);
+          return oldRead;
+        } }).catch(() => {});
+        await started.promise;
+        try {
+          if (outcome === '失败后重查详情') await queries.recoverAiSend(client, scope, 7, () => true);
+          else await queries.applyAiSendResult(client, scope, { ...result(), conversation: outcome === '会话已删除' ? null : latest.conversation },
+            { request: input, isCurrent: () => true });
+        } finally {
+          release.resolve();
+          await Promise.allSettled([oldRead, fetch]);
+        }
+        const ids = client.getQueryData(key)?.pages[0].messages.map(row => row.id);
+        assert.deepEqual(ids, outcome === '会话已删除' ? undefined : [69, 70, 71, 72]);
+        assert.equal(transportSignal.aborted, true, '取消应传递到旧的 HTTP 请求');
+        client.clear();
+      });
+    }
     await t.test('已知会话失败恢复同步侧栏消息数，只读取一次详情', async () => {
       client = new QueryClient();
       const listKey = [...queries.aiChatKeys.lists(scope), 1];

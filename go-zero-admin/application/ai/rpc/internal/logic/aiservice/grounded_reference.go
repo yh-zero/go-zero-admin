@@ -2,25 +2,28 @@ package aiservicelogic
 
 import (
 	"encoding/json"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 
 	"go-zero-admin/application/ai/rpc/internal/model"
 )
 
+// 英文按词匹配，保留 it 与行业缩写 IT 的大小写区别，标点也可以结束指代词。
+var englishFollowup = regexp.MustCompile(`\b(?:[Ii]t|(?i:that|those|them|the\s+(?:second|first|former|latter)|tell\s+me\s+more|continue))\b`)
+
 func isGroundedFollowup(question string) bool {
-	for _, marker := range []string{"这个", "那个", "这些", "那些", "上述", "前面", "上面", "刚才", "上一步", "上一", "前者", "后者", "其中", "它", "继续", "再详细", "第一个", "第二种", "第二个", "第二条", "第二步", "第三种", "第三个", "第三条", "第三步", "第一种", "第一条"} {
+	command := strings.Trim(strings.TrimSpace(question), "。！？，.!?,")
+	switch strings.TrimSuffix(strings.TrimPrefix(command, "请"), "吧") {
+	case "继续", "继续回答":
+		return true
+	}
+	for _, marker := range []string{"这个", "那个", "这些", "那些", "上述", "前面", "上面", "刚才", "上一步", "上一", "前者", "后者", "其中", "它", "继续说", "继续讲", "继续解释", "继续展开", "再详细", "第一个", "第二种", "第二个", "第二条", "第二步", "第三种", "第三个", "第三条", "第三步", "第一种", "第一条"} {
 		if strings.Contains(question, marker) {
 			return true
 		}
 	}
-	words := " " + strings.ToLower(strings.Trim(strings.TrimSpace(question), ".?!")) + " "
-	for _, marker := range []string{" it ", " that ", " those ", " them ", " the second ", " the first ", " the former ", " the latter ", " tell me more ", " continue "} {
-		if strings.Contains(words, marker) {
-			return true
-		}
-	}
-	return false
+	return englishFollowup.MatchString(question)
 }
 
 // 只接续同一知识库最近一次有真实来源的完整问答。旧记录可通过原来源确认归属。

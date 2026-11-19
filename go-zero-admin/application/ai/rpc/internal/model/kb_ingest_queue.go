@@ -470,7 +470,7 @@ func (q *KbIngestQueue) Claim(ctx context.Context, token string) (*KbIngestAttem
 		if attemptErr != nil {
 			return attemptErr
 		}
-		if err := s.QueryRowsCtx(ctx, &a.Chunks, "SELECT id,doc_id,kb_id,seq,content,token_count,'' AS doc_title FROM ai_kb_chunk WHERE doc_id=? ORDER BY seq", job.DocId); err != nil {
+		if err := s.QueryRowsCtx(ctx, &a.Chunks, "SELECT id,doc_id,kb_id,seq,content,token_count,'' AS doc_title,? AS doc_version FROM ai_kb_chunk WHERE doc_id=? ORDER BY seq", job.DocVersion, job.DocId); err != nil {
 			return err
 		}
 		if _, err := s.ExecCtx(ctx, "UPDATE ai_kb_ingest_job SET status='running',lease_token=?,lease_until=DATE_ADD(NOW(),INTERVAL 120 SECOND),started_at=NOW() WHERE id=?", token, job.Id); err != nil {

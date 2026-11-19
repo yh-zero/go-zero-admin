@@ -37,7 +37,7 @@ func (l *ListKbsLogic) ListKbs(req *types.AiListKbsReq) (*types.AiListKbsResp, e
 		for _, row := range out.Choices {
 			choices = append(choices, types.AiKbChoice{Id: row.Id, Name: row.Name})
 		}
-		return &types.AiListKbsResp{Choices: &choices, Total: out.GetPage().GetTotal()}, nil
+		return &types.AiListKbsResp{Choices: choices, Total: out.GetPage().GetTotal()}, nil
 	}
 	list := make([]*types.AiKbInfo, 0, len(out.List))
 	for _, item := range out.List {

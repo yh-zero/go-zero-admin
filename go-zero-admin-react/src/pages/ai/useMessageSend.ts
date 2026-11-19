@@ -9,19 +9,20 @@ import { useAuthStore } from '../../stores/auth';
 import { ApiError } from '../../utils/response';
 import type { MessageAttempt } from './chatState';
 import type { ChatKnowledgeSelection } from './chatKnowledge';
+import { confirmChatKnowledge } from './chatKnowledge';
 import { knowledgeDocumentKeys, knowledgeDocumentOptions } from './knowledgeDocumentQueries';
 
 type Feedback = { request: AiSendMessageReq; state: 'sending' | 'unknown' | 'succeeded'; error?: string; meta?: AiStreamMeta };
 interface Options {
   conversationId: number; scope: AiChatScope; isCurrent: () => boolean;
-  knowledge: ChatKnowledgeSelection;
+  knowledge: ChatKnowledgeSelection; knowledgeRevision?: number;
   beginWrite: (permission: string) => boolean; finishWrite: () => void;
   onCompleted?: (result: AiSendMessageResult, request: AiSendMessageReq) => void;
   onConversationAssigned?: (id: number) => void;
 }
 
 // 两个作曲家只管理自己的表单；请求身份、草稿帧、取消与缓存结算在同一生命周期内。
-export function useMessageSend({ conversationId, scope, knowledge, isCurrent, beginWrite, finishWrite, onCompleted, onConversationAssigned }: Options) {
+export function useMessageSend({ conversationId, scope, knowledge, knowledgeRevision = 0, isCurrent, beginWrite, finishWrite, onCompleted, onConversationAssigned }: Options) {
   const client = useQueryClient();
   const canReadKnowledge = useAuthStore(state => state.permissionsReady && state.permCodes.includes('sys:ai:kb:list') && state.permCodes.includes('sys:ai:message:send'));
   const canUseScope = (kbId?: number) => !kbId || canReadKnowledge;
@@ -38,6 +39,7 @@ export function useMessageSend({ conversationId, scope, knowledge, isCurrent, be
     retry: () => { if (canReadKnowledge && isCurrent()) void scopedDoc.refetch(); },
   } : undefined;
   const [sender] = useState(() => createMessageSender(sendAiMessageStream));
+  const submittedRevision = useRef(0);
   const mounted = useRef(true);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [streamState, setStreamState] = useState<{ content: string; tools: { key: number; name: string; status: string }[] } | null>(null);
@@ -56,7 +58,7 @@ export function useMessageSend({ conversationId, scope, knowledge, isCurrent, be
     onDelta: (content: string) => { if (current()) setStreamState(state => state ? { ...state, content: state.content + content } : state); },
     onTool: (name: string, status: 'start' | 'done') => { if (current()) setStreamState(state => state ? { ...state, tools: [...state.tools, { key: state.tools.length, name, status }] } : state); },
   };
-  async function settle(attempt: MessageAttempt, onSuccess?: (request: AiSendMessageReq) => void) {
+  async function settle(attempt: MessageAttempt, onSuccess?: (request: AiSendMessageReq) => void, preserveNewDraft = false) {
     setFeedback({ request: attempt.request, state: 'sending', meta: attempt.meta });
     setStreamState({ content: '', tools: [] });
     try {
@@ -64,6 +66,8 @@ export function useMessageSend({ conversationId, scope, knowledge, isCurrent, be
       if (!current()) return;
       await applyAiSendResult(client, scope, result, { request: attempt.request, startedAt: attempt.startedAt, isCurrent: current });
       if (!current()) return;
+      if (result.conversation) confirmChatKnowledge(scope[0], useAuthStore.getState().selectedDeptId, result.conversation_id,
+        attempt.request, Math.max(result.user_message.id, result.ai_message.id), preserveNewDraft);
       setFeedback({ request: attempt.request, state: 'succeeded', meta: attempt.meta });
       onSuccess?.(attempt.request);
       onCompleted?.(result, attempt.request);
@@ -87,13 +91,15 @@ export function useMessageSend({ conversationId, scope, knowledge, isCurrent, be
       if (!canSendSelection || !beginWrite('sys:ai:message:send')) return;
       const attempt = sender.start(conversationId, content, handlers, knowledge);
       if (!attempt) { finishWrite(); return; }
+      submittedRevision.current = knowledgeRevision;
       void settle(attempt, onSuccess);
     },
     recheck() {
       if (!canUseScope(feedback?.request.kb_id) || !beginWrite('sys:ai:message:send')) return;
       const attempt = sender.recheck(handlers);
       if (!attempt) { finishWrite(); return; }
-      void settle(attempt);
+      // 用户改回相同的 kb/doc/grounded 也是新的选择，重查仍只确认发送时那一次选择。
+      void settle(attempt, undefined, submittedRevision.current !== knowledgeRevision);
     },
   };
 }

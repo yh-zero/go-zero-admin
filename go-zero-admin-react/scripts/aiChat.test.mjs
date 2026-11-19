@@ -60,6 +60,30 @@ test('AI对话关键边界', async t => {
         else delete globalThis.sessionStorage;
       }
     });
+    await t.test('已发送的范围以较新的消息为准，未发送的选择和旧版选择在重查后保留', async () => {
+      const { readChatKnowledge, writeChatKnowledge, confirmChatKnowledge, latestConversationKnowledge, hasLegacyKnowledgeConflict } = await server.ssrLoadModule('/src/pages/ai/chatKnowledge.ts');
+      const session = 'scope-resolution', doc = { kb_id: 7, doc_id: 82, grounded: true }, library = { kb_id: 7, grounded: true };
+      const read = () => readChatKnowledge(session, null, 20);
+      const confirm = (choice, id) => confirmChatKnowledge(session, null, 20, choice, id);
+      writeChatKnowledge(session, null, 20, doc);
+      confirm(doc, 10);
+      assert.equal(read().confirmedMessageId, 10);
+      assert.equal(latestConversationKnowledge([], read()).doc_id, 82);
+      assert.equal(latestConversationKnowledge([{ id: 9, ...library }], read()).doc_id, 82);
+      assert.deepEqual(latestConversationKnowledge([{ id: 12, ...library }, { id: 10, ...doc }], read()), library);
+      confirm(library, 12);
+      confirm(doc, 10);
+      assert.equal(read().confirmedMessageId, 12);
+      writeChatKnowledge(session, null, 20, doc);
+      confirm(library, 12);
+      assert.equal(read().confirmedMessageId, undefined);
+      assert.equal(latestConversationKnowledge([{ id: 14, ...library }], read()).doc_id, 82);
+      confirmChatKnowledge(session, null, 20, doc, 10, true);
+      assert.equal(read().pending, true, '重查前改回同值仍是新的草稿');
+      assert.equal(hasLegacyKnowledgeConflict([{ id: 14, ...library }], read()), false, '新草稿可直接沿用');
+      assert.equal(hasLegacyKnowledgeConflict([{ id: 14, ...library }], doc), true, '来源不明的旧记录不能悄悄覆盖历史');
+      assert.equal(hasLegacyKnowledgeConflict([{ id: 14, ...doc }], doc), false);
+    });
     await t.test('消息限制按UTF8字节且保持原始正文，空白不能发送', () => {
       assert.equal(helpers.validateMessageContent('中'.repeat(5333) + 'a'), undefined);
       assert.match(helpers.validateMessageContent('中'.repeat(5334)), /16000/);

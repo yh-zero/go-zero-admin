@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -74,6 +75,12 @@ type numberedKbHit struct {
 	Index int `json:"index"`
 }
 
+type kbSearchResult struct {
+	Note      string          `json:"note"`
+	Hits      []numberedKbHit `json:"hits"`
+	Truncated bool            `json:"truncated,omitempty"`
+}
+
 // 先按实际传输预算裁剪，再登记模型可见的摘录。编号在同一条回复的多次检索间稳定。
 func (c *KbSourceCollector) render(hits []KbSearchHit, limit int) (string, error) {
 	c.mu.Lock()
@@ -103,24 +110,41 @@ func (c *KbSourceCollector) render(hits []KbSearchHit, limit int) (string, error
 		}
 		numbered = append(numbered, numberedKbHit{hit, index})
 	}
-	var envelope struct {
-		Note      string          `json:"note"`
-		Hits      []numberedKbHit `json:"hits"`
-		Truncated bool            `json:"truncated,omitempty"`
-	}
-	envelope.Note = kbExcerptNote + "引用请按各片段的 index 标注为 [n]。"
-	envelope.Hits = numbered
-	raw, err := json.Marshal(envelope)
-	if err != nil {
-		return "", err
-	}
-	encoded := CompactToolResult(string(raw), limit)
-	if len(encoded) < 3 || json.Unmarshal([]byte(encoded), &envelope) != nil {
-		return encoded, nil
-	}
-	visible := envelope.Hits[:0]
 	previousCount := len(c.hits)
-	for _, hit := range envelope.Hits {
+	candidates := kbSearchResult{Note: kbExcerptNote + "引用请按各片段的 index 标注为 [n]。", Hits: numbered}
+	var result kbSearchResult
+	for {
+		raw, err := json.Marshal(candidates)
+		if err != nil {
+			return "", err
+		}
+		if len(raw) <= limit {
+			result = candidates
+			break
+		}
+		encoded := CompactToolResult(string(raw), limit)
+		if len(encoded) <= 2 {
+			return encoded, nil
+		}
+		result = kbSearchResult{}
+		if err := json.Unmarshal([]byte(encoded), &result); err != nil {
+			return "", err
+		}
+		// 旧编号绑定首次展示的完整快照。放不下就跳过，空出的字节可供后续命中使用。
+		clipped := make(map[int]bool)
+		for _, hit := range result.Hits {
+			if hit.Index <= previousCount && hit.KbSearchHit != c.hits[hit.Index-1] {
+				clipped[hit.Index] = true
+			}
+		}
+		if len(clipped) == 0 {
+			break
+		}
+		candidates.Hits = slices.DeleteFunc(candidates.Hits, func(hit numberedKbHit) bool { return clipped[hit.Index] })
+		candidates.Truncated = true
+	}
+	visible := result.Hits[:0]
+	for _, hit := range result.Hits {
 		if hit.Snippet == "" {
 			continue
 		}
@@ -130,8 +154,8 @@ func (c *KbSourceCollector) render(hits []KbSearchHit, limit int) (string, error
 		}
 		visible = append(visible, hit)
 	}
-	envelope.Hits = visible
-	raw, err = json.Marshal(envelope)
+	result.Hits = visible
+	raw, err := json.Marshal(result)
 	return string(raw), err
 }
 

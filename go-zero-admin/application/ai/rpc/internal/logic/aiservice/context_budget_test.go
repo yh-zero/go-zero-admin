@@ -157,14 +157,19 @@ func (s *budgetKbSearcher) Search(_ context.Context, _ int64, _ int64, query str
 		return []agenttools.KbSearchHit{hit(63), hit(8)}, nil
 	case "failed":
 		return nil, errors.New("本地检索桩故障")
+	case "quota":
+		return nil, fmt.Errorf("检索未准入: %w", xerr.NewErrCodeMsg(429, "每日供应商请求额度已用完"))
 	}
 	return []agenttools.KbSearchHit{{KbID: 1, DocID: 2, DocTitle: "资料", Snippet: strings.Repeat("资", 900), Score: 1}}, nil
 }
 
 func TestAIStreamNumberedKbToolRounds(t *testing.T) {
 	agenttools.RegisterIfAbsent(agenttools.NewKbSearch(&budgetKbSearcher{}))
-	for _, finalQuery := range []string{"second", "failed"} {
-		t.Run(finalQuery, func(t *testing.T) {
+	for _, tc := range []struct {
+		query    string
+		wantCode uint32
+	}{{"second", 0}, {"failed", 503}, {"quota", 429}} {
+		t.Run(tc.query, func(t *testing.T) {
 			round := 0
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				round++
@@ -195,7 +200,7 @@ func TestAIStreamNumberedKbToolRounds(t *testing.T) {
 				w.Header().Set("Content-Type", "text/event-stream")
 				delta, reason := map[string]any{"content": "见 [2] 和 [3]。"}, "stop"
 				if round < 3 {
-					query := []string{"first", finalQuery}[round-1]
+					query := []string{"first", tc.query}[round-1]
 					delta = map[string]any{"tool_calls": []any{map[string]any{"index": 0, "id": fmt.Sprintf("call-%d", round), "type": "function", "function": map[string]any{"name": "kb_search", "arguments": fmt.Sprintf(`{"query":"%s"}`, query)}}}}
 					reason = "tool_calls"
 				}
@@ -210,10 +215,10 @@ func TestAIStreamNumberedKbToolRounds(t *testing.T) {
 			collector := &agenttools.KbSourceCollector{}
 			ctx := agenttools.WithKbSources(agenttools.WithActor(context.Background(), 7), collector)
 			answer, _, err := askModelStream(ctx, client, []*schema.Message{schema.UserMessage("查找资料")}, func(*aipb.StreamChunk) error { return nil }, func(int64, []schema.ToolCall, bool) error { return nil }, 32000)
-			if finalQuery == "failed" {
+			if tc.wantCode != 0 {
 				code, ok := xerr.AsCodeError(err)
-				if !ok || code.GetErrCode() != 503 || round != 2 || answer != "" {
-					t.Fatal("检索故障后不得继续生成")
+				if !ok || code.GetErrCode() != tc.wantCode || round != 2 || answer != "" {
+					t.Fatalf("预期检索终止并返回 %d，实际错误 %v，模型调用 %d 次", tc.wantCode, err, round)
 				}
 				return
 			}

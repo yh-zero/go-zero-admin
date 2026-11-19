@@ -21,6 +21,44 @@ func backgroundDocument(h *kbIngestHarness, batch, title string) *aipb.CreateKbD
 	return &aipb.CreateKbDocRequest{Actor: h.actor, KbId: h.kb, Title: title, Content: "后台资料 " + title, RequestId: uuid.NewString(), BatchId: batch}
 }
 
+func TestKbBackgroundClaimLoadsAllChunksInSequence(t *testing.T) {
+	h := newKbIngestHarness(t)
+	ctx := context.Background()
+	chunks := []model.KbChunkRow{
+		{Seq: 0, Content: "第一段", TokenCount: 3},
+		{Seq: 1, Content: "第二段内容", TokenCount: 5},
+	}
+	queue := h.s.KbIngestQueue
+	enqueued, err := queue.Enqueue(ctx, model.KbEnqueueRequest{
+		KbId: h.kb, OwnerId: h.actor.UserId, RequestId: uuid.NewString(), Operation: "create",
+		Title: "多分块领取", Content: "第一段\n第二段内容", EmbeddingModel: h.s.Config.AI.EmbeddingModel,
+	}, chunks)
+	if err != nil {
+		t.Fatal(err)
+	}
+	token := uuid.NewString()
+	attempt, err := queue.Claim(ctx, token)
+	if err != nil {
+		t.Fatalf("领取多分块任务失败: %v", err)
+	}
+	if attempt.Job.Id != enqueued.Job.Id || attempt.Job.Status != "running" || attempt.Job.LeaseToken != token {
+		t.Fatalf("领取结果与入队任务或租约不符: %+v", attempt.Job)
+	}
+	if len(attempt.Chunks) != len(chunks) || len(attempt.ChunkIds) != len(chunks) {
+		t.Fatalf("分块数量不符: chunks=%d ids=%d", len(attempt.Chunks), len(attempt.ChunkIds))
+	}
+	for i, want := range chunks {
+		want.Id = int64(attempt.ChunkIds[i])
+		want.DocId, want.KbId, want.DocVersion = enqueued.Doc.Id, h.kb, enqueued.Job.DocVersion
+		if got := attempt.Chunks[i]; got != want {
+			t.Fatalf("分块 %d 与原始数据不符: got=%+v want=%+v", i, got, want)
+		}
+	}
+	if _, err := queue.Claim(ctx, uuid.NewString()); !errors.Is(err, model.ErrNotFound) {
+		t.Fatalf("运行中的任务被重复领取: %v", err)
+	}
+}
+
 func TestKbBackgroundAcceptReplayReuseStopAndOwnership(t *testing.T) {
 	h := newKbIngestHarness(t)
 	ctx := context.Background()

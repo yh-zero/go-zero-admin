@@ -1405,7 +1405,22 @@
                   }
                 },
                 "choices": {
-                  "type": "array"
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
                 },
                 "list": {
                   "type": "array",
@@ -12029,7 +12044,7 @@
       }
     }
   },
-  "x-date": "2026-11-18 22:35:16",
+  "x-date": "2026-11-19 17:24:01",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

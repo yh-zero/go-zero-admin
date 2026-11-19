@@ -8,6 +8,7 @@ export type AiChatScope = readonly [sessionId: string, sessionVersion: number, d
 export const aiChatKeys = {
   lists: (scope: AiChatScope) => ['ai-chat', ...scope, 'conversations'] as const,
   messages: (scope: AiChatScope, id: number) => ['ai-chat', ...scope, 'messages', id] as const,
+  latest: (scope: AiChatScope, id: number) => ['ai-chat', ...scope, 'latest', id] as const,
 };
 
 export function conversationListOptions(scope: AiChatScope, page: number, query = '') {
@@ -30,7 +31,7 @@ export function conversationMessagesOptions(scope: AiChatScope, id: number) {
     initialPageParam: 0,
     queryFn: async ({ signal, pageParam }) => {
       signal.throwIfAborted();
-      const data = await fetchAiConversation(id, { before_id: pageParam, page_size: 20 });
+      const data = await fetchAiConversation(id, { before_id: pageParam, page_size: 20 }, signal);
       // 统一请求层负责身份取消；Query 取消还要阻止删除后的迟到详情回写缓存。
       signal.throwIfAborted();
       return data;
@@ -60,11 +61,19 @@ function mergeLatestHead(old: MessagePages | undefined, head: AiGetConversationR
   ...old.pages.slice(1).map(page => ({ ...page, conversation: head.conversation }))] };
 }
 
+// 分页查询和单独读取的最新页都写入消息缓存，接收新的权威结果前需一并停掉旧读取。
+function cancelConversationReads(client: QueryClient, scope: AiChatScope, id: number) {
+  return Promise.all([
+    client.cancelQueries({ queryKey: aiChatKeys.messages(scope, id), exact: true }),
+    client.cancelQueries({ queryKey: aiChatKeys.latest(scope, id), exact: true }),
+  ]);
+}
+
 // 只将成功终帧落入缓存，分页的历史边界不随新消息移动。
 export async function applyAiSendResult(client: QueryClient, scope: AiChatScope, result: AiSendMessageResult, options: ApplyOptions) {
   if (!options.isCurrent()) return;
   const queryKey = aiChatKeys.messages(scope, result.conversation_id);
-  await client.cancelQueries({ queryKey, exact: true });
+  await cancelConversationReads(client, scope, result.conversation_id);
   if (!options.isCurrent()) return;
   let conversation = result.conversation;
   if (!conversation) {
@@ -154,15 +163,21 @@ async function updateConversationLists(client: QueryClient, scope: AiChatScope, 
 }
 
 // 未知结果只读最新一页，避免refetch无限查询重读全部已加载历史。
+export async function readConversationHead(client: QueryClient, scope: AiChatScope, id: number, isCurrent: () => boolean, signal?: AbortSignal) {
+  const head = await fetchAiConversation(id, undefined, signal);
+  signal?.throwIfAborted();
+  if (isCurrent()) client.setQueryData<MessagePages>(aiChatKeys.messages(scope, id), old => mergeLatestHead(old, head));
+  return head.conversation;
+}
+
 export async function recoverAiSend(client: QueryClient, scope: AiChatScope, id: number, isCurrent: () => boolean) {
   if (!id || !isCurrent()) return;
   try {
-    await client.cancelQueries({ queryKey: aiChatKeys.messages(scope, id), exact: true });
+    await cancelConversationReads(client, scope, id);
     if (!isCurrent()) return;
-    const head = await fetchAiConversation(id);
+    const conversation = await readConversationHead(client, scope, id, isCurrent);
     if (!isCurrent()) return;
-    client.setQueryData<MessagePages>(aiChatKeys.messages(scope, id), old => mergeLatestHead(old, head));
     // 失败也已持久化消息对；摘要来自刚读取的head，不再额外重读已知会话列表。
-    await updateConversationLists(client, scope, head.conversation, { isCurrent, requireMembershipRead: true });
+    await updateConversationLists(client, scope, conversation, { isCurrent, requireMembershipRead: true });
   } catch { /* 重查入口及原始request_id仍保留，由用户决定下一步。 */ }
 }

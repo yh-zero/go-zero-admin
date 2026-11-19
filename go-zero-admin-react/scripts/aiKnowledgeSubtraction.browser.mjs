@@ -36,7 +36,7 @@ async page => {
     return { draftKey, qualityKey, previous: keys.map(key => [key, sessionStorage.getItem(key)]) };
   }, kbId);
   const gets = [], writes = [], unexpected = [], datasetReads = [];
-  let denyDocuments = false;
+  let documentsError = 0, processing = false;
   const routeHandler = async route => {
     const request = route.request();
     const url = new URL(request.url());
@@ -50,8 +50,11 @@ async page => {
     if (url.pathname === '/v1/sys/ai/kbs') result = { list: [kb], total: 1, capabilities };
     else if (url.pathname === `/v1/sys/ai/kbs/${kbId}`) result = { kb, capabilities };
     else if (url.pathname === `/v1/sys/ai/kbs/${kbId}/docs`) {
-      if (denyDocuments) { await route.fulfill({ json: { code: 403, msg: '资料目录读取已拒绝', result: null } }); return; }
-      result = { list: [doc, failedDoc], total: 2, ready_count: 1, pending_count: 0, failed_count: 1 };
+      if (documentsError === 'proxy403') { await route.fulfill({ status: 403, contentType: 'text/html', body: 'Forbidden' }); return; }
+      if (documentsError) { await route.fulfill({ json: { code: documentsError, msg: documentsError === 403 ? '资料目录读取已拒绝' : '资料目录暂时不可用', result: null } }); return; }
+      const list = [doc, failedDoc];
+      if (processing) list.push({ ...doc, id: 91701105, title: '排队资料', status: 'pending', stage: 'queued' });
+      result = { list, total: list.length, ready_count: 1, pending_count: Number(processing), failed_count: 1 };
     }
     else if (url.pathname === `/v1/sys/ai/kbs/${kbId}/docs/${doc.id}`) result = { doc, content: '先备份，再发布。' };
     else if (url.pathname === `/v1/sys/ai/kbs/${kbId}/imports`) result = { list: [], total: 0 };
@@ -97,28 +100,32 @@ async page => {
     await page.getByRole('button', { name: doc.title, exact: true }).waitFor();
     assert(await page.getByRole('button', { name: /^原\s*文$/ }).count() === 0, '重复原文按钮应移除');
     assert(await page.getByRole('button', { name: `重试${failedDoc.title}`, exact: true }).isEnabled(), '失败资料应提供明确可用的重试入口');
-    await page.getByRole('button', { name: doc.title, exact: true }).click();
     const document = page.getByRole('dialog', { name: '文档原文', exact: true });
-    await document.getByText('先备份，再发布。', { exact: true }).waitFor();
-    denyDocuments = true;
     // 模拟列表已有缓存时的后台重读。库详情和原文详情接口继续可读。
-    await page.evaluate(async id => {
+    const refetchDocuments = () => page.evaluate(async id => {
       const { queryClient } = await import('/src/utils/queryClient.ts');
       const { aiWorkspaceKeys } = await import('/src/pages/ai/workspaceQueries.ts');
       const auth = (await import('/src/stores/auth.ts')).useAuthStore.getState();
       await queryClient.invalidateQueries({ queryKey: aiWorkspaceKeys.kbDocs([auth.sessionId, auth.sessionVersion, auth.departmentVersion], id) });
     }, kbId);
-    const error = page.locator('.query-error').filter({ hasText: '资料目录读取已拒绝' });
-    await error.waitFor();
-    await page.getByRole('heading', { name: kb.name, exact: true }).waitFor();
-    await document.waitFor({ state: 'hidden' });
-    assert(await page.getByRole('button', { name: doc.title, exact: true }).count() === 0, '资料目录拒绝时隐藏缓存列表');
-    assert(await page.getByRole('button', { name: `更多：${doc.title}`, exact: true }).count() === 0, '资料目录拒绝时隐藏旧操作');
-    assert(await page.getByText('先备份，再发布。', { exact: true }).count() === 0, '资料目录拒绝时移除旧原文');
-    denyDocuments = false;
-    await error.getByRole('button', { name: '重新加载', exact: true }).click();
-    await page.getByRole('button', { name: doc.title, exact: true }).waitFor();
-    assert(await document.count() === 0, '资料目录重读成功后须明确重新打开原文');
+    for (const [denial, message] of [[403, '资料目录读取已拒绝'], ['proxy403', '没有访问权限']]) {
+      await page.getByRole('button', { name: doc.title, exact: true }).click();
+      await document.getByText('先备份，再发布。', { exact: true }).waitFor();
+      documentsError = denial;
+      await refetchDocuments();
+      const error = page.locator('.query-error').filter({ hasText: message });
+      await error.waitFor();
+      await page.getByRole('heading', { name: kb.name, exact: true }).waitFor();
+      await document.waitFor({ state: 'hidden' });
+      assert(await page.getByRole('button', { name: doc.title, exact: true }).count() === 0, '资料目录拒绝时隐藏缓存列表');
+      assert(await page.getByRole('button', { name: `更多：${doc.title}`, exact: true }).count() === 0, '资料目录拒绝时隐藏旧操作');
+      assert(await page.getByText('先备份，再发布。', { exact: true }).count() === 0, '资料目录拒绝时移除旧原文');
+      documentsError = 0;
+      processing = denial === 'proxy403';
+      await error.getByRole('button', { name: '重新加载', exact: true }).click();
+      await page.getByRole('button', { name: doc.title, exact: true }).waitFor();
+      assert(await document.count() === 0, '资料目录重读成功后须明确重新打开原文');
+    }
     await page.getByRole('button', { name: `更多：${doc.title}`, exact: true }).click();
     await page.getByRole('menuitem', { name: /查看并编辑原文/ }).click();
     await document.getByRole('button', { name: '编辑原文', exact: true }).click();
@@ -129,6 +136,19 @@ async page => {
     assert(await editDocument.getByRole('button', { name: '保存标题' }).isEnabled(), '仅改标题应允许保存');
     await editDocument.getByRole('textbox', { name: /正文（纯文本）$/ }).fill('修改后的正文');
     await editDocument.getByRole('button', { name: '保存并重新处理' }).waitFor();
+    documentsError = 503;
+    const transientError = page.locator('.query-error').filter({ hasText: '资料目录暂时不可用' });
+    await transientError.waitFor(); // 由 pending_count 触发真实的后台轮询。
+    const checkDraft = async () => {
+      assert(await editDocument.getByRole('textbox', { name: /标题$/ }).inputValue() === '仅修改资料标题', '目录轮询失败或恢复后应保留草稿标题');
+      assert(await editDocument.getByRole('textbox', { name: /正文（纯文本）$/ }).inputValue() === '修改后的正文', '目录轮询失败或恢复后应保留草稿正文');
+    };
+    await checkDraft();
+    documentsError = 0;
+    processing = false;
+    await refetchDocuments();
+    await transientError.waitFor({ state: 'hidden' });
+    await checkDraft();
     await editDocument.getByRole('button', { name: '取消编辑', exact: true }).click();
     await document.locator('.ant-modal-close').click();
     await document.waitFor({ state: 'hidden' });
@@ -208,7 +228,7 @@ async page => {
     await document.locator('.ant-modal-close').click();
     assert(writes.length === 0, `交互取消与恢复检查不应写入：${writes.join(', ')}`);
     assert(unexpected.length === 0, `出现未声明接口：${unexpected.join(', ')}`);
-    return '知识库与资料入口、资料独立拒绝时隐藏旧列表及原文、重试恢复、标题及正文编辑、两种添加方式、管理菜单与问题草稿、原请求恢复、题集按需读取及只读权限均通过，业务写请求 0 次';
+    return '知识库与资料入口、目录拒绝后关闭旧原文、目录轮询失败及恢复后保留标题和正文草稿、两种添加方式、管理菜单与问题草稿、原请求恢复、题集按需读取及只读权限均通过，业务写请求 0 次';
   } catch (error) {
     const queryErrors = await page.locator('main .query-error').allTextContents();
     throw new Error(`${error.stack ?? error}\n页面查询错误：${queryErrors.join(' | ') || '无'}\n最近请求：${gets.slice(-12).join(', ')}\n未声明请求：${unexpected.join(', ') || '无'}\n拦截写请求数：${writes.length}`);

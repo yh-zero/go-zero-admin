@@ -369,7 +369,7 @@ type AiListKbsReq struct {
 }
 
 type AiListKbsResp struct {
-	Choices      *[]AiKbChoice   `json:"choices,optional"`
+	Choices      []AiKbChoice    `json:"choices,optional"`
 	List         []*AiKbInfo     `json:"list"`
 	Total        int64           `json:"total"`
 	Capabilities *AiCapabilities `json:"capabilities"`

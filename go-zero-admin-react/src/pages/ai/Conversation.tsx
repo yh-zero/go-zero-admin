@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Button, Card, Dropdown, Empty, Form, Input, Space, Tag, Typography } from 'antd';
 import { DownOutlined, DownloadOutlined, SendOutlined } from '@ant-design/icons';
-import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchAiConversation } from '../../api/ai';
 import type { AiChatMessage, AiSendMessageResult } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
-import { conversationMessagesOptions } from './chatQueries';
+import { aiChatKeys, conversationMessagesOptions, readConversationHead } from './chatQueries';
 import type { AiChatScope } from './chatQueries';
 import { exportConversation, mergeMessagePages, readEntireConversation, validateMessageContent } from './chatState';
 import { ChatKnowledgePicker } from './ChatKnowledgePicker';
-import type { ChatKnowledgeSelection } from './chatKnowledge';
-import { latestConversationKnowledge } from './chatKnowledge';
+import type { ChatKnowledgeSelection, StoredChatKnowledge } from './chatKnowledge';
+import { hasLegacyKnowledgeConflict, latestConversationKnowledge } from './chatKnowledge';
 import { SafeMarkdown } from './SafeMarkdown';
 import { useMessageSend } from './useMessageSend';
 import { useChatScroll } from './useChatScroll';
@@ -22,13 +22,23 @@ type ComposerValues = { content: string };
 export interface ConversationProps {
   id: number; scope: AiChatScope; canRead: boolean; canSend: boolean; writing: boolean;
   scrollPosition: { current: ChatScrollPosition | null };
-  knowledge?: ChatKnowledgeSelection; onKnowledgeChange?: (value: ChatKnowledgeSelection) => void;
+  knowledge?: StoredChatKnowledge; knowledgeRevision?: number; onKnowledgeChange?: (value?: ChatKnowledgeSelection) => void; readLatestOnOpen?: boolean;
   isCurrent: () => boolean; beginWrite: (permission: string) => boolean; finishWrite: () => void; onCompleted: (result: AiSendMessageResult) => void;
 }
 
-export function Conversation({ id, scope, canRead, canSend, writing, scrollPosition, knowledge: selectedKnowledge, onKnowledgeChange, isCurrent, beginWrite, finishWrite, onCompleted }: ConversationProps) {
-  const query = useInfiniteQuery({ ...conversationMessagesOptions(scope, id), enabled: canRead });
-  const knowledge = selectedKnowledge ?? latestConversationKnowledge(query.data?.pages[0]?.messages ?? []);
+export function Conversation({ id, scope, canRead, canSend, writing, scrollPosition, knowledge: selectedKnowledge, knowledgeRevision, onKnowledgeChange, readLatestOnOpen, isCurrent, beginWrite, finishWrite, onCompleted }: ConversationProps) {
+  const client = useQueryClient();
+  const [readCachedHead] = useState(() => !!readLatestOnOpen && !!client.getQueryData(aiChatKeys.messages(scope, id)));
+  const query = useInfiniteQuery({ ...conversationMessagesOptions(scope, id), enabled: canRead, refetchOnMount: false });
+  // 重新打开或返回标签时仅核对当前会话最新页。刚发送后命中终帧缓存，无需立即重读。
+  const headKey = aiChatKeys.latest(scope, id);
+  const head = useQuery({ queryKey: headKey, initialData: 0, gcTime: 0, staleTime: Infinity, retry: false, enabled: canRead,
+    refetchOnMount: readCachedHead ? 'always' : false, refetchOnWindowFocus: () => !writing && query.data ? 'always' : false,
+    queryFn: async ({ signal }) => (await readConversationHead(client, scope, id, isCurrent, signal)).message_count });
+  const headMessages = query.data?.pages[0]?.messages ?? [];
+  const legacyConflict = hasLegacyKnowledgeConflict(headMessages, selectedKnowledge);
+  const scopeBlocked = head.isFetching || head.isError || legacyConflict;
+  const knowledge = latestConversationKnowledge(headMessages, selectedKnowledge);
   const [form] = Form.useForm<ComposerValues>();
   const draft = Form.useWatch('content', form) ?? '';
   const draftRevision = useRef(0);
@@ -40,14 +50,14 @@ export function Conversation({ id, scope, canRead, canSend, writing, scrollPosit
     const snapshot = await readEntireConversation(before_id => fetchAiConversation(id, { before_id, page_size: 20 }), isCurrent, controller.signal);
     if (isCurrent() && !controller.signal.aborted) exportConversation(snapshot.conversation.title, snapshot.messages, format);
   }, retry: false });
-  const { start, recheck, feedback, streamState, canUseScope, canSendSelection, documentScope, sending } = useMessageSend({ conversationId: id, scope, knowledge, isCurrent, beginWrite, finishWrite, onCompleted });
+  const { start, recheck, feedback, streamState, canUseScope, canSendSelection, documentScope, sending } = useMessageSend({ conversationId: id, scope, knowledge, knowledgeRevision, isCurrent, beginWrite, finishWrite, onCompleted });
   // 历史消息只在分页数据变化时重算，避免流式增量触发全量重建。
   const messages = useMemo(() => mergeMessagePages(query.data?.pages ?? []), [query.data?.pages]);
   const hasRunning = messages.some(row => row.status === 'running');
   const scroll = useChatScroll({ sending, firstMessageId: messages[0]?.id, position: scrollPosition });
 
   function sendMessage(values: ComposerValues) {
-    if (query.isError || !query.data) return;
+    if (query.isError || !query.data || scopeBlocked || client.getQueryState(headKey)?.fetchStatus === 'fetching') return;
     const submittedRevision = draftRevision.current;
     start(values.content, request => {
       // 等待期间编辑的新草稿不随旧请求成功而清空。
@@ -106,6 +116,10 @@ export function Conversation({ id, scope, canRead, canSend, writing, scrollPosit
     {hasRunning && feedback?.state !== 'sending' && <Alert className={styles.feedback} type="info" showIcon title="会话有处理中或执行中断的消息"
       description="可刷新查看状态。服务端不会自动重放；再次发送会发起新请求，可能产生新的用量。" />}
     {canSend ? <Form<ComposerValues> form={form} className={styles.composer} onFinish={sendMessage} initialValues={{ content: '' }}>
+      {head.isError && <Alert type="warning" title="未能核对最新的提问范围" action={<Button size="small" loading={head.isFetching} onClick={() => void head.refetch()}>重试</Button>} />}
+      {legacyConflict && <Alert type="warning" title="此标签保存的资料范围与最新消息不一致" description="请选择下一问使用的范围。"
+        action={<Space wrap><Button size="small" disabled={writing || head.isFetching || head.isError} onClick={() => onKnowledgeChange?.(knowledge)}>沿用本标签范围</Button>
+          <Button size="small" disabled={writing || head.isFetching || head.isError} onClick={() => onKnowledgeChange?.()}>采用最新消息范围</Button></Space>} />}
       {onKnowledgeChange && (query.data || selectedKnowledge) && <ChatKnowledgePicker scope={scope} value={knowledge} onChange={onKnowledgeChange} disabled={writing || !query.data} documentScope={documentScope} />}
       <Form.Item name="content" rules={[{ validator: (_, value: string) => {
         const error = validateMessageContent(value ?? '') || (knowledge.grounded && new TextEncoder().encode(value ?? '').length > 2000 ? '仅依据资料回答时，问题最多 2000 UTF-8 字节' : undefined);
@@ -122,7 +136,7 @@ export function Conversation({ id, scope, canRead, canSend, writing, scrollPosit
       <div className={styles.composerActions}>
         <Typography.Text type="secondary" className={styles.recordNote}>{new TextEncoder().encode(draft).length} / {knowledge.grounded ? 2000 : 16000} UTF-8 字节</Typography.Text>
         <Button type="primary" htmlType="submit" icon={<SendOutlined />} loading={sending}
-          disabled={writing || query.isError || !query.data || !draft.trim() || !canSendSelection}>{feedback?.state === 'unknown' || hasRunning ? '重新发送（新请求）' : '发送'}</Button>
+          disabled={writing || scopeBlocked || query.isError || !query.data || !draft.trim() || !canSendSelection}>{feedback?.state === 'unknown' || hasRunning ? '重新发送（新请求）' : '发送'}</Button>
       </div>
     </Form> : <Typography.Text type="secondary">当前账号没有发送消息权限，可查看历史消息。</Typography.Text>}
   </Card>;

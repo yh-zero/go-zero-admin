@@ -21,7 +21,7 @@ export const fetchAiKbEvaluation = (kbId: number, id: number, signal?: AbortSign
 export const stopAiKbEvaluation = (kbId: number, id: number) => apiPost<AiKbEvaluationResp>(`${base}/kbs/${kbId}/evaluations/${id}/stop`);
 export const createAiConversation = (title?: string) => apiPost<AiConversationResp>(`${base}/conversations`, { title });
 export const fetchAiConversations = (params: AiListConversationsReq = {}) => apiGet<PageResult<AiConversationInfo>>(`${base}/conversations`, params);
-export const fetchAiConversation = (id: number, params: AiGetConversationReq = {}) => apiGet<AiGetConversationResp>(`${base}/conversations/${id}`, params);
+export const fetchAiConversation = (id: number, params: AiGetConversationReq = {}, signal?: AbortSignal) => apiGet<AiGetConversationResp>(`${base}/conversations/${id}`, params, { signal });
 export const deleteAiConversation = (id: number) => apiDelete(`${base}/conversations/${id}`);
 export const updateAiConversation = (id: number, data: AiUpdateConversationReq) => apiPut<AiConversationResp>(`${base}/conversations/${id}`, data);
 export const setAiMessageFeedback = (id: number, messageId: number, data: AiMessageFeedbackReq) => apiPut(`${base}/conversations/${id}/messages/${messageId}/feedback`, data);

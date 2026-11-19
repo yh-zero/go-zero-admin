@@ -16,19 +16,19 @@ type ComposerValues = { content: string };
 interface Props {
   scope: AiChatScope; canSend: boolean; writing: boolean; isCurrent: () => boolean;
   scrollPosition: { current: ChatScrollPosition | null };
-  knowledge?: ChatKnowledgeSelection; onKnowledgeChange?: (value: ChatKnowledgeSelection) => void;
+  knowledge?: ChatKnowledgeSelection; knowledgeRevision?: number; onKnowledgeChange?: (value: ChatKnowledgeSelection) => void;
   beginWrite: (permission: string) => boolean; finishWrite: () => void;
   onCompleted: (result: AiSendMessageResult) => void;
   onConversationAssigned?: (id: number) => void;
 }
 
 // 第一条消息由流式发送自动创建会话，成功结果直接填充正式会话缓存。
-export function NewConversationComposer({ scope, canSend, writing, scrollPosition, knowledge = { kb_id: 0, grounded: false }, onKnowledgeChange, isCurrent, beginWrite, finishWrite, onCompleted, onConversationAssigned }: Props) {
+export function NewConversationComposer({ scope, canSend, writing, scrollPosition, knowledge = { kb_id: 0, grounded: false }, knowledgeRevision, onKnowledgeChange, isCurrent, beginWrite, finishWrite, onCompleted, onConversationAssigned }: Props) {
   const [form] = Form.useForm<ComposerValues>();
   const draft = Form.useWatch('content', form) ?? '';
   const revision = useRef(0);
   const [retainedResult, setRetainedResult] = useState<AiSendMessageResult | null>(null);
-  const { start, recheck, feedback, streamState, canUseScope, canSendSelection, documentScope, sending } = useMessageSend({ conversationId: 0, scope, knowledge, isCurrent, beginWrite, finishWrite, onConversationAssigned,
+  const { start, recheck, feedback, streamState, canUseScope, canSendSelection, documentScope, sending } = useMessageSend({ conversationId: 0, scope, knowledge, knowledgeRevision, isCurrent, beginWrite, finishWrite, onConversationAssigned,
     onCompleted: (result, request) => {
       const currentDraft = form.getFieldValue('content') as string | undefined;
       if (result.conversation && currentDraft?.trim() && currentDraft !== request.content) {

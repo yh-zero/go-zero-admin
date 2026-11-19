@@ -169,7 +169,7 @@ func (l *SendMessageStreamLogic) SendMessageStream(in *aipb.SendMessageRequest, 
 		}
 		groundedMaterial, err = agenttools.NewKbSearch(l.svcCtx.KbSearcher).Execute(toolCtx, args)
 		if err != nil {
-			return fail(xerr.NewErrCodeMsg(503, "知识库检索暂不可用，请稍后重试"))
+			return fail(chatSearchError(err, "知识库检索暂不可用，请稍后重试"))
 		}
 		if err := send(&aipb.StreamChunk{Type: "tool", Content: "kb_search", ToolStatus: "done"}); err != nil {
 			return fail(xerr.NewErrCodeMsg(503, "客户端连接已断开"))
@@ -242,6 +242,14 @@ func (l *SendMessageStreamLogic) SendMessageStream(in *aipb.SendMessageRequest, 
 	pair.Assistant.Tokens = tokens
 	pair.Assistant.ToolCalls = record.marshal()
 	return send(&aipb.StreamChunk{Type: "done", Tokens: tokens, UsageComplete: complete, Result: callResponse(pair)})
+}
+
+// 查询向量的准入拒绝有可公开的业务提示，其他检索错误仅返回本端的固定说明。
+func chatSearchError(err error, fallback string) error {
+	if code, ok := xerr.AsCodeError(err); ok && code.GetErrCode() == 429 {
+		return code
+	}
+	return xerr.NewErrCodeMsg(503, fallback)
 }
 
 // replayStream 成功补发持久化结果，失败或处理中返回原安全错误，不重新执行。
@@ -423,7 +431,7 @@ func askModelStream(ctx context.Context, client *llm.Client, messages []*schema.
 				value, toolErr := tool.Execute(ctx, json.RawMessage(call.Function.Arguments))
 				if toolErr != nil {
 					if call.Function.Name == "kb_search" {
-						return "", false, xerr.NewErrCodeMsg(503, "知识库检索未完成，请检查问题后重试")
+						return "", false, chatSearchError(toolErr, "知识库检索未完成，请检查问题后重试")
 					}
 					result = "工具参数不合法或执行失败"
 				} else {
