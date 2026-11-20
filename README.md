@@ -34,17 +34,11 @@ docker compose up -d --build --wait
 
 ## 界面预览
 
-![管理工作台](ai_document/screenshots/dashboard.jpg)
-
-<details>
-<summary>查看登录、授权、APP 和租户管理界面</summary>
-
 ![猫咪登录动态](ai_document/screenshots/login-cat.gif)
+![管理工作台](ai_document/screenshots/dashboard.jpg)
 ![部门管理](ai_document/screenshots/departments.jpg)
 ![菜单管理](ai_document/screenshots/menus.jpg)
 ![角色授权](ai_document/screenshots/roles.jpg)
 ![APP 用户](ai_document/screenshots/app-users.jpg)
 ![APP 用户详情](ai_document/screenshots/app-user-details.jpg)
 ![租户管理](ai_document/screenshots/tenants.jpg)
-
-</details>
