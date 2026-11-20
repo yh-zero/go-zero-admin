@@ -40,6 +40,8 @@ if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .en
 
 **完整初始化 SQL 会删除并重建业务表。** 新平台栈使用空 MySQL 卷时自动导入 [mysql-all.sql](../go-zero-admin/data/db/init/mysql-all.sql)，业务库为 `gozero_admin`。已有卷会继续使用原数据；功能升级时先备份，比较目标库与初始化来源，只应用本次需要的结构、索引、种子和授权变动，保留原有数据与角色授权。已有库的整库重置需要单独授权。生成 model 使用已导入完整 SQL 的新开发库。
 
+升级文件清理重试前，核对已有库的 `sys_file` 表。缺少清理回执列时执行 `ALTER TABLE sys_file ADD COLUMN object_cleaned_at DATETIME NULL DEFAULT NULL COMMENT '对象存储确认删除时间'`。历史软删除记录没有回执，由上传者在文件列表重试确认；不会重新开放访问链接。
+
 开源演示账号见[快速开始](../README.md#快速开始)。首次安装已有基础演示数据，历史前端样例导入见[前端说明](../go-zero-admin-react/README.md)。
 
 ### 数据库备份

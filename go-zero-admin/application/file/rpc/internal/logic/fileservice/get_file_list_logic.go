@@ -22,8 +22,12 @@ func NewGetFileListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetFi
 }
 
 func (l *GetFileListLogic) GetFileList(in *filepb.GetFileListRequest) (*filepb.GetFileListResponse, error) {
+	var viewer int64
+	if in.GetIncludeCleanupPending() {
+		viewer = in.GetActor().GetUserID()
+	}
 	rows, total, err := l.svcCtx.SysFileModel.ListFilePage(l.ctx, model.FileListFilter{
-		Visibility: in.Visibility, UploaderId: in.UploaderID,
+		Visibility: in.Visibility, UploaderId: in.UploaderID, ViewerId: viewer,
 	}, in.GetPage().GetPage(), in.GetPage().GetPageSize())
 	if err != nil {
 		l.Errorf("query files error: %v", err)
@@ -34,7 +38,7 @@ func (l *GetFileListLogic) GetFileList(in *filepb.GetFileListRequest) (*filepb.G
 		list = append(list, &filepb.FileInfo{
 			Id: r.Id, Bucket: r.Bucket, ObjectKey: r.ObjectKey, OriginalName: r.OriginalName,
 			Ext: r.Ext, Mime: r.Mime, Size: r.Size, Visibility: r.Visibility,
-			RefCount: r.RefCount, UploaderID: r.UploaderId, CreatedAt: r.CreatedAt,
+			RefCount: r.RefCount, UploaderID: r.UploaderId, CreatedAt: r.CreatedAt, CleanupPending: r.CleanupPending,
 		})
 	}
 	return &filepb.GetFileListResponse{List: list, Page: &filepb.PageResponse{Total: total}}, nil

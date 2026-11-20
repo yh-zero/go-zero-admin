@@ -140,6 +140,7 @@
 - 用户管理的列表、详情、创建、编辑、删除和重置密码受数据范围约束：当前服务端验证部门内的有效角色（含全局绑定）取并集；`ALL` 为全部，`DEPT` 为当前部门，`DEPT_AND_CHILDREN` 含当前部门及有效下级，`SELF` 仅本人，全局超级管理员为全部。无有效范围拒绝访问；历史范围值去空白并忽略大小写，未知值不授予权限。`dept_id=0` 的部门范围仅代表未分配部门，不代表全部部门。客户端部门筛选只能进一步缩小列表。创建必须落在可管理部门，SELF 不允许创建他人；不存在目标保留用户不存在错误，越界目标返回 403。个人资料和认证状态读取固定本人，不以用户管理范围放行他人。
 - 个人资料只读字段 `is_super_admin` 由服务端有效全局超级管理员绑定计算，供前端显示角色分配等入口，不根据用户名判断；后端仍独立执行权限校验。
 - 删除角色与清理授权关系在同一事务内完成，并失效该角色 ID/编码缓存；角色编辑只更新可编辑列，不可恢复已删除角色。
+- `POST /v1/sys/role/:id/menus` 替换授权时，同时传入读取角色时的 `expected_menu_ids` 和目标 `menu_ids`。两者都是正整数数组，`[]` 表示空集。`PUT /v1/sys/role/:id` 显式修改 `menu_ids` 时同样必须携带原集合。缺少或传 `null` 的原集合返回 400；当前有效授权与原集合不同返回业务码 409，整次保存回滚，客户端重新读取角色并核对后再编辑。集合比较忽略顺序和重复项。只更新角色资料和新建角色沿用现有调用方式。
 - ✅ 角色、菜单、字典创建时省略 status 默认 1，显式状态只允许 1/2；角色省略 data_scope 默认 SELF。角色 code 编辑省略或 null 保持，显式不同于现值返回 400。普通角色资料编辑不自动提交旧菜单授权。
 
 ### 部门
@@ -159,6 +160,7 @@
 ### 文件与引用
 
 - 文件列表的 `url` 为可选字段。
+- 删除先锁定文件并核对上传者及引用，软删除后即停止提供链接和新增引用。对象存储确认删除后记录清理完成。文件中心查询传 `include_cleanup_pending=true`，额外返回当前上传者尚未确认清理的软删除行，标记 `cleanup_pending: true`；其他用户不可见。默认列表及工作台仍只统计有效文件。刷新后可用原删除操作重试，重复完成幂等。历史软删除没有清理回执时同样允许重新确认。
 - `POST /v1/sys/file/upload` 接收 `name/content_base64/scene/visibility`，原文件最大 10 MiB；服务端检查内容、类型及场景。引用增减仅由内部业务 RPC 调用，按业务类型及 ID 幂等维护。
 - 上传响应为 `{file: FileInfo}`；`name/content_base64` 必填，`scene` 为 common/avatar/doc（默认 common），`visibility` 为 public/private（默认 private），原始字节 1..10 MiB。头像限可解码的 JPEG/PNG/GIF 并检查尺寸，不引入额外图像解码依赖；拒绝路径型文件名及 HTML/SVG。服务端推断 MIME，不接受客户端 uploader_id/Actor。
 - 私有文件链接、删除、引用新增验证上传者；公开文件链接允许已认证用户读取。头像引用类型为 admin_avatar/app_avatar，按 `(file_id,ref_type,ref_id)` 唯一幂等维护；删除引用不存在的明细不减少历史引用计数，删除文件同时检查计数和引用明细。
@@ -180,6 +182,7 @@
 - 后台 App 管理：`GET /v1/sys/app/users` 接收 page/page_size/status/account，公开头像返回 avatar_url；`POST /users/:id/review` 接收 status/reason（pending/active/disabled/rejected）；`PUT /users/:id/avatar` 接收 file_id（0 解绑）；`GET /users/:id/sessions` 返回 list，复用登录设备字段 id/device_name/ip/user_agent/created_at/last_seen_at/expires_at/is_current（管理其他 App 用户时固定 false），最多 20 条有效会话；`DELETE /users/:id/sessions/:session_id` 撤销该用户会话。所有请求使用服务端后台身份和接口权限；不能伪造 Actor，目标用户必须存在且未删除，停用/驳回撤销旧会话。仅展示安全设备字段，不返回令牌、摘要等内部会话字段。
 - 后台会员：`GET /v1/sys/app/memberships` 接收 page/page_size/user_id/plan_code/active_only；`POST /memberships` 接收 user_id/plan_code/benefits/request_id/duration_days（1..3650），request_id 必填且幂等，重复键参数不一致拒绝；`DELETE /memberships/:id` 撤销。列表项为 id/user_id/plan_code/benefits/request_id/granted_by/granted_by_admin/starts_at/expires_at/revoked/revoked_at/created_at，有效期为 starts_at <= 当前时间 < expires_at 且未撤销。
 - 后台用户详情与编辑：后台用户详情整合资料/会员/设备页签，审核与启停分入口，继续复用原审核及会话撤销规则。`GET /v1/sys/app/users/:id` 返回 `{user: AppAdminUserInfo}`；后台用户列表也改为 `AppAdminUserInfo`，在原用户字段上增加 `remark`。`PUT /users/:id` 仅允许可选 `nickname/remark`，省略/null 保持，空字符串清空，昵称最多 64 字符、备注最多 500 字符；账户、身份、审核状态由原专用接口维护。内部备注仅随后台用户响应返回，不出现在 App 注册、登录、刷新、个人资料及其他 App 侧响应中。
+- 审核与启停提交到 `POST /v1/sys/app/users/:id/review`。请求须携带操作者打开表单时看到的 `expected_status` 及 `expected_reason`（原说明为空时传空字符串）。缺少快照返回业务码 400。在账号行锁内比较当前状态和原说明，任一不一致即返回业务码 409，保留已提交的决定和会话。发生冲突后，客户端重新读取该用户，管理员可核对最新决定后重新发起操作。
 - `GET /v1/sys/app/membership-plans` 返回 `{list:[{label,value}]}`，仅从启用的 `app_membership_plan` 字典读取有效名称与编码，不开放任意字典读取，不新增套餐销售系统；开通字段和历史自由套餐编码兼容，后台新增开通使用下拉选择。此入口有独立后台接口授权，不要求开放全部字典权限。
 - 反馈：App 登录用户 `POST /v1/app/feedback` 接收 `content`（非空纯文字，最多 2000 字符），服务端从有效 App 会话确定用户，初始 pending；`GET /v1/app/feedback` 分页读取本人反馈，不接受其他 user_id 授权。后台 `GET /v1/sys/app/feedback` 接收 `page/page_size/user_id/status`，`PUT /feedback/:id` 接收可选 `reply/status`；回复最多 2000 字符，空字符串清空，省略/null 保持；状态仅 pending/resolved，至少修改一项。列表返回 `list/total`，每项 `id/user_id/account/nickname/content/reply/status/created_at/updated_at`，App 侧仅含本人项。首版不实现附件、工单分配或实时客服。新分页默认 1/20、最大 100，非法 ID/状态/字段长度拒绝；后台使用可信 Actor 与 Casbin，App 使用独立令牌，不互相放行。
 - 后台导航：顶层“APP管理”与“系统管理”同级，下设“APP用户”（/app/users）、“会员管理”（/app/memberships）和“意见反馈”（/app/feedback）。操作码为 sys:app:user:edit、sys:app:user:review、sys:app:user:avatar、sys:app:session:revoke、sys:app:membership:grant、sys:app:membership:revoke、sys:app:feedback:reply；读取登录设备使用 sys:app:session:list，头像上传复用文件管理的 sys:file:upload。新增菜单默认只关联超级管理员；菜单可见性与服务端 Casbin 接口授权独立，沿用既有普通角色读取策略。

@@ -943,9 +943,11 @@ type AppRegisterReq struct {
 }
 
 type AppReviewReq struct {
-	Id     int64  `path:"id" validate:"min=1"`
-	Status string `json:"status" validate:"oneof=pending active disabled rejected"`
-	Reason string `json:"reason,optional" validate:"omitempty,max=255"`
+	Id             int64   `path:"id" validate:"min=1"`
+	Status         string  `json:"status" validate:"oneof=pending active disabled rejected"`
+	Reason         string  `json:"reason,optional" validate:"omitempty,max=255"`
+	ExpectedStatus string  `json:"expected_status" validate:"oneof=pending active disabled rejected"`
+	ExpectedReason *string `json:"expected_reason" validate:"required,max=512"`
 }
 
 type AppRevokeMembershipReq struct {
@@ -1176,18 +1178,19 @@ type EmptyResp struct {
 }
 
 type FileInfo struct {
-	Id           int64  `json:"id"`
-	Bucket       string `json:"bucket"`
-	ObjectKey    string `json:"object_key"`
-	OriginalName string `json:"original_name"`
-	Ext          string `json:"ext"`
-	Mime         string `json:"mime"`
-	Size         int64  `json:"size"`
-	Visibility   string `json:"visibility"`
-	RefCount     int32  `json:"ref_count"`
-	UploaderId   int64  `json:"uploader_id"`
-	URL          string `json:"url,optional"`
-	CreatedAt    int64  `json:"created_at"`
+	Id             int64  `json:"id"`
+	Bucket         string `json:"bucket"`
+	ObjectKey      string `json:"object_key"`
+	OriginalName   string `json:"original_name"`
+	Ext            string `json:"ext"`
+	Mime           string `json:"mime"`
+	Size           int64  `json:"size"`
+	Visibility     string `json:"visibility"`
+	RefCount       int32  `json:"ref_count"`
+	UploaderId     int64  `json:"uploader_id"`
+	URL            string `json:"url,optional"`
+	CreatedAt      int64  `json:"created_at"`
+	CleanupPending bool   `json:"cleanup_pending,optional"`
 }
 
 type GetApiListReq struct {
@@ -1257,10 +1260,11 @@ type GetDictListResp struct {
 }
 
 type GetFileListReq struct {
-	Page       int64  `json:"page,optional" form:"page,optional" validate:"omitempty,min=1"`
-	PageSize   int64  `json:"page_size,optional" form:"page_size,optional" validate:"omitempty,min=1,max=100"`
-	Visibility string `json:"visibility,optional" form:"visibility,optional" validate:"omitempty,oneof=public private"`
-	UploaderId int64  `json:"uploader_id,optional" form:"uploader_id,optional" validate:"omitempty,min=1"`
+	Page                  int64  `json:"page,optional" form:"page,optional" validate:"omitempty,min=1"`
+	PageSize              int64  `json:"page_size,optional" form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+	Visibility            string `json:"visibility,optional" form:"visibility,optional" validate:"omitempty,oneof=public private"`
+	UploaderId            int64  `json:"uploader_id,optional" form:"uploader_id,optional" validate:"omitempty,min=1"`
+	IncludeCleanupPending bool   `form:"include_cleanup_pending,optional"`
 }
 
 type GetFileListResp struct {
@@ -1577,19 +1581,21 @@ type UpdateProfileReq struct {
 }
 
 type UpdateRoleMenusReq struct {
-	Id      int64   `path:"id" validate:"min=1"`
-	MenuIds []int64 `json:"menu_ids" validate:"dive,min=1"`
+	Id              int64   `path:"id" validate:"min=1"`
+	MenuIds         []int64 `json:"menu_ids" validate:"required,dive,min=1"`
+	ExpectedMenuIds []int64 `json:"expected_menu_ids" validate:"required,dive,min=1"`
 }
 
 type UpdateRoleReq struct {
-	Id          int64   `path:"id" validate:"min=1"`
-	Name        *string `json:"name,optional" validate:"omitempty,max=64"`
-	Code        *string `json:"code,optional" validate:"omitempty,max=64"`
-	Description *string `json:"description,optional" validate:"omitempty,max=512"`
-	DataScope   *string `json:"data_scope,optional" validate:"omitempty,oneof=ALL DEPT_AND_CHILDREN DEPT SELF"`
-	Sort        *int32  `json:"sort,optional"`
-	Status      *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
-	MenuIds     []int64 `json:"menu_ids,optional" validate:"omitempty,dive,min=1"`
+	Id              int64   `path:"id" validate:"min=1"`
+	Name            *string `json:"name,optional" validate:"omitempty,max=64"`
+	Code            *string `json:"code,optional" validate:"omitempty,max=64"`
+	Description     *string `json:"description,optional" validate:"omitempty,max=512"`
+	DataScope       *string `json:"data_scope,optional" validate:"omitempty,oneof=ALL DEPT_AND_CHILDREN DEPT SELF"`
+	Sort            *int32  `json:"sort,optional"`
+	Status          *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	MenuIds         []int64 `json:"menu_ids,optional" validate:"omitempty,dive,min=1"`
+	ExpectedMenuIds []int64 `json:"expected_menu_ids,optional" validate:"omitempty,dive,min=1"`
 }
 
 type UpdateUserReq struct {

@@ -1,5 +1,5 @@
 import { apiDelete, apiGet, apiPost, apiPut } from '../utils/request';
-import type { CreateRoleReq, GetRoleListReq, ListResult, MenuInfo, PageResult, RoleInfo, UpdateRoleReq } from './types';
+import type { CreateRoleReq, GetRoleListReq, ListResult, MenuInfo, PageResult, RoleInfo, UpdateRoleMenusReq, UpdateRoleReq } from './types';
 
 export const fetchRoles = (params: GetRoleListReq) => apiGet<PageResult<RoleInfo>>('/sys/role/list', params);
 export async function fetchRoleOptions(): Promise<RoleInfo[]> {
@@ -17,5 +17,4 @@ export const createRole = (values: CreateRoleReq) => apiPost('/sys/role/create',
 export const updateRole = (id: number, values: UpdateRoleReq) => apiPut(`/sys/role/${id}`, values);
 export const deleteRole = (id: number) => apiDelete(`/sys/role/${id}`);
 export const fetchRoleMenus = () => apiGet<ListResult<MenuInfo>>('/sys/menu/tree');
-export const updateRoleMenus = (id: number, menuIds: number[]) =>
-  apiPost(`/sys/role/${id}/menus`, { menu_ids: menuIds });
+export const updateRoleMenus = (id: number, values: UpdateRoleMenusReq) => apiPost(`/sys/role/${id}/menus`, values);

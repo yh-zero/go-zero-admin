@@ -44,6 +44,11 @@ type Client struct {
 var bucketPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$`)
 var regionPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
 
+func validBucketName(bucket string) bool {
+	return bucketPattern.MatchString(bucket) && !strings.Contains(bucket, "..") &&
+		!strings.Contains(bucket, ".-") && !strings.Contains(bucket, "-.") && net.ParseIP(bucket) == nil
+}
+
 // New validates configuration without making network requests or consulting
 // environment credentials, instance metadata or shared AWS configuration.
 func New(config Config) (*Client, error) {
@@ -70,7 +75,7 @@ func New(config Config) (*Client, error) {
 		return nil, errors.New("invalid Storage config: Region is invalid")
 	}
 	for _, bucket := range []string{config.PublicBucket, config.PrivateBucket} {
-		if !bucketPattern.MatchString(bucket) || strings.Contains(bucket, "..") || strings.Contains(bucket, ".-") || strings.Contains(bucket, "-.") || net.ParseIP(bucket) != nil {
+		if !validBucketName(bucket) {
 			return nil, errors.New("invalid Storage config: bucket name is invalid")
 		}
 	}
@@ -138,9 +143,20 @@ func (c *Client) Delete(ctx context.Context, key, visibility string) error {
 	if err != nil {
 		return err
 	}
+	return c.DeleteFromBucket(ctx, bucket, key)
+}
+
+// DeleteFromBucket 使用文件记录中保存的桶，配置换桶后仍能清理原对象。
+func (c *Client) DeleteFromBucket(ctx context.Context, bucket, key string) error {
+	if c == nil {
+		return ErrNotConfigured
+	}
+	if !validBucketName(bucket) {
+		return errors.New("invalid object bucket")
+	}
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
-	_, err = c.internal.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: aws.String(bucket), Key: aws.String(key)})
+	_, err := c.internal.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: aws.String(bucket), Key: aws.String(key)})
 	return storageError(ctx, "delete", err)
 }
 

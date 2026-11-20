@@ -28,7 +28,14 @@ func (l *UpdateRoleMenusLogic) UpdateRoleMenus(req *types.UpdateRoleMenusReq) (*
 	}
 	_, err := l.svcCtx.RoleRpc.UpdateRoleMenus(l.ctx, &adminpb.UpdateRoleMenusRequest{
 		Actor:  middleware.ActorFromContext(l.ctx),
-		RoleId: req.Id, MenuIds: req.MenuIds,
+		RoleId: req.Id, MenuIds: req.MenuIds, ExpectedMenus: menuSnapshot(req.ExpectedMenuIds),
 	})
 	return &types.EmptyResp{}, err
+}
+
+func menuSnapshot(ids []int64) *adminpb.RoleMenuSnapshot {
+	if ids == nil {
+		return nil
+	}
+	return &adminpb.RoleMenuSnapshot{MenuIds: ids}
 }

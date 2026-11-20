@@ -34,9 +34,16 @@ func (l *DeleteFileLogic) DeleteFile(in *filepb.DeleteFileRequest) (*filepb.NoDa
 	if err != nil {
 		return nil, fileModelError(err)
 	}
-	if err := l.svcCtx.Store.Delete(l.ctx, row.ObjectKey, row.Visibility); err != nil {
+	if row.ObjectCleanedAt.Valid {
+		return &filepb.NoDataResponse{}, nil
+	}
+	if err := l.svcCtx.Store.DeleteFromBucket(l.ctx, row.Bucket, row.ObjectKey); err != nil {
 		l.Error("文件对象删除失败，元数据已软删除，可重试清理")
 		return nil, xerr.NewErrCodeMsg(xerr.SERVER_COMMON_ERROR, "存储清理失败，请重试删除")
+	}
+	if err := l.svcCtx.SysFileModel.ConfirmObjectCleanup(l.ctx, in.FileID); err != nil {
+		l.Error("写入对象清理回执失败")
+		return nil, xerr.NewErrCodeMsg(xerr.DB_ERROR, "文件清理结果尚未确认，请重试删除")
 	}
 	return &filepb.NoDataResponse{}, nil
 }

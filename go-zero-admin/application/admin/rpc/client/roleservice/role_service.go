@@ -25,6 +25,7 @@ type (
 	PageRequest            = adminpb.PageRequest
 	PageResponse           = adminpb.PageResponse
 	RoleInfo               = adminpb.RoleInfo
+	RoleMenuSnapshot       = adminpb.RoleMenuSnapshot
 	UpdateRoleMenusRequest = adminpb.UpdateRoleMenusRequest
 	UpdateRoleRequest      = adminpb.UpdateRoleRequest
 

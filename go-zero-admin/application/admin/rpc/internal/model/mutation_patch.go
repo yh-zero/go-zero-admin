@@ -36,7 +36,7 @@ func CreateStatus(status *int32) (int64, error) {
 type RolePatch struct {
 	Name, Code, Description, DataScope *string
 	Sort, Status                       *int32
-	MenuIds                            []int64
+	MenuIds, ExpectedMenuIds           []int64
 	UpdateMenus                        bool
 }
 

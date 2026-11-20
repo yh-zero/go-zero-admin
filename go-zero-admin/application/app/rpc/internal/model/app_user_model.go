@@ -23,7 +23,7 @@ type (
 		SetNickname(context.Context, uint64, string) error
 		PatchAdminProfile(context.Context, uint64, *string, *string) error
 		FindAdminProfile(context.Context, uint64) (*AppUserRow, error)
-		SetReview(context.Context, uint64, string, string, func(context.Context) error) error
+		SetReview(context.Context, uint64, ReviewDecision, ReviewDecision, func(context.Context) error) error
 		SetAvatar(context.Context, uint64, int64, func(context.Context, int64, int64) error) error
 		ReconcileAvatar(context.Context, uint64, func(context.Context, int64) error) error
 	}
@@ -56,6 +56,7 @@ func (m *customAppUserModel) updateFields(ctx context.Context, id uint64, assign
 
 var (
 	ErrAppLoginChanged            = errors.New("app user credentials changed")
+	ErrAppReviewChanged           = errors.New("app user review decision changed")
 	ErrAppUserInactive            = errors.New("app user is not active")
 	ErrCommittedCacheInvalidation = errors.New("business update committed but cache invalidation failed")
 )
@@ -122,24 +123,34 @@ func (m *customAppUserModel) PatchAdminProfile(ctx context.Context, id uint64, n
 	}
 	return nil
 }
-func (m *customAppUserModel) SetReview(ctx context.Context, id uint64, status, reason string, revoke func(context.Context) error) error {
+
+type ReviewDecision struct {
+	Status string
+	Reason string
+}
+
+func (m *customAppUserModel) SetReview(ctx context.Context, id uint64, expected, next ReviewDecision, revoke func(context.Context) error) error {
 	var account string
 	err := m.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
 		var row struct {
 			Account string `db:"account"`
 			Status  string `db:"status"`
+			Reason  string `db:"review_reason"`
 		}
-		if err := session.QueryRowCtx(ctx, &row, "SELECT account,status FROM app_user WHERE id=? AND deleted_at IS NULL FOR UPDATE", id); err != nil {
+		if err := session.QueryRowCtx(ctx, &row, "SELECT account,status,review_reason FROM app_user WHERE id=? AND deleted_at IS NULL FOR UPDATE", id); err != nil {
 			return err
+		}
+		if row.Status != expected.Status || row.Reason != expected.Reason {
+			return ErrAppReviewChanged
 		}
 		account = row.Account
 		// 撤销失败时回滚审核；与登录共用行锁，禁止在撤销之后补发旧状态会话。
-		if row.Status != status || status != "active" {
+		if row.Status != next.Status || next.Status != "active" {
 			if err := revoke(ctx); err != nil {
 				return err
 			}
 		}
-		_, err := session.ExecCtx(ctx, "UPDATE app_user SET status=?,review_reason=?,updated_at=NOW() WHERE id=?", status, reason, id)
+		_, err := session.ExecCtx(ctx, "UPDATE app_user SET status=?,review_reason=?,updated_at=NOW() WHERE id=?", next.Status, next.Reason, id)
 		return err
 	})
 	if err != nil {

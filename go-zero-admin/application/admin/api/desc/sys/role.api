@@ -54,13 +54,15 @@ type (
 		Sort        *int32  `json:"sort,optional"`
 		Status      *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
 		MenuIds     []int64 `json:"menu_ids,optional" validate:"omitempty,dive,min=1"`
+		ExpectedMenuIds []int64 `json:"expected_menu_ids,optional" validate:"omitempty,dive,min=1"`
 	}
 	DeleteRoleReq {
 		Id int64 `path:"id" validate:"min=1"`
 	}
 	UpdateRoleMenusReq {
 		Id      int64   `path:"id" validate:"min=1"`
-		MenuIds []int64 `json:"menu_ids" validate:"dive,min=1"`
+		MenuIds []int64 `json:"menu_ids" validate:"required,dive,min=1"`
+		ExpectedMenuIds []int64 `json:"expected_menu_ids" validate:"required,dive,min=1"`
 	}
 )
 

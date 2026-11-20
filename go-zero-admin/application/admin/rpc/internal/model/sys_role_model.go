@@ -2,7 +2,9 @@ package model
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
@@ -10,6 +12,10 @@ import (
 )
 
 var _ SysRoleModel = (*customSysRoleModel)(nil)
+
+var ErrRoleMenuConflict = errors.New("角色授权已变更")
+
+const roleMenuIdsQuery = "SELECT rm.menu_id FROM sys_role_menu rm JOIN sys_menu m ON rm.menu_id=m.id WHERE rm.role_id=? AND m.deleted_at IS NULL ORDER BY rm.menu_id"
 
 type (
 	// SysRoleModel is an interface to be customized, add more methods here,
@@ -26,7 +32,7 @@ type (
 		CountUsersByRoleCodes(ctx context.Context, roleCodes []string) (map[string]int64, error)
 		CreateWithMenus(ctx context.Context, role *SysRole, menuIds []int64) error
 		UpdatePartial(ctx context.Context, roleId uint64, patch RolePatch) error
-		ReplaceMenus(ctx context.Context, roleId uint64, menuIds []int64) error
+		ReplaceMenus(ctx context.Context, roleId uint64, expectedMenuIds, menuIds []int64) error
 		SoftDeleteWithRelations(ctx context.Context, roleId uint64) error
 	}
 
@@ -70,7 +76,7 @@ func lockRole(ctx context.Context, s sqlx.Session, roleId uint64) (*SysRole, err
 	return &role, nil
 }
 
-func replaceRoleMenus(ctx context.Context, s sqlx.Session, roleId uint64, menuIds []int64) error {
+func replaceRoleMenus(ctx context.Context, s sqlx.Session, roleId uint64, current, menuIds []int64) error {
 	seen := make(map[int64]bool, len(menuIds))
 	ids := make([]int64, 0, len(menuIds))
 	for _, id := range menuIds {
@@ -82,18 +88,32 @@ func replaceRoleMenus(ctx context.Context, s sqlx.Session, roleId uint64, menuId
 			ids = append(ids, id)
 		}
 	}
-	if len(ids) > 0 {
+	// 新旧菜单按主键固定顺序一次加锁，避免不同角色交换菜单时分别持有对方需要的锁。
+	lockIDs := slices.Concat(current, ids)
+	slices.Sort(lockIDs)
+	lockIDs = slices.Compact(lockIDs)
+	if len(lockIDs) > 0 {
 		var rows []struct {
 			Id int64 `db:"id"`
 		}
-		args := make([]any, 0, len(ids))
-		for _, id := range ids {
+		args := make([]any, 0, len(lockIDs))
+		for _, id := range lockIDs {
 			args = append(args, id)
 		}
-		if err := s.QueryRowsCtx(ctx, &rows, "SELECT id FROM sys_menu WHERE id IN ("+inPlaceholders(len(ids))+") AND deleted_at IS NULL ORDER BY id FOR UPDATE", args...); err != nil {
+		if err := s.QueryRowsCtx(ctx, &rows, "SELECT id FROM sys_menu WHERE id IN ("+inPlaceholders(len(lockIDs))+") AND deleted_at IS NULL ORDER BY id FOR UPDATE", args...); err != nil {
 			return err
 		}
-		if len(rows) != len(ids) {
+		if len(rows) != len(lockIDs) {
+			exists := make(map[int64]bool, len(rows))
+			for _, row := range rows {
+				exists[row.Id] = true
+			}
+			// 菜单子树删除不锁角色；若发生在快照读取之后，也须回报原授权已变化。
+			for _, id := range current {
+				if !exists[id] {
+					return ErrRoleMenuConflict
+				}
+			}
 			return fmt.Errorf("%w: 菜单不存在", ErrInvalidMutation)
 		}
 	}
@@ -110,6 +130,23 @@ func replaceRoleMenus(ctx context.Context, s sqlx.Session, roleId uint64, menuId
 
 func (m *customSysRoleModel) invalidateRole(ctx context.Context, role *SysRole) error {
 	return m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysRoleIdPrefix, role.Id), cacheGozeroAdminNewSysRoleCodePrefix+role.Code)
+}
+
+// 两个入口都先锁角色，再在事务中首次读取快照。此处不锁菜单或关联范围，避免不同角色换菜单时互锁。
+func replaceRoleMenusIfCurrent(ctx context.Context, s sqlx.Session, roleId uint64, expectedMenuIds, menuIds []int64) error {
+	expected := slices.Clone(expectedMenuIds)
+	slices.Sort(expected)
+	if len(expected) > 0 && expected[0] <= 0 {
+		return ErrInvalidMutation
+	}
+	var current []int64
+	if err := s.QueryRowsCtx(ctx, &current, roleMenuIdsQuery, roleId); err != nil {
+		return err
+	}
+	if !slices.Equal(slices.Compact(current), slices.Compact(expected)) {
+		return ErrRoleMenuConflict
+	}
+	return replaceRoleMenus(ctx, s, roleId, current, menuIds)
 }
 
 func (m *customSysRoleModel) CreateWithMenus(ctx context.Context, role *SysRole, menuIds []int64) error {
@@ -133,7 +170,7 @@ func (m *customSysRoleModel) CreateWithMenus(ctx context.Context, role *SysRole,
 			return err
 		}
 		role.Id = uint64(id)
-		return replaceRoleMenus(ctx, s, role.Id, menuIds)
+		return replaceRoleMenus(ctx, s, role.Id, nil, menuIds)
 	})
 	if err != nil {
 		return err
@@ -156,7 +193,7 @@ func (m *customSysRoleModel) UpdatePartial(ctx context.Context, roleId uint64, p
 			return err
 		}
 		if patch.UpdateMenus {
-			return replaceRoleMenus(ctx, s, roleId, patch.MenuIds)
+			return replaceRoleMenusIfCurrent(ctx, s, roleId, patch.ExpectedMenuIds, patch.MenuIds)
 		}
 		return nil
 	})
@@ -166,12 +203,12 @@ func (m *customSysRoleModel) UpdatePartial(ctx context.Context, roleId uint64, p
 	return committedCacheError(m.invalidateRole(ctx, role))
 }
 
-func (m *customSysRoleModel) ReplaceMenus(ctx context.Context, roleId uint64, menuIds []int64) error {
+func (m *customSysRoleModel) ReplaceMenus(ctx context.Context, roleId uint64, expectedMenuIds, menuIds []int64) error {
 	return m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
 		if _, err := lockRole(ctx, s, roleId); err != nil {
 			return err
 		}
-		return replaceRoleMenus(ctx, s, roleId, menuIds)
+		return replaceRoleMenusIfCurrent(ctx, s, roleId, expectedMenuIds, menuIds)
 	})
 }
 
@@ -239,7 +276,7 @@ func (m *customSysRoleModel) ListMenuIdsByRole(ctx context.Context, roleId int64
 	ids := make([]int64, 0)
 	// 只统计仍有效的菜单，软删菜单的授权残留不回显
 	err := m.QueryRowsNoCacheCtx(ctx, &ids,
-		"SELECT rm.menu_id FROM sys_role_menu rm JOIN sys_menu m ON rm.menu_id=m.id WHERE rm.role_id=? AND m.deleted_at IS NULL ORDER BY rm.menu_id",
+		roleMenuIdsQuery,
 		roleId)
 	return ids, err
 }

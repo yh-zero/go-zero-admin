@@ -1558,13 +1558,15 @@ func (x *AppUpdateUserRequest) GetRemark() string {
 }
 
 type AppReviewRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Actor         *Actor                 `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
-	UserID        int64                  `protobuf:"varint,2,opt,name=UserID,proto3" json:"UserID,omitempty"`
-	Status        string                 `protobuf:"bytes,3,opt,name=Status,proto3" json:"Status,omitempty"`
-	Reason        string                 `protobuf:"bytes,4,opt,name=Reason,proto3" json:"Reason,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Actor          *Actor                 `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
+	UserID         int64                  `protobuf:"varint,2,opt,name=UserID,proto3" json:"UserID,omitempty"`
+	Status         string                 `protobuf:"bytes,3,opt,name=Status,proto3" json:"Status,omitempty"`
+	Reason         string                 `protobuf:"bytes,4,opt,name=Reason,proto3" json:"Reason,omitempty"`
+	ExpectedStatus string                 `protobuf:"bytes,5,opt,name=expected_status,json=expectedStatus,proto3" json:"expected_status,omitempty"`
+	ExpectedReason *string                `protobuf:"bytes,6,opt,name=expected_reason,json=expectedReason,proto3,oneof" json:"expected_reason,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *AppReviewRequest) Reset() {
@@ -1621,6 +1623,20 @@ func (x *AppReviewRequest) GetStatus() string {
 func (x *AppReviewRequest) GetReason() string {
 	if x != nil {
 		return x.Reason
+	}
+	return ""
+}
+
+func (x *AppReviewRequest) GetExpectedStatus() string {
+	if x != nil {
+		return x.ExpectedStatus
+	}
+	return ""
+}
+
+func (x *AppReviewRequest) GetExpectedReason() string {
+	if x != nil && x.ExpectedReason != nil {
+		return *x.ExpectedReason
 	}
 	return ""
 }
@@ -2949,12 +2965,15 @@ const file_application_app_rpc_desc_app_proto_rawDesc = "" +
 	"\bnickname\x18\x03 \x01(\tH\x00R\bnickname\x88\x01\x01\x12\x1b\n" +
 	"\x06remark\x18\x04 \x01(\tH\x01R\x06remark\x88\x01\x01B\v\n" +
 	"\t_nicknameB\t\n" +
-	"\a_remark\"~\n" +
+	"\a_remark\"\xe9\x01\n" +
 	"\x10AppReviewRequest\x12\"\n" +
 	"\x05Actor\x18\x01 \x01(\v2\f.apppb.ActorR\x05Actor\x12\x16\n" +
 	"\x06UserID\x18\x02 \x01(\x03R\x06UserID\x12\x16\n" +
 	"\x06Status\x18\x03 \x01(\tR\x06Status\x12\x16\n" +
-	"\x06Reason\x18\x04 \x01(\tR\x06Reason\"i\n" +
+	"\x06Reason\x18\x04 \x01(\tR\x06Reason\x12'\n" +
+	"\x0fexpected_status\x18\x05 \x01(\tR\x0eexpectedStatus\x12,\n" +
+	"\x0fexpected_reason\x18\x06 \x01(\tH\x00R\x0eexpectedReason\x88\x01\x01B\x12\n" +
+	"\x10_expected_reason\"i\n" +
 	"\x13AppSetAvatarRequest\x12\"\n" +
 	"\x05Actor\x18\x01 \x01(\v2\f.apppb.ActorR\x05Actor\x12\x16\n" +
 	"\x06UserID\x18\x02 \x01(\x03R\x06UserID\x12\x16\n" +
@@ -3234,6 +3253,7 @@ func file_application_app_rpc_desc_app_proto_init() {
 	}
 	file_application_app_rpc_desc_app_proto_msgTypes[13].OneofWrappers = []any{}
 	file_application_app_rpc_desc_app_proto_msgTypes[23].OneofWrappers = []any{}
+	file_application_app_rpc_desc_app_proto_msgTypes[24].OneofWrappers = []any{}
 	file_application_app_rpc_desc_app_proto_msgTypes[41].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

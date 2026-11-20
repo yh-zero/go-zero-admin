@@ -249,6 +249,7 @@ message UpdateRoleRequest {
   optional int32 status = 8;
   repeated int64 menu_ids = 9;
   bool update_menus = 10;
+  RoleMenuSnapshot expected_menus = 11;
 }
 
 message DeleteRoleRequest {
@@ -260,6 +261,7 @@ message UpdateRoleMenusRequest {
   Actor actor = 1;
   int64 role_id = 2;
   repeated int64 menu_ids = 3;
+  RoleMenuSnapshot expected_menus = 4;
 }
 
 // ============================================
@@ -648,4 +650,9 @@ message ListPoliciesResponse { repeated PolicyRule Rules = 1 [json_name = "rules
 
 service CasbinService {
   rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse);
+}
+
+// 独立消息的存在性区分“已读取空授权”和“未提供原始授权”。
+message RoleMenuSnapshot {
+  repeated int64 menu_ids = 1;
 }

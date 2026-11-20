@@ -8,6 +8,7 @@ import (
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
 	"go-zero-admin/application/admin/rpc/internal/model"
 	"go-zero-admin/application/admin/rpc/internal/svc"
+	"go-zero-admin/pkg/xerr"
 )
 
 type UpdateRoleLogic struct {
@@ -24,9 +25,13 @@ func (l *UpdateRoleLogic) UpdateRole(in *adminpb.UpdateRoleRequest) (*adminpb.No
 	if err := requireRoleActor(l.ctx, l.svcCtx, in.GetActor()); err != nil {
 		return nil, err
 	}
+	if in.UpdateMenus && in.ExpectedMenus == nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
 	err := l.svcCtx.SysRoleModel.UpdatePartial(l.ctx, uint64(in.RoleId), model.RolePatch{
 		Name: in.Name, Code: in.Code, Description: in.Description, DataScope: in.DataScope,
 		Sort: in.Sort, Status: in.Status, MenuIds: in.MenuIds, UpdateMenus: in.UpdateMenus,
+		ExpectedMenuIds: in.GetExpectedMenus().GetMenuIds(),
 	})
 	if model.MutationCommitted(err) {
 		l.svcCtx.PublishPolicyChanged(l.ctx)

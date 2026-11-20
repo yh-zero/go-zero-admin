@@ -41,19 +41,20 @@ type (
 	}
 
 	SysFile struct {
-		Id           uint64        `db:"id"`            // 主键
-		Bucket       string        `db:"bucket"`        // bucket 名
-		ObjectKey    string        `db:"object_key"`    // 对象键（存储路径）
-		OriginalName string        `db:"original_name"` // 原始文件名
-		Ext          string        `db:"ext"`           // 扩展名
-		Mime         string        `db:"mime"`          // MIME 类型
-		Size         uint64        `db:"size"`          // 字节数
-		Visibility   string        `db:"visibility"`    // 可见性：public/private
-		RefCount     int64         `db:"ref_count"`     // 引用计数（0 可删）
-		UploaderId   sql.NullInt64 `db:"uploader_id"`   // 上传者用户ID
-		CreatedAt    time.Time     `db:"created_at"`
-		UpdatedAt    time.Time     `db:"updated_at"`
-		DeletedAt    sql.NullTime  `db:"deleted_at"` // 软删除
+		Id              uint64        `db:"id"`            // 主键
+		Bucket          string        `db:"bucket"`        // bucket 名
+		ObjectKey       string        `db:"object_key"`    // 对象键（存储路径）
+		OriginalName    string        `db:"original_name"` // 原始文件名
+		Ext             string        `db:"ext"`           // 扩展名
+		Mime            string        `db:"mime"`          // MIME 类型
+		Size            uint64        `db:"size"`          // 字节数
+		Visibility      string        `db:"visibility"`    // 可见性：public/private
+		RefCount        int64         `db:"ref_count"`     // 引用计数（0 可删）
+		UploaderId      sql.NullInt64 `db:"uploader_id"`   // 上传者用户ID
+		CreatedAt       time.Time     `db:"created_at"`
+		UpdatedAt       time.Time     `db:"updated_at"`
+		DeletedAt       sql.NullTime  `db:"deleted_at"`        // 软删除
+		ObjectCleanedAt sql.NullTime  `db:"object_cleaned_at"` // 对象存储确认删除时间
 	}
 )
 
@@ -93,8 +94,8 @@ func (m *defaultSysFileModel) FindOne(ctx context.Context, id uint64) (*SysFile,
 func (m *defaultSysFileModel) Insert(ctx context.Context, data *SysFile) (sql.Result, error) {
 	gozeroAdminSysFileIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminSysFileIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, sysFileRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Bucket, data.ObjectKey, data.OriginalName, data.Ext, data.Mime, data.Size, data.Visibility, data.RefCount, data.UploaderId, data.DeletedAt)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, sysFileRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Bucket, data.ObjectKey, data.OriginalName, data.Ext, data.Mime, data.Size, data.Visibility, data.RefCount, data.UploaderId, data.DeletedAt, data.ObjectCleanedAt)
 	}, gozeroAdminSysFileIdKey)
 	return ret, err
 }
@@ -103,7 +104,7 @@ func (m *defaultSysFileModel) Update(ctx context.Context, data *SysFile) error {
 	gozeroAdminSysFileIdKey := fmt.Sprintf("%s%v", cacheGozeroAdminSysFileIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, sysFileRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.Bucket, data.ObjectKey, data.OriginalName, data.Ext, data.Mime, data.Size, data.Visibility, data.RefCount, data.UploaderId, data.DeletedAt, data.Id)
+		return conn.ExecCtx(ctx, query, data.Bucket, data.ObjectKey, data.OriginalName, data.Ext, data.Mime, data.Size, data.Visibility, data.RefCount, data.UploaderId, data.DeletedAt, data.ObjectCleanedAt, data.Id)
 	}, gozeroAdminSysFileIdKey)
 	return err
 }

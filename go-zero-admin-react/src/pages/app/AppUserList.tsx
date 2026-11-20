@@ -21,7 +21,8 @@ import './app.css';
 import { queryKeys } from '../../utils/queryKeys';
 import { useTablePagination } from '../../hooks/useTablePagination';
 
-type UserAction = { id: number; mode: 'details' | 'review' | 'avatar' | 'sessions' | 'memberships' | 'edit'; intent?: AppUserReviewIntent };
+type UserAction = { id: number; mode: 'details' | 'avatar' | 'sessions' | 'memberships' | 'edit' }
+  | { id: number; mode: 'review'; user: AppAdminUserInfo; intent: AppUserReviewIntent };
 
 export default function AppUserList() {
   const [form] = Form.useForm<GetAppUserListReq>();
@@ -35,7 +36,7 @@ export default function AppUserList() {
   useEffect(() => {
     // 必须结束已失效的弹窗会话，否则用户日后重新进入筛选结果时会重开旧弹窗。
     // oxlint-disable-next-line react/set-state-in-effect
-    if (action && (action.mode === 'review' || action.mode === 'avatar') && users.isSuccess && !users.isFetching && !selectedUser) setAction(null);
+    if (action?.mode === 'avatar' && users.isSuccess && !users.isFetching && !selectedUser) setAction(null);
   }, [action, selectedUser, users.isSuccess, users.isFetching]);
   const unavailable = users.isFetching || users.isError;
 
@@ -75,7 +76,7 @@ export default function AppUserList() {
             <Button type="link" icon={<EyeOutlined />} disabled={unavailable} onClick={() => setAction({ id: row.id, mode: 'details' })}>详情</Button>
             <Auth code="sys:app:user:edit"><Button type="link" icon={<EditOutlined />} disabled={unavailable} onClick={() => setAction({ id: row.id, mode: 'edit' })}>编辑</Button></Auth>
             <Auth code="sys:app:user:review"><Button type="link" icon={row.status === 'active' ? <StopOutlined /> : row.status === 'disabled' ? <CheckCircleOutlined /> : <AuditOutlined />} danger={row.status === 'active'} disabled={unavailable}
-              onClick={() => setAction({ id: row.id, mode: 'review', intent: row.status === 'active' ? 'disable' : row.status === 'disabled' ? 'enable' : 'review' })}>
+              onClick={() => setAction({ id: row.id, mode: 'review', user: row, intent: row.status === 'active' ? 'disable' : row.status === 'disabled' ? 'enable' : 'review' })}>
               {row.status === 'active' ? '停用' : row.status === 'disabled' ? '启用' : '审核'}</Button></Auth>
             <Auth code="sys:app:user:avatar"><Button type="link" icon={<PictureOutlined />} disabled={unavailable} onClick={() => setAction({ id: row.id, mode: 'avatar' })}>头像</Button></Auth>
             <Auth code="sys:app:session:list"><Button type="link" icon={<LaptopOutlined />} disabled={unavailable} onClick={() => setAction({ id: row.id, mode: 'sessions' })}>登录设备</Button></Auth>
@@ -86,7 +87,7 @@ export default function AppUserList() {
     {action && (action.mode === 'details' || action.mode === 'sessions' || action.mode === 'memberships') && <AppUserDetails
       key={`${action.id}:${action.mode}`} id={action.id} initialTab={action.mode === 'details' ? 'profile' : action.mode} onClose={() => setAction(null)} />}
     {action?.mode === 'edit' && <AppUserEditDialog key={action.id} id={action.id} onClose={() => setAction(null)} />}
-    {selectedUser && action?.mode === 'review' && <AppUserReviewDialog key={selectedUser.id} user={selectedUser} intent={action.intent} disabled={unavailable} onClose={() => setAction(null)} />}
+    {action?.mode === 'review' && <AppUserReviewDialog key={action.id} user={action.user} intent={action.intent} disabled={unavailable} onClose={() => setAction(null)} />}
     {selectedUser && action?.mode === 'avatar' && <AppUserAvatarDialog key={selectedUser.id} user={selectedUser} disabled={unavailable} onClose={() => setAction(null)} />}
   </div>;
 }

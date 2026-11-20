@@ -269,7 +269,10 @@ try {
     $null = Invoke-TestApi '拒绝修改角色编码' 'PUT' ('/v1/sys/role/' + $roleId) @{ code = $script:Names.role_code + '_different' } -ExpectedCode 400
     $role = Get-TestRole $roleId
     Assert-Test ($role.code -ceq $script:Names.role_code -and @($role.menu_ids).Count -eq 1) '角色编码拒绝后仍改变数据'
-    $null = Invoke-TestApi '角色空数组清空菜单授权' 'PUT' ('/v1/sys/role/' + $roleId) @{ menu_ids = @() }
+    $roleMenusPath = '/v1/sys/role/' + $roleId + '/menus'
+    $null = Invoke-TestApi '缺少授权基线不得覆盖' 'POST' $roleMenusPath @{ menu_ids = @() } -ExpectedCode 400
+    $null = Invoke-TestApi '角色空数组清空菜单授权' 'PUT' ('/v1/sys/role/' + $roleId) @{ menu_ids = @(); expected_menu_ids = @($menuId) }
+    $null = Invoke-TestApi '旧编辑器不能恢复已清空的授权' 'POST' $roleMenusPath @{ menu_ids = @($menuId); expected_menu_ids = @($menuId) } -ExpectedCode 409
     $role = Get-TestRole $roleId
     # protobuf repeated 空集合经 RPC 可变为 JSON null；null 与 [] 均表示没有授权。
     Assert-Test ($null -eq $role.menu_ids -or @($role.menu_ids).Count -eq 0) '角色 menu_ids 空数组未清空'

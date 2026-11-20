@@ -23,13 +23,14 @@ func NewUpdateRoleLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 }
 
 func (l *UpdateRoleLogic) UpdateRole(req *types.UpdateRoleReq) (*types.EmptyResp, error) {
-	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
+	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil || req.MenuIds != nil && req.ExpectedMenuIds == nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
 	_, err := l.svcCtx.RoleRpc.UpdateRole(l.ctx, &adminpb.UpdateRoleRequest{
 		Actor:  middleware.ActorFromContext(l.ctx),
 		RoleId: req.Id, Name: req.Name, Code: req.Code, Description: req.Description,
 		DataScope: req.DataScope, Sort: req.Sort, Status: req.Status, MenuIds: req.MenuIds, UpdateMenus: req.MenuIds != nil,
+		ExpectedMenus: menuSnapshot(req.ExpectedMenuIds),
 	})
 	return &types.EmptyResp{}, err
 }

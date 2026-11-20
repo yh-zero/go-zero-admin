@@ -26,7 +26,10 @@ func (l *ReviewAppUserLogic) ReviewAppUser(req *types.AppReviewReq) (*types.Empt
 		return nil, xerr.NewErrCode(xerr.SERVICE_UNAVAILABLE)
 	}
 
-	_, err := l.svcCtx.AppAdminRpc.ReviewAppUser(l.ctx, &apppb.AppReviewRequest{Actor: appAdminActor(l.ctx), UserID: req.Id, Status: req.Status, Reason: req.Reason})
+	_, err := l.svcCtx.AppAdminRpc.ReviewAppUser(l.ctx, &apppb.AppReviewRequest{
+		Actor: appAdminActor(l.ctx), UserID: req.Id, Status: req.Status, Reason: req.Reason,
+		ExpectedStatus: req.ExpectedStatus, ExpectedReason: req.ExpectedReason,
+	})
 	if err != nil {
 		return nil, err
 	}

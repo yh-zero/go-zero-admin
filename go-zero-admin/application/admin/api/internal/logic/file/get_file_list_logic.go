@@ -4,6 +4,7 @@ import (
 	"context"
 	"go-zero-admin/pkg/xerr"
 
+	"go-zero-admin/application/admin/api/internal/middleware"
 	"go-zero-admin/application/admin/api/internal/svc"
 	"go-zero-admin/application/admin/api/internal/types"
 	filepb "go-zero-admin/application/file/rpc/filepb"
@@ -25,9 +26,14 @@ func (l *GetFileListLogic) GetFileList(req *types.GetFileListReq) (resp *types.G
 	if err := l.svcCtx.Validator.StructCtx(l.ctx, req); err != nil {
 		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
 	}
+	viewer, _ := l.ctx.Value(middleware.CtxKeyUserID).(int64)
+	if viewer <= 0 {
+		return nil, xerr.NewErrCode(xerr.PERMISSION_DENIED)
+	}
 	rpcResp, err := l.svcCtx.FileRpc.GetFileList(l.ctx, &filepb.GetFileListRequest{
+		Actor:      &filepb.Actor{UserID: viewer},
 		Page:       &filepb.PageRequest{Page: req.Page, PageSize: req.PageSize},
-		Visibility: req.Visibility, UploaderID: req.UploaderId,
+		Visibility: req.Visibility, UploaderID: req.UploaderId, IncludeCleanupPending: req.IncludeCleanupPending,
 	})
 	if err != nil {
 		return nil, err
@@ -43,6 +49,6 @@ func mapFileInfo(f *filepb.FileInfo) *types.FileInfo {
 	return &types.FileInfo{
 		Id: f.Id, Bucket: f.Bucket, ObjectKey: f.ObjectKey, OriginalName: f.OriginalName,
 		Ext: f.Ext, Mime: f.Mime, Size: f.Size, Visibility: f.Visibility,
-		RefCount: f.RefCount, UploaderId: f.UploaderID, URL: f.URL, CreatedAt: f.CreatedAt,
+		RefCount: f.RefCount, UploaderId: f.UploaderID, URL: f.URL, CreatedAt: f.CreatedAt, CleanupPending: f.CleanupPending,
 	}
 }

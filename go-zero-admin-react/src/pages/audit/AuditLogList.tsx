@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Card, Descriptions, Form, Input, InputNumber, Modal, Select, Space, Table, Tag } from 'antd';
+import { AutoComplete, Button, Card, Descriptions, Form, Input, InputNumber, Modal, Select, Space, Table, Tag } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAuditLogs } from '../../api/audit';
@@ -8,6 +8,19 @@ import { QueryState } from '../../components/QueryState';
 import { formatTime } from '../../utils/format';
 import { queryKeys } from '../../utils/queryKeys';
 import { useTablePagination } from '../../hooks/useTablePagination';
+
+const actionOptions = [
+  { value: 'post', label: 'POST 请求（含创建）' },
+  { value: 'put', label: 'PUT 请求' },
+  { value: 'delete', label: 'DELETE 请求' },
+  { value: 'login', label: '登录（login）' },
+  { value: 'logout', label: '退出（logout）' },
+  { value: 'refresh', label: '刷新令牌（refresh）' },
+  { value: 'sessions', label: '撤销设备会话（sessions）' },
+  { value: 'register', label: '注册（register）' },
+  { value: 'email-code', label: '发送邮箱验证码（email-code）' },
+];
+
 export default function AuditLogList() {
   const [form] = Form.useForm<GetAuditLogListReq>();
   const [params, setParams] = useState<GetAuditLogListReq>({ page: 1, page_size: 20 });
@@ -16,9 +29,11 @@ export default function AuditLogList() {
   const pagination = useTablePagination(params, setParams, query.data?.total ?? 0);
 
   return <div className="page-stack">
-    <Card className="filter-card"><Form name="audit-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setParams({ ...values, page: 1, page_size: params.page_size })}>
+    <Card className="filter-card"><Form name="audit-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setParams({ ...values, action: values.action || undefined, page: 1, page_size: params.page_size })}>
       <Form.Item name="module" label="模块"><Input placeholder="如 sys/user" allowClear /></Form.Item>
-      <Form.Item name="action" label="动作"><Input placeholder="如 create" allowClear /></Form.Item>
+      <Form.Item name="action" label="动作"><AutoComplete allowClear className="filter-select" placeholder="选择或输入动作"
+        options={actionOptions} popupMatchSelectWidth={false}
+        showSearch={{ filterOption: (input, option) => option?.label.toLowerCase().includes(input.toLowerCase()) ?? false }} /></Form.Item>
       <Form.Item name="user_id" label="用户 ID"><InputNumber min={1} precision={0} /></Form.Item>
       <Form.Item name="result" label="结果"><Select allowClear className="filter-select" placeholder="全部" options={[{ label: '成功', value: 1 }, { label: '失败', value: 2 }]} /></Form.Item>
       <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button><Button onClick={() => { form.resetFields(); setParams({ page: 1, page_size: params.page_size }); }}>重置</Button><Button aria-label="刷新审计日志" icon={<ReloadOutlined />} onClick={() => void query.refetch()} /></Space></Form.Item>

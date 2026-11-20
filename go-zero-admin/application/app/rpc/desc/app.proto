@@ -70,7 +70,10 @@ message AppAdminUserRequest { Actor actor = 1; int64 user_id = 2; }
 message AppAdminUserResponse { AppAdminUserInfo user = 1; }
 message AppUpdateUserRequest { Actor actor = 1; int64 user_id = 2; optional string nickname = 3; optional string remark = 4; }
 
-message AppReviewRequest { Actor Actor = 1; int64 UserID = 2; string Status = 3; string Reason = 4; }
+message AppReviewRequest {
+  Actor Actor = 1; int64 UserID = 2; string Status = 3; string Reason = 4;
+  string expected_status = 5; optional string expected_reason = 6;
+}
 message AppSetAvatarRequest { Actor Actor = 1; int64 UserID = 2; int64 FileID = 3; }
 
 message AppAdminRevokeRequest { Actor Actor = 1; string SessionID = 2; int64 user_id = 3; }

@@ -2524,6 +2524,7 @@ type UpdateRoleRequest struct {
 	Status        *int32                 `protobuf:"varint,8,opt,name=status,proto3,oneof" json:"status,omitempty"`
 	MenuIds       []int64                `protobuf:"varint,9,rep,packed,name=menu_ids,json=menuIds,proto3" json:"menu_ids,omitempty"`
 	UpdateMenus   bool                   `protobuf:"varint,10,opt,name=update_menus,json=updateMenus,proto3" json:"update_menus,omitempty"`
+	ExpectedMenus *RoleMenuSnapshot      `protobuf:"bytes,11,opt,name=expected_menus,json=expectedMenus,proto3" json:"expected_menus,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2628,6 +2629,13 @@ func (x *UpdateRoleRequest) GetUpdateMenus() bool {
 	return false
 }
 
+func (x *UpdateRoleRequest) GetExpectedMenus() *RoleMenuSnapshot {
+	if x != nil {
+		return x.ExpectedMenus
+	}
+	return nil
+}
+
 type DeleteRoleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
@@ -2685,6 +2693,7 @@ type UpdateRoleMenusRequest struct {
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
 	RoleId        int64                  `protobuf:"varint,2,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
 	MenuIds       []int64                `protobuf:"varint,3,rep,packed,name=menu_ids,json=menuIds,proto3" json:"menu_ids,omitempty"`
+	ExpectedMenus *RoleMenuSnapshot      `protobuf:"bytes,4,opt,name=expected_menus,json=expectedMenus,proto3" json:"expected_menus,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2736,6 +2745,13 @@ func (x *UpdateRoleMenusRequest) GetRoleId() int64 {
 func (x *UpdateRoleMenusRequest) GetMenuIds() []int64 {
 	if x != nil {
 		return x.MenuIds
+	}
+	return nil
+}
+
+func (x *UpdateRoleMenusRequest) GetExpectedMenus() *RoleMenuSnapshot {
+	if x != nil {
+		return x.ExpectedMenus
 	}
 	return nil
 }
@@ -6018,6 +6034,51 @@ func (x *ListPoliciesResponse) GetRules() []*PolicyRule {
 	return nil
 }
 
+// 独立消息的存在性区分“已读取空授权”和“未提供原始授权”。
+type RoleMenuSnapshot struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MenuIds       []int64                `protobuf:"varint,1,rep,packed,name=menu_ids,json=menuIds,proto3" json:"menu_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoleMenuSnapshot) Reset() {
+	*x = RoleMenuSnapshot{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[85]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoleMenuSnapshot) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoleMenuSnapshot) ProtoMessage() {}
+
+func (x *RoleMenuSnapshot) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[85]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoleMenuSnapshot.ProtoReflect.Descriptor instead.
+func (*RoleMenuSnapshot) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{85}
+}
+
+func (x *RoleMenuSnapshot) GetMenuIds() []int64 {
+	if x != nil {
+		return x.MenuIds
+	}
+	return nil
+}
+
 var File_application_admin_rpc_desc_admin_proto protoreflect.FileDescriptor
 
 const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
@@ -6255,7 +6316,7 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x04sort\x18\x06 \x01(\x05R\x04sort\x12\x1b\n" +
 	"\x06status\x18\a \x01(\x05H\x00R\x06status\x88\x01\x01\x12\x19\n" +
 	"\bmenu_ids\x18\b \x03(\x03R\amenuIdsB\t\n" +
-	"\a_status\"\x88\x03\n" +
+	"\a_status\"\xca\x03\n" +
 	"\x11UpdateRoleRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\arole_id\x18\x02 \x01(\x03R\x06roleId\x12\x17\n" +
@@ -6268,7 +6329,8 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x06status\x18\b \x01(\x05H\x05R\x06status\x88\x01\x01\x12\x19\n" +
 	"\bmenu_ids\x18\t \x03(\x03R\amenuIds\x12!\n" +
 	"\fupdate_menus\x18\n" +
-	" \x01(\bR\vupdateMenusB\a\n" +
+	" \x01(\bR\vupdateMenus\x12@\n" +
+	"\x0eexpected_menus\x18\v \x01(\v2\x19.adminpb.RoleMenuSnapshotR\rexpectedMenusB\a\n" +
 	"\x05_nameB\a\n" +
 	"\x05_codeB\x0e\n" +
 	"\f_descriptionB\r\n" +
@@ -6277,11 +6339,12 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\a_status\"R\n" +
 	"\x11DeleteRoleRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
-	"\arole_id\x18\x02 \x01(\x03R\x06roleId\"r\n" +
+	"\arole_id\x18\x02 \x01(\x03R\x06roleId\"\xb4\x01\n" +
 	"\x16UpdateRoleMenusRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\arole_id\x18\x02 \x01(\x03R\x06roleId\x12\x19\n" +
-	"\bmenu_ids\x18\x03 \x03(\x03R\amenuIds\"\xbd\x02\n" +
+	"\bmenu_ids\x18\x03 \x03(\x03R\amenuIds\x12@\n" +
+	"\x0eexpected_menus\x18\x04 \x01(\v2\x19.adminpb.RoleMenuSnapshotR\rexpectedMenus\"\xbd\x02\n" +
 	"\bMenuInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1b\n" +
 	"\tparent_id\x18\x02 \x01(\x03R\bparentId\x12\x14\n" +
@@ -6571,7 +6634,9 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x02V5\x18\a \x01(\tR\x02v5\"\x15\n" +
 	"\x13ListPoliciesRequest\"A\n" +
 	"\x14ListPoliciesResponse\x12)\n" +
-	"\x05Rules\x18\x01 \x03(\v2\x13.adminpb.PolicyRuleR\x05rules2\xc8\x03\n" +
+	"\x05Rules\x18\x01 \x03(\v2\x13.adminpb.PolicyRuleR\x05rules\"-\n" +
+	"\x10RoleMenuSnapshot\x12\x19\n" +
+	"\bmenu_ids\x18\x01 \x03(\x03R\amenuIds2\xc8\x03\n" +
 	"\vAuthService\x12E\n" +
 	"\n" +
 	"GetCaptcha\x12\x1a.adminpb.GetCaptchaRequest\x1a\x1b.adminpb.GetCaptchaResponse\x126\n" +
@@ -6663,7 +6728,7 @@ func file_application_admin_rpc_desc_admin_proto_rawDescGZIP() []byte {
 	return file_application_admin_rpc_desc_admin_proto_rawDescData
 }
 
-var file_application_admin_rpc_desc_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 85)
+var file_application_admin_rpc_desc_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 86)
 var file_application_admin_rpc_desc_admin_proto_goTypes = []any{
 	(*PageRequest)(nil),                // 0: adminpb.PageRequest
 	(*PageResponse)(nil),               // 1: adminpb.PageResponse
@@ -6750,6 +6815,7 @@ var file_application_admin_rpc_desc_admin_proto_goTypes = []any{
 	(*PolicyRule)(nil),                 // 82: adminpb.PolicyRule
 	(*ListPoliciesRequest)(nil),        // 83: adminpb.ListPoliciesRequest
 	(*ListPoliciesResponse)(nil),       // 84: adminpb.ListPoliciesResponse
+	(*RoleMenuSnapshot)(nil),           // 85: adminpb.RoleMenuSnapshot
 }
 var file_application_admin_rpc_desc_admin_proto_depIdxs = []int32{
 	4,   // 0: adminpb.GetCaptchaResponse.Captcha:type_name -> adminpb.CaptchaInfo
@@ -6780,150 +6846,152 @@ var file_application_admin_rpc_desc_admin_proto_depIdxs = []int32{
 	29,  // 25: adminpb.GetRoleResponse.Role:type_name -> adminpb.RoleInfo
 	3,   // 26: adminpb.CreateRoleRequest.actor:type_name -> adminpb.Actor
 	3,   // 27: adminpb.UpdateRoleRequest.actor:type_name -> adminpb.Actor
-	3,   // 28: adminpb.DeleteRoleRequest.actor:type_name -> adminpb.Actor
-	3,   // 29: adminpb.UpdateRoleMenusRequest.actor:type_name -> adminpb.Actor
-	3,   // 30: adminpb.GetMenuTreeRequest.actor:type_name -> adminpb.Actor
-	38,  // 31: adminpb.GetMenuTreeResponse.list:type_name -> adminpb.MenuInfo
-	3,   // 32: adminpb.GetMenuListRequest.actor:type_name -> adminpb.Actor
-	0,   // 33: adminpb.GetMenuListRequest.page:type_name -> adminpb.PageRequest
-	38,  // 34: adminpb.GetMenuListResponse.list:type_name -> adminpb.MenuInfo
-	1,   // 35: adminpb.GetMenuListResponse.page:type_name -> adminpb.PageResponse
-	3,   // 36: adminpb.GetMenuRequest.actor:type_name -> adminpb.Actor
-	38,  // 37: adminpb.GetMenuResponse.Menu:type_name -> adminpb.MenuInfo
-	3,   // 38: adminpb.CreateMenuRequest.actor:type_name -> adminpb.Actor
-	3,   // 39: adminpb.UpdateMenuRequest.actor:type_name -> adminpb.Actor
-	3,   // 40: adminpb.DeleteMenuRequest.actor:type_name -> adminpb.Actor
-	3,   // 41: adminpb.GetMyMenusRequest.actor:type_name -> adminpb.Actor
-	38,  // 42: adminpb.GetMyMenusResponse.list:type_name -> adminpb.MenuInfo
-	3,   // 43: adminpb.GetMyPermCodesRequest.actor:type_name -> adminpb.Actor
-	3,   // 44: adminpb.GetDeptTreeRequest.actor:type_name -> adminpb.Actor
-	52,  // 45: adminpb.GetDeptTreeResponse.list:type_name -> adminpb.DeptInfo
-	3,   // 46: adminpb.CreateDeptRequest.actor:type_name -> adminpb.Actor
-	3,   // 47: adminpb.UpdateDeptRequest.actor:type_name -> adminpb.Actor
-	3,   // 48: adminpb.GetMyDeptsRequest.actor:type_name -> adminpb.Actor
-	52,  // 49: adminpb.GetMyDeptsResponse.list:type_name -> adminpb.DeptInfo
-	3,   // 50: adminpb.DeleteDeptRequest.actor:type_name -> adminpb.Actor
-	60,  // 51: adminpb.DictInfo.items:type_name -> adminpb.DictItem
-	3,   // 52: adminpb.GetDictListRequest.actor:type_name -> adminpb.Actor
-	0,   // 53: adminpb.GetDictListRequest.page:type_name -> adminpb.PageRequest
-	61,  // 54: adminpb.GetDictListResponse.list:type_name -> adminpb.DictInfo
-	1,   // 55: adminpb.GetDictListResponse.page:type_name -> adminpb.PageResponse
-	61,  // 56: adminpb.GetDictByCodeResponse.Dict:type_name -> adminpb.DictInfo
-	3,   // 57: adminpb.CreateDictRequest.actor:type_name -> adminpb.Actor
-	60,  // 58: adminpb.CreateDictRequest.items:type_name -> adminpb.DictItem
-	3,   // 59: adminpb.UpdateDictRequest.actor:type_name -> adminpb.Actor
-	60,  // 60: adminpb.UpdateDictRequest.items:type_name -> adminpb.DictItem
-	3,   // 61: adminpb.DeleteDictRequest.actor:type_name -> adminpb.Actor
-	3,   // 62: adminpb.GetApiListRequest.actor:type_name -> adminpb.Actor
-	0,   // 63: adminpb.GetApiListRequest.page:type_name -> adminpb.PageRequest
-	69,  // 64: adminpb.GetApiListResponse.list:type_name -> adminpb.ApiInfo
-	1,   // 65: adminpb.GetApiListResponse.page:type_name -> adminpb.PageResponse
-	3,   // 66: adminpb.DeleteApiRequest.actor:type_name -> adminpb.Actor
-	3,   // 67: adminpb.SyncApiRequest.actor:type_name -> adminpb.Actor
-	74,  // 68: adminpb.SyncApiRequest.routes:type_name -> adminpb.ApiRoute
-	3,   // 69: adminpb.GetAuditLogListRequest.actor:type_name -> adminpb.Actor
-	0,   // 70: adminpb.GetAuditLogListRequest.page:type_name -> adminpb.PageRequest
-	76,  // 71: adminpb.GetAuditLogListResponse.list:type_name -> adminpb.AuditLogInfo
-	1,   // 72: adminpb.GetAuditLogListResponse.page:type_name -> adminpb.PageResponse
-	3,   // 73: adminpb.CreateAuditLogRequest.actor:type_name -> adminpb.Actor
-	82,  // 74: adminpb.ListPoliciesResponse.Rules:type_name -> adminpb.PolicyRule
-	5,   // 75: adminpb.AuthService.GetCaptcha:input_type -> adminpb.GetCaptchaRequest
-	7,   // 76: adminpb.AuthService.Login:input_type -> adminpb.LoginRequest
-	9,   // 77: adminpb.AuthService.RefreshToken:input_type -> adminpb.RefreshTokenRequest
-	11,  // 78: adminpb.AuthService.Logout:input_type -> adminpb.LogoutRequest
-	13,  // 79: adminpb.AuthService.ListDeviceSessions:input_type -> adminpb.ListDeviceSessionsRequest
-	15,  // 80: adminpb.AuthService.RevokeDeviceSession:input_type -> adminpb.RevokeDeviceSessionRequest
-	17,  // 81: adminpb.UserService.GetUserList:input_type -> adminpb.GetUserListRequest
-	19,  // 82: adminpb.UserService.GetUser:input_type -> adminpb.GetUserRequest
-	21,  // 83: adminpb.UserService.CreateUser:input_type -> adminpb.CreateUserRequest
-	22,  // 84: adminpb.UserService.UpdateUser:input_type -> adminpb.UpdateUserRequest
-	23,  // 85: adminpb.UserService.DeleteUser:input_type -> adminpb.DeleteUserRequest
-	24,  // 86: adminpb.UserService.ResetPassword:input_type -> adminpb.ResetPasswordRequest
-	25,  // 87: adminpb.UserService.ChangePassword:input_type -> adminpb.ChangePasswordRequest
-	26,  // 88: adminpb.ProfileService.GetProfile:input_type -> adminpb.GetProfileRequest
-	28,  // 89: adminpb.ProfileService.UpdateProfile:input_type -> adminpb.UpdateProfileRequest
-	30,  // 90: adminpb.RoleService.GetRoleList:input_type -> adminpb.GetRoleListRequest
-	32,  // 91: adminpb.RoleService.GetRole:input_type -> adminpb.GetRoleRequest
-	34,  // 92: adminpb.RoleService.CreateRole:input_type -> adminpb.CreateRoleRequest
-	35,  // 93: adminpb.RoleService.UpdateRole:input_type -> adminpb.UpdateRoleRequest
-	36,  // 94: adminpb.RoleService.DeleteRole:input_type -> adminpb.DeleteRoleRequest
-	37,  // 95: adminpb.RoleService.UpdateRoleMenus:input_type -> adminpb.UpdateRoleMenusRequest
-	39,  // 96: adminpb.MenuService.GetMenuTree:input_type -> adminpb.GetMenuTreeRequest
-	41,  // 97: adminpb.MenuService.GetMenuList:input_type -> adminpb.GetMenuListRequest
-	43,  // 98: adminpb.MenuService.GetMenu:input_type -> adminpb.GetMenuRequest
-	45,  // 99: adminpb.MenuService.CreateMenu:input_type -> adminpb.CreateMenuRequest
-	46,  // 100: adminpb.MenuService.UpdateMenu:input_type -> adminpb.UpdateMenuRequest
-	47,  // 101: adminpb.MenuService.DeleteMenu:input_type -> adminpb.DeleteMenuRequest
-	48,  // 102: adminpb.MenuService.GetMyMenus:input_type -> adminpb.GetMyMenusRequest
-	50,  // 103: adminpb.MenuService.GetMyPermCodes:input_type -> adminpb.GetMyPermCodesRequest
-	57,  // 104: adminpb.DeptService.GetMyDepts:input_type -> adminpb.GetMyDeptsRequest
-	53,  // 105: adminpb.DeptService.GetDeptTree:input_type -> adminpb.GetDeptTreeRequest
-	55,  // 106: adminpb.DeptService.CreateDept:input_type -> adminpb.CreateDeptRequest
-	56,  // 107: adminpb.DeptService.UpdateDept:input_type -> adminpb.UpdateDeptRequest
-	59,  // 108: adminpb.DeptService.DeleteDept:input_type -> adminpb.DeleteDeptRequest
-	62,  // 109: adminpb.DictService.GetDictList:input_type -> adminpb.GetDictListRequest
-	64,  // 110: adminpb.DictService.GetDictByCode:input_type -> adminpb.GetDictByCodeRequest
-	66,  // 111: adminpb.DictService.CreateDict:input_type -> adminpb.CreateDictRequest
-	67,  // 112: adminpb.DictService.UpdateDict:input_type -> adminpb.UpdateDictRequest
-	68,  // 113: adminpb.DictService.DeleteDict:input_type -> adminpb.DeleteDictRequest
-	70,  // 114: adminpb.ApiService.GetApiList:input_type -> adminpb.GetApiListRequest
-	72,  // 115: adminpb.ApiService.DeleteApi:input_type -> adminpb.DeleteApiRequest
-	73,  // 116: adminpb.ApiService.SyncApi:input_type -> adminpb.SyncApiRequest
-	80,  // 117: adminpb.HealthService.CheckHealth:input_type -> adminpb.CheckHealthRequest
-	79,  // 118: adminpb.AuditService.CreateAuditLog:input_type -> adminpb.CreateAuditLogRequest
-	77,  // 119: adminpb.AuditService.GetAuditLogList:input_type -> adminpb.GetAuditLogListRequest
-	83,  // 120: adminpb.CasbinService.ListPolicies:input_type -> adminpb.ListPoliciesRequest
-	6,   // 121: adminpb.AuthService.GetCaptcha:output_type -> adminpb.GetCaptchaResponse
-	8,   // 122: adminpb.AuthService.Login:output_type -> adminpb.LoginResponse
-	10,  // 123: adminpb.AuthService.RefreshToken:output_type -> adminpb.RefreshTokenResponse
-	2,   // 124: adminpb.AuthService.Logout:output_type -> adminpb.NoDataResponse
-	14,  // 125: adminpb.AuthService.ListDeviceSessions:output_type -> adminpb.ListDeviceSessionsResponse
-	2,   // 126: adminpb.AuthService.RevokeDeviceSession:output_type -> adminpb.NoDataResponse
-	18,  // 127: adminpb.UserService.GetUserList:output_type -> adminpb.GetUserListResponse
-	20,  // 128: adminpb.UserService.GetUser:output_type -> adminpb.GetUserResponse
-	2,   // 129: adminpb.UserService.CreateUser:output_type -> adminpb.NoDataResponse
-	2,   // 130: adminpb.UserService.UpdateUser:output_type -> adminpb.NoDataResponse
-	2,   // 131: adminpb.UserService.DeleteUser:output_type -> adminpb.NoDataResponse
-	2,   // 132: adminpb.UserService.ResetPassword:output_type -> adminpb.NoDataResponse
-	2,   // 133: adminpb.UserService.ChangePassword:output_type -> adminpb.NoDataResponse
-	27,  // 134: adminpb.ProfileService.GetProfile:output_type -> adminpb.GetProfileResponse
-	2,   // 135: adminpb.ProfileService.UpdateProfile:output_type -> adminpb.NoDataResponse
-	31,  // 136: adminpb.RoleService.GetRoleList:output_type -> adminpb.GetRoleListResponse
-	33,  // 137: adminpb.RoleService.GetRole:output_type -> adminpb.GetRoleResponse
-	2,   // 138: adminpb.RoleService.CreateRole:output_type -> adminpb.NoDataResponse
-	2,   // 139: adminpb.RoleService.UpdateRole:output_type -> adminpb.NoDataResponse
-	2,   // 140: adminpb.RoleService.DeleteRole:output_type -> adminpb.NoDataResponse
-	2,   // 141: adminpb.RoleService.UpdateRoleMenus:output_type -> adminpb.NoDataResponse
-	40,  // 142: adminpb.MenuService.GetMenuTree:output_type -> adminpb.GetMenuTreeResponse
-	42,  // 143: adminpb.MenuService.GetMenuList:output_type -> adminpb.GetMenuListResponse
-	44,  // 144: adminpb.MenuService.GetMenu:output_type -> adminpb.GetMenuResponse
-	2,   // 145: adminpb.MenuService.CreateMenu:output_type -> adminpb.NoDataResponse
-	2,   // 146: adminpb.MenuService.UpdateMenu:output_type -> adminpb.NoDataResponse
-	2,   // 147: adminpb.MenuService.DeleteMenu:output_type -> adminpb.NoDataResponse
-	49,  // 148: adminpb.MenuService.GetMyMenus:output_type -> adminpb.GetMyMenusResponse
-	51,  // 149: adminpb.MenuService.GetMyPermCodes:output_type -> adminpb.GetMyPermCodesResponse
-	58,  // 150: adminpb.DeptService.GetMyDepts:output_type -> adminpb.GetMyDeptsResponse
-	54,  // 151: adminpb.DeptService.GetDeptTree:output_type -> adminpb.GetDeptTreeResponse
-	2,   // 152: adminpb.DeptService.CreateDept:output_type -> adminpb.NoDataResponse
-	2,   // 153: adminpb.DeptService.UpdateDept:output_type -> adminpb.NoDataResponse
-	2,   // 154: adminpb.DeptService.DeleteDept:output_type -> adminpb.NoDataResponse
-	63,  // 155: adminpb.DictService.GetDictList:output_type -> adminpb.GetDictListResponse
-	65,  // 156: adminpb.DictService.GetDictByCode:output_type -> adminpb.GetDictByCodeResponse
-	2,   // 157: adminpb.DictService.CreateDict:output_type -> adminpb.NoDataResponse
-	2,   // 158: adminpb.DictService.UpdateDict:output_type -> adminpb.NoDataResponse
-	2,   // 159: adminpb.DictService.DeleteDict:output_type -> adminpb.NoDataResponse
-	71,  // 160: adminpb.ApiService.GetApiList:output_type -> adminpb.GetApiListResponse
-	2,   // 161: adminpb.ApiService.DeleteApi:output_type -> adminpb.NoDataResponse
-	75,  // 162: adminpb.ApiService.SyncApi:output_type -> adminpb.SyncApiResponse
-	81,  // 163: adminpb.HealthService.CheckHealth:output_type -> adminpb.CheckHealthResponse
-	2,   // 164: adminpb.AuditService.CreateAuditLog:output_type -> adminpb.NoDataResponse
-	78,  // 165: adminpb.AuditService.GetAuditLogList:output_type -> adminpb.GetAuditLogListResponse
-	84,  // 166: adminpb.CasbinService.ListPolicies:output_type -> adminpb.ListPoliciesResponse
-	121, // [121:167] is the sub-list for method output_type
-	75,  // [75:121] is the sub-list for method input_type
-	75,  // [75:75] is the sub-list for extension type_name
-	75,  // [75:75] is the sub-list for extension extendee
-	0,   // [0:75] is the sub-list for field type_name
+	85,  // 28: adminpb.UpdateRoleRequest.expected_menus:type_name -> adminpb.RoleMenuSnapshot
+	3,   // 29: adminpb.DeleteRoleRequest.actor:type_name -> adminpb.Actor
+	3,   // 30: adminpb.UpdateRoleMenusRequest.actor:type_name -> adminpb.Actor
+	85,  // 31: adminpb.UpdateRoleMenusRequest.expected_menus:type_name -> adminpb.RoleMenuSnapshot
+	3,   // 32: adminpb.GetMenuTreeRequest.actor:type_name -> adminpb.Actor
+	38,  // 33: adminpb.GetMenuTreeResponse.list:type_name -> adminpb.MenuInfo
+	3,   // 34: adminpb.GetMenuListRequest.actor:type_name -> adminpb.Actor
+	0,   // 35: adminpb.GetMenuListRequest.page:type_name -> adminpb.PageRequest
+	38,  // 36: adminpb.GetMenuListResponse.list:type_name -> adminpb.MenuInfo
+	1,   // 37: adminpb.GetMenuListResponse.page:type_name -> adminpb.PageResponse
+	3,   // 38: adminpb.GetMenuRequest.actor:type_name -> adminpb.Actor
+	38,  // 39: adminpb.GetMenuResponse.Menu:type_name -> adminpb.MenuInfo
+	3,   // 40: adminpb.CreateMenuRequest.actor:type_name -> adminpb.Actor
+	3,   // 41: adminpb.UpdateMenuRequest.actor:type_name -> adminpb.Actor
+	3,   // 42: adminpb.DeleteMenuRequest.actor:type_name -> adminpb.Actor
+	3,   // 43: adminpb.GetMyMenusRequest.actor:type_name -> adminpb.Actor
+	38,  // 44: adminpb.GetMyMenusResponse.list:type_name -> adminpb.MenuInfo
+	3,   // 45: adminpb.GetMyPermCodesRequest.actor:type_name -> adminpb.Actor
+	3,   // 46: adminpb.GetDeptTreeRequest.actor:type_name -> adminpb.Actor
+	52,  // 47: adminpb.GetDeptTreeResponse.list:type_name -> adminpb.DeptInfo
+	3,   // 48: adminpb.CreateDeptRequest.actor:type_name -> adminpb.Actor
+	3,   // 49: adminpb.UpdateDeptRequest.actor:type_name -> adminpb.Actor
+	3,   // 50: adminpb.GetMyDeptsRequest.actor:type_name -> adminpb.Actor
+	52,  // 51: adminpb.GetMyDeptsResponse.list:type_name -> adminpb.DeptInfo
+	3,   // 52: adminpb.DeleteDeptRequest.actor:type_name -> adminpb.Actor
+	60,  // 53: adminpb.DictInfo.items:type_name -> adminpb.DictItem
+	3,   // 54: adminpb.GetDictListRequest.actor:type_name -> adminpb.Actor
+	0,   // 55: adminpb.GetDictListRequest.page:type_name -> adminpb.PageRequest
+	61,  // 56: adminpb.GetDictListResponse.list:type_name -> adminpb.DictInfo
+	1,   // 57: adminpb.GetDictListResponse.page:type_name -> adminpb.PageResponse
+	61,  // 58: adminpb.GetDictByCodeResponse.Dict:type_name -> adminpb.DictInfo
+	3,   // 59: adminpb.CreateDictRequest.actor:type_name -> adminpb.Actor
+	60,  // 60: adminpb.CreateDictRequest.items:type_name -> adminpb.DictItem
+	3,   // 61: adminpb.UpdateDictRequest.actor:type_name -> adminpb.Actor
+	60,  // 62: adminpb.UpdateDictRequest.items:type_name -> adminpb.DictItem
+	3,   // 63: adminpb.DeleteDictRequest.actor:type_name -> adminpb.Actor
+	3,   // 64: adminpb.GetApiListRequest.actor:type_name -> adminpb.Actor
+	0,   // 65: adminpb.GetApiListRequest.page:type_name -> adminpb.PageRequest
+	69,  // 66: adminpb.GetApiListResponse.list:type_name -> adminpb.ApiInfo
+	1,   // 67: adminpb.GetApiListResponse.page:type_name -> adminpb.PageResponse
+	3,   // 68: adminpb.DeleteApiRequest.actor:type_name -> adminpb.Actor
+	3,   // 69: adminpb.SyncApiRequest.actor:type_name -> adminpb.Actor
+	74,  // 70: adminpb.SyncApiRequest.routes:type_name -> adminpb.ApiRoute
+	3,   // 71: adminpb.GetAuditLogListRequest.actor:type_name -> adminpb.Actor
+	0,   // 72: adminpb.GetAuditLogListRequest.page:type_name -> adminpb.PageRequest
+	76,  // 73: adminpb.GetAuditLogListResponse.list:type_name -> adminpb.AuditLogInfo
+	1,   // 74: adminpb.GetAuditLogListResponse.page:type_name -> adminpb.PageResponse
+	3,   // 75: adminpb.CreateAuditLogRequest.actor:type_name -> adminpb.Actor
+	82,  // 76: adminpb.ListPoliciesResponse.Rules:type_name -> adminpb.PolicyRule
+	5,   // 77: adminpb.AuthService.GetCaptcha:input_type -> adminpb.GetCaptchaRequest
+	7,   // 78: adminpb.AuthService.Login:input_type -> adminpb.LoginRequest
+	9,   // 79: adminpb.AuthService.RefreshToken:input_type -> adminpb.RefreshTokenRequest
+	11,  // 80: adminpb.AuthService.Logout:input_type -> adminpb.LogoutRequest
+	13,  // 81: adminpb.AuthService.ListDeviceSessions:input_type -> adminpb.ListDeviceSessionsRequest
+	15,  // 82: adminpb.AuthService.RevokeDeviceSession:input_type -> adminpb.RevokeDeviceSessionRequest
+	17,  // 83: adminpb.UserService.GetUserList:input_type -> adminpb.GetUserListRequest
+	19,  // 84: adminpb.UserService.GetUser:input_type -> adminpb.GetUserRequest
+	21,  // 85: adminpb.UserService.CreateUser:input_type -> adminpb.CreateUserRequest
+	22,  // 86: adminpb.UserService.UpdateUser:input_type -> adminpb.UpdateUserRequest
+	23,  // 87: adminpb.UserService.DeleteUser:input_type -> adminpb.DeleteUserRequest
+	24,  // 88: adminpb.UserService.ResetPassword:input_type -> adminpb.ResetPasswordRequest
+	25,  // 89: adminpb.UserService.ChangePassword:input_type -> adminpb.ChangePasswordRequest
+	26,  // 90: adminpb.ProfileService.GetProfile:input_type -> adminpb.GetProfileRequest
+	28,  // 91: adminpb.ProfileService.UpdateProfile:input_type -> adminpb.UpdateProfileRequest
+	30,  // 92: adminpb.RoleService.GetRoleList:input_type -> adminpb.GetRoleListRequest
+	32,  // 93: adminpb.RoleService.GetRole:input_type -> adminpb.GetRoleRequest
+	34,  // 94: adminpb.RoleService.CreateRole:input_type -> adminpb.CreateRoleRequest
+	35,  // 95: adminpb.RoleService.UpdateRole:input_type -> adminpb.UpdateRoleRequest
+	36,  // 96: adminpb.RoleService.DeleteRole:input_type -> adminpb.DeleteRoleRequest
+	37,  // 97: adminpb.RoleService.UpdateRoleMenus:input_type -> adminpb.UpdateRoleMenusRequest
+	39,  // 98: adminpb.MenuService.GetMenuTree:input_type -> adminpb.GetMenuTreeRequest
+	41,  // 99: adminpb.MenuService.GetMenuList:input_type -> adminpb.GetMenuListRequest
+	43,  // 100: adminpb.MenuService.GetMenu:input_type -> adminpb.GetMenuRequest
+	45,  // 101: adminpb.MenuService.CreateMenu:input_type -> adminpb.CreateMenuRequest
+	46,  // 102: adminpb.MenuService.UpdateMenu:input_type -> adminpb.UpdateMenuRequest
+	47,  // 103: adminpb.MenuService.DeleteMenu:input_type -> adminpb.DeleteMenuRequest
+	48,  // 104: adminpb.MenuService.GetMyMenus:input_type -> adminpb.GetMyMenusRequest
+	50,  // 105: adminpb.MenuService.GetMyPermCodes:input_type -> adminpb.GetMyPermCodesRequest
+	57,  // 106: adminpb.DeptService.GetMyDepts:input_type -> adminpb.GetMyDeptsRequest
+	53,  // 107: adminpb.DeptService.GetDeptTree:input_type -> adminpb.GetDeptTreeRequest
+	55,  // 108: adminpb.DeptService.CreateDept:input_type -> adminpb.CreateDeptRequest
+	56,  // 109: adminpb.DeptService.UpdateDept:input_type -> adminpb.UpdateDeptRequest
+	59,  // 110: adminpb.DeptService.DeleteDept:input_type -> adminpb.DeleteDeptRequest
+	62,  // 111: adminpb.DictService.GetDictList:input_type -> adminpb.GetDictListRequest
+	64,  // 112: adminpb.DictService.GetDictByCode:input_type -> adminpb.GetDictByCodeRequest
+	66,  // 113: adminpb.DictService.CreateDict:input_type -> adminpb.CreateDictRequest
+	67,  // 114: adminpb.DictService.UpdateDict:input_type -> adminpb.UpdateDictRequest
+	68,  // 115: adminpb.DictService.DeleteDict:input_type -> adminpb.DeleteDictRequest
+	70,  // 116: adminpb.ApiService.GetApiList:input_type -> adminpb.GetApiListRequest
+	72,  // 117: adminpb.ApiService.DeleteApi:input_type -> adminpb.DeleteApiRequest
+	73,  // 118: adminpb.ApiService.SyncApi:input_type -> adminpb.SyncApiRequest
+	80,  // 119: adminpb.HealthService.CheckHealth:input_type -> adminpb.CheckHealthRequest
+	79,  // 120: adminpb.AuditService.CreateAuditLog:input_type -> adminpb.CreateAuditLogRequest
+	77,  // 121: adminpb.AuditService.GetAuditLogList:input_type -> adminpb.GetAuditLogListRequest
+	83,  // 122: adminpb.CasbinService.ListPolicies:input_type -> adminpb.ListPoliciesRequest
+	6,   // 123: adminpb.AuthService.GetCaptcha:output_type -> adminpb.GetCaptchaResponse
+	8,   // 124: adminpb.AuthService.Login:output_type -> adminpb.LoginResponse
+	10,  // 125: adminpb.AuthService.RefreshToken:output_type -> adminpb.RefreshTokenResponse
+	2,   // 126: adminpb.AuthService.Logout:output_type -> adminpb.NoDataResponse
+	14,  // 127: adminpb.AuthService.ListDeviceSessions:output_type -> adminpb.ListDeviceSessionsResponse
+	2,   // 128: adminpb.AuthService.RevokeDeviceSession:output_type -> adminpb.NoDataResponse
+	18,  // 129: adminpb.UserService.GetUserList:output_type -> adminpb.GetUserListResponse
+	20,  // 130: adminpb.UserService.GetUser:output_type -> adminpb.GetUserResponse
+	2,   // 131: adminpb.UserService.CreateUser:output_type -> adminpb.NoDataResponse
+	2,   // 132: adminpb.UserService.UpdateUser:output_type -> adminpb.NoDataResponse
+	2,   // 133: adminpb.UserService.DeleteUser:output_type -> adminpb.NoDataResponse
+	2,   // 134: adminpb.UserService.ResetPassword:output_type -> adminpb.NoDataResponse
+	2,   // 135: adminpb.UserService.ChangePassword:output_type -> adminpb.NoDataResponse
+	27,  // 136: adminpb.ProfileService.GetProfile:output_type -> adminpb.GetProfileResponse
+	2,   // 137: adminpb.ProfileService.UpdateProfile:output_type -> adminpb.NoDataResponse
+	31,  // 138: adminpb.RoleService.GetRoleList:output_type -> adminpb.GetRoleListResponse
+	33,  // 139: adminpb.RoleService.GetRole:output_type -> adminpb.GetRoleResponse
+	2,   // 140: adminpb.RoleService.CreateRole:output_type -> adminpb.NoDataResponse
+	2,   // 141: adminpb.RoleService.UpdateRole:output_type -> adminpb.NoDataResponse
+	2,   // 142: adminpb.RoleService.DeleteRole:output_type -> adminpb.NoDataResponse
+	2,   // 143: adminpb.RoleService.UpdateRoleMenus:output_type -> adminpb.NoDataResponse
+	40,  // 144: adminpb.MenuService.GetMenuTree:output_type -> adminpb.GetMenuTreeResponse
+	42,  // 145: adminpb.MenuService.GetMenuList:output_type -> adminpb.GetMenuListResponse
+	44,  // 146: adminpb.MenuService.GetMenu:output_type -> adminpb.GetMenuResponse
+	2,   // 147: adminpb.MenuService.CreateMenu:output_type -> adminpb.NoDataResponse
+	2,   // 148: adminpb.MenuService.UpdateMenu:output_type -> adminpb.NoDataResponse
+	2,   // 149: adminpb.MenuService.DeleteMenu:output_type -> adminpb.NoDataResponse
+	49,  // 150: adminpb.MenuService.GetMyMenus:output_type -> adminpb.GetMyMenusResponse
+	51,  // 151: adminpb.MenuService.GetMyPermCodes:output_type -> adminpb.GetMyPermCodesResponse
+	58,  // 152: adminpb.DeptService.GetMyDepts:output_type -> adminpb.GetMyDeptsResponse
+	54,  // 153: adminpb.DeptService.GetDeptTree:output_type -> adminpb.GetDeptTreeResponse
+	2,   // 154: adminpb.DeptService.CreateDept:output_type -> adminpb.NoDataResponse
+	2,   // 155: adminpb.DeptService.UpdateDept:output_type -> adminpb.NoDataResponse
+	2,   // 156: adminpb.DeptService.DeleteDept:output_type -> adminpb.NoDataResponse
+	63,  // 157: adminpb.DictService.GetDictList:output_type -> adminpb.GetDictListResponse
+	65,  // 158: adminpb.DictService.GetDictByCode:output_type -> adminpb.GetDictByCodeResponse
+	2,   // 159: adminpb.DictService.CreateDict:output_type -> adminpb.NoDataResponse
+	2,   // 160: adminpb.DictService.UpdateDict:output_type -> adminpb.NoDataResponse
+	2,   // 161: adminpb.DictService.DeleteDict:output_type -> adminpb.NoDataResponse
+	71,  // 162: adminpb.ApiService.GetApiList:output_type -> adminpb.GetApiListResponse
+	2,   // 163: adminpb.ApiService.DeleteApi:output_type -> adminpb.NoDataResponse
+	75,  // 164: adminpb.ApiService.SyncApi:output_type -> adminpb.SyncApiResponse
+	81,  // 165: adminpb.HealthService.CheckHealth:output_type -> adminpb.CheckHealthResponse
+	2,   // 166: adminpb.AuditService.CreateAuditLog:output_type -> adminpb.NoDataResponse
+	78,  // 167: adminpb.AuditService.GetAuditLogList:output_type -> adminpb.GetAuditLogListResponse
+	84,  // 168: adminpb.CasbinService.ListPolicies:output_type -> adminpb.ListPoliciesResponse
+	123, // [123:169] is the sub-list for method output_type
+	77,  // [77:123] is the sub-list for method input_type
+	77,  // [77:77] is the sub-list for extension type_name
+	77,  // [77:77] is the sub-list for extension extendee
+	0,   // [0:77] is the sub-list for field type_name
 }
 
 func init() { file_application_admin_rpc_desc_admin_proto_init() }
@@ -6946,7 +7014,7 @@ func file_application_admin_rpc_desc_admin_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_application_admin_rpc_desc_admin_proto_rawDesc), len(file_application_admin_rpc_desc_admin_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   85,
+			NumMessages:   86,
 			NumExtensions: 0,
 			NumServices:   11,
 		},

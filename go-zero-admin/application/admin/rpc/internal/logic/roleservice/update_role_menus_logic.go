@@ -7,6 +7,7 @@ import (
 
 	adminpb "go-zero-admin/application/admin/rpc/adminpb"
 	"go-zero-admin/application/admin/rpc/internal/svc"
+	"go-zero-admin/pkg/xerr"
 )
 
 type UpdateRoleMenusLogic struct {
@@ -23,7 +24,10 @@ func (l *UpdateRoleMenusLogic) UpdateRoleMenus(in *adminpb.UpdateRoleMenusReques
 	if err := requireRoleActor(l.ctx, l.svcCtx, in.GetActor()); err != nil {
 		return nil, err
 	}
-	err := l.svcCtx.SysRoleModel.ReplaceMenus(l.ctx, uint64(in.RoleId), in.MenuIds)
+	if in.ExpectedMenus == nil {
+		return nil, xerr.NewErrCode(xerr.REQUEST_PARAM_ERROR)
+	}
+	err := l.svcCtx.SysRoleModel.ReplaceMenus(l.ctx, uint64(in.RoleId), in.ExpectedMenus.MenuIds, in.MenuIds)
 	if err != nil {
 		return nil, roleMutationError(err)
 	}

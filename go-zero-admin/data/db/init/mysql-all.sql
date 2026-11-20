@@ -446,6 +446,7 @@ CREATE TABLE `sys_file` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL COMMENT '软删除',
+  `object_cleaned_at` datetime DEFAULT NULL COMMENT '对象存储确认删除时间',
   PRIMARY KEY (`id`),
   KEY `idx_bucket_key` (`bucket`,`object_key`(191)),
   KEY `idx_uploader` (`uploader_id`),

@@ -16,10 +16,11 @@ type (
 	// and implement the added methods in customSysFileModel.
 	SysFileModel interface {
 		sysFileModel
-		// ListFilePage 分页查有效文件
+		// ListFilePage 包含有效文件及当前上传者尚未完成清理的文件。
 		ListFilePage(ctx context.Context, f FileListFilter, page, pageSize int64) ([]*FileRow, int64, error)
 		FindLive(ctx context.Context, id int64) (*SysFile, error)
 		MarkDeletedIfUnused(ctx context.Context, id, actorId int64) (*SysFile, error)
+		ConfirmObjectCleanup(ctx context.Context, id int64) error
 	}
 
 	customSysFileModel struct {
@@ -32,21 +33,23 @@ type (
 type FileListFilter struct {
 	Visibility string
 	UploaderId int64
+	ViewerId   int64
 }
 
 // FileRow 文件行（uploader_id 可空 COALESCE；时间列转 int64）
 type FileRow struct {
-	Id           int64  `db:"id"`
-	Bucket       string `db:"bucket"`
-	ObjectKey    string `db:"object_key"`
-	OriginalName string `db:"original_name"`
-	Ext          string `db:"ext"`
-	Mime         string `db:"mime"`
-	Size         int64  `db:"size"`
-	Visibility   string `db:"visibility"`
-	RefCount     int32  `db:"ref_count"`
-	UploaderId   int64  `db:"uploader_id"`
-	CreatedAt    int64  `db:"created_at"`
+	Id             int64  `db:"id"`
+	Bucket         string `db:"bucket"`
+	ObjectKey      string `db:"object_key"`
+	OriginalName   string `db:"original_name"`
+	Ext            string `db:"ext"`
+	Mime           string `db:"mime"`
+	Size           int64  `db:"size"`
+	Visibility     string `db:"visibility"`
+	RefCount       int32  `db:"ref_count"`
+	UploaderId     int64  `db:"uploader_id"`
+	CreatedAt      int64  `db:"created_at"`
+	CleanupPending bool   `db:"cleanup_pending"`
 }
 
 // NewSysFileModel returns a model for the database table.
@@ -104,9 +107,20 @@ func (m *customSysFileModel) MarkDeletedIfUnused(ctx context.Context, id, actorI
 	return &row, nil
 }
 
+func (m *customSysFileModel) ConfirmObjectCleanup(ctx context.Context, id int64) error {
+	_, err := m.conn.ExecCtx(ctx, "UPDATE sys_file SET object_cleaned_at=NOW() WHERE id=? AND deleted_at IS NOT NULL AND object_cleaned_at IS NULL", id)
+	return err
+}
+
 func (m *customSysFileModel) ListFilePage(ctx context.Context, f FileListFilter, page, pageSize int64) ([]*FileRow, int64, error) {
 	where := "deleted_at IS NULL"
+	order := "id DESC"
 	var args []any
+	if f.ViewerId > 0 {
+		where = "(deleted_at IS NULL OR (uploader_id=? AND object_cleaned_at IS NULL))"
+		order = "cleanup_pending DESC, id DESC"
+		args = append(args, f.ViewerId)
+	}
 	if f.Visibility != "" {
 		where += " AND visibility=?"
 		args = append(args, f.Visibility)
@@ -128,8 +142,8 @@ func (m *customSysFileModel) ListFilePage(ctx context.Context, f FileListFilter,
 	var rows []*FileRow
 	err := m.QueryRowsNoCacheCtx(ctx, &rows,
 		"SELECT id, bucket, object_key, original_name, ext, mime, size, visibility, ref_count, "+
-			"COALESCE(uploader_id,0) AS uploader_id, UNIX_TIMESTAMP(created_at) AS created_at "+
-			"FROM sys_file WHERE "+where+" ORDER BY id DESC LIMIT ? OFFSET ?",
+			"COALESCE(uploader_id,0) AS uploader_id, UNIX_TIMESTAMP(created_at) AS created_at, (deleted_at IS NOT NULL) AS cleanup_pending "+
+			"FROM sys_file WHERE "+where+" ORDER BY "+order+" LIMIT ? OFFSET ?",
 		append(args, pageSize, (page-1)*pageSize)...)
 	return rows, total, err
 }

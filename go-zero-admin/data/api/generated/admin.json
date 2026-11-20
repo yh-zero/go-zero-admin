@@ -8250,9 +8250,17 @@
             "schema": {
               "type": "object",
               "required": [
-                "status"
+                "status",
+                "expected_status",
+                "expected_reason"
               ],
               "properties": {
+                "expected_reason": {
+                  "type": "string"
+                },
+                "expected_status": {
+                  "type": "string"
+                },
                 "reason": {
                   "type": "string"
                 },
@@ -9617,6 +9625,12 @@
             "allowEmptyValue": true
           },
           {
+            "type": "boolean",
+            "name": "include_cleanup_pending",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -9665,6 +9679,9 @@
                     "properties": {
                       "bucket": {
                         "type": "string"
+                      },
+                      "cleanup_pending": {
+                        "type": "boolean"
                       },
                       "created_at": {
                         "type": "integer"
@@ -9782,6 +9799,9 @@
                   "properties": {
                     "bucket": {
                       "type": "string"
+                    },
+                    "cleanup_pending": {
+                      "type": "boolean"
                     },
                     "created_at": {
                       "type": "integer"
@@ -10958,6 +10978,12 @@
                 "description": {
                   "type": "string"
                 },
+                "expected_menu_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
                 "menu_ids": {
                   "type": "array",
                   "items": {
@@ -11043,9 +11069,16 @@
             "schema": {
               "type": "object",
               "required": [
-                "menu_ids"
+                "menu_ids",
+                "expected_menu_ids"
               ],
               "properties": {
+                "expected_menu_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
                 "menu_ids": {
                   "type": "array",
                   "items": {
@@ -12044,7 +12077,7 @@
       }
     }
   },
-  "x-date": "2026-11-19 17:24:01",
+  "x-date": "2026-11-20 11:09:08",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

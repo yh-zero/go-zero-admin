@@ -19,9 +19,13 @@ export default function FileList() {
   const [linkFile, setLinkFile] = useState<Pick<FileInfo, 'id' | 'visibility'> | null>(null);
   const client = useQueryClient();
   const { message } = App.useApp();
-  const query = usePagedQuery({ params, setParams, queryKey: [queryKeys.files, params], queryFn: () => fetchFiles(params) });
+  const listParams = { ...params, include_cleanup_pending: true };
+  const query = usePagedQuery({ params, setParams, queryKey: [queryKeys.files, listParams], queryFn: () => fetchFiles(listParams) });
   const pagination = useTablePagination(params, setParams, query.data?.total ?? 0);
-  const remove = useMutation({ mutationFn: deleteFile, onSuccess: async () => { await client.invalidateQueries({ queryKey: [queryKeys.files] }); void message.success('文件已删除'); } });
+  const remove = useMutation({ mutationFn: deleteFile,
+    onSuccess: () => { void message.success('文件已删除'); },
+    onSettled: () => client.invalidateQueries({ queryKey: [queryKeys.files] }),
+  });
 
   return <div className="page-stack">
     <Card className="filter-card"><Form name="file-filter" className="filter-form" form={form} layout="inline" onFinish={(values) => setParams({ ...values, page: 1, page_size: params.page_size })}>
@@ -35,13 +39,13 @@ export default function FileList() {
       <FileUploadButton visibility={uploadVisibility} />
     </Space>}><QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />
       <Table<FileInfo> rowKey="id" dataSource={query.data?.list ?? []} loading={query.isFetching} scroll={{ x: 1000 }} pagination={pagination} columns={[
-        { title: '文件名称', dataIndex: 'original_name', ellipsis: true, render: (value: string) => <span className="table-primary">{value}</span> },
+        { title: '文件名称', dataIndex: 'original_name', ellipsis: true, render: (value: string, row) => <Space><span className="table-primary">{value}</span>{row.cleanup_pending && <Tag color="orange">待确认清理</Tag>}</Space> },
         { title: '类型', dataIndex: 'mime' }, { title: '大小', dataIndex: 'size', render: formatBytes },
         { title: '可见性', dataIndex: 'visibility', render: (value: string) => <Tag color={value === 'private' ? 'gold' : 'blue'}>{value === 'private' ? '私有' : '公开'}</Tag> },
         { title: '引用数', dataIndex: 'ref_count' }, { title: '上传时间', dataIndex: 'created_at', render: formatTime },
-        { title: '操作', key: 'actions', render: (_, row) => <Space><Button type="link" onClick={() => setLinkFile({ id: row.id, visibility: row.visibility })}>访问链接</Button>
-          <Auth code="sys:file:delete"><Popconfirm title="确认删除文件？" description="文件内容将被删除，无法撤销。" disabled={row.ref_count > 0} onConfirm={() => remove.mutateAsync(row.id).catch(() => undefined)} okButtonProps={{ loading: remove.isPending }}>
-            <Button type="link" danger disabled={row.ref_count > 0 || remove.isPending} title={row.ref_count > 0 ? '文件仍被引用，不能删除' : undefined}>删除</Button>
+        { title: '操作', key: 'actions', render: (_, row) => <Space>{!row.cleanup_pending && <Button type="link" onClick={() => setLinkFile({ id: row.id, visibility: row.visibility })}>访问链接</Button>}
+          <Auth code="sys:file:delete"><Popconfirm title={row.cleanup_pending ? '重试清理文件？' : '确认删除文件？'} description={row.cleanup_pending ? '将再次向存储服务确认删除结果。' : '文件内容将被删除，无法撤销。'} disabled={row.ref_count > 0} onConfirm={() => remove.mutateAsync(row.id).catch(() => undefined)} okButtonProps={{ loading: remove.isPending }}>
+            <Button type="link" danger disabled={row.ref_count > 0 || remove.isPending} title={row.ref_count > 0 ? '文件仍被引用，不能删除' : undefined}>{row.cleanup_pending ? '重试清理' : '删除'}</Button>
           </Popconfirm></Auth></Space> },
       ]} />
     </Card>{linkFile !== null && <FileLinkDialog key={linkFile.id} id={linkFile.id} visibility={linkFile.visibility} onClose={() => setLinkFile(null)} />}

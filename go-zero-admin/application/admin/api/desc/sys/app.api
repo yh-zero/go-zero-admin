@@ -45,9 +45,11 @@ type (
 		Total int64              `json:"total"`
 	}
 	AppReviewReq {
-		Id     int64  `path:"id" validate:"min=1"`
-		Status string `json:"status" validate:"oneof=pending active disabled rejected"`
-		Reason string `json:"reason,optional" validate:"omitempty,max=255"`
+		Id             int64   `path:"id" validate:"min=1"`
+		Status         string  `json:"status" validate:"oneof=pending active disabled rejected"`
+		Reason         string  `json:"reason,optional" validate:"omitempty,max=255"`
+		ExpectedStatus string  `json:"expected_status" validate:"oneof=pending active disabled rejected"`
+		ExpectedReason *string `json:"expected_reason" validate:"required,max=512"`
 	}
 	AppSetAvatarReq {
 		Id     int64 `path:"id" validate:"min=1"`

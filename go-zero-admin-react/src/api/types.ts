@@ -55,7 +55,9 @@ export interface RoleInfo {
 export interface CreateRoleReq {
   name: string; code: string; description?: string; data_scope?: string; sort?: number; status?: number; menu_ids?: number[];
 }
-export type UpdateRoleReq = Partial<{ [K in keyof CreateRoleReq]: CreateRoleReq[K] | null }>;
+export interface UpdateRoleMenusReq { menu_ids: number[]; expected_menu_ids: number[] }
+export type UpdateRoleReq = Partial<{ [K in Exclude<keyof CreateRoleReq, 'menu_ids'>]: CreateRoleReq[K] | null }>
+  & ({ menu_ids?: null } | UpdateRoleMenusReq);
 export interface GetRoleListReq extends PageParams { name?: string; code?: string; status?: number }
 export interface DictItem { label: string; value: string; sort: number }
 export interface DictInfo {
@@ -70,9 +72,9 @@ export interface GetApiListReq extends PageParams { group?: string; method?: str
 export interface SyncApiResp { added: number; updated: number; removed: number }
 export interface FileInfo {
   id: number; bucket: string; object_key: string; original_name: string; ext: string; mime: string; size: number;
-  visibility: string; ref_count: number; uploader_id: number; url?: string; created_at: number;
+  visibility: string; ref_count: number; uploader_id: number; url?: string; created_at: number; cleanup_pending?: boolean;
 }
-export interface GetFileListReq extends PageParams { visibility?: string; uploader_id?: number }
+export interface GetFileListReq extends PageParams { visibility?: string; uploader_id?: number; include_cleanup_pending?: boolean }
 export interface FileURLResp { url: string; expires_at: number }
 export interface UploadFileReq {
   name: string; content_base64: string; scene: 'common' | 'avatar' | 'doc'; visibility: 'public' | 'private';
@@ -100,7 +102,7 @@ export interface AppAdminUserInfo extends AppUserInfo { remark: string }
 export interface UpdateAppUserReq { nickname?: string; remark?: string }
 export interface AppMembershipPlan { label: string; value: string }
 export interface GetAppUserListReq extends PageParams { account?: string; status?: AppUserStatus }
-export interface ReviewAppUserReq { status: AppUserStatus; reason?: string }
+export interface ReviewAppUserReq { status: AppUserStatus; reason?: string; expected_status: AppUserStatus; expected_reason: string }
 export interface AppMembershipInfo {
   id: number; user_id: number; plan_code: string; benefits: string; request_id: string;
   granted_by: number; granted_by_admin: boolean; starts_at: number; expires_at: number;

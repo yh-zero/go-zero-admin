@@ -233,21 +233,22 @@ func (x *Actor) GetUserAgent() string {
 // 文件
 // ============================================
 type FileInfo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Bucket        string                 `protobuf:"bytes,2,opt,name=Bucket,proto3" json:"Bucket,omitempty"`
-	ObjectKey     string                 `protobuf:"bytes,3,opt,name=ObjectKey,proto3" json:"ObjectKey,omitempty"`
-	OriginalName  string                 `protobuf:"bytes,4,opt,name=OriginalName,proto3" json:"OriginalName,omitempty"`
-	Ext           string                 `protobuf:"bytes,5,opt,name=ext,proto3" json:"ext,omitempty"`
-	Mime          string                 `protobuf:"bytes,6,opt,name=Mime,proto3" json:"Mime,omitempty"`
-	Size          int64                  `protobuf:"varint,7,opt,name=Size,proto3" json:"Size,omitempty"`
-	Visibility    string                 `protobuf:"bytes,8,opt,name=Visibility,proto3" json:"Visibility,omitempty"`
-	RefCount      int32                  `protobuf:"varint,9,opt,name=ref_count,json=refCount,proto3" json:"ref_count,omitempty"`
-	UploaderID    int64                  `protobuf:"varint,10,opt,name=UploaderID,proto3" json:"UploaderID,omitempty"`
-	URL           string                 `protobuf:"bytes,11,opt,name=URL,proto3" json:"URL,omitempty"` // public 直接给地址，private 需另调 GetFileURL
-	CreatedAt     int64                  `protobuf:"varint,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Bucket         string                 `protobuf:"bytes,2,opt,name=Bucket,proto3" json:"Bucket,omitempty"`
+	ObjectKey      string                 `protobuf:"bytes,3,opt,name=ObjectKey,proto3" json:"ObjectKey,omitempty"`
+	OriginalName   string                 `protobuf:"bytes,4,opt,name=OriginalName,proto3" json:"OriginalName,omitempty"`
+	Ext            string                 `protobuf:"bytes,5,opt,name=ext,proto3" json:"ext,omitempty"`
+	Mime           string                 `protobuf:"bytes,6,opt,name=Mime,proto3" json:"Mime,omitempty"`
+	Size           int64                  `protobuf:"varint,7,opt,name=Size,proto3" json:"Size,omitempty"`
+	Visibility     string                 `protobuf:"bytes,8,opt,name=Visibility,proto3" json:"Visibility,omitempty"`
+	RefCount       int32                  `protobuf:"varint,9,opt,name=ref_count,json=refCount,proto3" json:"ref_count,omitempty"`
+	UploaderID     int64                  `protobuf:"varint,10,opt,name=UploaderID,proto3" json:"UploaderID,omitempty"`
+	URL            string                 `protobuf:"bytes,11,opt,name=URL,proto3" json:"URL,omitempty"` // public 直接给地址，private 需另调 GetFileURL
+	CreatedAt      int64                  `protobuf:"varint,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CleanupPending bool                   `protobuf:"varint,13,opt,name=cleanup_pending,json=cleanupPending,proto3" json:"cleanup_pending,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *FileInfo) Reset() {
@@ -362,6 +363,13 @@ func (x *FileInfo) GetCreatedAt() int64 {
 		return x.CreatedAt
 	}
 	return 0
+}
+
+func (x *FileInfo) GetCleanupPending() bool {
+	if x != nil {
+		return x.CleanupPending
+	}
+	return false
 }
 
 // 上传：api 层收 multipart，转 base64 或直接传字节流
@@ -494,14 +502,15 @@ func (x *UploadFileResponse) GetFile() *FileInfo {
 }
 
 type GetFileListRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
-	Page          *PageRequest           `protobuf:"bytes,2,opt,name=Page,proto3" json:"Page,omitempty"`
-	Visibility    string                 `protobuf:"bytes,3,opt,name=visibility,proto3" json:"visibility,omitempty"`
-	Scene         string                 `protobuf:"bytes,4,opt,name=Scene,proto3" json:"Scene,omitempty"`
-	UploaderID    int64                  `protobuf:"varint,5,opt,name=UploaderID,proto3" json:"UploaderID,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Actor                 *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	Page                  *PageRequest           `protobuf:"bytes,2,opt,name=Page,proto3" json:"Page,omitempty"`
+	Visibility            string                 `protobuf:"bytes,3,opt,name=visibility,proto3" json:"visibility,omitempty"`
+	Scene                 string                 `protobuf:"bytes,4,opt,name=Scene,proto3" json:"Scene,omitempty"`
+	UploaderID            int64                  `protobuf:"varint,5,opt,name=UploaderID,proto3" json:"UploaderID,omitempty"`
+	IncludeCleanupPending bool                   `protobuf:"varint,6,opt,name=include_cleanup_pending,json=includeCleanupPending,proto3" json:"include_cleanup_pending,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *GetFileListRequest) Reset() {
@@ -567,6 +576,13 @@ func (x *GetFileListRequest) GetUploaderID() int64 {
 		return x.UploaderID
 	}
 	return 0
+}
+
+func (x *GetFileListRequest) GetIncludeCleanupPending() bool {
+	if x != nil {
+		return x.IncludeCleanupPending
+	}
+	return false
 }
 
 type GetFileListResponse struct {
@@ -954,7 +970,7 @@ const file_application_file_rpc_desc_file_proto_rawDesc = "" +
 	"\bUsername\x18\x02 \x01(\tR\bUsername\x12\x16\n" +
 	"\x06DeptId\x18\x03 \x01(\x03R\x06DeptId\x12\x0e\n" +
 	"\x02IP\x18\x04 \x01(\tR\x02IP\x12\x1c\n" +
-	"\tUserAgent\x18\x05 \x01(\tR\tUserAgent\"\xbc\x02\n" +
+	"\tUserAgent\x18\x05 \x01(\tR\tUserAgent\"\xe5\x02\n" +
 	"\bFileInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x16\n" +
 	"\x06Bucket\x18\x02 \x01(\tR\x06Bucket\x12\x1c\n" +
@@ -973,7 +989,8 @@ const file_application_file_rpc_desc_file_proto_rawDesc = "" +
 	"UploaderID\x12\x10\n" +
 	"\x03URL\x18\v \x01(\tR\x03URL\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\f \x01(\x03R\tcreatedAt\"\xc1\x01\n" +
+	"created_at\x18\f \x01(\x03R\tcreatedAt\x12'\n" +
+	"\x0fcleanup_pending\x18\r \x01(\bR\x0ecleanupPending\"\xc1\x01\n" +
 	"\x11UploadFileRequest\x12#\n" +
 	"\x05actor\x18\x01 \x01(\v2\r.filepb.ActorR\x05actor\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\fR\acontent\x12#\n" +
@@ -984,7 +1001,7 @@ const file_application_file_rpc_desc_file_proto_rawDesc = "" +
 	"visibility\x12\x14\n" +
 	"\x05scene\x18\x06 \x01(\tR\x05scene\":\n" +
 	"\x12UploadFileResponse\x12$\n" +
-	"\x04File\x18\x01 \x01(\v2\x10.filepb.FileInfoR\x04File\"\xb8\x01\n" +
+	"\x04File\x18\x01 \x01(\v2\x10.filepb.FileInfoR\x04File\"\xf0\x01\n" +
 	"\x12GetFileListRequest\x12#\n" +
 	"\x05actor\x18\x01 \x01(\v2\r.filepb.ActorR\x05actor\x12'\n" +
 	"\x04Page\x18\x02 \x01(\v2\x13.filepb.PageRequestR\x04Page\x12\x1e\n" +
@@ -994,7 +1011,8 @@ const file_application_file_rpc_desc_file_proto_rawDesc = "" +
 	"\x05Scene\x18\x04 \x01(\tR\x05Scene\x12\x1e\n" +
 	"\n" +
 	"UploaderID\x18\x05 \x01(\x03R\n" +
-	"UploaderID\"e\n" +
+	"UploaderID\x126\n" +
+	"\x17include_cleanup_pending\x18\x06 \x01(\bR\x15includeCleanupPending\"e\n" +
 	"\x13GetFileListResponse\x12$\n" +
 	"\x04List\x18\x01 \x03(\v2\x10.filepb.FileInfoR\x04List\x12(\n" +
 	"\x04Page\x18\x02 \x01(\v2\x14.filepb.PageResponseR\x04Page\"\x91\x01\n" +

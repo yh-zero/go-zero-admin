@@ -38,6 +38,9 @@ func (l *DeleteRoleLogic) DeleteRole(in *adminpb.DeleteRoleRequest) (*adminpb.No
 }
 
 func roleMutationError(err error) error {
+	if errors.Is(err, model.ErrRoleMenuConflict) {
+		return xerr.NewErrCodeMsg(409, "角色授权已变更，请重新读取并核对授权")
+	}
 	if errors.Is(err, sqlx.ErrNotFound) {
 		return xerr.NewErrCode(xerr.ROLE_NOT_FOUND)
 	}
