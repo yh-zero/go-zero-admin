@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
@@ -21,6 +22,8 @@ type (
 		sysUserModel
 		// ListUserPage 分页查有效用户
 		ListUserPage(ctx context.Context, f UserListFilter, page, pageSize int64) ([]*UserRow, int64, error)
+		DescribeUserScope(ctx context.Context, actor UserActor) (UserScopeDescription, error)
+		ImportUsers(ctx context.Context, actor UserActor, candidates []UserImportCandidate, confirmRows []int64) (map[int64]error, error)
 		FindScopedUser(ctx context.Context, userId int64, actor UserActor) (*SysUser, error)
 		UpdateLastLogin(ctx context.Context, userId uint64, ip string) error
 		WithLoginUser(ctx context.Context, userId uint64, expectedHash string, issue func(context.Context, *SysUser) error) error
@@ -62,6 +65,13 @@ type userDataScope struct {
 
 type scopeQuery func(context.Context, any, string, ...any) error
 
+type UserRoleScope struct {
+	Code           string `db:"code"`
+	DataScope      string `db:"data_scope"`
+	Domain         string `db:"domain"`
+	DepartmentPath string `db:"department_path"`
+}
+
 func resolveUserScope(ctx context.Context, query scopeQuery, actor UserActor) (userDataScope, error) {
 	scope := userDataScope{actor: actor}
 	if actor.UserId <= 0 || actor.DeptId < 0 {
@@ -80,19 +90,20 @@ func resolveUserScope(ctx context.Context, query scopeQuery, actor UserActor) (u
 		scope.self = true
 		return scope, nil
 	}
-	var rows []struct {
-		Code           string `db:"code"`
-		DataScope      string `db:"data_scope"`
-		Domain         string `db:"domain"`
-		DepartmentPath string `db:"department_path"`
-	}
+	scope, _, err := loadUserRoleScope(ctx, query, scope)
+	return scope, err
+}
+
+func loadUserRoleScope(ctx context.Context, query scopeQuery, scope userDataScope) (userDataScope, []UserRoleScope, error) {
+	actor := scope.actor
+	var rows []UserRoleScope
 	err := query(ctx, &rows, `SELECT r.code,r.data_scope,g.v2 AS domain,COALESCE(d.path,'') AS department_path
 FROM casbin_rule g JOIN sys_role r ON r.code=g.v1 AND r.status=1 AND r.deleted_at IS NULL
 JOIN sys_user a ON a.id=? AND a.status=1 AND a.deleted_at IS NULL
 LEFT JOIN sys_dept d ON d.id=? AND d.status=1 AND d.deleted_at IS NULL
 WHERE g.ptype='g' AND g.v0=CONCAT('user:',a.id) AND (g.v2=? OR g.v2='*') AND (?=0 OR d.id IS NOT NULL)`, actor.UserId, actor.DeptId, fmt.Sprintf("dept:%d", actor.DeptId), actor.DeptId)
 	if err != nil {
-		return scope, err
+		return scope, nil, err
 	}
 	for _, role := range rows {
 		if role.Code == "super_admin" && role.Domain == "*" {
@@ -113,9 +124,59 @@ WHERE g.ptype='g' AND g.v0=CONCAT('user:',a.id) AND (g.v2=? OR g.v2='*') AND (?=
 		}
 	}
 	if !scope.all && !scope.self && !scope.department && !scope.descendants {
-		return scope, ErrDataScopeDenied
+		return scope, rows, ErrDataScopeDenied
 	}
-	return scope, nil
+	return scope, rows, nil
+}
+
+type UserScopeDescription struct {
+	Roles  []UserRoleScope
+	Scopes []string
+	Count  int64
+	Users  []UserScopeMember
+}
+
+type UserScopeMember struct {
+	Id       int64  `db:"id"`
+	Username string `db:"username"`
+}
+
+func (m *customSysUserModel) DescribeUserScope(ctx context.Context, actor UserActor) (UserScopeDescription, error) {
+	var description UserScopeDescription
+	err := m.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
+		scope, rows, err := loadUserRoleScope(ctx, session.QueryRowsCtx, userDataScope{actor: actor})
+		description.Roles = rows
+		if errors.Is(err, ErrDataScopeDenied) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		description.Scopes = scope.labels()
+		condition, args := scope.clause()
+		where := " FROM sys_user WHERE deleted_at IS NULL AND " + condition
+		if err := session.QueryRowCtx(ctx, &description.Count, "SELECT COUNT(*)"+where, args...); err != nil {
+			return err
+		}
+		return session.QueryRowsCtx(ctx, &description.Users, "SELECT id,username"+where+" ORDER BY id DESC LIMIT 10", args...)
+	})
+	return description, err
+}
+
+func (s userDataScope) labels() []string {
+	if s.all {
+		return []string{"ALL"}
+	}
+	var labels []string
+	if s.descendants {
+		labels = append(labels, "DEPT_AND_CHILDREN")
+	} else if s.department {
+		labels = append(labels, "DEPT")
+	}
+	if s.self {
+		labels = append(labels, "SELF")
+	}
+	return labels
 }
 
 func (s userDataScope) clause() (string, []any) {
@@ -365,17 +426,11 @@ func (m *customSysUserModel) CreateWithRoles(ctx context.Context, user *SysUser,
 		if !errors.Is(err, sqlx.ErrNotFound) {
 			return err
 		}
-		result, err := s.ExecCtx(ctx, "INSERT INTO sys_user (username,password_hash,nickname,real_name,email,phone,dept_id,avatar_file_id,gender,status,remark) VALUES (?,?,?,?,?,?,?,?,?,?,?)", user.Username, user.PasswordHash, user.Nickname, user.RealName, user.Email, user.Phone, user.DeptId, user.AvatarFileId, user.Gender, user.Status, user.Remark)
-		if err != nil {
+		if err = insertUser(ctx, s, user); err != nil {
 			return err
 		}
-		id, err := result.LastInsertId()
-		if err != nil {
-			return err
-		}
-		user.Id = uint64(id)
 		if len(roleIds) > 0 {
-			if err := replaceUserRoles(ctx, s, id, actor.UserId, deptId, roleIds); err != nil {
+			if err := replaceUserRoles(ctx, s, int64(user.Id), actor.UserId, deptId, roleIds); err != nil {
 				return err
 			}
 		}
@@ -385,6 +440,23 @@ func (m *customSysUserModel) CreateWithRoles(ctx context.Context, user *SysUser,
 		return err
 	}
 	return m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysUserIdPrefix, user.Id), cacheGozeroAdminNewSysUserUsernamePrefix+user.Username)
+}
+
+func insertUser(ctx context.Context, session sqlx.Session, user *SysUser) error {
+	result, err := session.ExecCtx(ctx, "INSERT INTO sys_user (username,password_hash,nickname,real_name,email,phone,dept_id,avatar_file_id,gender,status,remark) VALUES (?,?,?,?,?,?,?,?,?,?,?)", user.Username, user.PasswordHash, user.Nickname, user.RealName, user.Email, user.Phone, user.DeptId, user.AvatarFileId, user.Gender, user.Status, user.Remark)
+	if err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			return ErrUsernameExists
+		}
+		return err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	user.Id = uint64(id)
+	return nil
 }
 
 func (m *customSysUserModel) UpdatePartial(ctx context.Context, userId int64, actor UserActor, p UserPatch) error {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { App, Button, Card, Form, Input, Popconfirm, Select, Space, Table } from 'antd';
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteUser, fetchUsers } from '../../api/user';
 import { fetchDeptTree } from '../../api/dept';
@@ -14,6 +14,9 @@ import { statusOptions } from '../../utils/formOptions';
 import { UserDetails } from './UserDetails';
 import { UserEditor } from './UserEditor';
 import { ResetPasswordDialog } from './ResetPasswordDialog';
+import { UserImportDialog } from './UserImportDialog';
+import { UserPermissionsDrawer } from './UserPermissionsDrawer';
+import { useAuthStore } from '../../stores/auth';
 import { queryKeys } from '../../utils/queryKeys';
 import { useTablePagination } from '../../hooks/useTablePagination';
 
@@ -24,6 +27,9 @@ export default function UserList() {
   const [editor, setEditor] = useState<{ id?: number } | null>(null);
   const [detailId, setDetailId] = useState<number | null>(null);
   const [resetTarget, setResetTarget] = useState<UserInfo | null>(null);
+  const departmentVersion = useAuthStore(state => state.departmentVersion);
+  const [importContext, setImportContext] = useState<number | null>(null);
+  const [permissionsTarget, setPermissionsTarget] = useState<{ user: UserInfo; context: number } | null>(null);
   const client = useQueryClient();
   const users = usePagedQuery({ params, setParams, queryKey: [queryKeys.users, params], queryFn: () => fetchUsers(params) });
   const pagination = useTablePagination(params, setParams, users.data?.total ?? 0);
@@ -46,7 +52,12 @@ export default function UserList() {
       }}>重置</Button><Button aria-label="刷新用户列表" icon={<ReloadOutlined />} onClick={() => void users.refetch()} /></Space></Form.Item>
     </Form></Card>
     <Card className="data-card" title="用户列表" extra={<Auth code="sys:user:add">
-      <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增用户</Button>
+      <Space wrap>
+        <Auth code="sys:user:import"><Button icon={<UploadOutlined />} onClick={() => setImportContext(departmentVersion)}>
+          批量导入
+        </Button></Auth>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setEditor({})}>新增用户</Button>
+      </Space>
     </Auth>}>
       <QueryState isPending={users.isPending} error={users.error} onRetry={() => void users.refetch()} />
       <Table<UserInfo> rowKey="id" dataSource={users.data?.list ?? []} loading={users.isFetching} scroll={{ x: 1100 }}
@@ -57,8 +68,10 @@ export default function UserList() {
           { title: '邮箱', dataIndex: 'email', key: 'email', render: (value: string) => value || '—' },
           { title: '手机号', dataIndex: 'phone', key: 'phone', render: (value: string) => value || '—' },
           { title: '状态', dataIndex: 'status', key: 'status', render: (status: number) => <StatusTag status={status} /> },
-          { title: '操作', key: 'actions', width: 290, render: (_, row) => <Space wrap>
+          { title: '操作', key: 'actions', width: 350, render: (_, row) => <Space wrap>
             <Button type="link" onClick={() => setDetailId(row.id)}>详情</Button>
+            <Auth code="sys:user:permissions"><Button type="link"
+              onClick={() => setPermissionsTarget({ user: row, context: departmentVersion })}>查看权限</Button></Auth>
             <Auth code="sys:user:edit"><Button type="link" onClick={() => setEditor({ id: row.id })}>编辑</Button></Auth>
             <Auth code="sys:user:reset-password"><Button type="link" onClick={() => setResetTarget(row)}>重置密码</Button></Auth>
             <Auth code="sys:user:delete"><Popconfirm title={`确认删除用户 ${row.username}？`} description="删除后该用户将从列表移除。"
@@ -70,6 +83,12 @@ export default function UserList() {
     </Card>
     {editor && <UserEditor key={editor.id ?? 'new'} id={editor.id} depts={departments.data?.list ?? []} onClose={() => setEditor(null)} />}
     {detailId !== null && <UserDetails id={detailId} onClose={() => setDetailId(null)} />}
+    {permissionsTarget?.context === departmentVersion && <Auth code="sys:user:permissions">
+      <UserPermissionsDrawer key={permissionsTarget.user.id} user={permissionsTarget.user} onClose={() => setPermissionsTarget(null)} />
+    </Auth>}
+    {importContext === departmentVersion && <Auth code="sys:user:add"><Auth code="sys:user:import">
+      <UserImportDialog departments={departments.data?.list ?? []} onClose={() => setImportContext(null)} />
+    </Auth></Auth>}
     {resetTarget && <ResetPasswordDialog user={resetTarget} onClose={() => setResetTarget(null)} />}
   </div>;
 }

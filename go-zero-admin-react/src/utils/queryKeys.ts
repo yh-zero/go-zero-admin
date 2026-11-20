@@ -14,6 +14,7 @@ export const queryKeys = {
   depts: 'depts',
   deviceSessions: 'device-sessions',
   dicts: 'dicts',
+  directory: 'directory',
   fileUrl: 'file-url',
   files: 'files',
   health: 'health',

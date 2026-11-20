@@ -1004,6 +1004,23 @@ INSERT INTO `app_feedback` (`id`,`user_id`,`content`,`reply`,`status`,`created_a
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET TIME_ZONE=@OLD_TIME_ZONE;
+-- 后台用户工具和独立通讯录。普通演示角色可查看其当前部门的通讯录。
+INSERT INTO `sys_menu` (`id`,`parent_id`,`title`,`name`,`type`,`path`,`component`,`perm_code`,`icon`,`sort`,`visible`,`status`) VALUES
+(9001460,9001302,'查看用户权限','user_permissions',3,'','','sys:user:permissions','',4,0,1),
+(9001461,9001302,'批量导入用户','user_import',3,'','','sys:user:import','',5,0,1),
+(9001462,0,'组织通讯录','directory',2,'/sys/directory','directory','','dept',5,1,1);
+INSERT INTO `sys_role_menu` (`role_id`,`menu_id`) VALUES
+(1,9001460),(1,9001461),(1,9001462),(2,9001462),(3,9001462),(4,9001462),(5,9001462);
+INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
+(135,'sys/user','GET','/v1/sys/user/:id/permissions','查看用户权限'),
+(136,'sys/user','POST','/v1/sys/user/import','批量导入用户'),
+(137,'sys/dept','GET','/v1/sys/dept/directory','查看组织通讯录');
+INSERT INTO `casbin_rule` (`ptype`,`v0`,`v1`,`v2`,`v3`,`v4`,`v5`) VALUES
+('p','scope_all','*','/v1/sys/dept/directory','GET','',''),
+('p','scope_dept_children','*','/v1/sys/dept/directory','GET','',''),
+('p','scope_dept','*','/v1/sys/dept/directory','GET','',''),
+('p','scope_self','*','/v1/sys/dept/directory','GET','','');
+
 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT;
 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS;
 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION;

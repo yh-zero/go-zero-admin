@@ -27,6 +27,7 @@ type (
 		UpdateDepartment(ctx context.Context, id int64, patch DeptPatch, actor UserActor) error
 		DeleteDepartment(ctx context.Context, id int64) error
 		ListMyDepartments(ctx context.Context, userId int64, all bool) ([]*DeptRow, error)
+		ListDepartmentDirectory(ctx context.Context, actor UserActor, keyword string, page, pageSize int64) (*DepartmentDirectory, error)
 		ListDepartmentMemberCounts(ctx context.Context, actor UserActor) (map[int64]int64, error)
 	}
 
@@ -314,12 +315,15 @@ CASE WHEN d.leader_user_id=0 THEN d.leader
  ELSE CONCAT(COALESCE(NULLIF(leader.real_name,''),NULLIF(leader.nickname,''),leader.username),IF(leader.status=1,'','（已停用）')) END AS leader,
 d.phone,d.email,d.sort,d.status,d.path,UNIX_TIMESTAMP(d.created_at) AS created_at`
 
+const departmentMembershipCondition = ` AND (d.id=(SELECT u.dept_id FROM sys_user u WHERE u.id=? AND u.status=1 AND u.deleted_at IS NULL)
+ OR EXISTS (SELECT 1 FROM casbin_rule g JOIN sys_role r ON r.code=g.v1 WHERE g.ptype='g' AND g.v0=? AND g.v2=CONCAT('dept:',d.id) AND r.status=1 AND r.deleted_at IS NULL))`
+
 func (m *customSysDeptModel) ListMyDepartments(ctx context.Context, userId int64, all bool) ([]*DeptRow, error) {
 	rows := make([]*DeptRow, 0)
 	query := "SELECT " + departmentInfoColumns + " FROM sys_dept d LEFT JOIN sys_user leader ON leader.id=d.leader_user_id WHERE d.status=1 AND d.deleted_at IS NULL"
 	var args []any
 	if !all {
-		query += " AND (d.id=(SELECT u.dept_id FROM sys_user u WHERE u.id=? AND u.status=1 AND u.deleted_at IS NULL) OR EXISTS (SELECT 1 FROM casbin_rule g JOIN sys_role r ON r.code=g.v1 WHERE g.ptype='g' AND g.v0=? AND g.v2=CONCAT('dept:',d.id) AND r.status=1 AND r.deleted_at IS NULL))"
+		query += departmentMembershipCondition
 		args = []any{userId, fmt.Sprintf("user:%d", userId)}
 	}
 	err := m.QueryRowsNoCacheCtx(ctx, &rows, query+" ORDER BY d.sort,d.id", args...)

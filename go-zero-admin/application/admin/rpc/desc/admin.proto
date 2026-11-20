@@ -130,6 +130,65 @@ message GetUserRequest {
 }
 message GetUserResponse { UserInfo User = 1; }
 
+message GetUserPermissionsRequest {
+  Actor actor = 1;
+  int64 user_id = 2;
+  optional int64 dept_id = 3;
+}
+message UserPermissionDept {
+  int64 id = 1;
+  string name = 2;
+}
+message UserPermissionRole {
+  string code = 1;
+  string domain = 2;
+  string data_scope = 3;
+}
+message UserPermissionResource {
+  string role_code = 1;
+  string path = 2;
+  string perm_code = 3;
+  int32 type = 4;
+}
+message UserPermissionVisibleUser {
+  int64 id = 1;
+  string username = 2;
+}
+message GetUserPermissionsResponse {
+  bool enabled = 1;
+  int64 dept_id = 2;
+  repeated UserPermissionDept depts = 3;
+  repeated UserPermissionRole roles = 4;
+  repeated UserPermissionResource resources = 5;
+  repeated string data_scopes = 6;
+  int64 visible_user_count = 7;
+  repeated UserPermissionVisibleUser visible_users = 8;
+}
+
+message ImportUsersRequest {
+  Actor actor = 1;
+  repeated ImportUserInput rows = 2;
+  bool confirm = 3;
+  repeated int64 row_numbers = 4;
+}
+message ImportUserInput {
+  int64 row = 1;
+  string username = 2;
+  int64 dept_id = 3;
+  string real_name = 4;
+}
+message ImportUserResult {
+  int64 row = 1;
+  string username = 2;
+  int64 dept_id = 3;
+  string status = 4;
+  string message = 5;
+}
+message ImportUsersResponse {
+  repeated ImportUserResult rows = 1;
+  int64 created = 2;
+}
+
 message CreateUserRequest {
   Actor actor = 1;
   string username = 2;
@@ -411,6 +470,22 @@ message UpdateDeptRequest {
 
 message GetMyDeptsRequest { Actor actor = 1; }
 message GetMyDeptsResponse { repeated DeptInfo list = 1; }
+message GetDepartmentDirectoryRequest {
+  Actor actor = 1;
+  string keyword = 2;
+  int64 page = 3;
+  int64 page_size = 4;
+}
+message DepartmentDirectoryMember {
+  int64 id = 1;
+  string name = 2;
+  bool is_leader = 3;
+}
+message GetDepartmentDirectoryResponse {
+  string dept_name = 1;
+  repeated DepartmentDirectoryMember list = 2;
+  int64 total = 3;
+}
 
 message DeleteDeptRequest {
   Actor actor = 1;
@@ -557,7 +632,9 @@ service AuthService {
 service UserService {
   rpc GetUserList(GetUserListRequest) returns (GetUserListResponse);
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc GetUserPermissions(GetUserPermissionsRequest) returns (GetUserPermissionsResponse);
   rpc CreateUser(CreateUserRequest) returns (NoDataResponse);
+  rpc ImportUsers(ImportUsersRequest) returns (ImportUsersResponse);
   rpc UpdateUser(UpdateUserRequest) returns (NoDataResponse);
   rpc DeleteUser(DeleteUserRequest) returns (NoDataResponse);
   rpc ResetPassword(ResetPasswordRequest) returns (NoDataResponse);
@@ -591,6 +668,7 @@ service MenuService {
 
 service DeptService {
   rpc GetMyDepts(GetMyDeptsRequest) returns (GetMyDeptsResponse);
+  rpc GetDepartmentDirectory(GetDepartmentDirectoryRequest) returns (GetDepartmentDirectoryResponse);
   rpc GetDeptTree(GetDeptTreeRequest) returns (GetDeptTreeResponse);
   rpc CreateDept(CreateDeptRequest) returns (NoDataResponse);
   rpc UpdateDept(UpdateDeptRequest) returns (NoDataResponse);

@@ -28,6 +28,11 @@ func (s *DeptServiceServer) GetMyDepts(ctx context.Context, in *adminpb.GetMyDep
 	return l.GetMyDepts(in)
 }
 
+func (s *DeptServiceServer) GetDepartmentDirectory(ctx context.Context, in *adminpb.GetDepartmentDirectoryRequest) (*adminpb.GetDepartmentDirectoryResponse, error) {
+	l := deptservicelogic.NewGetDepartmentDirectoryLogic(ctx, s.svcCtx)
+	return l.GetDepartmentDirectory(in)
+}
+
 func (s *DeptServiceServer) GetDeptTree(ctx context.Context, in *adminpb.GetDeptTreeRequest) (*adminpb.GetDeptTreeResponse, error) {
 	l := deptservicelogic.NewGetDeptTreeLogic(ctx, s.svcCtx)
 	return l.GetDeptTree(in)

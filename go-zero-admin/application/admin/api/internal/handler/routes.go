@@ -545,6 +545,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 			{
 				Method:  http.MethodGet,
+				Path:    "/directory",
+				Handler: dept.GetDepartmentDirectoryHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
 				Path:    "/my",
 				Handler: dept.GetMyDeptsHandler(serverCtx),
 			},
@@ -800,9 +805,19 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: user.ResetPasswordHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodGet,
+				Path:    "/:id/permissions",
+				Handler: user.GetUserPermissionsHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodPost,
 				Path:    "/create",
 				Handler: user.CreateUserHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/import",
+				Handler: user.ImportUsersHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,

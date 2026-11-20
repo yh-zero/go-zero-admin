@@ -14,7 +14,7 @@ export function invalidateTenantData(client: QueryClient): Promise<void> {
 
 export function invalidateUserData(client: QueryClient): Promise<void> {
   return invalidateAccessData(client, [queryKeys.users, queryKeys.user, queryKeys.profile, queryKeys.files,
-    queryKeys.roles, queryKeys.role, queryKeys.depts, queryKeys.myDepts, queryKeys.myMenus, queryKeys.permCodes]);
+    queryKeys.roles, queryKeys.role, queryKeys.depts, queryKeys.directory, queryKeys.myDepts, queryKeys.myMenus, queryKeys.permCodes]);
 }
 
 async function invalidateAccessData(client: QueryClient, roots: string[]): Promise<void> {
@@ -32,7 +32,7 @@ async function invalidateAccessData(client: QueryClient, roots: string[]): Promi
 
 export function invalidateRoleData(client: QueryClient): Promise<void> {
   return invalidateAccessData(client, [queryKeys.roles, queryKeys.role, queryKeys.roleOptions, queryKeys.profile,
-    queryKeys.myDepts, queryKeys.myMenus, queryKeys.permCodes]);
+    queryKeys.directory, queryKeys.myDepts, queryKeys.myMenus, queryKeys.permCodes]);
 }
 
 export function invalidateMenuData(client: QueryClient): Promise<void> {

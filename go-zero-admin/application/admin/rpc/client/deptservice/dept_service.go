@@ -14,19 +14,23 @@ import (
 )
 
 type (
-	Actor               = adminpb.Actor
-	CreateDeptRequest   = adminpb.CreateDeptRequest
-	DeleteDeptRequest   = adminpb.DeleteDeptRequest
-	DeptInfo            = adminpb.DeptInfo
-	GetDeptTreeRequest  = adminpb.GetDeptTreeRequest
-	GetDeptTreeResponse = adminpb.GetDeptTreeResponse
-	GetMyDeptsRequest   = adminpb.GetMyDeptsRequest
-	GetMyDeptsResponse  = adminpb.GetMyDeptsResponse
-	NoDataResponse      = adminpb.NoDataResponse
-	UpdateDeptRequest   = adminpb.UpdateDeptRequest
+	Actor                          = adminpb.Actor
+	CreateDeptRequest              = adminpb.CreateDeptRequest
+	DeleteDeptRequest              = adminpb.DeleteDeptRequest
+	DepartmentDirectoryMember      = adminpb.DepartmentDirectoryMember
+	DeptInfo                       = adminpb.DeptInfo
+	GetDepartmentDirectoryRequest  = adminpb.GetDepartmentDirectoryRequest
+	GetDepartmentDirectoryResponse = adminpb.GetDepartmentDirectoryResponse
+	GetDeptTreeRequest             = adminpb.GetDeptTreeRequest
+	GetDeptTreeResponse            = adminpb.GetDeptTreeResponse
+	GetMyDeptsRequest              = adminpb.GetMyDeptsRequest
+	GetMyDeptsResponse             = adminpb.GetMyDeptsResponse
+	NoDataResponse                 = adminpb.NoDataResponse
+	UpdateDeptRequest              = adminpb.UpdateDeptRequest
 
 	DeptService interface {
 		GetMyDepts(ctx context.Context, in *GetMyDeptsRequest, opts ...grpc.CallOption) (*GetMyDeptsResponse, error)
+		GetDepartmentDirectory(ctx context.Context, in *GetDepartmentDirectoryRequest, opts ...grpc.CallOption) (*GetDepartmentDirectoryResponse, error)
 		GetDeptTree(ctx context.Context, in *GetDeptTreeRequest, opts ...grpc.CallOption) (*GetDeptTreeResponse, error)
 		CreateDept(ctx context.Context, in *CreateDeptRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		UpdateDept(ctx context.Context, in *UpdateDeptRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
@@ -47,6 +51,11 @@ func NewDeptService(cli zrpc.Client) DeptService {
 func (m *defaultDeptService) GetMyDepts(ctx context.Context, in *GetMyDeptsRequest, opts ...grpc.CallOption) (*GetMyDeptsResponse, error) {
 	client := adminpb.NewDeptServiceClient(m.cli.Conn())
 	return client.GetMyDepts(ctx, in, opts...)
+}
+
+func (m *defaultDeptService) GetDepartmentDirectory(ctx context.Context, in *GetDepartmentDirectoryRequest, opts ...grpc.CallOption) (*GetDepartmentDirectoryResponse, error) {
+	client := adminpb.NewDeptServiceClient(m.cli.Conn())
+	return client.GetDepartmentDirectory(ctx, in, opts...)
 }
 
 func (m *defaultDeptService) GetDeptTree(ctx context.Context, in *GetDeptTreeRequest, opts ...grpc.CallOption) (*GetDeptTreeResponse, error) {

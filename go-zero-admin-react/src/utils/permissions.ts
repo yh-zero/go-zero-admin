@@ -23,6 +23,7 @@ export function requiredWritePermission(method: string, url: string): string | u
   if (verb === 'DELETE' && /^\/sys\/app\/users\/\d+\/sessions\/[^/]+$/.test(url)) return 'sys:app:session:revoke';
   if (verb === 'POST' && url === '/sys/app/memberships') return 'sys:app:membership:grant';
   if (verb === 'DELETE' && /^\/sys\/app\/memberships\/\d+$/.test(url)) return 'sys:app:membership:revoke';
+  if (verb === 'POST' && url === '/sys/user/import') return 'sys:user:import';
   const match = /^\/sys\/(user|role|dept|menu|dict|api|file)\/(create|\d+)(?:\/(password|menus))?$/.exec(url);
   if (!match) return undefined;
   const [, module, target, operation] = match;

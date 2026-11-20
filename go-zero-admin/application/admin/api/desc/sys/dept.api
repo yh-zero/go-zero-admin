@@ -52,6 +52,21 @@ type (
 	GetMyDeptsResp {
 		List []*DeptInfo `json:"list"`
 	}
+	GetDepartmentDirectoryReq {
+		Keyword string `json:"keyword,optional" form:"keyword,optional" validate:"omitempty,max=64"`
+		Page int64 `form:"page,optional" validate:"omitempty,min=1,max=100000"`
+		PageSize int64 `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+	}
+	DepartmentDirectoryMember {
+		Id int64 `json:"id"`
+		Name string `json:"name"`
+		IsLeader bool `json:"is_leader"`
+	}
+	GetDepartmentDirectoryResp {
+		DeptName string `json:"dept_name"`
+		List []*DepartmentDirectoryMember `json:"list"`
+		Total int64 `json:"total"`
+	}
 	DeleteDeptReq {
 		Id int64 `path:"id" validate:"min=1"`
 	}
@@ -64,6 +79,9 @@ type (
 service admin {
 	@handler getMyDepts
 	get /my (GetMyDeptsReq) returns (GetMyDeptsResp)
+
+	@handler getDepartmentDirectory
+	get /directory (GetDepartmentDirectoryReq) returns (GetDepartmentDirectoryResp)
 
 	@handler getDeptTree
 	get /tree (GetDeptTreeReq) returns (GetDeptTreeResp)

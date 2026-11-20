@@ -92,6 +92,15 @@ func (h *Holder) Enforce(sub, dom, obj, act string) (bool, error) {
 	return h.ptr.Load().Enforce(sub, dom, obj, act)
 }
 
+// Explain 使用同一权限模型返回判定及首条匹配策略的角色和域。
+func (h *Holder) Explain(sub, dom, obj, act string) (allowed bool, role, domain string, err error) {
+	allowed, match, err := h.ptr.Load().EnforceEx(sub, dom, obj, act)
+	if err == nil && allowed && len(match) >= 2 {
+		return true, match[0], match[1], nil
+	}
+	return allowed, "", "", err
+}
+
 // Swap 原子替换 enforcer（策略全量刷新时调用）
 func (h *Holder) Swap(rules []PolicyRule) error {
 	e, err := buildEnforcer(rules)

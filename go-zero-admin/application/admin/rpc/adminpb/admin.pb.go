@@ -1428,6 +1428,662 @@ func (x *GetUserResponse) GetUser() *UserInfo {
 	return nil
 }
 
+type GetUserPermissionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DeptId        *int64                 `protobuf:"varint,3,opt,name=dept_id,json=deptId,proto3,oneof" json:"dept_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserPermissionsRequest) Reset() {
+	*x = GetUserPermissionsRequest{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserPermissionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserPermissionsRequest) ProtoMessage() {}
+
+func (x *GetUserPermissionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserPermissionsRequest.ProtoReflect.Descriptor instead.
+func (*GetUserPermissionsRequest) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetUserPermissionsRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *GetUserPermissionsRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *GetUserPermissionsRequest) GetDeptId() int64 {
+	if x != nil && x.DeptId != nil {
+		return *x.DeptId
+	}
+	return 0
+}
+
+type UserPermissionDept struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserPermissionDept) Reset() {
+	*x = UserPermissionDept{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserPermissionDept) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserPermissionDept) ProtoMessage() {}
+
+func (x *UserPermissionDept) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserPermissionDept.ProtoReflect.Descriptor instead.
+func (*UserPermissionDept) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *UserPermissionDept) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *UserPermissionDept) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type UserPermissionRole struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Domain        string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	DataScope     string                 `protobuf:"bytes,3,opt,name=data_scope,json=dataScope,proto3" json:"data_scope,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserPermissionRole) Reset() {
+	*x = UserPermissionRole{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserPermissionRole) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserPermissionRole) ProtoMessage() {}
+
+func (x *UserPermissionRole) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserPermissionRole.ProtoReflect.Descriptor instead.
+func (*UserPermissionRole) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *UserPermissionRole) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *UserPermissionRole) GetDomain() string {
+	if x != nil {
+		return x.Domain
+	}
+	return ""
+}
+
+func (x *UserPermissionRole) GetDataScope() string {
+	if x != nil {
+		return x.DataScope
+	}
+	return ""
+}
+
+type UserPermissionResource struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoleCode      string                 `protobuf:"bytes,1,opt,name=role_code,json=roleCode,proto3" json:"role_code,omitempty"`
+	Path          string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	PermCode      string                 `protobuf:"bytes,3,opt,name=perm_code,json=permCode,proto3" json:"perm_code,omitempty"`
+	Type          int32                  `protobuf:"varint,4,opt,name=type,proto3" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserPermissionResource) Reset() {
+	*x = UserPermissionResource{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserPermissionResource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserPermissionResource) ProtoMessage() {}
+
+func (x *UserPermissionResource) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserPermissionResource.ProtoReflect.Descriptor instead.
+func (*UserPermissionResource) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *UserPermissionResource) GetRoleCode() string {
+	if x != nil {
+		return x.RoleCode
+	}
+	return ""
+}
+
+func (x *UserPermissionResource) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *UserPermissionResource) GetPermCode() string {
+	if x != nil {
+		return x.PermCode
+	}
+	return ""
+}
+
+func (x *UserPermissionResource) GetType() int32 {
+	if x != nil {
+		return x.Type
+	}
+	return 0
+}
+
+type UserPermissionVisibleUser struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserPermissionVisibleUser) Reset() {
+	*x = UserPermissionVisibleUser{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserPermissionVisibleUser) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserPermissionVisibleUser) ProtoMessage() {}
+
+func (x *UserPermissionVisibleUser) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserPermissionVisibleUser.ProtoReflect.Descriptor instead.
+func (*UserPermissionVisibleUser) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *UserPermissionVisibleUser) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *UserPermissionVisibleUser) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+type GetUserPermissionsResponse struct {
+	state            protoimpl.MessageState       `protogen:"open.v1"`
+	Enabled          bool                         `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	DeptId           int64                        `protobuf:"varint,2,opt,name=dept_id,json=deptId,proto3" json:"dept_id,omitempty"`
+	Depts            []*UserPermissionDept        `protobuf:"bytes,3,rep,name=depts,proto3" json:"depts,omitempty"`
+	Roles            []*UserPermissionRole        `protobuf:"bytes,4,rep,name=roles,proto3" json:"roles,omitempty"`
+	Resources        []*UserPermissionResource    `protobuf:"bytes,5,rep,name=resources,proto3" json:"resources,omitempty"`
+	DataScopes       []string                     `protobuf:"bytes,6,rep,name=data_scopes,json=dataScopes,proto3" json:"data_scopes,omitempty"`
+	VisibleUserCount int64                        `protobuf:"varint,7,opt,name=visible_user_count,json=visibleUserCount,proto3" json:"visible_user_count,omitempty"`
+	VisibleUsers     []*UserPermissionVisibleUser `protobuf:"bytes,8,rep,name=visible_users,json=visibleUsers,proto3" json:"visible_users,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *GetUserPermissionsResponse) Reset() {
+	*x = GetUserPermissionsResponse{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserPermissionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserPermissionsResponse) ProtoMessage() {}
+
+func (x *GetUserPermissionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserPermissionsResponse.ProtoReflect.Descriptor instead.
+func (*GetUserPermissionsResponse) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetUserPermissionsResponse) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *GetUserPermissionsResponse) GetDeptId() int64 {
+	if x != nil {
+		return x.DeptId
+	}
+	return 0
+}
+
+func (x *GetUserPermissionsResponse) GetDepts() []*UserPermissionDept {
+	if x != nil {
+		return x.Depts
+	}
+	return nil
+}
+
+func (x *GetUserPermissionsResponse) GetRoles() []*UserPermissionRole {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+func (x *GetUserPermissionsResponse) GetResources() []*UserPermissionResource {
+	if x != nil {
+		return x.Resources
+	}
+	return nil
+}
+
+func (x *GetUserPermissionsResponse) GetDataScopes() []string {
+	if x != nil {
+		return x.DataScopes
+	}
+	return nil
+}
+
+func (x *GetUserPermissionsResponse) GetVisibleUserCount() int64 {
+	if x != nil {
+		return x.VisibleUserCount
+	}
+	return 0
+}
+
+func (x *GetUserPermissionsResponse) GetVisibleUsers() []*UserPermissionVisibleUser {
+	if x != nil {
+		return x.VisibleUsers
+	}
+	return nil
+}
+
+type ImportUsersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	Rows          []*ImportUserInput     `protobuf:"bytes,2,rep,name=rows,proto3" json:"rows,omitempty"`
+	Confirm       bool                   `protobuf:"varint,3,opt,name=confirm,proto3" json:"confirm,omitempty"`
+	RowNumbers    []int64                `protobuf:"varint,4,rep,packed,name=row_numbers,json=rowNumbers,proto3" json:"row_numbers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportUsersRequest) Reset() {
+	*x = ImportUsersRequest{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportUsersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportUsersRequest) ProtoMessage() {}
+
+func (x *ImportUsersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportUsersRequest.ProtoReflect.Descriptor instead.
+func (*ImportUsersRequest) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *ImportUsersRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *ImportUsersRequest) GetRows() []*ImportUserInput {
+	if x != nil {
+		return x.Rows
+	}
+	return nil
+}
+
+func (x *ImportUsersRequest) GetConfirm() bool {
+	if x != nil {
+		return x.Confirm
+	}
+	return false
+}
+
+func (x *ImportUsersRequest) GetRowNumbers() []int64 {
+	if x != nil {
+		return x.RowNumbers
+	}
+	return nil
+}
+
+type ImportUserInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Row           int64                  `protobuf:"varint,1,opt,name=row,proto3" json:"row,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	DeptId        int64                  `protobuf:"varint,3,opt,name=dept_id,json=deptId,proto3" json:"dept_id,omitempty"`
+	RealName      string                 `protobuf:"bytes,4,opt,name=real_name,json=realName,proto3" json:"real_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportUserInput) Reset() {
+	*x = ImportUserInput{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportUserInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportUserInput) ProtoMessage() {}
+
+func (x *ImportUserInput) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportUserInput.ProtoReflect.Descriptor instead.
+func (*ImportUserInput) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *ImportUserInput) GetRow() int64 {
+	if x != nil {
+		return x.Row
+	}
+	return 0
+}
+
+func (x *ImportUserInput) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *ImportUserInput) GetDeptId() int64 {
+	if x != nil {
+		return x.DeptId
+	}
+	return 0
+}
+
+func (x *ImportUserInput) GetRealName() string {
+	if x != nil {
+		return x.RealName
+	}
+	return ""
+}
+
+type ImportUserResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Row           int64                  `protobuf:"varint,1,opt,name=row,proto3" json:"row,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	DeptId        int64                  `protobuf:"varint,3,opt,name=dept_id,json=deptId,proto3" json:"dept_id,omitempty"`
+	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	Message       string                 `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportUserResult) Reset() {
+	*x = ImportUserResult{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportUserResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportUserResult) ProtoMessage() {}
+
+func (x *ImportUserResult) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportUserResult.ProtoReflect.Descriptor instead.
+func (*ImportUserResult) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *ImportUserResult) GetRow() int64 {
+	if x != nil {
+		return x.Row
+	}
+	return 0
+}
+
+func (x *ImportUserResult) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *ImportUserResult) GetDeptId() int64 {
+	if x != nil {
+		return x.DeptId
+	}
+	return 0
+}
+
+func (x *ImportUserResult) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ImportUserResult) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type ImportUsersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rows          []*ImportUserResult    `protobuf:"bytes,1,rep,name=rows,proto3" json:"rows,omitempty"`
+	Created       int64                  `protobuf:"varint,2,opt,name=created,proto3" json:"created,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportUsersResponse) Reset() {
+	*x = ImportUsersResponse{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportUsersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportUsersResponse) ProtoMessage() {}
+
+func (x *ImportUsersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportUsersResponse.ProtoReflect.Descriptor instead.
+func (*ImportUsersResponse) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ImportUsersResponse) GetRows() []*ImportUserResult {
+	if x != nil {
+		return x.Rows
+	}
+	return nil
+}
+
+func (x *ImportUsersResponse) GetCreated() int64 {
+	if x != nil {
+		return x.Created
+	}
+	return 0
+}
+
 type CreateUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
@@ -1449,7 +2105,7 @@ type CreateUserRequest struct {
 
 func (x *CreateUserRequest) Reset() {
 	*x = CreateUserRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[21]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1461,7 +2117,7 @@ func (x *CreateUserRequest) String() string {
 func (*CreateUserRequest) ProtoMessage() {}
 
 func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[21]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1474,7 +2130,7 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{21}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *CreateUserRequest) GetActor() *Actor {
@@ -1589,7 +2245,7 @@ type UpdateUserRequest struct {
 
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[22]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1601,7 +2257,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[22]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1614,7 +2270,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{22}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *UpdateUserRequest) GetActor() *Actor {
@@ -1718,7 +2374,7 @@ type DeleteUserRequest struct {
 
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[23]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1730,7 +2386,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[23]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1743,7 +2399,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{23}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *DeleteUserRequest) GetActor() *Actor {
@@ -1771,7 +2427,7 @@ type ResetPasswordRequest struct {
 
 func (x *ResetPasswordRequest) Reset() {
 	*x = ResetPasswordRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[24]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1783,7 +2439,7 @@ func (x *ResetPasswordRequest) String() string {
 func (*ResetPasswordRequest) ProtoMessage() {}
 
 func (x *ResetPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[24]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1796,7 +2452,7 @@ func (x *ResetPasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetPasswordRequest.ProtoReflect.Descriptor instead.
 func (*ResetPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{24}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ResetPasswordRequest) GetActor() *Actor {
@@ -1831,7 +2487,7 @@ type ChangePasswordRequest struct {
 
 func (x *ChangePasswordRequest) Reset() {
 	*x = ChangePasswordRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[25]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1843,7 +2499,7 @@ func (x *ChangePasswordRequest) String() string {
 func (*ChangePasswordRequest) ProtoMessage() {}
 
 func (x *ChangePasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[25]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1856,7 +2512,7 @@ func (x *ChangePasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChangePasswordRequest.ProtoReflect.Descriptor instead.
 func (*ChangePasswordRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{25}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ChangePasswordRequest) GetActor() *Actor {
@@ -1890,7 +2546,7 @@ type GetProfileRequest struct {
 
 func (x *GetProfileRequest) Reset() {
 	*x = GetProfileRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[26]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1902,7 +2558,7 @@ func (x *GetProfileRequest) String() string {
 func (*GetProfileRequest) ProtoMessage() {}
 
 func (x *GetProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[26]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1915,7 +2571,7 @@ func (x *GetProfileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProfileRequest.ProtoReflect.Descriptor instead.
 func (*GetProfileRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{26}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GetProfileRequest) GetActor() *Actor {
@@ -1934,7 +2590,7 @@ type GetProfileResponse struct {
 
 func (x *GetProfileResponse) Reset() {
 	*x = GetProfileResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[27]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1946,7 +2602,7 @@ func (x *GetProfileResponse) String() string {
 func (*GetProfileResponse) ProtoMessage() {}
 
 func (x *GetProfileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[27]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1959,7 +2615,7 @@ func (x *GetProfileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProfileResponse.ProtoReflect.Descriptor instead.
 func (*GetProfileResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{27}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *GetProfileResponse) GetUser() *UserInfo {
@@ -1984,7 +2640,7 @@ type UpdateProfileRequest struct {
 
 func (x *UpdateProfileRequest) Reset() {
 	*x = UpdateProfileRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[28]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1996,7 +2652,7 @@ func (x *UpdateProfileRequest) String() string {
 func (*UpdateProfileRequest) ProtoMessage() {}
 
 func (x *UpdateProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[28]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2009,7 +2665,7 @@ func (x *UpdateProfileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProfileRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProfileRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{28}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *UpdateProfileRequest) GetActor() *Actor {
@@ -2083,7 +2739,7 @@ type RoleInfo struct {
 
 func (x *RoleInfo) Reset() {
 	*x = RoleInfo{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[29]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2095,7 +2751,7 @@ func (x *RoleInfo) String() string {
 func (*RoleInfo) ProtoMessage() {}
 
 func (x *RoleInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[29]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2108,7 +2764,7 @@ func (x *RoleInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoleInfo.ProtoReflect.Descriptor instead.
 func (*RoleInfo) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{29}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *RoleInfo) GetId() int64 {
@@ -2201,7 +2857,7 @@ type GetRoleListRequest struct {
 
 func (x *GetRoleListRequest) Reset() {
 	*x = GetRoleListRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[30]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2213,7 +2869,7 @@ func (x *GetRoleListRequest) String() string {
 func (*GetRoleListRequest) ProtoMessage() {}
 
 func (x *GetRoleListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[30]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2226,7 +2882,7 @@ func (x *GetRoleListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleListRequest.ProtoReflect.Descriptor instead.
 func (*GetRoleListRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{30}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *GetRoleListRequest) GetActor() *Actor {
@@ -2274,7 +2930,7 @@ type GetRoleListResponse struct {
 
 func (x *GetRoleListResponse) Reset() {
 	*x = GetRoleListResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[31]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2286,7 +2942,7 @@ func (x *GetRoleListResponse) String() string {
 func (*GetRoleListResponse) ProtoMessage() {}
 
 func (x *GetRoleListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[31]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2299,7 +2955,7 @@ func (x *GetRoleListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleListResponse.ProtoReflect.Descriptor instead.
 func (*GetRoleListResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{31}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GetRoleListResponse) GetList() []*RoleInfo {
@@ -2326,7 +2982,7 @@ type GetRoleRequest struct {
 
 func (x *GetRoleRequest) Reset() {
 	*x = GetRoleRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[32]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2338,7 +2994,7 @@ func (x *GetRoleRequest) String() string {
 func (*GetRoleRequest) ProtoMessage() {}
 
 func (x *GetRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[32]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2351,7 +3007,7 @@ func (x *GetRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleRequest.ProtoReflect.Descriptor instead.
 func (*GetRoleRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{32}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *GetRoleRequest) GetActor() *Actor {
@@ -2377,7 +3033,7 @@ type GetRoleResponse struct {
 
 func (x *GetRoleResponse) Reset() {
 	*x = GetRoleResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[33]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2389,7 +3045,7 @@ func (x *GetRoleResponse) String() string {
 func (*GetRoleResponse) ProtoMessage() {}
 
 func (x *GetRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[33]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2402,7 +3058,7 @@ func (x *GetRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleResponse.ProtoReflect.Descriptor instead.
 func (*GetRoleResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{33}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *GetRoleResponse) GetRole() *RoleInfo {
@@ -2428,7 +3084,7 @@ type CreateRoleRequest struct {
 
 func (x *CreateRoleRequest) Reset() {
 	*x = CreateRoleRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[34]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2440,7 +3096,7 @@ func (x *CreateRoleRequest) String() string {
 func (*CreateRoleRequest) ProtoMessage() {}
 
 func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[34]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2453,7 +3109,7 @@ func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{34}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *CreateRoleRequest) GetActor() *Actor {
@@ -2531,7 +3187,7 @@ type UpdateRoleRequest struct {
 
 func (x *UpdateRoleRequest) Reset() {
 	*x = UpdateRoleRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[35]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2543,7 +3199,7 @@ func (x *UpdateRoleRequest) String() string {
 func (*UpdateRoleRequest) ProtoMessage() {}
 
 func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[35]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2556,7 +3212,7 @@ func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{35}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *UpdateRoleRequest) GetActor() *Actor {
@@ -2646,7 +3302,7 @@ type DeleteRoleRequest struct {
 
 func (x *DeleteRoleRequest) Reset() {
 	*x = DeleteRoleRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[36]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2658,7 +3314,7 @@ func (x *DeleteRoleRequest) String() string {
 func (*DeleteRoleRequest) ProtoMessage() {}
 
 func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[36]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2671,7 +3327,7 @@ func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRoleRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{36}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *DeleteRoleRequest) GetActor() *Actor {
@@ -2700,7 +3356,7 @@ type UpdateRoleMenusRequest struct {
 
 func (x *UpdateRoleMenusRequest) Reset() {
 	*x = UpdateRoleMenusRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[37]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2712,7 +3368,7 @@ func (x *UpdateRoleMenusRequest) String() string {
 func (*UpdateRoleMenusRequest) ProtoMessage() {}
 
 func (x *UpdateRoleMenusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[37]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2725,7 +3381,7 @@ func (x *UpdateRoleMenusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleMenusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRoleMenusRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{37}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *UpdateRoleMenusRequest) GetActor() *Actor {
@@ -2780,7 +3436,7 @@ type MenuInfo struct {
 
 func (x *MenuInfo) Reset() {
 	*x = MenuInfo{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[38]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2792,7 +3448,7 @@ func (x *MenuInfo) String() string {
 func (*MenuInfo) ProtoMessage() {}
 
 func (x *MenuInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[38]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2805,7 +3461,7 @@ func (x *MenuInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MenuInfo.ProtoReflect.Descriptor instead.
 func (*MenuInfo) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{38}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *MenuInfo) GetId() int64 {
@@ -2910,7 +3566,7 @@ type GetMenuTreeRequest struct {
 
 func (x *GetMenuTreeRequest) Reset() {
 	*x = GetMenuTreeRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[39]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2922,7 +3578,7 @@ func (x *GetMenuTreeRequest) String() string {
 func (*GetMenuTreeRequest) ProtoMessage() {}
 
 func (x *GetMenuTreeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[39]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2935,7 +3591,7 @@ func (x *GetMenuTreeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMenuTreeRequest.ProtoReflect.Descriptor instead.
 func (*GetMenuTreeRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{39}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *GetMenuTreeRequest) GetActor() *Actor {
@@ -2968,7 +3624,7 @@ type GetMenuTreeResponse struct {
 
 func (x *GetMenuTreeResponse) Reset() {
 	*x = GetMenuTreeResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[40]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2980,7 +3636,7 @@ func (x *GetMenuTreeResponse) String() string {
 func (*GetMenuTreeResponse) ProtoMessage() {}
 
 func (x *GetMenuTreeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[40]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2993,7 +3649,7 @@ func (x *GetMenuTreeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMenuTreeResponse.ProtoReflect.Descriptor instead.
 func (*GetMenuTreeResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{40}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *GetMenuTreeResponse) GetList() []*MenuInfo {
@@ -3015,7 +3671,7 @@ type GetMenuListRequest struct {
 
 func (x *GetMenuListRequest) Reset() {
 	*x = GetMenuListRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[41]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3027,7 +3683,7 @@ func (x *GetMenuListRequest) String() string {
 func (*GetMenuListRequest) ProtoMessage() {}
 
 func (x *GetMenuListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[41]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3040,7 +3696,7 @@ func (x *GetMenuListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMenuListRequest.ProtoReflect.Descriptor instead.
 func (*GetMenuListRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{41}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *GetMenuListRequest) GetActor() *Actor {
@@ -3081,7 +3737,7 @@ type GetMenuListResponse struct {
 
 func (x *GetMenuListResponse) Reset() {
 	*x = GetMenuListResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[42]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3093,7 +3749,7 @@ func (x *GetMenuListResponse) String() string {
 func (*GetMenuListResponse) ProtoMessage() {}
 
 func (x *GetMenuListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[42]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3106,7 +3762,7 @@ func (x *GetMenuListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMenuListResponse.ProtoReflect.Descriptor instead.
 func (*GetMenuListResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{42}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *GetMenuListResponse) GetList() []*MenuInfo {
@@ -3133,7 +3789,7 @@ type GetMenuRequest struct {
 
 func (x *GetMenuRequest) Reset() {
 	*x = GetMenuRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[43]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3145,7 +3801,7 @@ func (x *GetMenuRequest) String() string {
 func (*GetMenuRequest) ProtoMessage() {}
 
 func (x *GetMenuRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[43]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3158,7 +3814,7 @@ func (x *GetMenuRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMenuRequest.ProtoReflect.Descriptor instead.
 func (*GetMenuRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{43}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetMenuRequest) GetActor() *Actor {
@@ -3184,7 +3840,7 @@ type GetMenuResponse struct {
 
 func (x *GetMenuResponse) Reset() {
 	*x = GetMenuResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[44]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3196,7 +3852,7 @@ func (x *GetMenuResponse) String() string {
 func (*GetMenuResponse) ProtoMessage() {}
 
 func (x *GetMenuResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[44]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3209,7 +3865,7 @@ func (x *GetMenuResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMenuResponse.ProtoReflect.Descriptor instead.
 func (*GetMenuResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{44}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *GetMenuResponse) GetMenu() *MenuInfo {
@@ -3239,7 +3895,7 @@ type CreateMenuRequest struct {
 
 func (x *CreateMenuRequest) Reset() {
 	*x = CreateMenuRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[45]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3251,7 +3907,7 @@ func (x *CreateMenuRequest) String() string {
 func (*CreateMenuRequest) ProtoMessage() {}
 
 func (x *CreateMenuRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[45]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3264,7 +3920,7 @@ func (x *CreateMenuRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMenuRequest.ProtoReflect.Descriptor instead.
 func (*CreateMenuRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{45}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *CreateMenuRequest) GetActor() *Actor {
@@ -3372,7 +4028,7 @@ type UpdateMenuRequest struct {
 
 func (x *UpdateMenuRequest) Reset() {
 	*x = UpdateMenuRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[46]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3384,7 +4040,7 @@ func (x *UpdateMenuRequest) String() string {
 func (*UpdateMenuRequest) ProtoMessage() {}
 
 func (x *UpdateMenuRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[46]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3397,7 +4053,7 @@ func (x *UpdateMenuRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMenuRequest.ProtoReflect.Descriptor instead.
 func (*UpdateMenuRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{46}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *UpdateMenuRequest) GetActor() *Actor {
@@ -3501,7 +4157,7 @@ type DeleteMenuRequest struct {
 
 func (x *DeleteMenuRequest) Reset() {
 	*x = DeleteMenuRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[47]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3513,7 +4169,7 @@ func (x *DeleteMenuRequest) String() string {
 func (*DeleteMenuRequest) ProtoMessage() {}
 
 func (x *DeleteMenuRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[47]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3526,7 +4182,7 @@ func (x *DeleteMenuRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMenuRequest.ProtoReflect.Descriptor instead.
 func (*DeleteMenuRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{47}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *DeleteMenuRequest) GetActor() *Actor {
@@ -3552,7 +4208,7 @@ type GetMyMenusRequest struct {
 
 func (x *GetMyMenusRequest) Reset() {
 	*x = GetMyMenusRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[48]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3564,7 +4220,7 @@ func (x *GetMyMenusRequest) String() string {
 func (*GetMyMenusRequest) ProtoMessage() {}
 
 func (x *GetMyMenusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[48]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3577,7 +4233,7 @@ func (x *GetMyMenusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMyMenusRequest.ProtoReflect.Descriptor instead.
 func (*GetMyMenusRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{48}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *GetMyMenusRequest) GetActor() *Actor {
@@ -3596,7 +4252,7 @@ type GetMyMenusResponse struct {
 
 func (x *GetMyMenusResponse) Reset() {
 	*x = GetMyMenusResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[49]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3608,7 +4264,7 @@ func (x *GetMyMenusResponse) String() string {
 func (*GetMyMenusResponse) ProtoMessage() {}
 
 func (x *GetMyMenusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[49]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3621,7 +4277,7 @@ func (x *GetMyMenusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMyMenusResponse.ProtoReflect.Descriptor instead.
 func (*GetMyMenusResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{49}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *GetMyMenusResponse) GetList() []*MenuInfo {
@@ -3640,7 +4296,7 @@ type GetMyPermCodesRequest struct {
 
 func (x *GetMyPermCodesRequest) Reset() {
 	*x = GetMyPermCodesRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[50]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3652,7 +4308,7 @@ func (x *GetMyPermCodesRequest) String() string {
 func (*GetMyPermCodesRequest) ProtoMessage() {}
 
 func (x *GetMyPermCodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[50]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3665,7 +4321,7 @@ func (x *GetMyPermCodesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMyPermCodesRequest.ProtoReflect.Descriptor instead.
 func (*GetMyPermCodesRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{50}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *GetMyPermCodesRequest) GetActor() *Actor {
@@ -3684,7 +4340,7 @@ type GetMyPermCodesResponse struct {
 
 func (x *GetMyPermCodesResponse) Reset() {
 	*x = GetMyPermCodesResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[51]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3696,7 +4352,7 @@ func (x *GetMyPermCodesResponse) String() string {
 func (*GetMyPermCodesResponse) ProtoMessage() {}
 
 func (x *GetMyPermCodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[51]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3709,7 +4365,7 @@ func (x *GetMyPermCodesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMyPermCodesResponse.ProtoReflect.Descriptor instead.
 func (*GetMyPermCodesResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{51}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *GetMyPermCodesResponse) GetCodes() []string {
@@ -3743,7 +4399,7 @@ type DeptInfo struct {
 
 func (x *DeptInfo) Reset() {
 	*x = DeptInfo{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[52]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3755,7 +4411,7 @@ func (x *DeptInfo) String() string {
 func (*DeptInfo) ProtoMessage() {}
 
 func (x *DeptInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[52]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3768,7 +4424,7 @@ func (x *DeptInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeptInfo.ProtoReflect.Descriptor instead.
 func (*DeptInfo) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{52}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *DeptInfo) GetId() int64 {
@@ -3873,7 +4529,7 @@ type GetDeptTreeRequest struct {
 
 func (x *GetDeptTreeRequest) Reset() {
 	*x = GetDeptTreeRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[53]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3885,7 +4541,7 @@ func (x *GetDeptTreeRequest) String() string {
 func (*GetDeptTreeRequest) ProtoMessage() {}
 
 func (x *GetDeptTreeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[53]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3898,7 +4554,7 @@ func (x *GetDeptTreeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDeptTreeRequest.ProtoReflect.Descriptor instead.
 func (*GetDeptTreeRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{53}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *GetDeptTreeRequest) GetActor() *Actor {
@@ -3931,7 +4587,7 @@ type GetDeptTreeResponse struct {
 
 func (x *GetDeptTreeResponse) Reset() {
 	*x = GetDeptTreeResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[54]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3943,7 +4599,7 @@ func (x *GetDeptTreeResponse) String() string {
 func (*GetDeptTreeResponse) ProtoMessage() {}
 
 func (x *GetDeptTreeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[54]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3956,7 +4612,7 @@ func (x *GetDeptTreeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDeptTreeResponse.ProtoReflect.Descriptor instead.
 func (*GetDeptTreeResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{54}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *GetDeptTreeResponse) GetList() []*DeptInfo {
@@ -3983,7 +4639,7 @@ type CreateDeptRequest struct {
 
 func (x *CreateDeptRequest) Reset() {
 	*x = CreateDeptRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[55]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3995,7 +4651,7 @@ func (x *CreateDeptRequest) String() string {
 func (*CreateDeptRequest) ProtoMessage() {}
 
 func (x *CreateDeptRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[55]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4008,7 +4664,7 @@ func (x *CreateDeptRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDeptRequest.ProtoReflect.Descriptor instead.
 func (*CreateDeptRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{55}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *CreateDeptRequest) GetActor() *Actor {
@@ -4092,7 +4748,7 @@ type UpdateDeptRequest struct {
 
 func (x *UpdateDeptRequest) Reset() {
 	*x = UpdateDeptRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[56]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4104,7 +4760,7 @@ func (x *UpdateDeptRequest) String() string {
 func (*UpdateDeptRequest) ProtoMessage() {}
 
 func (x *UpdateDeptRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[56]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4117,7 +4773,7 @@ func (x *UpdateDeptRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDeptRequest.ProtoReflect.Descriptor instead.
 func (*UpdateDeptRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{56}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *UpdateDeptRequest) GetActor() *Actor {
@@ -4199,7 +4855,7 @@ type GetMyDeptsRequest struct {
 
 func (x *GetMyDeptsRequest) Reset() {
 	*x = GetMyDeptsRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[57]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4211,7 +4867,7 @@ func (x *GetMyDeptsRequest) String() string {
 func (*GetMyDeptsRequest) ProtoMessage() {}
 
 func (x *GetMyDeptsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[57]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4224,7 +4880,7 @@ func (x *GetMyDeptsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMyDeptsRequest.ProtoReflect.Descriptor instead.
 func (*GetMyDeptsRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{57}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *GetMyDeptsRequest) GetActor() *Actor {
@@ -4243,7 +4899,7 @@ type GetMyDeptsResponse struct {
 
 func (x *GetMyDeptsResponse) Reset() {
 	*x = GetMyDeptsResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[58]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4255,7 +4911,7 @@ func (x *GetMyDeptsResponse) String() string {
 func (*GetMyDeptsResponse) ProtoMessage() {}
 
 func (x *GetMyDeptsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[58]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4268,7 +4924,7 @@ func (x *GetMyDeptsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMyDeptsResponse.ProtoReflect.Descriptor instead.
 func (*GetMyDeptsResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{58}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *GetMyDeptsResponse) GetList() []*DeptInfo {
@@ -4276,6 +4932,194 @@ func (x *GetMyDeptsResponse) GetList() []*DeptInfo {
 		return x.List
 	}
 	return nil
+}
+
+type GetDepartmentDirectoryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	Keyword       string                 `protobuf:"bytes,2,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Page          int64                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int64                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDepartmentDirectoryRequest) Reset() {
+	*x = GetDepartmentDirectoryRequest{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[69]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDepartmentDirectoryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDepartmentDirectoryRequest) ProtoMessage() {}
+
+func (x *GetDepartmentDirectoryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[69]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDepartmentDirectoryRequest.ProtoReflect.Descriptor instead.
+func (*GetDepartmentDirectoryRequest) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{69}
+}
+
+func (x *GetDepartmentDirectoryRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *GetDepartmentDirectoryRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *GetDepartmentDirectoryRequest) GetPage() int64 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetDepartmentDirectoryRequest) GetPageSize() int64 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type DepartmentDirectoryMember struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	IsLeader      bool                   `protobuf:"varint,3,opt,name=is_leader,json=isLeader,proto3" json:"is_leader,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DepartmentDirectoryMember) Reset() {
+	*x = DepartmentDirectoryMember{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[70]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DepartmentDirectoryMember) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DepartmentDirectoryMember) ProtoMessage() {}
+
+func (x *DepartmentDirectoryMember) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[70]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DepartmentDirectoryMember.ProtoReflect.Descriptor instead.
+func (*DepartmentDirectoryMember) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{70}
+}
+
+func (x *DepartmentDirectoryMember) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *DepartmentDirectoryMember) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DepartmentDirectoryMember) GetIsLeader() bool {
+	if x != nil {
+		return x.IsLeader
+	}
+	return false
+}
+
+type GetDepartmentDirectoryResponse struct {
+	state         protoimpl.MessageState       `protogen:"open.v1"`
+	DeptName      string                       `protobuf:"bytes,1,opt,name=dept_name,json=deptName,proto3" json:"dept_name,omitempty"`
+	List          []*DepartmentDirectoryMember `protobuf:"bytes,2,rep,name=list,proto3" json:"list,omitempty"`
+	Total         int64                        `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDepartmentDirectoryResponse) Reset() {
+	*x = GetDepartmentDirectoryResponse{}
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[71]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDepartmentDirectoryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDepartmentDirectoryResponse) ProtoMessage() {}
+
+func (x *GetDepartmentDirectoryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[71]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDepartmentDirectoryResponse.ProtoReflect.Descriptor instead.
+func (*GetDepartmentDirectoryResponse) Descriptor() ([]byte, []int) {
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{71}
+}
+
+func (x *GetDepartmentDirectoryResponse) GetDeptName() string {
+	if x != nil {
+		return x.DeptName
+	}
+	return ""
+}
+
+func (x *GetDepartmentDirectoryResponse) GetList() []*DepartmentDirectoryMember {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+func (x *GetDepartmentDirectoryResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
 }
 
 type DeleteDeptRequest struct {
@@ -4288,7 +5132,7 @@ type DeleteDeptRequest struct {
 
 func (x *DeleteDeptRequest) Reset() {
 	*x = DeleteDeptRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[59]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4300,7 +5144,7 @@ func (x *DeleteDeptRequest) String() string {
 func (*DeleteDeptRequest) ProtoMessage() {}
 
 func (x *DeleteDeptRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[59]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4313,7 +5157,7 @@ func (x *DeleteDeptRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDeptRequest.ProtoReflect.Descriptor instead.
 func (*DeleteDeptRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{59}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *DeleteDeptRequest) GetActor() *Actor {
@@ -4344,7 +5188,7 @@ type DictItem struct {
 
 func (x *DictItem) Reset() {
 	*x = DictItem{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[60]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4356,7 +5200,7 @@ func (x *DictItem) String() string {
 func (*DictItem) ProtoMessage() {}
 
 func (x *DictItem) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[60]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4369,7 +5213,7 @@ func (x *DictItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DictItem.ProtoReflect.Descriptor instead.
 func (*DictItem) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{60}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *DictItem) GetLabel() string {
@@ -4409,7 +5253,7 @@ type DictInfo struct {
 
 func (x *DictInfo) Reset() {
 	*x = DictInfo{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[61]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4421,7 +5265,7 @@ func (x *DictInfo) String() string {
 func (*DictInfo) ProtoMessage() {}
 
 func (x *DictInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[61]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4434,7 +5278,7 @@ func (x *DictInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DictInfo.ProtoReflect.Descriptor instead.
 func (*DictInfo) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{61}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *DictInfo) GetId() int64 {
@@ -4506,7 +5350,7 @@ type GetDictListRequest struct {
 
 func (x *GetDictListRequest) Reset() {
 	*x = GetDictListRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[62]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4518,7 +5362,7 @@ func (x *GetDictListRequest) String() string {
 func (*GetDictListRequest) ProtoMessage() {}
 
 func (x *GetDictListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[62]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4531,7 +5375,7 @@ func (x *GetDictListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDictListRequest.ProtoReflect.Descriptor instead.
 func (*GetDictListRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{62}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *GetDictListRequest) GetActor() *Actor {
@@ -4579,7 +5423,7 @@ type GetDictListResponse struct {
 
 func (x *GetDictListResponse) Reset() {
 	*x = GetDictListResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[63]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4591,7 +5435,7 @@ func (x *GetDictListResponse) String() string {
 func (*GetDictListResponse) ProtoMessage() {}
 
 func (x *GetDictListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[63]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4604,7 +5448,7 @@ func (x *GetDictListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDictListResponse.ProtoReflect.Descriptor instead.
 func (*GetDictListResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{63}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *GetDictListResponse) GetList() []*DictInfo {
@@ -4630,7 +5474,7 @@ type GetDictByCodeRequest struct {
 
 func (x *GetDictByCodeRequest) Reset() {
 	*x = GetDictByCodeRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[64]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4642,7 +5486,7 @@ func (x *GetDictByCodeRequest) String() string {
 func (*GetDictByCodeRequest) ProtoMessage() {}
 
 func (x *GetDictByCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[64]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4655,7 +5499,7 @@ func (x *GetDictByCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDictByCodeRequest.ProtoReflect.Descriptor instead.
 func (*GetDictByCodeRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{64}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *GetDictByCodeRequest) GetCode() string {
@@ -4674,7 +5518,7 @@ type GetDictByCodeResponse struct {
 
 func (x *GetDictByCodeResponse) Reset() {
 	*x = GetDictByCodeResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[65]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4686,7 +5530,7 @@ func (x *GetDictByCodeResponse) String() string {
 func (*GetDictByCodeResponse) ProtoMessage() {}
 
 func (x *GetDictByCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[65]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4699,7 +5543,7 @@ func (x *GetDictByCodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDictByCodeResponse.ProtoReflect.Descriptor instead.
 func (*GetDictByCodeResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{65}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *GetDictByCodeResponse) GetDict() *DictInfo {
@@ -4723,7 +5567,7 @@ type CreateDictRequest struct {
 
 func (x *CreateDictRequest) Reset() {
 	*x = CreateDictRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[66]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4735,7 +5579,7 @@ func (x *CreateDictRequest) String() string {
 func (*CreateDictRequest) ProtoMessage() {}
 
 func (x *CreateDictRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[66]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4748,7 +5592,7 @@ func (x *CreateDictRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDictRequest.ProtoReflect.Descriptor instead.
 func (*CreateDictRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{66}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *CreateDictRequest) GetActor() *Actor {
@@ -4809,7 +5653,7 @@ type UpdateDictRequest struct {
 
 func (x *UpdateDictRequest) Reset() {
 	*x = UpdateDictRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[67]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4821,7 +5665,7 @@ func (x *UpdateDictRequest) String() string {
 func (*UpdateDictRequest) ProtoMessage() {}
 
 func (x *UpdateDictRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[67]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4834,7 +5678,7 @@ func (x *UpdateDictRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDictRequest.ProtoReflect.Descriptor instead.
 func (*UpdateDictRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{67}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *UpdateDictRequest) GetActor() *Actor {
@@ -4903,7 +5747,7 @@ type DeleteDictRequest struct {
 
 func (x *DeleteDictRequest) Reset() {
 	*x = DeleteDictRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[68]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4915,7 +5759,7 @@ func (x *DeleteDictRequest) String() string {
 func (*DeleteDictRequest) ProtoMessage() {}
 
 func (x *DeleteDictRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[68]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4928,7 +5772,7 @@ func (x *DeleteDictRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDictRequest.ProtoReflect.Descriptor instead.
 func (*DeleteDictRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{68}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *DeleteDictRequest) GetActor() *Actor {
@@ -4962,7 +5806,7 @@ type ApiInfo struct {
 
 func (x *ApiInfo) Reset() {
 	*x = ApiInfo{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[69]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4974,7 +5818,7 @@ func (x *ApiInfo) String() string {
 func (*ApiInfo) ProtoMessage() {}
 
 func (x *ApiInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[69]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4987,7 +5831,7 @@ func (x *ApiInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApiInfo.ProtoReflect.Descriptor instead.
 func (*ApiInfo) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{69}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *ApiInfo) GetId() int64 {
@@ -5045,7 +5889,7 @@ type GetApiListRequest struct {
 
 func (x *GetApiListRequest) Reset() {
 	*x = GetApiListRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[70]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5057,7 +5901,7 @@ func (x *GetApiListRequest) String() string {
 func (*GetApiListRequest) ProtoMessage() {}
 
 func (x *GetApiListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[70]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5070,7 +5914,7 @@ func (x *GetApiListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApiListRequest.ProtoReflect.Descriptor instead.
 func (*GetApiListRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{70}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *GetApiListRequest) GetActor() *Actor {
@@ -5118,7 +5962,7 @@ type GetApiListResponse struct {
 
 func (x *GetApiListResponse) Reset() {
 	*x = GetApiListResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[71]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5130,7 +5974,7 @@ func (x *GetApiListResponse) String() string {
 func (*GetApiListResponse) ProtoMessage() {}
 
 func (x *GetApiListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[71]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5143,7 +5987,7 @@ func (x *GetApiListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApiListResponse.ProtoReflect.Descriptor instead.
 func (*GetApiListResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{71}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *GetApiListResponse) GetList() []*ApiInfo {
@@ -5170,7 +6014,7 @@ type DeleteApiRequest struct {
 
 func (x *DeleteApiRequest) Reset() {
 	*x = DeleteApiRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[72]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5182,7 +6026,7 @@ func (x *DeleteApiRequest) String() string {
 func (*DeleteApiRequest) ProtoMessage() {}
 
 func (x *DeleteApiRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[72]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5195,7 +6039,7 @@ func (x *DeleteApiRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteApiRequest.ProtoReflect.Descriptor instead.
 func (*DeleteApiRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{72}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *DeleteApiRequest) GetActor() *Actor {
@@ -5222,7 +6066,7 @@ type SyncApiRequest struct {
 
 func (x *SyncApiRequest) Reset() {
 	*x = SyncApiRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[73]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5234,7 +6078,7 @@ func (x *SyncApiRequest) String() string {
 func (*SyncApiRequest) ProtoMessage() {}
 
 func (x *SyncApiRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[73]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5247,7 +6091,7 @@ func (x *SyncApiRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncApiRequest.ProtoReflect.Descriptor instead.
 func (*SyncApiRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{73}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *SyncApiRequest) GetActor() *Actor {
@@ -5276,7 +6120,7 @@ type ApiRoute struct {
 
 func (x *ApiRoute) Reset() {
 	*x = ApiRoute{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[74]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5288,7 +6132,7 @@ func (x *ApiRoute) String() string {
 func (*ApiRoute) ProtoMessage() {}
 
 func (x *ApiRoute) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[74]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5301,7 +6145,7 @@ func (x *ApiRoute) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApiRoute.ProtoReflect.Descriptor instead.
 func (*ApiRoute) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{74}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *ApiRoute) GetMethod() string {
@@ -5343,7 +6187,7 @@ type SyncApiResponse struct {
 
 func (x *SyncApiResponse) Reset() {
 	*x = SyncApiResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[75]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5355,7 +6199,7 @@ func (x *SyncApiResponse) String() string {
 func (*SyncApiResponse) ProtoMessage() {}
 
 func (x *SyncApiResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[75]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5368,7 +6212,7 @@ func (x *SyncApiResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncApiResponse.ProtoReflect.Descriptor instead.
 func (*SyncApiResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{75}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *SyncApiResponse) GetAdded() int64 {
@@ -5417,7 +6261,7 @@ type AuditLogInfo struct {
 
 func (x *AuditLogInfo) Reset() {
 	*x = AuditLogInfo{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[76]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5429,7 +6273,7 @@ func (x *AuditLogInfo) String() string {
 func (*AuditLogInfo) ProtoMessage() {}
 
 func (x *AuditLogInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[76]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5442,7 +6286,7 @@ func (x *AuditLogInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuditLogInfo.ProtoReflect.Descriptor instead.
 func (*AuditLogInfo) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{76}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *AuditLogInfo) GetId() int64 {
@@ -5557,7 +6401,7 @@ type GetAuditLogListRequest struct {
 
 func (x *GetAuditLogListRequest) Reset() {
 	*x = GetAuditLogListRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[77]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5569,7 +6413,7 @@ func (x *GetAuditLogListRequest) String() string {
 func (*GetAuditLogListRequest) ProtoMessage() {}
 
 func (x *GetAuditLogListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[77]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5582,7 +6426,7 @@ func (x *GetAuditLogListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAuditLogListRequest.ProtoReflect.Descriptor instead.
 func (*GetAuditLogListRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{77}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *GetAuditLogListRequest) GetActor() *Actor {
@@ -5637,7 +6481,7 @@ type GetAuditLogListResponse struct {
 
 func (x *GetAuditLogListResponse) Reset() {
 	*x = GetAuditLogListResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[78]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5649,7 +6493,7 @@ func (x *GetAuditLogListResponse) String() string {
 func (*GetAuditLogListResponse) ProtoMessage() {}
 
 func (x *GetAuditLogListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[78]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5662,7 +6506,7 @@ func (x *GetAuditLogListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAuditLogListResponse.ProtoReflect.Descriptor instead.
 func (*GetAuditLogListResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{78}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *GetAuditLogListResponse) GetList() []*AuditLogInfo {
@@ -5695,7 +6539,7 @@ type CreateAuditLogRequest struct {
 
 func (x *CreateAuditLogRequest) Reset() {
 	*x = CreateAuditLogRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[79]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5707,7 +6551,7 @@ func (x *CreateAuditLogRequest) String() string {
 func (*CreateAuditLogRequest) ProtoMessage() {}
 
 func (x *CreateAuditLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[79]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5720,7 +6564,7 @@ func (x *CreateAuditLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAuditLogRequest.ProtoReflect.Descriptor instead.
 func (*CreateAuditLogRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{79}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *CreateAuditLogRequest) GetActor() *Actor {
@@ -5787,7 +6631,7 @@ type CheckHealthRequest struct {
 
 func (x *CheckHealthRequest) Reset() {
 	*x = CheckHealthRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[80]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5799,7 +6643,7 @@ func (x *CheckHealthRequest) String() string {
 func (*CheckHealthRequest) ProtoMessage() {}
 
 func (x *CheckHealthRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[80]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5812,7 +6656,7 @@ func (x *CheckHealthRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckHealthRequest.ProtoReflect.Descriptor instead.
 func (*CheckHealthRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{80}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{93}
 }
 
 type CheckHealthResponse struct {
@@ -5824,7 +6668,7 @@ type CheckHealthResponse struct {
 
 func (x *CheckHealthResponse) Reset() {
 	*x = CheckHealthResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[81]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5836,7 +6680,7 @@ func (x *CheckHealthResponse) String() string {
 func (*CheckHealthResponse) ProtoMessage() {}
 
 func (x *CheckHealthResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[81]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5849,7 +6693,7 @@ func (x *CheckHealthResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckHealthResponse.ProtoReflect.Descriptor instead.
 func (*CheckHealthResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{81}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *CheckHealthResponse) GetReady() bool {
@@ -5877,7 +6721,7 @@ type PolicyRule struct {
 
 func (x *PolicyRule) Reset() {
 	*x = PolicyRule{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[82]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5889,7 +6733,7 @@ func (x *PolicyRule) String() string {
 func (*PolicyRule) ProtoMessage() {}
 
 func (x *PolicyRule) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[82]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5902,7 +6746,7 @@ func (x *PolicyRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyRule.ProtoReflect.Descriptor instead.
 func (*PolicyRule) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{82}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *PolicyRule) GetPtype() string {
@@ -5962,7 +6806,7 @@ type ListPoliciesRequest struct {
 
 func (x *ListPoliciesRequest) Reset() {
 	*x = ListPoliciesRequest{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[83]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5974,7 +6818,7 @@ func (x *ListPoliciesRequest) String() string {
 func (*ListPoliciesRequest) ProtoMessage() {}
 
 func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[83]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5987,7 +6831,7 @@ func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{83}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{96}
 }
 
 type ListPoliciesResponse struct {
@@ -5999,7 +6843,7 @@ type ListPoliciesResponse struct {
 
 func (x *ListPoliciesResponse) Reset() {
 	*x = ListPoliciesResponse{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[84]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6011,7 +6855,7 @@ func (x *ListPoliciesResponse) String() string {
 func (*ListPoliciesResponse) ProtoMessage() {}
 
 func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[84]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6024,7 +6868,7 @@ func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{84}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *ListPoliciesResponse) GetRules() []*PolicyRule {
@@ -6044,7 +6888,7 @@ type RoleMenuSnapshot struct {
 
 func (x *RoleMenuSnapshot) Reset() {
 	*x = RoleMenuSnapshot{}
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[85]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6056,7 +6900,7 @@ func (x *RoleMenuSnapshot) String() string {
 func (*RoleMenuSnapshot) ProtoMessage() {}
 
 func (x *RoleMenuSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[85]
+	mi := &file_application_admin_rpc_desc_admin_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6069,7 +6913,7 @@ func (x *RoleMenuSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoleMenuSnapshot.ProtoReflect.Descriptor instead.
 func (*RoleMenuSnapshot) Descriptor() ([]byte, []int) {
-	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{85}
+	return file_application_admin_rpc_desc_admin_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *RoleMenuSnapshot) GetMenuIds() []int64 {
@@ -6203,7 +7047,59 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\"8\n" +
 	"\x0fGetUserResponse\x12%\n" +
-	"\x04User\x18\x01 \x01(\v2\x11.adminpb.UserInfoR\x04User\"\xf8\x02\n" +
+	"\x04User\x18\x01 \x01(\v2\x11.adminpb.UserInfoR\x04User\"\x84\x01\n" +
+	"\x19GetUserPermissionsRequest\x12$\n" +
+	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x1c\n" +
+	"\adept_id\x18\x03 \x01(\x03H\x00R\x06deptId\x88\x01\x01B\n" +
+	"\n" +
+	"\b_dept_id\"8\n" +
+	"\x12UserPermissionDept\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"_\n" +
+	"\x12UserPermissionRole\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x16\n" +
+	"\x06domain\x18\x02 \x01(\tR\x06domain\x12\x1d\n" +
+	"\n" +
+	"data_scope\x18\x03 \x01(\tR\tdataScope\"z\n" +
+	"\x16UserPermissionResource\x12\x1b\n" +
+	"\trole_code\x18\x01 \x01(\tR\broleCode\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\x12\x1b\n" +
+	"\tperm_code\x18\x03 \x01(\tR\bpermCode\x12\x12\n" +
+	"\x04type\x18\x04 \x01(\x05R\x04type\"G\n" +
+	"\x19UserPermissionVisibleUser\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\"\x8c\x03\n" +
+	"\x1aGetUserPermissionsResponse\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x17\n" +
+	"\adept_id\x18\x02 \x01(\x03R\x06deptId\x121\n" +
+	"\x05depts\x18\x03 \x03(\v2\x1b.adminpb.UserPermissionDeptR\x05depts\x121\n" +
+	"\x05roles\x18\x04 \x03(\v2\x1b.adminpb.UserPermissionRoleR\x05roles\x12=\n" +
+	"\tresources\x18\x05 \x03(\v2\x1f.adminpb.UserPermissionResourceR\tresources\x12\x1f\n" +
+	"\vdata_scopes\x18\x06 \x03(\tR\n" +
+	"dataScopes\x12,\n" +
+	"\x12visible_user_count\x18\a \x01(\x03R\x10visibleUserCount\x12G\n" +
+	"\rvisible_users\x18\b \x03(\v2\".adminpb.UserPermissionVisibleUserR\fvisibleUsers\"\xa3\x01\n" +
+	"\x12ImportUsersRequest\x12$\n" +
+	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12,\n" +
+	"\x04rows\x18\x02 \x03(\v2\x18.adminpb.ImportUserInputR\x04rows\x12\x18\n" +
+	"\aconfirm\x18\x03 \x01(\bR\aconfirm\x12\x1f\n" +
+	"\vrow_numbers\x18\x04 \x03(\x03R\n" +
+	"rowNumbers\"u\n" +
+	"\x0fImportUserInput\x12\x10\n" +
+	"\x03row\x18\x01 \x01(\x03R\x03row\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x17\n" +
+	"\adept_id\x18\x03 \x01(\x03R\x06deptId\x12\x1b\n" +
+	"\treal_name\x18\x04 \x01(\tR\brealName\"\x8b\x01\n" +
+	"\x10ImportUserResult\x12\x10\n" +
+	"\x03row\x18\x01 \x01(\x03R\x03row\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x17\n" +
+	"\adept_id\x18\x03 \x01(\x03R\x06deptId\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x18\n" +
+	"\amessage\x18\x05 \x01(\tR\amessage\"^\n" +
+	"\x13ImportUsersResponse\x12-\n" +
+	"\x04rows\x18\x01 \x03(\v2\x19.adminpb.ImportUserResultR\x04rows\x12\x18\n" +
+	"\acreated\x18\x02 \x01(\x03R\acreated\"\xf8\x02\n" +
 	"\x11CreateUserRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
@@ -6493,7 +7389,20 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x11GetMyDeptsRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\";\n" +
 	"\x12GetMyDeptsResponse\x12%\n" +
-	"\x04list\x18\x01 \x03(\v2\x11.adminpb.DeptInfoR\x04list\"R\n" +
+	"\x04list\x18\x01 \x03(\v2\x11.adminpb.DeptInfoR\x04list\"\x90\x01\n" +
+	"\x1dGetDepartmentDirectoryRequest\x12$\n" +
+	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x18\n" +
+	"\akeyword\x18\x02 \x01(\tR\akeyword\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x03R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x03R\bpageSize\"\\\n" +
+	"\x19DepartmentDirectoryMember\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
+	"\tis_leader\x18\x03 \x01(\bR\bisLeader\"\x8b\x01\n" +
+	"\x1eGetDepartmentDirectoryResponse\x12\x1b\n" +
+	"\tdept_name\x18\x01 \x01(\tR\bdeptName\x126\n" +
+	"\x04list\x18\x02 \x03(\v2\".adminpb.DepartmentDirectoryMemberR\x04list\x12\x14\n" +
+	"\x05total\x18\x03 \x01(\x03R\x05total\"R\n" +
 	"\x11DeleteDeptRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\adept_id\x18\x02 \x01(\x03R\x06deptId\"J\n" +
@@ -6644,12 +7553,14 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\fRefreshToken\x12\x1c.adminpb.RefreshTokenRequest\x1a\x1d.adminpb.RefreshTokenResponse\x129\n" +
 	"\x06Logout\x12\x16.adminpb.LogoutRequest\x1a\x17.adminpb.NoDataResponse\x12]\n" +
 	"\x12ListDeviceSessions\x12\".adminpb.ListDeviceSessionsRequest\x1a#.adminpb.ListDeviceSessionsResponse\x12S\n" +
-	"\x13RevokeDeviceSession\x12#.adminpb.RevokeDeviceSessionRequest\x1a\x17.adminpb.NoDataResponse2\xf2\x03\n" +
+	"\x13RevokeDeviceSession\x12#.adminpb.RevokeDeviceSessionRequest\x1a\x17.adminpb.NoDataResponse2\x9b\x05\n" +
 	"\vUserService\x12H\n" +
 	"\vGetUserList\x12\x1b.adminpb.GetUserListRequest\x1a\x1c.adminpb.GetUserListResponse\x12<\n" +
-	"\aGetUser\x12\x17.adminpb.GetUserRequest\x1a\x18.adminpb.GetUserResponse\x12A\n" +
+	"\aGetUser\x12\x17.adminpb.GetUserRequest\x1a\x18.adminpb.GetUserResponse\x12]\n" +
+	"\x12GetUserPermissions\x12\".adminpb.GetUserPermissionsRequest\x1a#.adminpb.GetUserPermissionsResponse\x12A\n" +
 	"\n" +
-	"CreateUser\x12\x1a.adminpb.CreateUserRequest\x1a\x17.adminpb.NoDataResponse\x12A\n" +
+	"CreateUser\x12\x1a.adminpb.CreateUserRequest\x1a\x17.adminpb.NoDataResponse\x12H\n" +
+	"\vImportUsers\x12\x1b.adminpb.ImportUsersRequest\x1a\x1c.adminpb.ImportUsersResponse\x12A\n" +
 	"\n" +
 	"UpdateUser\x12\x1a.adminpb.UpdateUserRequest\x1a\x17.adminpb.NoDataResponse\x12A\n" +
 	"\n" +
@@ -6682,10 +7593,11 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"DeleteMenu\x12\x1a.adminpb.DeleteMenuRequest\x1a\x17.adminpb.NoDataResponse\x12E\n" +
 	"\n" +
 	"GetMyMenus\x12\x1a.adminpb.GetMyMenusRequest\x1a\x1b.adminpb.GetMyMenusResponse\x12Q\n" +
-	"\x0eGetMyPermCodes\x12\x1e.adminpb.GetMyPermCodesRequest\x1a\x1f.adminpb.GetMyPermCodesResponse2\xe7\x02\n" +
+	"\x0eGetMyPermCodes\x12\x1e.adminpb.GetMyPermCodesRequest\x1a\x1f.adminpb.GetMyPermCodesResponse2\xd2\x03\n" +
 	"\vDeptService\x12E\n" +
 	"\n" +
-	"GetMyDepts\x12\x1a.adminpb.GetMyDeptsRequest\x1a\x1b.adminpb.GetMyDeptsResponse\x12H\n" +
+	"GetMyDepts\x12\x1a.adminpb.GetMyDeptsRequest\x1a\x1b.adminpb.GetMyDeptsResponse\x12i\n" +
+	"\x16GetDepartmentDirectory\x12&.adminpb.GetDepartmentDirectoryRequest\x1a'.adminpb.GetDepartmentDirectoryResponse\x12H\n" +
 	"\vGetDeptTree\x12\x1b.adminpb.GetDeptTreeRequest\x1a\x1c.adminpb.GetDeptTreeResponse\x12A\n" +
 	"\n" +
 	"CreateDept\x12\x1a.adminpb.CreateDeptRequest\x1a\x17.adminpb.NoDataResponse\x12A\n" +
@@ -6728,94 +7640,107 @@ func file_application_admin_rpc_desc_admin_proto_rawDescGZIP() []byte {
 	return file_application_admin_rpc_desc_admin_proto_rawDescData
 }
 
-var file_application_admin_rpc_desc_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 86)
+var file_application_admin_rpc_desc_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 99)
 var file_application_admin_rpc_desc_admin_proto_goTypes = []any{
-	(*PageRequest)(nil),                // 0: adminpb.PageRequest
-	(*PageResponse)(nil),               // 1: adminpb.PageResponse
-	(*NoDataResponse)(nil),             // 2: adminpb.NoDataResponse
-	(*Actor)(nil),                      // 3: adminpb.Actor
-	(*CaptchaInfo)(nil),                // 4: adminpb.CaptchaInfo
-	(*GetCaptchaRequest)(nil),          // 5: adminpb.GetCaptchaRequest
-	(*GetCaptchaResponse)(nil),         // 6: adminpb.GetCaptchaResponse
-	(*LoginRequest)(nil),               // 7: adminpb.LoginRequest
-	(*LoginResponse)(nil),              // 8: adminpb.LoginResponse
-	(*RefreshTokenRequest)(nil),        // 9: adminpb.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),       // 10: adminpb.RefreshTokenResponse
-	(*LogoutRequest)(nil),              // 11: adminpb.LogoutRequest
-	(*DeviceSessionInfo)(nil),          // 12: adminpb.DeviceSessionInfo
-	(*ListDeviceSessionsRequest)(nil),  // 13: adminpb.ListDeviceSessionsRequest
-	(*ListDeviceSessionsResponse)(nil), // 14: adminpb.ListDeviceSessionsResponse
-	(*RevokeDeviceSessionRequest)(nil), // 15: adminpb.RevokeDeviceSessionRequest
-	(*UserInfo)(nil),                   // 16: adminpb.UserInfo
-	(*GetUserListRequest)(nil),         // 17: adminpb.GetUserListRequest
-	(*GetUserListResponse)(nil),        // 18: adminpb.GetUserListResponse
-	(*GetUserRequest)(nil),             // 19: adminpb.GetUserRequest
-	(*GetUserResponse)(nil),            // 20: adminpb.GetUserResponse
-	(*CreateUserRequest)(nil),          // 21: adminpb.CreateUserRequest
-	(*UpdateUserRequest)(nil),          // 22: adminpb.UpdateUserRequest
-	(*DeleteUserRequest)(nil),          // 23: adminpb.DeleteUserRequest
-	(*ResetPasswordRequest)(nil),       // 24: adminpb.ResetPasswordRequest
-	(*ChangePasswordRequest)(nil),      // 25: adminpb.ChangePasswordRequest
-	(*GetProfileRequest)(nil),          // 26: adminpb.GetProfileRequest
-	(*GetProfileResponse)(nil),         // 27: adminpb.GetProfileResponse
-	(*UpdateProfileRequest)(nil),       // 28: adminpb.UpdateProfileRequest
-	(*RoleInfo)(nil),                   // 29: adminpb.RoleInfo
-	(*GetRoleListRequest)(nil),         // 30: adminpb.GetRoleListRequest
-	(*GetRoleListResponse)(nil),        // 31: adminpb.GetRoleListResponse
-	(*GetRoleRequest)(nil),             // 32: adminpb.GetRoleRequest
-	(*GetRoleResponse)(nil),            // 33: adminpb.GetRoleResponse
-	(*CreateRoleRequest)(nil),          // 34: adminpb.CreateRoleRequest
-	(*UpdateRoleRequest)(nil),          // 35: adminpb.UpdateRoleRequest
-	(*DeleteRoleRequest)(nil),          // 36: adminpb.DeleteRoleRequest
-	(*UpdateRoleMenusRequest)(nil),     // 37: adminpb.UpdateRoleMenusRequest
-	(*MenuInfo)(nil),                   // 38: adminpb.MenuInfo
-	(*GetMenuTreeRequest)(nil),         // 39: adminpb.GetMenuTreeRequest
-	(*GetMenuTreeResponse)(nil),        // 40: adminpb.GetMenuTreeResponse
-	(*GetMenuListRequest)(nil),         // 41: adminpb.GetMenuListRequest
-	(*GetMenuListResponse)(nil),        // 42: adminpb.GetMenuListResponse
-	(*GetMenuRequest)(nil),             // 43: adminpb.GetMenuRequest
-	(*GetMenuResponse)(nil),            // 44: adminpb.GetMenuResponse
-	(*CreateMenuRequest)(nil),          // 45: adminpb.CreateMenuRequest
-	(*UpdateMenuRequest)(nil),          // 46: adminpb.UpdateMenuRequest
-	(*DeleteMenuRequest)(nil),          // 47: adminpb.DeleteMenuRequest
-	(*GetMyMenusRequest)(nil),          // 48: adminpb.GetMyMenusRequest
-	(*GetMyMenusResponse)(nil),         // 49: adminpb.GetMyMenusResponse
-	(*GetMyPermCodesRequest)(nil),      // 50: adminpb.GetMyPermCodesRequest
-	(*GetMyPermCodesResponse)(nil),     // 51: adminpb.GetMyPermCodesResponse
-	(*DeptInfo)(nil),                   // 52: adminpb.DeptInfo
-	(*GetDeptTreeRequest)(nil),         // 53: adminpb.GetDeptTreeRequest
-	(*GetDeptTreeResponse)(nil),        // 54: adminpb.GetDeptTreeResponse
-	(*CreateDeptRequest)(nil),          // 55: adminpb.CreateDeptRequest
-	(*UpdateDeptRequest)(nil),          // 56: adminpb.UpdateDeptRequest
-	(*GetMyDeptsRequest)(nil),          // 57: adminpb.GetMyDeptsRequest
-	(*GetMyDeptsResponse)(nil),         // 58: adminpb.GetMyDeptsResponse
-	(*DeleteDeptRequest)(nil),          // 59: adminpb.DeleteDeptRequest
-	(*DictItem)(nil),                   // 60: adminpb.DictItem
-	(*DictInfo)(nil),                   // 61: adminpb.DictInfo
-	(*GetDictListRequest)(nil),         // 62: adminpb.GetDictListRequest
-	(*GetDictListResponse)(nil),        // 63: adminpb.GetDictListResponse
-	(*GetDictByCodeRequest)(nil),       // 64: adminpb.GetDictByCodeRequest
-	(*GetDictByCodeResponse)(nil),      // 65: adminpb.GetDictByCodeResponse
-	(*CreateDictRequest)(nil),          // 66: adminpb.CreateDictRequest
-	(*UpdateDictRequest)(nil),          // 67: adminpb.UpdateDictRequest
-	(*DeleteDictRequest)(nil),          // 68: adminpb.DeleteDictRequest
-	(*ApiInfo)(nil),                    // 69: adminpb.ApiInfo
-	(*GetApiListRequest)(nil),          // 70: adminpb.GetApiListRequest
-	(*GetApiListResponse)(nil),         // 71: adminpb.GetApiListResponse
-	(*DeleteApiRequest)(nil),           // 72: adminpb.DeleteApiRequest
-	(*SyncApiRequest)(nil),             // 73: adminpb.SyncApiRequest
-	(*ApiRoute)(nil),                   // 74: adminpb.ApiRoute
-	(*SyncApiResponse)(nil),            // 75: adminpb.SyncApiResponse
-	(*AuditLogInfo)(nil),               // 76: adminpb.AuditLogInfo
-	(*GetAuditLogListRequest)(nil),     // 77: adminpb.GetAuditLogListRequest
-	(*GetAuditLogListResponse)(nil),    // 78: adminpb.GetAuditLogListResponse
-	(*CreateAuditLogRequest)(nil),      // 79: adminpb.CreateAuditLogRequest
-	(*CheckHealthRequest)(nil),         // 80: adminpb.CheckHealthRequest
-	(*CheckHealthResponse)(nil),        // 81: adminpb.CheckHealthResponse
-	(*PolicyRule)(nil),                 // 82: adminpb.PolicyRule
-	(*ListPoliciesRequest)(nil),        // 83: adminpb.ListPoliciesRequest
-	(*ListPoliciesResponse)(nil),       // 84: adminpb.ListPoliciesResponse
-	(*RoleMenuSnapshot)(nil),           // 85: adminpb.RoleMenuSnapshot
+	(*PageRequest)(nil),                    // 0: adminpb.PageRequest
+	(*PageResponse)(nil),                   // 1: adminpb.PageResponse
+	(*NoDataResponse)(nil),                 // 2: adminpb.NoDataResponse
+	(*Actor)(nil),                          // 3: adminpb.Actor
+	(*CaptchaInfo)(nil),                    // 4: adminpb.CaptchaInfo
+	(*GetCaptchaRequest)(nil),              // 5: adminpb.GetCaptchaRequest
+	(*GetCaptchaResponse)(nil),             // 6: adminpb.GetCaptchaResponse
+	(*LoginRequest)(nil),                   // 7: adminpb.LoginRequest
+	(*LoginResponse)(nil),                  // 8: adminpb.LoginResponse
+	(*RefreshTokenRequest)(nil),            // 9: adminpb.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),           // 10: adminpb.RefreshTokenResponse
+	(*LogoutRequest)(nil),                  // 11: adminpb.LogoutRequest
+	(*DeviceSessionInfo)(nil),              // 12: adminpb.DeviceSessionInfo
+	(*ListDeviceSessionsRequest)(nil),      // 13: adminpb.ListDeviceSessionsRequest
+	(*ListDeviceSessionsResponse)(nil),     // 14: adminpb.ListDeviceSessionsResponse
+	(*RevokeDeviceSessionRequest)(nil),     // 15: adminpb.RevokeDeviceSessionRequest
+	(*UserInfo)(nil),                       // 16: adminpb.UserInfo
+	(*GetUserListRequest)(nil),             // 17: adminpb.GetUserListRequest
+	(*GetUserListResponse)(nil),            // 18: adminpb.GetUserListResponse
+	(*GetUserRequest)(nil),                 // 19: adminpb.GetUserRequest
+	(*GetUserResponse)(nil),                // 20: adminpb.GetUserResponse
+	(*GetUserPermissionsRequest)(nil),      // 21: adminpb.GetUserPermissionsRequest
+	(*UserPermissionDept)(nil),             // 22: adminpb.UserPermissionDept
+	(*UserPermissionRole)(nil),             // 23: adminpb.UserPermissionRole
+	(*UserPermissionResource)(nil),         // 24: adminpb.UserPermissionResource
+	(*UserPermissionVisibleUser)(nil),      // 25: adminpb.UserPermissionVisibleUser
+	(*GetUserPermissionsResponse)(nil),     // 26: adminpb.GetUserPermissionsResponse
+	(*ImportUsersRequest)(nil),             // 27: adminpb.ImportUsersRequest
+	(*ImportUserInput)(nil),                // 28: adminpb.ImportUserInput
+	(*ImportUserResult)(nil),               // 29: adminpb.ImportUserResult
+	(*ImportUsersResponse)(nil),            // 30: adminpb.ImportUsersResponse
+	(*CreateUserRequest)(nil),              // 31: adminpb.CreateUserRequest
+	(*UpdateUserRequest)(nil),              // 32: adminpb.UpdateUserRequest
+	(*DeleteUserRequest)(nil),              // 33: adminpb.DeleteUserRequest
+	(*ResetPasswordRequest)(nil),           // 34: adminpb.ResetPasswordRequest
+	(*ChangePasswordRequest)(nil),          // 35: adminpb.ChangePasswordRequest
+	(*GetProfileRequest)(nil),              // 36: adminpb.GetProfileRequest
+	(*GetProfileResponse)(nil),             // 37: adminpb.GetProfileResponse
+	(*UpdateProfileRequest)(nil),           // 38: adminpb.UpdateProfileRequest
+	(*RoleInfo)(nil),                       // 39: adminpb.RoleInfo
+	(*GetRoleListRequest)(nil),             // 40: adminpb.GetRoleListRequest
+	(*GetRoleListResponse)(nil),            // 41: adminpb.GetRoleListResponse
+	(*GetRoleRequest)(nil),                 // 42: adminpb.GetRoleRequest
+	(*GetRoleResponse)(nil),                // 43: adminpb.GetRoleResponse
+	(*CreateRoleRequest)(nil),              // 44: adminpb.CreateRoleRequest
+	(*UpdateRoleRequest)(nil),              // 45: adminpb.UpdateRoleRequest
+	(*DeleteRoleRequest)(nil),              // 46: adminpb.DeleteRoleRequest
+	(*UpdateRoleMenusRequest)(nil),         // 47: adminpb.UpdateRoleMenusRequest
+	(*MenuInfo)(nil),                       // 48: adminpb.MenuInfo
+	(*GetMenuTreeRequest)(nil),             // 49: adminpb.GetMenuTreeRequest
+	(*GetMenuTreeResponse)(nil),            // 50: adminpb.GetMenuTreeResponse
+	(*GetMenuListRequest)(nil),             // 51: adminpb.GetMenuListRequest
+	(*GetMenuListResponse)(nil),            // 52: adminpb.GetMenuListResponse
+	(*GetMenuRequest)(nil),                 // 53: adminpb.GetMenuRequest
+	(*GetMenuResponse)(nil),                // 54: adminpb.GetMenuResponse
+	(*CreateMenuRequest)(nil),              // 55: adminpb.CreateMenuRequest
+	(*UpdateMenuRequest)(nil),              // 56: adminpb.UpdateMenuRequest
+	(*DeleteMenuRequest)(nil),              // 57: adminpb.DeleteMenuRequest
+	(*GetMyMenusRequest)(nil),              // 58: adminpb.GetMyMenusRequest
+	(*GetMyMenusResponse)(nil),             // 59: adminpb.GetMyMenusResponse
+	(*GetMyPermCodesRequest)(nil),          // 60: adminpb.GetMyPermCodesRequest
+	(*GetMyPermCodesResponse)(nil),         // 61: adminpb.GetMyPermCodesResponse
+	(*DeptInfo)(nil),                       // 62: adminpb.DeptInfo
+	(*GetDeptTreeRequest)(nil),             // 63: adminpb.GetDeptTreeRequest
+	(*GetDeptTreeResponse)(nil),            // 64: adminpb.GetDeptTreeResponse
+	(*CreateDeptRequest)(nil),              // 65: adminpb.CreateDeptRequest
+	(*UpdateDeptRequest)(nil),              // 66: adminpb.UpdateDeptRequest
+	(*GetMyDeptsRequest)(nil),              // 67: adminpb.GetMyDeptsRequest
+	(*GetMyDeptsResponse)(nil),             // 68: adminpb.GetMyDeptsResponse
+	(*GetDepartmentDirectoryRequest)(nil),  // 69: adminpb.GetDepartmentDirectoryRequest
+	(*DepartmentDirectoryMember)(nil),      // 70: adminpb.DepartmentDirectoryMember
+	(*GetDepartmentDirectoryResponse)(nil), // 71: adminpb.GetDepartmentDirectoryResponse
+	(*DeleteDeptRequest)(nil),              // 72: adminpb.DeleteDeptRequest
+	(*DictItem)(nil),                       // 73: adminpb.DictItem
+	(*DictInfo)(nil),                       // 74: adminpb.DictInfo
+	(*GetDictListRequest)(nil),             // 75: adminpb.GetDictListRequest
+	(*GetDictListResponse)(nil),            // 76: adminpb.GetDictListResponse
+	(*GetDictByCodeRequest)(nil),           // 77: adminpb.GetDictByCodeRequest
+	(*GetDictByCodeResponse)(nil),          // 78: adminpb.GetDictByCodeResponse
+	(*CreateDictRequest)(nil),              // 79: adminpb.CreateDictRequest
+	(*UpdateDictRequest)(nil),              // 80: adminpb.UpdateDictRequest
+	(*DeleteDictRequest)(nil),              // 81: adminpb.DeleteDictRequest
+	(*ApiInfo)(nil),                        // 82: adminpb.ApiInfo
+	(*GetApiListRequest)(nil),              // 83: adminpb.GetApiListRequest
+	(*GetApiListResponse)(nil),             // 84: adminpb.GetApiListResponse
+	(*DeleteApiRequest)(nil),               // 85: adminpb.DeleteApiRequest
+	(*SyncApiRequest)(nil),                 // 86: adminpb.SyncApiRequest
+	(*ApiRoute)(nil),                       // 87: adminpb.ApiRoute
+	(*SyncApiResponse)(nil),                // 88: adminpb.SyncApiResponse
+	(*AuditLogInfo)(nil),                   // 89: adminpb.AuditLogInfo
+	(*GetAuditLogListRequest)(nil),         // 90: adminpb.GetAuditLogListRequest
+	(*GetAuditLogListResponse)(nil),        // 91: adminpb.GetAuditLogListResponse
+	(*CreateAuditLogRequest)(nil),          // 92: adminpb.CreateAuditLogRequest
+	(*CheckHealthRequest)(nil),             // 93: adminpb.CheckHealthRequest
+	(*CheckHealthResponse)(nil),            // 94: adminpb.CheckHealthResponse
+	(*PolicyRule)(nil),                     // 95: adminpb.PolicyRule
+	(*ListPoliciesRequest)(nil),            // 96: adminpb.ListPoliciesRequest
+	(*ListPoliciesResponse)(nil),           // 97: adminpb.ListPoliciesResponse
+	(*RoleMenuSnapshot)(nil),               // 98: adminpb.RoleMenuSnapshot
 }
 var file_application_admin_rpc_desc_admin_proto_depIdxs = []int32{
 	4,   // 0: adminpb.GetCaptchaResponse.Captcha:type_name -> adminpb.CaptchaInfo
@@ -6830,168 +7755,184 @@ var file_application_admin_rpc_desc_admin_proto_depIdxs = []int32{
 	1,   // 9: adminpb.GetUserListResponse.page:type_name -> adminpb.PageResponse
 	3,   // 10: adminpb.GetUserRequest.actor:type_name -> adminpb.Actor
 	16,  // 11: adminpb.GetUserResponse.User:type_name -> adminpb.UserInfo
-	3,   // 12: adminpb.CreateUserRequest.actor:type_name -> adminpb.Actor
-	3,   // 13: adminpb.UpdateUserRequest.actor:type_name -> adminpb.Actor
-	3,   // 14: adminpb.DeleteUserRequest.actor:type_name -> adminpb.Actor
-	3,   // 15: adminpb.ResetPasswordRequest.actor:type_name -> adminpb.Actor
-	3,   // 16: adminpb.ChangePasswordRequest.actor:type_name -> adminpb.Actor
-	3,   // 17: adminpb.GetProfileRequest.actor:type_name -> adminpb.Actor
-	16,  // 18: adminpb.GetProfileResponse.User:type_name -> adminpb.UserInfo
-	3,   // 19: adminpb.UpdateProfileRequest.actor:type_name -> adminpb.Actor
-	3,   // 20: adminpb.GetRoleListRequest.actor:type_name -> adminpb.Actor
-	0,   // 21: adminpb.GetRoleListRequest.page:type_name -> adminpb.PageRequest
-	29,  // 22: adminpb.GetRoleListResponse.list:type_name -> adminpb.RoleInfo
-	1,   // 23: adminpb.GetRoleListResponse.page:type_name -> adminpb.PageResponse
-	3,   // 24: adminpb.GetRoleRequest.actor:type_name -> adminpb.Actor
-	29,  // 25: adminpb.GetRoleResponse.Role:type_name -> adminpb.RoleInfo
-	3,   // 26: adminpb.CreateRoleRequest.actor:type_name -> adminpb.Actor
-	3,   // 27: adminpb.UpdateRoleRequest.actor:type_name -> adminpb.Actor
-	85,  // 28: adminpb.UpdateRoleRequest.expected_menus:type_name -> adminpb.RoleMenuSnapshot
-	3,   // 29: adminpb.DeleteRoleRequest.actor:type_name -> adminpb.Actor
-	3,   // 30: adminpb.UpdateRoleMenusRequest.actor:type_name -> adminpb.Actor
-	85,  // 31: adminpb.UpdateRoleMenusRequest.expected_menus:type_name -> adminpb.RoleMenuSnapshot
-	3,   // 32: adminpb.GetMenuTreeRequest.actor:type_name -> adminpb.Actor
-	38,  // 33: adminpb.GetMenuTreeResponse.list:type_name -> adminpb.MenuInfo
-	3,   // 34: adminpb.GetMenuListRequest.actor:type_name -> adminpb.Actor
-	0,   // 35: adminpb.GetMenuListRequest.page:type_name -> adminpb.PageRequest
-	38,  // 36: adminpb.GetMenuListResponse.list:type_name -> adminpb.MenuInfo
-	1,   // 37: adminpb.GetMenuListResponse.page:type_name -> adminpb.PageResponse
-	3,   // 38: adminpb.GetMenuRequest.actor:type_name -> adminpb.Actor
-	38,  // 39: adminpb.GetMenuResponse.Menu:type_name -> adminpb.MenuInfo
-	3,   // 40: adminpb.CreateMenuRequest.actor:type_name -> adminpb.Actor
-	3,   // 41: adminpb.UpdateMenuRequest.actor:type_name -> adminpb.Actor
-	3,   // 42: adminpb.DeleteMenuRequest.actor:type_name -> adminpb.Actor
-	3,   // 43: adminpb.GetMyMenusRequest.actor:type_name -> adminpb.Actor
-	38,  // 44: adminpb.GetMyMenusResponse.list:type_name -> adminpb.MenuInfo
-	3,   // 45: adminpb.GetMyPermCodesRequest.actor:type_name -> adminpb.Actor
-	3,   // 46: adminpb.GetDeptTreeRequest.actor:type_name -> adminpb.Actor
-	52,  // 47: adminpb.GetDeptTreeResponse.list:type_name -> adminpb.DeptInfo
-	3,   // 48: adminpb.CreateDeptRequest.actor:type_name -> adminpb.Actor
-	3,   // 49: adminpb.UpdateDeptRequest.actor:type_name -> adminpb.Actor
-	3,   // 50: adminpb.GetMyDeptsRequest.actor:type_name -> adminpb.Actor
-	52,  // 51: adminpb.GetMyDeptsResponse.list:type_name -> adminpb.DeptInfo
-	3,   // 52: adminpb.DeleteDeptRequest.actor:type_name -> adminpb.Actor
-	60,  // 53: adminpb.DictInfo.items:type_name -> adminpb.DictItem
-	3,   // 54: adminpb.GetDictListRequest.actor:type_name -> adminpb.Actor
-	0,   // 55: adminpb.GetDictListRequest.page:type_name -> adminpb.PageRequest
-	61,  // 56: adminpb.GetDictListResponse.list:type_name -> adminpb.DictInfo
-	1,   // 57: adminpb.GetDictListResponse.page:type_name -> adminpb.PageResponse
-	61,  // 58: adminpb.GetDictByCodeResponse.Dict:type_name -> adminpb.DictInfo
-	3,   // 59: adminpb.CreateDictRequest.actor:type_name -> adminpb.Actor
-	60,  // 60: adminpb.CreateDictRequest.items:type_name -> adminpb.DictItem
-	3,   // 61: adminpb.UpdateDictRequest.actor:type_name -> adminpb.Actor
-	60,  // 62: adminpb.UpdateDictRequest.items:type_name -> adminpb.DictItem
-	3,   // 63: adminpb.DeleteDictRequest.actor:type_name -> adminpb.Actor
-	3,   // 64: adminpb.GetApiListRequest.actor:type_name -> adminpb.Actor
-	0,   // 65: adminpb.GetApiListRequest.page:type_name -> adminpb.PageRequest
-	69,  // 66: adminpb.GetApiListResponse.list:type_name -> adminpb.ApiInfo
-	1,   // 67: adminpb.GetApiListResponse.page:type_name -> adminpb.PageResponse
-	3,   // 68: adminpb.DeleteApiRequest.actor:type_name -> adminpb.Actor
-	3,   // 69: adminpb.SyncApiRequest.actor:type_name -> adminpb.Actor
-	74,  // 70: adminpb.SyncApiRequest.routes:type_name -> adminpb.ApiRoute
-	3,   // 71: adminpb.GetAuditLogListRequest.actor:type_name -> adminpb.Actor
-	0,   // 72: adminpb.GetAuditLogListRequest.page:type_name -> adminpb.PageRequest
-	76,  // 73: adminpb.GetAuditLogListResponse.list:type_name -> adminpb.AuditLogInfo
-	1,   // 74: adminpb.GetAuditLogListResponse.page:type_name -> adminpb.PageResponse
-	3,   // 75: adminpb.CreateAuditLogRequest.actor:type_name -> adminpb.Actor
-	82,  // 76: adminpb.ListPoliciesResponse.Rules:type_name -> adminpb.PolicyRule
-	5,   // 77: adminpb.AuthService.GetCaptcha:input_type -> adminpb.GetCaptchaRequest
-	7,   // 78: adminpb.AuthService.Login:input_type -> adminpb.LoginRequest
-	9,   // 79: adminpb.AuthService.RefreshToken:input_type -> adminpb.RefreshTokenRequest
-	11,  // 80: adminpb.AuthService.Logout:input_type -> adminpb.LogoutRequest
-	13,  // 81: adminpb.AuthService.ListDeviceSessions:input_type -> adminpb.ListDeviceSessionsRequest
-	15,  // 82: adminpb.AuthService.RevokeDeviceSession:input_type -> adminpb.RevokeDeviceSessionRequest
-	17,  // 83: adminpb.UserService.GetUserList:input_type -> adminpb.GetUserListRequest
-	19,  // 84: adminpb.UserService.GetUser:input_type -> adminpb.GetUserRequest
-	21,  // 85: adminpb.UserService.CreateUser:input_type -> adminpb.CreateUserRequest
-	22,  // 86: adminpb.UserService.UpdateUser:input_type -> adminpb.UpdateUserRequest
-	23,  // 87: adminpb.UserService.DeleteUser:input_type -> adminpb.DeleteUserRequest
-	24,  // 88: adminpb.UserService.ResetPassword:input_type -> adminpb.ResetPasswordRequest
-	25,  // 89: adminpb.UserService.ChangePassword:input_type -> adminpb.ChangePasswordRequest
-	26,  // 90: adminpb.ProfileService.GetProfile:input_type -> adminpb.GetProfileRequest
-	28,  // 91: adminpb.ProfileService.UpdateProfile:input_type -> adminpb.UpdateProfileRequest
-	30,  // 92: adminpb.RoleService.GetRoleList:input_type -> adminpb.GetRoleListRequest
-	32,  // 93: adminpb.RoleService.GetRole:input_type -> adminpb.GetRoleRequest
-	34,  // 94: adminpb.RoleService.CreateRole:input_type -> adminpb.CreateRoleRequest
-	35,  // 95: adminpb.RoleService.UpdateRole:input_type -> adminpb.UpdateRoleRequest
-	36,  // 96: adminpb.RoleService.DeleteRole:input_type -> adminpb.DeleteRoleRequest
-	37,  // 97: adminpb.RoleService.UpdateRoleMenus:input_type -> adminpb.UpdateRoleMenusRequest
-	39,  // 98: adminpb.MenuService.GetMenuTree:input_type -> adminpb.GetMenuTreeRequest
-	41,  // 99: adminpb.MenuService.GetMenuList:input_type -> adminpb.GetMenuListRequest
-	43,  // 100: adminpb.MenuService.GetMenu:input_type -> adminpb.GetMenuRequest
-	45,  // 101: adminpb.MenuService.CreateMenu:input_type -> adminpb.CreateMenuRequest
-	46,  // 102: adminpb.MenuService.UpdateMenu:input_type -> adminpb.UpdateMenuRequest
-	47,  // 103: adminpb.MenuService.DeleteMenu:input_type -> adminpb.DeleteMenuRequest
-	48,  // 104: adminpb.MenuService.GetMyMenus:input_type -> adminpb.GetMyMenusRequest
-	50,  // 105: adminpb.MenuService.GetMyPermCodes:input_type -> adminpb.GetMyPermCodesRequest
-	57,  // 106: adminpb.DeptService.GetMyDepts:input_type -> adminpb.GetMyDeptsRequest
-	53,  // 107: adminpb.DeptService.GetDeptTree:input_type -> adminpb.GetDeptTreeRequest
-	55,  // 108: adminpb.DeptService.CreateDept:input_type -> adminpb.CreateDeptRequest
-	56,  // 109: adminpb.DeptService.UpdateDept:input_type -> adminpb.UpdateDeptRequest
-	59,  // 110: adminpb.DeptService.DeleteDept:input_type -> adminpb.DeleteDeptRequest
-	62,  // 111: adminpb.DictService.GetDictList:input_type -> adminpb.GetDictListRequest
-	64,  // 112: adminpb.DictService.GetDictByCode:input_type -> adminpb.GetDictByCodeRequest
-	66,  // 113: adminpb.DictService.CreateDict:input_type -> adminpb.CreateDictRequest
-	67,  // 114: adminpb.DictService.UpdateDict:input_type -> adminpb.UpdateDictRequest
-	68,  // 115: adminpb.DictService.DeleteDict:input_type -> adminpb.DeleteDictRequest
-	70,  // 116: adminpb.ApiService.GetApiList:input_type -> adminpb.GetApiListRequest
-	72,  // 117: adminpb.ApiService.DeleteApi:input_type -> adminpb.DeleteApiRequest
-	73,  // 118: adminpb.ApiService.SyncApi:input_type -> adminpb.SyncApiRequest
-	80,  // 119: adminpb.HealthService.CheckHealth:input_type -> adminpb.CheckHealthRequest
-	79,  // 120: adminpb.AuditService.CreateAuditLog:input_type -> adminpb.CreateAuditLogRequest
-	77,  // 121: adminpb.AuditService.GetAuditLogList:input_type -> adminpb.GetAuditLogListRequest
-	83,  // 122: adminpb.CasbinService.ListPolicies:input_type -> adminpb.ListPoliciesRequest
-	6,   // 123: adminpb.AuthService.GetCaptcha:output_type -> adminpb.GetCaptchaResponse
-	8,   // 124: adminpb.AuthService.Login:output_type -> adminpb.LoginResponse
-	10,  // 125: adminpb.AuthService.RefreshToken:output_type -> adminpb.RefreshTokenResponse
-	2,   // 126: adminpb.AuthService.Logout:output_type -> adminpb.NoDataResponse
-	14,  // 127: adminpb.AuthService.ListDeviceSessions:output_type -> adminpb.ListDeviceSessionsResponse
-	2,   // 128: adminpb.AuthService.RevokeDeviceSession:output_type -> adminpb.NoDataResponse
-	18,  // 129: adminpb.UserService.GetUserList:output_type -> adminpb.GetUserListResponse
-	20,  // 130: adminpb.UserService.GetUser:output_type -> adminpb.GetUserResponse
-	2,   // 131: adminpb.UserService.CreateUser:output_type -> adminpb.NoDataResponse
-	2,   // 132: adminpb.UserService.UpdateUser:output_type -> adminpb.NoDataResponse
-	2,   // 133: adminpb.UserService.DeleteUser:output_type -> adminpb.NoDataResponse
-	2,   // 134: adminpb.UserService.ResetPassword:output_type -> adminpb.NoDataResponse
-	2,   // 135: adminpb.UserService.ChangePassword:output_type -> adminpb.NoDataResponse
-	27,  // 136: adminpb.ProfileService.GetProfile:output_type -> adminpb.GetProfileResponse
-	2,   // 137: adminpb.ProfileService.UpdateProfile:output_type -> adminpb.NoDataResponse
-	31,  // 138: adminpb.RoleService.GetRoleList:output_type -> adminpb.GetRoleListResponse
-	33,  // 139: adminpb.RoleService.GetRole:output_type -> adminpb.GetRoleResponse
-	2,   // 140: adminpb.RoleService.CreateRole:output_type -> adminpb.NoDataResponse
-	2,   // 141: adminpb.RoleService.UpdateRole:output_type -> adminpb.NoDataResponse
-	2,   // 142: adminpb.RoleService.DeleteRole:output_type -> adminpb.NoDataResponse
-	2,   // 143: adminpb.RoleService.UpdateRoleMenus:output_type -> adminpb.NoDataResponse
-	40,  // 144: adminpb.MenuService.GetMenuTree:output_type -> adminpb.GetMenuTreeResponse
-	42,  // 145: adminpb.MenuService.GetMenuList:output_type -> adminpb.GetMenuListResponse
-	44,  // 146: adminpb.MenuService.GetMenu:output_type -> adminpb.GetMenuResponse
-	2,   // 147: adminpb.MenuService.CreateMenu:output_type -> adminpb.NoDataResponse
-	2,   // 148: adminpb.MenuService.UpdateMenu:output_type -> adminpb.NoDataResponse
-	2,   // 149: adminpb.MenuService.DeleteMenu:output_type -> adminpb.NoDataResponse
-	49,  // 150: adminpb.MenuService.GetMyMenus:output_type -> adminpb.GetMyMenusResponse
-	51,  // 151: adminpb.MenuService.GetMyPermCodes:output_type -> adminpb.GetMyPermCodesResponse
-	58,  // 152: adminpb.DeptService.GetMyDepts:output_type -> adminpb.GetMyDeptsResponse
-	54,  // 153: adminpb.DeptService.GetDeptTree:output_type -> adminpb.GetDeptTreeResponse
-	2,   // 154: adminpb.DeptService.CreateDept:output_type -> adminpb.NoDataResponse
-	2,   // 155: adminpb.DeptService.UpdateDept:output_type -> adminpb.NoDataResponse
-	2,   // 156: adminpb.DeptService.DeleteDept:output_type -> adminpb.NoDataResponse
-	63,  // 157: adminpb.DictService.GetDictList:output_type -> adminpb.GetDictListResponse
-	65,  // 158: adminpb.DictService.GetDictByCode:output_type -> adminpb.GetDictByCodeResponse
-	2,   // 159: adminpb.DictService.CreateDict:output_type -> adminpb.NoDataResponse
-	2,   // 160: adminpb.DictService.UpdateDict:output_type -> adminpb.NoDataResponse
-	2,   // 161: adminpb.DictService.DeleteDict:output_type -> adminpb.NoDataResponse
-	71,  // 162: adminpb.ApiService.GetApiList:output_type -> adminpb.GetApiListResponse
-	2,   // 163: adminpb.ApiService.DeleteApi:output_type -> adminpb.NoDataResponse
-	75,  // 164: adminpb.ApiService.SyncApi:output_type -> adminpb.SyncApiResponse
-	81,  // 165: adminpb.HealthService.CheckHealth:output_type -> adminpb.CheckHealthResponse
-	2,   // 166: adminpb.AuditService.CreateAuditLog:output_type -> adminpb.NoDataResponse
-	78,  // 167: adminpb.AuditService.GetAuditLogList:output_type -> adminpb.GetAuditLogListResponse
-	84,  // 168: adminpb.CasbinService.ListPolicies:output_type -> adminpb.ListPoliciesResponse
-	123, // [123:169] is the sub-list for method output_type
-	77,  // [77:123] is the sub-list for method input_type
-	77,  // [77:77] is the sub-list for extension type_name
-	77,  // [77:77] is the sub-list for extension extendee
-	0,   // [0:77] is the sub-list for field type_name
+	3,   // 12: adminpb.GetUserPermissionsRequest.actor:type_name -> adminpb.Actor
+	22,  // 13: adminpb.GetUserPermissionsResponse.depts:type_name -> adminpb.UserPermissionDept
+	23,  // 14: adminpb.GetUserPermissionsResponse.roles:type_name -> adminpb.UserPermissionRole
+	24,  // 15: adminpb.GetUserPermissionsResponse.resources:type_name -> adminpb.UserPermissionResource
+	25,  // 16: adminpb.GetUserPermissionsResponse.visible_users:type_name -> adminpb.UserPermissionVisibleUser
+	3,   // 17: adminpb.ImportUsersRequest.actor:type_name -> adminpb.Actor
+	28,  // 18: adminpb.ImportUsersRequest.rows:type_name -> adminpb.ImportUserInput
+	29,  // 19: adminpb.ImportUsersResponse.rows:type_name -> adminpb.ImportUserResult
+	3,   // 20: adminpb.CreateUserRequest.actor:type_name -> adminpb.Actor
+	3,   // 21: adminpb.UpdateUserRequest.actor:type_name -> adminpb.Actor
+	3,   // 22: adminpb.DeleteUserRequest.actor:type_name -> adminpb.Actor
+	3,   // 23: adminpb.ResetPasswordRequest.actor:type_name -> adminpb.Actor
+	3,   // 24: adminpb.ChangePasswordRequest.actor:type_name -> adminpb.Actor
+	3,   // 25: adminpb.GetProfileRequest.actor:type_name -> adminpb.Actor
+	16,  // 26: adminpb.GetProfileResponse.User:type_name -> adminpb.UserInfo
+	3,   // 27: adminpb.UpdateProfileRequest.actor:type_name -> adminpb.Actor
+	3,   // 28: adminpb.GetRoleListRequest.actor:type_name -> adminpb.Actor
+	0,   // 29: adminpb.GetRoleListRequest.page:type_name -> adminpb.PageRequest
+	39,  // 30: adminpb.GetRoleListResponse.list:type_name -> adminpb.RoleInfo
+	1,   // 31: adminpb.GetRoleListResponse.page:type_name -> adminpb.PageResponse
+	3,   // 32: adminpb.GetRoleRequest.actor:type_name -> adminpb.Actor
+	39,  // 33: adminpb.GetRoleResponse.Role:type_name -> adminpb.RoleInfo
+	3,   // 34: adminpb.CreateRoleRequest.actor:type_name -> adminpb.Actor
+	3,   // 35: adminpb.UpdateRoleRequest.actor:type_name -> adminpb.Actor
+	98,  // 36: adminpb.UpdateRoleRequest.expected_menus:type_name -> adminpb.RoleMenuSnapshot
+	3,   // 37: adminpb.DeleteRoleRequest.actor:type_name -> adminpb.Actor
+	3,   // 38: adminpb.UpdateRoleMenusRequest.actor:type_name -> adminpb.Actor
+	98,  // 39: adminpb.UpdateRoleMenusRequest.expected_menus:type_name -> adminpb.RoleMenuSnapshot
+	3,   // 40: adminpb.GetMenuTreeRequest.actor:type_name -> adminpb.Actor
+	48,  // 41: adminpb.GetMenuTreeResponse.list:type_name -> adminpb.MenuInfo
+	3,   // 42: adminpb.GetMenuListRequest.actor:type_name -> adminpb.Actor
+	0,   // 43: adminpb.GetMenuListRequest.page:type_name -> adminpb.PageRequest
+	48,  // 44: adminpb.GetMenuListResponse.list:type_name -> adminpb.MenuInfo
+	1,   // 45: adminpb.GetMenuListResponse.page:type_name -> adminpb.PageResponse
+	3,   // 46: adminpb.GetMenuRequest.actor:type_name -> adminpb.Actor
+	48,  // 47: adminpb.GetMenuResponse.Menu:type_name -> adminpb.MenuInfo
+	3,   // 48: adminpb.CreateMenuRequest.actor:type_name -> adminpb.Actor
+	3,   // 49: adminpb.UpdateMenuRequest.actor:type_name -> adminpb.Actor
+	3,   // 50: adminpb.DeleteMenuRequest.actor:type_name -> adminpb.Actor
+	3,   // 51: adminpb.GetMyMenusRequest.actor:type_name -> adminpb.Actor
+	48,  // 52: adminpb.GetMyMenusResponse.list:type_name -> adminpb.MenuInfo
+	3,   // 53: adminpb.GetMyPermCodesRequest.actor:type_name -> adminpb.Actor
+	3,   // 54: adminpb.GetDeptTreeRequest.actor:type_name -> adminpb.Actor
+	62,  // 55: adminpb.GetDeptTreeResponse.list:type_name -> adminpb.DeptInfo
+	3,   // 56: adminpb.CreateDeptRequest.actor:type_name -> adminpb.Actor
+	3,   // 57: adminpb.UpdateDeptRequest.actor:type_name -> adminpb.Actor
+	3,   // 58: adminpb.GetMyDeptsRequest.actor:type_name -> adminpb.Actor
+	62,  // 59: adminpb.GetMyDeptsResponse.list:type_name -> adminpb.DeptInfo
+	3,   // 60: adminpb.GetDepartmentDirectoryRequest.actor:type_name -> adminpb.Actor
+	70,  // 61: adminpb.GetDepartmentDirectoryResponse.list:type_name -> adminpb.DepartmentDirectoryMember
+	3,   // 62: adminpb.DeleteDeptRequest.actor:type_name -> adminpb.Actor
+	73,  // 63: adminpb.DictInfo.items:type_name -> adminpb.DictItem
+	3,   // 64: adminpb.GetDictListRequest.actor:type_name -> adminpb.Actor
+	0,   // 65: adminpb.GetDictListRequest.page:type_name -> adminpb.PageRequest
+	74,  // 66: adminpb.GetDictListResponse.list:type_name -> adminpb.DictInfo
+	1,   // 67: adminpb.GetDictListResponse.page:type_name -> adminpb.PageResponse
+	74,  // 68: adminpb.GetDictByCodeResponse.Dict:type_name -> adminpb.DictInfo
+	3,   // 69: adminpb.CreateDictRequest.actor:type_name -> adminpb.Actor
+	73,  // 70: adminpb.CreateDictRequest.items:type_name -> adminpb.DictItem
+	3,   // 71: adminpb.UpdateDictRequest.actor:type_name -> adminpb.Actor
+	73,  // 72: adminpb.UpdateDictRequest.items:type_name -> adminpb.DictItem
+	3,   // 73: adminpb.DeleteDictRequest.actor:type_name -> adminpb.Actor
+	3,   // 74: adminpb.GetApiListRequest.actor:type_name -> adminpb.Actor
+	0,   // 75: adminpb.GetApiListRequest.page:type_name -> adminpb.PageRequest
+	82,  // 76: adminpb.GetApiListResponse.list:type_name -> adminpb.ApiInfo
+	1,   // 77: adminpb.GetApiListResponse.page:type_name -> adminpb.PageResponse
+	3,   // 78: adminpb.DeleteApiRequest.actor:type_name -> adminpb.Actor
+	3,   // 79: adminpb.SyncApiRequest.actor:type_name -> adminpb.Actor
+	87,  // 80: adminpb.SyncApiRequest.routes:type_name -> adminpb.ApiRoute
+	3,   // 81: adminpb.GetAuditLogListRequest.actor:type_name -> adminpb.Actor
+	0,   // 82: adminpb.GetAuditLogListRequest.page:type_name -> adminpb.PageRequest
+	89,  // 83: adminpb.GetAuditLogListResponse.list:type_name -> adminpb.AuditLogInfo
+	1,   // 84: adminpb.GetAuditLogListResponse.page:type_name -> adminpb.PageResponse
+	3,   // 85: adminpb.CreateAuditLogRequest.actor:type_name -> adminpb.Actor
+	95,  // 86: adminpb.ListPoliciesResponse.Rules:type_name -> adminpb.PolicyRule
+	5,   // 87: adminpb.AuthService.GetCaptcha:input_type -> adminpb.GetCaptchaRequest
+	7,   // 88: adminpb.AuthService.Login:input_type -> adminpb.LoginRequest
+	9,   // 89: adminpb.AuthService.RefreshToken:input_type -> adminpb.RefreshTokenRequest
+	11,  // 90: adminpb.AuthService.Logout:input_type -> adminpb.LogoutRequest
+	13,  // 91: adminpb.AuthService.ListDeviceSessions:input_type -> adminpb.ListDeviceSessionsRequest
+	15,  // 92: adminpb.AuthService.RevokeDeviceSession:input_type -> adminpb.RevokeDeviceSessionRequest
+	17,  // 93: adminpb.UserService.GetUserList:input_type -> adminpb.GetUserListRequest
+	19,  // 94: adminpb.UserService.GetUser:input_type -> adminpb.GetUserRequest
+	21,  // 95: adminpb.UserService.GetUserPermissions:input_type -> adminpb.GetUserPermissionsRequest
+	31,  // 96: adminpb.UserService.CreateUser:input_type -> adminpb.CreateUserRequest
+	27,  // 97: adminpb.UserService.ImportUsers:input_type -> adminpb.ImportUsersRequest
+	32,  // 98: adminpb.UserService.UpdateUser:input_type -> adminpb.UpdateUserRequest
+	33,  // 99: adminpb.UserService.DeleteUser:input_type -> adminpb.DeleteUserRequest
+	34,  // 100: adminpb.UserService.ResetPassword:input_type -> adminpb.ResetPasswordRequest
+	35,  // 101: adminpb.UserService.ChangePassword:input_type -> adminpb.ChangePasswordRequest
+	36,  // 102: adminpb.ProfileService.GetProfile:input_type -> adminpb.GetProfileRequest
+	38,  // 103: adminpb.ProfileService.UpdateProfile:input_type -> adminpb.UpdateProfileRequest
+	40,  // 104: adminpb.RoleService.GetRoleList:input_type -> adminpb.GetRoleListRequest
+	42,  // 105: adminpb.RoleService.GetRole:input_type -> adminpb.GetRoleRequest
+	44,  // 106: adminpb.RoleService.CreateRole:input_type -> adminpb.CreateRoleRequest
+	45,  // 107: adminpb.RoleService.UpdateRole:input_type -> adminpb.UpdateRoleRequest
+	46,  // 108: adminpb.RoleService.DeleteRole:input_type -> adminpb.DeleteRoleRequest
+	47,  // 109: adminpb.RoleService.UpdateRoleMenus:input_type -> adminpb.UpdateRoleMenusRequest
+	49,  // 110: adminpb.MenuService.GetMenuTree:input_type -> adminpb.GetMenuTreeRequest
+	51,  // 111: adminpb.MenuService.GetMenuList:input_type -> adminpb.GetMenuListRequest
+	53,  // 112: adminpb.MenuService.GetMenu:input_type -> adminpb.GetMenuRequest
+	55,  // 113: adminpb.MenuService.CreateMenu:input_type -> adminpb.CreateMenuRequest
+	56,  // 114: adminpb.MenuService.UpdateMenu:input_type -> adminpb.UpdateMenuRequest
+	57,  // 115: adminpb.MenuService.DeleteMenu:input_type -> adminpb.DeleteMenuRequest
+	58,  // 116: adminpb.MenuService.GetMyMenus:input_type -> adminpb.GetMyMenusRequest
+	60,  // 117: adminpb.MenuService.GetMyPermCodes:input_type -> adminpb.GetMyPermCodesRequest
+	67,  // 118: adminpb.DeptService.GetMyDepts:input_type -> adminpb.GetMyDeptsRequest
+	69,  // 119: adminpb.DeptService.GetDepartmentDirectory:input_type -> adminpb.GetDepartmentDirectoryRequest
+	63,  // 120: adminpb.DeptService.GetDeptTree:input_type -> adminpb.GetDeptTreeRequest
+	65,  // 121: adminpb.DeptService.CreateDept:input_type -> adminpb.CreateDeptRequest
+	66,  // 122: adminpb.DeptService.UpdateDept:input_type -> adminpb.UpdateDeptRequest
+	72,  // 123: adminpb.DeptService.DeleteDept:input_type -> adminpb.DeleteDeptRequest
+	75,  // 124: adminpb.DictService.GetDictList:input_type -> adminpb.GetDictListRequest
+	77,  // 125: adminpb.DictService.GetDictByCode:input_type -> adminpb.GetDictByCodeRequest
+	79,  // 126: adminpb.DictService.CreateDict:input_type -> adminpb.CreateDictRequest
+	80,  // 127: adminpb.DictService.UpdateDict:input_type -> adminpb.UpdateDictRequest
+	81,  // 128: adminpb.DictService.DeleteDict:input_type -> adminpb.DeleteDictRequest
+	83,  // 129: adminpb.ApiService.GetApiList:input_type -> adminpb.GetApiListRequest
+	85,  // 130: adminpb.ApiService.DeleteApi:input_type -> adminpb.DeleteApiRequest
+	86,  // 131: adminpb.ApiService.SyncApi:input_type -> adminpb.SyncApiRequest
+	93,  // 132: adminpb.HealthService.CheckHealth:input_type -> adminpb.CheckHealthRequest
+	92,  // 133: adminpb.AuditService.CreateAuditLog:input_type -> adminpb.CreateAuditLogRequest
+	90,  // 134: adminpb.AuditService.GetAuditLogList:input_type -> adminpb.GetAuditLogListRequest
+	96,  // 135: adminpb.CasbinService.ListPolicies:input_type -> adminpb.ListPoliciesRequest
+	6,   // 136: adminpb.AuthService.GetCaptcha:output_type -> adminpb.GetCaptchaResponse
+	8,   // 137: adminpb.AuthService.Login:output_type -> adminpb.LoginResponse
+	10,  // 138: adminpb.AuthService.RefreshToken:output_type -> adminpb.RefreshTokenResponse
+	2,   // 139: adminpb.AuthService.Logout:output_type -> adminpb.NoDataResponse
+	14,  // 140: adminpb.AuthService.ListDeviceSessions:output_type -> adminpb.ListDeviceSessionsResponse
+	2,   // 141: adminpb.AuthService.RevokeDeviceSession:output_type -> adminpb.NoDataResponse
+	18,  // 142: adminpb.UserService.GetUserList:output_type -> adminpb.GetUserListResponse
+	20,  // 143: adminpb.UserService.GetUser:output_type -> adminpb.GetUserResponse
+	26,  // 144: adminpb.UserService.GetUserPermissions:output_type -> adminpb.GetUserPermissionsResponse
+	2,   // 145: adminpb.UserService.CreateUser:output_type -> adminpb.NoDataResponse
+	30,  // 146: adminpb.UserService.ImportUsers:output_type -> adminpb.ImportUsersResponse
+	2,   // 147: adminpb.UserService.UpdateUser:output_type -> adminpb.NoDataResponse
+	2,   // 148: adminpb.UserService.DeleteUser:output_type -> adminpb.NoDataResponse
+	2,   // 149: adminpb.UserService.ResetPassword:output_type -> adminpb.NoDataResponse
+	2,   // 150: adminpb.UserService.ChangePassword:output_type -> adminpb.NoDataResponse
+	37,  // 151: adminpb.ProfileService.GetProfile:output_type -> adminpb.GetProfileResponse
+	2,   // 152: adminpb.ProfileService.UpdateProfile:output_type -> adminpb.NoDataResponse
+	41,  // 153: adminpb.RoleService.GetRoleList:output_type -> adminpb.GetRoleListResponse
+	43,  // 154: adminpb.RoleService.GetRole:output_type -> adminpb.GetRoleResponse
+	2,   // 155: adminpb.RoleService.CreateRole:output_type -> adminpb.NoDataResponse
+	2,   // 156: adminpb.RoleService.UpdateRole:output_type -> adminpb.NoDataResponse
+	2,   // 157: adminpb.RoleService.DeleteRole:output_type -> adminpb.NoDataResponse
+	2,   // 158: adminpb.RoleService.UpdateRoleMenus:output_type -> adminpb.NoDataResponse
+	50,  // 159: adminpb.MenuService.GetMenuTree:output_type -> adminpb.GetMenuTreeResponse
+	52,  // 160: adminpb.MenuService.GetMenuList:output_type -> adminpb.GetMenuListResponse
+	54,  // 161: adminpb.MenuService.GetMenu:output_type -> adminpb.GetMenuResponse
+	2,   // 162: adminpb.MenuService.CreateMenu:output_type -> adminpb.NoDataResponse
+	2,   // 163: adminpb.MenuService.UpdateMenu:output_type -> adminpb.NoDataResponse
+	2,   // 164: adminpb.MenuService.DeleteMenu:output_type -> adminpb.NoDataResponse
+	59,  // 165: adminpb.MenuService.GetMyMenus:output_type -> adminpb.GetMyMenusResponse
+	61,  // 166: adminpb.MenuService.GetMyPermCodes:output_type -> adminpb.GetMyPermCodesResponse
+	68,  // 167: adminpb.DeptService.GetMyDepts:output_type -> adminpb.GetMyDeptsResponse
+	71,  // 168: adminpb.DeptService.GetDepartmentDirectory:output_type -> adminpb.GetDepartmentDirectoryResponse
+	64,  // 169: adminpb.DeptService.GetDeptTree:output_type -> adminpb.GetDeptTreeResponse
+	2,   // 170: adminpb.DeptService.CreateDept:output_type -> adminpb.NoDataResponse
+	2,   // 171: adminpb.DeptService.UpdateDept:output_type -> adminpb.NoDataResponse
+	2,   // 172: adminpb.DeptService.DeleteDept:output_type -> adminpb.NoDataResponse
+	76,  // 173: adminpb.DictService.GetDictList:output_type -> adminpb.GetDictListResponse
+	78,  // 174: adminpb.DictService.GetDictByCode:output_type -> adminpb.GetDictByCodeResponse
+	2,   // 175: adminpb.DictService.CreateDict:output_type -> adminpb.NoDataResponse
+	2,   // 176: adminpb.DictService.UpdateDict:output_type -> adminpb.NoDataResponse
+	2,   // 177: adminpb.DictService.DeleteDict:output_type -> adminpb.NoDataResponse
+	84,  // 178: adminpb.ApiService.GetApiList:output_type -> adminpb.GetApiListResponse
+	2,   // 179: adminpb.ApiService.DeleteApi:output_type -> adminpb.NoDataResponse
+	88,  // 180: adminpb.ApiService.SyncApi:output_type -> adminpb.SyncApiResponse
+	94,  // 181: adminpb.HealthService.CheckHealth:output_type -> adminpb.CheckHealthResponse
+	2,   // 182: adminpb.AuditService.CreateAuditLog:output_type -> adminpb.NoDataResponse
+	91,  // 183: adminpb.AuditService.GetAuditLogList:output_type -> adminpb.GetAuditLogListResponse
+	97,  // 184: adminpb.CasbinService.ListPolicies:output_type -> adminpb.ListPoliciesResponse
+	136, // [136:185] is the sub-list for method output_type
+	87,  // [87:136] is the sub-list for method input_type
+	87,  // [87:87] is the sub-list for extension type_name
+	87,  // [87:87] is the sub-list for extension extendee
+	0,   // [0:87] is the sub-list for field type_name
 }
 
 func init() { file_application_admin_rpc_desc_admin_proto_init() }
@@ -6999,22 +7940,23 @@ func file_application_admin_rpc_desc_admin_proto_init() {
 	if File_application_admin_rpc_desc_admin_proto != nil {
 		return
 	}
-	file_application_admin_rpc_desc_admin_proto_msgTypes[22].OneofWrappers = []any{}
-	file_application_admin_rpc_desc_admin_proto_msgTypes[28].OneofWrappers = []any{}
-	file_application_admin_rpc_desc_admin_proto_msgTypes[34].OneofWrappers = []any{}
-	file_application_admin_rpc_desc_admin_proto_msgTypes[35].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[21].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[32].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[38].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[44].OneofWrappers = []any{}
 	file_application_admin_rpc_desc_admin_proto_msgTypes[45].OneofWrappers = []any{}
-	file_application_admin_rpc_desc_admin_proto_msgTypes[46].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[55].OneofWrappers = []any{}
 	file_application_admin_rpc_desc_admin_proto_msgTypes[56].OneofWrappers = []any{}
 	file_application_admin_rpc_desc_admin_proto_msgTypes[66].OneofWrappers = []any{}
-	file_application_admin_rpc_desc_admin_proto_msgTypes[67].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[79].OneofWrappers = []any{}
+	file_application_admin_rpc_desc_admin_proto_msgTypes[80].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_application_admin_rpc_desc_admin_proto_rawDesc), len(file_application_admin_rpc_desc_admin_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   86,
+			NumMessages:   99,
 			NumExtensions: 0,
 			NumServices:   11,
 		},

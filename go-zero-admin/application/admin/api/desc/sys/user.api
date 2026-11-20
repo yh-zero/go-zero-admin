@@ -44,6 +44,58 @@ type (
 	GetUserResp {
 		User *UserInfo `json:"user"`
 	}
+	GetUserPermissionsReq {
+		Id int64 `path:"id" validate:"min=1"`
+		DeptId *int64 `form:"dept_id,optional" validate:"omitempty,min=0"`
+	}
+	UserPermissionDept {
+		Id int64 `json:"id"`
+		Name string `json:"name"`
+	}
+	UserPermissionRole {
+		Code string `json:"code"`
+		Domain string `json:"domain"`
+		DataScope string `json:"data_scope"`
+	}
+	UserPermissionVisibleUser {
+		Id int64 `json:"id"`
+		Username string `json:"username"`
+	}
+	UserPermissionItem {
+		Key string `json:"key"`
+		Label string `json:"label"`
+		UiGranted bool `json:"ui_granted"`
+		UiRoles []string `json:"ui_roles"`
+		ApiAllowed bool `json:"api_allowed"`
+		ApiRole string `json:"api_role"`
+		ApiDomain string `json:"api_domain"`
+	}
+	GetUserPermissionsResp {
+		DeptId int64 `json:"dept_id"`
+		Depts []*UserPermissionDept `json:"depts"`
+		Enabled bool `json:"enabled"`
+		Roles []*UserPermissionRole `json:"roles"`
+		Items []*UserPermissionItem `json:"items"`
+		DataScopes []string `json:"data_scopes"`
+		VisibleUserCount int64 `json:"visible_user_count"`
+		VisibleUsers []*UserPermissionVisibleUser `json:"visible_users"`
+	}
+	ImportUsersReq {
+		Csv string `json:"csv" validate:"required,maxbytes=65536"`
+		Confirm bool `json:"confirm,optional"`
+		RowNumbers []int64 `json:"row_numbers,optional" validate:"omitempty,max=100,dive,min=2"`
+	}
+	ImportUserRow {
+		Row int64 `json:"row"`
+		Username string `json:"username"`
+		DeptId int64 `json:"dept_id"`
+		Status string `json:"status"`
+		Message string `json:"message"`
+	}
+	ImportUsersResp {
+		Rows []*ImportUserRow `json:"rows"`
+		Created int64 `json:"created"`
+	}
 	CreateUserReq {
 		Username     string  `json:"username" validate:"min=2,max=64"`
 		Password     string  `json:"password" validate:"min=8,maxbytes=72"`
@@ -95,8 +147,14 @@ service admin {
 	@handler getUser
 	get /:id (GetUserReq) returns (GetUserResp)
 
+	@handler getUserPermissions
+	get /:id/permissions (GetUserPermissionsReq) returns (GetUserPermissionsResp)
+
 	@handler createUser
 	post /create (CreateUserReq) returns (EmptyResp)
+
+	@handler importUsers
+	post /import (ImportUsersReq) returns (ImportUsersResp)
 
 	@handler updateUser
 	put /:id (UpdateUserReq) returns (EmptyResp)

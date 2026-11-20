@@ -81,7 +81,8 @@ export default function DeptForm({ open, dept, initialParentId = 0, canReadUsers
       return updateDept(dept.id, changes);
     },
     onSuccess: async () => {
-      await Promise.all(['depts', 'my-depts', 'profile', 'users'].map(key => queryClient.invalidateQueries({ queryKey: [key] })));
+      await Promise.all([queryKeys.depts, queryKeys.myDepts, queryKeys.profile, queryKeys.users, queryKeys.directory]
+        .map(key => queryClient.invalidateQueries({ queryKey: [key] })));
       message.success(dept ? '部门已更新' : '部门已创建');
       onSaved();
     },

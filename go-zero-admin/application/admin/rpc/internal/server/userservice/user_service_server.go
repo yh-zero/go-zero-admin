@@ -33,9 +33,19 @@ func (s *UserServiceServer) GetUser(ctx context.Context, in *adminpb.GetUserRequ
 	return l.GetUser(in)
 }
 
+func (s *UserServiceServer) GetUserPermissions(ctx context.Context, in *adminpb.GetUserPermissionsRequest) (*adminpb.GetUserPermissionsResponse, error) {
+	l := userservicelogic.NewGetUserPermissionsLogic(ctx, s.svcCtx)
+	return l.GetUserPermissions(in)
+}
+
 func (s *UserServiceServer) CreateUser(ctx context.Context, in *adminpb.CreateUserRequest) (*adminpb.NoDataResponse, error) {
 	l := userservicelogic.NewCreateUserLogic(ctx, s.svcCtx)
 	return l.CreateUser(in)
+}
+
+func (s *UserServiceServer) ImportUsers(ctx context.Context, in *adminpb.ImportUsersRequest) (*adminpb.ImportUsersResponse, error) {
+	l := userservicelogic.NewImportUsersLogic(ctx, s.svcCtx)
+	return l.ImportUsers(in)
 }
 
 func (s *UserServiceServer) UpdateUser(ctx context.Context, in *adminpb.UpdateUserRequest) (*adminpb.NoDataResponse, error) {

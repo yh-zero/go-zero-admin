@@ -36,12 +36,33 @@ export interface UpdateUserReq {
 }
 export interface CreateUserReq extends UpdateUserReq { username: string; password: string }
 export interface GetUserListReq extends PageParams { username?: string; nickname?: string; dept_id?: number; status?: number }
+export interface UserPermissionCheck {
+  key: string; label: string; ui_granted: boolean; ui_roles: string[];
+  api_allowed: boolean; api_role: string; api_domain: string;
+}
+export interface UserEffectivePermissions {
+  dept_id: number; depts: Array<{ id: number; name: string }>; enabled: boolean;
+  roles: Array<{ code: string; domain: string; data_scope: string }>;
+  items: UserPermissionCheck[]; data_scopes: string[]; visible_user_count: number;
+  visible_users?: Array<{ id: number; username: string }>;
+}
+export interface UserImportReq {
+  csv: string; confirm?: boolean; row_numbers?: number[];
+}
+export interface UserImportRow {
+  row: number; username: string; dept_id: number;
+  status: 'ready' | 'invalid' | 'created' | 'failed'; message: string;
+}
+export interface UserImportResp { rows: UserImportRow[]; created: number }
 export interface ChangePasswordReq { old_password: string; new_password: string }
 export interface DeptInfo {
   id: number; parent_id: number; name: string; leader: string; leader_user_id: number;
   member_count: number; members_visible: boolean; phone: string; email: string;
   sort: number; status: number; path: string; created_at: number;
 }
+export interface GetDepartmentDirectoryReq extends PageParams { keyword?: string }
+export interface DepartmentDirectoryMember { id: number; name: string; is_leader: boolean }
+export interface GetDepartmentDirectoryResp extends PageResult<DepartmentDirectoryMember> { dept_name: string }
 export interface CreateDeptReq {
   parent_id?: number; name: string; leader?: string; leader_user_id?: number;
   phone?: string; email?: string; sort?: number; status?: number;

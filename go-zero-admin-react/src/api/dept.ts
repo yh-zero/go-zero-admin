@@ -2,6 +2,8 @@ import { apiDelete, apiGet, apiPost, apiPut } from '../utils/request';
 import type {
   CreateDeptReq,
   DeptInfo,
+  GetDepartmentDirectoryReq,
+  GetDepartmentDirectoryResp,
   GetDeptTreeReq,
   ListResult,
   UpdateDeptReq,
@@ -12,6 +14,10 @@ export function fetchDeptTree(params: GetDeptTreeReq = {}) {
 }
 
 export const fetchMyDepts = async (): Promise<DeptInfo[]> => (await apiGet<ListResult<DeptInfo>>('/sys/dept/my')).list ?? [];
+
+export function fetchDepartmentDirectory(params: GetDepartmentDirectoryReq, signal?: AbortSignal) {
+  return apiGet<GetDepartmentDirectoryResp>('/sys/dept/directory', params, { signal });
+}
 
 export function createDept(data: CreateDeptReq) {
   return apiPost('/sys/dept/create', data);

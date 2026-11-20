@@ -14,25 +14,37 @@ import (
 )
 
 type (
-	Actor                 = adminpb.Actor
-	ChangePasswordRequest = adminpb.ChangePasswordRequest
-	CreateUserRequest     = adminpb.CreateUserRequest
-	DeleteUserRequest     = adminpb.DeleteUserRequest
-	GetUserListRequest    = adminpb.GetUserListRequest
-	GetUserListResponse   = adminpb.GetUserListResponse
-	GetUserRequest        = adminpb.GetUserRequest
-	GetUserResponse       = adminpb.GetUserResponse
-	NoDataResponse        = adminpb.NoDataResponse
-	PageRequest           = adminpb.PageRequest
-	PageResponse          = adminpb.PageResponse
-	ResetPasswordRequest  = adminpb.ResetPasswordRequest
-	UpdateUserRequest     = adminpb.UpdateUserRequest
-	UserInfo              = adminpb.UserInfo
+	Actor                      = adminpb.Actor
+	ChangePasswordRequest      = adminpb.ChangePasswordRequest
+	CreateUserRequest          = adminpb.CreateUserRequest
+	DeleteUserRequest          = adminpb.DeleteUserRequest
+	GetUserListRequest         = adminpb.GetUserListRequest
+	GetUserListResponse        = adminpb.GetUserListResponse
+	GetUserPermissionsRequest  = adminpb.GetUserPermissionsRequest
+	GetUserPermissionsResponse = adminpb.GetUserPermissionsResponse
+	GetUserRequest             = adminpb.GetUserRequest
+	GetUserResponse            = adminpb.GetUserResponse
+	ImportUserInput            = adminpb.ImportUserInput
+	ImportUserResult           = adminpb.ImportUserResult
+	ImportUsersRequest         = adminpb.ImportUsersRequest
+	ImportUsersResponse        = adminpb.ImportUsersResponse
+	NoDataResponse             = adminpb.NoDataResponse
+	PageRequest                = adminpb.PageRequest
+	PageResponse               = adminpb.PageResponse
+	ResetPasswordRequest       = adminpb.ResetPasswordRequest
+	UpdateUserRequest          = adminpb.UpdateUserRequest
+	UserInfo                   = adminpb.UserInfo
+	UserPermissionDept         = adminpb.UserPermissionDept
+	UserPermissionResource     = adminpb.UserPermissionResource
+	UserPermissionRole         = adminpb.UserPermissionRole
+	UserPermissionVisibleUser  = adminpb.UserPermissionVisibleUser
 
 	UserService interface {
 		GetUserList(ctx context.Context, in *GetUserListRequest, opts ...grpc.CallOption) (*GetUserListResponse, error)
 		GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
+		GetUserPermissions(ctx context.Context, in *GetUserPermissionsRequest, opts ...grpc.CallOption) (*GetUserPermissionsResponse, error)
 		CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
+		ImportUsers(ctx context.Context, in *ImportUsersRequest, opts ...grpc.CallOption) (*ImportUsersResponse, error)
 		UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
@@ -60,9 +72,19 @@ func (m *defaultUserService) GetUser(ctx context.Context, in *GetUserRequest, op
 	return client.GetUser(ctx, in, opts...)
 }
 
+func (m *defaultUserService) GetUserPermissions(ctx context.Context, in *GetUserPermissionsRequest, opts ...grpc.CallOption) (*GetUserPermissionsResponse, error) {
+	client := adminpb.NewUserServiceClient(m.cli.Conn())
+	return client.GetUserPermissions(ctx, in, opts...)
+}
+
 func (m *defaultUserService) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {
 	client := adminpb.NewUserServiceClient(m.cli.Conn())
 	return client.CreateUser(ctx, in, opts...)
+}
+
+func (m *defaultUserService) ImportUsers(ctx context.Context, in *ImportUsersRequest, opts ...grpc.CallOption) (*ImportUsersResponse, error) {
+	client := adminpb.NewUserServiceClient(m.cli.Conn())
+	return client.ImportUsers(ctx, in, opts...)
 }
 
 func (m *defaultUserService) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*NoDataResponse, error) {

@@ -28,6 +28,7 @@ type (
 		ListMenuTree(ctx context.Context, menuType, status int64) ([]*MenuRow, error)
 		// ListMenusByRoleCodes 按角色码查其有效菜单（IN 在内部展开，空切片返回空）
 		ListMenusByRoleCodes(ctx context.Context, roleCodes []string) ([]*MenuRow, error)
+		ListUserPermissionResources(ctx context.Context, roleCodes []string) ([]UserPermissionResource, error)
 		// ListPermCodesByRoleCodes 按角色码查按钮权限码（type=3）
 		ListPermCodesByRoleCodes(ctx context.Context, roleCodes []string) ([]string, error)
 		// ListRoleCodesByUser 查用户角色码（casbin g 规则 v0=user:N）
@@ -282,6 +283,31 @@ func (m *customSysMenuModel) ListPermCodesByRoleCodes(ctx context.Context, roleC
 		codes = append(codes, row.Code)
 	}
 	return codes, err
+}
+
+type UserPermissionResource struct {
+	RoleCode string `db:"role_code"`
+	Path     string `db:"path"`
+	PermCode string `db:"perm_code"`
+	Type     int32  `db:"type"`
+}
+
+func (m *customSysMenuModel) ListUserPermissionResources(ctx context.Context, roleCodes []string) ([]UserPermissionResource, error) {
+	if len(roleCodes) == 0 {
+		return nil, nil
+	}
+	args := make([]any, 0, len(roleCodes))
+	for _, code := range roleCodes {
+		args = append(args, code)
+	}
+	var rows []UserPermissionResource
+	err := m.QueryRowsNoCacheCtx(ctx, &rows, `SELECT DISTINCT r.code AS role_code,m.path,m.perm_code,m.type
+FROM sys_menu m JOIN sys_role_menu rm ON m.id=rm.menu_id JOIN sys_role r ON rm.role_id=r.id
+WHERE r.code IN (`+inPlaceholders(len(roleCodes))+`) AND m.deleted_at IS NULL AND r.deleted_at IS NULL
+  AND m.status=1 AND r.status=1 AND ((m.type=2 AND m.path IN ('/sys/user','/sys/user/'))
+  OR (m.type=3 AND m.perm_code IN ('sys:user:add','sys:user:edit','sys:user:delete','sys:user:reset-password')))
+ORDER BY role_code,m.type,m.path,m.perm_code`, args...)
+	return rows, err
 }
 
 func (m *customSysMenuModel) CollectSubtreeIds(ctx context.Context, rootId uint64) ([]int64, error) {

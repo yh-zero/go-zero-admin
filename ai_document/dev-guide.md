@@ -42,6 +42,8 @@ if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .en
 
 升级文件清理重试前，核对已有库的 `sys_file` 表。缺少清理回执列时执行 `ALTER TABLE sys_file ADD COLUMN object_cleaned_at DATETIME NULL DEFAULT NULL COMMENT '对象存储确认删除时间'`。历史软删除记录没有回执，由上传者在文件列表重试确认；不会重新开放访问链接。
 
+启用用户权限查看、批量导入和组织通讯录时，从[完整初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql)核对“后台用户工具和独立通讯录”区段。只增量补齐菜单、按钮和接口资源，按现有库实际 ID 关联角色。全局超级管理员可使用权限查看和导入。给其他角色开放导入时，同时核对新增用户和导入两个接口的授权。给普通成员开放通讯录时，同时授予通讯录菜单及其 GET 接口，并在该用户切换到自己的部门后验证。更新 Casbin 策略后按当前部署方式刷新策略。
+
 开源演示账号见[快速开始](../README.md#快速开始)。首次安装已有基础演示数据，历史前端样例导入见[前端说明](../go-zero-admin-react/README.md)。
 
 ### 数据库备份

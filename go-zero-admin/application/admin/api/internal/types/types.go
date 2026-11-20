@@ -1130,6 +1130,12 @@ type DeleteUserReq struct {
 	Id int64 `path:"id" validate:"min=1"`
 }
 
+type DepartmentDirectoryMember struct {
+	Id       int64  `json:"id"`
+	Name     string `json:"name"`
+	IsLeader bool   `json:"is_leader"`
+}
+
 type DeptInfo struct {
 	Id             int64  `json:"id"`
 	ParentId       int64  `json:"parent_id"`
@@ -1228,6 +1234,18 @@ type GetCaptchaResp struct {
 	CaptchaID   string `json:"captcha_id"`
 	ImageBase64 string `json:"image_base64"`
 	ExpiresAt   int64  `json:"expires_at"`
+}
+
+type GetDepartmentDirectoryReq struct {
+	Keyword  string `json:"keyword,optional" form:"keyword,optional" validate:"omitempty,max=64"`
+	Page     int64  `form:"page,optional" validate:"omitempty,min=1,max=100000"`
+	PageSize int64  `form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+}
+
+type GetDepartmentDirectoryResp struct {
+	DeptName string                       `json:"dept_name"`
+	List     []*DepartmentDirectoryMember `json:"list"`
+	Total    int64                        `json:"total"`
 }
 
 type GetDeptTreeReq struct {
@@ -1388,12 +1406,47 @@ type GetUserListResp struct {
 	Total int64       `json:"total"`
 }
 
+type GetUserPermissionsReq struct {
+	Id     int64  `path:"id" validate:"min=1"`
+	DeptId *int64 `form:"dept_id,optional" validate:"omitempty,min=0"`
+}
+
+type GetUserPermissionsResp struct {
+	DeptId           int64                        `json:"dept_id"`
+	Depts            []*UserPermissionDept        `json:"depts"`
+	Enabled          bool                         `json:"enabled"`
+	Roles            []*UserPermissionRole        `json:"roles"`
+	Items            []*UserPermissionItem        `json:"items"`
+	DataScopes       []string                     `json:"data_scopes"`
+	VisibleUserCount int64                        `json:"visible_user_count"`
+	VisibleUsers     []*UserPermissionVisibleUser `json:"visible_users"`
+}
+
 type GetUserReq struct {
 	Id int64 `path:"id" validate:"min=1"`
 }
 
 type GetUserResp struct {
 	User *UserInfo `json:"user"`
+}
+
+type ImportUserRow struct {
+	Row      int64  `json:"row"`
+	Username string `json:"username"`
+	DeptId   int64  `json:"dept_id"`
+	Status   string `json:"status"`
+	Message  string `json:"message"`
+}
+
+type ImportUsersReq struct {
+	Csv        string  `json:"csv" validate:"required,maxbytes=65536"`
+	Confirm    bool    `json:"confirm,optional"`
+	RowNumbers []int64 `json:"row_numbers,optional" validate:"omitempty,max=100,dive,min=2"`
+}
+
+type ImportUsersResp struct {
+	Rows    []*ImportUserRow `json:"rows"`
+	Created int64            `json:"created"`
 }
 
 type ListDeviceSessionsReq struct {
@@ -1642,4 +1695,30 @@ type UserInfo struct {
 	CreatedAt    int64   `json:"created_at"`
 	UpdatedAt    int64   `json:"updated_at"`
 	RoleIds      []int64 `json:"role_ids"`
+}
+
+type UserPermissionDept struct {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type UserPermissionItem struct {
+	Key        string   `json:"key"`
+	Label      string   `json:"label"`
+	UiGranted  bool     `json:"ui_granted"`
+	UiRoles    []string `json:"ui_roles"`
+	ApiAllowed bool     `json:"api_allowed"`
+	ApiRole    string   `json:"api_role"`
+	ApiDomain  string   `json:"api_domain"`
+}
+
+type UserPermissionRole struct {
+	Code      string `json:"code"`
+	Domain    string `json:"domain"`
+	DataScope string `json:"data_scope"`
+}
+
+type UserPermissionVisibleUser struct {
+	Id       int64  `json:"id"`
+	Username string `json:"username"`
 }
