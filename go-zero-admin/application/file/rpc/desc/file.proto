@@ -19,6 +19,8 @@ message FileInfo {
   int32 ref_count = 9; int64 UploaderID = 10; string URL = 11;  // public 直接给地址，private 需另调 GetFileURL
   int64 created_at = 12;
   bool cleanup_pending = 13;
+  string uploader_name = 14;
+  string sha256 = 15;
 }
 
 // 上传：api 层收 multipart，转 base64 或直接传字节流
@@ -32,16 +34,45 @@ message UploadFileRequest {
 }
 message UploadFileResponse { FileInfo File = 1; }
 
+// 首帧携带 actor/original_name/visibility/scene，后续帧只携带 content；结束后由服务端计算 SHA-256。
+message UploadFileChunk {
+  Actor actor = 1;
+  string original_name = 2;
+  string visibility = 3;
+  string scene = 4;
+  bytes content = 5;
+}
+
 message GetFileListRequest {
   Actor actor = 1; PageRequest Page = 2;
   string visibility = 3; string Scene = 4; int64 UploaderID = 5;
   bool include_cleanup_pending = 6;
+  bool cleanup_pending_only = 7;
+  string name = 8;
+  string mime = 9;
+  string ext = 10;
+  int64 min_size = 11;
+  int64 max_size = 12;
+  int64 start_time = 13;
+  int64 end_time = 14;
 }
 message GetFileListResponse { repeated FileInfo List = 1; PageResponse Page = 2; }
 
 message GetFileURLRequest { Actor Actor = 1; int64 FileID = 2; int64 TTLSeconds = 3; bool public_only = 4; }  // private 文件签名 URL
 message GetFileURLResponse { string URL = 1; int64 ExpiresAt = 2; }
 
+message FileReferenceInfo {
+  int64 id = 1; string ref_type = 2; int64 ref_id = 3; int64 created_by = 4; int64 created_at = 5;
+}
+message GetFileDetailRequest { Actor Actor = 1; int64 FileID = 2; }
+message GetFileDetailResponse { FileInfo File = 1; repeated FileReferenceInfo References = 2; }
+message GetFileStatsRequest { Actor Actor = 1; }
+message GetFileStatsResponse {
+  int64 total_files = 1; int64 total_bytes = 2;
+  int64 public_files = 3; int64 public_bytes = 4;
+  int64 private_files = 5; int64 private_bytes = 6;
+  int64 cleanup_pending_files = 7; int64 cleanup_pending_bytes = 8;
+}
 message DeleteFileRequest { Actor Actor = 1; int64 FileID = 2; }
 
 // 引用管理（头像等共享资源的引用计数）
@@ -53,7 +84,10 @@ message RemoveFileReferenceRequest { Actor Actor = 1; int64 FileID = 2; string R
 // ============================================
 service FileService {
   rpc UploadFile(UploadFileRequest) returns (UploadFileResponse);
+  rpc UploadFileStream(stream UploadFileChunk) returns (UploadFileResponse);
   rpc GetFileList(GetFileListRequest) returns (GetFileListResponse);
+  rpc GetFileDetail(GetFileDetailRequest) returns (GetFileDetailResponse);
+  rpc GetFileStats(GetFileStatsRequest) returns (GetFileStatsResponse);
   rpc GetFileURL(GetFileURLRequest) returns (GetFileURLResponse);
   rpc DeleteFile(DeleteFileRequest) returns (NoDataResponse);
   rpc AddFileReference(AddFileReferenceRequest) returns (NoDataResponse);

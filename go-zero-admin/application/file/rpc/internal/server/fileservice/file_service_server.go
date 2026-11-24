@@ -28,9 +28,24 @@ func (s *FileServiceServer) UploadFile(ctx context.Context, in *filepb.UploadFil
 	return l.UploadFile(in)
 }
 
+func (s *FileServiceServer) UploadFileStream(stream filepb.FileService_UploadFileStreamServer) error {
+	l := fileservicelogic.NewUploadFileStreamLogic(stream.Context(), s.svcCtx)
+	return l.UploadFileStream(stream)
+}
+
 func (s *FileServiceServer) GetFileList(ctx context.Context, in *filepb.GetFileListRequest) (*filepb.GetFileListResponse, error) {
 	l := fileservicelogic.NewGetFileListLogic(ctx, s.svcCtx)
 	return l.GetFileList(in)
+}
+
+func (s *FileServiceServer) GetFileDetail(ctx context.Context, in *filepb.GetFileDetailRequest) (*filepb.GetFileDetailResponse, error) {
+	l := fileservicelogic.NewGetFileDetailLogic(ctx, s.svcCtx)
+	return l.GetFileDetail(in)
+}
+
+func (s *FileServiceServer) GetFileStats(ctx context.Context, in *filepb.GetFileStatsRequest) (*filepb.GetFileStatsResponse, error) {
+	l := fileservicelogic.NewGetFileStatsLogic(ctx, s.svcCtx)
+	return l.GetFileStats(in)
 }
 
 func (s *FileServiceServer) GetFileURL(ctx context.Context, in *filepb.GetFileURLRequest) (*filepb.GetFileURLResponse, error) {

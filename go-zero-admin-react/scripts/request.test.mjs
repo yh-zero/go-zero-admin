@@ -244,6 +244,42 @@ for (const { status, code, message } of [
   });
 }
 
+test('multipart 上传保留字段与50秒专项预算', async () => {
+  await withTabs(1, async ({ tabs: [tab] }) => {
+    const { uploadMultipart } = await tab.server.ssrLoadModule('/src/api/file.ts');
+    tab.useAuthStore.getState().setSession(session());
+    tab.useAuthStore.getState().setPermCodes(['sys:file:upload']);
+    const uploaded = { id: 9, original_name: 'sample.txt', sha256: 'abc' };
+    tab.request.defaults.adapter = async config => {
+      assert.equal(config.url, '/sys/file/upload-multipart');
+      assert.equal(config.timeout, 50_000);
+      assert.equal(config.data.get('scene'), 'common');
+      assert.equal(config.data.get('visibility'), 'private');
+      assert.equal(config.data.get('file').name, 'sample.txt');
+      return response(config, { file: uploaded });
+    };
+    assert.deepEqual(await uploadMultipart(new File(['x'], 'sample.txt'), 'common', 'private'), uploaded);
+  });
+});
+
+test('审计 CSV 导出复用筛选并返回 Blob', async () => {
+  await withTabs(1, async ({ tabs: [tab] }) => {
+    const { exportAuditLogs } = await tab.server.ssrLoadModule('/src/api/audit.ts');
+    tab.useAuthStore.getState().setSession(session());
+    const nativeFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = async (url, options) => {
+        assert.equal(url, '/v1/sys/audit/export');
+        assert.equal(options.headers.Accept, 'text/csv');
+        assert.equal(JSON.parse(options.body).username, 'admin');
+        return new Response(new Blob(['id,username\n1,admin'], { type: 'text/csv' }), { status: 200 });
+      };
+      const blob = await exportAuditLogs({ username: 'admin' });
+      assert.equal(await blob.text(), 'id,username\n1,admin');
+    } finally { globalThis.fetch = nativeFetch; }
+  });
+});
+
 test('上传采用50秒专项预算，普通读取仍保持30秒默认预算', async () => {
   await withTabs(1, async ({ tabs: [tab] }) => {
     const { uploadFile } = await tab.server.ssrLoadModule('/src/api/file.ts');

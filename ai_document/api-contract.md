@@ -130,6 +130,7 @@
 
 - `/ping` 返回存活状态；`/ready` 检查必要 RPC、数据库及 Redis，就绪返回 HTTP 200，未就绪 HTTP 503；不依赖可选 AI 外部模型。
 - 审计通过 RPC 写现有审计表，记录操作者、路径、结果和耗时，不记录密码、令牌及完整请求体。
+- 审计列表额外支持 username/method/path/ip、start_time/end_time 和 min_duration_ms/max_duration_ms 筛选；start/end 与耗时上下界必须合法。`POST /v1/sys/audit/export` 复用同一筛选并导出 UTF-8 CSV（含 BOM），单批最多 10000 行，超出时返回 400 要求缩小范围。导出字段做公式注入转义，不导出 params 或敏感请求体。admin-rpc 的 `Audit.RetentionDays` 默认 0 表示不自动删除；正值时按创建时间保留最近天数，`CleanupIntervalSeconds` 和 `CleanupBatchSize` 控制清理频率与单批上限。
 
 ### 用户、角色与数据范围
 
@@ -163,22 +164,23 @@
 
 ### 文件与引用
 
-- 文件列表的 `url` 为可选字段。
+- 文件列表的 `url` 为可选字段，FileInfo 另含 `uploader_name/sha256`；历史文件的 sha256 为空。列表支持 name/mime/ext、大小与创建时间范围筛选，`cleanup_pending_only=true` 仅查看当前上传者的待清理记录。`GET /v1/sys/file/:id` 返回文件及引用明细，`GET /v1/sys/file/stats` 返回当前上传者有效文件和待清理记录的数量/字节统计；详情及引用仅上传者可读，统计按当前上传者汇总；列表沿用原有效文件数据范围。
 - 删除先锁定文件并核对上传者及引用，软删除后即停止提供链接和新增引用。对象存储确认删除后记录清理完成。文件中心查询传 `include_cleanup_pending=true`，额外返回当前上传者尚未确认清理的软删除行，标记 `cleanup_pending: true`；其他用户不可见。默认列表及工作台仍只统计有效文件。刷新后可用原删除操作重试，重复完成幂等。历史软删除没有清理回执时同样允许重新确认。
 - `POST /v1/sys/file/upload` 接收 `name/content_base64/scene/visibility`，原文件最大 10 MiB；服务端检查内容、类型及场景。引用增减仅由内部业务 RPC 调用，按业务类型及 ID 幂等维护。
 - 上传响应为 `{file: FileInfo}`；`name/content_base64` 必填，`scene` 为 common/avatar/doc（默认 common），`visibility` 为 public/private（默认 private），原始字节 1..10 MiB。头像限可解码的 JPEG/PNG/GIF 并检查尺寸，不引入额外图像解码依赖；拒绝路径型文件名及 HTML/SVG。服务端推断 MIME，不接受客户端 uploader_id/Actor。
+- `POST /v1/sys/file/upload-multipart` 接收单个 file 部件及 scene/visibility 表单字段，沿用 Base64 上传的权限、类型、10 MiB 上限和响应。API 经客户端流式 RPC 分块发送，file-rpc 写入有界临时文件并计算 SHA-256，再流式写入对象存储；结束、失败或取消均清理临时文件。新上传文件持久化 sha256，历史空值不回填。
 - 私有文件链接、删除、引用新增验证上传者；公开文件链接允许已认证用户读取。头像引用类型为 admin_avatar/app_avatar，按 `(file_id,ref_type,ref_id)` 唯一幂等维护；删除引用不存在的明细不减少历史引用计数，删除文件同时检查计数和引用明细。
 - 引用移除没有 HTTP 入口：仅由已完成业务对象授权的内部 RPC 编排，使用数据库读取的旧文件 ID 和精确业务类型/ID；不以历史上传者限制合法的后续管理员修改，也不信任客户端传入的旧文件 ID。
 - 内部引用移除 RPC 的 `keep_file_id` 有字段存在性：省略时精确移除 `FileID`；传入时要求 `FileID=0`，对该业务类型/ID清理除保留文件外的全部引用，0表示全部释放。头像业务在用户行锁内新增引用，事务结束后重新锁行并按数据库当前头像对账；同一头像请求可重复对账，失败返回错误并保留引用明细用于重试。该参数不暴露给 HTTP 客户端。
 - 内部文件链接 RPC 支持 `public_only`：App 自查头像固定使用该模式，只返回公开文件地址，私有文件拒绝，不将 App 用户 ID 冒充后台 Actor；后台调用保持真实 Actor 校验。该参数不暴露给 HTTP 客户端。
-- 后台为 App 用户设置头像时只接受管理员本人上传的公开头像文件；新增引用验证真实后台操作者，App 自查只读取公开链接，解绑使用 `file_id:0`。 App 头像解绑的前后端真实 HTTP 闭环仍待补验。
+- 后台为 App 用户设置头像时只接受管理员本人上传的公开头像文件；新增引用验证真实后台操作者，App 自查只读取公开链接，解绑使用 `file_id:0`。
 
 ### App 认证与个人资料
 
 - App 使用独立认证域：公开端点仅 register/login/options/email-code；refresh 校验刷新令牌；其余 App 请求校验有效 App 会话和用户当前状态。后台 App 管理、AI、租户接口仍受后台权限控制。
 - App 认证：`POST /v1/app/auth/register` 接收 account/password/nickname/email_code；当前仅开放邮箱注册，默认要求一次性邮箱验证码，注册后为 pending，后台审核 active 后才能登录。`POST /auth/login` 接收 account/password；`POST /auth/refresh` 接收 refresh_token；二者返回 access_token/expires_at/refresh_token/refresh_expires_at/session_id/user，刷新原子轮换。`POST /auth/logout` 接收 all_devices（默认 false）。App 与后台使用不同 JWT 密钥、签发者及 Redis 会话命名空间，不能交叉访问。
 - 邮箱账号规范化后最长 128 字节，与数据库列一致，超长参数返回 400。
-- `GET /v1/app/auth/options` 返回 email_verification_required/email_code_enabled/phone_enabled；`POST /auth/email-code` 接收 account。验证码使用标准库 SMTP 发送，有效期由 YAML `SMTP.ValidSeconds` 配置（默认 600 秒，必须大于 0），到期自动失效、匹配成功后原子消费，输错不删除；邮箱/IP 限流保持。`SMTP.FromName` 设置收件人看到的发件人名称，未配置时仅显示发件邮箱。缺 SMTP 配置明确返回不可用，不返回验证码或伪造发送成功。真实邮箱验证码注册完整闭环仍待验收。
+- `GET /v1/app/auth/options` 返回 email_verification_required/email_code_enabled/phone_enabled；`POST /auth/email-code` 接收 account。验证码使用标准库 SMTP 发送，有效期由 YAML `SMTP.ValidSeconds` 配置（默认 600 秒，必须大于 0），到期自动失效、匹配成功后原子消费，输错不删除；邮箱/IP 限流保持。`SMTP.FromName` 设置收件人看到的发件人名称，未配置时仅显示发件邮箱。缺 SMTP 配置明确返回不可用，不返回验证码或伪造发送成功。
 - `GET /v1/app/profile` 返回 user；`PUT /v1/app/profile` 接收可选 nickname，省略/null 保持、空字符串清空。user 字段为 id/account/identity_kind/nickname/avatar_file_id/avatar_url/status/review_reason/email_verified/phone_verified/last_login_at/created_at。`GET /v1/app/membership` 返回当前用户有效会员 list；不接受客户端 user_id 或 access_token 字段，访问令牌只从 Bearer 头读取。AppAccess 仅内部 RPC。
 
 ### 后台 App 管理、会员与反馈
@@ -195,7 +197,7 @@
 
 - 租户路由（后台超级管理员）：`POST /v1/sys/tenant/create` 接收 slug、可选 admin_username/admin_password；`GET /v1/sys/tenant/list` 接收 page/page_size/status；`GET /v1/sys/tenant/:id`；`POST /:id/start`、`POST /:id/stop`、`DELETE /:id`（请求体 confirm_slug 必须匹配）、`POST /:id/reset-admin`。创建返回 tenant/admin_password，重置返回 new_password，仅当次响应展示；列表/详情不返回密钥。创建异步进入 creating，初始化账号与桶就绪后可先标记 admin_account_ready=true；应用就绪并装载路由后才为 active；失败显示不含敏感信息的原因。
 - `slug=platform` 为平台保留标识，创建返回 400；`localhost`、`platform.localhost` 保留给平台。平台默认网络专属别名 `platform-api` 与边缘网络上的租户别名 `<slug>-api` 分开寻址。
-- 租户导航与 APP 管理同级；列表复用 `GET /v1/sys/tenant/list` 的状态筛选，详情复用 `GET /v1/sys/tenant/:id`，详情抽屉只读。公开初始化库提供完整菜单及创建/启停/重置/删除操作码，默认关联超级管理员，租户登记初始为空；当前构建的生命周期、多实例 DNS 隔离、大桶分页删除和创建中断恢复仍需实际部署验证。
+- 租户导航与 APP 管理同级；列表复用 `GET /v1/sys/tenant/list` 的状态筛选，详情复用 `GET /v1/sys/tenant/:id`，详情抽屉只读。公开初始化库提供完整菜单及创建/启停/重置/删除操作码，默认关联超级管理员，租户登记初始为空。
 
 ### AI HTTP 与执行约定
 
@@ -415,7 +417,7 @@
 ### 链路限制
 
 - 上传链路 Nginx 接受最大 14 MiB JSON 请求体，原文件限制仍为 10 MiB。代理读取超时 125 秒；AI RPC 上限 120 秒，业务模型调用上限仍为 90 秒。App 邮件 HTTP/RPC 客户端/RPC 服务端上限分别为 20/15/12 秒，SMTP 内部上限 10 秒。 服务预算只描述配置，真实长调用超时及持续外部故障的恢复能力仍待验收。
-- ✅ 上传时间预算：对象存储30秒、file-rpc服务端35秒、API的FileRpc客户端40秒、仅文件上传HTTP45秒、前端上传请求50秒；宿主/Compose及新建租户模板同步，已有租户环境快照需另行迁移。其他文件路由沿用原超时；取消或超时不保证存储操作回滚，仍由既有引用/补偿机制核对。浏览器实际上传并保存个人头像/普通文件的闭环仍待验证。
+- ✅ 上传时间预算：对象存储30秒、file-rpc服务端35秒、API的FileRpc客户端40秒、仅文件上传HTTP45秒、前端上传请求50秒；宿主/Compose及新建租户模板同步，已有租户环境快照需另行迁移。其他文件路由沿用原超时；取消或超时不保证存储操作回滚，仍由既有引用/补偿机制核对。
 - ✅ 客户端地址与可信代理：API的`TrustedProxies`为显式IP/CIDR列表，默认空，不信任任意客户端传入的来源头。仅TCP对端命中时解析X-Forwarded-For，自右向左跳过可信代理，取首个不可信地址；无此头时可使用合法单IP的X-Real-IP，坏链回退TCP对端。Compose为Nginx配置明确地址与对应最小信任范围，宿主开发默认不信任代理；更换网络时需同步覆盖地址和信任配置。实际来源用于审计及IP配额，不能直接信任最左值。
 
 维护入口见[根规范](../AGENTS.md)、[后端规范](../go-zero-admin/AGENTS.md)和[前端规范](../go-zero-admin-react/AGENTS.md)。

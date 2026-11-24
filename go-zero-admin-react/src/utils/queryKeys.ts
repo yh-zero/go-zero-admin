@@ -17,6 +17,8 @@ export const queryKeys = {
   directory: 'directory',
   fileUrl: 'file-url',
   files: 'files',
+  fileStats: 'file-stats',
+  fileDetail: 'file-detail',
   health: 'health',
   menus: 'menus',
   myDepts: 'my-depts',

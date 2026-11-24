@@ -6395,6 +6395,14 @@ type GetAuditLogListRequest struct {
 	Action        string                 `protobuf:"bytes,4,opt,name=action,proto3" json:"action,omitempty"`
 	UserId        int64                  `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Result        int32                  `protobuf:"varint,6,opt,name=result,proto3" json:"result,omitempty"`
+	Username      string                 `protobuf:"bytes,7,opt,name=username,proto3" json:"username,omitempty"`
+	Method        string                 `protobuf:"bytes,8,opt,name=method,proto3" json:"method,omitempty"`
+	Path          string                 `protobuf:"bytes,9,opt,name=path,proto3" json:"path,omitempty"`
+	Ip            string                 `protobuf:"bytes,10,opt,name=ip,proto3" json:"ip,omitempty"`
+	StartTime     int64                  `protobuf:"varint,11,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	EndTime       int64                  `protobuf:"varint,12,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	MinDurationMs int64                  `protobuf:"varint,13,opt,name=min_duration_ms,json=minDurationMs,proto3" json:"min_duration_ms,omitempty"`
+	MaxDurationMs int64                  `protobuf:"varint,14,opt,name=max_duration_ms,json=maxDurationMs,proto3" json:"max_duration_ms,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -6467,6 +6475,62 @@ func (x *GetAuditLogListRequest) GetUserId() int64 {
 func (x *GetAuditLogListRequest) GetResult() int32 {
 	if x != nil {
 		return x.Result
+	}
+	return 0
+}
+
+func (x *GetAuditLogListRequest) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *GetAuditLogListRequest) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *GetAuditLogListRequest) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *GetAuditLogListRequest) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *GetAuditLogListRequest) GetStartTime() int64 {
+	if x != nil {
+		return x.StartTime
+	}
+	return 0
+}
+
+func (x *GetAuditLogListRequest) GetEndTime() int64 {
+	if x != nil {
+		return x.EndTime
+	}
+	return 0
+}
+
+func (x *GetAuditLogListRequest) GetMinDurationMs() int64 {
+	if x != nil {
+		return x.MinDurationMs
+	}
+	return 0
+}
+
+func (x *GetAuditLogListRequest) GetMaxDurationMs() int64 {
+	if x != nil {
+		return x.MaxDurationMs
 	}
 	return 0
 }
@@ -7508,14 +7572,24 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\vduration_ms\x18\r \x01(\x05R\n" +
 	"durationMs\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x0e \x01(\x03R\tcreatedAt\"\xc9\x01\n" +
+	"created_at\x18\x0e \x01(\x03R\tcreatedAt\"\xab\x03\n" +
 	"\x16GetAuditLogListRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12(\n" +
 	"\x04page\x18\x02 \x01(\v2\x14.adminpb.PageRequestR\x04page\x12\x16\n" +
 	"\x06module\x18\x03 \x01(\tR\x06module\x12\x16\n" +
 	"\x06action\x18\x04 \x01(\tR\x06action\x12\x17\n" +
 	"\auser_id\x18\x05 \x01(\x03R\x06userId\x12\x16\n" +
-	"\x06result\x18\x06 \x01(\x05R\x06result\"o\n" +
+	"\x06result\x18\x06 \x01(\x05R\x06result\x12\x1a\n" +
+	"\busername\x18\a \x01(\tR\busername\x12\x16\n" +
+	"\x06method\x18\b \x01(\tR\x06method\x12\x12\n" +
+	"\x04path\x18\t \x01(\tR\x04path\x12\x0e\n" +
+	"\x02ip\x18\n" +
+	" \x01(\tR\x02ip\x12\x1d\n" +
+	"\n" +
+	"start_time\x18\v \x01(\x03R\tstartTime\x12\x19\n" +
+	"\bend_time\x18\f \x01(\x03R\aendTime\x12&\n" +
+	"\x0fmin_duration_ms\x18\r \x01(\x03R\rminDurationMs\x12&\n" +
+	"\x0fmax_duration_ms\x18\x0e \x01(\x03R\rmaxDurationMs\"o\n" +
 	"\x17GetAuditLogListResponse\x12)\n" +
 	"\x04list\x18\x01 \x03(\v2\x15.adminpb.AuditLogInfoR\x04list\x12)\n" +
 	"\x04page\x18\x02 \x01(\v2\x15.adminpb.PageResponseR\x04page\"\xef\x01\n" +

@@ -17,6 +17,8 @@ type (
 		Visibility   string `json:"visibility"`
 		RefCount     int32  `json:"ref_count"`
 		UploaderId   int64  `json:"uploader_id"`
+		UploaderName string `json:"uploader_name"`
+		SHA256       string `json:"sha256"`
 		URL          string `json:"url,optional"`
 		CreatedAt    int64  `json:"created_at"`
 		CleanupPending bool `json:"cleanup_pending,optional"`
@@ -27,11 +29,48 @@ type (
 		Visibility string `json:"visibility,optional" form:"visibility,optional" validate:"omitempty,oneof=public private"`
 		UploaderId int64  `json:"uploader_id,optional" form:"uploader_id,optional" validate:"omitempty,min=1"`
 		IncludeCleanupPending bool `form:"include_cleanup_pending,optional"`
+		CleanupPendingOnly bool `form:"cleanup_pending_only,optional"`
+		Name       string `json:"name,optional" form:"name,optional" validate:"omitempty,max=255"`
+		Mime       string `json:"mime,optional" form:"mime,optional" validate:"omitempty,max=128"`
+		Ext        string `json:"ext,optional" form:"ext,optional" validate:"omitempty,max=16"`
+		MinSize    int64  `json:"min_size,optional" form:"min_size,optional" validate:"omitempty,min=0"`
+		MaxSize    int64  `json:"max_size,optional" form:"max_size,optional" validate:"omitempty,min=0"`
+		StartTime  int64  `json:"start_time,optional" form:"start_time,optional" validate:"omitempty,min=0"`
+		EndTime    int64  `json:"end_time,optional" form:"end_time,optional" validate:"omitempty,min=0"`
 	}
 	GetFileListResp {
 		List  []*FileInfo `json:"list"`
 		Total int64       `json:"total"`
 	}
+	FileReferenceInfo {
+		Id        int64  `json:"id"`
+		RefType   string `json:"ref_type"`
+		RefId     int64  `json:"ref_id"`
+		CreatedBy int64  `json:"created_by"`
+		CreatedAt int64  `json:"created_at"`
+	}
+	GetFileDetailResp {
+		File       *FileInfo            `json:"file"`
+		References []*FileReferenceInfo `json:"references"`
+	}
+	GetFileStatsResp {
+		TotalFiles           int64 `json:"total_files"`
+		TotalBytes           int64 `json:"total_bytes"`
+		PublicFiles          int64 `json:"public_files"`
+		PublicBytes          int64 `json:"public_bytes"`
+		PrivateFiles         int64 `json:"private_files"`
+		PrivateBytes         int64 `json:"private_bytes"`
+		CleanupPendingFiles  int64 `json:"cleanup_pending_files"`
+		CleanupPendingBytes  int64 `json:"cleanup_pending_bytes"`
+	}
+	UploadMultipartReq {
+		Scene      string `form:"scene,optional" validate:"omitempty,oneof=common avatar doc"`
+		Visibility string `form:"visibility,optional" validate:"omitempty,oneof=private public"`
+	}
+	GetFileReq {
+		Id int64 `path:"id" validate:"min=1"`
+	}
+	GetFileStatsReq {}
 	GetFileURLReq {
 		Id int64 `path:"id" validate:"min=1"`
 	}
@@ -71,6 +110,15 @@ service admin {
 service admin {
 	@handler getFileList
 	get /list (GetFileListReq) returns (GetFileListResp)
+
+	@handler getFileDetail
+	get /:id (GetFileReq) returns (GetFileDetailResp)
+
+	@handler getFileStats
+	get /stats (GetFileStatsReq) returns (GetFileStatsResp)
+
+	@handler uploadMultipart
+	post /upload-multipart (UploadMultipartReq) returns (UploadFileResp)
 
 	@handler getFileURL
 	get /:id/url (GetFileURLReq) returns (GetFileURLResp)

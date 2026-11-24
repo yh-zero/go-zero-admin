@@ -611,6 +611,14 @@ message GetAuditLogListRequest {
   string action = 4;
   int64 user_id = 5;
   int32 result = 6;
+  string username = 7;
+  string method = 8;
+  string path = 9;
+  string ip = 10;
+  int64 start_time = 11;
+  int64 end_time = 12;
+  int64 min_duration_ms = 13;
+  int64 max_duration_ms = 14;
 }
 message GetAuditLogListResponse {
   repeated AuditLogInfo list = 1;

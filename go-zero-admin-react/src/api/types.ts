@@ -93,9 +93,19 @@ export interface GetApiListReq extends PageParams { group?: string; method?: str
 export interface SyncApiResp { added: number; updated: number; removed: number }
 export interface FileInfo {
   id: number; bucket: string; object_key: string; original_name: string; ext: string; mime: string; size: number;
-  visibility: string; ref_count: number; uploader_id: number; url?: string; created_at: number; cleanup_pending?: boolean;
+  visibility: string; ref_count: number; uploader_id: number; uploader_name: string; sha256: string;
+  url?: string; created_at: number; cleanup_pending?: boolean;
 }
-export interface GetFileListReq extends PageParams { visibility?: string; uploader_id?: number; include_cleanup_pending?: boolean }
+export interface GetFileListReq extends PageParams {
+  visibility?: string; uploader_id?: number; include_cleanup_pending?: boolean; cleanup_pending_only?: boolean;
+  name?: string; mime?: string; ext?: string; min_size?: number; max_size?: number; start_time?: number; end_time?: number;
+}
+export interface FileReferenceInfo { id: number; ref_type: string; ref_id: number; created_by: number; created_at: number }
+export interface FileDetailResp { file: FileInfo; references: FileReferenceInfo[] }
+export interface FileStatsResp {
+  total_files: number; total_bytes: number; public_files: number; public_bytes: number;
+  private_files: number; private_bytes: number; cleanup_pending_files: number; cleanup_pending_bytes: number;
+}
 export interface FileURLResp { url: string; expires_at: number }
 export interface UploadFileReq {
   name: string; content_base64: string; scene: 'common' | 'avatar' | 'doc'; visibility: 'public' | 'private';
@@ -103,9 +113,13 @@ export interface UploadFileReq {
 export interface UploadFileResp { file: FileInfo }
 export interface AuditLogInfo {
   id: number; user_id: number; username: string; module: string; action: string; method: string;
-  path: string; result: number; error_msg: string; ip: string; duration_ms: number; created_at: number;
+  path: string; result: number; error_msg: string; ip: string; user_agent: string; duration_ms: number; created_at: number;
 }
-export interface GetAuditLogListReq extends PageParams { module?: string; action?: string; user_id?: number; result?: number }
+export interface GetAuditLogListReq extends PageParams {
+  module?: string; action?: string; user_id?: number; result?: number; username?: string;
+  method?: string; path?: string; ip?: string; start_time?: number; end_time?: number;
+  min_duration_ms?: number; max_duration_ms?: number;
+}
 export interface ProfileInfo {
   id: number; username: string; nickname: string; real_name: string; email: string;
   phone: string; avatar_url: string; avatar_file_id: number; gender: number; dept_name: string; is_super_admin: boolean;

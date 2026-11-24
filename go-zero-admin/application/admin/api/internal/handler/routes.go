@@ -482,6 +482,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				Method:  http.MethodPost,
+				Path:    "/export",
+				Handler: audit.ExportAuditLogsHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodGet,
 				Path:    "/list",
 				Handler: audit.GetAuditLogListHandler(serverCtx),
@@ -609,6 +614,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				Method:  http.MethodGet,
+				Path:    "/:id",
+				Handler: file.GetFileDetailHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodDelete,
 				Path:    "/:id",
 				Handler: file.DeleteFileHandler(serverCtx),
@@ -622,6 +632,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodGet,
 				Path:    "/list",
 				Handler: file.GetFileListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/stats",
+				Handler: file.GetFileStatsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/upload-multipart",
+				Handler: file.UploadMultipartHandler(serverCtx),
 			},
 		},
 		rest.WithPrefix("/v1/sys/file"),

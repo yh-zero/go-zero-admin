@@ -2,6 +2,7 @@ package auditservicelogic
 
 import (
 	"context"
+	"errors"
 
 	"github.com/zeromicro/go-zero/core/logx"
 
@@ -24,7 +25,13 @@ func NewGetAuditLogListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *G
 func (l *GetAuditLogListLogic) GetAuditLogList(in *adminpb.GetAuditLogListRequest) (*adminpb.GetAuditLogListResponse, error) {
 	rows, total, err := l.svcCtx.SysAuditLogModel.ListAuditLogPage(l.ctx, model.AuditLogListFilter{
 		Module: in.Module, Action: in.Action, UserId: in.UserId, Result: int64(in.Result),
+		Username: in.Username, Method: in.Method, Path: in.Path, IP: in.Ip,
+		StartTime: in.StartTime, EndTime: in.EndTime,
+		MinDurationMs: in.MinDurationMs, MaxDurationMs: in.MaxDurationMs,
 	}, in.GetPage().GetPage(), in.GetPage().GetPageSize())
+	if errors.Is(err, model.ErrInvalidAuditFilter) {
+		return nil, xerr.NewErrCodeMsg(xerr.REQUEST_PARAM_ERROR, "审计筛选时间或耗时范围不合法")
+	}
 	if err != nil {
 		l.Errorf("query audit logs error: %v", err)
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)

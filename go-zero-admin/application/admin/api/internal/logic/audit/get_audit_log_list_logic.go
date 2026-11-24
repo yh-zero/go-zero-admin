@@ -28,6 +28,9 @@ func (l *GetAuditLogListLogic) GetAuditLogList(req *types.GetAuditLogListReq) (r
 	rpcResp, err := l.svcCtx.AuditRpc.GetAuditLogList(l.ctx, &adminpb.GetAuditLogListRequest{
 		Page:   &adminpb.PageRequest{Page: req.Page, PageSize: req.PageSize},
 		Module: req.Module, Action: req.Action, UserId: req.UserId, Result: req.Result,
+		Username: req.Username, Method: req.Method, Path: req.Path, Ip: req.Ip,
+		StartTime: req.StartTime, EndTime: req.EndTime,
+		MinDurationMs: req.MinDurationMs, MaxDurationMs: req.MaxDurationMs,
 	})
 	if err != nil {
 		return nil, err

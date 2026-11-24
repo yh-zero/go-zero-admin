@@ -390,7 +390,10 @@ CREATE TABLE `sys_audit_log` (
   PRIMARY KEY (`id`),
   KEY `idx_user` (`user_id`),
   KEY `idx_module_action` (`module`,`action`),
-  KEY `idx_created` (`created_at`)
+  KEY `idx_created` (`created_at`),
+  KEY `idx_username` (`username`),
+  KEY `idx_method` (`method`),
+  KEY `idx_ip` (`ip`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='审计日志';
 
 -- sys_dept
@@ -440,6 +443,7 @@ CREATE TABLE `sys_file` (
   `ext` varchar(16) NOT NULL DEFAULT '' COMMENT '扩展名',
   `mime` varchar(128) NOT NULL DEFAULT '' COMMENT 'MIME 类型',
   `size` bigint unsigned NOT NULL DEFAULT '0' COMMENT '字节数',
+  `sha256` char(64) NOT NULL DEFAULT '' COMMENT '文件内容 SHA-256，历史文件为空',
   `visibility` varchar(16) NOT NULL DEFAULT 'public' COMMENT '可见性：public/private',
   `ref_count` int NOT NULL DEFAULT '0' COMMENT '引用计数（0 可删）',
   `uploader_id` bigint unsigned DEFAULT NULL COMMENT '上传者用户ID',
@@ -450,7 +454,10 @@ CREATE TABLE `sys_file` (
   PRIMARY KEY (`id`),
   KEY `idx_bucket_key` (`bucket`,`object_key`(191)),
   KEY `idx_uploader` (`uploader_id`),
-  KEY `idx_ref_count` (`ref_count`)
+  KEY `idx_ref_count` (`ref_count`),
+  KEY `idx_original_name` (`original_name`),
+  KEY `idx_mime` (`mime`),
+  KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文件资源';
 
 -- sys_file_reference
@@ -974,6 +981,12 @@ INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
 (125,'sys/ai','GET','/v1/sys/ai/workflows/:id/revisions','查看工作流版本历史'),
 (126,'sys/ai','GET','/v1/sys/ai/workflows/:id/revisions/:revision','查看工作流历史版本'),
 (127,'sys/ai','POST','/v1/sys/ai/workflows/:id/revisions/:revision/restore','恢复工作流历史版本');
+
+INSERT INTO `sys_api` (`id`,`group_name`,`method`,`path`,`title`) VALUES
+(139,'sys/audit','POST','/v1/sys/audit/export','导出审计日志'),
+(140,'sys/file','GET','/v1/sys/file/:id','文件详情与引用'),
+(141,'sys/file','GET','/v1/sys/file/stats','文件存储统计'),
+(142,'sys/file','POST','/v1/sys/file/upload-multipart','multipart 流式上传');
 
 -- APP 账号属于独立认证域，不用于后台登录；邮箱为保留演示域。
 INSERT INTO `app_user` (`id`,`account`,`identity_kind`,`password_hash`,`nickname`,`remark`,`status`,`review_reason`,`email_verified_at`,`created_at`,`updated_at`) VALUES

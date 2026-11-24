@@ -247,6 +247,8 @@ type FileInfo struct {
 	URL            string                 `protobuf:"bytes,11,opt,name=URL,proto3" json:"URL,omitempty"` // public 直接给地址，private 需另调 GetFileURL
 	CreatedAt      int64                  `protobuf:"varint,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	CleanupPending bool                   `protobuf:"varint,13,opt,name=cleanup_pending,json=cleanupPending,proto3" json:"cleanup_pending,omitempty"`
+	UploaderName   string                 `protobuf:"bytes,14,opt,name=uploader_name,json=uploaderName,proto3" json:"uploader_name,omitempty"`
+	Sha256         string                 `protobuf:"bytes,15,opt,name=sha256,proto3" json:"sha256,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -370,6 +372,20 @@ func (x *FileInfo) GetCleanupPending() bool {
 		return x.CleanupPending
 	}
 	return false
+}
+
+func (x *FileInfo) GetUploaderName() string {
+	if x != nil {
+		return x.UploaderName
+	}
+	return ""
+}
+
+func (x *FileInfo) GetSha256() string {
+	if x != nil {
+		return x.Sha256
+	}
+	return ""
 }
 
 // 上传：api 层收 multipart，转 base64 或直接传字节流
@@ -501,6 +517,83 @@ func (x *UploadFileResponse) GetFile() *FileInfo {
 	return nil
 }
 
+// 首帧携带 actor/original_name/visibility/scene，后续帧只携带 content；结束后由服务端计算 SHA-256。
+type UploadFileChunk struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
+	OriginalName  string                 `protobuf:"bytes,2,opt,name=original_name,json=originalName,proto3" json:"original_name,omitempty"`
+	Visibility    string                 `protobuf:"bytes,3,opt,name=visibility,proto3" json:"visibility,omitempty"`
+	Scene         string                 `protobuf:"bytes,4,opt,name=scene,proto3" json:"scene,omitempty"`
+	Content       []byte                 `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadFileChunk) Reset() {
+	*x = UploadFileChunk{}
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadFileChunk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadFileChunk) ProtoMessage() {}
+
+func (x *UploadFileChunk) ProtoReflect() protoreflect.Message {
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadFileChunk.ProtoReflect.Descriptor instead.
+func (*UploadFileChunk) Descriptor() ([]byte, []int) {
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UploadFileChunk) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *UploadFileChunk) GetOriginalName() string {
+	if x != nil {
+		return x.OriginalName
+	}
+	return ""
+}
+
+func (x *UploadFileChunk) GetVisibility() string {
+	if x != nil {
+		return x.Visibility
+	}
+	return ""
+}
+
+func (x *UploadFileChunk) GetScene() string {
+	if x != nil {
+		return x.Scene
+	}
+	return ""
+}
+
+func (x *UploadFileChunk) GetContent() []byte {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
 type GetFileListRequest struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	Actor                 *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
@@ -509,13 +602,21 @@ type GetFileListRequest struct {
 	Scene                 string                 `protobuf:"bytes,4,opt,name=Scene,proto3" json:"Scene,omitempty"`
 	UploaderID            int64                  `protobuf:"varint,5,opt,name=UploaderID,proto3" json:"UploaderID,omitempty"`
 	IncludeCleanupPending bool                   `protobuf:"varint,6,opt,name=include_cleanup_pending,json=includeCleanupPending,proto3" json:"include_cleanup_pending,omitempty"`
+	CleanupPendingOnly    bool                   `protobuf:"varint,7,opt,name=cleanup_pending_only,json=cleanupPendingOnly,proto3" json:"cleanup_pending_only,omitempty"`
+	Name                  string                 `protobuf:"bytes,8,opt,name=name,proto3" json:"name,omitempty"`
+	Mime                  string                 `protobuf:"bytes,9,opt,name=mime,proto3" json:"mime,omitempty"`
+	Ext                   string                 `protobuf:"bytes,10,opt,name=ext,proto3" json:"ext,omitempty"`
+	MinSize               int64                  `protobuf:"varint,11,opt,name=min_size,json=minSize,proto3" json:"min_size,omitempty"`
+	MaxSize               int64                  `protobuf:"varint,12,opt,name=max_size,json=maxSize,proto3" json:"max_size,omitempty"`
+	StartTime             int64                  `protobuf:"varint,13,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	EndTime               int64                  `protobuf:"varint,14,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
 
 func (x *GetFileListRequest) Reset() {
 	*x = GetFileListRequest{}
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[7]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -527,7 +628,7 @@ func (x *GetFileListRequest) String() string {
 func (*GetFileListRequest) ProtoMessage() {}
 
 func (x *GetFileListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[7]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -540,7 +641,7 @@ func (x *GetFileListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFileListRequest.ProtoReflect.Descriptor instead.
 func (*GetFileListRequest) Descriptor() ([]byte, []int) {
-	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{7}
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetFileListRequest) GetActor() *Actor {
@@ -585,6 +686,62 @@ func (x *GetFileListRequest) GetIncludeCleanupPending() bool {
 	return false
 }
 
+func (x *GetFileListRequest) GetCleanupPendingOnly() bool {
+	if x != nil {
+		return x.CleanupPendingOnly
+	}
+	return false
+}
+
+func (x *GetFileListRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetFileListRequest) GetMime() string {
+	if x != nil {
+		return x.Mime
+	}
+	return ""
+}
+
+func (x *GetFileListRequest) GetExt() string {
+	if x != nil {
+		return x.Ext
+	}
+	return ""
+}
+
+func (x *GetFileListRequest) GetMinSize() int64 {
+	if x != nil {
+		return x.MinSize
+	}
+	return 0
+}
+
+func (x *GetFileListRequest) GetMaxSize() int64 {
+	if x != nil {
+		return x.MaxSize
+	}
+	return 0
+}
+
+func (x *GetFileListRequest) GetStartTime() int64 {
+	if x != nil {
+		return x.StartTime
+	}
+	return 0
+}
+
+func (x *GetFileListRequest) GetEndTime() int64 {
+	if x != nil {
+		return x.EndTime
+	}
+	return 0
+}
+
 type GetFileListResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	List          []*FileInfo            `protobuf:"bytes,1,rep,name=List,proto3" json:"List,omitempty"`
@@ -595,7 +752,7 @@ type GetFileListResponse struct {
 
 func (x *GetFileListResponse) Reset() {
 	*x = GetFileListResponse{}
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[8]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -607,7 +764,7 @@ func (x *GetFileListResponse) String() string {
 func (*GetFileListResponse) ProtoMessage() {}
 
 func (x *GetFileListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[8]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -620,7 +777,7 @@ func (x *GetFileListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFileListResponse.ProtoReflect.Descriptor instead.
 func (*GetFileListResponse) Descriptor() ([]byte, []int) {
-	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{8}
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetFileListResponse) GetList() []*FileInfo {
@@ -649,7 +806,7 @@ type GetFileURLRequest struct {
 
 func (x *GetFileURLRequest) Reset() {
 	*x = GetFileURLRequest{}
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[9]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -661,7 +818,7 @@ func (x *GetFileURLRequest) String() string {
 func (*GetFileURLRequest) ProtoMessage() {}
 
 func (x *GetFileURLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[9]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -674,7 +831,7 @@ func (x *GetFileURLRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFileURLRequest.ProtoReflect.Descriptor instead.
 func (*GetFileURLRequest) Descriptor() ([]byte, []int) {
-	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{9}
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetFileURLRequest) GetActor() *Actor {
@@ -715,7 +872,7 @@ type GetFileURLResponse struct {
 
 func (x *GetFileURLResponse) Reset() {
 	*x = GetFileURLResponse{}
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[10]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -727,7 +884,7 @@ func (x *GetFileURLResponse) String() string {
 func (*GetFileURLResponse) ProtoMessage() {}
 
 func (x *GetFileURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[10]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -740,7 +897,7 @@ func (x *GetFileURLResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFileURLResponse.ProtoReflect.Descriptor instead.
 func (*GetFileURLResponse) Descriptor() ([]byte, []int) {
-	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{10}
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetFileURLResponse) GetURL() string {
@@ -757,6 +914,330 @@ func (x *GetFileURLResponse) GetExpiresAt() int64 {
 	return 0
 }
 
+type FileReferenceInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	RefType       string                 `protobuf:"bytes,2,opt,name=ref_type,json=refType,proto3" json:"ref_type,omitempty"`
+	RefId         int64                  `protobuf:"varint,3,opt,name=ref_id,json=refId,proto3" json:"ref_id,omitempty"`
+	CreatedBy     int64                  `protobuf:"varint,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FileReferenceInfo) Reset() {
+	*x = FileReferenceInfo{}
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FileReferenceInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FileReferenceInfo) ProtoMessage() {}
+
+func (x *FileReferenceInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FileReferenceInfo.ProtoReflect.Descriptor instead.
+func (*FileReferenceInfo) Descriptor() ([]byte, []int) {
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *FileReferenceInfo) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *FileReferenceInfo) GetRefType() string {
+	if x != nil {
+		return x.RefType
+	}
+	return ""
+}
+
+func (x *FileReferenceInfo) GetRefId() int64 {
+	if x != nil {
+		return x.RefId
+	}
+	return 0
+}
+
+func (x *FileReferenceInfo) GetCreatedBy() int64 {
+	if x != nil {
+		return x.CreatedBy
+	}
+	return 0
+}
+
+func (x *FileReferenceInfo) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+type GetFileDetailRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
+	FileID        int64                  `protobuf:"varint,2,opt,name=FileID,proto3" json:"FileID,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFileDetailRequest) Reset() {
+	*x = GetFileDetailRequest{}
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFileDetailRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFileDetailRequest) ProtoMessage() {}
+
+func (x *GetFileDetailRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFileDetailRequest.ProtoReflect.Descriptor instead.
+func (*GetFileDetailRequest) Descriptor() ([]byte, []int) {
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetFileDetailRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+func (x *GetFileDetailRequest) GetFileID() int64 {
+	if x != nil {
+		return x.FileID
+	}
+	return 0
+}
+
+type GetFileDetailResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	File          *FileInfo              `protobuf:"bytes,1,opt,name=File,proto3" json:"File,omitempty"`
+	References    []*FileReferenceInfo   `protobuf:"bytes,2,rep,name=References,proto3" json:"References,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFileDetailResponse) Reset() {
+	*x = GetFileDetailResponse{}
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFileDetailResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFileDetailResponse) ProtoMessage() {}
+
+func (x *GetFileDetailResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFileDetailResponse.ProtoReflect.Descriptor instead.
+func (*GetFileDetailResponse) Descriptor() ([]byte, []int) {
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetFileDetailResponse) GetFile() *FileInfo {
+	if x != nil {
+		return x.File
+	}
+	return nil
+}
+
+func (x *GetFileDetailResponse) GetReferences() []*FileReferenceInfo {
+	if x != nil {
+		return x.References
+	}
+	return nil
+}
+
+type GetFileStatsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Actor         *Actor                 `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFileStatsRequest) Reset() {
+	*x = GetFileStatsRequest{}
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFileStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFileStatsRequest) ProtoMessage() {}
+
+func (x *GetFileStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFileStatsRequest.ProtoReflect.Descriptor instead.
+func (*GetFileStatsRequest) Descriptor() ([]byte, []int) {
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetFileStatsRequest) GetActor() *Actor {
+	if x != nil {
+		return x.Actor
+	}
+	return nil
+}
+
+type GetFileStatsResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	TotalFiles          int64                  `protobuf:"varint,1,opt,name=total_files,json=totalFiles,proto3" json:"total_files,omitempty"`
+	TotalBytes          int64                  `protobuf:"varint,2,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	PublicFiles         int64                  `protobuf:"varint,3,opt,name=public_files,json=publicFiles,proto3" json:"public_files,omitempty"`
+	PublicBytes         int64                  `protobuf:"varint,4,opt,name=public_bytes,json=publicBytes,proto3" json:"public_bytes,omitempty"`
+	PrivateFiles        int64                  `protobuf:"varint,5,opt,name=private_files,json=privateFiles,proto3" json:"private_files,omitempty"`
+	PrivateBytes        int64                  `protobuf:"varint,6,opt,name=private_bytes,json=privateBytes,proto3" json:"private_bytes,omitempty"`
+	CleanupPendingFiles int64                  `protobuf:"varint,7,opt,name=cleanup_pending_files,json=cleanupPendingFiles,proto3" json:"cleanup_pending_files,omitempty"`
+	CleanupPendingBytes int64                  `protobuf:"varint,8,opt,name=cleanup_pending_bytes,json=cleanupPendingBytes,proto3" json:"cleanup_pending_bytes,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *GetFileStatsResponse) Reset() {
+	*x = GetFileStatsResponse{}
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFileStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFileStatsResponse) ProtoMessage() {}
+
+func (x *GetFileStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFileStatsResponse.ProtoReflect.Descriptor instead.
+func (*GetFileStatsResponse) Descriptor() ([]byte, []int) {
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetFileStatsResponse) GetTotalFiles() int64 {
+	if x != nil {
+		return x.TotalFiles
+	}
+	return 0
+}
+
+func (x *GetFileStatsResponse) GetTotalBytes() int64 {
+	if x != nil {
+		return x.TotalBytes
+	}
+	return 0
+}
+
+func (x *GetFileStatsResponse) GetPublicFiles() int64 {
+	if x != nil {
+		return x.PublicFiles
+	}
+	return 0
+}
+
+func (x *GetFileStatsResponse) GetPublicBytes() int64 {
+	if x != nil {
+		return x.PublicBytes
+	}
+	return 0
+}
+
+func (x *GetFileStatsResponse) GetPrivateFiles() int64 {
+	if x != nil {
+		return x.PrivateFiles
+	}
+	return 0
+}
+
+func (x *GetFileStatsResponse) GetPrivateBytes() int64 {
+	if x != nil {
+		return x.PrivateBytes
+	}
+	return 0
+}
+
+func (x *GetFileStatsResponse) GetCleanupPendingFiles() int64 {
+	if x != nil {
+		return x.CleanupPendingFiles
+	}
+	return 0
+}
+
+func (x *GetFileStatsResponse) GetCleanupPendingBytes() int64 {
+	if x != nil {
+		return x.CleanupPendingBytes
+	}
+	return 0
+}
+
 type DeleteFileRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=Actor,proto3" json:"Actor,omitempty"`
@@ -767,7 +1248,7 @@ type DeleteFileRequest struct {
 
 func (x *DeleteFileRequest) Reset() {
 	*x = DeleteFileRequest{}
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[11]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -779,7 +1260,7 @@ func (x *DeleteFileRequest) String() string {
 func (*DeleteFileRequest) ProtoMessage() {}
 
 func (x *DeleteFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[11]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -792,7 +1273,7 @@ func (x *DeleteFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFileRequest.ProtoReflect.Descriptor instead.
 func (*DeleteFileRequest) Descriptor() ([]byte, []int) {
-	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{11}
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *DeleteFileRequest) GetActor() *Actor {
@@ -822,7 +1303,7 @@ type AddFileReferenceRequest struct {
 
 func (x *AddFileReferenceRequest) Reset() {
 	*x = AddFileReferenceRequest{}
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[12]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -834,7 +1315,7 @@ func (x *AddFileReferenceRequest) String() string {
 func (*AddFileReferenceRequest) ProtoMessage() {}
 
 func (x *AddFileReferenceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[12]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -847,7 +1328,7 @@ func (x *AddFileReferenceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddFileReferenceRequest.ProtoReflect.Descriptor instead.
 func (*AddFileReferenceRequest) Descriptor() ([]byte, []int) {
-	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{12}
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *AddFileReferenceRequest) GetActor() *Actor {
@@ -891,7 +1372,7 @@ type RemoveFileReferenceRequest struct {
 
 func (x *RemoveFileReferenceRequest) Reset() {
 	*x = RemoveFileReferenceRequest{}
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[13]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -903,7 +1384,7 @@ func (x *RemoveFileReferenceRequest) String() string {
 func (*RemoveFileReferenceRequest) ProtoMessage() {}
 
 func (x *RemoveFileReferenceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_application_file_rpc_desc_file_proto_msgTypes[13]
+	mi := &file_application_file_rpc_desc_file_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -916,7 +1397,7 @@ func (x *RemoveFileReferenceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveFileReferenceRequest.ProtoReflect.Descriptor instead.
 func (*RemoveFileReferenceRequest) Descriptor() ([]byte, []int) {
-	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{13}
+	return file_application_file_rpc_desc_file_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *RemoveFileReferenceRequest) GetActor() *Actor {
@@ -970,7 +1451,7 @@ const file_application_file_rpc_desc_file_proto_rawDesc = "" +
 	"\bUsername\x18\x02 \x01(\tR\bUsername\x12\x16\n" +
 	"\x06DeptId\x18\x03 \x01(\x03R\x06DeptId\x12\x0e\n" +
 	"\x02IP\x18\x04 \x01(\tR\x02IP\x12\x1c\n" +
-	"\tUserAgent\x18\x05 \x01(\tR\tUserAgent\"\xe5\x02\n" +
+	"\tUserAgent\x18\x05 \x01(\tR\tUserAgent\"\xa2\x03\n" +
 	"\bFileInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x16\n" +
 	"\x06Bucket\x18\x02 \x01(\tR\x06Bucket\x12\x1c\n" +
@@ -990,7 +1471,9 @@ const file_application_file_rpc_desc_file_proto_rawDesc = "" +
 	"\x03URL\x18\v \x01(\tR\x03URL\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\f \x01(\x03R\tcreatedAt\x12'\n" +
-	"\x0fcleanup_pending\x18\r \x01(\bR\x0ecleanupPending\"\xc1\x01\n" +
+	"\x0fcleanup_pending\x18\r \x01(\bR\x0ecleanupPending\x12#\n" +
+	"\ruploader_name\x18\x0e \x01(\tR\fuploaderName\x12\x16\n" +
+	"\x06sha256\x18\x0f \x01(\tR\x06sha256\"\xc1\x01\n" +
 	"\x11UploadFileRequest\x12#\n" +
 	"\x05actor\x18\x01 \x01(\v2\r.filepb.ActorR\x05actor\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\fR\acontent\x12#\n" +
@@ -1001,7 +1484,15 @@ const file_application_file_rpc_desc_file_proto_rawDesc = "" +
 	"visibility\x12\x14\n" +
 	"\x05scene\x18\x06 \x01(\tR\x05scene\":\n" +
 	"\x12UploadFileResponse\x12$\n" +
-	"\x04File\x18\x01 \x01(\v2\x10.filepb.FileInfoR\x04File\"\xf0\x01\n" +
+	"\x04File\x18\x01 \x01(\v2\x10.filepb.FileInfoR\x04File\"\xab\x01\n" +
+	"\x0fUploadFileChunk\x12#\n" +
+	"\x05actor\x18\x01 \x01(\v2\r.filepb.ActorR\x05actor\x12#\n" +
+	"\roriginal_name\x18\x02 \x01(\tR\foriginalName\x12\x1e\n" +
+	"\n" +
+	"visibility\x18\x03 \x01(\tR\n" +
+	"visibility\x12\x14\n" +
+	"\x05scene\x18\x04 \x01(\tR\x05scene\x12\x18\n" +
+	"\acontent\x18\x05 \x01(\fR\acontent\"\xcc\x03\n" +
 	"\x12GetFileListRequest\x12#\n" +
 	"\x05actor\x18\x01 \x01(\v2\r.filepb.ActorR\x05actor\x12'\n" +
 	"\x04Page\x18\x02 \x01(\v2\x13.filepb.PageRequestR\x04Page\x12\x1e\n" +
@@ -1012,7 +1503,17 @@ const file_application_file_rpc_desc_file_proto_rawDesc = "" +
 	"\n" +
 	"UploaderID\x18\x05 \x01(\x03R\n" +
 	"UploaderID\x126\n" +
-	"\x17include_cleanup_pending\x18\x06 \x01(\bR\x15includeCleanupPending\"e\n" +
+	"\x17include_cleanup_pending\x18\x06 \x01(\bR\x15includeCleanupPending\x120\n" +
+	"\x14cleanup_pending_only\x18\a \x01(\bR\x12cleanupPendingOnly\x12\x12\n" +
+	"\x04name\x18\b \x01(\tR\x04name\x12\x12\n" +
+	"\x04mime\x18\t \x01(\tR\x04mime\x12\x10\n" +
+	"\x03ext\x18\n" +
+	" \x01(\tR\x03ext\x12\x19\n" +
+	"\bmin_size\x18\v \x01(\x03R\aminSize\x12\x19\n" +
+	"\bmax_size\x18\f \x01(\x03R\amaxSize\x12\x1d\n" +
+	"\n" +
+	"start_time\x18\r \x01(\x03R\tstartTime\x12\x19\n" +
+	"\bend_time\x18\x0e \x01(\x03R\aendTime\"e\n" +
 	"\x13GetFileListResponse\x12$\n" +
 	"\x04List\x18\x01 \x03(\v2\x10.filepb.FileInfoR\x04List\x12(\n" +
 	"\x04Page\x18\x02 \x01(\v2\x14.filepb.PageResponseR\x04Page\"\x91\x01\n" +
@@ -1026,7 +1527,36 @@ const file_application_file_rpc_desc_file_proto_rawDesc = "" +
 	"publicOnly\"D\n" +
 	"\x12GetFileURLResponse\x12\x10\n" +
 	"\x03URL\x18\x01 \x01(\tR\x03URL\x12\x1c\n" +
-	"\tExpiresAt\x18\x02 \x01(\x03R\tExpiresAt\"P\n" +
+	"\tExpiresAt\x18\x02 \x01(\x03R\tExpiresAt\"\x93\x01\n" +
+	"\x11FileReferenceInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x19\n" +
+	"\bref_type\x18\x02 \x01(\tR\arefType\x12\x15\n" +
+	"\x06ref_id\x18\x03 \x01(\x03R\x05refId\x12\x1d\n" +
+	"\n" +
+	"created_by\x18\x04 \x01(\x03R\tcreatedBy\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\x03R\tcreatedAt\"S\n" +
+	"\x14GetFileDetailRequest\x12#\n" +
+	"\x05Actor\x18\x01 \x01(\v2\r.filepb.ActorR\x05Actor\x12\x16\n" +
+	"\x06FileID\x18\x02 \x01(\x03R\x06FileID\"x\n" +
+	"\x15GetFileDetailResponse\x12$\n" +
+	"\x04File\x18\x01 \x01(\v2\x10.filepb.FileInfoR\x04File\x129\n" +
+	"\n" +
+	"References\x18\x02 \x03(\v2\x19.filepb.FileReferenceInfoR\n" +
+	"References\":\n" +
+	"\x13GetFileStatsRequest\x12#\n" +
+	"\x05Actor\x18\x01 \x01(\v2\r.filepb.ActorR\x05Actor\"\xd0\x02\n" +
+	"\x14GetFileStatsResponse\x12\x1f\n" +
+	"\vtotal_files\x18\x01 \x01(\x03R\n" +
+	"totalFiles\x12\x1f\n" +
+	"\vtotal_bytes\x18\x02 \x01(\x03R\n" +
+	"totalBytes\x12!\n" +
+	"\fpublic_files\x18\x03 \x01(\x03R\vpublicFiles\x12!\n" +
+	"\fpublic_bytes\x18\x04 \x01(\x03R\vpublicBytes\x12#\n" +
+	"\rprivate_files\x18\x05 \x01(\x03R\fprivateFiles\x12#\n" +
+	"\rprivate_bytes\x18\x06 \x01(\x03R\fprivateBytes\x122\n" +
+	"\x15cleanup_pending_files\x18\a \x01(\x03R\x13cleanupPendingFiles\x122\n" +
+	"\x15cleanup_pending_bytes\x18\b \x01(\x03R\x13cleanupPendingBytes\"P\n" +
 	"\x11DeleteFileRequest\x12#\n" +
 	"\x05Actor\x18\x01 \x01(\v2\r.filepb.ActorR\x05Actor\x12\x16\n" +
 	"\x06FileID\x18\x02 \x01(\x03R\x06FileID\"\x86\x01\n" +
@@ -1042,11 +1572,14 @@ const file_application_file_rpc_desc_file_proto_rawDesc = "" +
 	"\x05RefID\x18\x04 \x01(\x03R\x05RefID\x12%\n" +
 	"\fkeep_file_id\x18\x05 \x01(\x03H\x00R\n" +
 	"keepFileId\x88\x01\x01B\x0f\n" +
-	"\r_keep_file_id2\xc0\x03\n" +
+	"\r_keep_file_id2\xa4\x05\n" +
 	"\vFileService\x12C\n" +
 	"\n" +
-	"UploadFile\x12\x19.filepb.UploadFileRequest\x1a\x1a.filepb.UploadFileResponse\x12F\n" +
-	"\vGetFileList\x12\x1a.filepb.GetFileListRequest\x1a\x1b.filepb.GetFileListResponse\x12C\n" +
+	"UploadFile\x12\x19.filepb.UploadFileRequest\x1a\x1a.filepb.UploadFileResponse\x12I\n" +
+	"\x10UploadFileStream\x12\x17.filepb.UploadFileChunk\x1a\x1a.filepb.UploadFileResponse(\x01\x12F\n" +
+	"\vGetFileList\x12\x1a.filepb.GetFileListRequest\x1a\x1b.filepb.GetFileListResponse\x12L\n" +
+	"\rGetFileDetail\x12\x1c.filepb.GetFileDetailRequest\x1a\x1d.filepb.GetFileDetailResponse\x12I\n" +
+	"\fGetFileStats\x12\x1b.filepb.GetFileStatsRequest\x1a\x1c.filepb.GetFileStatsResponse\x12C\n" +
 	"\n" +
 	"GetFileURL\x12\x19.filepb.GetFileURLRequest\x1a\x1a.filepb.GetFileURLResponse\x12?\n" +
 	"\n" +
@@ -1067,7 +1600,7 @@ func file_application_file_rpc_desc_file_proto_rawDescGZIP() []byte {
 	return file_application_file_rpc_desc_file_proto_rawDescData
 }
 
-var file_application_file_rpc_desc_file_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_application_file_rpc_desc_file_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_application_file_rpc_desc_file_proto_goTypes = []any{
 	(*PageRequest)(nil),                // 0: filepb.PageRequest
 	(*PageResponse)(nil),               // 1: filepb.PageResponse
@@ -1076,42 +1609,59 @@ var file_application_file_rpc_desc_file_proto_goTypes = []any{
 	(*FileInfo)(nil),                   // 4: filepb.FileInfo
 	(*UploadFileRequest)(nil),          // 5: filepb.UploadFileRequest
 	(*UploadFileResponse)(nil),         // 6: filepb.UploadFileResponse
-	(*GetFileListRequest)(nil),         // 7: filepb.GetFileListRequest
-	(*GetFileListResponse)(nil),        // 8: filepb.GetFileListResponse
-	(*GetFileURLRequest)(nil),          // 9: filepb.GetFileURLRequest
-	(*GetFileURLResponse)(nil),         // 10: filepb.GetFileURLResponse
-	(*DeleteFileRequest)(nil),          // 11: filepb.DeleteFileRequest
-	(*AddFileReferenceRequest)(nil),    // 12: filepb.AddFileReferenceRequest
-	(*RemoveFileReferenceRequest)(nil), // 13: filepb.RemoveFileReferenceRequest
+	(*UploadFileChunk)(nil),            // 7: filepb.UploadFileChunk
+	(*GetFileListRequest)(nil),         // 8: filepb.GetFileListRequest
+	(*GetFileListResponse)(nil),        // 9: filepb.GetFileListResponse
+	(*GetFileURLRequest)(nil),          // 10: filepb.GetFileURLRequest
+	(*GetFileURLResponse)(nil),         // 11: filepb.GetFileURLResponse
+	(*FileReferenceInfo)(nil),          // 12: filepb.FileReferenceInfo
+	(*GetFileDetailRequest)(nil),       // 13: filepb.GetFileDetailRequest
+	(*GetFileDetailResponse)(nil),      // 14: filepb.GetFileDetailResponse
+	(*GetFileStatsRequest)(nil),        // 15: filepb.GetFileStatsRequest
+	(*GetFileStatsResponse)(nil),       // 16: filepb.GetFileStatsResponse
+	(*DeleteFileRequest)(nil),          // 17: filepb.DeleteFileRequest
+	(*AddFileReferenceRequest)(nil),    // 18: filepb.AddFileReferenceRequest
+	(*RemoveFileReferenceRequest)(nil), // 19: filepb.RemoveFileReferenceRequest
 }
 var file_application_file_rpc_desc_file_proto_depIdxs = []int32{
 	3,  // 0: filepb.UploadFileRequest.actor:type_name -> filepb.Actor
 	4,  // 1: filepb.UploadFileResponse.File:type_name -> filepb.FileInfo
-	3,  // 2: filepb.GetFileListRequest.actor:type_name -> filepb.Actor
-	0,  // 3: filepb.GetFileListRequest.Page:type_name -> filepb.PageRequest
-	4,  // 4: filepb.GetFileListResponse.List:type_name -> filepb.FileInfo
-	1,  // 5: filepb.GetFileListResponse.Page:type_name -> filepb.PageResponse
-	3,  // 6: filepb.GetFileURLRequest.Actor:type_name -> filepb.Actor
-	3,  // 7: filepb.DeleteFileRequest.Actor:type_name -> filepb.Actor
-	3,  // 8: filepb.AddFileReferenceRequest.Actor:type_name -> filepb.Actor
-	3,  // 9: filepb.RemoveFileReferenceRequest.Actor:type_name -> filepb.Actor
-	5,  // 10: filepb.FileService.UploadFile:input_type -> filepb.UploadFileRequest
-	7,  // 11: filepb.FileService.GetFileList:input_type -> filepb.GetFileListRequest
-	9,  // 12: filepb.FileService.GetFileURL:input_type -> filepb.GetFileURLRequest
-	11, // 13: filepb.FileService.DeleteFile:input_type -> filepb.DeleteFileRequest
-	12, // 14: filepb.FileService.AddFileReference:input_type -> filepb.AddFileReferenceRequest
-	13, // 15: filepb.FileService.RemoveFileReference:input_type -> filepb.RemoveFileReferenceRequest
-	6,  // 16: filepb.FileService.UploadFile:output_type -> filepb.UploadFileResponse
-	8,  // 17: filepb.FileService.GetFileList:output_type -> filepb.GetFileListResponse
-	10, // 18: filepb.FileService.GetFileURL:output_type -> filepb.GetFileURLResponse
-	2,  // 19: filepb.FileService.DeleteFile:output_type -> filepb.NoDataResponse
-	2,  // 20: filepb.FileService.AddFileReference:output_type -> filepb.NoDataResponse
-	2,  // 21: filepb.FileService.RemoveFileReference:output_type -> filepb.NoDataResponse
-	16, // [16:22] is the sub-list for method output_type
-	10, // [10:16] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	3,  // 2: filepb.UploadFileChunk.actor:type_name -> filepb.Actor
+	3,  // 3: filepb.GetFileListRequest.actor:type_name -> filepb.Actor
+	0,  // 4: filepb.GetFileListRequest.Page:type_name -> filepb.PageRequest
+	4,  // 5: filepb.GetFileListResponse.List:type_name -> filepb.FileInfo
+	1,  // 6: filepb.GetFileListResponse.Page:type_name -> filepb.PageResponse
+	3,  // 7: filepb.GetFileURLRequest.Actor:type_name -> filepb.Actor
+	3,  // 8: filepb.GetFileDetailRequest.Actor:type_name -> filepb.Actor
+	4,  // 9: filepb.GetFileDetailResponse.File:type_name -> filepb.FileInfo
+	12, // 10: filepb.GetFileDetailResponse.References:type_name -> filepb.FileReferenceInfo
+	3,  // 11: filepb.GetFileStatsRequest.Actor:type_name -> filepb.Actor
+	3,  // 12: filepb.DeleteFileRequest.Actor:type_name -> filepb.Actor
+	3,  // 13: filepb.AddFileReferenceRequest.Actor:type_name -> filepb.Actor
+	3,  // 14: filepb.RemoveFileReferenceRequest.Actor:type_name -> filepb.Actor
+	5,  // 15: filepb.FileService.UploadFile:input_type -> filepb.UploadFileRequest
+	7,  // 16: filepb.FileService.UploadFileStream:input_type -> filepb.UploadFileChunk
+	8,  // 17: filepb.FileService.GetFileList:input_type -> filepb.GetFileListRequest
+	13, // 18: filepb.FileService.GetFileDetail:input_type -> filepb.GetFileDetailRequest
+	15, // 19: filepb.FileService.GetFileStats:input_type -> filepb.GetFileStatsRequest
+	10, // 20: filepb.FileService.GetFileURL:input_type -> filepb.GetFileURLRequest
+	17, // 21: filepb.FileService.DeleteFile:input_type -> filepb.DeleteFileRequest
+	18, // 22: filepb.FileService.AddFileReference:input_type -> filepb.AddFileReferenceRequest
+	19, // 23: filepb.FileService.RemoveFileReference:input_type -> filepb.RemoveFileReferenceRequest
+	6,  // 24: filepb.FileService.UploadFile:output_type -> filepb.UploadFileResponse
+	6,  // 25: filepb.FileService.UploadFileStream:output_type -> filepb.UploadFileResponse
+	9,  // 26: filepb.FileService.GetFileList:output_type -> filepb.GetFileListResponse
+	14, // 27: filepb.FileService.GetFileDetail:output_type -> filepb.GetFileDetailResponse
+	16, // 28: filepb.FileService.GetFileStats:output_type -> filepb.GetFileStatsResponse
+	11, // 29: filepb.FileService.GetFileURL:output_type -> filepb.GetFileURLResponse
+	2,  // 30: filepb.FileService.DeleteFile:output_type -> filepb.NoDataResponse
+	2,  // 31: filepb.FileService.AddFileReference:output_type -> filepb.NoDataResponse
+	2,  // 32: filepb.FileService.RemoveFileReference:output_type -> filepb.NoDataResponse
+	24, // [24:33] is the sub-list for method output_type
+	15, // [15:24] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_application_file_rpc_desc_file_proto_init() }
@@ -1119,14 +1669,14 @@ func file_application_file_rpc_desc_file_proto_init() {
 	if File_application_file_rpc_desc_file_proto != nil {
 		return
 	}
-	file_application_file_rpc_desc_file_proto_msgTypes[13].OneofWrappers = []any{}
+	file_application_file_rpc_desc_file_proto_msgTypes[19].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_application_file_rpc_desc_file_proto_rawDesc), len(file_application_file_rpc_desc_file_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

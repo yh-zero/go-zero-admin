@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"go-zero-admin/pkg/logsafe"
@@ -49,6 +50,11 @@ func main() {
 		}
 	}
 	ctx := svc.NewServiceContext(c)
+	workerCtx, cancelWorker := context.WithCancel(context.Background())
+	defer cancelWorker()
+	if err := ctx.StartAuditRetentionWorker(workerCtx); err != nil {
+		panic(err)
+	}
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		adminpb.RegisterHealthServiceServer(grpcServer, healthserviceServer.NewHealthServiceServer(ctx))
