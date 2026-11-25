@@ -22,7 +22,7 @@ func NewUpdateRoleLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 }
 
 func (l *UpdateRoleLogic) UpdateRole(in *adminpb.UpdateRoleRequest) (*adminpb.NoDataResponse, error) {
-	if err := requireRoleActor(l.ctx, l.svcCtx, in.GetActor()); err != nil {
+	if err := requireRoleMutationAllowed(l.ctx, l.svcCtx, in.GetActor(), roleMutationInput{RoleID: uint64(in.RoleId), Code: optionalString(in.Code), DataScope: optionalString(in.DataScope), MenuIDs: in.MenuIds}); err != nil {
 		return nil, err
 	}
 	if in.UpdateMenus && in.ExpectedMenus == nil {

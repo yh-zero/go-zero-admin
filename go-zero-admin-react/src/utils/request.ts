@@ -214,6 +214,25 @@ export async function apiGet<T>(url: string, params?: object, options?: { signal
 export async function apiPost<T = void>(url: string, data?: unknown, options?: { timeout?: number }): Promise<T> {
   return (await request.post<T>(url, data, { ...requestContext(url), timeout: options?.timeout })).data;
 }
+export async function apiPostForm<T>(url: string, data: FormData, options?: { timeout?: number }): Promise<T> {
+  return (await request.post<T>(url, data, { ...requestContext(url), timeout: options?.timeout })).data;
+}
+export async function apiPostDownload(url: string, data?: unknown): Promise<Blob> {
+  const headers = await prepareStreamHeaders(url);
+  headers.Accept = 'text/csv';
+  headers['Content-Type'] = 'application/json';
+  const response = await fetch((import.meta.env.VITE_API_BASE_URL || '/v1') + url, {
+    method: 'POST', headers, body: JSON.stringify(data ?? {}),
+  });
+  if (!response.ok) {
+    let failure = new ApiError(response.status, '导出失败（HTTP ' + response.status + '）');
+    try { decodeResponse(await response.json()); }
+    catch (error) { if (error instanceof ApiError) failure = error; }
+    reportApiError(failure);
+    throw failure;
+  }
+  return response.blob();
+}
 export async function apiPut<T = void>(url: string, data?: unknown, options?: { timeout?: number }): Promise<T> {
   return (await request.put<T>(url, data, { ...requestContext(url), timeout: options?.timeout })).data;
 }

@@ -44,6 +44,12 @@ if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .en
 
 启用用户权限查看、批量导入和组织通讯录时，从[完整初始化 SQL](../go-zero-admin/data/db/init/mysql-all.sql)核对“后台用户工具和独立通讯录”区段。只增量补齐菜单、按钮和接口资源，按现有库实际 ID 关联角色。全局超级管理员可使用权限查看和导入。给其他角色开放导入时，同时核对新增用户和导入两个接口的授权。给普通成员开放通讯录时，同时授予通讯录菜单及其 GET 接口，并在该用户切换到自己的部门后验证。更新 Casbin 策略后按当前部署方式刷新策略。
 
+升级审计与文件增强前，先备份并对照完整初始化 SQL 增量执行：`sys_file ADD COLUMN sha256 char(64) NOT NULL DEFAULT '' COMMENT '文件内容 SHA-256，历史文件为空'`，为 `sys_audit_log` 增加 `idx_username/idx_method/idx_ip`，为 `sys_file` 增加 `idx_original_name/idx_mime/idx_created_at`。不要重复添加已有列或索引。部署后通过“接口管理 → 同步路由”登记审计导出、文件详情、存储统计和 multipart 上传路由；普通角色沿用现有审计列表、文件列表/上传操作码，按需单独授权并验证。
+
+审计自动保留默认关闭。确需启用时在 admin-rpc YAML 设置 `Audit.RetentionDays` 为正整数，并可调整 `CleanupIntervalSeconds`（默认 3600）及 `CleanupBatchSize`（默认 1000）。该功能按 `created_at` 删除到期审计，启用前先备份并验证保留天数；已有租户配置需分别迁移。
+
+权限模型升级先备份，再创建 `sys_permission(menu_id,api_id)` 和 `sys_policy_state`（id=1 初始 revision=1）。按当前完整初始化 SQL 核对菜单与 API 的映射，旧库只增量补齐，不重复插入已有映射。角色授权现在按映射重建 API 策略，非超级管理员不能修改自己绑定的角色或授予超出自身的权限/数据范围；已有自定义角色应先核对映射和绑定关系。权限诊断为 `POST /v1/sys/permission/check`，可查看 allowed、命中角色、策略 revision、生成和加载时间。
+
 开源演示账号见[快速开始](../README.md#快速开始)。首次安装已有基础演示数据，历史前端样例导入见[前端说明](../go-zero-admin-react/README.md)。
 
 ### 数据库备份

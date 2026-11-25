@@ -18,20 +18,29 @@ type (
 	AddFileReferenceRequest    = filepb.AddFileReferenceRequest
 	DeleteFileRequest          = filepb.DeleteFileRequest
 	FileInfo                   = filepb.FileInfo
+	FileReferenceInfo          = filepb.FileReferenceInfo
+	GetFileDetailRequest       = filepb.GetFileDetailRequest
+	GetFileDetailResponse      = filepb.GetFileDetailResponse
 	GetFileListRequest         = filepb.GetFileListRequest
 	GetFileListResponse        = filepb.GetFileListResponse
+	GetFileStatsRequest        = filepb.GetFileStatsRequest
+	GetFileStatsResponse       = filepb.GetFileStatsResponse
 	GetFileURLRequest          = filepb.GetFileURLRequest
 	GetFileURLResponse         = filepb.GetFileURLResponse
 	NoDataResponse             = filepb.NoDataResponse
 	PageRequest                = filepb.PageRequest
 	PageResponse               = filepb.PageResponse
 	RemoveFileReferenceRequest = filepb.RemoveFileReferenceRequest
+	UploadFileChunk            = filepb.UploadFileChunk
 	UploadFileRequest          = filepb.UploadFileRequest
 	UploadFileResponse         = filepb.UploadFileResponse
 
 	FileService interface {
 		UploadFile(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error)
+		UploadFileStream(ctx context.Context, opts ...grpc.CallOption) (filepb.FileService_UploadFileStreamClient, error)
 		GetFileList(ctx context.Context, in *GetFileListRequest, opts ...grpc.CallOption) (*GetFileListResponse, error)
+		GetFileDetail(ctx context.Context, in *GetFileDetailRequest, opts ...grpc.CallOption) (*GetFileDetailResponse, error)
+		GetFileStats(ctx context.Context, in *GetFileStatsRequest, opts ...grpc.CallOption) (*GetFileStatsResponse, error)
 		GetFileURL(ctx context.Context, in *GetFileURLRequest, opts ...grpc.CallOption) (*GetFileURLResponse, error)
 		DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 		AddFileReference(ctx context.Context, in *AddFileReferenceRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
@@ -54,9 +63,24 @@ func (m *defaultFileService) UploadFile(ctx context.Context, in *UploadFileReque
 	return client.UploadFile(ctx, in, opts...)
 }
 
+func (m *defaultFileService) UploadFileStream(ctx context.Context, opts ...grpc.CallOption) (filepb.FileService_UploadFileStreamClient, error) {
+	client := filepb.NewFileServiceClient(m.cli.Conn())
+	return client.UploadFileStream(ctx, opts...)
+}
+
 func (m *defaultFileService) GetFileList(ctx context.Context, in *GetFileListRequest, opts ...grpc.CallOption) (*GetFileListResponse, error) {
 	client := filepb.NewFileServiceClient(m.cli.Conn())
 	return client.GetFileList(ctx, in, opts...)
+}
+
+func (m *defaultFileService) GetFileDetail(ctx context.Context, in *GetFileDetailRequest, opts ...grpc.CallOption) (*GetFileDetailResponse, error) {
+	client := filepb.NewFileServiceClient(m.cli.Conn())
+	return client.GetFileDetail(ctx, in, opts...)
+}
+
+func (m *defaultFileService) GetFileStats(ctx context.Context, in *GetFileStatsRequest, opts ...grpc.CallOption) (*GetFileStatsResponse, error) {
+	client := filepb.NewFileServiceClient(m.cli.Conn())
+	return client.GetFileStats(ctx, in, opts...)
 }
 
 func (m *defaultFileService) GetFileURL(ctx context.Context, in *GetFileURLRequest, opts ...grpc.CallOption) (*GetFileURLResponse, error) {

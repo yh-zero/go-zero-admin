@@ -8390,6 +8390,167 @@
         }
       }
     },
+    "/v1/sys/audit/export": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "exportAuditLogs",
+        "operationId": "auditExportAuditLogs",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "page",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "module",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "action",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "user_id",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "result",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "username",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "method",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "path",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "ip",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "start_time",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "end_time",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "min_duration_ms",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "max_duration_ms",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "action": {
+                  "type": "string"
+                },
+                "end_time": {
+                  "type": "integer"
+                },
+                "ip": {
+                  "type": "string"
+                },
+                "max_duration_ms": {
+                  "type": "integer"
+                },
+                "method": {
+                  "type": "string"
+                },
+                "min_duration_ms": {
+                  "type": "integer"
+                },
+                "module": {
+                  "type": "string"
+                },
+                "page": {
+                  "type": "integer"
+                },
+                "page_size": {
+                  "type": "integer"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "result": {
+                  "type": "integer"
+                },
+                "start_time": {
+                  "type": "integer"
+                },
+                "user_id": {
+                  "type": "integer"
+                },
+                "username": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
     "/v1/sys/audit/list": {
       "get": {
         "produces": [
@@ -8438,6 +8599,54 @@
             "allowEmptyValue": true
           },
           {
+            "type": "string",
+            "name": "username",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "method",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "path",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "ip",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "start_time",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "end_time",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "min_duration_ms",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "max_duration_ms",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -8446,6 +8655,21 @@
               "properties": {
                 "action": {
                   "type": "string"
+                },
+                "end_time": {
+                  "type": "integer"
+                },
+                "ip": {
+                  "type": "string"
+                },
+                "max_duration_ms": {
+                  "type": "integer"
+                },
+                "method": {
+                  "type": "string"
+                },
+                "min_duration_ms": {
+                  "type": "integer"
                 },
                 "module": {
                   "type": "string"
@@ -8456,11 +8680,20 @@
                 "page_size": {
                   "type": "integer"
                 },
+                "path": {
+                  "type": "string"
+                },
                 "result": {
+                  "type": "integer"
+                },
+                "start_time": {
                   "type": "integer"
                 },
                 "user_id": {
                   "type": "integer"
+                },
+                "username": {
+                  "type": "string"
                 }
               }
             }
@@ -9714,16 +9947,85 @@
             "allowEmptyValue": true
           },
           {
+            "type": "boolean",
+            "name": "cleanup_pending_only",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "name",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "mime",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "ext",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "min_size",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "max_size",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "start_time",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "integer",
+            "name": "end_time",
+            "in": "query",
+            "allowEmptyValue": true
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
               "type": "object",
               "properties": {
+                "end_time": {
+                  "type": "integer"
+                },
+                "ext": {
+                  "type": "string"
+                },
+                "max_size": {
+                  "type": "integer"
+                },
+                "mime": {
+                  "type": "string"
+                },
+                "min_size": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
                 "page": {
                   "type": "integer"
                 },
                 "page_size": {
+                  "type": "integer"
+                },
+                "start_time": {
                   "type": "integer"
                 },
                 "uploader_id": {
@@ -9757,6 +10059,8 @@
                       "visibility",
                       "ref_count",
                       "uploader_id",
+                      "uploader_name",
+                      "sha256",
                       "created_at"
                     ],
                     "properties": {
@@ -9787,11 +10091,17 @@
                       "ref_count": {
                         "type": "integer"
                       },
+                      "sha256": {
+                        "type": "string"
+                      },
                       "size": {
                         "type": "integer"
                       },
                       "uploader_id": {
                         "type": "integer"
+                      },
+                      "uploader_name": {
+                        "type": "string"
                       },
                       "url": {
                         "type": "string"
@@ -9803,6 +10113,52 @@
                   }
                 },
                 "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/file/stats": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "getFileStats",
+        "operationId": "fileGetFileStats",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cleanup_pending_bytes": {
+                  "type": "integer"
+                },
+                "cleanup_pending_files": {
+                  "type": "integer"
+                },
+                "private_bytes": {
+                  "type": "integer"
+                },
+                "private_files": {
+                  "type": "integer"
+                },
+                "public_bytes": {
+                  "type": "integer"
+                },
+                "public_files": {
+                  "type": "integer"
+                },
+                "total_bytes": {
+                  "type": "integer"
+                },
+                "total_files": {
                   "type": "integer"
                 }
               }
@@ -9877,6 +10233,8 @@
                     "visibility",
                     "ref_count",
                     "uploader_id",
+                    "uploader_name",
+                    "sha256",
                     "created_at"
                   ],
                   "properties": {
@@ -9907,11 +10265,121 @@
                     "ref_count": {
                       "type": "integer"
                     },
+                    "sha256": {
+                      "type": "string"
+                    },
                     "size": {
                       "type": "integer"
                     },
                     "uploader_id": {
                       "type": "integer"
+                    },
+                    "uploader_name": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "visibility": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/file/upload-multipart": {
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "uploadMultipart",
+        "operationId": "fileUploadMultipart",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "scene",
+            "in": "formData",
+            "allowEmptyValue": true
+          },
+          {
+            "type": "string",
+            "name": "visibility",
+            "in": "formData",
+            "allowEmptyValue": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "file": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "bucket",
+                    "object_key",
+                    "original_name",
+                    "ext",
+                    "mime",
+                    "size",
+                    "visibility",
+                    "ref_count",
+                    "uploader_id",
+                    "uploader_name",
+                    "sha256",
+                    "created_at"
+                  ],
+                  "properties": {
+                    "bucket": {
+                      "type": "string"
+                    },
+                    "cleanup_pending": {
+                      "type": "boolean"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "ext": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "mime": {
+                      "type": "string"
+                    },
+                    "object_key": {
+                      "type": "string"
+                    },
+                    "original_name": {
+                      "type": "string"
+                    },
+                    "ref_count": {
+                      "type": "integer"
+                    },
+                    "sha256": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "integer"
+                    },
+                    "uploader_id": {
+                      "type": "integer"
+                    },
+                    "uploader_name": {
+                      "type": "string"
                     },
                     "url": {
                       "type": "string"
@@ -9928,6 +10396,129 @@
       }
     },
     "/v1/sys/file/{id}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "getFileDetail",
+        "operationId": "fileGetFileDetail",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "file": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "bucket",
+                    "object_key",
+                    "original_name",
+                    "ext",
+                    "mime",
+                    "size",
+                    "visibility",
+                    "ref_count",
+                    "uploader_id",
+                    "uploader_name",
+                    "sha256",
+                    "created_at"
+                  ],
+                  "properties": {
+                    "bucket": {
+                      "type": "string"
+                    },
+                    "cleanup_pending": {
+                      "type": "boolean"
+                    },
+                    "created_at": {
+                      "type": "integer"
+                    },
+                    "ext": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "mime": {
+                      "type": "string"
+                    },
+                    "object_key": {
+                      "type": "string"
+                    },
+                    "original_name": {
+                      "type": "string"
+                    },
+                    "ref_count": {
+                      "type": "integer"
+                    },
+                    "sha256": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "integer"
+                    },
+                    "uploader_id": {
+                      "type": "integer"
+                    },
+                    "uploader_name": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "visibility": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "references": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "ref_type",
+                      "ref_id",
+                      "created_by",
+                      "created_at"
+                    ],
+                    "properties": {
+                      "created_at": {
+                        "type": "integer"
+                      },
+                      "created_by": {
+                        "type": "integer"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "ref_id": {
+                        "type": "integer"
+                      },
+                      "ref_type": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "consumes": [
           "application/x-www-form-urlencoded"
@@ -10019,6 +10610,12 @@
                 "type"
               ],
               "properties": {
+                "api_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
                 "component": {
                   "type": "string"
                 },
@@ -10147,9 +10744,16 @@
                       "sort",
                       "visible",
                       "status",
-                      "created_at"
+                      "created_at",
+                      "api_ids"
                     ],
                     "properties": {
+                      "api_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer"
+                        }
+                      },
                       "component": {
                         "type": "string"
                       },
@@ -10234,9 +10838,16 @@
                       "sort",
                       "visible",
                       "status",
-                      "created_at"
+                      "created_at",
+                      "api_ids"
                     ],
                     "properties": {
+                      "api_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer"
+                        }
+                      },
                       "component": {
                         "type": "string"
                       },
@@ -10376,9 +10987,16 @@
                       "sort",
                       "visible",
                       "status",
-                      "created_at"
+                      "created_at",
+                      "api_ids"
                     ],
                     "properties": {
+                      "api_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer"
+                        }
+                      },
                       "component": {
                         "type": "string"
                       },
@@ -10466,9 +11084,16 @@
                     "sort",
                     "visible",
                     "status",
-                    "created_at"
+                    "created_at",
+                    "api_ids"
                   ],
                   "properties": {
+                    "api_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
                     "component": {
                       "type": "string"
                     },
@@ -10612,6 +11237,83 @@
             "description": "",
             "schema": {
               "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/permission/check": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "checkPermission",
+        "operationId": "permissionCheckPermission",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "method",
+                "path"
+              ],
+              "properties": {
+                "dept_id": {
+                  "type": "integer"
+                },
+                "method": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "user_id": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "allowed": {
+                  "type": "boolean"
+                },
+                "data_scopes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "domain": {
+                  "type": "string"
+                },
+                "generated_at": {
+                  "type": "integer"
+                },
+                "loaded_at": {
+                  "type": "integer"
+                },
+                "policy_revision": {
+                  "type": "integer"
+                },
+                "role": {
+                  "type": "string"
+                }
+              }
             }
           }
         }
@@ -12395,7 +13097,7 @@
       }
     }
   },
-  "x-date": "2026-11-20 13:23:14",
+  "x-date": "2026-11-25 13:17:48",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

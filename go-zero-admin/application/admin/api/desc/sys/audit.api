@@ -28,6 +28,14 @@ type (
 		Action   string `json:"action,optional" form:"action,optional" validate:"omitempty,max=64"`
 		UserId   int64  `json:"user_id,optional" form:"user_id,optional" validate:"omitempty,min=1"`
 		Result   int32  `json:"result,optional" form:"result,optional" validate:"omitempty,oneof=1 2"`
+		Username string `json:"username,optional" form:"username,optional" validate:"omitempty,max=64"`
+		Method   string `json:"method,optional" form:"method,optional" validate:"omitempty,uppercase,max=8"`
+		Path     string `json:"path,optional" form:"path,optional" validate:"omitempty,max=255"`
+		Ip       string `json:"ip,optional" form:"ip,optional" validate:"omitempty,max=64"`
+		StartTime int64 `json:"start_time,optional" form:"start_time,optional" validate:"omitempty,min=0"`
+		EndTime   int64 `json:"end_time,optional" form:"end_time,optional" validate:"omitempty,min=0"`
+		MinDurationMs int64 `json:"min_duration_ms,optional" form:"min_duration_ms,optional" validate:"omitempty,min=0"`
+		MaxDurationMs int64 `json:"max_duration_ms,optional" form:"max_duration_ms,optional" validate:"omitempty,min=0"`
 	}
 	GetAuditLogListResp {
 		List  []*AuditLogInfo `json:"list"`
@@ -42,4 +50,7 @@ type (
 service admin {
 	@handler getAuditLogList
 	get /list (GetAuditLogListReq) returns (GetAuditLogListResp)
+
+	@handler exportAuditLogs
+	post /export (GetAuditLogListReq) returns (EmptyResp)
 }

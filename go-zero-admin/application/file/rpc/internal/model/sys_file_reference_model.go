@@ -20,11 +20,20 @@ type (
 		AddReference(ctx context.Context, fileId, actorId int64, refType string, refId int64) error
 		RemoveReference(ctx context.Context, fileId, actorId int64, refType string, refId int64) error
 		ReconcileReferences(ctx context.Context, actorId int64, refType string, refId, keepFileId int64) error
+		ListFileReferences(ctx context.Context, fileId int64) ([]*FileReferenceRow, error)
 	}
 
 	customSysFileReferenceModel struct {
 		*defaultSysFileReferenceModel
 		conn sqlx.SqlConn
+	}
+
+	FileReferenceRow struct {
+		Id        int64  `db:"id"`
+		RefType   string `db:"ref_type"`
+		RefId     int64  `db:"ref_id"`
+		CreatedBy int64  `db:"created_by"`
+		CreatedAt int64  `db:"created_at"`
 	}
 )
 
@@ -125,6 +134,12 @@ func (m *customSysFileReferenceModel) RemoveReference(ctx context.Context, fileI
 		return err
 	}
 	return m.invalidateReference(ctx, fileId, reference.Id, refType, refId)
+}
+
+func (m *customSysFileReferenceModel) ListFileReferences(ctx context.Context, fileId int64) ([]*FileReferenceRow, error) {
+	var rows []*FileReferenceRow
+	err := m.QueryRowsNoCacheCtx(ctx, &rows, "SELECT id,ref_type,ref_id,created_by,UNIX_TIMESTAMP(created_at) AS created_at FROM sys_file_reference WHERE file_id=? ORDER BY id", fileId)
+	return rows, err
 }
 
 func (m *customSysFileReferenceModel) invalidateReference(ctx context.Context, fileId int64, referenceId uint64, refType string, refId int64) error {

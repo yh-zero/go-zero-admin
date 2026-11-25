@@ -20,7 +20,10 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	FileService_UploadFile_FullMethodName          = "/filepb.FileService/UploadFile"
+	FileService_UploadFileStream_FullMethodName    = "/filepb.FileService/UploadFileStream"
 	FileService_GetFileList_FullMethodName         = "/filepb.FileService/GetFileList"
+	FileService_GetFileDetail_FullMethodName       = "/filepb.FileService/GetFileDetail"
+	FileService_GetFileStats_FullMethodName        = "/filepb.FileService/GetFileStats"
 	FileService_GetFileURL_FullMethodName          = "/filepb.FileService/GetFileURL"
 	FileService_DeleteFile_FullMethodName          = "/filepb.FileService/DeleteFile"
 	FileService_AddFileReference_FullMethodName    = "/filepb.FileService/AddFileReference"
@@ -36,7 +39,10 @@ const (
 // ============================================
 type FileServiceClient interface {
 	UploadFile(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error)
+	UploadFileStream(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadFileChunk, UploadFileResponse], error)
 	GetFileList(ctx context.Context, in *GetFileListRequest, opts ...grpc.CallOption) (*GetFileListResponse, error)
+	GetFileDetail(ctx context.Context, in *GetFileDetailRequest, opts ...grpc.CallOption) (*GetFileDetailResponse, error)
+	GetFileStats(ctx context.Context, in *GetFileStatsRequest, opts ...grpc.CallOption) (*GetFileStatsResponse, error)
 	GetFileURL(ctx context.Context, in *GetFileURLRequest, opts ...grpc.CallOption) (*GetFileURLResponse, error)
 	DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
 	AddFileReference(ctx context.Context, in *AddFileReferenceRequest, opts ...grpc.CallOption) (*NoDataResponse, error)
@@ -61,10 +67,43 @@ func (c *fileServiceClient) UploadFile(ctx context.Context, in *UploadFileReques
 	return out, nil
 }
 
+func (c *fileServiceClient) UploadFileStream(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadFileChunk, UploadFileResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &FileService_ServiceDesc.Streams[0], FileService_UploadFileStream_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[UploadFileChunk, UploadFileResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type FileService_UploadFileStreamClient = grpc.ClientStreamingClient[UploadFileChunk, UploadFileResponse]
+
 func (c *fileServiceClient) GetFileList(ctx context.Context, in *GetFileListRequest, opts ...grpc.CallOption) (*GetFileListResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetFileListResponse)
 	err := c.cc.Invoke(ctx, FileService_GetFileList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileServiceClient) GetFileDetail(ctx context.Context, in *GetFileDetailRequest, opts ...grpc.CallOption) (*GetFileDetailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFileDetailResponse)
+	err := c.cc.Invoke(ctx, FileService_GetFileDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileServiceClient) GetFileStats(ctx context.Context, in *GetFileStatsRequest, opts ...grpc.CallOption) (*GetFileStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFileStatsResponse)
+	err := c.cc.Invoke(ctx, FileService_GetFileStats_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +159,10 @@ func (c *fileServiceClient) RemoveFileReference(ctx context.Context, in *RemoveF
 // ============================================
 type FileServiceServer interface {
 	UploadFile(context.Context, *UploadFileRequest) (*UploadFileResponse, error)
+	UploadFileStream(grpc.ClientStreamingServer[UploadFileChunk, UploadFileResponse]) error
 	GetFileList(context.Context, *GetFileListRequest) (*GetFileListResponse, error)
+	GetFileDetail(context.Context, *GetFileDetailRequest) (*GetFileDetailResponse, error)
+	GetFileStats(context.Context, *GetFileStatsRequest) (*GetFileStatsResponse, error)
 	GetFileURL(context.Context, *GetFileURLRequest) (*GetFileURLResponse, error)
 	DeleteFile(context.Context, *DeleteFileRequest) (*NoDataResponse, error)
 	AddFileReference(context.Context, *AddFileReferenceRequest) (*NoDataResponse, error)
@@ -138,8 +180,17 @@ type UnimplementedFileServiceServer struct{}
 func (UnimplementedFileServiceServer) UploadFile(context.Context, *UploadFileRequest) (*UploadFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UploadFile not implemented")
 }
+func (UnimplementedFileServiceServer) UploadFileStream(grpc.ClientStreamingServer[UploadFileChunk, UploadFileResponse]) error {
+	return status.Error(codes.Unimplemented, "method UploadFileStream not implemented")
+}
 func (UnimplementedFileServiceServer) GetFileList(context.Context, *GetFileListRequest) (*GetFileListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFileList not implemented")
+}
+func (UnimplementedFileServiceServer) GetFileDetail(context.Context, *GetFileDetailRequest) (*GetFileDetailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFileDetail not implemented")
+}
+func (UnimplementedFileServiceServer) GetFileStats(context.Context, *GetFileStatsRequest) (*GetFileStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFileStats not implemented")
 }
 func (UnimplementedFileServiceServer) GetFileURL(context.Context, *GetFileURLRequest) (*GetFileURLResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFileURL not implemented")
@@ -192,6 +243,13 @@ func _FileService_UploadFile_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FileService_UploadFileStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(FileServiceServer).UploadFileStream(&grpc.GenericServerStream[UploadFileChunk, UploadFileResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type FileService_UploadFileStreamServer = grpc.ClientStreamingServer[UploadFileChunk, UploadFileResponse]
+
 func _FileService_GetFileList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetFileListRequest)
 	if err := dec(in); err != nil {
@@ -206,6 +264,42 @@ func _FileService_GetFileList_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FileServiceServer).GetFileList(ctx, req.(*GetFileListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_GetFileDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFileDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).GetFileDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_GetFileDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).GetFileDetail(ctx, req.(*GetFileDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_GetFileStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFileStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).GetFileStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_GetFileStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).GetFileStats(ctx, req.(*GetFileStatsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -298,6 +392,14 @@ var FileService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _FileService_GetFileList_Handler,
 		},
 		{
+			MethodName: "GetFileDetail",
+			Handler:    _FileService_GetFileDetail_Handler,
+		},
+		{
+			MethodName: "GetFileStats",
+			Handler:    _FileService_GetFileStats_Handler,
+		},
+		{
 			MethodName: "GetFileURL",
 			Handler:    _FileService_GetFileURL_Handler,
 		},
@@ -314,6 +416,12 @@ var FileService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _FileService_RemoveFileReference_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "UploadFileStream",
+			Handler:       _FileService_UploadFileStream_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "application/file/rpc/desc/file.proto",
 }

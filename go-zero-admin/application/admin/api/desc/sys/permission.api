@@ -1,0 +1,34 @@
+syntax = "v1"
+
+info (
+	title: "权限诊断"
+	desc: "按当前策略快照模拟用户、部门、资源与方法的授权结果"
+	version: "v1"
+)
+
+type (
+	PermissionCheckReq {
+		UserId int64 `json:"user_id,optional" validate:"omitempty,min=1"`
+		DeptId *int64 `json:"dept_id,optional" validate:"omitempty,min=0"`
+		Method string `json:"method" validate:"required,uppercase,oneof=GET POST PUT DELETE PATCH"`
+		Path string `json:"path" validate:"required,max=255"`
+	}
+	PermissionCheckResp {
+		Allowed bool `json:"allowed"`
+		Role string `json:"role"`
+		Domain string `json:"domain"`
+		PolicyRevision int64 `json:"policy_revision"`
+		GeneratedAt int64 `json:"generated_at"`
+		LoadedAt int64 `json:"loaded_at"`
+		DataScopes []string `json:"data_scopes"`
+	}
+)
+
+@server (
+	prefix: v1/sys/permission
+	group: permission
+)
+service admin {
+	@handler checkPermission
+	post /check (PermissionCheckReq) returns (PermissionCheckResp)
+}

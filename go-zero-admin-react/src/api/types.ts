@@ -15,15 +15,20 @@ export interface CaptchaResp { enabled: boolean; captcha_id: string; image_base6
 export interface MenuInfo {
   id: number; parent_id: number; title: string; name: string; type: number;
   path: string; component: string; perm_code: string; icon: string;
-  sort: number; visible: boolean; status: number; created_at: number; children?: MenuInfo[];
+  sort: number; visible: boolean; status: number; created_at: number; children?: MenuInfo[]; api_ids?: number[];
 }
 export interface CreateMenuReq {
   parent_id?: number; title: string; name?: string; type: number; path?: string;
-  component?: string; perm_code?: string; icon?: string; sort?: number; visible?: boolean; status?: number;
+  component?: string; perm_code?: string; icon?: string; sort?: number; visible?: boolean; status?: number; api_ids?: number[];
 }
 export type UpdateMenuReq = Partial<{ [K in keyof CreateMenuReq]: CreateMenuReq[K] | null }>;
 export interface GetMenuListReq extends PageParams { parent_id?: number; type?: number }
 export interface GetMenuTreeReq { type?: number; status?: number }
+export interface PermissionCheckReq { user_id?: number; dept_id?: number; method: string; path: string }
+export interface PermissionCheckResp {
+  allowed: boolean; role: string; domain: string; policy_revision: number;
+  generated_at: number; loaded_at: number; data_scopes: string[];
+}
 export interface UserInfo {
   id: number; username: string; nickname: string; real_name: string; email: string; phone: string;
   dept_id: number; dept_name: string; avatar_file_id: number; avatar_url: string; gender: number; status: number;
@@ -93,9 +98,19 @@ export interface GetApiListReq extends PageParams { group?: string; method?: str
 export interface SyncApiResp { added: number; updated: number; removed: number }
 export interface FileInfo {
   id: number; bucket: string; object_key: string; original_name: string; ext: string; mime: string; size: number;
-  visibility: string; ref_count: number; uploader_id: number; url?: string; created_at: number; cleanup_pending?: boolean;
+  visibility: string; ref_count: number; uploader_id: number; uploader_name: string; sha256: string;
+  url?: string; created_at: number; cleanup_pending?: boolean;
 }
-export interface GetFileListReq extends PageParams { visibility?: string; uploader_id?: number; include_cleanup_pending?: boolean }
+export interface GetFileListReq extends PageParams {
+  visibility?: string; uploader_id?: number; include_cleanup_pending?: boolean; cleanup_pending_only?: boolean;
+  name?: string; mime?: string; ext?: string; min_size?: number; max_size?: number; start_time?: number; end_time?: number;
+}
+export interface FileReferenceInfo { id: number; ref_type: string; ref_id: number; created_by: number; created_at: number }
+export interface FileDetailResp { file: FileInfo; references: FileReferenceInfo[] }
+export interface FileStatsResp {
+  total_files: number; total_bytes: number; public_files: number; public_bytes: number;
+  private_files: number; private_bytes: number; cleanup_pending_files: number; cleanup_pending_bytes: number;
+}
 export interface FileURLResp { url: string; expires_at: number }
 export interface UploadFileReq {
   name: string; content_base64: string; scene: 'common' | 'avatar' | 'doc'; visibility: 'public' | 'private';
@@ -103,9 +118,13 @@ export interface UploadFileReq {
 export interface UploadFileResp { file: FileInfo }
 export interface AuditLogInfo {
   id: number; user_id: number; username: string; module: string; action: string; method: string;
-  path: string; result: number; error_msg: string; ip: string; duration_ms: number; created_at: number;
+  path: string; result: number; error_msg: string; ip: string; user_agent: string; duration_ms: number; created_at: number;
 }
-export interface GetAuditLogListReq extends PageParams { module?: string; action?: string; user_id?: number; result?: number }
+export interface GetAuditLogListReq extends PageParams {
+  module?: string; action?: string; user_id?: number; result?: number; username?: string;
+  method?: string; path?: string; ip?: string; start_time?: number; end_time?: number;
+  min_duration_ms?: number; max_duration_ms?: number;
+}
 export interface ProfileInfo {
   id: number; username: string; nickname: string; real_name: string; email: string;
   phone: string; avatar_url: string; avatar_file_id: number; gender: number; dept_name: string; is_super_admin: boolean;

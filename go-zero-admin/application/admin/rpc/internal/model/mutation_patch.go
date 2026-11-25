@@ -82,6 +82,7 @@ type MenuPatch struct {
 	Title, Name, Path, Component, PermCode, Icon *string
 	Type, Sort, Status                           *int32
 	Visible                                      *bool
+	ApiIds                                       []int64
 }
 
 func applyMenuPatch(menu *SysMenu, p MenuPatch) error {

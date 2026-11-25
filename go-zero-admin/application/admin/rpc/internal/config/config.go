@@ -27,4 +27,11 @@ type Config struct {
 	}
 
 	DefaultUserPassword string `json:",optional"`
+
+	// Audit 审计保留策略；RetentionDays=0 默认关闭自动删除。
+	Audit struct {
+		RetentionDays          int `json:",default=0"`
+		CleanupIntervalSeconds int `json:",default=3600"`
+		CleanupBatchSize       int `json:",default=1000"`
+	}
 }

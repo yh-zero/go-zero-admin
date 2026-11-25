@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -128,13 +129,24 @@ func (c *Client) bucket(visibility string) (string, error) {
 }
 
 func (c *Client) Put(ctx context.Context, key, mime string, data []byte, visibility string) error {
+	return c.PutReader(ctx, key, mime, bytes.NewReader(data), int64(len(data)), visibility)
+}
+
+// PutReader 以已知长度流式写入对象，调用方负责提供可重复读取的数据源。
+func (c *Client) PutReader(ctx context.Context, key, mime string, body io.Reader, size int64, visibility string) error {
+	if size < 0 {
+		return errors.New("invalid object size")
+	}
 	bucket, err := c.bucket(visibility)
 	if err != nil {
 		return err
 	}
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
-	_, err = c.internal.PutObject(ctx, &s3.PutObjectInput{Bucket: aws.String(bucket), Key: aws.String(key), Body: bytes.NewReader(data), ContentType: aws.String(mime)})
+	_, err = c.internal.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: aws.String(bucket), Key: aws.String(key), Body: body,
+		ContentLength: aws.Int64(size), ContentType: aws.String(mime),
+	})
 	return storageError(ctx, "upload", err)
 }
 

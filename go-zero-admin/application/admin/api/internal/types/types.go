@@ -1048,17 +1048,18 @@ type CreateDictReq struct {
 }
 
 type CreateMenuReq struct {
-	ParentId  int64  `json:"parent_id,optional"`
-	Title     string `json:"title" validate:"max=64"`
-	Name      string `json:"name,optional" validate:"omitempty,max=64"`
-	Type      int32  `json:"type" validate:"oneof=1 2 3"`
-	Path      string `json:"path,optional" validate:"omitempty,max=255"`
-	Component string `json:"component,optional" validate:"omitempty,max=255"`
-	PermCode  string `json:"perm_code,optional" validate:"omitempty,max=128"`
-	Icon      string `json:"icon,optional" validate:"omitempty,max=64"`
-	Sort      int32  `json:"sort,optional"`
-	Visible   bool   `json:"visible,optional"`
-	Status    *int32 `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	ParentId  int64   `json:"parent_id,optional"`
+	Title     string  `json:"title" validate:"max=64"`
+	Name      string  `json:"name,optional" validate:"omitempty,max=64"`
+	Type      int32   `json:"type" validate:"oneof=1 2 3"`
+	Path      string  `json:"path,optional" validate:"omitempty,max=255"`
+	Component string  `json:"component,optional" validate:"omitempty,max=255"`
+	PermCode  string  `json:"perm_code,optional" validate:"omitempty,max=128"`
+	Icon      string  `json:"icon,optional" validate:"omitempty,max=64"`
+	Sort      int32   `json:"sort,optional"`
+	Visible   bool    `json:"visible,optional"`
+	Status    *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	ApiIds    []int64 `json:"api_ids,optional" validate:"omitempty,dive,min=1"`
 }
 
 type CreateRoleReq struct {
@@ -1194,9 +1195,19 @@ type FileInfo struct {
 	Visibility     string `json:"visibility"`
 	RefCount       int32  `json:"ref_count"`
 	UploaderId     int64  `json:"uploader_id"`
+	UploaderName   string `json:"uploader_name"`
+	SHA256         string `json:"sha256"`
 	URL            string `json:"url,optional"`
 	CreatedAt      int64  `json:"created_at"`
 	CleanupPending bool   `json:"cleanup_pending,optional"`
+}
+
+type FileReferenceInfo struct {
+	Id        int64  `json:"id"`
+	RefType   string `json:"ref_type"`
+	RefId     int64  `json:"ref_id"`
+	CreatedBy int64  `json:"created_by"`
+	CreatedAt int64  `json:"created_at"`
 }
 
 type GetApiListReq struct {
@@ -1213,12 +1224,20 @@ type GetApiListResp struct {
 }
 
 type GetAuditLogListReq struct {
-	Page     int64  `json:"page,optional" form:"page,optional" validate:"omitempty,min=1"`
-	PageSize int64  `json:"page_size,optional" form:"page_size,optional" validate:"omitempty,min=1,max=100"`
-	Module   string `json:"module,optional" form:"module,optional" validate:"omitempty,max=64"`
-	Action   string `json:"action,optional" form:"action,optional" validate:"omitempty,max=64"`
-	UserId   int64  `json:"user_id,optional" form:"user_id,optional" validate:"omitempty,min=1"`
-	Result   int32  `json:"result,optional" form:"result,optional" validate:"omitempty,oneof=1 2"`
+	Page          int64  `json:"page,optional" form:"page,optional" validate:"omitempty,min=1"`
+	PageSize      int64  `json:"page_size,optional" form:"page_size,optional" validate:"omitempty,min=1,max=100"`
+	Module        string `json:"module,optional" form:"module,optional" validate:"omitempty,max=64"`
+	Action        string `json:"action,optional" form:"action,optional" validate:"omitempty,max=64"`
+	UserId        int64  `json:"user_id,optional" form:"user_id,optional" validate:"omitempty,min=1"`
+	Result        int32  `json:"result,optional" form:"result,optional" validate:"omitempty,oneof=1 2"`
+	Username      string `json:"username,optional" form:"username,optional" validate:"omitempty,max=64"`
+	Method        string `json:"method,optional" form:"method,optional" validate:"omitempty,uppercase,max=8"`
+	Path          string `json:"path,optional" form:"path,optional" validate:"omitempty,max=255"`
+	Ip            string `json:"ip,optional" form:"ip,optional" validate:"omitempty,max=64"`
+	StartTime     int64  `json:"start_time,optional" form:"start_time,optional" validate:"omitempty,min=0"`
+	EndTime       int64  `json:"end_time,optional" form:"end_time,optional" validate:"omitempty,min=0"`
+	MinDurationMs int64  `json:"min_duration_ms,optional" form:"min_duration_ms,optional" validate:"omitempty,min=0"`
+	MaxDurationMs int64  `json:"max_duration_ms,optional" form:"max_duration_ms,optional" validate:"omitempty,min=0"`
 }
 
 type GetAuditLogListResp struct {
@@ -1277,17 +1296,48 @@ type GetDictListResp struct {
 	Total int64       `json:"total"`
 }
 
+type GetFileDetailResp struct {
+	File       *FileInfo            `json:"file"`
+	References []*FileReferenceInfo `json:"references"`
+}
+
 type GetFileListReq struct {
 	Page                  int64  `json:"page,optional" form:"page,optional" validate:"omitempty,min=1"`
 	PageSize              int64  `json:"page_size,optional" form:"page_size,optional" validate:"omitempty,min=1,max=100"`
 	Visibility            string `json:"visibility,optional" form:"visibility,optional" validate:"omitempty,oneof=public private"`
 	UploaderId            int64  `json:"uploader_id,optional" form:"uploader_id,optional" validate:"omitempty,min=1"`
 	IncludeCleanupPending bool   `form:"include_cleanup_pending,optional"`
+	CleanupPendingOnly    bool   `form:"cleanup_pending_only,optional"`
+	Name                  string `json:"name,optional" form:"name,optional" validate:"omitempty,max=255"`
+	Mime                  string `json:"mime,optional" form:"mime,optional" validate:"omitempty,max=128"`
+	Ext                   string `json:"ext,optional" form:"ext,optional" validate:"omitempty,max=16"`
+	MinSize               int64  `json:"min_size,optional" form:"min_size,optional" validate:"omitempty,min=0"`
+	MaxSize               int64  `json:"max_size,optional" form:"max_size,optional" validate:"omitempty,min=0"`
+	StartTime             int64  `json:"start_time,optional" form:"start_time,optional" validate:"omitempty,min=0"`
+	EndTime               int64  `json:"end_time,optional" form:"end_time,optional" validate:"omitempty,min=0"`
 }
 
 type GetFileListResp struct {
 	List  []*FileInfo `json:"list"`
 	Total int64       `json:"total"`
+}
+
+type GetFileReq struct {
+	Id int64 `path:"id" validate:"min=1"`
+}
+
+type GetFileStatsReq struct {
+}
+
+type GetFileStatsResp struct {
+	TotalFiles          int64 `json:"total_files"`
+	TotalBytes          int64 `json:"total_bytes"`
+	PublicFiles         int64 `json:"public_files"`
+	PublicBytes         int64 `json:"public_bytes"`
+	PrivateFiles        int64 `json:"private_files"`
+	PrivateBytes        int64 `json:"private_bytes"`
+	CleanupPendingFiles int64 `json:"cleanup_pending_files"`
+	CleanupPendingBytes int64 `json:"cleanup_pending_bytes"`
 }
 
 type GetFileURLReq struct {
@@ -1491,19 +1541,37 @@ type MembershipGrantInfo struct {
 }
 
 type MenuInfo struct {
-	Id        int64  `json:"id"`
-	ParentId  int64  `json:"parent_id"`
-	Title     string `json:"title"`
-	Name      string `json:"name"`
-	Type      int32  `json:"type"`
-	Path      string `json:"path"`
-	Component string `json:"component"`
-	PermCode  string `json:"perm_code"`
-	Icon      string `json:"icon"`
-	Sort      int32  `json:"sort"`
-	Visible   bool   `json:"visible"`
-	Status    int32  `json:"status"`
-	CreatedAt int64  `json:"created_at"`
+	Id        int64   `json:"id"`
+	ParentId  int64   `json:"parent_id"`
+	Title     string  `json:"title"`
+	Name      string  `json:"name"`
+	Type      int32   `json:"type"`
+	Path      string  `json:"path"`
+	Component string  `json:"component"`
+	PermCode  string  `json:"perm_code"`
+	Icon      string  `json:"icon"`
+	Sort      int32   `json:"sort"`
+	Visible   bool    `json:"visible"`
+	Status    int32   `json:"status"`
+	CreatedAt int64   `json:"created_at"`
+	ApiIds    []int64 `json:"api_ids"`
+}
+
+type PermissionCheckReq struct {
+	UserId int64  `json:"user_id,optional" validate:"omitempty,min=1"`
+	DeptId *int64 `json:"dept_id,optional" validate:"omitempty,min=0"`
+	Method string `json:"method" validate:"required,uppercase,oneof=GET POST PUT DELETE PATCH"`
+	Path   string `json:"path" validate:"required,max=255"`
+}
+
+type PermissionCheckResp struct {
+	Allowed        bool     `json:"allowed"`
+	Role           string   `json:"role"`
+	Domain         string   `json:"domain"`
+	PolicyRevision int64    `json:"policy_revision"`
+	GeneratedAt    int64    `json:"generated_at"`
+	LoadedAt       int64    `json:"loaded_at"`
+	DataScopes     []string `json:"data_scopes"`
 }
 
 type PingReq struct {
@@ -1674,6 +1742,11 @@ type UploadFileReq struct {
 
 type UploadFileResp struct {
 	File *FileInfo `json:"file"`
+}
+
+type UploadMultipartReq struct {
+	Scene      string `form:"scene,optional" validate:"omitempty,oneof=common avatar doc"`
+	Visibility string `form:"visibility,optional" validate:"omitempty,oneof=private public"`
 }
 
 type UserInfo struct {

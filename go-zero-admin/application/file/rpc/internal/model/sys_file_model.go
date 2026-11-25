@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -21,6 +22,7 @@ type (
 		FindLive(ctx context.Context, id int64) (*SysFile, error)
 		MarkDeletedIfUnused(ctx context.Context, id, actorId int64) (*SysFile, error)
 		ConfirmObjectCleanup(ctx context.Context, id int64) error
+		GetFileStats(ctx context.Context, viewerId int64) (*FileStats, error)
 	}
 
 	customSysFileModel struct {
@@ -31,9 +33,17 @@ type (
 
 // FileListFilter 文件列表筛选（空值/0 不过滤）
 type FileListFilter struct {
-	Visibility string
-	UploaderId int64
-	ViewerId   int64
+	Visibility         string
+	UploaderId         int64
+	ViewerId           int64
+	CleanupPendingOnly bool
+	Name               string
+	Mime               string
+	Ext                string
+	MinSize            int64
+	MaxSize            int64
+	StartTime          int64
+	EndTime            int64
 }
 
 // FileRow 文件行（uploader_id 可空 COALESCE；时间列转 int64）
@@ -48,8 +58,21 @@ type FileRow struct {
 	Visibility     string `db:"visibility"`
 	RefCount       int32  `db:"ref_count"`
 	UploaderId     int64  `db:"uploader_id"`
+	UploaderName   string `db:"uploader_name"`
+	SHA256         string `db:"sha256"`
 	CreatedAt      int64  `db:"created_at"`
 	CleanupPending bool   `db:"cleanup_pending"`
+}
+
+type FileStats struct {
+	TotalFiles          int64 `db:"total_files"`
+	TotalBytes          int64 `db:"total_bytes"`
+	PublicFiles         int64 `db:"public_files"`
+	PublicBytes         int64 `db:"public_bytes"`
+	PrivateFiles        int64 `db:"private_files"`
+	PrivateBytes        int64 `db:"private_bytes"`
+	CleanupPendingFiles int64 `db:"cleanup_pending_files"`
+	CleanupPendingBytes int64 `db:"cleanup_pending_bytes"`
 }
 
 // NewSysFileModel returns a model for the database table.
@@ -61,10 +84,13 @@ func NewSysFileModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option)
 }
 
 var (
-	ErrFileForbidden  = errors.New("file access denied")
-	ErrFileReferenced = errors.New("file is referenced")
-	ErrFileNotAvatar  = errors.New("file is not an avatar")
+	ErrFileForbidden     = errors.New("file access denied")
+	ErrFileReferenced    = errors.New("file is referenced")
+	ErrFileNotAvatar     = errors.New("file is not an avatar")
+	ErrInvalidFileFilter = errors.New("invalid file list filter")
 )
+
+var fileNameEscaper = strings.NewReplacer("!", "!!", "%", "!%", "_", "!_")
 
 // FindLive 不缓存授权相关状态，避免删除或引用事务后的旧缓存扩大访问范围。
 func (m *customSysFileModel) FindLive(ctx context.Context, id int64) (*SysFile, error) {
@@ -112,25 +138,71 @@ func (m *customSysFileModel) ConfirmObjectCleanup(ctx context.Context, id int64)
 	return err
 }
 
-func (m *customSysFileModel) ListFilePage(ctx context.Context, f FileListFilter, page, pageSize int64) ([]*FileRow, int64, error) {
-	where := "deleted_at IS NULL"
-	order := "id DESC"
+func fileListWhere(f FileListFilter) (string, []any, error) {
+	if f.MinSize < 0 || f.MaxSize < 0 || f.StartTime < 0 || f.EndTime < 0 ||
+		(f.MinSize > 0 && f.MaxSize > 0 && f.MinSize > f.MaxSize) ||
+		(f.StartTime > 0 && f.EndTime > 0 && f.StartTime > f.EndTime) {
+		return "", nil, ErrInvalidFileFilter
+	}
+	where := "f.deleted_at IS NULL"
 	var args []any
 	if f.ViewerId > 0 {
-		where = "(deleted_at IS NULL OR (uploader_id=? AND object_cleaned_at IS NULL))"
-		order = "cleanup_pending DESC, id DESC"
+		where = "(f.deleted_at IS NULL OR (f.uploader_id=? AND f.object_cleaned_at IS NULL))"
 		args = append(args, f.ViewerId)
 	}
+	if f.CleanupPendingOnly {
+		if f.ViewerId <= 0 {
+			return "", nil, ErrInvalidFileFilter
+		}
+		where = "f.deleted_at IS NOT NULL AND f.uploader_id=? AND f.object_cleaned_at IS NULL"
+		args = []any{f.ViewerId}
+	}
 	if f.Visibility != "" {
-		where += " AND visibility=?"
+		where += " AND f.visibility=?"
 		args = append(args, f.Visibility)
 	}
 	if f.UploaderId > 0 {
-		where += " AND uploader_id=?"
+		where += " AND f.uploader_id=?"
 		args = append(args, f.UploaderId)
 	}
+	if f.Name != "" {
+		where += " AND f.original_name LIKE ? ESCAPE '!'"
+		args = append(args, "%"+fileNameEscaper.Replace(f.Name)+"%")
+	}
+	if f.Mime != "" {
+		where += " AND f.mime=?"
+		args = append(args, f.Mime)
+	}
+	if f.Ext != "" {
+		where += " AND f.ext=?"
+		args = append(args, f.Ext)
+	}
+	if f.MinSize > 0 {
+		where += " AND f.size>=?"
+		args = append(args, f.MinSize)
+	}
+	if f.MaxSize > 0 {
+		where += " AND f.size<=?"
+		args = append(args, f.MaxSize)
+	}
+	if f.StartTime > 0 {
+		where += " AND f.created_at>=FROM_UNIXTIME(?)"
+		args = append(args, f.StartTime)
+	}
+	if f.EndTime > 0 {
+		where += " AND f.created_at<=FROM_UNIXTIME(?)"
+		args = append(args, f.EndTime)
+	}
+	return where, args, nil
+}
+
+func (m *customSysFileModel) ListFilePage(ctx context.Context, f FileListFilter, page, pageSize int64) ([]*FileRow, int64, error) {
+	where, args, err := fileListWhere(f)
+	if err != nil {
+		return nil, 0, err
+	}
 	var total int64
-	if err := m.QueryRowNoCacheCtx(ctx, &total, "SELECT COUNT(*) FROM sys_file WHERE "+where, args...); err != nil {
+	if err := m.QueryRowNoCacheCtx(ctx, &total, "SELECT COUNT(*) FROM sys_file f WHERE "+where, args...); err != nil {
 		return nil, 0, err
 	}
 	if page <= 0 {
@@ -139,11 +211,33 @@ func (m *customSysFileModel) ListFilePage(ctx context.Context, f FileListFilter,
 	if pageSize <= 0 {
 		pageSize = 20
 	}
+	order := "f.id DESC"
+	if f.ViewerId > 0 && !f.CleanupPendingOnly {
+		order = "f.deleted_at IS NOT NULL DESC, f.id DESC"
+	}
 	var rows []*FileRow
-	err := m.QueryRowsNoCacheCtx(ctx, &rows,
-		"SELECT id, bucket, object_key, original_name, ext, mime, size, visibility, ref_count, "+
-			"COALESCE(uploader_id,0) AS uploader_id, UNIX_TIMESTAMP(created_at) AS created_at, (deleted_at IS NOT NULL) AS cleanup_pending "+
-			"FROM sys_file WHERE "+where+" ORDER BY "+order+" LIMIT ? OFFSET ?",
+	err = m.QueryRowsNoCacheCtx(ctx, &rows,
+		"SELECT f.id, f.bucket, f.object_key, f.original_name, f.ext, f.mime, f.size, f.sha256, f.visibility, f.ref_count, "+
+			"COALESCE(f.uploader_id,0) AS uploader_id, COALESCE(u.username,'') AS uploader_name, UNIX_TIMESTAMP(f.created_at) AS created_at, (f.deleted_at IS NOT NULL) AS cleanup_pending "+
+			"FROM sys_file f LEFT JOIN sys_user u ON u.id=f.uploader_id WHERE "+where+" ORDER BY "+order+" LIMIT ? OFFSET ?",
 		append(args, pageSize, (page-1)*pageSize)...)
 	return rows, total, err
+}
+
+func (m *customSysFileModel) GetFileStats(ctx context.Context, viewerId int64) (*FileStats, error) {
+	if viewerId <= 0 {
+		return nil, ErrFileForbidden
+	}
+	var stats FileStats
+	err := m.QueryRowNoCacheCtx(ctx, &stats, `SELECT
+		COALESCE(SUM(f.deleted_at IS NULL),0) AS total_files,
+		COALESCE(SUM(CASE WHEN f.deleted_at IS NULL THEN f.size ELSE 0 END),0) AS total_bytes,
+		COALESCE(SUM(f.deleted_at IS NULL AND f.visibility='public'),0) AS public_files,
+		COALESCE(SUM(CASE WHEN f.deleted_at IS NULL AND f.visibility='public' THEN f.size ELSE 0 END),0) AS public_bytes,
+		COALESCE(SUM(f.deleted_at IS NULL AND f.visibility='private'),0) AS private_files,
+		COALESCE(SUM(CASE WHEN f.deleted_at IS NULL AND f.visibility='private' THEN f.size ELSE 0 END),0) AS private_bytes,
+		COALESCE(SUM(f.deleted_at IS NOT NULL AND f.object_cleaned_at IS NULL),0) AS cleanup_pending_files,
+		COALESCE(SUM(CASE WHEN f.deleted_at IS NOT NULL AND f.object_cleaned_at IS NULL THEN f.size ELSE 0 END),0) AS cleanup_pending_bytes
+		FROM sys_file f WHERE f.uploader_id=?`, viewerId)
+	return &stats, err
 }

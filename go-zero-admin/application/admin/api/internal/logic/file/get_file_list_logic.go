@@ -34,6 +34,8 @@ func (l *GetFileListLogic) GetFileList(req *types.GetFileListReq) (resp *types.G
 		Actor:      &filepb.Actor{UserID: viewer},
 		Page:       &filepb.PageRequest{Page: req.Page, PageSize: req.PageSize},
 		Visibility: req.Visibility, UploaderID: req.UploaderId, IncludeCleanupPending: req.IncludeCleanupPending,
+		CleanupPendingOnly: req.CleanupPendingOnly, Name: req.Name, Mime: req.Mime, Ext: req.Ext,
+		MinSize: req.MinSize, MaxSize: req.MaxSize, StartTime: req.StartTime, EndTime: req.EndTime,
 	})
 	if err != nil {
 		return nil, err
@@ -49,6 +51,7 @@ func mapFileInfo(f *filepb.FileInfo) *types.FileInfo {
 	return &types.FileInfo{
 		Id: f.Id, Bucket: f.Bucket, ObjectKey: f.ObjectKey, OriginalName: f.OriginalName,
 		Ext: f.Ext, Mime: f.Mime, Size: f.Size, Visibility: f.Visibility,
-		RefCount: f.RefCount, UploaderId: f.UploaderID, URL: f.URL, CreatedAt: f.CreatedAt, CleanupPending: f.CleanupPending,
+		RefCount: f.RefCount, UploaderId: f.UploaderID, UploaderName: f.UploaderName, SHA256: f.Sha256,
+		URL: f.URL, CreatedAt: f.CreatedAt, CleanupPending: f.CleanupPending,
 	}
 }

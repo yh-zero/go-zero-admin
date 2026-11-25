@@ -34,11 +34,11 @@ func (l *CreateMenuLogic) CreateMenu(in *adminpb.CreateMenuRequest) (*adminpb.No
 	if in.Visible {
 		visible = 1
 	}
-	err = l.svcCtx.SysMenuModel.Create(l.ctx, &model.SysMenu{
+	err = l.svcCtx.SysMenuModel.CreateWithPermissions(l.ctx, &model.SysMenu{
 		ParentId: uint64(in.ParentId), Title: in.Title, Name: in.Name, Type: int64(in.Type),
 		Path: in.Path, Component: in.Component, PermCode: in.PermCode, Icon: in.Icon,
 		Sort: int64(in.Sort), Visible: visible, Status: status,
-	})
+	}, in.ApiIds)
 	if model.MutationCommitted(err) {
 		l.svcCtx.PublishPolicyChanged(l.ctx)
 	}

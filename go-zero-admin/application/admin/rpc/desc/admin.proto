@@ -340,6 +340,7 @@ message MenuInfo {
   bool visible = 11;
   int32 status = 12;
   int64 created_at = 13;
+  repeated int64 api_ids = 14;
 }
 
 message GetMenuTreeRequest {
@@ -381,6 +382,7 @@ message CreateMenuRequest {
   int32 sort = 10;
   bool visible = 11;
   optional int32 status = 12;
+  repeated int64 api_ids = 13;
 }
 
 message UpdateMenuRequest {
@@ -397,6 +399,7 @@ message UpdateMenuRequest {
   optional int32 sort = 11;
   optional bool visible = 12;
   optional int32 status = 13;
+  repeated int64 api_ids = 14;
 }
 
 message DeleteMenuRequest {
@@ -611,6 +614,14 @@ message GetAuditLogListRequest {
   string action = 4;
   int64 user_id = 5;
   int32 result = 6;
+  string username = 7;
+  string method = 8;
+  string path = 9;
+  string ip = 10;
+  int64 start_time = 11;
+  int64 end_time = 12;
+  int64 min_duration_ms = 13;
+  int64 max_duration_ms = 14;
 }
 message GetAuditLogListResponse {
   repeated AuditLogInfo list = 1;
@@ -724,7 +735,11 @@ message PolicyRule {
   string V5 = 7 [json_name = "v5"];
 }
 message ListPoliciesRequest {}
-message ListPoliciesResponse { repeated PolicyRule Rules = 1 [json_name = "rules"]; }
+message ListPoliciesResponse {
+  repeated PolicyRule Rules = 1 [json_name = "rules"];
+  int64 revision = 2;
+  int64 generated_at = 3;
+}
 
 service CasbinService {
   rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse);
