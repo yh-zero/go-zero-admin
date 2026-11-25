@@ -6,6 +6,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { exportAuditLogs, fetchAuditLogs } from '../../api/audit';
 import type { AuditLogInfo, GetAuditLogListReq } from '../../api/types';
 import { QueryState } from '../../components/QueryState';
+import { AdvancedFilterToggle } from '../../components/AdvancedFilterToggle';
 import { formatTime } from '../../utils/format';
 import { queryKeys } from '../../utils/queryKeys';
 import { useTablePagination } from '../../hooks/useTablePagination';
@@ -24,10 +25,12 @@ export default function AuditLogList() {
   const [params, setParams] = useState<GetAuditLogListReq>({ page: 1, page_size: 20 });
   const [detail, setDetail] = useState<AuditLogInfo | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const { message } = App.useApp();
   const query = useQuery({ queryKey: [queryKeys.auditLogs, params], queryFn: () => fetchAuditLogs(params) });
   const pagination = useTablePagination(params, setParams, query.data?.total ?? 0);
   const submit = (values: AuditForm) => setParams({ ...values, action: values.action || undefined, start_time: seconds(values.start_time), end_time: seconds(values.end_time), page: 1, page_size: params.page_size });
+  const advancedCount = [params.user_id, params.method, params.path, params.ip, params.min_duration_ms, params.max_duration_ms].filter(value => value !== undefined && value !== '').length;
   const download = async () => {
     setExporting(true);
     try {
@@ -40,25 +43,27 @@ export default function AuditLogList() {
     } finally { setExporting(false); }
   };
   return <div className="page-stack">
-    <Card className="filter-card"><Form name="audit-filter" className="filter-form" form={form} layout="inline" onFinish={submit}>
+    <Card className="filter-card"><Form name="audit-filter" className={`filter-form${showAdvanced ? ' is-expanded' : ''}`} form={form} layout="inline" onFinish={submit}>
       <Form.Item name="module" label="模块"><Input placeholder="如 sys/user" allowClear /></Form.Item>
       <Form.Item name="action" label="动作"><AutoComplete allowClear className="filter-select" placeholder="选择或输入动作"
         options={actionOptions} popupMatchSelectWidth={false} showSearch={{ filterOption: (input, option) => option?.label.toLowerCase().includes(input.toLowerCase()) ?? false }} /></Form.Item>
       <Form.Item name="username" label="操作人"><Input allowClear maxLength={64} placeholder="精确用户名" /></Form.Item>
-      <Form.Item name="user_id" label="用户 ID"><InputNumber min={1} precision={0} /></Form.Item>
-      <Form.Item name="method" label="方法"><Select allowClear className="filter-select" options={['GET', 'POST', 'PUT', 'DELETE'].map(value => ({ value, label: value }))} /></Form.Item>
-      <Form.Item name="path" label="路径"><Input allowClear maxLength={255} placeholder="模糊匹配路径" /></Form.Item>
-      <Form.Item name="ip" label="来源 IP"><Input allowClear maxLength={64} placeholder="精确 IP" /></Form.Item>
       <Form.Item name="result" label="结果"><Select allowClear className="filter-select" placeholder="全部" options={[{ label: '成功', value: 1 }, { label: '失败', value: 2 }]} /></Form.Item>
       <Form.Item name="start_time" label="开始时间"><DatePicker showTime /></Form.Item>
       <Form.Item name="end_time" label="结束时间"><DatePicker showTime /></Form.Item>
-      <Form.Item name="min_duration_ms" label="最小耗时"><InputNumber min={0} precision={0} addonAfter="ms" /></Form.Item>
-      <Form.Item name="max_duration_ms" label="最大耗时"><InputNumber min={0} precision={0} addonAfter="ms" /></Form.Item>
-      <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button><Button onClick={() => { form.resetFields(); setParams({ page: 1, page_size: params.page_size }); }}>重置</Button>
+      {showAdvanced && <>
+        <Form.Item name="user_id" label="用户 ID"><InputNumber min={1} precision={0} /></Form.Item>
+        <Form.Item name="method" label="方法"><Select allowClear className="filter-select" options={['GET', 'POST', 'PUT', 'DELETE'].map(value => ({ value, label: value }))} /></Form.Item>
+        <Form.Item name="path" label="路径"><Input allowClear maxLength={255} placeholder="模糊匹配路径" /></Form.Item>
+        <Form.Item name="ip" label="来源 IP"><Input allowClear maxLength={64} placeholder="精确 IP" /></Form.Item>
+        <Form.Item name="min_duration_ms" label="最小耗时"><InputNumber min={0} precision={0} suffix="ms" /></Form.Item>
+        <Form.Item name="max_duration_ms" label="最大耗时"><InputNumber min={0} precision={0} suffix="ms" /></Form.Item>
+      </>}
+      <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button><Button onClick={() => { form.resetFields(); setParams({ page: 1, page_size: params.page_size }); setShowAdvanced(false); }}>重置</Button>
         <Button aria-label="刷新审计日志" icon={<ReloadOutlined />} onClick={() => void query.refetch()} />
-        <Button icon={<DownloadOutlined />} loading={exporting} onClick={() => void download()}>导出 CSV</Button></Space></Form.Item>
+        <AdvancedFilterToggle open={showAdvanced} activeCount={advancedCount} onChange={setShowAdvanced} /></Space></Form.Item>
     </Form></Card>
-    <Card className="data-card" title="操作记录"><QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />
+    <Card className="data-card" title="操作记录" extra={<Button icon={<DownloadOutlined />} loading={exporting} onClick={() => void download()}>导出 CSV</Button>}><QueryState isPending={query.isPending} error={query.error} onRetry={() => query.refetch()} />
       <Table<AuditLogInfo> rowKey="id" dataSource={query.data?.list ?? []} loading={query.isFetching} scroll={{ x: 1000 }} pagination={pagination} columns={[
         { title: '操作人', dataIndex: 'username', render: (value: string) => <span className="table-primary">{value || '—'}</span> },
         { title: '模块', dataIndex: 'module' }, { title: '动作', dataIndex: 'action' },

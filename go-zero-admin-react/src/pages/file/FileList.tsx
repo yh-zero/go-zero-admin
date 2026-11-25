@@ -7,6 +7,7 @@ import { deleteFile, fetchFiles, fetchFileStats } from '../../api/file';
 import type { FileInfo, GetFileListReq } from '../../api/types';
 import { Auth } from '../../components/Auth';
 import { QueryState } from '../../components/QueryState';
+import { AdvancedFilterToggle } from '../../components/AdvancedFilterToggle';
 import { usePagedQuery } from '../../hooks/usePagedQuery';
 import { formatBytes, formatTime } from '../../utils/format';
 import { FileLinkDialog } from './FileLinkDialog';
@@ -24,6 +25,7 @@ export default function FileList() {
   const [params, setParams] = useState<GetFileListReq>({ page: 1, page_size: 20 });
   const [linkFile, setLinkFile] = useState<Pick<FileInfo, 'id' | 'visibility'> | null>(null);
   const [detailId, setDetailId] = useState<number | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const client = useQueryClient();
   const { message } = App.useApp();
   const listParams = { ...params, include_cleanup_pending: true };
@@ -38,6 +40,7 @@ export default function FileList() {
     ]),
   });
   const submit = (values: FileForm) => setParams({ ...values, start_time: seconds(values.start_time), end_time: seconds(values.end_time), page: 1, page_size: params.page_size });
+  const advancedCount = [params.ext, params.uploader_id, params.min_size, params.max_size, params.start_time, params.end_time].filter(value => value !== undefined && value !== '').length;
   const cards = [
     { title: '有效文件', value: stats.data?.total_files, bytes: stats.data?.total_bytes },
     { title: '公开文件', value: stats.data?.public_files, bytes: stats.data?.public_bytes },
@@ -48,18 +51,21 @@ export default function FileList() {
     <Row gutter={[16, 16]}>{cards.map(card => <Col xs={24} sm={12} xl={6} key={card.title}><Card loading={stats.isPending}>
       <Statistic title={card.title} value={card.value ?? '—'} /><span className="table-secondary">{card.bytes === undefined ? '暂不可用' : formatBytes(card.bytes)}</span>
     </Card></Col>)}</Row>
-    <Card className="filter-card"><Form name="file-filter" className="filter-form" form={form} layout="inline" onFinish={submit}>
+    <Card className="filter-card"><Form name="file-filter" className={`filter-form${showAdvanced ? ' is-expanded' : ''}`} form={form} layout="inline" onFinish={submit}>
       <Form.Item name="name" label="文件名"><Input allowClear maxLength={255} placeholder="模糊匹配文件名" /></Form.Item>
       <Form.Item name="mime" label="类型"><Select allowClear className="filter-select" options={['text/plain', 'text/csv', 'application/pdf', 'image/png', 'image/jpeg', 'image/gif'].map(value => ({ value, label: value }))} /></Form.Item>
-      <Form.Item name="ext" label="扩展名"><Input allowClear maxLength={16} placeholder="如 .pdf" /></Form.Item>
       <Form.Item name="visibility" label="可见性"><Select allowClear className="filter-select" placeholder="全部" options={[{ value: 'public', label: '公开' }, { value: 'private', label: '私有' }]} /></Form.Item>
-      <Form.Item name="uploader_id" label="上传者 ID"><InputNumber min={1} precision={0} /></Form.Item>
-      <Form.Item name="min_size" label="最小大小"><InputNumber min={0} precision={0} addonAfter="B" /></Form.Item>
-      <Form.Item name="max_size" label="最大大小"><InputNumber min={0} precision={0} addonAfter="B" /></Form.Item>
-      <Form.Item name="start_time" label="开始时间"><DatePicker showTime /></Form.Item>
-      <Form.Item name="end_time" label="结束时间"><DatePicker showTime /></Form.Item>
       <Form.Item name="cleanup_pending_only" label="清理状态"><Select allowClear className="filter-select" placeholder="全部文件" options={[{ value: true, label: '仅待清理' }]} /></Form.Item>
-      <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button><Button onClick={() => { form.resetFields(); setParams({ page: 1, page_size: params.page_size }); }}>重置</Button><Button aria-label="刷新文件列表" icon={<ReloadOutlined />} onClick={() => void query.refetch()} /></Space></Form.Item>
+      {showAdvanced && <>
+        <Form.Item name="ext" label="扩展名"><Input allowClear maxLength={16} placeholder="如 .pdf" /></Form.Item>
+        <Form.Item name="uploader_id" label="上传者 ID"><InputNumber min={1} precision={0} /></Form.Item>
+        <Form.Item name="min_size" label="最小大小"><InputNumber min={0} precision={0} suffix="B" /></Form.Item>
+        <Form.Item name="max_size" label="最大大小"><InputNumber min={0} precision={0} suffix="B" /></Form.Item>
+        <Form.Item name="start_time" label="开始时间"><DatePicker showTime /></Form.Item>
+        <Form.Item name="end_time" label="结束时间"><DatePicker showTime /></Form.Item>
+      </>}
+      <Form.Item><Space><Button type="primary" htmlType="submit">查询</Button><Button onClick={() => { form.resetFields(); setParams({ page: 1, page_size: params.page_size }); setShowAdvanced(false); }}>重置</Button><Button aria-label="刷新文件列表" icon={<ReloadOutlined />} onClick={() => void query.refetch()} />
+        <AdvancedFilterToggle open={showAdvanced} activeCount={advancedCount} onChange={setShowAdvanced} /></Space></Form.Item>
     </Form></Card>
     <Card className="data-card" title="文件列表" extra={<Space wrap>
       <Select aria-label="上传文件可见性" value={uploadVisibility} onChange={setUploadVisibility}
