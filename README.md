@@ -20,6 +20,17 @@ docker compose up -d --build --wait
 
 开发 AI、App 或租户功能时，使用后端子目录里的[完整平台开发栈](ai_document/dev-guide.md#完整平台开发栈)。
 
+### 已有数据库升级
+
+新库由完整初始化 SQL 自动建表；已有数据库不要重新导入初始化 SQL。先备份，再在后端目录执行：
+
+```powershell
+go run ./application/migrate -action status
+go run ./application/migrate -action up
+```
+
+迁移入口、版本状态和失败恢复见[数据库版本化迁移](ai_document/dev-guide.md#数据库版本化迁移)。
+
 ## 从资料到有来源的回答
 
 先启动完整平台开发栈及其前端。在后端 `.env.local` 配置聊天模型密钥（默认 DeepSeek 使用 `AI_DEEPSEEK_KEY`）；知识库还需要独立的 Embedding 密钥 `AI_QWEN_KEY` 和 Compose 中的 Qdrant。修改后在后端目录运行 `docker compose --env-file .env.local up -d --force-recreate ai-rpc`。模型调用和向量化可能产生供应商费用。[模型与邮件配置](ai_document/dev-guide.md#ai-与邮件)

@@ -50,6 +50,26 @@ if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .en
 
 权限模型升级先备份，再创建 `sys_permission(menu_id,api_id)` 和 `sys_policy_state`（id=1 初始 revision=1）。按当前完整初始化 SQL 核对菜单与 API 的映射，旧库只增量补齐，不重复插入已有映射。角色授权现在按映射重建 API 策略，非超级管理员不能修改自己绑定的角色或授予超出自身的权限/数据范围；已有自定义角色应先核对映射和绑定关系。权限诊断为 `POST /v1/sys/permission/check`，可查看 allowed、命中角色、策略 revision、生成和加载时间。
 
+### 数据库版本化迁移
+
+新库继续使用 `data/db/init/mysql-all.sql` 完整初始化；已有库使用 `data/db/migrations/*.up.sql` / `*.down.sql` 和 `application/migrate` 补齐结构。迁移命令不修改业务代码，默认读取 `application/migrate/etc/migrate.yaml` 的 MySQL DSN，执行前必须备份并核对实际目标库。
+
+```powershell
+# 查看当前版本、dirty 状态和迁移清单
+go run ./application/migrate -action status
+
+# 执行全部待迁移版本
+go run ./application/migrate -action up
+
+# 仅在已核对目标库后回退一步
+go run ./application/migrate -action down -yes
+
+# 仅在确认当前 schema 与版本一致后修复版本状态
+go run ./application/migrate -action force -version 2 -yes
+```
+
+`status` 输出 `current_version` 和 `dirty`，迁移失败时 dirty=true，先修复失败原因再重试，不要用 force 掩盖未完成的结构变更。当前迁移 001 为审计/文件增强，002 为权限映射和诊断资源；001/002 均按 information_schema 做存在性检查，可在包含这些结构的开发库上重复执行。down 仅用于开发恢复，生产回滚优先使用迁移前备份。
+
 开源演示账号见[快速开始](../README.md#快速开始)。首次安装已有基础演示数据，历史前端样例导入见[前端说明](../go-zero-admin-react/README.md)。
 
 ### 数据库备份

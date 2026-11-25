@@ -34,6 +34,7 @@
 |---|---|
 | 启动或恢复本地开发栈 | [开发手册 · 构建、启动与就绪检查](ai_document/dev-guide.md#2-构建启动与就绪检查) |
 | 后端生成、分层、接口、RPC 或表结构 | [官方指令](.ai-context/go-zero/00-instructions.md) → [后端增量规范](go-zero-admin/AGENTS.md) |
+| 数据库迁移、旧库升级或版本状态排查 | [开发手册 · 数据库版本化迁移](ai_document/dev-guide.md#数据库版本化迁移) → [后端增量规范](go-zero-admin/AGENTS.md) |
 | 前端页面、组件或接口对接 | [前端增量规范](go-zero-admin-react/AGENTS.md) |
 | 变更跨端字段、错误码或路由 | [共享契约](ai_document/api-contract.md)，按 §5.2 同步两端 |
 | 文档与规范 | [文档索引](ai_document/README.md)，依 §9 核对内容与引用 |
