@@ -21,7 +21,7 @@ func NewUpdateRoleMenusLogic(ctx context.Context, svcCtx *svc.ServiceContext) *U
 }
 
 func (l *UpdateRoleMenusLogic) UpdateRoleMenus(in *adminpb.UpdateRoleMenusRequest) (*adminpb.NoDataResponse, error) {
-	if err := requireRoleActor(l.ctx, l.svcCtx, in.GetActor()); err != nil {
+	if err := requireRoleMutationAllowed(l.ctx, l.svcCtx, in.GetActor(), roleMutationInput{RoleID: uint64(in.RoleId), MenuIDs: in.MenuIds}); err != nil {
 		return nil, err
 	}
 	if in.ExpectedMenus == nil {

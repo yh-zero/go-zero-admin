@@ -25,15 +25,15 @@ func NewCreateRoleLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 }
 
 func (l *CreateRoleLogic) CreateRole(in *adminpb.CreateRoleRequest) (*adminpb.NoDataResponse, error) {
-	if err := requireRoleActor(l.ctx, l.svcCtx, in.GetActor()); err != nil {
+	if in.DataScope == "" {
+		in.DataScope = "SELF"
+	}
+	if err := requireRoleMutationAllowed(l.ctx, l.svcCtx, in.GetActor(), roleMutationInput{Code: in.Code, DataScope: in.DataScope, MenuIDs: in.MenuIds}); err != nil {
 		return nil, err
 	}
 	status, err := model.CreateStatus(in.Status)
 	if err != nil {
 		return nil, roleMutationError(err)
-	}
-	if in.DataScope == "" {
-		in.DataScope = "SELF"
 	}
 	_, err = l.svcCtx.SysRoleModel.FindOneByCode(l.ctx, in.Code)
 	if err == nil {

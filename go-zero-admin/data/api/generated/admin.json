@@ -10610,6 +10610,12 @@
                 "type"
               ],
               "properties": {
+                "api_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
                 "component": {
                   "type": "string"
                 },
@@ -10738,9 +10744,16 @@
                       "sort",
                       "visible",
                       "status",
-                      "created_at"
+                      "created_at",
+                      "api_ids"
                     ],
                     "properties": {
+                      "api_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer"
+                        }
+                      },
                       "component": {
                         "type": "string"
                       },
@@ -10825,9 +10838,16 @@
                       "sort",
                       "visible",
                       "status",
-                      "created_at"
+                      "created_at",
+                      "api_ids"
                     ],
                     "properties": {
+                      "api_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer"
+                        }
+                      },
                       "component": {
                         "type": "string"
                       },
@@ -10967,9 +10987,16 @@
                       "sort",
                       "visible",
                       "status",
-                      "created_at"
+                      "created_at",
+                      "api_ids"
                     ],
                     "properties": {
+                      "api_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer"
+                        }
+                      },
                       "component": {
                         "type": "string"
                       },
@@ -11057,9 +11084,16 @@
                     "sort",
                     "visible",
                     "status",
-                    "created_at"
+                    "created_at",
+                    "api_ids"
                   ],
                   "properties": {
+                    "api_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
                     "component": {
                       "type": "string"
                     },
@@ -11203,6 +11237,83 @@
             "description": "",
             "schema": {
               "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/v1/sys/permission/check": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "summary": "checkPermission",
+        "operationId": "permissionCheckPermission",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "method",
+                "path"
+              ],
+              "properties": {
+                "dept_id": {
+                  "type": "integer"
+                },
+                "method": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "user_id": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "allowed": {
+                  "type": "boolean"
+                },
+                "data_scopes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "domain": {
+                  "type": "string"
+                },
+                "generated_at": {
+                  "type": "integer"
+                },
+                "loaded_at": {
+                  "type": "integer"
+                },
+                "policy_revision": {
+                  "type": "integer"
+                },
+                "role": {
+                  "type": "string"
+                }
+              }
             }
           }
         }
@@ -12986,7 +13097,7 @@
       }
     }
   },
-  "x-date": "2026-11-24 14:47:16",
+  "x-date": "2026-11-25 13:17:48",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

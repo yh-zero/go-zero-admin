@@ -42,29 +42,32 @@ import (
 const PolicySyncChannel = "casbin:policy:changed"
 
 type ServiceContext struct {
-	Config      config.Config
-	AdminRpc    zrpc.Client
-	FileRpcConn zrpc.Client
-	Enforcer    *casbinauth.Holder
-	AuthRpc     authserviceclient.AuthService
-	UserRpc     userserviceclient.UserService
-	DeptRpc     deptserviceclient.DeptService
-	RoleRpc     roleserviceclient.RoleService
-	FileRpc     fileserviceclient.FileService
-	CasbinRpc   casbinserviceclient.CasbinService
-	MenuRpc     menuserviceclient.MenuService
-	DictRpc     dictserviceclient.DictService
-	ApiRpc      apiserviceclient.ApiService
-	AuditRpc    auditserviceclient.AuditService
-	ProfileRpc  profileserviceclient.ProfileService
-	Redis       *goredis.Client
-	Sessions    *jwtx.SessionStore
-	HealthRpc   healthserviceclient.HealthService
-	ApiRoutes   []*adminpb.ApiRoute
-	TenantRpc   tenantserviceclient.TenantService
-	AppAuthRpc  appauthserviceclient.AppAuthService
-	AppAdminRpc appadminserviceclient.AppAdminService
-	AiRpc       aiserviceclient.AiService
+	Config            config.Config
+	AdminRpc          zrpc.Client
+	FileRpcConn       zrpc.Client
+	Enforcer          *casbinauth.Holder
+	AuthRpc           authserviceclient.AuthService
+	UserRpc           userserviceclient.UserService
+	DeptRpc           deptserviceclient.DeptService
+	RoleRpc           roleserviceclient.RoleService
+	FileRpc           fileserviceclient.FileService
+	CasbinRpc         casbinserviceclient.CasbinService
+	MenuRpc           menuserviceclient.MenuService
+	DictRpc           dictserviceclient.DictService
+	ApiRpc            apiserviceclient.ApiService
+	AuditRpc          auditserviceclient.AuditService
+	ProfileRpc        profileserviceclient.ProfileService
+	Redis             *goredis.Client
+	Sessions          *jwtx.SessionStore
+	HealthRpc         healthserviceclient.HealthService
+	ApiRoutes         []*adminpb.ApiRoute
+	PolicyRevision    int64
+	PolicyGeneratedAt int64
+	PolicyLoadedAt    int64
+	TenantRpc         tenantserviceclient.TenantService
+	AppAuthRpc        appauthserviceclient.AppAuthService
+	AppAdminRpc       appadminserviceclient.AppAdminService
+	AiRpc             aiserviceclient.AiService
 	// Validator 请求参数校验器：logic 入口调用 StructCtx，校验规则见 .api 类型的 validate 标签
 	Validator *validator.Validate
 }
@@ -100,25 +103,28 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 
 	svcCtx := &ServiceContext{
-		Config:      c,
-		AdminRpc:    adminRpc,
-		FileRpcConn: fileRpcConn,
-		HealthRpc:   healthserviceclient.NewHealthService(adminRpc),
-		Sessions:    jwtx.NewSessionStore(rdb, "admin"),
-		Enforcer:    holder,
-		AuthRpc:     authserviceclient.NewAuthService(adminRpc),
-		UserRpc:     userserviceclient.NewUserService(adminRpc),
-		DeptRpc:     deptserviceclient.NewDeptService(adminRpc),
-		RoleRpc:     roleserviceclient.NewRoleService(adminRpc),
-		FileRpc:     fileserviceclient.NewFileService(fileRpcConn),
-		CasbinRpc:   casbinSvc,
-		MenuRpc:     menuserviceclient.NewMenuService(adminRpc),
-		DictRpc:     dictserviceclient.NewDictService(adminRpc),
-		ApiRpc:      apiserviceclient.NewApiService(adminRpc),
-		AuditRpc:    auditserviceclient.NewAuditService(adminRpc),
-		ProfileRpc:  profileserviceclient.NewProfileService(adminRpc),
-		Redis:       rdb,
-		Validator:   NewValidator(),
+		Config:            c,
+		AdminRpc:          adminRpc,
+		FileRpcConn:       fileRpcConn,
+		HealthRpc:         healthserviceclient.NewHealthService(adminRpc),
+		Sessions:          jwtx.NewSessionStore(rdb, "admin"),
+		Enforcer:          holder,
+		PolicyRevision:    resp.Revision,
+		PolicyGeneratedAt: resp.GeneratedAt,
+		PolicyLoadedAt:    time.Now().Unix(),
+		AuthRpc:           authserviceclient.NewAuthService(adminRpc),
+		UserRpc:           userserviceclient.NewUserService(adminRpc),
+		DeptRpc:           deptserviceclient.NewDeptService(adminRpc),
+		RoleRpc:           roleserviceclient.NewRoleService(adminRpc),
+		FileRpc:           fileserviceclient.NewFileService(fileRpcConn),
+		CasbinRpc:         casbinSvc,
+		MenuRpc:           menuserviceclient.NewMenuService(adminRpc),
+		DictRpc:           dictserviceclient.NewDictService(adminRpc),
+		ApiRpc:            apiserviceclient.NewApiService(adminRpc),
+		AuditRpc:          auditserviceclient.NewAuditService(adminRpc),
+		ProfileRpc:        profileserviceclient.NewProfileService(adminRpc),
+		Redis:             rdb,
+		Validator:         NewValidator(),
 	}
 
 	if c.TenantRpc != nil {
@@ -176,6 +182,10 @@ func (s *ServiceContext) watchPolicyChanges() {
 	}
 }
 
+func (s *ServiceContext) PolicySnapshot() (revision, generatedAt, loadedAt int64) {
+	return s.PolicyRevision, s.PolicyGeneratedAt, s.PolicyLoadedAt
+}
+
 // refreshPolicies 全量拉取并原子替换 enforcer；失败保留旧实例
 func (s *ServiceContext) refreshPolicies() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -193,5 +203,8 @@ func (s *ServiceContext) refreshPolicies() {
 		logx.Errorf("rebuild enforcer error: %v", err)
 		return
 	}
-	logx.Info("casbin policies refreshed")
+	s.PolicyRevision = resp.Revision
+	s.PolicyGeneratedAt = resp.GeneratedAt
+	s.PolicyLoadedAt = time.Now().Unix()
+	logx.Infof("casbin policies refreshed revision=%d", s.PolicyRevision)
 }

@@ -20,6 +20,7 @@ type (
 		Visible   bool   `json:"visible"`
 		Status    int32  `json:"status"`
 		CreatedAt int64  `json:"created_at"`
+		ApiIds    []int64 `json:"api_ids"`
 	}
 	GetMenuTreeReq {
 		Type   int32 `json:"type,optional" form:"type,optional" validate:"omitempty,oneof=1 2 3"`
@@ -56,6 +57,7 @@ type (
 		Sort      int32  `json:"sort,optional"`
 		Visible   bool   `json:"visible,optional"`
 		Status    *int32 `json:"status,optional" validate:"omitempty,oneof=1 2"`
+		ApiIds    []int64 `json:"api_ids,optional" validate:"omitempty,dive,min=1"`
 	}
 	UpdateMenuReq {
 		Id        int64   `path:"id" validate:"min=1"`

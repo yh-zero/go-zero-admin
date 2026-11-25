@@ -1048,17 +1048,18 @@ type CreateDictReq struct {
 }
 
 type CreateMenuReq struct {
-	ParentId  int64  `json:"parent_id,optional"`
-	Title     string `json:"title" validate:"max=64"`
-	Name      string `json:"name,optional" validate:"omitempty,max=64"`
-	Type      int32  `json:"type" validate:"oneof=1 2 3"`
-	Path      string `json:"path,optional" validate:"omitempty,max=255"`
-	Component string `json:"component,optional" validate:"omitempty,max=255"`
-	PermCode  string `json:"perm_code,optional" validate:"omitempty,max=128"`
-	Icon      string `json:"icon,optional" validate:"omitempty,max=64"`
-	Sort      int32  `json:"sort,optional"`
-	Visible   bool   `json:"visible,optional"`
-	Status    *int32 `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	ParentId  int64   `json:"parent_id,optional"`
+	Title     string  `json:"title" validate:"max=64"`
+	Name      string  `json:"name,optional" validate:"omitempty,max=64"`
+	Type      int32   `json:"type" validate:"oneof=1 2 3"`
+	Path      string  `json:"path,optional" validate:"omitempty,max=255"`
+	Component string  `json:"component,optional" validate:"omitempty,max=255"`
+	PermCode  string  `json:"perm_code,optional" validate:"omitempty,max=128"`
+	Icon      string  `json:"icon,optional" validate:"omitempty,max=64"`
+	Sort      int32   `json:"sort,optional"`
+	Visible   bool    `json:"visible,optional"`
+	Status    *int32  `json:"status,optional" validate:"omitempty,oneof=1 2"`
+	ApiIds    []int64 `json:"api_ids,optional" validate:"omitempty,dive,min=1"`
 }
 
 type CreateRoleReq struct {
@@ -1540,19 +1541,37 @@ type MembershipGrantInfo struct {
 }
 
 type MenuInfo struct {
-	Id        int64  `json:"id"`
-	ParentId  int64  `json:"parent_id"`
-	Title     string `json:"title"`
-	Name      string `json:"name"`
-	Type      int32  `json:"type"`
-	Path      string `json:"path"`
-	Component string `json:"component"`
-	PermCode  string `json:"perm_code"`
-	Icon      string `json:"icon"`
-	Sort      int32  `json:"sort"`
-	Visible   bool   `json:"visible"`
-	Status    int32  `json:"status"`
-	CreatedAt int64  `json:"created_at"`
+	Id        int64   `json:"id"`
+	ParentId  int64   `json:"parent_id"`
+	Title     string  `json:"title"`
+	Name      string  `json:"name"`
+	Type      int32   `json:"type"`
+	Path      string  `json:"path"`
+	Component string  `json:"component"`
+	PermCode  string  `json:"perm_code"`
+	Icon      string  `json:"icon"`
+	Sort      int32   `json:"sort"`
+	Visible   bool    `json:"visible"`
+	Status    int32   `json:"status"`
+	CreatedAt int64   `json:"created_at"`
+	ApiIds    []int64 `json:"api_ids"`
+}
+
+type PermissionCheckReq struct {
+	UserId int64  `json:"user_id,optional" validate:"omitempty,min=1"`
+	DeptId *int64 `json:"dept_id,optional" validate:"omitempty,min=0"`
+	Method string `json:"method" validate:"required,uppercase,oneof=GET POST PUT DELETE PATCH"`
+	Path   string `json:"path" validate:"required,max=255"`
+}
+
+type PermissionCheckResp struct {
+	Allowed        bool     `json:"allowed"`
+	Role           string   `json:"role"`
+	Domain         string   `json:"domain"`
+	PolicyRevision int64    `json:"policy_revision"`
+	GeneratedAt    int64    `json:"generated_at"`
+	LoadedAt       int64    `json:"loaded_at"`
+	DataScopes     []string `json:"data_scopes"`
 }
 
 type PingReq struct {

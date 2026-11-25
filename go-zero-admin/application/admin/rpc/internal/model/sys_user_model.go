@@ -179,6 +179,26 @@ func (s userDataScope) labels() []string {
 	return labels
 }
 
+// CanDelegateScope 判断当前操作者是否能把指定数据范围授予其他角色。
+func CanDelegateScope(ctx context.Context, query scopeQuery, actor UserActor, next string) (bool, error) {
+	scope, err := resolveUserScope(ctx, query, actor)
+	if err != nil {
+		return false, err
+	}
+	switch next {
+	case "ALL":
+		return scope.all, nil
+	case "DEPT_AND_CHILDREN":
+		return scope.all || scope.descendants, nil
+	case "DEPT":
+		return scope.all || scope.department || scope.descendants, nil
+	case "SELF":
+		return true, nil
+	default:
+		return false, nil
+	}
+}
+
 func (s userDataScope) clause() (string, []any) {
 	if s.all {
 		return "1=1", nil
@@ -363,7 +383,11 @@ func replaceUserRoles(ctx context.Context, s sqlx.Session, userId, actorId, dept
 		}
 	}
 	_, err = s.ExecCtx(ctx, query, args...)
-	return err
+	if err != nil {
+		return err
+	}
+	codes = append(codes, roleCodesFromBindings(old)...)
+	return rebuildRolePoliciesByCodes(ctx, s, codes)
 }
 
 func preserveLastSuperAdmin(ctx context.Context, s sqlx.Session, userId int64, wasSuper bool, status int64) error {
@@ -520,6 +544,13 @@ func (m *customSysUserModel) UpdatePartial(ctx context.Context, userId int64, ac
 				return err
 			}
 			if _, err := s.ExecCtx(ctx, "DELETE FROM casbin_rule WHERE ptype='g' AND v0=? AND v2=?", subject, oldDomain); err != nil {
+				return err
+			}
+			var codes []string
+			if err := s.QueryRowsCtx(ctx, &codes, "SELECT DISTINCT v1 FROM casbin_rule WHERE ptype='g' AND v0=?", subject); err != nil {
+				return err
+			}
+			if err := rebuildRolePoliciesByCodes(ctx, s, codes); err != nil {
 				return err
 			}
 		}

@@ -33,5 +33,6 @@ func (l *ListPoliciesLogic) ListPolicies(in *adminpb.ListPoliciesRequest) (*admi
 			Ptype: r.Ptype, V0: r.V0, V1: r.V1, V2: r.V2, V3: r.V3, V4: r.V4, V5: r.V5,
 		})
 	}
-	return &adminpb.ListPoliciesResponse{Rules: rules}, nil
+	revision, generatedAt := l.svcCtx.PolicySnapshot()
+	return &adminpb.ListPoliciesResponse{Rules: rules, Revision: revision, GeneratedAt: generatedAt}, nil
 }

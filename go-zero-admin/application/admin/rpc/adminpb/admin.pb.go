@@ -3430,6 +3430,7 @@ type MenuInfo struct {
 	Visible       bool                   `protobuf:"varint,11,opt,name=visible,proto3" json:"visible,omitempty"`
 	Status        int32                  `protobuf:"varint,12,opt,name=status,proto3" json:"status,omitempty"`
 	CreatedAt     int64                  `protobuf:"varint,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ApiIds        []int64                `protobuf:"varint,14,rep,packed,name=api_ids,json=apiIds,proto3" json:"api_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3553,6 +3554,13 @@ func (x *MenuInfo) GetCreatedAt() int64 {
 		return x.CreatedAt
 	}
 	return 0
+}
+
+func (x *MenuInfo) GetApiIds() []int64 {
+	if x != nil {
+		return x.ApiIds
+	}
+	return nil
 }
 
 type GetMenuTreeRequest struct {
@@ -3889,6 +3897,7 @@ type CreateMenuRequest struct {
 	Sort          int32                  `protobuf:"varint,10,opt,name=sort,proto3" json:"sort,omitempty"`
 	Visible       bool                   `protobuf:"varint,11,opt,name=visible,proto3" json:"visible,omitempty"`
 	Status        *int32                 `protobuf:"varint,12,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	ApiIds        []int64                `protobuf:"varint,13,rep,packed,name=api_ids,json=apiIds,proto3" json:"api_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4007,6 +4016,13 @@ func (x *CreateMenuRequest) GetStatus() int32 {
 	return 0
 }
 
+func (x *CreateMenuRequest) GetApiIds() []int64 {
+	if x != nil {
+		return x.ApiIds
+	}
+	return nil
+}
+
 type UpdateMenuRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Actor         *Actor                 `protobuf:"bytes,1,opt,name=actor,proto3" json:"actor,omitempty"`
@@ -4022,6 +4038,7 @@ type UpdateMenuRequest struct {
 	Sort          *int32                 `protobuf:"varint,11,opt,name=sort,proto3,oneof" json:"sort,omitempty"`
 	Visible       *bool                  `protobuf:"varint,12,opt,name=visible,proto3,oneof" json:"visible,omitempty"`
 	Status        *int32                 `protobuf:"varint,13,opt,name=status,proto3,oneof" json:"status,omitempty"`
+	ApiIds        []int64                `protobuf:"varint,14,rep,packed,name=api_ids,json=apiIds,proto3" json:"api_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4145,6 +4162,13 @@ func (x *UpdateMenuRequest) GetStatus() int32 {
 		return *x.Status
 	}
 	return 0
+}
+
+func (x *UpdateMenuRequest) GetApiIds() []int64 {
+	if x != nil {
+		return x.ApiIds
+	}
+	return nil
 }
 
 type DeleteMenuRequest struct {
@@ -6901,6 +6925,8 @@ func (*ListPoliciesRequest) Descriptor() ([]byte, []int) {
 type ListPoliciesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Rules         []*PolicyRule          `protobuf:"bytes,1,rep,name=Rules,json=rules,proto3" json:"Rules,omitempty"`
+	Revision      int64                  `protobuf:"varint,2,opt,name=revision,proto3" json:"revision,omitempty"`
+	GeneratedAt   int64                  `protobuf:"varint,3,opt,name=generated_at,json=generatedAt,proto3" json:"generated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -6940,6 +6966,20 @@ func (x *ListPoliciesResponse) GetRules() []*PolicyRule {
 		return x.Rules
 	}
 	return nil
+}
+
+func (x *ListPoliciesResponse) GetRevision() int64 {
+	if x != nil {
+		return x.Revision
+	}
+	return 0
+}
+
+func (x *ListPoliciesResponse) GetGeneratedAt() int64 {
+	if x != nil {
+		return x.GeneratedAt
+	}
+	return 0
 }
 
 // 独立消息的存在性区分“已读取空授权”和“未提供原始授权”。
@@ -7304,7 +7344,7 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\arole_id\x18\x02 \x01(\x03R\x06roleId\x12\x19\n" +
 	"\bmenu_ids\x18\x03 \x03(\x03R\amenuIds\x12@\n" +
-	"\x0eexpected_menus\x18\x04 \x01(\v2\x19.adminpb.RoleMenuSnapshotR\rexpectedMenus\"\xbd\x02\n" +
+	"\x0eexpected_menus\x18\x04 \x01(\v2\x19.adminpb.RoleMenuSnapshotR\rexpectedMenus\"\xd6\x02\n" +
 	"\bMenuInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1b\n" +
 	"\tparent_id\x18\x02 \x01(\x03R\bparentId\x12\x14\n" +
@@ -7320,7 +7360,8 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\avisible\x18\v \x01(\bR\avisible\x12\x16\n" +
 	"\x06status\x18\f \x01(\x05R\x06status\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\r \x01(\x03R\tcreatedAt\"f\n" +
+	"created_at\x18\r \x01(\x03R\tcreatedAt\x12\x17\n" +
+	"\aapi_ids\x18\x0e \x03(\x03R\x06apiIds\"f\n" +
 	"\x12GetMenuTreeRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\x05R\x04type\x12\x16\n" +
@@ -7339,7 +7380,7 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\amenu_id\x18\x02 \x01(\x03R\x06menuId\"8\n" +
 	"\x0fGetMenuResponse\x12%\n" +
-	"\x04Menu\x18\x01 \x01(\v2\x11.adminpb.MenuInfoR\x04Menu\"\xcd\x02\n" +
+	"\x04Menu\x18\x01 \x01(\v2\x11.adminpb.MenuInfoR\x04Menu\"\xe6\x02\n" +
 	"\x11CreateMenuRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x1b\n" +
 	"\tparent_id\x18\x02 \x01(\x03R\bparentId\x12\x14\n" +
@@ -7353,8 +7394,9 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x04sort\x18\n" +
 	" \x01(\x05R\x04sort\x12\x18\n" +
 	"\avisible\x18\v \x01(\bR\avisible\x12\x1b\n" +
-	"\x06status\x18\f \x01(\x05H\x00R\x06status\x88\x01\x01B\t\n" +
-	"\a_status\"\x85\x04\n" +
+	"\x06status\x18\f \x01(\x05H\x00R\x06status\x88\x01\x01\x12\x17\n" +
+	"\aapi_ids\x18\r \x03(\x03R\x06apiIdsB\t\n" +
+	"\a_status\"\x9e\x04\n" +
 	"\x11UpdateMenuRequest\x12$\n" +
 	"\x05actor\x18\x01 \x01(\v2\x0e.adminpb.ActorR\x05actor\x12\x17\n" +
 	"\amenu_id\x18\x02 \x01(\x03R\x06menuId\x12 \n" +
@@ -7370,7 +7412,8 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x04sort\x18\v \x01(\x05H\bR\x04sort\x88\x01\x01\x12\x1d\n" +
 	"\avisible\x18\f \x01(\bH\tR\avisible\x88\x01\x01\x12\x1b\n" +
 	"\x06status\x18\r \x01(\x05H\n" +
-	"R\x06status\x88\x01\x01B\f\n" +
+	"R\x06status\x88\x01\x01\x12\x17\n" +
+	"\aapi_ids\x18\x0e \x03(\x03R\x06apiIdsB\f\n" +
 	"\n" +
 	"_parent_idB\b\n" +
 	"\x06_titleB\a\n" +
@@ -7615,9 +7658,11 @@ const file_application_admin_rpc_desc_admin_proto_rawDesc = "" +
 	"\x02V3\x18\x05 \x01(\tR\x02v3\x12\x0e\n" +
 	"\x02V4\x18\x06 \x01(\tR\x02v4\x12\x0e\n" +
 	"\x02V5\x18\a \x01(\tR\x02v5\"\x15\n" +
-	"\x13ListPoliciesRequest\"A\n" +
+	"\x13ListPoliciesRequest\"\x80\x01\n" +
 	"\x14ListPoliciesResponse\x12)\n" +
-	"\x05Rules\x18\x01 \x03(\v2\x13.adminpb.PolicyRuleR\x05rules\"-\n" +
+	"\x05Rules\x18\x01 \x03(\v2\x13.adminpb.PolicyRuleR\x05rules\x12\x1a\n" +
+	"\brevision\x18\x02 \x01(\x03R\brevision\x12!\n" +
+	"\fgenerated_at\x18\x03 \x01(\x03R\vgeneratedAt\"-\n" +
 	"\x10RoleMenuSnapshot\x12\x19\n" +
 	"\bmenu_ids\x18\x01 \x03(\x03R\amenuIds2\xc8\x03\n" +
 	"\vAuthService\x12E\n" +

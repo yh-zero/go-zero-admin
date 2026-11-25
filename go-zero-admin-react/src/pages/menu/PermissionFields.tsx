@@ -2,6 +2,7 @@ import { Col, Form, Input, InputNumber, Row, Select, TreeSelect } from 'antd';
 import type { MenuInfo } from '../../api/types';
 import { buildTree } from '../../utils/tree';
 import { statusOptions } from '../../utils/formOptions';
+import { MenuApiSelect } from './MenuApiSelect';
 
 interface Props { resources: MenuInfo[]; lockParent: boolean }
 
@@ -21,5 +22,6 @@ export function PermissionFields({ resources, lockParent }: Props) {
       <Input maxLength={128} placeholder="sys:user:add" /></Form.Item></Col>
     <Col xs={24} sm={12}><Form.Item name="sort" label="排序"><InputNumber min={0} max={2147483647} precision={0} /></Form.Item></Col>
     <Col xs={24} sm={12}><Form.Item name="status" label="状态"><Select options={statusOptions} /></Form.Item></Col>
+    <Col xs={24} sm={24}><MenuApiSelect /></Col>
   </Row>;
 }

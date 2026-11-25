@@ -3,6 +3,7 @@ import type { CreateMenuReq, MenuInfo } from '../../api/types';
 import { buildTree } from '../../utils/tree';
 import { statusOptions } from '../../utils/formOptions';
 import { getDescendantIds, getPagePermissions } from './menuResources';
+import { MenuApiSelect } from './MenuApiSelect';
 
 interface Props { resources: MenuInfo[]; editingId: number | null }
 
@@ -33,5 +34,6 @@ export function MenuFields({ resources, editingId }: Props) {
     <Col xs={24} sm={8}><Form.Item name="sort" label="排序"><InputNumber precision={0} min={0} max={2147483647} /></Form.Item></Col>
     <Col xs={24} sm={8}><Form.Item name="status" label="状态"><Select options={statusOptions} /></Form.Item></Col>
     <Col xs={24} sm={8}><Form.Item name="visible" label="侧栏显示" valuePropName="checked"><Switch /></Form.Item></Col>
+    <Col xs={24} sm={24}><MenuApiSelect /></Col>
   </Row>;
 }

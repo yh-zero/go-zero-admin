@@ -161,6 +161,9 @@
 - ✅ 菜单删除按 `parent_id` 确定当前节点及全部后代，在同一事务删除菜单授权关系并软删除菜单，提交后失效详情缓存；导航路径前缀相同的其他节点不受影响。创建、移动和子树删除共享数据库结构锁，校验和写入在同一事务内；普通资料编辑只锁目标行。已删除菜单不能被更新恢复，缺少结构锁记录时拒绝结构写入。
 - `POST /v1/sys/api/sync` 使用实际注册路由同步 API 资源，返回 `added/updated/removed`。
 - API 同步采用增量 upsert：保留已有人工标题和非本服务资源，`removed` 固定为 0；新增标题采用 `METHOD /path`。无来源标记时不自动删除其他资源。
+- 菜单/按钮通过 `sys_permission(menu_id,api_id)` 显式关联 API。角色授权事务按映射重建该角色的 API 策略，菜单变更后重建所有角色；策略只使用 `sub/dom/obj/act` 字段，超级管理员 `/*` 通配规则和用户级直接授权不受影响。没有映射的菜单不会隐式获得 API 权限。`MenuInfo.api_ids` 用于维护映射。
+- 非超级管理员不能修改内置超级管理员角色或自己已绑定的角色，也不能授予超出自身 API 权限和数据范围的操作。超级管理员不受此限制，但角色分配仍按原规则仅允许超级管理员执行。
+- `POST /v1/sys/permission/check` 仅超级管理员可调用，接收可选 user_id/dept_id、method/path，按当前内存策略返回 allowed、命中 role/domain、data_scopes、policy_revision、generated_at 和 loaded_at。策略快照带递增 revision，发布失败保留旧快照并记录错误。
 
 ### 文件与引用
 

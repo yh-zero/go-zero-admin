@@ -30,5 +30,13 @@ func (l *GetMenuLogic) GetMenu(in *adminpb.GetMenuRequest) (*adminpb.GetMenuResp
 	if err != nil {
 		return nil, xerr.NewErrCode(xerr.DB_ERROR)
 	}
-	return &adminpb.GetMenuResponse{Menu: menuRowToPb(row)}, nil
+	routes, err := l.svcCtx.SysPermissionModel.ListByMenuIDs(l.ctx, []int64{int64(in.MenuId)})
+	if err != nil {
+		return nil, xerr.NewErrCode(xerr.DB_ERROR)
+	}
+	menu := menuRowToPb(row)
+	for _, route := range routes {
+		menu.ApiIds = append(menu.ApiIds, route.ApiID)
+	}
+	return &adminpb.GetMenuResponse{Menu: menu}, nil
 }

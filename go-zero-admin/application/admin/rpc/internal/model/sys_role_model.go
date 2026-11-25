@@ -125,7 +125,7 @@ func replaceRoleMenus(ctx context.Context, s sqlx.Session, roleId uint64, curren
 			return err
 		}
 	}
-	return nil
+	return rebuildRoleMenuPolicies(ctx, s, roleId)
 }
 
 func (m *customSysRoleModel) invalidateRole(ctx context.Context, role *SysRole) error {

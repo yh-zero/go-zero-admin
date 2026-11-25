@@ -48,6 +48,8 @@ if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .en
 
 审计自动保留默认关闭。确需启用时在 admin-rpc YAML 设置 `Audit.RetentionDays` 为正整数，并可调整 `CleanupIntervalSeconds`（默认 3600）及 `CleanupBatchSize`（默认 1000）。该功能按 `created_at` 删除到期审计，启用前先备份并验证保留天数；已有租户配置需分别迁移。
 
+权限模型升级先备份，再创建 `sys_permission(menu_id,api_id)` 和 `sys_policy_state`（id=1 初始 revision=1）。按当前完整初始化 SQL 核对菜单与 API 的映射，旧库只增量补齐，不重复插入已有映射。角色授权现在按映射重建 API 策略，非超级管理员不能修改自己绑定的角色或授予超出自身的权限/数据范围；已有自定义角色应先核对映射和绑定关系。权限诊断为 `POST /v1/sys/permission/check`，可查看 allowed、命中角色、策略 revision、生成和加载时间。
+
 开源演示账号见[快速开始](../README.md#快速开始)。首次安装已有基础演示数据，历史前端样例导入见[前端说明](../go-zero-admin-react/README.md)。
 
 ### 数据库备份

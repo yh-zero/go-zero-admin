@@ -26,6 +26,7 @@ func NewUpdateMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 func (l *UpdateMenuLogic) UpdateMenu(in *adminpb.UpdateMenuRequest) (*adminpb.NoDataResponse, error) {
 	err := l.svcCtx.SysMenuModel.UpdatePartial(l.ctx, uint64(in.MenuId), model.MenuPatch{
 		ParentId: in.ParentId, Title: in.Title, Name: in.Name, Type: in.Type, Path: in.Path, Component: in.Component, PermCode: in.PermCode, Icon: in.Icon, Sort: in.Sort, Visible: in.Visible, Status: in.Status,
+		ApiIds: in.ApiIds,
 	})
 	if model.MutationCommitted(err) {
 		l.svcCtx.PublishPolicyChanged(l.ctx)

@@ -19,6 +19,7 @@ import (
 	file "go-zero-admin/application/admin/api/internal/handler/file"
 	health "go-zero-admin/application/admin/api/internal/handler/health"
 	menu "go-zero-admin/application/admin/api/internal/handler/menu"
+	permission "go-zero-admin/application/admin/api/internal/handler/permission"
 	profile "go-zero-admin/application/admin/api/internal/handler/profile"
 	role "go-zero-admin/application/admin/api/internal/handler/role"
 	tenant "go-zero-admin/application/admin/api/internal/handler/tenant"
@@ -706,6 +707,17 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 		},
 		rest.WithPrefix("/v1/sys/menu"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/check",
+				Handler: permission.CheckPermissionHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v1/sys/permission"),
 	)
 
 	server.AddRoutes(

@@ -19,6 +19,7 @@ type (
 	SysMenuModel interface {
 		sysMenuModel
 		Create(ctx context.Context, menu *SysMenu) error
+		CreateWithPermissions(ctx context.Context, menu *SysMenu, apiIds []int64) error
 		UpdatePartial(ctx context.Context, id uint64, patch MenuPatch) error
 		// FindMenuRow 查单个有效菜单（含软删过滤），时间戳已转 int64
 		FindMenuRow(ctx context.Context, id uint64) (*MenuRow, error)
@@ -150,6 +151,38 @@ func (m *customSysMenuModel) Create(ctx context.Context, menu *SysMenu) error {
 	return committedCacheError(m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysMenuIdPrefix, menu.Id)))
 }
 
+func (m *customSysMenuModel) CreateWithPermissions(ctx context.Context, menu *SysMenu, apiIds []int64) error {
+	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
+		if err := lockMenuStructure(ctx, s); err != nil {
+			return err
+		}
+		rows, err := lockMenuTree(ctx, s)
+		if err != nil {
+			return err
+		}
+		if err := validateMenuParent(menu, rows); err != nil {
+			return err
+		}
+		result, err := s.ExecCtx(ctx, "INSERT INTO sys_menu (parent_id,title,name,type,path,component,perm_code,icon,sort,visible,status) VALUES (?,?,?,?,?,?,?,?,?,?,?)", menu.ParentId, menu.Title, menu.Name, menu.Type, menu.Path, menu.Component, menu.PermCode, menu.Icon, menu.Sort, menu.Visible, menu.Status)
+		if err != nil {
+			return err
+		}
+		id, err := result.LastInsertId()
+		if err != nil {
+			return err
+		}
+		menu.Id = uint64(id)
+		if err := replaceMenuPermissions(ctx, s, int64(menu.Id), apiIds); err != nil {
+			return err
+		}
+		return rebuildAllRoleMenuPolicies(ctx, s)
+	})
+	if err != nil {
+		return err
+	}
+	return committedCacheError(m.DelCacheCtx(ctx, fmt.Sprintf("%s%d", cacheGozeroAdminNewSysMenuIdPrefix, menu.Id)))
+}
+
 func (m *customSysMenuModel) UpdatePartial(ctx context.Context, id uint64, patch MenuPatch) error {
 	err := m.TransactCtx(ctx, func(ctx context.Context, s sqlx.Session) error {
 		var current *SysMenu
@@ -186,7 +219,15 @@ func (m *customSysMenuModel) UpdatePartial(ctx context.Context, id uint64, patch
 			}
 		}
 		_, err := s.ExecCtx(ctx, "UPDATE sys_menu SET parent_id=?,title=?,name=?,type=?,path=?,component=?,perm_code=?,icon=?,sort=?,visible=?,status=? WHERE id=? AND deleted_at IS NULL", current.ParentId, current.Title, current.Name, current.Type, current.Path, current.Component, current.PermCode, current.Icon, current.Sort, current.Visible, current.Status, id)
-		return err
+		if err != nil {
+			return err
+		}
+		if patch.ApiIds != nil {
+			if err := replaceMenuPermissions(ctx, s, int64(id), patch.ApiIds); err != nil {
+				return err
+			}
+		}
+		return rebuildAllRoleMenuPolicies(ctx, s)
 	})
 	if err != nil {
 		return err
@@ -391,7 +432,10 @@ func (m *customSysMenuModel) SoftDeleteSubtree(ctx context.Context, rootId uint6
 			return err
 		}
 		_, err = s.ExecCtx(ctx, "UPDATE sys_menu SET deleted_at=NOW() WHERE id IN ("+ph+") AND deleted_at IS NULL", args...)
-		return err
+		if err != nil {
+			return err
+		}
+		return rebuildAllRoleMenuPolicies(ctx, s)
 	})
 	if err != nil {
 		return 0, err

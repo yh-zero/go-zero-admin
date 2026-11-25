@@ -15,13 +15,13 @@ interface Props { editor: MenuEditorState; resources: MenuInfo[]; resourcesReady
 
 const defaults: CreateMenuReq = {
   parent_id: 0, title: '', name: '', type: 2, path: '', component: '', perm_code: '',
-  icon: '', sort: 0, visible: true, status: 1,
+  icon: '', sort: 0, visible: true, status: 1, api_ids: [],
 };
 
 function editableValues(menu: MenuInfo): CreateMenuReq {
   return { parent_id: menu.parent_id, title: menu.title, name: menu.name, type: menu.type,
     path: menu.path, component: menu.component, perm_code: menu.perm_code, icon: menu.icon,
-    sort: menu.sort, visible: menu.visible, status: menu.status };
+    sort: menu.sort, visible: menu.visible, status: menu.status, api_ids: menu.api_ids ?? [] };
 }
 
 export function MenuForm({ editor, resources, resourcesReady, onClose }: Props) {

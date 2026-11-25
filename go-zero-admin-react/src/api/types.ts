@@ -15,15 +15,20 @@ export interface CaptchaResp { enabled: boolean; captcha_id: string; image_base6
 export interface MenuInfo {
   id: number; parent_id: number; title: string; name: string; type: number;
   path: string; component: string; perm_code: string; icon: string;
-  sort: number; visible: boolean; status: number; created_at: number; children?: MenuInfo[];
+  sort: number; visible: boolean; status: number; created_at: number; children?: MenuInfo[]; api_ids?: number[];
 }
 export interface CreateMenuReq {
   parent_id?: number; title: string; name?: string; type: number; path?: string;
-  component?: string; perm_code?: string; icon?: string; sort?: number; visible?: boolean; status?: number;
+  component?: string; perm_code?: string; icon?: string; sort?: number; visible?: boolean; status?: number; api_ids?: number[];
 }
 export type UpdateMenuReq = Partial<{ [K in keyof CreateMenuReq]: CreateMenuReq[K] | null }>;
 export interface GetMenuListReq extends PageParams { parent_id?: number; type?: number }
 export interface GetMenuTreeReq { type?: number; status?: number }
+export interface PermissionCheckReq { user_id?: number; dept_id?: number; method: string; path: string }
+export interface PermissionCheckResp {
+  allowed: boolean; role: string; domain: string; policy_revision: number;
+  generated_at: number; loaded_at: number; data_scopes: string[];
+}
 export interface UserInfo {
   id: number; username: string; nickname: string; real_name: string; email: string; phone: string;
   dept_id: number; dept_name: string; avatar_file_id: number; avatar_url: string; gender: number; status: number;
