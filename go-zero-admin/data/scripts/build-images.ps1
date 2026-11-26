@@ -1,4 +1,4 @@
-﻿# 交叉编译 Linux 二进制到 docker/.build/（离线环境：Docker Hub 不可达，替代 Dockerfile 内构建）
+# 交叉编译 Linux 二进制到 docker/.build/（离线环境：Docker Hub 不可达，替代 Dockerfile 内构建）
 # 用法：powershell -NoProfile -ExecutionPolicy Bypass -File .\data\scripts\build-images.ps1
 # 产出后执行：docker compose up -d --build
 $ErrorActionPreference = 'Stop'
@@ -11,6 +11,7 @@ $env:GOOS = 'linux'; $env:GOARCH = 'amd64'; $env:CGO_ENABLED = '0'
 $targets = [ordered]@{
   'api'        = './application/admin/api'
   'admin-rpc'  = './application/admin/rpc'
+  'migrate'    = './pkg/cmd/migrate'
   'app-rpc'    = './application/app/rpc'
   'file-rpc'   = './application/file/rpc'
   'ai-rpc'     = './application/ai/rpc'

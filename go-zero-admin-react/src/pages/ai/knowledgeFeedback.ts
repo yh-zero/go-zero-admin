@@ -71,7 +71,7 @@ export function reviewValuesToRequest(values: FeedbackReviewValues, snapshot: Fe
   return { expected_revision: revision, status: 'accepted', review: { answerable: values.answerable, expected_answer, required_facts, evidence, reason: values.reason } };
 }
 
-// 与离线merge-kb-feedback使用相同的NFKC/全部空白归一规则，仍只是词法检查。
+// 使用 NFKC 和全部空白归一规则；结果只作人工复核的词法线索。
 function validateFactEvidence(answer: string, facts: string[], evidence: { source_index: number; quote: string }[]) {
   const normalized = (value: string) => value.normalize('NFKC').replace(/\s+/gu, '');
   if (new Set(facts.map(normalized)).size !== facts.length) throw new Error('事实关键词不能重复（按NFKC和空白归一后比较）');

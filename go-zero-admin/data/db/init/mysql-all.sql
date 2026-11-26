@@ -392,6 +392,14 @@ CREATE TABLE `sys_policy_state` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='权限策略版本状态';
 INSERT INTO `sys_policy_state` (`id`,`revision`) VALUES (1,1);
 
+-- golang-migrate 版本表：全新初始化已完成当前 001/002，无需再执行迁移。
+DROP TABLE IF EXISTS `schema_migrations`;
+CREATE TABLE `schema_migrations` (
+  `version` bigint NOT NULL PRIMARY KEY,
+  `dirty` boolean NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+INSERT INTO `schema_migrations` (`version`,`dirty`) VALUES (2,0);
+
 -- sys_audit_log
 DROP TABLE IF EXISTS `sys_audit_log`;
 CREATE TABLE `sys_audit_log` (

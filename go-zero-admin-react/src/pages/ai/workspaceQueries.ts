@@ -19,9 +19,6 @@ export const aiWorkspaceKeys = {
   kbs: (scope: AiWorkspaceScope) => ['ai-workspace', ...scope, 'kbs'] as const,
   kbDocs: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb-docs', kbId] as const,
   kb: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb', kbId] as const,
-  qualityDatasets: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb-quality-datasets', kbId] as const,
-  qualityRuns: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb-quality-runs', kbId] as const,
-  qualityRun: (scope: AiWorkspaceScope, kbId: number, id: number) => ['ai-workspace', ...scope, 'kb-quality-run', kbId, id] as const,
   imports: (scope: AiWorkspaceScope, kbId: number) => ['ai-workspace', ...scope, 'kb-imports', kbId] as const,
   import: (scope: AiWorkspaceScope, kbId: number, batchId: string) => ['ai-workspace', ...scope, 'kb-import', kbId, batchId] as const,
 };

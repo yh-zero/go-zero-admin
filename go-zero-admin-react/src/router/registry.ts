@@ -20,7 +20,6 @@ export const pages = {
   ai_tool: lazy(() => import('../pages/ai/AITools')),
   ai_kb: lazy(() => import('../pages/ai/AIKnowledge')),
   ai_knowledge_workspace: lazy(() => import('../pages/ai/KnowledgeWorkspacePage')),
-  ai_knowledge_quality: lazy(() => import('../pages/ai/KnowledgeQualityPage')),
 };
 export const pageLinks = [
   { name: 'dashboard', path: '/dashboard', title: '工作台', icon: 'dashboard' },
