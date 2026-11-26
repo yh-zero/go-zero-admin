@@ -1,7 +1,9 @@
-# 从仓库根目录构建，以便前端和后端使用同一份评测逻辑。
+# 从仓库根目录构建后端和前端产物。
 FROM golang:1.27.3-alpine AS go-build
 WORKDIR /src
 ENV CGO_ENABLED=0 GOMAXPROCS=2
+# 单一代理被阻断时仍允许备用镜像和直连。
+ENV GOPROXY=https://goproxy.cn,https://proxy.golang.org,direct
 COPY go-zero-admin/go.mod go-zero-admin/go.sum ./
 RUN go mod download
 COPY go-zero-admin/application/ ./application/
@@ -23,7 +25,6 @@ WORKDIR /src/go-zero-admin-react
 COPY go-zero-admin-react/package.json go-zero-admin-react/pnpm-lock.yaml ./
 RUN npm install --global "$(node -p 'require("./package.json").packageManager')" && \
     pnpm install --frozen-lockfile
-COPY go-zero-admin/data/scripts/ ../go-zero-admin/data/scripts/
 COPY go-zero-admin-react/ ./
 RUN GOMAXPROCS=2 RAYON_NUM_THREADS=2 pnpm run build
 
