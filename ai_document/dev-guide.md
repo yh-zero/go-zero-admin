@@ -52,11 +52,21 @@ if (-not (Test-Path -LiteralPath .env.local)) { Copy-Item .env.local.example .en
 
 ### 数据库版本化迁移
 
-新库继续使用 `data/db/init/mysql-all.sql` 完整初始化；已有库使用 `data/db/migrations/*.up.sql` / `*.down.sql` 和 `application/migrate` 补齐结构。迁移命令不修改业务代码，默认读取 `application/migrate/etc/migrate.yaml` 的 MySQL DSN，执行前必须备份并核对实际目标库。
+新库使用 `data/db/init/mysql-all.sql` 完整初始化，并预置 `schema_migrations(version=2,dirty=false)`，不需要额外迁移命令；已有库使用 `data/db/migrations/*.up.sql` / `*.down.sql` 和一次性 Docker `migrate` 服务补齐结构。执行前必须备份并核对实际目标库。
+
+```powershell
+# 推荐：容器内执行，无需本机安装 Go
+docker compose --profile migrate run --rm migrate status
+docker compose --profile migrate run --rm migrate up
+```
+
+宿主 Go 调试时也可使用下面的命令，默认读取 `application/migrate/etc/migrate.yaml`：
 
 ```powershell
 # 查看当前版本、dirty 状态和迁移清单
 go run ./application/migrate -action status
+
+# 也支持位置参数：go run ./application/migrate status
 
 # 执行全部待迁移版本
 go run ./application/migrate -action up

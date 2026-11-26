@@ -22,11 +22,14 @@ docker compose up -d --build --wait
 
 ### 已有数据库升级
 
-新库由完整初始化 SQL 自动建表；已有数据库不要重新导入初始化 SQL。先备份，再在后端目录执行：
+新库由完整初始化 SQL 自动建表并写入当前迁移版本，无需额外命令。已有数据库不要重新导入初始化 SQL；先备份，再在后端目录执行：
 
 ```powershell
-go run ./application/migrate -action status
-go run ./application/migrate -action up
+# 查看版本
+docker compose --profile migrate run --rm migrate status
+
+# 执行旧库升级
+docker compose --profile migrate run --rm migrate up
 ```
 
 迁移入口、版本状态和失败恢复见[数据库版本化迁移](ai_document/dev-guide.md#数据库版本化迁移)。

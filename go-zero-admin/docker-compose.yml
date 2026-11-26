@@ -124,6 +124,18 @@ services:
       timeout: 3s
       retries: 30
 
+  # 一次性数据库迁移：docker compose --profile migrate run --rm migrate up
+  # 默认 profile 不启动，避免生产发布被意外迁移。
+  migrate:
+    profiles: ["migrate"]
+    build: { context: ., dockerfile: docker/Dockerfile, target: migrate }
+    command: ["up"]
+    volumes:
+      - ./docker/etc/migrate.yaml:/app/etc/migrate.yaml:ro
+      - ./data/db/migrations:/app/data/db/migrations:ro
+    depends_on:
+      mysql: { condition: service_healthy }
+
   redis:
     image: redis:8
     container_name: gozero-redis8

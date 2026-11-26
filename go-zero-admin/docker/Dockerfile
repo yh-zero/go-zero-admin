@@ -1,4 +1,4 @@
-# 打包镜像：api / admin-rpc / app-rpc / file-rpc / ai-rpc / tenant-rpc（数据库完整初始化见 dev-guide.md“数据初始化”）
+# 打包镜像：api / admin-rpc / app-rpc / file-rpc / ai-rpc / tenant-rpc / migrate（数据库完整初始化见 dev-guide.md“数据初始化”）
 # 离线约束：Docker Hub 不可达，二进制由 data/scripts/build-images.ps1 在宿主交叉编译到 docker/.build/
 # 基础镜像只用本地已有的 alpine:3.24.2；CA 证书从本地 golang:1.27.1-alpine 复制（ai-rpc 出站 HTTPS 需要）
 
@@ -12,6 +12,10 @@ WORKDIR /app
 FROM base AS api
 COPY docker/.build/api /app/api
 ENTRYPOINT ["/app/api", "-f", "etc/admin.yaml"]
+
+FROM base AS migrate
+COPY docker/.build/migrate /app/migrate
+ENTRYPOINT ["/app/migrate", "-f", "etc/migrate.yaml"]
 
 FROM base AS admin-rpc
 COPY docker/.build/admin-rpc /app/admin-rpc

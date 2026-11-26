@@ -44,10 +44,38 @@ func main() {
 	flag.IntVar(&opts.version, "version", 0, "force 动作的目标版本")
 	flag.IntVar(&opts.steps, "steps", 1, "down 动作的回退步数")
 	flag.BoolVar(&opts.yes, "yes", false, "确认执行 down 或 force")
-	flag.Parse()
+	action, args, err := splitAction(os.Args[1:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := flag.CommandLine.Parse(args); err != nil {
+		log.Fatal(err)
+	}
+	if flag.NArg() != 0 {
+		log.Fatal("存在无法识别的位置参数")
+	}
+	if action != "" {
+		opts.action = action
+	}
 	if err := run(context.Background(), opts); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func splitAction(args []string) (string, []string, error) {
+	action := ""
+	for i, arg := range args {
+		switch arg {
+		case "up", "status", "down", "force":
+			if action != "" {
+				return "", nil, fmt.Errorf("只允许一个位置参数")
+			}
+			action = arg
+			args = append(args[:i:i], args[i+1:]...)
+			return action, args, nil
+		}
+	}
+	return "", args, nil
 }
 
 func run(ctx context.Context, opts options) error {

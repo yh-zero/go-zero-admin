@@ -14,6 +14,17 @@ import (
 	mysqlDriver "github.com/go-sql-driver/mysql"
 )
 
+func TestPositionalActionBeforeFlags(t *testing.T) {
+	action, args, err := splitAction([]string{"down", "-yes"})
+	if err != nil || action != "down" || len(args) != 1 || args[0] != "-yes" {
+		t.Fatalf("位置参数解析错误: action=%s args=%v err=%v", action, args, err)
+	}
+	action, args, err = splitAction([]string{"-f", "custom.yaml", "force", "-version", "2", "-yes"})
+	if err != nil || action != "force" || len(args) != 5 {
+		t.Fatalf("混合参数解析错误: action=%s args=%v err=%v", action, args, err)
+	}
+}
+
 func TestMigrationURLs(t *testing.T) {
 	if got := mysqlURL("root:123456@tcp(mysql:3306)/gozero_admin"); got != "mysql://root:123456@tcp(mysql:3306)/gozero_admin" {
 		t.Fatalf("mysql URL mismatch: %s", got)
