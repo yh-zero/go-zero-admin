@@ -10,7 +10,6 @@ import { QueryState } from '../../components/QueryState';
 import { formatTime } from '../../utils/format';
 import { ApiError } from '../../utils/response';
 import { FeedbackRevisionNotice } from './FeedbackRevisionNotice';
-import { FeedbackDatasetGenerator } from './FeedbackDatasetGenerator';
 import { feedbackLabels, feedbackRegressionJson, kbFeedbackDetailOptions, kbFeedbackListOptions, kbReviewMutationOptions, parseFeedbackSnapshot, reviewStatusLabels, reviewValuesToRequest } from './knowledgeFeedback';
 import type { FeedbackReviewValues, FeedbackSnapshot } from './knowledgeFeedback';
 import type { useAiWorkspaceGuard } from './useAiWorkspaceGuard';
@@ -36,7 +35,7 @@ export function KnowledgeFeedbackPanel({ scope, kbId, guard, active = true }: { 
     setParams(value => value === params ? { ...value, page: lastPage } : value);
   }, [current, params, records.isFetching, records.isSuccess, total]);
   return <section className={styles.panel} aria-label="知识库反馈与复核">
-    <Typography.Paragraph type="secondary">这里保留本人知识库分析的评价。采纳后可用样本新建评测；采纳和题集准备不会运行模型。</Typography.Paragraph>
+    <Typography.Paragraph type="secondary">这里保留本人知识库分析的评价。采纳后可下载样本用于人工回归；采纳和导出不会运行模型。</Typography.Paragraph>
     <div className={styles.toolbar}><Select aria-label="反馈状态" className={styles.statusSelect} value={params.status} disabled={guard.writing}
       options={[{ value: 'pending', label: '待复核' }, { value: 'accepted', label: '已采纳' }, { value: 'dismissed', label: '已忽略' }, { value: 'all', label: '全部评价' }]}
       onChange={status => { if (guard.isCurrent() && !guard.writing) setParams(value => ({ ...value, page: 1, status })); }} />
@@ -61,7 +60,6 @@ function KnowledgeFeedbackDetail({ scope, kbId, id, guard, onClose }: { scope: A
   const client = useQueryClient();
   const detail = useQuery({ ...kbFeedbackDetailOptions(scope, kbId, id), enabled: guard.can('sys:ai:kb:list') });
   const [notice, setNotice] = useState('');
-  const [generating, setGenerating] = useState(false);
   const record = detail.data?.feedback;
   const snapshot = record ? parseFeedbackSnapshot(record.snapshot) : null;
   const readVerified = detail.isSuccess && !detail.isFetching && !detail.error;
@@ -97,11 +95,9 @@ function KnowledgeFeedbackDetail({ scope, kbId, id, guard, onClose }: { scope: A
     {record && <div className={styles.detail}>
       <Space wrap><Tag>{feedbackLabels[record.feedback]}</Tag><Tag>{reviewStatusLabels[record.status]}</Tag><Typography.Text type="secondary">版本 {record.revision}</Typography.Text>
         {guard.can('sys:ai:task:list') && <Link to={`/ai/tasks?task_id=${record.task_id}`}>打开原运行记录 #{record.task_id}</Link>}
-        {record.status === 'accepted' && <><Button type="primary" disabled={guard.writing || !snapshot || !readVerified} onClick={() => { if (guard.isCurrent()) setGenerating(true); }}>用此样本新建评测</Button>
-          <Dropdown trigger={['click']} menu={{ items: [{ key: 'regression', label: '下载回归样本', disabled: guard.writing || !snapshot || !readVerified, onClick: () => void download() }] }}>
+        {record.status === 'accepted' && <><Dropdown trigger={['click']} menu={{ items: [{ key: 'regression', label: '下载回归样本', disabled: guard.writing || !snapshot || !readVerified, onClick: () => void download() }] }}>
             <Button aria-label="更多导出" disabled={guard.writing || !snapshot || !readVerified}>更多导出 <DownOutlined aria-hidden /></Button>
           </Dropdown></>}</Space>
-      {generating && readVerified && record.status === 'accepted' && <FeedbackDatasetGenerator key={`${record.id}:${record.revision}`} scope={scope} kbId={kbId} record={record} guard={guard} onClose={() => setGenerating(false)} />}
       <section><h3>原始问题</h3><p className={styles.text}>{record.question}</p><h3>当时的分析回答</h3><pre className={styles.code}>{record.answer}</pre>
         {record.note && <><h4>评价说明</h4><p className={styles.text}>{record.note}</p></>}</section>
       {snapshot ? <FeedbackSourceSnapshot snapshot={snapshot} /> : <Alert type="warning" title="历史快照无法识别，暂不能采纳或导出，请核对原始记录。" />}

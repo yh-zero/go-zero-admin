@@ -53,9 +53,9 @@ function KnowledgeWorkspaceSession({ scope, kbId }: { scope: AiWorkspaceScope; k
     <div className={styles.heading}><div><Button type="link" icon={<ArrowLeftOutlined />} disabled={guard.writing} onClick={() => navigate('/ai/knowledge')}>全部知识库</Button><Typography.Title level={3}>{(!kb.error && kb.data?.kb.name) || '知识库工作区'}</Typography.Title>
       {kb.data && !kb.error && <Typography.Text type="secondary">{kb.data.kb.description}</Typography.Text>}</div><Space wrap>
         {kb.data && !kb.error && guard.can('sys:ai:conversation:list') && guard.can('sys:ai:message:send') && <Button disabled={guard.writing} onClick={() => navigate('/ai/chat', { state: { knowledge: { id: kbId, scope: JSON.stringify(scope) } } })}>在对话中使用</Button>}
-        <Dropdown trigger={['click']} disabled={guard.writing || !kb.data || !!kb.error} menu={{ items: [{ key: 'feedback', label: '反馈与复核' }, { key: 'quality', label: '质量验收' }], onClick: ({ key }) => {
+        <Dropdown trigger={['click']} disabled={guard.writing || !kb.data || !!kb.error} menu={{ items: [{ key: 'feedback', label: '反馈与复核' }], onClick: () => {
           if (!guard.isCurrent() || guard.writing) return;
-          if (key === 'quality') navigate(`/ai/knowledge/${kbId}/quality`); else { setFeedbackVisited(true); setFeedbackOpen(true); }
+          setFeedbackVisited(true); setFeedbackOpen(true);
         } }}><Button>管理</Button></Dropdown><Button icon={<ReloadOutlined />} aria-label="刷新知识库" loading={kb.isFetching} onClick={refresh} /></Space></div>
     <QueryState isPending={kb.isPending} error={kb.error} onRetry={() => kb.refetch()} />
     {workspaceVisited && kb.data && !kb.error && kb.data.kb.ready_count > 0 && <div hidden={feedbackOpen}><Card title="向这个知识库提问">
