@@ -32,7 +32,7 @@ docker compose --profile migrate run --rm migrate status
 docker compose --profile migrate run --rm migrate up
 ```
 
-迁移入口、版本状态和失败恢复见[数据库版本化迁移](ai_document/dev-guide.md#数据库版本化迁移)。
+迁移数据库地址默认使用本地开发配置；其他环境可设置 `MYSQL_DATASOURCE` 覆盖。迁移入口、版本状态和失败恢复见[数据库版本化迁移](ai_document/dev-guide.md#数据库版本化迁移)。
 
 ## 从资料到有来源的回答
 

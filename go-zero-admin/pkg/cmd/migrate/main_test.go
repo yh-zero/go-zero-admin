@@ -25,6 +25,41 @@ func TestPositionalActionBeforeFlags(t *testing.T) {
 	}
 }
 
+func TestActionFlagValueIsNotPositional(t *testing.T) {
+	for _, args := range [][]string{{"-action", "down", "-yes"}, {"-action", "force", "-version", "2", "-yes"}, {"-f", "up", "status"}} {
+		action, remaining, err := splitAction(args)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(args) == 3 && args[0] == "-f" && action != "status" {
+			t.Fatalf("位置动作解析错误: action=%s", action)
+		}
+		if args[0] == "-action" && action != "" {
+			t.Fatalf("-action 的值被误识别为位置参数: action=%s", action)
+		}
+		if len(remaining) != len(args)-1 && action != "" {
+			t.Fatalf("位置参数移除错误: %v", remaining)
+		}
+	}
+}
+
+func TestDataSourceEnvOverride(t *testing.T) {
+	configFile := filepath.Join(t.TempDir(), "migrate.yaml")
+	if err := os.WriteFile(configFile, []byte("Mysql:\n  DataSource: config-dsn\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("MYSQL_DATASOURCE", "env-dsn")
+	dsn, err := loadDataSource(configFile)
+	if err != nil || dsn != "env-dsn" {
+		t.Fatalf("环境变量未覆盖配置: dsn=%s err=%v", dsn, err)
+	}
+	t.Setenv("MYSQL_DATASOURCE", "")
+	dsn, err = loadDataSource(configFile)
+	if err != nil || dsn != "config-dsn" {
+		t.Fatalf("配置文件默认值错误: dsn=%s err=%v", dsn, err)
+	}
+}
+
 func TestMigrationURLs(t *testing.T) {
 	if got := mysqlURL("root:123456@tcp(mysql:3306)/gozero_admin"); got != "mysql://root:123456@tcp(mysql:3306)/gozero_admin" {
 		t.Fatalf("mysql URL mismatch: %s", got)
@@ -35,6 +70,7 @@ func TestMigrationURLs(t *testing.T) {
 }
 
 func TestMigrationAgainstMySQL(t *testing.T) {
+	t.Setenv("MYSQL_DATASOURCE", "")
 	rootDSN := os.Getenv("GOZERO_MIGRATE_TEST_DSN")
 	if rootDSN == "" {
 		t.Skip("需要隔离的 GOZERO_MIGRATE_TEST_DSN")
@@ -63,7 +99,7 @@ func TestMigrationAgainstMySQL(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	initSQL, err := os.ReadFile(filepath.Join("..", "..", "data", "db", "init", "mysql-all.sql"))
+	initSQL, err := os.ReadFile(filepath.Join("..", "..", "..", "data", "db", "init", "mysql-all.sql"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +110,7 @@ func TestMigrationAgainstMySQL(t *testing.T) {
 	if err := os.WriteFile(configFile, []byte("Mysql:\n  DataSource: "+strconv.Quote(testConfig.FormatDSN())+"\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	opts := options{configFile: configFile, dir: filepath.Join("..", "..", "data", "db", "migrations"), steps: 1}
+	opts := options{configFile: configFile, dir: filepath.Join("..", "..", "..", "data", "db", "migrations"), steps: 1}
 	ctx := context.Background()
 	opts.action = "up"
 	if err := run(ctx, opts); err != nil {

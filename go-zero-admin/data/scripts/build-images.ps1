@@ -11,7 +11,7 @@ $env:GOOS = 'linux'; $env:GOARCH = 'amd64'; $env:CGO_ENABLED = '0'
 $targets = [ordered]@{
   'api'        = './application/admin/api'
   'admin-rpc'  = './application/admin/rpc'
-  'migrate'    = './application/migrate'
+  'migrate'    = './pkg/cmd/migrate'
   'app-rpc'    = './application/app/rpc'
   'file-rpc'   = './application/file/rpc'
   'ai-rpc'     = './application/ai/rpc'

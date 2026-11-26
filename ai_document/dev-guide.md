@@ -60,22 +60,29 @@ docker compose --profile migrate run --rm migrate status
 docker compose --profile migrate run --rm migrate up
 ```
 
-宿主 Go 调试时也可使用下面的命令，默认读取 `application/migrate/etc/migrate.yaml`：
+宿主 Go 调试时也可使用下面的命令，默认读取 `pkg/cmd/migrate/etc/migrate.yaml`。配置文件保留本地开发默认值，其他环境优先用 `MYSQL_DATASOURCE` 覆盖，不提交真实凭据：
+
+```powershell
+$env:MYSQL_DATASOURCE='user:password@tcp(host:3306)/gozero_admin?charset=utf8mb4&parseTime=true'
+go run ./pkg/cmd/migrate -action status
+```
+
+Docker `migrate` 服务也读取宿主的 `MYSQL_DATASOURCE`；未设置时使用 `docker/etc/migrate.yaml` 的容器网络默认值。
 
 ```powershell
 # 查看当前版本、dirty 状态和迁移清单
-go run ./application/migrate -action status
+go run ./pkg/cmd/migrate -action status
 
-# 也支持位置参数：go run ./application/migrate status
+# 也支持位置参数：go run ./pkg/cmd/migrate status
 
 # 执行全部待迁移版本
-go run ./application/migrate -action up
+go run ./pkg/cmd/migrate -action up
 
 # 仅在已核对目标库后回退一步
-go run ./application/migrate -action down -yes
+go run ./pkg/cmd/migrate -action down -yes
 
 # 仅在确认当前 schema 与版本一致后修复版本状态
-go run ./application/migrate -action force -version 2 -yes
+go run ./pkg/cmd/migrate -action force -version 2 -yes
 ```
 
 `status` 输出 `current_version` 和 `dirty`，迁移失败时 dirty=true，先修复失败原因再重试，不要用 force 掩盖未完成的结构变更。当前迁移 001 为审计/文件增强，002 为权限映射和诊断资源；001/002 均按 information_schema 做存在性检查，可在包含这些结构的开发库上重复执行。down 仅用于开发恢复，生产回滚优先使用迁移前备份。

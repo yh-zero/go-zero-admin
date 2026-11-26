@@ -38,7 +38,7 @@ func (migrateLogger) Verbose() bool                             { return false }
 
 func main() {
 	opts := options{}
-	flag.StringVar(&opts.configFile, "f", "application/migrate/etc/migrate.yaml", "迁移配置文件")
+	flag.StringVar(&opts.configFile, "f", "pkg/cmd/migrate/etc/migrate.yaml", "迁移配置文件")
 	flag.StringVar(&opts.dir, "dir", "data/db/migrations", "迁移文件目录")
 	flag.StringVar(&opts.action, "action", "up", "执行动作：up、status、down、force")
 	flag.IntVar(&opts.version, "version", 0, "force 动作的目标版本")
@@ -64,8 +64,16 @@ func main() {
 
 func splitAction(args []string) (string, []string, error) {
 	action := ""
+	skipValue := false
 	for i, arg := range args {
+		if skipValue {
+			skipValue = false
+			continue
+		}
 		switch arg {
+		case "-f", "-dir", "-action", "-version", "-steps":
+			skipValue = true
+			continue
 		case "up", "status", "down", "force":
 			if action != "" {
 				return "", nil, fmt.Errorf("只允许一个位置参数")
@@ -78,6 +86,20 @@ func splitAction(args []string) (string, []string, error) {
 	return "", args, nil
 }
 
+func loadDataSource(configFile string) (string, error) {
+	var cfg migrationConfig
+	if err := conf.Load(configFile, &cfg, conf.UseEnv()); err != nil {
+		return "", fmt.Errorf("读取迁移配置: %w", err)
+	}
+	if dsn := os.Getenv("MYSQL_DATASOURCE"); dsn != "" {
+		return dsn, nil
+	}
+	if cfg.Mysql.DataSource == "" {
+		return "", fmt.Errorf("Mysql.DataSource 不能为空，或通过 MYSQL_DATASOURCE 指定")
+	}
+	return cfg.Mysql.DataSource, nil
+}
+
 func run(ctx context.Context, opts options) error {
 	if opts.configFile == "" {
 		return fmt.Errorf("迁移配置文件不能为空")
@@ -88,18 +110,15 @@ func run(ctx context.Context, opts options) error {
 	if opts.steps <= 0 {
 		return fmt.Errorf("steps 必须大于 0")
 	}
-	var cfg migrationConfig
-	if err := conf.Load(opts.configFile, &cfg, conf.UseEnv()); err != nil {
-		return fmt.Errorf("读取迁移配置: %w", err)
-	}
-	if cfg.Mysql.DataSource == "" {
-		return fmt.Errorf("Mysql.DataSource 不能为空")
+	dsn, err := loadDataSource(opts.configFile)
+	if err != nil {
+		return err
 	}
 	sourceDriver, err := source.Open(fileURL(opts.dir))
 	if err != nil {
 		return fmt.Errorf("打开迁移文件: %w", err)
 	}
-	m, err := migrate.NewWithSourceInstance("file", sourceDriver, mysqlURL(cfg.Mysql.DataSource))
+	m, err := migrate.NewWithSourceInstance("file", sourceDriver, mysqlURL(dsn))
 	if err != nil {
 		_ = sourceDriver.Close()
 		return fmt.Errorf("初始化迁移器: %w", err)

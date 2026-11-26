@@ -130,6 +130,8 @@ services:
     profiles: ["migrate"]
     build: { context: ., dockerfile: docker/Dockerfile, target: migrate }
     command: ["up"]
+    environment:
+      MYSQL_DATASOURCE: "${MYSQL_DATASOURCE:-}"
     volumes:
       - ./docker/etc/migrate.yaml:/app/etc/migrate.yaml:ro
       - ./data/db/migrations:/app/data/db/migrations:ro
