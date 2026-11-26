@@ -85,7 +85,7 @@ go run ./pkg/cmd/migrate -action down -yes
 go run ./pkg/cmd/migrate -action force -version 2 -yes
 ```
 
-`status` 输出 `current_version` 和 `dirty`，迁移失败时 dirty=true，先修复失败原因再重试，不要用 force 掩盖未完成的结构变更。当前迁移 001 为审计/文件增强，002 为权限映射和诊断资源；001/002 均按 information_schema 做存在性检查，可在包含这些结构的开发库上重复执行。down 仅用于开发恢复，生产回滚优先使用迁移前备份。
+`status` 输出 `current_version` 和 `dirty`，迁移失败时 dirty=true，先修复失败原因再重试，不要用 force 掩盖未完成的结构变更。001/002 已合并进完整初始化 SQL，所有当前环境版本为 2，`data/db/migrations/` 保留基线说明和不含变更 SQL 的 `000002_baseline.down.sql` 占位；后续新增迁移从 000003 开始。down 仅用于开发恢复，生产回滚优先使用迁移前备份。
 
 开源演示账号见[快速开始](../README.md#快速开始)。首次安装已有基础演示数据，历史前端样例导入见[前端说明](../go-zero-admin-react/README.md)。
 

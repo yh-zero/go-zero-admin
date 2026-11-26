@@ -136,6 +136,19 @@ func run(ctx context.Context, opts options) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	if opts.action == "up" || opts.action == "down" {
+		hasMigrations, sourceErr := sourceHasMigrations(sourceDriver)
+		if sourceErr != nil {
+			return fmt.Errorf("检查迁移文件: %w", sourceErr)
+		}
+		if !hasMigrations {
+			if opts.action == "down" {
+				return fmt.Errorf("没有迁移文件，无法执行 down")
+			}
+			log.Printf("没有迁移文件，数据库保持当前版本")
+			return printStatus(m, sourceDriver)
+		}
+	}
 	switch opts.action {
 	case "up":
 		err = m.Up()
@@ -146,6 +159,15 @@ func run(ctx context.Context, opts options) error {
 	case "status":
 		return printStatus(m, sourceDriver)
 	case "down":
+		currentVersion, _, versionErr := m.Version()
+		if errors.Is(versionErr, migrate.ErrNilVersion) {
+			currentVersion = 0
+		} else if versionErr != nil {
+			return fmt.Errorf("读取当前迁移版本: %w", versionErr)
+		}
+		if currentVersion <= 2 {
+			return fmt.Errorf("当前已到初始化基线 version=2，不允许继续向下迁移")
+		}
 		if !opts.yes {
 			return fmt.Errorf("down 会撤销数据库迁移，必须显式指定 -yes")
 		}
@@ -162,6 +184,14 @@ func run(ctx context.Context, opts options) error {
 		return fmt.Errorf("执行迁移 %s 失败: %w", opts.action, err)
 	}
 	return printStatus(m, sourceDriver)
+}
+
+func sourceHasMigrations(sourceDriver source.Driver) (bool, error) {
+	_, err := sourceDriver.First()
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	return err == nil, err
 }
 
 func printStatus(m *migrate.Migrate, sourceDriver source.Driver) error {
@@ -182,6 +212,9 @@ func printStatus(m *migrate.Migrate, sourceDriver source.Driver) error {
 	}
 	for {
 		reader, identifier, readErr := sourceDriver.ReadUp(current)
+		if errors.Is(readErr, os.ErrNotExist) {
+			reader, identifier, readErr = sourceDriver.ReadDown(current)
+		}
 		if readErr != nil {
 			return fmt.Errorf("读取迁移版本 %d: %w", current, readErr)
 		}

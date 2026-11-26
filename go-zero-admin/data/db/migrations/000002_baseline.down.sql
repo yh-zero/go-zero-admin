@@ -1,0 +1,2 @@
+-- 基线占位：version=2 已由 mysql-all.sql 完整创建。
+-- golang-migrate 在 Up 前会检查当前版本存在；此文件不包含任何变更 SQL。
